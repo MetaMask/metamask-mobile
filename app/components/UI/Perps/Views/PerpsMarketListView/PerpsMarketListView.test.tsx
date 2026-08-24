@@ -15,6 +15,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -734,6 +737,7 @@ describe('PerpsMarketListView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playSelection).mockClear();
 
     // Reset watchlist flag so each test starts with it off
     mockWatchlistFlagEnabled = false;
@@ -862,9 +866,7 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByPlaceholderText('Search by token symbol'),
-      ).toBeOnTheScreen();
+      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
     });
 
     it('disables autocorrect and autocapitalize on the search input', () => {
@@ -1616,6 +1618,37 @@ describe('PerpsMarketListView', () => {
         }),
       );
     });
+
+    it('plays selection haptics when enableHaptics is opted in', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          replaceOnSelect: true,
+          enableHaptics: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play selection haptics when enableHaptics is omitted', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: {},
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).not.toHaveBeenCalled();
+    });
   });
 
   describe('Loading States', () => {
@@ -1749,7 +1782,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Search-only (no category filter active)', () => {
-      it('shows the NO_RESULTS container with no-tokens description', () => {
+      it('shows the NO_RESULTS container with no-markets description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ' }),
         );
@@ -1760,7 +1793,7 @@ describe('PerpsMarketListView', () => {
         ).toBeOnTheScreen();
         expect(
           screen.getByText(
-            'We couldn\'t find any tokens with the name "XYZ". Try a different search.',
+            'We couldn\'t find any markets with the name "XYZ". Try a different search.',
           ),
         ).toBeOnTheScreen();
       });
@@ -2833,7 +2866,7 @@ describe('PerpsMarketListView', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Verify search input is visible
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      const searchInput = screen.getByPlaceholderText('Search');
       expect(searchInput).toBeOnTheScreen();
 
       // Verify all markets are still displayed (whitespace is trimmed)

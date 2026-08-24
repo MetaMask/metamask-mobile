@@ -55,17 +55,20 @@ afterEach(() => {
 
 describeForPlatforms('WatchlistFullScreenView', () => {
   it('loads and displays all token fields for each editable row (newest first)', async () => {
-    const { findAllByTestId } = renderWatchlistFullScreenViewWithRoutes({
+    const { getAllByTestId } = renderWatchlistFullScreenViewWithRoutes({
       deterministicFiat: true,
     });
 
-    const editableRows = await waitFor(async () => {
-      const rows = await findAllByTestId(
-        WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
-      );
-      expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
-      return rows;
-    });
+    const editableRows = await waitFor(
+      () => {
+        const rows = getAllByTestId(
+          WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
+        );
+        expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
+        return rows;
+      },
+      { timeout: 5000 },
+    );
 
     editableRows.forEach((row, index) => {
       const assetId = NEWEST_FIRST_ASSET_IDS[index];

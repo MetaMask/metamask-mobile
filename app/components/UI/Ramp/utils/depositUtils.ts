@@ -1,7 +1,7 @@
 import { DepositOrder } from '../types/legacyDeposit';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { renderNumber } from '../../../../util/number';
+import { renderNumber } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../util/theme/models';
 

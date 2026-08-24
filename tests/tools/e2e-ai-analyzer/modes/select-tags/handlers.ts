@@ -19,6 +19,7 @@ import {
   getFrameworkInfraChanges,
   getChangedSpecFiles,
   getChangedSharedInfraFiles,
+  isIgnorableSharedInfraCompanion,
   isSpecFile,
   SPEC_PATH_PREFIXES,
 } from './test-infrastructure-paths';
@@ -316,7 +317,44 @@ function extractTagsFromSpecFile(
 /** English locale file consumed by UI copy and by E2E text/label selectors (enContent). */
 const EN_LOCALE_FILE = 'locales/languages/en.json';
 
+const E2E_RELEVANT_WORKFLOW_EXACT_PATHS = new Set([
+  '.github/workflows/ci.yml',
+  '.github/workflows/get-requirements.yml',
+  '.github/workflows/build-android-e2e.yml',
+  '.github/workflows/build-ios-e2e.yml',
+  '.github/workflows/update-e2e-fixtures.yml',
+  '.github/workflows/build.yml',
+]);
+
+function isE2ERelevantWorkflow(file: string): boolean {
+  const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '');
+
+  return (
+    E2E_RELEVANT_WORKFLOW_EXACT_PATHS.has(normalizedFile) ||
+    (normalizedFile.startsWith('.github/workflows/run-e2e-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (normalizedFile.startsWith('.github/workflows/run-appium-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (normalizedFile.startsWith('.github/scripts/e2e-') &&
+      normalizedFile.endsWith('.mjs'))
+  );
+}
+
 const HARD_RULES: HardRule[] = [
+  {
+    name: 'e2e-relevant-workflow-change',
+    description:
+      'E2E-relevant workflow or E2E CI script changed; skip AI and run all E2E tags',
+    check: (changedFiles) => {
+      const matchingFiles = changedFiles.filter(isE2ERelevantWorkflow);
+      if (matchingFiles.length === 0) return null;
+
+      return makeConservativeResult(
+        'e2e-relevant-workflow-change',
+        `E2E-relevant workflow changed: ${matchingFiles.join(', ')}`,
+      );
+    },
+  },
   {
     name: 'controller-version-update',
     description: '@metamask controller package version updated in package.json',
@@ -394,25 +432,13 @@ const HARD_RULES: HardRule[] = [
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
 
-      // Paths that don't affect E2E test selection — CI, docs, scripts, config, etc.
-      // Changes to these alongside shared test infra should not prevent the hard rule.
-      const ignorablePathPrefixes = [
-        '.github/',
-        'scripts/',
-        'docs/',
-        '.changeset/',
-        '.yarn/',
-        '.vscode/',
-        '.cursor/',
-      ];
-
-      // Only bail to AI if there are actual app code changes (not just CI/docs/scripts)
-      const hasAppCodeChanges = changedFiles.some(
-        (f) =>
-          !f.startsWith('tests/') &&
-          !ignorablePathPrefixes.some((prefix) => f.startsWith(prefix)),
+      // App changes and E2E-relevant workflow changes go to AI so their wider
+      // impact is considered. Documentation, assets, locale files, and
+      // performance-only workflow changes do not affect smoke-tag reachability.
+      const hasNonIgnorableNonTestChanges = changedFiles.some(
+        (f) => !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
       );
-      if (hasAppCodeChanges) return null;
+      if (hasNonIgnorableNonTestChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
 

@@ -37,10 +37,11 @@ import {
   buildMockPredictPosition,
 } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
-import type {
-  PredictMarket,
-  PredictPosition,
-  PredictPriceHistoryPoint,
+import {
+  PredictPositionStatus,
+  type PredictMarket,
+  type PredictPosition,
+  type PredictPriceHistoryPoint,
 } from '../../types';
 
 const MARKET_ID = MOCK_PREDICT_MARKET.id;
@@ -653,6 +654,7 @@ describe('PredictMarketDetails', () => {
           marketId: MOCK_PREDICT_CLOSED_MARKET.id,
           claimable: true,
           percentPnl: 42,
+          status: PredictPositionStatus.WON,
         }),
       ]);
       const claimSpy = controllerMock('claimWithConfirmation');

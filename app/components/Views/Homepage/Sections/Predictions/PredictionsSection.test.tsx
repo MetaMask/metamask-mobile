@@ -15,6 +15,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockIsFocused = jest.fn(() => true);
 const mockCreateEventBuilder = jest.fn((event: unknown) => ({
   addProperties: (properties: Record<string, unknown>) => ({
     build: () => ({ event, properties }),
@@ -120,7 +121,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused(),
   };
 });
 
@@ -318,6 +319,7 @@ const mockMarkets = [
 describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFocused.mockReturnValue(true);
     mockClaim.mockResolvedValue(undefined);
     mockSelectPrivacyMode.mockReturnValue(false);
 
@@ -412,21 +414,25 @@ describe('PredictionsSection', () => {
     });
   });
 
-  it('gates crypto up/down market data on homepage focus', () => {
-    const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
-      '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
-    ) as {
-      useCurrentCryptoUpDownMarketData: jest.Mock;
-    };
+  it.each([true, false])(
+    'sets crypto up/down market data enabled to %s based on homepage focus',
+    (isFocused) => {
+      const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
+        '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+      ) as {
+        useCurrentCryptoUpDownMarketData: jest.Mock;
+      };
+      mockIsFocused.mockReturnValue(isFocused);
 
-    renderWithProvider(
-      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
-    expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
-    );
-  });
+      expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: isFocused }),
+      );
+    },
+  );
 
   it('navigates with home_section entry_point when trending markets title is pressed', () => {
     renderWithProvider(

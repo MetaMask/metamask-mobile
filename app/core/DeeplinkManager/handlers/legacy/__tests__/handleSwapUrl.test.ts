@@ -15,6 +15,13 @@ jest.mock('../../../../NavigationService', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace',
+  () => ({
+    startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
+  }),
+);
+
 // Mock fetchAssetMetadata from the utils module
 jest.mock(
   '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils',

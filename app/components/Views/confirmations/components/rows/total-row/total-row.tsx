@@ -1,8 +1,4 @@
 import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
@@ -20,6 +16,11 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 
@@ -48,8 +49,8 @@ export function TotalRow() {
   }
 
   const textColor = isHeadlessBuyInProgress
-    ? TextColor.Muted
-    : TextColor.Alternative;
+    ? TextColor.TextMuted
+    : TextColor.TextAlternative;
 
   return (
     <View testID="total-row">
@@ -59,7 +60,7 @@ export function TotalRow() {
         rowVariant={InfoRowVariant.Small}
       >
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           color={textColor}
           testID={ConfirmationRowComponentIDs.TOTAL}
         >

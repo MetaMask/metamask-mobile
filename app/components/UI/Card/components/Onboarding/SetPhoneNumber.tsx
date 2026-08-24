@@ -36,7 +36,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -95,9 +96,11 @@ const SetPhoneNumber = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SET_PHONE_NUMBER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.SET_PHONE_NUMBER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -123,10 +126,12 @@ const SetPhoneNumber = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: areaCode,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SET_PHONE_NUMBER_BUTTON,
+              phone_number_country_code: areaCode,
+            }),
+          )
           .build(),
       );
       const { success } = await sendPhoneVerification({

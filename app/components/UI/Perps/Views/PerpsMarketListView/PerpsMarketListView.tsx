@@ -65,6 +65,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
@@ -91,6 +92,7 @@ const PerpsMarketListView = ({
   );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const { playSelection } = useHaptics();
 
   const perpsNavigation = usePerpsNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -107,6 +109,7 @@ const PerpsMarketListView = ({
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const replaceOnSelect = route.params?.replaceOnSelect === true;
+  const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isRecentlyViewedEnabled = useSelector(
@@ -246,9 +249,14 @@ const PerpsMarketListView = ({
     ],
   );
 
-  // Handler for market press (defined early to avoid use-before-define)
+  // Handler for market press (defined early to avoid use-before-define).
+  // Covers FlashList rows, watchlist rows, and recently-viewed tiles.
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
@@ -340,6 +348,8 @@ const PerpsMarketListView = ({
       }
     },
     [
+      enableHaptics,
+      playSelection,
       onMarketSelect,
       navigation,
       replaceOnSelect,
@@ -768,9 +778,9 @@ const PerpsMarketListView = ({
     const hasSearchQuery = searchQuery.trim().length > 0;
     const hasActiveFilter = marketTypeFilter !== 'all';
 
-    // Filter-priority: both search and category filter active, no results.
-    // Show a filter-aware description and a "Clear filter" CTA so the user
-    // can widen results without losing their search term.
+    // Search + active filter, no results in this category → "Clear filter".
+    // Consistent regardless of whether there are global results; the description
+    // tells the user they can also try a different search.
     if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
         <PerpsMarketListEmptyState

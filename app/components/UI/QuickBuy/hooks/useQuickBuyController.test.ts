@@ -1,4 +1,4 @@
-import { ChainId } from '@metamask/bridge-controller';
+import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act, renderHook } from '@testing-library/react-native';
@@ -8,6 +8,7 @@ import {
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
+  selectIsGasIncludedSTXSendBundleSupported,
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
@@ -22,7 +23,6 @@ import {
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   ImpactMoment,
   playErrorNotification,
@@ -30,6 +30,8 @@ import {
 } from '../../../../util/haptics';
 import Logger from '../../../../util/Logger';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
+import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
@@ -53,6 +55,7 @@ import {
   beginQuickBuySubmission,
   endQuickBuySubmission,
 } from '../quickBuyTradeTracker';
+import { merge } from 'lodash';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { positionToQuickBuyTarget } from '../types';
 
@@ -169,8 +172,8 @@ jest.mock('../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported', () => ({
   useIsGasIncludedSTXSendBundleSupported: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(),
+jest.mock('../../Bridge/hooks/useIsGasIncluded7702Supported', () => ({
+  useIsGasIncluded7702Supported: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
@@ -218,6 +221,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsSolanaSourced: jest.fn(),
   selectIsNonEvmSourced: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(),
+  selectIsGasIncludedSTXSendBundleSupported: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/bridge', () => ({
@@ -345,27 +349,24 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
 const createActiveQuote = (
   overrides: Record<string, unknown> = {},
 ): EnrichedQuickBuyQuote =>
-  ({
-    ...overrides,
-    quote: {
-      srcTokenAmount: '10000000000000000',
-      ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+  merge(
+    {},
+    {
+      ...overrides,
+      quote: {
+        // The full wallet deduction (routing amount + src-token fees), in decimal
+        // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+        // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+        // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+        // quotes).
+        src: { amount: '10000000000000000', normalizedAmount: '0.01' },
+        feeData: {
+          network: [{ normalizedAmount: '0.0001' }],
+        },
+      },
     },
-    // The full wallet deduction (routing amount + src-token fees), in decimal
-    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
-    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
-    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
-    // quotes).
-    sentAmount: {
-      amount: '0.01',
-      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
-    },
-    totalNetworkFee: {
-      amount: '0.0001',
-      ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
-        {}),
-    },
-  }) as EnrichedQuickBuyQuote;
+    overrides,
+  ) as EnrichedQuickBuyQuote;
 
 const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -454,9 +455,9 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-    false,
-  );
+  (
+    selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
+  ).mockReturnValue(false);
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
@@ -1269,11 +1270,18 @@ describe('useQuickBuyController', () => {
 
     it('returns the insufficient-funds label when BTC network fee is unavailable', () => {
       const activeQuote = createActiveQuote({
+        chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
-          srcChainId: ChainId.BTC,
-        },
-        totalNetworkFee: {
-          amount: '0',
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0',
+                asset: {
+                  symbol: 'BTC',
+                },
+              },
+            ],
+          },
         },
       });
 
@@ -1371,7 +1379,13 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(true);
     });
 
-    it('is disabled when the source token is missing even if a quote exists', () => {
+    // TSA-984: a fully unfunded account holds no tokens on any bridge-enabled
+    // chain, so `usePayWithTokens` returns an empty option list and the
+    // controller's auto-select effect never resolves a source token — this is
+    // the only way `sourceToken` stays missing while a quote already exists.
+    // The CTA must surface an actionable "Add funds" state instead of sitting
+    // silently disabled with no explanation (the original bug report).
+    it('is enabled with an Add Funds CTA when the user holds nothing to pay with, even if a quote exists', () => {
       (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [],
         isLoading: false,
@@ -1401,8 +1415,82 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('20');
       });
 
-      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(false);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
       expect(result.current.confirmButtonState).toBe('idle');
+    });
+
+    // Regression guard for a layout shift: gating `hasNoPayWithFunds` on
+    // `isSetupLoading` made it flip false→true mid-mount, which let the keypad
+    // open and then collapse so the sheet visibly grew and shrank. Held-token
+    // emptiness is known synchronously, so the verdict must hold from render 1
+    // even while dest-token metadata is still in flight.
+    it('reports no pay-with funds immediately, before setup finishes loading', () => {
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.hasNoPayWithFunds).toBe(true);
+      // The CTA is actionable on first paint too — routing to Ramp only needs
+      // the dest chain's native asset, which resolves synchronously.
+      expect(result.current.isConfirmDisabled).toBe(false);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+    });
+
+    it('reports pay-with funds available while setup loads when the user holds tokens', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // A funded account must never see the inert treatment, even transiently.
+      expect(result.current.hasNoPayWithFunds).toBe(false);
+    });
+
+    // The assetId must be the native slip44 CAIP-19, NOT `erc20:0x000…000`.
+    // Ramps resolves natives by looking for `/slip44:`, so an erc20-namespaced
+    // zero address matches no listed token and opens the buy screen empty.
+    it('routes to Ramp buy for the destination chain native asset when the user holds nothing to pay with', async () => {
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [],
+        isLoading: false,
+      });
+      const onClose = jest.fn();
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), onClose),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        { assetId: 'eip155:1/slip44:60' },
+        { buyFlowOrigin: 'tokenInfo' },
+      );
+      expect(onClose).toHaveBeenCalled();
     });
 
     it('is disabled when a destination address is required but missing', () => {
@@ -1774,8 +1862,8 @@ describe('useQuickBuyController', () => {
       quoteState.activeQuote = {
         ...createActiveQuote(),
         quote: {
-          srcTokenAmount: '10000000000000000',
-          priceData: { priceImpact: '0.30' },
+          src: { amount: '10000000000000000' },
+          priceData: { priceImpact: { amount: '0.30' } },
         },
       } as never;
       rerender(props);
@@ -3471,6 +3559,15 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleConfirm', () => {
+    it('syncs STX and 7702 gas-included flags for the source chain', () => {
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        '0x1',
+      );
+      expect(useIsGasIncluded7702Supported).toHaveBeenCalledWith('0x1');
+    });
+
     it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
       const activeQuote = {
         ...createActiveQuote(),
@@ -3493,9 +3590,9 @@ describe('useQuickBuyController', () => {
         maxRefreshCount: 5,
         refetchQuotes: jest.fn(),
       });
-      (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (
+        selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
+      ).mockReturnValue(true);
 
       const onClose = jest.fn();
       const { result } = renderHook(() =>
@@ -3510,7 +3607,7 @@ describe('useQuickBuyController', () => {
         Engine.context.BridgeStatusController.submitTx,
       ).toHaveBeenCalledWith(
         '0xWALLET',
-        expect.objectContaining({ approval: undefined }),
+        expect.objectContaining({ approval: null }),
         true,
       );
     });

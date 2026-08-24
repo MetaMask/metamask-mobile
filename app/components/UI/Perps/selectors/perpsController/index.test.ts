@@ -20,6 +20,10 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProPositionsSideFilter,
+  selectPerpsProPositionsSortConfig,
+  selectPerpsProOrdersSideFilter,
+  selectPerpsProOrdersSortConfig,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -1001,6 +1005,92 @@ describe('PerpsController Selectors', () => {
       expect(selectPerpsProChartExpanded(mockState)).toBe(
         DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
       );
+    });
+  });
+
+  describe('selectPerpsProPositionsSideFilter', () => {
+    it('returns the persisted positions side filter', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { positionsSideFilter: 'long' },
+      });
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe('long');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
+      );
+    });
+  });
+
+  describe('selectPerpsProPositionsSortConfig', () => {
+    it('composes nested sort config from flat persisted fields', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          positionsSortField: 'fundingRate',
+          positionsSortDirection: 'asc',
+        },
+      });
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: 'fundingRate',
+        direction: 'asc',
+      });
+    });
+
+    it('returns the controller defaults when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
+      });
+    });
+  });
+
+  describe('selectPerpsProOrdersSideFilter', () => {
+    it('returns the persisted orders side filter', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { ordersSideFilter: 'short' },
+      });
+
+      expect(selectPerpsProOrdersSideFilter(mockState)).toBe('short');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrdersSideFilter(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrdersSortConfig', () => {
+    it('composes nested sort config from flat persisted fields', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          ordersSortField: 'price',
+          ordersSortDirection: 'asc',
+        },
+      });
+
+      expect(selectPerpsProOrdersSortConfig(mockState)).toEqual({
+        field: 'price',
+        direction: 'asc',
+      });
+    });
+
+    it('returns the controller defaults when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrdersSortConfig(mockState)).toEqual({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
+      });
     });
   });
 });
