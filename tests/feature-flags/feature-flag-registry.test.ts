@@ -44,6 +44,13 @@ describe('Feature Flag Registry', () => {
       }
     });
 
+    it('uses the version-gated default shape for Perps Scale', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileScale.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.9.0',
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',
