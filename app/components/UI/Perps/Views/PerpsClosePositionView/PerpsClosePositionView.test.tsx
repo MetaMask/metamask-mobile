@@ -17,6 +17,7 @@ import {
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import {
   defaultMinimumOrderAmountMock,
   defaultPerpsClosePositionMock,
@@ -38,6 +39,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
 }));
+jest.mock('../../../../../util/haptics');
 
 // Mock React Native Linking specifically for this test to prevent NavigationContainer errors
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -393,13 +395,55 @@ describe('PerpsClosePositionView', () => {
       await waitFor(() => {
         expect(handleClosePosition).toHaveBeenCalled();
       });
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('plays PrimaryCTA once for an opted-in close confirmation', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('disables confirm button when closing is in progress', () => {
       // Arrange
+      const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition: jest.fn(),
+        handleClosePosition,
         isClosing: true,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
       });
 
       const { getByTestId } = renderWithProvider(
@@ -420,6 +464,9 @@ describe('PerpsClosePositionView', () => {
         confirmButton.props.disabled ||
           confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
+      fireEvent.press(confirmButton);
+      expect(handleClosePosition).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('shows loading state on confirm button when closing', () => {

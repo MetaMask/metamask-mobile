@@ -1,6 +1,7 @@
 import type {
-  FetchEventsParams,
+  FetchFeedParams,
   PredictEntityId,
+  PredictFeedId,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -10,9 +11,10 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
-  fetchEvents(
+  fetchFeed(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchEvent(
@@ -60,12 +62,17 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
   }
 
-  fetchEvents(
+  fetchFeed(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'events'], params, options);
+    return this.#get(
+      ['v1', 'venues', venueId, 'feeds', feedId],
+      params,
+      options,
+    );
   }
 
   fetchEvent(
@@ -82,7 +89,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #get(
     segments: readonly string[],
-    params?: FetchEventsParams,
+    params?: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const url = new URL(

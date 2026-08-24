@@ -17,9 +17,12 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import {
+  setDestToken,
   setSlippage,
   setSourceAmount,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -169,6 +172,159 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('re-anchors the destination to the source token default pair when returning to the market tab', async () => {
+      // The user picks a Robinhood-chain pair on the Limit tab and goes back to
+      // Market, which anchors its source token from the route params. The
+      // destination has to follow that source instead of being left behind on
+      // the Robinhood chain, which would turn a swap into a cross-chain bridge.
+      const robinhoodChainId = '0x1237';
+      const robinhoodEth: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ether',
+      };
+      const robinhoodUsde: BridgeToken = {
+        address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'USDe',
+        name: 'Ethena USDe',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+          sourceToken: ETH_SOURCE,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(robinhoodEth));
+        store.dispatch(setDestToken(robinhoodUsde));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken?.chainId).toBe('0x1');
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+        );
+      });
+      expect(store.getState().bridge.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('re-anchors the destination to the source token chain when returning to the market tab without a route source token', async () => {
+      // Same as above, but Market has no source token on its route params, so it
+      // keeps the source the Limit tab left in Redux. The destination has to
+      // follow that source's chain rather than the bip44 default pair, whose
+      // dest asset always sits on Ethereum.
+      const bscUsdt: BridgeToken = {
+        address: '0x55d398326f99059ff775485246999027b3197955',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'USDT',
+        name: 'Tether USD',
+      };
+      const bscNative: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'BNB',
+        name: 'BNB',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  // The bip44 default pair is what a source token left on
+                  // another chain could wrongly get paired with.
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'eip155:1': { isActiveSrc: true, isActiveDest: true },
+                      'eip155:56': { isActiveSrc: true, isActiveDest: true },
+                    },
+                    bip44DefaultPairs: {
+                      eip155: {
+                        other: {},
+                        standard: {
+                          'eip155:1/slip44:60':
+                            'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(bscNative));
+        store.dispatch(setDestToken(bscUsdt));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'USDT', chainId: '0x38' }),
+        );
+      });
+      expect(store.getState().bridge.sourceToken?.chainId).toBe('0x38');
     });
 
     it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {
@@ -401,7 +557,7 @@ describeForPlatforms('BridgeView', () => {
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText } = renderComponentViewScreen(
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
       BridgeView as unknown as React.ComponentType,
       { name: Routes.BRIDGE.BRIDGE_VIEW },
       { state },
@@ -413,6 +569,9 @@ describeForPlatforms('BridgeView', () => {
       ).toBe('$1.00');
     });
     expect(getByText('1 USDC')).toBeOnTheScreen();
+    expect(
+      queryByText(strings('bridge.recurring.you_get')),
+    ).not.toBeOnTheScreen();
   });
 
   it('resets source cursor to the end when input is focused again', async () => {

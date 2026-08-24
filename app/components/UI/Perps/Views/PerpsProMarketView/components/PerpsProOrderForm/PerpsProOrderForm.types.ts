@@ -83,6 +83,19 @@ export interface PerpsProOrderFormProps {
   /** Fires on every limit price field tap, including while already focused. */
   onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
+  triggerPrice?: string;
+  onTriggerPriceChange?: (value: string) => void;
+  onTriggerPriceFocus?: () => void;
+  onTriggerPriceBlur?: () => void;
+  onTriggerPriceFieldPress?: () => void;
+  /**
+   * Helper or warning shown under the grouped price card after blur.
+   * Error blocks the CTA; warning does not.
+   */
+  priceCardMessage?: {
+    severity: 'error' | 'warning';
+    message: string;
+  };
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
   /** Forwarded to the size card so it can be measured for keyboard clearance. */

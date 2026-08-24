@@ -20,6 +20,7 @@ import type { PostTradeBottomSheetParams } from '../components/PostTradeBottomSh
 import type { BatchSellPriceImpactInfoModalParams } from '../components/BatchSellPriceImpactInfoModal/BatchSellPriceImpactInfoModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
+import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -52,7 +53,7 @@ export type BridgeModalsNavigationParamList = {
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   MarketClosedModal: undefined;
-  NetworkListModal: undefined;
+  NetworkListModal: NetworkListModalParams | undefined;
   PriceImpactModal: PriceImpactModalRouterParams;
   MissingPriceModal: MissingPriceModalParams;
   TokenWarningModal: TokenWarningModalParams;

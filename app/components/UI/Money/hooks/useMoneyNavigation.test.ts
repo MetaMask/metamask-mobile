@@ -89,10 +89,14 @@ describe('useMoneyNavigation', () => {
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('forwards the entry point to Money home', () => {
@@ -106,13 +110,17 @@ describe('useMoneyNavigation', () => {
         result.current.navigateToMoneyHome('homescreen_balance_breakdown'),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: {
-          screen: Routes.MONEY.HOME,
-          params: { entryPoint: 'homescreen_balance_breakdown' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            params: { entryPoint: 'homescreen_balance_breakdown' },
+          },
         },
-      });
+        { pop: true },
+      );
     });
 
     it('navigates to Money home when onboarding flag is disabled even if onboarding not seen', () => {
@@ -126,10 +134,14 @@ describe('useMoneyNavigation', () => {
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
   });
 });
