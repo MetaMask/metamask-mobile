@@ -240,6 +240,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   // Per-mount error fallback: once errored, stay on Lightweight until unmount.
   const [hasFailed, setHasFailed] = useState(false);
+  const reportedResolutionRef = useRef<string | null>(null);
   const reportedFallbackResolutionRef = useRef<string | null>(null);
 
   const { colors } = useTheme();
@@ -400,8 +401,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     [],
   );
 
-  const handleSkeletonHidden = useCallback(
+  const settleSeries = useCallback(
     (payload?: ChartRangeSettlePayload) => {
+      if (isLoading) return;
+
       const open = activeVisibilityTraceRef.current;
       if (open) {
         const completedAt = performance.now();
@@ -428,19 +431,35 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         endTrace({ name: open.traceName, id: open.seriesKey, data });
         activeVisibilityTraceRef.current = null;
       }
-      onSkeletonHidden?.(payload);
-      onResolved?.(ohlcvSeriesKey, ohlcvData.length > 0 ? 'content' : 'empty');
+      const state = ohlcvData.length > 0 ? 'content' : 'empty';
+      const resolutionKey = `${ohlcvSeriesKey}|${state}`;
+      if (reportedResolutionRef.current !== resolutionKey) {
+        reportedResolutionRef.current = resolutionKey;
+        onResolved?.(ohlcvSeriesKey, state);
+      }
     },
     [
+      isLoading,
       symbol,
       interval,
       surface,
       ohlcvData.length,
       ohlcvSeriesKey,
-      onSkeletonHidden,
       onResolved,
     ],
   );
+
+  const handleSkeletonHidden = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      settleSeries(payload);
+      onSkeletonHidden?.(payload);
+    },
+    [onSkeletonHidden, settleSeries],
+  );
+
+  const handleChartLayoutSettled = useCallback(() => {
+    settleSeries();
+  }, [settleSeries]);
 
   // ---- Error fallback ----
 
@@ -516,6 +535,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onCrosshairMove={handleCrosshairMove}
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
+      onChartLayoutSettled={handleChartLayoutSettled}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}
