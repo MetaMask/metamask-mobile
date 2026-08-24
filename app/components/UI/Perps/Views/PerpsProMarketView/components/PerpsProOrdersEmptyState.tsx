@@ -1,4 +1,5 @@
 import React from 'react';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTabEmptyState from './PerpsProTabEmptyState';
 
 interface PerpsProOrdersEmptyStateProps {
@@ -21,6 +22,7 @@ const PerpsProOrdersEmptyState = ({
     filteredSideDescriptionKey={filteredSideDescriptionKey}
     emptyDescriptionKey="perps.pro_positions_panel.orders_empty"
     filteredTickerDescriptionKey="perps.pro_positions_panel.orders_empty_filtered"
+    testID={PerpsProMarketViewSelectorsIDs.ORDERS_EMPTY_STATE}
   />
 );
 

@@ -16,6 +16,8 @@ export interface PerpsProTabEmptyStateProps {
   emptyDescriptionKey: string;
   /** i18n key for the ticker-filtered empty description. */
   filteredTickerDescriptionKey: string;
+  /** Test ID applied to the rendered empty state. */
+  testID?: string;
 }
 
 /**
@@ -26,6 +28,7 @@ const PerpsProTabEmptyState = ({
   filteredSideDescriptionKey,
   emptyDescriptionKey,
   filteredTickerDescriptionKey,
+  testID,
 }: PerpsProTabEmptyStateProps) => {
   const tw = useTailwind();
   const perpsImage = useAssetFromTheme(
@@ -52,6 +55,7 @@ const PerpsProTabEmptyState = ({
         />
       }
       description={description}
+      testID={testID}
     />
   );
 };
