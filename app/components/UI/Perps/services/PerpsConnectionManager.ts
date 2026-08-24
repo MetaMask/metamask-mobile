@@ -83,7 +83,10 @@ class PerpsConnectionManagerClass {
   private isConnecting = false;
   private isInitialized = false;
   private initializedMarketContextKey: string | null = null;
+  private initializedConnectionGeneration: number | null = null;
   private initializedMarketContextListeners = new Set<() => void>();
+  private connectionGeneration = 0;
+  private connectionGenerationListeners = new Set<() => void>();
   private initializedUserContextKey: string | null = null;
   private initializedUserContextListeners = new Set<() => void>();
   private isDisconnecting = false;
@@ -107,6 +110,7 @@ class PerpsConnectionManagerClass {
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
   private stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSkipMarketNotify = false;
+  private pendingConnectionGenerationAdvanced = false;
   private netInfoUnsubscribe: (() => void) | null = null;
   private wasOffline = false;
   private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -147,11 +151,22 @@ class PerpsConnectionManagerClass {
     if (key === null) {
       this.setInitializedUserContextKey(null);
     }
-    if (this.initializedMarketContextKey === key) {
+    const initializedGeneration =
+      key === null ? null : this.connectionGeneration;
+    if (
+      this.initializedMarketContextKey === key &&
+      this.initializedConnectionGeneration === initializedGeneration
+    ) {
       return;
     }
     this.initializedMarketContextKey = key;
+    this.initializedConnectionGeneration = initializedGeneration;
     this.initializedMarketContextListeners.forEach((listener) => listener());
+  }
+
+  private advanceConnectionGeneration(): void {
+    this.connectionGeneration += 1;
+    this.connectionGenerationListeners.forEach((listener) => listener());
   }
 
   /**
@@ -255,10 +270,14 @@ class PerpsConnectionManagerClass {
         // Global market state is account-independent. Preserve it for an
         // account-only switch; provider/network/DEX changes invalidate it.
         if (!accountOnly) {
+          this.advanceConnectionGeneration();
+          this.pendingConnectionGenerationAdvanced = true;
+          this.setInitializedMarketContextKey(null);
           streamManager.prices.clearCache();
           streamManager.marketData.clearCache();
           streamManager.oiCaps.clearCache();
           streamManager.topOfBook.clearCache();
+          streamManager.focusedPrice.clearCache();
           streamManager.candles.clearCache();
         }
 
@@ -566,8 +585,12 @@ class PerpsConnectionManagerClass {
    * header appear frozen after foregrounding until the user navigates away
    * and back (which happens to trigger a fresh subscription elsewhere).
    */
-  private resubscribeActiveStreamChannels(): void {
+  private resubscribeActiveStreamChannels(advanceGeneration = true): void {
+    if (advanceGeneration) {
+      this.advanceConnectionGeneration();
+    }
     getStreamManagerInstance().clearAllChannels();
+    this.setInitializedMarketContextKey(this.getSelectedMarketContextKey());
   }
 
   async resumeFromForeground(options?: ConnectOptions): Promise<void> {
@@ -755,6 +778,7 @@ class PerpsConnectionManagerClass {
             // Skip when preserveCaches=true (soft foreground resume): cached data
             // is still valid and clearing it would cause unnecessary loading skeletons.
             if (!options.preserveCaches) {
+              this.advanceConnectionGeneration();
               const streamManager = getStreamManagerInstance();
               streamManager.positions.clearCache();
               streamManager.orders.clearCache();
@@ -764,6 +788,7 @@ class PerpsConnectionManagerClass {
               streamManager.oiCaps.clearCache();
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
+              streamManager.focusedPrice.clearCache();
               streamManager.candles.clearCache();
               this.setInitializedMarketContextKey(null);
               // Hard teardown (streams torn down, caches cleared): abandon any
@@ -1244,15 +1269,23 @@ class PerpsConnectionManagerClass {
         op: TraceOperation.PerpsOperation,
       });
 
+      const skipMarketNotify = this.pendingSkipMarketNotify;
+      this.pendingSkipMarketNotify = false;
+      const connectionGenerationAlreadyAdvanced =
+        this.pendingConnectionGenerationAdvanced;
+      this.pendingConnectionGenerationAdvanced = false;
+      if (!skipMarketNotify) {
+        if (!connectionGenerationAlreadyAdvanced) {
+          this.advanceConnectionGeneration();
+        }
+      }
+
       // Stage 1: Clean up existing connections and clear caches
       const cleanupStart = performance.now();
       this.cleanupPreloadedSubscriptions();
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
-      const skipMarketNotify = this.pendingSkipMarketNotify;
-      this.pendingSkipMarketNotify = false;
-
       if (!skipMarketNotify) {
         this.setInitializedMarketContextKey(null);
       }
@@ -1266,6 +1299,7 @@ class PerpsConnectionManagerClass {
         streamManager.marketData.clearCache();
         streamManager.oiCaps.clearCache();
         streamManager.topOfBook.clearCache();
+        streamManager.focusedPrice.clearCache();
         streamManager.candles.clearCache();
       }
       setMeasurement(
@@ -1373,9 +1407,11 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
 
-      // Candle subscriptions are screen-driven and are not part of the global
-      // preload. Restore mounted consumers only after the new context is ready.
+      // Focused price and candle subscriptions are screen-driven and are not
+      // part of the global preload. Restore mounted consumers only after the
+      // new context is ready.
       streamManager.candles.reconnect();
+      streamManager.focusedPrice.reconnect();
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();
@@ -1496,6 +1532,10 @@ class PerpsConnectionManagerClass {
     // Uses force: true to bypass the refCount guard — ensureConnected must
     // always tear down, regardless of how many components hold references.
     if (this.isConnected || this.isInitialized) {
+      if (preserveCaches) {
+        this.advanceConnectionGeneration();
+        this.setInitializedMarketContextKey(null);
+      }
       await this.performActualDisconnection({ force: true, preserveCaches });
     }
 
@@ -1516,7 +1556,7 @@ class PerpsConnectionManagerClass {
     // controller comes back so subscribers do not keep stale WebSocket
     // unsubscribe references from the pre-reconnect provider.
     if (preserveCaches) {
-      this.resubscribeActiveStreamChannels();
+      this.resubscribeActiveStreamChannels(false);
     }
   }
 
@@ -1672,6 +1712,14 @@ class PerpsConnectionManagerClass {
     return this.initializedMarketContextKey;
   }
 
+  getConnectionGeneration(): number {
+    return this.connectionGeneration;
+  }
+
+  getInitializedConnectionGeneration(): number | null {
+    return this.initializedConnectionGeneration;
+  }
+
   getInitializedUserContextKey(): string | null {
     return this.initializedUserContextKey;
   }
@@ -1691,6 +1739,11 @@ class PerpsConnectionManagerClass {
   subscribeToInitializedMarketContext(listener: () => void): () => void {
     this.initializedMarketContextListeners.add(listener);
     return () => this.initializedMarketContextListeners.delete(listener);
+  }
+
+  subscribeToConnectionGeneration(listener: () => void): () => void {
+    this.connectionGenerationListeners.add(listener);
+    return () => this.connectionGenerationListeners.delete(listener);
   }
 
   /**

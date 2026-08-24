@@ -86,7 +86,7 @@ export function usePerpsHomepageLoadingSession(
   const isFocusedRef = useRef(isFocused);
   isFocusedRef.current = isFocused;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
-  const wasBackgroundedRef = useRef(AppState.currentState === 'background');
+  const wasBackgroundedRef = useRef(AppState.currentState !== 'active');
   const hasOwnedSessionRef = useRef(
     getActivePerpsLoadingSessionContext() !== null,
   );
@@ -102,6 +102,8 @@ export function usePerpsHomepageLoadingSession(
       restart: getActivePerpsLoadingSessionContext() !== null,
       surface: 'homepage',
       identity: createPerpsLoadingSessionIdentity(identityRef.current),
+      provider: identityRef.current.provider,
+      network: identityRef.current.network,
     });
     hasOwnedSessionRef.current = true;
   }, []);
@@ -156,7 +158,7 @@ export function usePerpsHomepageLoadingSession(
       const previousState = appStateRef.current;
       appStateRef.current = nextState;
 
-      if (nextState === 'background') {
+      if (nextState !== 'active') {
         wasBackgroundedRef.current = true;
         cancelPerpsLoadingSession('app_backgrounded');
         hasOwnedSessionRef.current = false;

@@ -32,6 +32,7 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, Unsubscribe>();
   protected isPaused = false;
+  protected deliveryRevision = 0;
   readonly #onDataPersist?: () => void;
 
   constructor(onDataPersist?: () => void) {
@@ -73,6 +74,7 @@ abstract class StreamChannel<T> {
   }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
+    this.deliveryRevision += 1;
     if (this.isPaused) {
       return;
     }
@@ -118,6 +120,10 @@ abstract class StreamChannel<T> {
 
   public resume(): void {
     this.isPaused = false;
+  }
+
+  public getDeliveryRevision(): number {
+    return this.deliveryRevision;
   }
 
   public clearCache(): void {

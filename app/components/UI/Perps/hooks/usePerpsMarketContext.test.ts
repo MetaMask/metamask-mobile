@@ -7,8 +7,11 @@ let mockHip3ConfigVersion = 1;
 let mockIsInitialized = true;
 let mockInitializedContextKey: string | null = 'testnet|hyperliquid|1';
 let mockIsUserReady = true;
-let mockContextListener: (() => void) | undefined;
+let mockConnectionGeneration = 0;
+let mockInitializedConnectionGeneration: number | null = 0;
+let mockContextListeners: (() => void)[] = [];
 let mockUserContextListener: (() => void) | undefined;
+let mockGenerationListener: (() => void) | undefined;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
@@ -24,7 +27,14 @@ jest.mock('../services/PerpsConnectionManager', () => ({
   PerpsConnectionManager: {
     getInitializedMarketContextKey: () => mockInitializedContextKey,
     subscribeToInitializedMarketContext: (listener: () => void) => {
-      mockContextListener = listener;
+      mockContextListeners.push(listener);
+      return jest.fn();
+    },
+    getConnectionGeneration: () => mockConnectionGeneration,
+    getInitializedConnectionGeneration: () =>
+      mockInitializedConnectionGeneration,
+    subscribeToConnectionGeneration: (listener: () => void) => {
+      mockGenerationListener = listener;
       return jest.fn();
     },
     isSelectedUserContextReady: () => mockIsUserReady,
@@ -46,19 +56,37 @@ describe('usePerpsMarketContext', () => {
     mockIsInitialized = true;
     mockInitializedContextKey = 'testnet|hyperliquid|1';
     mockIsUserReady = true;
-    mockContextListener = undefined;
+    mockConnectionGeneration = 0;
+    mockInitializedConnectionGeneration = 0;
+    mockContextListeners = [];
     mockUserContextListener = undefined;
+    mockGenerationListener = undefined;
   });
 
   it('is ready when the selected and initialized contexts match', () => {
     const { result } = renderHook(() => usePerpsMarketContext());
 
     expect(result.current).toEqual({
-      key: 'testnet|hyperliquid|1',
+      key: 'testnet|hyperliquid|1|0',
       isReady: true,
       isUserReady: true,
       isConnectionInitialized: true,
     });
+  });
+
+  it('starts a new market identity before a resubscribe is initialized', () => {
+    const { result } = renderHook(() => usePerpsMarketContext());
+
+    mockConnectionGeneration = 1;
+    act(() => mockGenerationListener?.());
+
+    expect(result.current.key).toBe('testnet|hyperliquid|1|1');
+    expect(result.current.isReady).toBe(false);
+
+    mockInitializedConnectionGeneration = 1;
+    act(() => mockContextListeners.forEach((listener) => listener()));
+
+    expect(result.current.isReady).toBe(true);
   });
 
   it('rejects a newly mounted selected context until it initializes', () => {
@@ -73,7 +101,7 @@ describe('usePerpsMarketContext', () => {
 
     mockInitializedContextKey = 'mainnet|hyperliquid|1';
     mockIsInitialized = true;
-    act(() => mockContextListener?.());
+    act(() => mockContextListeners.forEach((listener) => listener()));
     expect(result.current.isReady).toBe(true);
   });
 

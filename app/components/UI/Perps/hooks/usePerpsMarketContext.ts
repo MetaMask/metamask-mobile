@@ -21,6 +21,12 @@ const subscribeToInitializedMarketContext = (listener: () => void) =>
 
 const getInitializedMarketContextSnapshot = () =>
   PerpsConnectionManager.getInitializedMarketContextKey();
+const subscribeToConnectionGeneration = (listener: () => void) =>
+  PerpsConnectionManager.subscribeToConnectionGeneration(listener);
+const getConnectionGenerationSnapshot = () =>
+  PerpsConnectionManager.getConnectionGeneration();
+const getInitializedConnectionGenerationSnapshot = () =>
+  PerpsConnectionManager.getInitializedConnectionGeneration();
 const subscribeToInitializedUserContext = (listener: () => void) =>
   PerpsConnectionManager.subscribeToInitializedUserContext(listener);
 const getUserContextReadySnapshot = () =>
@@ -36,13 +42,30 @@ export function usePerpsMarketContext(): PerpsMarketContext {
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
   const { isInitialized } = usePerpsConnection();
-  const key = buildPerpsMarketContextKey(network, provider, hip3ConfigVersion);
+  const selectedContextKey = buildPerpsMarketContextKey(
+    network,
+    provider,
+    hip3ConfigVersion,
+  );
+  const connectionGeneration = useSyncExternalStore(
+    subscribeToConnectionGeneration,
+    getConnectionGenerationSnapshot,
+    getConnectionGenerationSnapshot,
+  );
+  const initializedConnectionGeneration = useSyncExternalStore(
+    subscribeToInitializedMarketContext,
+    getInitializedConnectionGenerationSnapshot,
+    getInitializedConnectionGenerationSnapshot,
+  );
+  const key = `${selectedContextKey}|${connectionGeneration}`;
   const initializedKey = useSyncExternalStore(
     subscribeToInitializedMarketContext,
     getInitializedMarketContextSnapshot,
     getInitializedMarketContextSnapshot,
   );
-  const isReady = initializedKey === key;
+  const isReady =
+    initializedKey === selectedContextKey &&
+    initializedConnectionGeneration === connectionGeneration;
   const isUserReady = useSyncExternalStore(
     subscribeToInitializedUserContext,
     getUserContextReadySnapshot,

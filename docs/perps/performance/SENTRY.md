@@ -131,12 +131,21 @@ source of truth.
 - `perps_session_id`
 - `account_generation`
 - `context_generation`
+- `connection_generation` on structured fresh-socket proof records
 - `enabled_dex_fingerprint`
 - market coverage counts
 
 `hip3_config_version` may be indexed only if its production value space is demonstrably bounded.
 
 Never attach wallet addresses, account names, order IDs, position IDs, balances, or raw upstream error bodies. The existing raw `userAddress` on `Perps User Data Preload` must be removed before this contract ships.
+
+The numeric generation fields are process-local correlation data. A Homepage
+session assigns `account_generation` and `context_generation` at bootstrap.
+The first accepted positions, orders, or account milestone captures the
+connection manager's current `connection_generation`. All later fresh
+milestones in that session must use the same value. A global price tick cannot
+select the generation before account-owned data arrives. Cached and
+Terminal-only surface stages do not claim a socket generation.
 
 ## Correlation
 

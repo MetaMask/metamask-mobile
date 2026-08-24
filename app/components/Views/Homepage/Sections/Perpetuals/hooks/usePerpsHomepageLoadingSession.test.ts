@@ -42,6 +42,7 @@ jest.mock('../../../../../UI/Perps/utils/perpsLoadingSession', () => ({
     ({ address, hip3ConfigVersion, network, provider }) => ({
       marketKey: `${provider}|${network}|${hip3ConfigVersion}`,
       userKey: `${provider}|${network}|${hip3ConfigVersion}|${address ?? ''}`,
+      accountKey: address ?? '',
     }),
   ),
   getActivePerpsLoadingSessionContext: jest.fn(),
@@ -97,6 +98,8 @@ describe('usePerpsHomepageLoadingSession', () => {
         marketSource: 'unknown',
         accountSource: 'unknown',
         lifecycle: options?.lifecycle ?? 'cold_no_cache',
+        accountGeneration: 1,
+        contextGeneration: 1,
       };
       mockSessionListener?.({ type: 'started', context: activeContext });
       return activeContext.id;
@@ -125,6 +128,8 @@ describe('usePerpsHomepageLoadingSession', () => {
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
     });
     expect(result.current.sessionReady).toBe(true);
 
@@ -152,6 +157,8 @@ describe('usePerpsHomepageLoadingSession', () => {
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
     });
   });
 
@@ -168,19 +175,29 @@ describe('usePerpsHomepageLoadingSession', () => {
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
     });
   });
 
-  it('does not restart for an iOS inactive-to-active interruption', () => {
+  it('cancels for iOS inactive and starts a resume session on return', () => {
     renderHook(() => usePerpsHomepageLoadingSession());
     jest.mocked(startPerpsLoadingSession).mockClear();
     jest.mocked(cancelPerpsLoadingSession).mockClear();
 
     act(() => appStateListener?.('inactive'));
+    expect(cancelPerpsLoadingSession).toHaveBeenCalledWith('app_backgrounded');
+
     act(() => appStateListener?.('active'));
 
-    expect(cancelPerpsLoadingSession).not.toHaveBeenCalled();
-    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+    expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+      lifecycle: 'background_short',
+      restart: false,
+      surface: 'homepage',
+      identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
+    });
   });
 
   it('seeds identity when a surface mounted while inactive becomes active', () => {
@@ -194,10 +211,12 @@ describe('usePerpsHomepageLoadingSession', () => {
     act(() => appStateListener?.('active'));
 
     expect(startPerpsLoadingSession).toHaveBeenCalledWith({
-      lifecycle: 'cold_no_cache',
+      lifecycle: 'background_short',
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
     });
 
     jest.mocked(startPerpsLoadingSession).mockClear();
@@ -220,6 +239,8 @@ describe('usePerpsHomepageLoadingSession', () => {
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'hyperliquid',
+      network: 'mainnet',
     });
 
     provider = 'myx';
@@ -229,6 +250,8 @@ describe('usePerpsHomepageLoadingSession', () => {
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
+      provider: 'myx',
+      network: 'mainnet',
     });
   });
 

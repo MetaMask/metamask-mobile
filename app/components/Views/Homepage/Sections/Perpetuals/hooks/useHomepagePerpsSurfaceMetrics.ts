@@ -5,8 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
 import useSectionViewportVisible from '../../../hooks/useSectionViewportVisible';
 import {
+  getPerpsLoadingSessionContext,
   subscribeToPerpsLoadingSession,
   type PerpsLoadingLifecycle,
+  type PerpsLoadingSessionContext,
 } from '../../../../../UI/Perps/utils/perpsLoadingSession';
 
 type HomepagePerpsContentVariant =
@@ -35,6 +37,8 @@ interface ActiveDemand {
   startedAtMs: number;
   lifecycle: PerpsLoadingLifecycle;
   dataReadyAtDemand: boolean;
+  accountGeneration: number;
+  contextGeneration: number;
 }
 
 type SurfaceStage =
@@ -55,6 +59,8 @@ const logSurfaceStage = (
       demand_id: demand.id,
       perps_session_id: demand.sessionId,
       lifecycle: demand.lifecycle,
+      account_generation: demand.accountGeneration,
+      context_generation: demand.contextGeneration,
       monotonic_ms: Number(now.toFixed(3)),
       ...(stage === 'surface_demand'
         ? {}
@@ -91,6 +97,7 @@ export function useHomepagePerpsSurfaceMetrics({
   const isSurfaceVisible = isRendered && isFocused && isVisible;
   const isSurfaceVisibleRef = useRef(isSurfaceVisible);
   const finishedSessionsRef = useRef(new Set<string>());
+  const proofContextRef = useRef<PerpsLoadingSessionContext | null>(null);
   const recordedStagesRef = useRef(new Set<SurfaceStage>());
   const frameIdsRef = useRef(new Set<number>());
   contentReadyRef.current = contentReady;
@@ -127,15 +134,33 @@ export function useHomepagePerpsSurfaceMetrics({
         ) {
           return;
         }
+        const isAccountVariant =
+          contentVariantRef.current === 'positions' ||
+          contentVariantRef.current === 'orders' ||
+          contentVariantRef.current === 'positions_and_orders';
+        const source =
+          stage === 'surface_live_recorded' &&
+          isAccountVariant &&
+          proofContextRef.current?.connectionGeneration !== undefined
+            ? 'fresh_socket'
+            : resolvedSourceRef.current;
         logSurfaceStage(stage, demand, {
           content_variant: contentVariantRef.current,
-          source: resolvedSourceRef.current,
+          source,
           ...(stage === 'surface_resolved_recorded' ||
           stage === 'surface_live_recorded'
             ? { data_ready_at_demand: demand.dataReadyAtDemand }
             : {}),
           ...(stage === 'surface_live_recorded'
-            ? { fresh_for_lifecycle: true }
+            ? {
+                fresh_for_lifecycle: true,
+                ...(proofContextRef.current?.connectionGeneration === undefined
+                  ? {}
+                  : {
+                      connection_generation:
+                        proofContextRef.current.connectionGeneration,
+                    }),
+              }
             : {}),
         });
       });
@@ -155,7 +180,7 @@ export function useHomepagePerpsSurfaceMetrics({
       contentVariantRef.current === 'orders' ||
       contentVariantRef.current === 'positions_and_orders';
     const isFreshForLifecycle = isAccountVariant
-      ? resolvedSource === 'fresh_socket'
+      ? proofContextRef.current?.connectionGeneration !== undefined
       : resolvedSource === 'terminal_v2' || resolvedSource === 'provider';
     if (
       !hasErrorRef.current &&
@@ -169,6 +194,9 @@ export function useHomepagePerpsSurfaceMetrics({
   useEffect(
     () =>
       subscribeToPerpsLoadingSession((update) => {
+        if (activeDemandRef.current?.sessionId === update.context.id) {
+          proofContextRef.current = update.context;
+        }
         if (update.type === 'finished') {
           finishedSessionsRef.current.add(update.context.id);
           recordResolvedAndLive();
@@ -189,12 +217,19 @@ export function useHomepagePerpsSurfaceMetrics({
       return;
     }
 
+    const proofContext = getPerpsLoadingSessionContext(sessionId);
+    if (!proofContext) {
+      return;
+    }
+    proofContextRef.current = proofContext;
     const demand = {
       id: uuidv4(),
       sessionId,
       startedAtMs: performance.now(),
       lifecycle,
       dataReadyAtDemand: contentReadyRef.current,
+      accountGeneration: proofContext.accountGeneration,
+      contextGeneration: proofContext.contextGeneration,
     };
     const sessionAlreadyFinished = finishedSessionsRef.current.has(sessionId);
     finishedSessionsRef.current.clear();

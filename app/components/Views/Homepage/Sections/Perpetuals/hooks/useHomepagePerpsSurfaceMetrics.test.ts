@@ -25,6 +25,14 @@ jest.mock('../../../hooks/useSectionViewportVisible', () => ({
 }));
 
 jest.mock('../../../../../UI/Perps/utils/perpsLoadingSession', () => ({
+  getPerpsLoadingSessionContext: jest.fn((sessionId: string) => ({
+    id: sessionId,
+    marketSource: 'unknown',
+    accountSource: 'unknown',
+    lifecycle: 'cold_no_cache',
+    accountGeneration: 2,
+    contextGeneration: 4,
+  })),
   subscribeToPerpsLoadingSession: jest.fn(
     (listener: typeof mockLoadingSessionListener) => {
       mockLoadingSessionListener = listener;
@@ -86,6 +94,8 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
           marketSource: 'terminal_v2',
           accountSource: 'fresh_socket',
           lifecycle: 'cold_no_cache',
+          accountGeneration: 2,
+          contextGeneration: 4,
         },
       });
     });
@@ -106,6 +116,45 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
           content_variant: 'trending',
           source: 'terminal_v2',
           fresh_for_lifecycle: true,
+          account_generation: 2,
+          context_generation: 4,
+        }),
+      ]),
+    );
+  });
+
+  it('records the connection generation for fresh account content', () => {
+    const props = {
+      ...defaultProps,
+      contentVariant: 'positions' as const,
+      contentReady: true,
+      resolvedSource: 'memory_cache',
+    };
+    renderHook(() => useHomepagePerpsSurfaceMetrics(props));
+
+    act(() => {
+      mockLoadingSessionListener?.({
+        type: 'finished',
+        context: {
+          id: 'session-1',
+          marketSource: 'memory_cache',
+          accountSource: 'fresh_socket',
+          lifecycle: 'cold_no_cache',
+          accountGeneration: 2,
+          contextGeneration: 4,
+          connectionGeneration: 3,
+        },
+      });
+    });
+
+    expect(parseStages()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stage: 'surface_live_recorded',
+          source: 'fresh_socket',
+          account_generation: 2,
+          context_generation: 4,
+          connection_generation: 3,
         }),
       ]),
     );
@@ -146,6 +195,8 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
           marketSource: 'unknown',
           accountSource: 'unknown',
           lifecycle: 'cold_no_cache',
+          accountGeneration: 2,
+          contextGeneration: 4,
         },
       });
     });
@@ -170,6 +221,38 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
           marketSource: 'unknown',
           accountSource: 'unknown',
           lifecycle: 'network_switch',
+          accountGeneration: 2,
+          contextGeneration: 4,
+        },
+      });
+    });
+
+    expect(parseStages().map(({ stage }) => stage)).toEqual([
+      'surface_demand',
+      'surface_initial_ui_recorded',
+      'surface_resolved_recorded',
+    ]);
+  });
+
+  it('does not label cached Terminal content as lifecycle-fresh', () => {
+    const props = { ...defaultProps, resolvedSource: 'memory_cache' };
+    const { rerender } = renderHook(
+      (currentProps: typeof props) =>
+        useHomepagePerpsSurfaceMetrics(currentProps),
+      { initialProps: props },
+    );
+
+    rerender({ ...props, contentReady: true });
+    act(() => {
+      mockLoadingSessionListener?.({
+        type: 'finished',
+        context: {
+          id: 'session-1',
+          marketSource: 'memory_cache',
+          accountSource: 'unknown',
+          lifecycle: 'navigate_return',
+          accountGeneration: 2,
+          contextGeneration: 4,
         },
       });
     });

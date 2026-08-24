@@ -49,6 +49,20 @@ jest.mock('react-native-performance', () => ({
 }));
 
 describe('perpsLoadingSession', () => {
+  const recordFresh = (
+    stream: 'positions' | 'orders' | 'account' | 'prices',
+    itemCount: number,
+    detail: Record<string, number> = {},
+  ) =>
+    recordPerpsLoadingSessionValuesReady(
+      stream,
+      'fresh_socket',
+      itemCount,
+      detail,
+      undefined,
+      7,
+    );
+
   beforeEach(() => {
     jest.clearAllMocks();
     resetPerpsLoadingSessionForTesting();
@@ -61,15 +75,23 @@ describe('perpsLoadingSession', () => {
 
     expect(sessionId).toBe('session-id-1');
     expect(DevLogger.log).toHaveBeenCalledWith(
-      expect.stringContaining('"stage":"perps_bootstrap_start"'),
+      expect.stringContaining(
+        '"stage":"perps_bootstrap_start","perps_session_id":"session-id-1"',
+      ),
     );
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.PerpsLoadingSession,
       id: 'session-id-1',
       op: TraceOperation.PerpsLoading,
+      tags: {
+        provider: 'unknown',
+        network: 'unknown',
+      },
       data: {
         lifecycle: 'cold_no_cache',
         surface: 'homepage',
+        account_generation: 1,
+        context_generation: 1,
       },
     });
     expect(setMeasurement).toHaveBeenCalledWith(
@@ -90,6 +112,22 @@ describe('perpsLoadingSession', () => {
       'process_to_perps_controller_constructed_ms',
       125,
       'millisecond',
+    );
+  });
+
+  it('starts the loading trace with provider and network cohorts', () => {
+    startPerpsLoadingSession({
+      provider: 'hyperliquid',
+      network: 'testnet',
+    });
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: {
+          provider: 'hyperliquid',
+          network: 'testnet',
+        },
+      }),
     );
   });
 
@@ -143,6 +181,44 @@ describe('perpsLoadingSession', () => {
     expect(second).toBe(first);
     expect(trace).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledTimes(1);
+  });
+
+  it('increments account and context generations independently', () => {
+    const firstIdentity = createPerpsLoadingSessionIdentity({
+      address: '0xabc',
+      hip3ConfigVersion: 1,
+      network: 'mainnet',
+      provider: 'hyperliquid',
+    });
+    startPerpsLoadingSession({ identity: firstIdentity });
+    expect(getActivePerpsLoadingSessionContext()).toEqual(
+      expect.objectContaining({ accountGeneration: 1, contextGeneration: 1 }),
+    );
+
+    cancelPerpsLoadingSession('context_changed');
+    const networkIdentity = createPerpsLoadingSessionIdentity({
+      address: '0xabc',
+      hip3ConfigVersion: 1,
+      network: 'testnet',
+      provider: 'hyperliquid',
+    });
+    startPerpsLoadingSession({ identity: networkIdentity });
+    expect(getActivePerpsLoadingSessionContext()).toEqual(
+      expect.objectContaining({ accountGeneration: 1, contextGeneration: 2 }),
+    );
+
+    cancelPerpsLoadingSession('context_changed');
+    const accountIdentity = createPerpsLoadingSessionIdentity({
+      address: '0xdef',
+      hip3ConfigVersion: 1,
+      network: 'testnet',
+      provider: 'hyperliquid',
+    });
+    startPerpsLoadingSession({ identity: accountIdentity });
+
+    expect(getActivePerpsLoadingSessionContext()).toEqual(
+      expect.objectContaining({ accountGeneration: 2, contextGeneration: 3 }),
+    );
   });
 
   it('ends a cancelled session without reporting a success or failure', () => {
@@ -229,6 +305,9 @@ describe('perpsLoadingSession', () => {
               source: string;
               item_count: number;
               elapsed_ms: number;
+              account_generation: number;
+              context_generation: number;
+              connection_generation?: number;
               main_market_count?: number;
             },
         );
@@ -270,6 +349,8 @@ describe('perpsLoadingSession', () => {
           source: 'provider',
           item_count: 12,
           elapsed_ms: 150,
+          account_generation: 1,
+          context_generation: 1,
           main_market_count: 10,
           hip3_market_count: 2,
           priced_market_count: 11,
@@ -323,10 +404,10 @@ describe('perpsLoadingSession', () => {
       startSessionAt(400);
       jest.mocked(performance.now).mockReturnValue(430);
 
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('prices', 'fresh_socket', 0, {
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 0);
+      recordFresh('prices', 0, {
         subscribed_symbol_count: 7,
       });
 
@@ -356,17 +437,25 @@ describe('perpsLoadingSession', () => {
         expect.anything(),
       );
       expect(valuesReadyRecords()).toEqual([
-        expect.objectContaining({ stream: 'positions', item_count: 0 }),
-        expect.objectContaining({ stream: 'orders', item_count: 0 }),
+        expect.objectContaining({
+          stream: 'positions',
+          item_count: 0,
+          connection_generation: 7,
+        }),
+        expect.objectContaining({
+          stream: 'orders',
+          item_count: 0,
+          connection_generation: 7,
+        }),
       ]);
     });
 
     it('does not treat fresh_socket as cache-ready or rewrite a recorded milestone', () => {
       startSessionAt(400);
       jest.mocked(performance.now).mockReturnValue(440);
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 3);
+      recordFresh('positions', 3);
       jest.mocked(performance.now).mockReturnValue(460);
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 4);
+      recordFresh('positions', 4);
       recordPerpsLoadingSessionValuesReady('orders', 'memory_cache', 1);
       recordPerpsLoadingSessionValuesReady('account', 'memory_cache', 1);
 
@@ -380,10 +469,45 @@ describe('perpsLoadingSession', () => {
       expect(valuesReadyRecords()).toHaveLength(1);
     });
 
+    it('rejects fresh streams from another connection generation', () => {
+      startSessionAt(400);
+
+      recordFresh('positions', 1);
+      recordPerpsLoadingSessionValuesReady(
+        'orders',
+        'fresh_socket',
+        1,
+        {},
+        undefined,
+        8,
+      );
+
+      expect(valuesReadyRecords()).toEqual([
+        expect.objectContaining({
+          stream: 'positions',
+          connection_generation: 7,
+        }),
+      ]);
+      expect(getActivePerpsLoadingSessionContext()?.connectionGeneration).toBe(
+        7,
+      );
+    });
+
+    it('does not let a global price tick select the user-stream generation', () => {
+      startSessionAt(400);
+
+      recordFresh('prices', 4);
+
+      expect(valuesReadyRecords()).toHaveLength(0);
+      expect(
+        getActivePerpsLoadingSessionContext()?.connectionGeneration,
+      ).toBeUndefined();
+    });
+
     it('buffers values observed before the parent session effect starts', () => {
       preparePerpsLoadingSession();
       recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 0);
+      recordFresh('positions', 0);
 
       expect(setMeasurement).not.toHaveBeenCalled();
       expect(DevLogger.log).not.toHaveBeenCalled();
@@ -416,7 +540,7 @@ describe('perpsLoadingSession', () => {
       });
       jest.clearAllMocks();
 
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      recordFresh('positions', 1);
       preparePerpsLoadingSession();
       startPerpsLoadingSession();
 
@@ -428,7 +552,7 @@ describe('perpsLoadingSession', () => {
       );
     });
 
-    it('ignores stale user-stream generations while accepting global price ticks', () => {
+    it('accepts price ticks only after a current user stream fixes the connection generation', () => {
       const oldIdentity = createPerpsLoadingSessionIdentity({
         address: '0xold',
         hip3ConfigVersion: 1,
@@ -449,6 +573,15 @@ describe('perpsLoadingSession', () => {
         1,
         {},
         oldIdentity,
+        7,
+      );
+      recordPerpsLoadingSessionValuesReady(
+        'orders',
+        'fresh_socket',
+        0,
+        {},
+        currentIdentity,
+        7,
       );
       recordPerpsLoadingSessionValuesReady(
         'prices',
@@ -456,6 +589,7 @@ describe('perpsLoadingSession', () => {
         4,
         {},
         oldIdentity,
+        7,
       );
 
       expect(setMeasurement).not.toHaveBeenCalledWith(
@@ -473,7 +607,7 @@ describe('perpsLoadingSession', () => {
     });
 
     it('does not buffer live ticks before the Homepage prepares a session', () => {
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      recordFresh('positions', 1);
 
       preparePerpsLoadingSession();
       startPerpsLoadingSession();
@@ -538,14 +672,16 @@ describe('perpsLoadingSession', () => {
         marketSource: 'unknown',
         accountSource: 'unknown',
         lifecycle: 'cold_no_cache',
+        accountGeneration: 1,
+        contextGeneration: 2,
       });
     });
 
     it('finishes trending without waiting for prices_live', () => {
       startPerpsLoadingSession();
       recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
 
       finishPerpsLoadingSession(finishData);
 
@@ -567,9 +703,9 @@ describe('perpsLoadingSession', () => {
 
       expect(endTrace).not.toHaveBeenCalled();
 
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
-      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+      recordFresh('positions', 1);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
 
       expect(endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -625,7 +761,7 @@ describe('perpsLoadingSession', () => {
       jest.useRealTimers();
     });
 
-    it('prefers all-Terminal row provenance and otherwise uses the recorded session market source', () => {
+    it('keeps recorded cache provenance ahead of Terminal row provenance', () => {
       startPerpsLoadingSession();
       recordPerpsLoadingSessionValuesReady('markets', 'memory_cache', 3);
       const sessionMarketSource =
@@ -634,9 +770,15 @@ describe('perpsLoadingSession', () => {
       expect(
         resolvePerpsMarketSource(
           [{ dataSource: 'terminal-global-snapshot-mark' }],
-          'provider',
+          'memory_cache',
         ),
-      ).toBe('terminal_v2');
+      ).toBe('memory_cache');
+      expect(
+        resolvePerpsMarketSource(
+          [{ dataSource: 'terminal-global-snapshot-mark' }],
+          'unknown',
+        ),
+      ).toBe('unknown');
       expect(resolvePerpsMarketSource([{}, {}], sessionMarketSource)).toBe(
         'memory_cache',
       );
@@ -659,12 +801,14 @@ describe('perpsLoadingSession', () => {
         marketSource: 'terminal_v2',
         accountSource: 'memory_cache',
         lifecycle: 'cold_no_cache',
+        accountGeneration: 1,
+        contextGeneration: 1,
       });
     });
 
     it('uses fresh_socket for account_source when account_live is recorded and no cache source won', () => {
       startPerpsLoadingSession();
-      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+      recordFresh('account', 1);
 
       expect(getActivePerpsLoadingSessionContext()?.accountSource).toBe(
         'fresh_socket',
@@ -676,7 +820,7 @@ describe('perpsLoadingSession', () => {
       recordPerpsLoadingSessionValuesReady('positions', 'memory_cache', 1);
       recordPerpsLoadingSessionValuesReady('orders', 'memory_cache', 0);
       recordPerpsLoadingSessionValuesReady('account', 'memory_cache', 1);
-      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+      recordFresh('account', 1);
 
       expect(getActivePerpsLoadingSessionContext()?.accountSource).toBe(
         'memory_cache',
@@ -717,9 +861,9 @@ describe('perpsLoadingSession', () => {
 
       expect(endTrace).not.toHaveBeenCalled();
 
-      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
-      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
-      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+      recordFresh('positions', 1);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
 
       expect(endTrace).toHaveBeenCalledTimes(1);
       expect(endTrace).toHaveBeenCalledWith({

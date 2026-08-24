@@ -21,6 +21,9 @@ jest.mock('../services/PerpsConnectionManager', () => ({
   PerpsConnectionManager: {
     getInitializedMarketContextKey: () => mockInitializedMarketContextKey,
     subscribeToInitializedMarketContext: () => jest.fn(),
+    getConnectionGeneration: () => 0,
+    getInitializedConnectionGeneration: () => 0,
+    subscribeToConnectionGeneration: () => jest.fn(),
     isSelectedUserContextReady: () => true,
     subscribeToInitializedUserContext: () => jest.fn(),
   },

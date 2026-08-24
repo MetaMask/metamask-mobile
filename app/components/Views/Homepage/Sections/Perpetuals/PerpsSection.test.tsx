@@ -32,6 +32,8 @@ const mockGetActivePerpsLoadingSessionContext = jest.fn<
   marketSource: 'provider',
   accountSource: 'memory_cache',
   lifecycle: 'cold_no_cache',
+  accountGeneration: 1,
+  contextGeneration: 1,
 }));
 
 jest.mock('../../hooks/useSectionPerformance', () => ({
@@ -366,6 +368,8 @@ describe('PerpsSection', () => {
       marketSource: 'provider',
       accountSource: 'memory_cache',
       lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
     });
     mockUsePerpsHomepageLoadingSession.mockImplementation(() => ({
       proposedLifecycle: 'cold_no_cache',

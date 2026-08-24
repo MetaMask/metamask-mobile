@@ -92,7 +92,13 @@ const loadingSessionDataByTraceId = new Map<string, LoadingSessionTraceData>();
 function captureLoadingSessionTraceData(
   traceId: string,
 ): LoadingSessionTraceData {
-  const data = getActivePerpsLoadingSessionTraceData();
+  const sessionData = getActivePerpsLoadingSessionTraceData();
+  const data = sessionData
+    ? {
+        ...sessionData,
+        connection_generation: PerpsConnectionManager.getConnectionGeneration(),
+      }
+    : undefined;
   loadingSessionDataByTraceId.set(traceId, data);
   return data;
 }
@@ -798,6 +804,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           updates.length,
           {},
           loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
         );
         // Track first price data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -997,6 +1004,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               updates.length,
               {},
               loadingIdentity,
+              PerpsConnectionManager.getConnectionGeneration(),
             );
             // Track first price data from WebSocket (only once per prewarm)
             if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1167,6 +1175,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           orders.length,
           {},
           loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
         );
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
@@ -1404,6 +1413,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
           positions.length,
           {},
           loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
         );
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
@@ -1729,6 +1739,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
           account ? 1 : 0,
           {},
           loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
         );
         // Use base cache Map with consistent key
         this.cache.set('account', account);

@@ -50,11 +50,14 @@ export interface StartPerpsLoadingSessionOptions {
   surface?: PerpsLoadingSurface;
   restart?: boolean;
   identity?: PerpsLoadingSessionIdentity;
+  provider?: string;
+  network?: 'mainnet' | 'testnet';
 }
 
 export interface PerpsLoadingSessionIdentity {
   marketKey: string;
   userKey: string;
+  accountKey: string;
 }
 
 export interface PerpsLoadingSessionContext {
@@ -62,6 +65,9 @@ export interface PerpsLoadingSessionContext {
   marketSource: PerpsSessionMarketSource;
   accountSource: PerpsSessionAccountSource;
   lifecycle: PerpsLoadingLifecycle;
+  accountGeneration: number;
+  contextGeneration: number;
+  connectionGeneration?: number;
 }
 
 export type PerpsLoadingSessionCancellationReason =
@@ -98,9 +104,11 @@ export function createPerpsLoadingSessionIdentity({
     network,
     hip3ConfigVersion,
   ]);
+  const accountKey = address?.toLowerCase() ?? '';
   return {
     marketKey,
-    userKey: JSON.stringify([marketKey, address?.toLowerCase() ?? '']),
+    userKey: JSON.stringify([marketKey, accountKey]),
+    accountKey,
   };
 }
 

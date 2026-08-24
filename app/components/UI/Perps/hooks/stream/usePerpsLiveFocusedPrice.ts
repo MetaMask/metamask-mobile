@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type PriceUpdate } from '@metamask/perps-controller';
+import { usePerpsMarketContext } from '../usePerpsMarketContext';
 
 export interface UsePerpsLiveFocusedPriceOptions {
   /**
@@ -52,8 +53,10 @@ export function usePerpsLiveFocusedPrice(
 ): PriceUpdate | undefined {
   const { symbol, enabled = true } = options;
   const stream = usePerpsStream();
+  const { key: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
   const [priceState, setPriceState] = useState<
-    { symbol: string; update: PriceUpdate } | undefined
+    { contextKey: string; symbol: string; update: PriceUpdate } | undefined
   >(undefined);
 
   // Track the symbol that produced the current cached value so we can clear
@@ -63,7 +66,7 @@ export function usePerpsLiveFocusedPrice(
   const activeSymbolRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!symbol || !enabled) {
+    if (!symbol || !enabled || !isMarketContextReady) {
       activeSymbolRef.current = null;
       setPriceState(undefined);
       return;
@@ -81,14 +84,19 @@ export function usePerpsLiveFocusedPrice(
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
       callback: (update) => {
-        setPriceState(update ? { symbol, update } : undefined);
+        setPriceState(
+          update ? { contextKey: marketContextKey, symbol, update } : undefined,
+        );
       },
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol, enabled]);
+  }, [stream, symbol, enabled, isMarketContextReady, marketContextKey]);
 
-  return priceState?.symbol === symbol ? priceState.update : undefined;
+  return priceState?.symbol === symbol &&
+    priceState.contextKey === marketContextKey
+    ? priceState.update
+    : undefined;
 }
