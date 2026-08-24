@@ -14,11 +14,9 @@ export function useNotificationListPerformance({
   notificationCount,
   enabled = true,
 }: UseNotificationListPerformanceConfig) {
-  const ttcTraceId = useRef('');
-  const ttcStarted = useRef(false);
-  const ttcEnded = useRef(false);
+  // Non-null = trace active; cleared on end to serve as the "active" sentinel.
+  const ttcTraceId = useRef<string | null>(null);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
-  const sawFetchRef = useRef(false);
   const latestCountRef = useRef(notificationCount);
   latestCountRef.current = notificationCount;
 
@@ -26,29 +24,24 @@ export function useNotificationListPerformance({
     if (!enabled) return;
 
     ttcTraceId.current = uuidv4();
-    ttcEnded.current = false;
-    sawFetchRef.current = false;
-
     trace({
       name: TraceName.NotificationListTimeToContent,
       op: TraceOperation.NotificationPerformance,
       id: ttcTraceId.current,
     });
-    ttcStarted.current = true;
 
     return () => {
-      if (ttcStarted.current && !ttcEnded.current) {
-        endTrace({
-          name: TraceName.NotificationListTimeToContent,
-          id: ttcTraceId.current,
-          data: {
-            success: false,
-            reason: 'unmounted',
-            notification_count: latestCountRef.current,
-          },
-        });
-        ttcStarted.current = false;
-      }
+      if (!ttcTraceId.current) return;
+      endTrace({
+        name: TraceName.NotificationListTimeToContent,
+        id: ttcTraceId.current,
+        data: {
+          success: false,
+          reason: 'unmounted',
+          notification_count: latestCountRef.current,
+        },
+      });
+      ttcTraceId.current = null;
     };
   }, [enabled]);
 
@@ -58,25 +51,19 @@ export function useNotificationListPerformance({
     const wasLoading = prevIsLoading.current;
     prevIsLoading.current = isLoading;
 
-    if (wasLoading === true && !isLoading) {
-      sawFetchRef.current = true;
-    }
-
-    if (!isLoading && ttcStarted.current && !ttcEnded.current) {
-      const source =
-        sawFetchRef.current || wasLoading === true ? 'cold' : 'warm';
-
+    if (!isLoading && ttcTraceId.current) {
+      const id = ttcTraceId.current;
+      ttcTraceId.current = null;
       endTrace({
         name: TraceName.NotificationListTimeToContent,
-        id: ttcTraceId.current,
+        id,
         data: {
           success: true,
-          source,
+          source: wasLoading === true ? 'cold' : 'warm',
           notification_count: notificationCount,
           content_state: notificationCount > 0 ? 'filled' : 'empty',
         },
       });
-      ttcEnded.current = true;
     }
   }, [enabled, isLoading, notificationCount]);
 }
