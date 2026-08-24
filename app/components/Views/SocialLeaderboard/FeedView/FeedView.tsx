@@ -56,7 +56,7 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
@@ -140,6 +140,10 @@ const FeedView: React.FC<FeedViewProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
+  // `'TopTradersView'` is the *route* name for the whole Follow Trading surface
+  // (`Routes.SOCIAL_LEADERBOARD.VIEW`), not the sibling component of the same
+  // name — the feed renders inside it via `SocialTradersTabsView`, so this is
+  // the enclosing route's param list even though the names look mismatched.
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';

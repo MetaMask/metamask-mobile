@@ -1,5 +1,6 @@
 import Utilities from './Utilities.ts';
 import { RetryOptions } from './types.ts';
+import type { EncapsulatedElementType } from './EncapsulatedElement.ts';
 
 describe('Utilities.executeWithRetry', () => {
   let consoleLogSpy: jest.SpyInstance;
@@ -168,5 +169,19 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(mockOperation).toHaveBeenCalledTimes(3);
     });
+  });
+});
+
+describe('Utilities.getElementText', () => {
+  it('returns text content from an Appium element', async () => {
+    const textContent = jest.fn().mockResolvedValue('$12.34');
+    const encapsulatedElement = Promise.resolve({
+      textContent,
+    }) as unknown as EncapsulatedElementType;
+
+    const result = await Utilities.getElementText(encapsulatedElement);
+
+    expect(result).toBe('$12.34');
+    expect(textContent).toHaveBeenCalledTimes(1);
   });
 });

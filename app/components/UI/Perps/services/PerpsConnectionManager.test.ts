@@ -82,7 +82,11 @@ const mockStreamManagerInstance = {
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  candles: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
   resetDiskCacheThrottles: jest.fn(),
   clearAllChannels: jest.fn(),
 };
@@ -170,6 +174,8 @@ const resetManager = (manager: unknown) => {
     prewarmCleanups: (() => void)[];
     netInfoUnsubscribe: (() => void) | null;
     wasOffline: boolean;
+    stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
+    pendingSkipMarketNotify: boolean;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -180,6 +186,11 @@ const resetManager = (manager: unknown) => {
     m.netInfoUnsubscribe = null;
   }
   m.wasOffline = false;
+  if (m.stateChangeDebounceTimer) {
+    clearTimeout(m.stateChangeDebounceTimer);
+  }
+  m.stateChangeDebounceTimer = null;
+  m.pendingSkipMarketNotify = false;
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
@@ -690,9 +701,10 @@ describe('PerpsConnectionManager', () => {
         }),
       );
 
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(true);
+      ).not.toHaveBeenCalled();
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -731,7 +743,7 @@ describe('PerpsConnectionManager', () => {
 
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(false);
+      ).toHaveBeenCalledWith();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {
@@ -789,10 +801,10 @@ describe('PerpsConnectionManager', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      // The second clearCache call inside performReconnection should use false
+      // The reconnection must perform a full market reset.
       const calls = mockStreamManagerInstance.marketData.clearCache.mock.calls;
       const lastCall = calls[calls.length - 1];
-      expect(lastCall[0]).toBe(false);
+      expect(lastCall).toEqual([]);
 
       jest.useRealTimers();
     });
@@ -885,7 +897,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
     });
 
-    it('reinitializes controller with new account and network context', async () => {
+    it('reinitializes the controller and mounted candle subscriptions', async () => {
       mockPerpsController.init.mockResolvedValue();
 
       await (
@@ -897,6 +909,12 @@ describe('PerpsConnectionManager', () => {
       // Manager now calls initializeProviders directly (Controller.reconnectWithNewContext was removed as redundant)
       // Account data will be fetched via WebSocket subscriptions during preload, no explicit getAccountState() call
       expect(mockPerpsController.init).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.candles.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockPerpsController.init.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStreamManagerInstance.candles.reconnect.mock.invocationCallOrder[0],
+      );
     });
 
     it('waits for concurrent controller reinit before health-check ping', async () => {
@@ -943,6 +961,9 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+      expect(
+        mockStreamManagerInstance.candles.reconnect,
+      ).not.toHaveBeenCalled();
     });
   });
 

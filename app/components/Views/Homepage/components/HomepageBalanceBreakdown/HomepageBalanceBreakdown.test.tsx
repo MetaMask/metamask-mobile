@@ -12,6 +12,7 @@ import type {
   SliceKey,
 } from '../../BalanceBreakdown/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
@@ -19,13 +20,19 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 const mockHandleViewAllPerps = jest.fn();
+const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
+  handleViewAllPerps: mockHandleViewAllPerps,
+}));
 const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn(() => ({ name: 'Balance Breakdown Slice Tapped' }));
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockBuild = jest.fn(() => ({ name: 'Home Viewed' }));
+const mockAddProperties = jest.fn((_properties?: Record<string, unknown>) => ({
+  build: mockBuild,
+}));
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
@@ -56,6 +63,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../context/HomepageScrollContext', () => ({
+  useHomepageScrollContext: () => ({
+    entryPoint: 'home_tab',
+    appSessionId: 'app-session-id',
+    visitId: 2,
+  }),
+}));
+
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
@@ -63,9 +78,8 @@ jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
 }));
 
 jest.mock('../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers', () => ({
-  usePerpsNavigationHandlers: () => ({
-    handleViewAllPerps: mockHandleViewAllPerps,
-  }),
+  usePerpsNavigationHandlers: (options: unknown) =>
+    mockUsePerpsNavigationHandlers(options),
 }));
 
 jest.mock('../../BalanceBreakdown/hooks/useBalanceBreakdown');
@@ -172,7 +186,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByTestId, getAllByRole } = render(
+    const { getByTestId, getAllByRole, queryByTestId } = render(
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
@@ -222,6 +236,9 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
     expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ARROW('money')),
+    ).not.toBeOnTheScreen();
+    expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
     ).toContain('USD 50.00');
@@ -232,6 +249,34 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens, USD 20.00, 20%');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+    ).toHaveStyle({
+      minHeight: 40,
+      paddingBottom: 0,
+      paddingTop: 0,
+    });
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('perps')).props
+        .accessibilityLabel,
+    ).toBe('Perps, USD 10.00, 20%');
+  });
+
+  it('renders a right arrow on every icon row when enabled', () => {
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" showRowArrows />,
+    );
+
+    (['money', 'tokens', 'perps', 'predict', 'defi'] as const).forEach(
+      (key) => {
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ARROW(key)).props.name,
+        ).toBe('ArrowRight');
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ICON(key)),
+        ).toBeOnTheScreen();
+      },
+    );
   });
 
   it('localizes allocation percentages and APY numbers', () => {
@@ -419,6 +464,30 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('<1%');
   });
 
+  it('renders less than zero for a positive fiat value that rounds to zero', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', {
+          valueFiat: 0.001,
+        }),
+      },
+    });
+
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens')),
+    ).toHaveTextContent('<USD 0.00');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
+        .accessibilityLabel,
+    ).toContain('<USD 0.00');
+  });
+
   it('renders the Money APY loading slot', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -465,7 +534,18 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('opens the canonical primitive destinations from each row', () => {
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'icons',
+      ),
+    ];
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown
+        layout="icons"
+        transactionActiveAbTests={transactionActiveAbTests}
+      />,
+    );
 
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')));
@@ -475,27 +555,71 @@ describe('HomepageBalanceBreakdown', () => {
     );
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')));
 
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith(
+      'homescreen_balance_breakdown',
+    );
     expect(mockNavigate).toHaveBeenNthCalledWith(
       1,
       Routes.WALLET.TOKENS_FULL_VIEW,
+      { source: 'homescreen_balance_breakdown' },
     );
+    expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
+      source: 'homescreen_balance_breakdown',
+      transactionActiveAbTests,
+    });
     expect(mockHandleViewAllPerps).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
-        entryPoint: 'homepage_balance',
+        entryPoint: 'homescreen_balance_breakdown',
+        transactionActiveAbTests,
       },
     });
     expect(mockNavigate).toHaveBeenNthCalledWith(
       3,
       Routes.WALLET.DEFI_FULL_VIEW,
+      { source: 'homescreen_balance_breakdown' },
     );
-    expect(mockTrackEvent).toHaveBeenCalledTimes(5);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(5);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.HOME_VIEWED,
+    );
     expect(mockAddProperties).toHaveBeenNthCalledWith(1, {
-      slice: 'money',
-      source: 'homepage',
+      interaction_type: 'balance_breakdown_row_tapped',
+      location: 'home',
+      section_name: 'money',
+      position: 0,
+      entry_point: 'home_tab',
+      app_session_id: 'app-session-id',
+      visit_number: 2,
     });
+    expect(mockAddProperties).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        section_name: 'perpetuals',
+        position: 2,
+      }),
+    );
+    expect(mockAddProperties).toHaveBeenNthCalledWith(
+      4,
+      expect.objectContaining({
+        section_name: 'predictions',
+        position: 3,
+      }),
+    );
+    expect(
+      mockAddProperties.mock.calls.map(([properties = {}]) => ({
+        section_name: properties.section_name,
+        position: properties.position,
+      })),
+    ).toEqual([
+      { section_name: 'money', position: 0 },
+      { section_name: 'tokens', position: 1 },
+      { section_name: 'perpetuals', position: 2 },
+      { section_name: 'predictions', position: 3 },
+      { section_name: 'defi', position: 4 },
+    ]);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(5);
   });
 
   it('renders skeletons while loading and em dashes for failed rows', () => {

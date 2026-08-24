@@ -42,6 +42,10 @@ export const TEAMS = {
     name: 'Performance Team',
     slackGroupId: null,
   },
+  '@mm-earn-team': {
+    name: 'Earn Team',
+    slackGroupId: null, // S052NJFKX6Y
+  },
 };
 
 // Default team when no tag is specified
