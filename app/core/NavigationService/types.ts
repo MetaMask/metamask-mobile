@@ -482,6 +482,7 @@ export type RootStackParamList = {
   BrowserView: BrowserParams | undefined;
   AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
+  AccountHubView: undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes

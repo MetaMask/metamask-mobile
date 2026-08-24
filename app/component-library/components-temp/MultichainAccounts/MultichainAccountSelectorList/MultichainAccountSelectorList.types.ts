@@ -74,6 +74,12 @@ export interface MultichainAccountSelectorListProps
    */
   hideAccountCellMenu?: boolean;
   /**
+   * Optional boolean to hide the search field. Filtering still works if a
+   * `selectedExternalAddress` seeds the query, so callers that hide search
+   * should not also pass one.
+   */
+  hideSearch?: boolean;
+  /**
    * Optional boolean to show the external account on empty search
    */
   showExternalAccountOnEmptySearch?: boolean;

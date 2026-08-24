@@ -73,6 +73,7 @@ const MultichainAccountSelectorList = ({
   accountSections: accountSectionsProp,
   chainId,
   hideAccountCellMenu = false,
+  hideSearch = false,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
@@ -411,29 +412,31 @@ const MultichainAccountSelectorList = ({
 
   return (
     <>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchText}
-          onChangeText={setSearchText}
-          onPressClearButton={() => setSearchText('')}
-          placeholder={strings('accounts.search_your_accounts')}
-          inputProps={{
-            testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
-          }}
-          autoFocus={false}
-          isError={shouldShowInvalidAddressError}
-        />
-        {shouldShowInvalidAddressError ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={styles.searchErrorText}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
-          >
-            {strings('bridge.invalid_recipient_address')}
-          </Text>
-        ) : null}
-      </View>
+      {hideSearch ? null : (
+        <View style={styles.searchContainer}>
+          <TextFieldSearch
+            value={searchText}
+            onChangeText={setSearchText}
+            onPressClearButton={() => setSearchText('')}
+            placeholder={strings('accounts.search_your_accounts')}
+            inputProps={{
+              testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+            }}
+            autoFocus={false}
+            isError={shouldShowInvalidAddressError}
+          />
+          {shouldShowInvalidAddressError ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={styles.searchErrorText}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
+            >
+              {strings('bridge.invalid_recipient_address')}
+            </Text>
+          ) : null}
+        </View>
+      )}
       <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
           <View

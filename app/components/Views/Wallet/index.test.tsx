@@ -108,9 +108,21 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
 let mockBalanceBreakdownVariantName = 'unresolved';
+let mockHeaderNavBarVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'homeTMCU1276AbtestHeaderNavBar') {
+      return {
+        variantName: mockHeaderNavBarVariantName,
+        variant: {
+          useRefreshedHeaderAndNavBar:
+            mockHeaderNavBarVariantName === 'treatment',
+        },
+        isActive: true,
+      };
+    }
+
     if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdown') {
       return {
         variantName: mockBalanceBreakdownVariantName,
@@ -768,6 +780,7 @@ beforeEach(() => {
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
+  mockHeaderNavBarVariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
 });
 
@@ -1896,6 +1909,107 @@ describe('MoneyBalanceCard slot', () => {
       }),
     );
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Header and Nav Bar refresh AB test', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMoneyAccountEnabled = true;
+    mockHeaderNavBarVariantName = 'control';
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockMoneyAccountEnabled = false;
+    mockHeaderNavBarVariantName = 'control';
+  });
+
+  it('leaves the control header untouched', () => {
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders only the avatar and rewards entry points in treatment', () => {
+    mockHeaderNavBarVariantName = 'treatment';
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).toBeOnTheScreen();
+
+    for (const removed of [
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
+      WalletViewSelectorsIDs.ACCOUNT_ICON,
+    ]) {
+      expect(queryByTestId(removed)).not.toBeOnTheScreen();
+    }
+  });
+
+  // The header handlers use the `navigation` prop, not `useNavigation`, so these
+  // render with an explicit prop rather than through `render()`.
+  const renderWithNavigationProp = () => {
+    const navigationProp = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    return renderWithProvider(
+      <Wallet
+        navigation={navigationProp}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+  };
+
+  it('opens the account hub from the treatment avatar', () => {
+    mockHeaderNavBarVariantName = 'treatment';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
+
+  it('opens rewards from the treatment gift icon', () => {
+    mockHeaderNavBarVariantName = 'treatment';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 });
 

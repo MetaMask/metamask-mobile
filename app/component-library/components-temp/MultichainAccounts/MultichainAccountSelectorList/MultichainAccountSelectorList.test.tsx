@@ -182,6 +182,46 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Wallet 2')).toBeTruthy();
   });
 
+  it('renders the search field by default', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the search field when hideSearch is set, keeping the accounts', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId, getByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { hideSearch: true },
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).not.toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeTruthy();
+  });
+
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
     const srpAccount = createMockAccountGroup(
       'keyring:srp-wallet/srp-group',
