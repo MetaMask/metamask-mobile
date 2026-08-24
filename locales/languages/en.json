@@ -10963,6 +10963,18 @@
       "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
       "cta": "Get card"
     },
+    "earned": {
+      "total_label": "Earned since joining Pro",
+      "interest_title": "Interest",
+      "interest_subtitle": "Up to 7% APY on Money balance",
+      "card_cashback_title": "Card cashback",
+      "card_cashback_subtitle": "3% in mUSD on {{amount}}",
+      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
+      "grow_title": "Grow your balance",
+      "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
+      "add_money": "Add money"
+    },
     "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
