@@ -55,9 +55,12 @@ All provider access must go through `AggregatedPerpsProvider` → `ProviderRoute
 
 ## Connection & WebSocket Architecture
 
-Single `PerpsAlwaysOnProvider` at wallet root owns lifecycle. All `PerpsConnectionProvider` instances use `manageLifecycle={false}`.
+One `PerpsAlwaysOnProvider` at the wallet root owns mount and `AppState`
+lifecycle. `PerpsConnectionProvider` exposes singleton state; a non-suppressed
+instance may request guarded entry recovery, but current production wrappers
+suppress it and must not install another app-lifecycle effect.
 
-- **New `PerpsConnectionProvider` with lifecycle** — adding a `PerpsConnectionProvider` without `manageLifecycle={false}` creates reference-count bugs. Only `PerpsAlwaysOnProvider` manages connect/disconnect.
+- **New screen-owned connection lifecycle** - adding mount/unmount or `AppState` connect/disconnect effects below `PerpsAlwaysOnProvider` creates competing lifecycle requests. Screen entry recovery must use the existing singleton `ensureConnected()` path.
 - **Unthrottled WS → setState** — every WS tick triggers state update. Must use `useLivePrices` with appropriate `throttleMs` (100ms for charts, 2s for lists, 10s for order forms). Exception: subscriptions that must react to user form input within the same tick (e.g. the L2 order-book subscription in `usePerpsEstimatedSlippage`) can use a sub-second cadence via `PERFORMANCE_CONFIG.SlippageEstimateThrottleMs`; downstream `useMemo` must keep per-tick work cheap so the faster cadence does not cause render pressure.
 - **Per-component WS subscription** — creating a new WebSocket connection per component instead of using `PerpsStreamManager` shared subscriptions with reference counting.
 - **WS subscription leak** — subscribing on mount without unsubscribing on unmount or market switch. `PerpsStreamManager` handles ref counting but custom subscriptions must clean up.

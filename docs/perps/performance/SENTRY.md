@@ -34,6 +34,14 @@ The market-detail session is also an independent root. It shares bounded
 lifecycle/provider/network/mode attributes with the reused traces but does not
 join or copy them.
 
+`Perps Connection Establishment` belongs to the singleton connection plane,
+not to the screen that happens to be visible when an attempt runs. The
+wallet-root lifecycle owner and any guarded screen recovery request converge on
+the same manager. One attempt may serve Wallet Homepage, Perps Home, Market
+Detail, and later flows. Do not add a screen attribute to reinterpret that
+duration. Each screen keeps the user-perceived trace whose start and end it
+owns.
+
 ## Existing authoritative traces
 
 | Stage                  | Existing trace                                                     | Minimal change                                                                |
@@ -143,6 +151,14 @@ currently excluded, so production widgets must not label memory-hydrated rows
 as disk cache.
 
 Dashboards aggregate each authoritative transaction independently using the same bounded release/platform/lifecycle/source attributes. Bootstrap-relative Perps widgets query the slim loading session; app startup and Homepage Ready remain separate release/platform cohorts.
+
+Connection widgets query `Perps Connection Establishment`. The contract
+requires release, platform, provider, network, lifecycle, and outcome cohorts;
+until an identifiable release emits a field, the dashboard must leave it
+unknown rather than infer it from the visible screen. Screen widgets query
+their own trace names. A screen can legitimately be fast when it consumes an
+already ready connection, and a connection can complete without any Perps
+screen being visible.
 
 ## Dashboard proposal
 

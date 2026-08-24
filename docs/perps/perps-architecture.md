@@ -256,8 +256,8 @@ Business logic services instantiated with platform dependencies:
 
 React context providers:
 
-- **PerpsAlwaysOnProvider** - Top-level always-on lifecycle manager (mounted at Wallet root); single caller of connect/disconnect on the PerpsConnectionManager singleton
-- **PerpsConnectionProvider** - Connection state and methods for UI; all instances use `manageLifecycle={false}` — lifecycle is delegated to PerpsAlwaysOnProvider
+- **PerpsAlwaysOnProvider** - Top-level owner that maps wallet-root mount and `AppState` transitions to resume/disconnect requests on the singleton manager
+- **PerpsConnectionProvider** - React view of singleton connection state and actions; a non-suppressed instance may issue guarded entry recovery, but current production wrappers suppress it and do not own wallet-root or `AppState` lifecycle
 - **PerpsStreamManager** - WebSocket stream management with caching
 - **PerpsOrderContext** - Order form context
 
@@ -663,8 +663,8 @@ Migrated from per-component subscriptions to shared streams:
 Migrated from per-section `PerpsConnectionProvider` lifecycle management to a single top-level `PerpsAlwaysOnProvider`:
 
 - **Old**: Multiple `PerpsConnectionProvider` instances in Homepage, PerpsTabView, ActivityView, TrendingView, ExploreSearchScreen, and UrlAutocomplete each called `connect()`/`disconnect()`. Reference-count edge cases caused intermittent bugs (positions not showing, 24h values missing) after long app backgrounding.
-- **New**: Single `PerpsAlwaysOnProvider` at `Wallet/index.tsx` owns the entire lifecycle. All `PerpsConnectionProvider` instances use `manageLifecycle={false}` — they provide React context only.
-- **Result**: `connectionRefCount` in `PerpsConnectionManager` stays exactly 1; no more reference-count races. Skeleton correctly shows on reconnect via `isConnecting` flag ORed into loading states in `usePerpsHomeData`.
+- **New**: One `PerpsAlwaysOnProvider` at `Wallet/index.tsx` owns wallet-root and foreground/background lifecycle. `PerpsConnectionProvider` exposes singleton state and guarded recovery/actions without installing another app-lifecycle owner.
+- **Result**: mounting several React providers no longer multiplies connection lifecycle effects. The singleton manager deduplicates active connection and recovery work. Skeleton correctly shows on reconnect via `isConnecting` in `usePerpsHomeData`.
 
 ## Additional Resources
 

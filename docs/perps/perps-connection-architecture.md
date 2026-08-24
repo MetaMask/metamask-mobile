@@ -4,17 +4,26 @@
 
 The Perps connection system uses a layered architecture where each layer has clear responsibilities and ownership boundaries.
 
-Connection lifecycle is managed by a single top-level `PerpsAlwaysOnProvider` mounted at the wallet root. Per-section `PerpsConnectionProvider` instances provide React context to consumers but do **not** manage connect/disconnect — that responsibility belongs exclusively to `PerpsAlwaysOnProvider`.
+App mount and foreground/background lifecycle are managed by one top-level
+`PerpsAlwaysOnProvider` at the wallet root. `PerpsConnectionProvider` instances
+expose the singleton state to React consumers. They may request a guarded
+`ensureConnected()` on screen entry when error suppression is disabled, and
+they expose explicit connection actions. Current production wrappers suppress
+that entry recovery and rely on the wallet-root owner. No provider installs
+another app-lifecycle owner. Every request converges on the same
+`PerpsConnectionManager` instance and its in-flight promise guards.
 
 ## Layer Stack
 
 ```mermaid
 graph TD
-    AOProv[PerpsAlwaysOnProvider<br/>Wallet root - always on] -->|calls connect/disconnect| Manager[PerpsConnectionManager]
+    AOProv[PerpsAlwaysOnProvider<br/>Wallet root - always on] -->|resume / background disconnect| Manager[PerpsConnectionManager singleton]
     UI[UI Components] -->|uses| Hook[usePerpsConnection]
-    Hook -->|reads context from| Provider[PerpsConnectionProvider<br/>manageLifecycle=false]
+    Hook -->|reads context from| Provider[PerpsConnectionProvider]
     Provider -.polls state from.-> Manager
+    Provider -.guarded ensure / explicit action.-> Manager
     Manager -->|orchestrates| Controller[PerpsController]
+    Manager -->|coordinates| Streams[PerpsStreamManager singleton]
     Controller -->|manages| HP[HyperLiquidProvider]
     HP -->|REST API| API[HyperLiquid API]
     HP -->|WebSocket| WS[WebSocket Subscriptions]
@@ -61,13 +70,13 @@ graph TD
 **Owns**:
 
 - Single `AppState` listener for foreground/background transitions
-- The only caller of `PerpsConnectionManager.connect()` and `PerpsConnectionManager.disconnect()`
+- Wallet-root mount, foreground resume, background disconnect, and unmount lifecycle requests
 
 **Responsibilities**:
 
-- Call `connect()` on mount (when `isPerpsEnabled`)
+- Call `resumeFromForeground()` on mount when Perps is enabled
 - Call `disconnect()` when app goes to background (triggers 20s grace period in Manager)
-- Call `ensureConnected()` when app returns to foreground (forces disconnect + fresh reconnect after stabilization delay)
+- Call `resumeFromForeground()` when the app returns to foreground after a stabilization delay
 - Call `disconnect()` on unmount
 
 **Does NOT**:
@@ -76,7 +85,11 @@ graph TD
 - Know about individual screens or tab visibility
 - Manage stream subscriptions
 
-**Result**: `connectionRefCount` in `PerpsConnectionManager` stays exactly 1 throughout the app lifetime, eliminating all reference-count edge cases from multiple simultaneous providers.
+**Result**: mounting another React connection provider does not create another
+app-lifecycle connection owner. The singleton manager serializes actual
+connection work through `initPromise`, `pendingReconnectPromise`, and
+`ensureConnectedPromise`. `connectionRefCount` tracks explicit manager
+requests; it is not a screen count and is not documented as always equal to 1.
 
 ---
 
@@ -95,23 +108,23 @@ graph TD
 
 - Translate singleton Manager state into React state
 - Provide stable callback functions to UI (`connect`, `disconnect`, `reconnectWithNewContext`, `resetError`)
+- Request `ensureConnected()` on an eligible, non-suppressed screen entry when the singleton is fully disconnected
 - Decide when to show error screen vs content
 - Handle E2E mode with mock state
 
 **Does NOT**:
 
-- Manage connection lifecycle when `manageLifecycle={false}` (the default for all section-level instances)
-- Know about app state or background/foreground transitions
+- Install app mount, unmount, or foreground/background connection lifecycle
+- Know about app-state transitions
 - Handle race conditions or reconnection logic
 
 **Exposes**: Connection context via `PerpsConnectionContext` that `usePerpsConnection` hook reads from
 
-**`manageLifecycle` prop**:
-
-- `true` (default, used only by the perps stack navigator internally for historical reasons): passes `isVisible` to `usePerpsConnectionLifecycle` — **not used in practice since `PerpsAlwaysOnProvider` is the single lifecycle owner**
-- `false`: suppresses all connect/disconnect calls; provider acts as context source only
-
-All current `PerpsConnectionProvider` instances use `manageLifecycle={false}` — lifecycle is owned exclusively by `PerpsAlwaysOnProvider`.
+Screen providers have no lifecycle-mode prop. When error suppression is off,
+they can ask the singleton to recover, and they expose explicit actions.
+Current production wrappers use `suppressErrorView`, so wallet-root lifecycle
+drives their connection. `PerpsAlwaysOnProvider` remains the only component
+that maps wallet-root and `AppState` lifecycle to connection requests.
 
 ---
 
@@ -149,9 +162,11 @@ All current `PerpsConnectionProvider` instances use `manageLifecycle={false}` �
 
 **Key Methods**:
 
-- `connect()` - Initialize connection if first provider instance
-- `disconnect()` - Disconnect if last provider instance (after grace period)
-- `reconnectWithNewContext(options?: ReconnectOptions)` - Coordinate full reconnection with optional force flag
+- `connect(options?: ConnectOptions)` - Start or reuse the manager's current connection attempt and register the request
+- `disconnect()` - Release a request and disconnect after the grace period when none remain
+- `resumeFromForeground(options?: ConnectOptions)` - Reuse a healthy connection or perform a cache-preserving reconnect
+- `ensureConnected(options?: ConnectOptions)` - Force a clean, deduplicated reconnect for explicit recovery
+- `reconnectWithNewContext(options?: ReconnectOptions)` - Coordinate account, network, provider, or configuration reconnection
 
 ---
 
@@ -297,8 +312,8 @@ The stream hooks used by PerpsHomeView gracefully handle the not-yet-connected s
 
 **Key Methods**:
 
-- `initializeProviders()` - Disconnect old providers, create new ones
-- `disconnect()` - Disconnect provider and reset initialization state
+- `init()` - Initialize provider instances for the current context
+- `disconnect()` - Disconnect providers and reset initialization state
 - `getAccountState()`, `placeOrder()`, etc. - Data access methods
 
 ---
@@ -362,23 +377,24 @@ The stream hooks used by PerpsHomeView gracefully handle the not-yet-connected s
 
 ### Manager Layer Methods
 
-| Method                      | Signature                                       | Purpose                                               |
-| --------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
-| `connect()`                 | `() => Promise<void>`                           | Initialize connection if first provider               |
-| `disconnect()`              | `() => Promise<void>`                           | Disconnect if last provider (with grace period)       |
-| `ensureConnected()`         | `() => Promise<void>`                           | Foreground return: force disconnect + fresh reconnect |
-| `reconnectWithNewContext()` | `(options?: ReconnectOptions) => Promise<void>` | Coordinate full reconnection                          |
-| `getConnectionState()`      | `() => ConnectionState`                         | Get current connection state (for polling)            |
-| `resetError()`              | `() => void`                                    | Clear error state                                     |
+| Method                      | Signature                                       | Purpose                                                              |
+| --------------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
+| `connect()`                 | `(options?: ConnectOptions) => Promise<void>`   | Start or reuse the current connection attempt                        |
+| `disconnect()`              | `() => Promise<void>`                           | Release a request and apply the grace-period disconnect policy       |
+| `resumeFromForeground()`    | `(options?: ConnectOptions) => Promise<void>`   | Validate/reuse a healthy socket or reconnect while preserving caches |
+| `ensureConnected()`         | `(options?: ConnectOptions) => Promise<void>`   | Force one clean reconnect, deduplicated across callers               |
+| `reconnectWithNewContext()` | `(options?: ReconnectOptions) => Promise<void>` | Coordinate account/network/provider/configuration reconnection       |
+| `getConnectionState()`      | `() => ConnectionState`                         | Get current connection state for polling                             |
+| `resetError()`              | `() => void`                                    | Clear error state                                                    |
 
 ### Controller Layer Methods
 
-| Method                  | Signature                     | Purpose                              |
-| ----------------------- | ----------------------------- | ------------------------------------ |
-| `initializeProviders()` | `() => Promise<void>`         | Disconnect old, create new providers |
-| `disconnect()`          | `() => Promise<void>`         | Disconnect provider, reset flags     |
-| `getAccountState()`     | `() => Promise<AccountState>` | Fetch account data                   |
-| `placeOrder()`          | `(order) => Promise<void>`    | Submit order                         |
+| Method              | Signature                     | Purpose                                      |
+| ------------------- | ----------------------------- | -------------------------------------------- |
+| `init()`            | `() => Promise<void>`         | Initialize providers for the current context |
+| `disconnect()`      | `() => Promise<void>`         | Disconnect providers and reset flags         |
+| `getAccountState()` | `() => Promise<AccountState>` | Fetch account data                           |
+| `placeOrder()`      | `(order) => Promise<void>`    | Submit order                                 |
 
 ### Provider Layer Methods (React)
 
@@ -404,7 +420,9 @@ interface ReconnectOptions {
 - `force: false` (default): Waits for pending operations → safe for automatic reconnects
 - `force: true`: Cancels pending operations AND clears connection timeout timer → user-initiated retry
 
-**Why Controller doesn't need it**: Manager calls `initializeProviders()` directly which always does full reinitialization with provider disconnect/recreate.
+**Why Controller doesn't need it**: Manager applies the force policy, calls
+`disconnect()`, then calls `init()` for the current context. The Controller does
+not decide whether pending manager work should be cancelled or awaited.
 
 **Additional Effects of force: true**:
 
@@ -422,7 +440,7 @@ interface ReconnectOptions {
 
 - **UI**: User clicks retry button → Provider.reconnectWithNewContext({ force: true })
 - **Provider (React)**: Delegates to Manager singleton
-- **Manager**: Cancels pending promises, clears caches, calls Controller.initializeProviders()
+- **Manager**: Cancels pending promises, clears caches, then calls Controller `disconnect()` and `init()`
 - **Controller**: Disconnects old provider, creates new one
 - **Provider (Exchange)**: Closes WebSocket, establishes new connection
 
@@ -439,10 +457,11 @@ sequenceDiagram
     RP->>M: reconnectWithNewContext({force: true})
     M->>M: Cancel pending promises
     M->>M: Clear stream caches
-    M->>C: initializeProviders()
+    M->>C: disconnect()
     C->>P: disconnect()
     P->>W: close()
-    C->>C: Create new provider
+    M->>C: init()
+    C->>C: Create providers for current context
     C->>P: (implicit connect via getAccountState)
     P->>W: establish connection
     W-->>UI: Connected
@@ -452,29 +471,27 @@ sequenceDiagram
 
 **Why each layer is involved**:
 
-- **UI**: Account changed → Lifecycle hook calls reconnect
-- **Provider (React)**: Delegates to Manager
-- **Manager**: Waits for pending operations, then reinitializes
+- **Wallet state**: The selected account changes in Redux
+- **Manager**: Its store subscription detects the new context, waits for pending operations, then reinitializes
 - **Manager**: Clears only user-scoped positions/orders/account/fills caches; global market and price channels remain visible
 - **Controller**: Disconnects old provider (old account), creates new one
 - **Provider (Exchange)**: Closes WebSocket, establishes new connection with new account context
 
 ```mermaid
 sequenceDiagram
-    participant UI as UI Component
-    participant RP as React Provider
+    participant W as Wallet state
     participant M as Manager
     participant C as Controller
     participant P as Exchange Provider
 
-    UI->>RP: Account changed
-    RP->>M: reconnectWithNewContext()
+    W->>M: Redux account context changed
+    M->>M: reconnectWithNewContext()
     M->>M: Wait for pending operations
     M->>M: Clear user-scoped caches; preserve global market data
-    M->>C: initializeProviders()
+    M->>C: disconnect(), then init()
     C->>P: disconnect old provider
     C->>C: create new provider
-    P-->>UI: Connected with new account
+    P-->>W: Connected with new account context
 ```
 
 ---
@@ -513,14 +530,15 @@ The Manager's `pendingReconnectPromise` ensures only one reconnection happens at
 
 ## When to Use What
 
-| Scenario          | Method                      | Options           | Which Layer Decides                        | Notes                                         |
-| ----------------- | --------------------------- | ----------------- | ------------------------------------------ | --------------------------------------------- |
-| Initial load      | `connect()`                 | -                 | Manager (via Provider hook)                | Uses WebSocket ping for validation            |
-| User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager                    | Cancels pending operations + timeout timer    |
-| Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Clears caches immediately before reconnection |
-| Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Same as account switch                        |
-| App background    | `disconnect()`              | -                 | PerpsAlwaysOnProvider → Manager            | Grace period (20s) before actual disconnect   |
-| App foreground    | `ensureConnected()`         | -                 | PerpsAlwaysOnProvider → Manager            | Forces disconnect + reconnect after delay     |
+| Scenario                      | Method                      | Options           | Which layer decides                | Notes                                            |
+| ----------------------------- | --------------------------- | ----------------- | ---------------------------------- | ------------------------------------------------ |
+| Wallet-root mount             | `resumeFromForeground()`    | suppress errors   | PerpsAlwaysOnProvider -> Manager   | Reuses or establishes the singleton connection   |
+| Non-suppressed entry recovery | `ensureConnected()`         | source            | PerpsConnectionProvider -> Manager | Runs only when fully disconnected and eligible   |
+| User retry button             | `reconnectWithNewContext()` | `{ force: true }` | UI -> Provider -> Manager          | Cancels pending operations and the timeout timer |
+| Account switch                | `reconnectWithNewContext()` | default           | Manager, via Redux subscription    | Clears user caches and preserves global data     |
+| Network switch                | `reconnectWithNewContext()` | default           | Manager, via Redux subscription    | Uses the new provider/network context            |
+| App background                | `disconnect()`              | -                 | PerpsAlwaysOnProvider -> Manager   | Grace period before actual disconnect            |
+| App foreground                | `resumeFromForeground()`    | suppress errors   | PerpsAlwaysOnProvider -> Manager   | Validates a healthy socket before reconnecting   |
 
 ---
 
