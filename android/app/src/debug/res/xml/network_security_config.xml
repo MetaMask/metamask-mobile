@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- BrowserStack installs its mitmproxy CA as a user certificate. -->
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="true" />
+    <debug-overrides>
         <trust-anchors>
-            <certificates src="system" />
             <certificates src="user" />
+            <certificates src="system" />
         </trust-anchors>
-    </base-config>
+    </debug-overrides>
 </network-security-config>
