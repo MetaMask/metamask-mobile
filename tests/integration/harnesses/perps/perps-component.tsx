@@ -235,6 +235,7 @@ function channelWithInitialValue<T>(initialValue: T) {
       return noopUnsubscribe;
     },
     getSnapshot: () => initialValue,
+    getLastDeliveredAt: () => Date.now(),
   };
 }
 
