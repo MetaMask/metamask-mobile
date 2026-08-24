@@ -629,6 +629,121 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
+  describe('interrupted exit animations (TMCU-1248)', () => {
+    /** Reanimated reports `finished: false` when a re-render retargets the bar mid-fill. */
+    function cancelProgressFillToFull() {
+      const actual = jest.requireActual(
+        './walletHomeOnboardingProgressAnimation',
+      ).animateWalletHomeOnboardingProgressRatio;
+      animateProgressRatioSpy.mockImplementation(
+        (progressRatio, target, options) => {
+          if (target === 1) {
+            options?.onComplete?.(false);
+            return;
+          }
+          actual(progressRatio, target, options);
+        },
+      );
+    }
+
+    it('completes the flow when the last-step progress fill is cancelled', async () => {
+      cancelProgressFillToFull();
+      const { getByTestId, store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(
+          WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS + 100,
+        );
+      });
+
+      await waitFor(() => {
+        expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+          expect.objectContaining({ suppressedReason: 'flow_completed' }),
+        );
+      });
+    });
+
+    it('runs the coordinated flow exit when the last-step progress fill is cancelled', async () => {
+      cancelProgressFillToFull();
+      const onCoordinatedFlowExit = jest.fn().mockResolvedValue(undefined);
+      const { getByTestId } = renderWithProvider(
+        <WalletHomeOnboardingSteps
+          testID="steps-root"
+          onCoordinatedFlowExit={onCoordinatedFlowExit}
+        />,
+        {
+          state: {
+            onboarding: {
+              ...baseOnboarding,
+              walletHomeOnboardingSteps: {
+                suppressedReason: null,
+                stepIndex: 2,
+              },
+            },
+            engine: { backgroundState },
+          },
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(
+          WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS + 100,
+        );
+      });
+
+      await waitFor(() => {
+        expect(onCoordinatedFlowExit).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('commits the skipped step when the checklist unmounts mid-transition', async () => {
+      const { getByTestId, store, unmount } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+
+      // Unmount during the outro hold — before the slide-out would have committed.
+      unmount();
+
+      await waitFor(() => {
+        expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+          expect.objectContaining({ stepIndex: 2 }),
+        );
+      });
+    });
+
+    it('completes the flow when the checklist unmounts mid-completion', async () => {
+      const { getByTestId, store, unmount } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+
+      unmount();
+
+      await waitFor(() => {
+        expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+          expect.objectContaining({ suppressedReason: 'flow_completed' }),
+        );
+      });
+    });
+  });
+
   it('clamps persisted stepIndex when it is out of range', () => {
     const { store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 99 },
@@ -644,6 +759,22 @@ describe('WalletHomeOnboardingSteps', () => {
       <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
       {
         state: {
+          onboarding: baseOnboarding,
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
+    expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
+    expect(getByTestId(primaryTestId)).toBeDisabled();
+  });
+
+  it('does not rewind to the fund shell when balance re-resolves on a later step', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
+      {
+        state: {
           onboarding: {
             ...baseOnboarding,
             walletHomeOnboardingSteps: {
@@ -656,9 +787,10 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     );
 
-    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
-    expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
-    expect(getByTestId(primaryTestId)).toBeDisabled();
+    expect(queryByTestId('steps-root-hero-awaiting-balance')).toBeNull();
+    expect(queryByTestId('steps-root-hero-fund')).toBeNull();
+    expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
+    expect(getByTestId(primaryTestId)).toBeEnabled();
   });
 
   it('renders fund hero and progress for step 0', () => {
