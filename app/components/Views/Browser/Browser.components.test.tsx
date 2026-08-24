@@ -409,7 +409,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -430,7 +430,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
