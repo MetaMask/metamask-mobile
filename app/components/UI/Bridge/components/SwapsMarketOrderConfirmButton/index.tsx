@@ -64,7 +64,7 @@ interface Props {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-export const SwapsConfirmButton = ({
+export const SwapsMarketOrderConfirmButton = ({
   latestSourceBalance,
   testID,
   location,
