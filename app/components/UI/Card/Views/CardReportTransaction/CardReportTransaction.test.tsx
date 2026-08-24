@@ -53,7 +53,8 @@ jest.mock('../../hooks/useRegistrationSettings', () => ({
 }));
 
 jest.mock('../../util/registrationSettings', () => ({
-  getCardSupportEmail: mockGetCardSupportEmail,
+  getCardSupportEmail: (registrationSettings: unknown, location: unknown) =>
+    mockGetCardSupportEmail(registrationSettings, location),
 }));
 
 jest.mock('react-redux', () => ({

@@ -159,14 +159,6 @@ const CardReportTransaction = () => {
       </Box>
       <Box twClassName="gap-3 px-4 pb-4 pt-4">
         <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleBack}
-          isFullWidth
-        >
-          {strings('card.transactions.report_back')}
-        </Button>
-        <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleFileReport}
@@ -174,6 +166,14 @@ const CardReportTransaction = () => {
           testID="card-report-transaction-file-button"
         >
           {strings('card.transactions.report_file')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={handleBack}
+          isFullWidth
+        >
+          {strings('card.transactions.report_back')}
         </Button>
       </Box>
     </SafeAreaView>
