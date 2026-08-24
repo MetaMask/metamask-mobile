@@ -34,13 +34,14 @@ on:
   workflow_dispatch:
     inputs:
       runner_provider:
-        description: Runner provider for this manual trial run
-        required: true
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
         type: choice
         options:
-          - current
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
       force_build:
         description: Force a fresh build even if the fingerprint is unchanged
         required: false

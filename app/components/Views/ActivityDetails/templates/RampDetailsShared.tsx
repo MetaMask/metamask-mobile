@@ -52,7 +52,7 @@ export function RampOrderIdValue({
         copyText={orderId}
         size={ButtonIconSizes.Sm}
         iconColor={LegacyIconColor.Alternative}
-        testID="ramp-order-id-copy"
+        testID={ActivityDetailsSelectorsIDs.RAMP_ORDER_ID_COPY}
       />
     </Box>
   );

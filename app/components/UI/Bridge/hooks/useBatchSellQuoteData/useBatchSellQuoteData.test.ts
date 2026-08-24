@@ -252,21 +252,18 @@ const mockGetMaybeHexChainId = jest.fn(
   (chainId?: string) => chainId as `0x${string}` | undefined,
 );
 
+const renderUseBatchSellQuoteData = () =>
+  renderHook(() => useBatchSellQuoteData());
+
 describe('useBatchSellQuoteData', () => {
-  // @ts-expect-error - jest.SpyInstance is a valid type
-  let selectShouldUseSmartTransactionSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is a valid type
-  let selectBatchSellDestTokenSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is a valid type
-  let selectBatchSellQuotesSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is not a valid type
-  let selectBatchSellTradesSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is not a valid type
-  let selectBridgeFeatureFlagsSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is not a valid type
-  let selectBatchSellSourceTokensSpy = jest.SpyInstance;
-  // @ts-expect-error - jest.SpyInstance is not a valid type
-  let selectBatchSellSourceTokenAmountsSpy = jest.SpyInstance;
+  let selectShouldUseSmartTransactionSpy: jest.SpyInstance;
+  let selectBatchSellDestTokenSpy: jest.SpyInstance;
+  let selectBatchSellQuotesSpy: jest.SpyInstance;
+  let selectBatchSellTradesSpy: jest.SpyInstance;
+  let selectBridgeFeatureFlagsSpy: jest.SpyInstance;
+  let selectBatchSellSourceTokensSpy: jest.SpyInstance;
+  let selectBatchSellSourceTokenAmountsSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest
@@ -289,32 +286,10 @@ describe('useBatchSellQuoteData', () => {
       });
     selectBatchSellQuotesSpy = jest
       .spyOn(bridgeSlice, 'selectBatchSellQuotes')
-      .mockReturnValue({
-        recommendedQuotes: [
-          buildMockRecommendedQuote(ethToken, '123', '123.45'),
-          buildMockRecommendedQuote(uniToken, '77', '77.89'),
-        ],
-        totalReceived: { amount: '200', valueInCurrency: '201.34', usd: '0' },
-        minimumReceived: { amount: '190', valueInCurrency: '191.23', usd: '0' },
-        isLoading: false,
-        isQuoteGoingToRefresh: true,
-        quotesLastFetchedMs: Date.now(),
-        quoteFetchError: null,
-        quotesRefreshCount: 0,
-        quotesInitialLoadTimeMs: 0,
-      });
+      .mockReturnValue(mockBatchSellQuotes);
     selectBatchSellTradesSpy = jest
       .spyOn(bridgeSlice, 'selectBatchSellTrades')
-      .mockReturnValue({
-        totalNetworkFee: {
-          amount: '1.2',
-          valueInCurrency: '1.25',
-          usd: undefined,
-          asset: ethNetworkFeeAsset,
-        },
-        isBatchSellTradeAvailable: true,
-        isLoading: false,
-      });
+      .mockReturnValue(mockBatchSellTrades);
     jest.spyOn(bridgeSlice, 'selectBatchSellSlippages').mockReturnValue({});
     selectBridgeFeatureFlagsSpy = jest
       .spyOn(bridgeSlice, 'selectBridgeFeatureFlags')
@@ -331,7 +306,7 @@ describe('useBatchSellQuoteData', () => {
       [uniAssetId]: '0',
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(false);
@@ -348,8 +323,8 @@ describe('useBatchSellQuoteData', () => {
     );
   });
 
-  it('formats complete Batch Sell quote data', () => {
-    const { result } = renderHook(() => useBatchSellQuoteData());
+  it('formats aggregated Batch Sell totals, network fee, and token rows', () => {
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isGasless).toBe(false);
@@ -425,7 +400,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.isGasless).toBe(false);
   });
@@ -441,7 +416,7 @@ describe('useBatchSellQuoteData', () => {
       },
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.isGasless).toBe(true);
   });
@@ -453,7 +428,7 @@ describe('useBatchSellQuoteData', () => {
       isLoading: true,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.isBatchSellTradesLoading).toBe(true);
   });
@@ -471,7 +446,7 @@ describe('useBatchSellQuoteData', () => {
       isQuoteGoingToRefresh: true,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.needsNewQuote).toBe(false);
 
@@ -491,7 +466,7 @@ describe('useBatchSellQuoteData', () => {
       isQuoteGoingToRefresh: false,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.needsNewQuote).toBe(true);
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
@@ -525,7 +500,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.quotePercentFee).toBe('1.25');
   });
@@ -546,13 +521,13 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.quotePercentFee).toBeUndefined();
   });
 
   it('does not fetch Batch Sell trades again for the same quote ids', () => {
-    const { rerender } = renderHook(() => useBatchSellQuoteData());
+    const { rerender } = renderUseBatchSellQuoteData();
 
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
@@ -562,7 +537,6 @@ describe('useBatchSellQuoteData', () => {
       ...mockBatchSellQuotes,
       recommendedQuotes: [...mockBatchSellQuotes.recommendedQuotes],
     });
-
     rerender({});
 
     expect(
@@ -571,7 +545,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('fetches Batch Sell trades again when the recommended quote id changes', () => {
-    const { rerender } = renderHook(() => useBatchSellQuoteData());
+    const { rerender } = renderUseBatchSellQuoteData();
 
     const [firstQuote, secondQuote] = mockBatchSellQuotes.recommendedQuotes;
     selectBatchSellQuotesSpy.mockReturnValue({
@@ -586,7 +560,6 @@ describe('useBatchSellQuoteData', () => {
         secondQuote,
       ],
     });
-
     rerender({});
 
     expect(
@@ -597,7 +570,7 @@ describe('useBatchSellQuoteData', () => {
   it('passes isSmartTransaction=false to updateBatchSellTrades when STX is disabled', () => {
     selectShouldUseSmartTransactionSpy.mockReturnValue(false);
 
-    renderHook(() => useBatchSellQuoteData());
+    renderUseBatchSellQuoteData();
 
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
@@ -607,7 +580,7 @@ describe('useBatchSellQuoteData', () => {
   it('passes isSmartTransaction=true to updateBatchSellTrades when STX is enabled', () => {
     selectShouldUseSmartTransactionSpy.mockReturnValue(true);
 
-    renderHook(() => useBatchSellQuoteData());
+    renderUseBatchSellQuoteData();
 
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
@@ -633,7 +606,7 @@ describe('useBatchSellQuoteData', () => {
       },
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isSummaryLoading).toBe(false);
@@ -657,7 +630,7 @@ describe('useBatchSellQuoteData', () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.networkFee.formatted).toBe('--');
     expect(result.current.isBatchSellTradeAvailable).toBe(false);
@@ -677,7 +650,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
@@ -698,7 +671,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
@@ -723,7 +696,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.tokenData[ethAssetId].isHighPriceImpact).toBe(true);
   });
@@ -737,7 +710,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
@@ -767,7 +740,7 @@ describe('useBatchSellQuoteData', () => {
       minimumReceived: { amount: '190', valueInCurrency: '191.23', usd: '0' },
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(true);
@@ -801,7 +774,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(false);
@@ -831,7 +804,7 @@ describe('useBatchSellQuoteData', () => {
       ],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
@@ -866,7 +839,7 @@ describe('useBatchSellQuoteData', () => {
       isLoading: true,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
@@ -878,7 +851,7 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('hides stale quotes when a refresh starts and reveals new streamed quotes progressively', () => {
-    const { result, rerender } = renderHook(() => useBatchSellQuoteData());
+    const { result, rerender } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
@@ -887,7 +860,6 @@ describe('useBatchSellQuoteData', () => {
       ...mockBatchSellQuotes,
       isLoading: true,
     });
-
     rerender({});
 
     expect(result.current.hasAnyQuote).toBe(false);
@@ -908,7 +880,6 @@ describe('useBatchSellQuoteData', () => {
         null,
       ],
     });
-
     rerender({});
 
     expect(result.current.hasAnyQuote).toBe(true);
@@ -937,7 +908,7 @@ describe('useBatchSellQuoteData', () => {
       isLoading: true,
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(true);
@@ -960,7 +931,7 @@ describe('useBatchSellQuoteData', () => {
       recommendedQuotes: [buildMockRecommendedQuote(ethToken, '123', '123.45')],
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
@@ -980,7 +951,7 @@ describe('useBatchSellQuoteData', () => {
       { ...ethToken, chainId: '0x1' as Hex },
     ]);
 
-    renderHook(() => useBatchSellQuoteData());
+    renderUseBatchSellQuoteData();
 
     expect(mockGetMaybeHexChainId).toHaveBeenCalledWith('0x1');
     expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
@@ -992,7 +963,7 @@ describe('useBatchSellQuoteData', () => {
   it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
     selectBatchSellSourceTokensSpy.mockReturnValue([]);
 
-    renderHook(() => useBatchSellQuoteData());
+    renderUseBatchSellQuoteData();
 
     expect(mockGetMaybeHexChainId).toHaveBeenCalledWith(undefined);
     expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
@@ -1009,7 +980,7 @@ describe('useBatchSellQuoteData', () => {
       minimumReceived: { amount: '0', valueInCurrency: '0', usd: '0' },
     });
 
-    const { result } = renderHook(() => useBatchSellQuoteData());
+    const { result } = renderUseBatchSellQuoteData();
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(false);

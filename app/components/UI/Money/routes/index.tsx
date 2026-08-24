@@ -26,6 +26,7 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyScreensStackParamList,
 } from '../types/navigation';
+import Engine from '../../../../core/Engine';
 
 const TabStack = createNativeStackNavigator<MoneyScreensStackParamList>();
 const ConfirmationStack =
@@ -46,7 +47,15 @@ const MoneyTabScreenStack = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <TabStack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
+      <TabStack.Screen
+        name={Routes.MONEY.HOME}
+        component={MoneyHomeView}
+        listeners={{
+          focus: () => {
+            Engine.context.CardController.fetchCardHomeData();
+          },
+        }}
+      />
       <TabStack.Screen
         name={Routes.MONEY.ACTIVITY}
         component={MoneyActivityView}

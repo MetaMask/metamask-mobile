@@ -197,13 +197,20 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
+export const selectCardHomeDataFetchedThisSession = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): boolean =>
+    cardState?.cardHomeDataFetchedThisSession ?? false,
+);
+
 export const selectIsCardStateResolved = createSelector(
   selectCardHomeDataStatus,
+  selectCardHomeData,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
-  (status, verificationStatus, isAuthenticated, isCardholder) =>
-    (status === 'success' &&
+  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+    ((status === 'success' || cardHomeData !== null) &&
       (!isAuthenticated || verificationStatus !== null)) ||
     (!isAuthenticated && !isCardholder),
 );

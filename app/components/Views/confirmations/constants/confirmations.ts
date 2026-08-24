@@ -99,6 +99,14 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
 /**
+ * Decimals every fiat amount on the activity details screen renders with.
+ * Pinned so the same value reads identically whichever row or transaction type
+ * produced it, rather than dropping decimals whenever the amount is a whole
+ * number.
+ */
+export const ACTIVITY_FIAT_FRACTION_DIGITS = 2;
+
+/**
  * Transaction types that participate in the pay flow (deposits, orders,
  * conversions, withdrawals). Token/amount displays inside these confirmations
  * are priced in USD unless the type is also in {@link USER_CURRENCY_TYPES}.

@@ -160,6 +160,7 @@ app/core/NotificationsManager.test.ts @MetaMask/engagement
 **/Engagement/** @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
 app/constants/engagement.ts @MetaMask/engagement
+app/core/DeeplinkManager/handlers/ @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -168,13 +169,26 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
-# RPC methods / permissions
+## RPC methods / permissions
 app/core/RPCMethods/                 @MetaMask/core-platform
 app/util/permissions/                @MetaMask/core-platform
+## UI-level messengers
+app/contexts/route-messenger.tsx                          @MetaMask/core-platform
+app/contexts/route-messenger.test.tsx                     @MetaMask/core-platform
+app/contexts/ui-messenger.tsx                             @MetaMask/core-platform
+app/hooks/useMessenger.ts                                 @MetaMask/core-platform
+app/messengers/configs/helpers.ts                         @MetaMask/core-platform
+app/messengers/helpers/route-messenger-helpers.test.tsx   @MetaMask/core-platform
+app/messengers/helpers/route-messenger-helpers.tsx        @MetaMask/core-platform
+app/messengers/route-messenger.test.ts                    @MetaMask/core-platform
+app/messengers/route-messenger.ts                         @MetaMask/core-platform
+app/messengers/ui-messenger.test.ts                       @MetaMask/core-platform
+app/messengers/ui-messenger.ts                            @MetaMask/core-platform
+app/util/test/mock-route-messenger.ts                     @MetaMask/core-platform
+app/util/test/mock-ui-messenger.ts                        @MetaMask/core-platform
 
 # Co-owned by Confirmations team and Core Platform team
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-platform
-
 
 # Earn Team
 app/components/UI/Stake              @MetaMask/earn
@@ -191,6 +205,8 @@ app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
+**/EarnSection/**    @MetaMask/earn
+
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
