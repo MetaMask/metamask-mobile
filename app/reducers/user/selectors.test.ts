@@ -6,8 +6,6 @@ import {
   selectIsConnectionRemoved,
   selectUserLoggedIn,
   selectUserState,
-  selectMusdConversionEducationSeen,
-  selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
   selectMoneyEarnBannerDismissedTokens,
   selectTokenOverviewChartType,
@@ -24,8 +22,6 @@ const mockState = {
     appServicesReady: false,
     userLoggedIn: true,
     isConnectionRemoved: false,
-    musdConversionEducationSeen: false,
-    musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
     moneyEarnBannerDismissedTokens: {} as Record<string, boolean>,
     tokenOverviewChartType: ChartType.Line as ChartType,
@@ -80,56 +76,6 @@ describe('user state selectors', () => {
         useSelector(selectIsConnectionRemoved),
       );
       expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectMusdConversionEducationSeen', () => {
-    it('returns false when the user has not seen the mUSD conversion education screen', () => {
-      mockState.user.musdConversionEducationSeen = false;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionEducationSeen),
-      );
-
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when the user has already seen the mUSD conversion education screen', () => {
-      mockState.user.musdConversionEducationSeen = true;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionEducationSeen),
-      );
-
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectMusdConversionAssetDetailCtasSeen', () => {
-    it('returns empty object when no CTAs have been dismissed', () => {
-      mockState.user.musdConversionAssetDetailCtasSeen = {};
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionAssetDetailCtasSeen),
-      );
-
-      expect(result.current).toEqual({});
-    });
-
-    it('returns record of dismissed CTAs keyed by chainId-address', () => {
-      mockState.user.musdConversionAssetDetailCtasSeen = {
-        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
-        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
-      };
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionAssetDetailCtasSeen),
-      );
-
-      expect(result.current).toEqual({
-        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
-        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
-      });
     });
   });
 
