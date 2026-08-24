@@ -48,7 +48,6 @@ import {
 import { handleWhatsHappeningUrl } from './handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
-import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
 import { handleAgenticCliApproval } from './handleAgenticCliApproval';
@@ -109,7 +108,6 @@ const SUPPORTED_ACTIONS = {
   TOP_TRADERS: ACTIONS.TOP_TRADERS,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
-  EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
@@ -149,7 +147,6 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.TOP_TRADERS,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
-  SUPPORTED_ACTIONS.EARN_MUSD,
   SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
@@ -776,10 +773,6 @@ async function handleUniversalLink({
       handleSocialTraderPositionUrl({
         actionPath: actionBasedRampPath,
       });
-      break;
-    }
-    case SUPPORTED_ACTIONS.EARN_MUSD: {
-      handleEarnMusd();
       break;
     }
     case SUPPORTED_ACTIONS.NFT: {
