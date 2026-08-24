@@ -22,6 +22,7 @@ interface UsePerpsProSectionReadinessOptions {
   chartContextKey: string;
   currentSymbol?: string;
   isOrderBookCollapsed: boolean;
+  isUserContextReady: boolean;
   marketContextKey: string;
   marketState: PerpsMarketDetailSectionState;
   priceState: PerpsMarketDetailSectionState;
@@ -33,6 +34,7 @@ export function usePerpsProSectionReadiness({
   chartContextKey,
   currentSymbol,
   isOrderBookCollapsed,
+  isUserContextReady,
   marketContextKey,
   marketState,
   priceState,
@@ -116,19 +118,21 @@ export function usePerpsProSectionReadiness({
         chartContextKey,
       ),
       [PERPS_MARKET_DETAIL_SECTION.STATS]: statsState,
-      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountState,
+      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: isUserContextReady
+        ? accountState
+        : 'loading',
       [PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK]: isOrderBookCollapsed
         ? 'not_applicable'
         : stateForCurrentSymbol('order_book', marketContextKey),
-      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]: stateForCurrentSymbol(
-        'positions_orders',
-        userContextKey,
-      ),
+      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]: isUserContextReady
+        ? stateForCurrentSymbol('positions_orders', userContextKey)
+        : 'loading',
     }),
     [
       accountState,
       chartContextKey,
       isOrderBookCollapsed,
+      isUserContextReady,
       marketContextKey,
       marketState,
       priceState,

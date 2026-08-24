@@ -49,6 +49,7 @@ const parseStages = () =>
 
 const defaultProps = {
   sectionRef: { current: null },
+  isFocused: true,
   sessionId: 'session-1',
   lifecycle: 'cold_no_cache' as const,
   contentVariant: 'trending' as const,
@@ -120,6 +121,17 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
     mockIsVisible = false;
 
     renderHook(() => useHomepagePerpsSurfaceMetrics(defaultProps));
+
+    expect(DevLogger.log).not.toHaveBeenCalled();
+  });
+
+  it('records nothing while another screen covers the homepage', () => {
+    renderHook(() =>
+      useHomepagePerpsSurfaceMetrics({
+        ...defaultProps,
+        isFocused: false,
+      }),
+    );
 
     expect(DevLogger.log).not.toHaveBeenCalled();
   });

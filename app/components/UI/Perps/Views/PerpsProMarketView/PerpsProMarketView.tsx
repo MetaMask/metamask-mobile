@@ -297,8 +297,11 @@ const PerpsProMarketView = ({
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
   const currentSymbol = market?.symbol;
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
-  const { key: marketContextKey, isReady: isMarketContextReady } =
-    usePerpsMarketContext();
+  const {
+    key: marketContextKey,
+    isReady: isMarketContextReady,
+    isUserReady: isUserContextReady,
+  } = usePerpsMarketContext();
   const marketSectionContextKey = `${currentSymbol ?? ''}|${marketContextKey}`;
   const userSectionContextKey = `${marketSectionContextKey}|${selectedAddress ?? ''}`;
 
@@ -387,7 +390,7 @@ const PerpsProMarketView = ({
   const priceSectionState: PerpsMarketDetailSectionState =
     isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
   const accountSectionState: PerpsMarketDetailSectionState =
-    !isMarketContextReady || isLoadingAccount
+    !isMarketContextReady || !isUserContextReady || isLoadingAccount
       ? 'loading'
       : account
         ? 'content'
@@ -404,6 +407,7 @@ const PerpsProMarketView = ({
     chartContextKey,
     currentSymbol,
     isOrderBookCollapsed,
+    isUserContextReady,
     marketContextKey: marketSectionContextKey,
     marketState: marketSectionState,
     priceState: priceSectionState,

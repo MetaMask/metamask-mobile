@@ -68,6 +68,7 @@ export type PerpsLoadingSessionCancellationReason =
   | 'app_backgrounded'
   | 'context_changed'
   | 'session_restarted'
+  | 'surface_unfocused'
   | 'surface_unmounted';
 
 export type PerpsLoadingSessionUpdate =

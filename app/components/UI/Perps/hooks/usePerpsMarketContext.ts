@@ -6,12 +6,14 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { usePerpsConnection } from './usePerpsConnection';
 import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
   key: string;
   isReady: boolean;
+  isUserReady: boolean;
   isConnectionInitialized: boolean;
 }
 
@@ -20,6 +22,10 @@ const subscribeToInitializedMarketContext = (listener: () => void) =>
 
 const getInitializedMarketContextSnapshot = () =>
   PerpsConnectionManager.getInitializedMarketContextKey();
+const subscribeToInitializedUserContext = (listener: () => void) =>
+  PerpsConnectionManager.subscribeToInitializedUserContext(listener);
+const getInitializedUserContextSnapshot = () =>
+  PerpsConnectionManager.getInitializedUserContextKey();
 
 /**
  * Compares the selected market context with the connection that last completed
@@ -29,6 +35,7 @@ const getInitializedMarketContextSnapshot = () =>
 export function usePerpsMarketContext(): PerpsMarketContext {
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
+  const address = useSelector(selectPerpsSelectedAccountAddress);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
   const { isInitialized } = usePerpsConnection();
   const key = buildPerpsMarketContextKey(network, provider, hip3ConfigVersion);
@@ -38,6 +45,18 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     getInitializedMarketContextSnapshot,
   );
   const isReady = initializedKey === key;
+  const userKey = `${key}|${address?.toLowerCase() ?? ''}`;
+  const initializedUserKey = useSyncExternalStore(
+    subscribeToInitializedUserContext,
+    getInitializedUserContextSnapshot,
+    getInitializedUserContextSnapshot,
+  );
+  const isUserReady = initializedUserKey === userKey;
 
-  return { key, isReady, isConnectionInitialized: isInitialized };
+  return {
+    key,
+    isReady,
+    isUserReady,
+    isConnectionInitialized: isInitialized,
+  };
 }

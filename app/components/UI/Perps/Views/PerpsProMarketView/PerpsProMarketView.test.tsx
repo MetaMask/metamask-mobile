@@ -121,6 +121,7 @@ const mockHandleFavoritePress = jest.fn();
 const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
 let mockMarketContextReady = true;
+let mockConnectionInitialized = true;
 const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
   generationTrigger: 'initial',
   liveResetKey: 'detail-session',
@@ -270,6 +271,8 @@ jest.mock('../../hooks/usePerpsMarketContext', () => ({
   usePerpsMarketContext: () => ({
     key: 'testnet|hyperliquid|1',
     isReady: mockMarketContextReady,
+    isUserReady: mockConnectionInitialized,
+    isConnectionInitialized: mockConnectionInitialized,
   }),
 }));
 
@@ -488,6 +491,7 @@ describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMarketContextReady = true;
+    mockConnectionInitialized = true;
     mockOrderFormType = 'market';
     mockSzDecimals = undefined;
     jest.mocked(playSelection).mockClear();
@@ -534,6 +538,21 @@ describe('PerpsProMarketView', () => {
     expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
       expect.objectContaining({
         sections: expect.objectContaining({ account: 'loading' }),
+      }),
+    );
+  });
+
+  it('keeps account-owned readiness loading during an account reconnect', () => {
+    mockConnectionInitialized = false;
+
+    renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({
+          account: 'loading',
+          positions_orders: 'loading',
+        }),
       }),
     );
   });

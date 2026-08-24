@@ -57,7 +57,9 @@ function lifecycleForIdentityChange(
   return accountOnlyChanged ? 'account_switch' : 'network_switch';
 }
 
-export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
+export function usePerpsHomepageLoadingSession(
+  isFocused = true,
+): PerpsHomepageLoadingSession {
   const address = useSelector(selectPerpsSelectedAccountAddress);
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
@@ -73,7 +75,7 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   // Arm during render so synchronous stream snapshots published before layout
   // effects are buffered. The ref and cancel path make StrictMode re-renders
   // idempotent and prevent an abandoned render from leaking into a later mount.
-  if (!preparedRef.current) {
+  if (isFocused && !preparedRef.current) {
     preparePerpsLoadingSession();
     preparedRef.current = true;
   }
@@ -81,6 +83,8 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   const previousIdentityRef = useRef<PerpsContextIdentity | null>(null);
   const identityRef = useRef(identity);
   identityRef.current = identity;
+  const isFocusedRef = useRef(isFocused);
+  isFocusedRef.current = isFocused;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const wasBackgroundedRef = useRef(AppState.currentState === 'background');
   const hasOwnedSessionRef = useRef(
@@ -121,6 +125,15 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   useEffect(() => {
     const previousIdentity = previousIdentityRef.current;
 
+    if (!isFocused) {
+      if (hasOwnedSessionRef.current) {
+        cancelPerpsLoadingSession('surface_unfocused');
+      }
+      hasOwnedSessionRef.current = false;
+      preparedRef.current = false;
+      previousIdentityRef.current = null;
+      return;
+    }
     if (appStateRef.current !== 'active') {
       return;
     }
@@ -136,7 +149,7 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
     previousIdentityRef.current = identity;
     cancelPerpsLoadingSession('context_changed');
     beginSession(lifecycleForIdentityChange(previousIdentity, identity));
-  }, [beginSession, identity, proposedLifecycle]);
+  }, [beginSession, identity, isFocused, proposedLifecycle]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -150,6 +163,9 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
         return;
       }
       if (nextState === 'active' && previousState !== 'active') {
+        if (!isFocusedRef.current) {
+          return;
+        }
         const previousIdentity = previousIdentityRef.current;
         const currentIdentity = identityRef.current;
         if (!previousIdentity) {
@@ -192,6 +208,6 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   return {
     proposedLifecycle,
     sessionContext,
-    sessionReady: sessionContext !== null,
+    sessionReady: isFocused && sessionContext !== null,
   };
 }

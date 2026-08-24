@@ -14,6 +14,7 @@ import {
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
+import { useIsFocused } from '@react-navigation/native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   type PerpsMarketData,
@@ -83,8 +84,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
+    const isHomepageFocused = useIsFocused();
     const { proposedLifecycle, sessionContext, sessionReady } =
-      usePerpsHomepageLoadingSession();
+      usePerpsHomepageLoadingSession(isHomepageFocused);
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
@@ -349,6 +351,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { onLayout: onSurfaceMetricsLayout } = useHomepagePerpsSurfaceMetrics(
       {
         sectionRef: sectionViewRef,
+        isFocused: isHomepageFocused,
         sessionId,
         lifecycle,
         contentVariant: connectionError ? 'error' : contentVariant,

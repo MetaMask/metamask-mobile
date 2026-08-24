@@ -79,6 +79,8 @@ class PerpsConnectionManagerClass {
   private isInitialized = false;
   private initializedMarketContextKey: string | null = null;
   private initializedMarketContextListeners = new Set<() => void>();
+  private initializedUserContextKey: string | null = null;
+  private initializedUserContextListeners = new Set<() => void>();
   private isDisconnecting = false;
   private error: string | null = null;
   private connectionRefCount = 0;
@@ -118,7 +120,27 @@ class PerpsConnectionManagerClass {
     );
   }
 
+  private getSelectedUserContextKey(): string {
+    const state = store.getState();
+    const address =
+      selectSelectedInternalAccountByScope(state)(
+        'eip155:1',
+      )?.address.toLowerCase() ?? '';
+    return `${this.getSelectedMarketContextKey()}|${address}`;
+  }
+
+  private setInitializedUserContextKey(key: string | null): void {
+    if (this.initializedUserContextKey === key) {
+      return;
+    }
+    this.initializedUserContextKey = key;
+    this.initializedUserContextListeners.forEach((listener) => listener());
+  }
+
   private setInitializedMarketContextKey(key: string | null): void {
+    if (key === null) {
+      this.setInitializedUserContextKey(null);
+    }
     if (this.initializedMarketContextKey === key) {
       return;
     }
@@ -208,6 +230,13 @@ class PerpsConnectionManagerClass {
             '[DEX:WHITELIST] PerpsConnectionManager: Clearing ALL caches due to HIP-3 config change',
           );
         }
+
+        // Block cleared channels from subscribing to the old provider during
+        // the reconnect debounce. Otherwise the provider can synchronously
+        // replay its prior-account cache under the newly selected identity.
+        // Existing global subscriptions stay mounted on account-only changes.
+        this.isInitialized = false;
+        this.setInitializedUserContextKey(null);
 
         // Account-only switches keep market data visible (it's global, not account-specific).
         // Provider/network/HIP-3 switches must flush stale market data immediately.
@@ -989,6 +1018,7 @@ class PerpsConnectionManagerClass {
         // Stage 3: Pre-load positions and orders subscriptions to populate cache
         const preloadStart = performance.now();
         await this.preloadSubscriptions();
+        this.setInitializedUserContextKey(this.getSelectedUserContextKey());
         setMeasurement(
           PerpsMeasurementName.PerpsSubscriptionsPreload,
           performance.now() - preloadStart,
@@ -1303,6 +1333,7 @@ class PerpsConnectionManagerClass {
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();
       await this.preloadSubscriptions();
+      this.setInitializedUserContextKey(this.getSelectedUserContextKey());
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionPreload,
         performance.now() - preloadStart,
@@ -1586,6 +1617,15 @@ class PerpsConnectionManagerClass {
 
   getInitializedMarketContextKey(): string | null {
     return this.initializedMarketContextKey;
+  }
+
+  getInitializedUserContextKey(): string | null {
+    return this.initializedUserContextKey;
+  }
+
+  subscribeToInitializedUserContext(listener: () => void): () => void {
+    this.initializedUserContextListeners.add(listener);
+    return () => this.initializedUserContextListeners.delete(listener);
   }
 
   subscribeToInitializedMarketContext(listener: () => void): () => void {

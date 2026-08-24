@@ -546,8 +546,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
-  const { key: marketContextKey, isReady: isMarketContextReady } =
-    usePerpsMarketContext();
+  const {
+    key: marketContextKey,
+    isReady: isMarketContextReady,
+    isUserReady: isUserContextReady,
+  } = usePerpsMarketContext();
 
   const {
     candleData,
@@ -932,13 +935,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             ? 'content'
             : 'empty';
   const accountSectionState: PerpsMarketDetailSectionState =
-    !isMarketContextReady || isLoadingAccount
+    !isMarketContextReady || !isUserContextReady || isLoadingAccount
       ? 'loading'
       : account
         ? 'content'
         : 'empty';
   const positionsOrdersSectionState: PerpsMarketDetailSectionState =
-    !isMarketContextReady || isLoadingPosition || areOrdersInitiallyLoading
+    !isMarketContextReady ||
+    !isUserContextReady ||
+    isLoadingPosition ||
+    areOrdersInitiallyLoading
       ? 'loading'
       : existingPosition || displayOrders.length > 0
         ? 'content'

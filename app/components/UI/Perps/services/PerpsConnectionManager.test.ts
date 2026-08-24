@@ -172,6 +172,7 @@ const resetManager = (manager: unknown) => {
     isConnecting: boolean;
     isInitialized: boolean;
     initializedMarketContextKey: string | null;
+    initializedUserContextKey: string | null;
     isDisconnecting: boolean;
     connectionRefCount: number;
     initPromise: Promise<void> | null;
@@ -215,6 +216,7 @@ const resetManager = (manager: unknown) => {
   m.isConnecting = false;
   m.isInitialized = false;
   m.initializedMarketContextKey = null;
+  m.initializedUserContextKey = null;
   m.isDisconnecting = false;
   m.connectionRefCount = 0;
   m.initPromise = null;
@@ -717,6 +719,13 @@ describe('PerpsConnectionManager', () => {
 
       // Trigger the store callback with the changed value
       storeCallback();
+
+      // Cleared user channels must not subscribe to the old provider while the
+      // account reconnect is still inside its debounce window.
+      expect(PerpsConnectionManager.getConnectionState().isInitialized).toBe(
+        false,
+      );
+      expect(PerpsConnectionManager.getInitializedUserContextKey()).toBeNull();
 
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -19,6 +19,7 @@ type HomepagePerpsContentVariant =
 
 interface UseHomepagePerpsSurfaceMetricsOptions {
   sectionRef: RefObject<View | null>;
+  isFocused: boolean;
   sessionId?: string;
   lifecycle: PerpsLoadingLifecycle;
   contentVariant: HomepagePerpsContentVariant;
@@ -71,6 +72,7 @@ const logSurfaceStage = (
  */
 export function useHomepagePerpsSurfaceMetrics({
   sectionRef,
+  isFocused,
   sessionId,
   lifecycle,
   contentVariant,
@@ -84,7 +86,8 @@ export function useHomepagePerpsSurfaceMetrics({
   const contentVariantRef = useRef(contentVariant);
   const hasErrorRef = useRef(hasError);
   const resolvedSourceRef = useRef(resolvedSource);
-  const isVisibleRef = useRef(isVisible);
+  const isSurfaceVisible = isFocused && isVisible;
+  const isSurfaceVisibleRef = useRef(isSurfaceVisible);
   const finishedSessionsRef = useRef(new Set<string>());
   const recordedStagesRef = useRef(new Set<SurfaceStage>());
   const frameIdsRef = useRef(new Set<number>());
@@ -92,7 +95,7 @@ export function useHomepagePerpsSurfaceMetrics({
   contentVariantRef.current = contentVariant;
   hasErrorRef.current = hasError;
   resolvedSourceRef.current = resolvedSource;
-  isVisibleRef.current = isVisible;
+  isSurfaceVisibleRef.current = isSurfaceVisible;
 
   const afterNextPaint = useCallback((callback: () => void) => {
     let first = 0;
@@ -117,7 +120,7 @@ export function useHomepagePerpsSurfaceMetrics({
       recordedStagesRef.current.add(stage);
       afterNextPaint(() => {
         if (
-          !isVisibleRef.current ||
+          !isSurfaceVisibleRef.current ||
           activeDemandRef.current?.id !== demand.id
         ) {
           return;
@@ -166,7 +169,7 @@ export function useHomepagePerpsSurfaceMetrics({
   );
 
   useEffect(() => {
-    if (!isVisible || !sessionId) {
+    if (!isSurfaceVisible || !sessionId) {
       activeDemandRef.current = undefined;
       recordedStagesRef.current.clear();
       return;
@@ -194,7 +197,7 @@ export function useHomepagePerpsSurfaceMetrics({
     recordAfterPaint('surface_initial_ui_recorded');
     recordResolvedAndLive();
   }, [
-    isVisible,
+    isSurfaceVisible,
     lifecycle,
     recordAfterPaint,
     recordResolvedAndLive,

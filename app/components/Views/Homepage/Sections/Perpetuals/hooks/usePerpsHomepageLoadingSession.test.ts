@@ -132,6 +132,29 @@ describe('usePerpsHomepageLoadingSession', () => {
     expect(cancelPerpsLoadingSession).toHaveBeenCalledWith('surface_unmounted');
   });
 
+  it('cancels while covered and starts fresh when homepage focus returns', () => {
+    const { rerender } = renderHook(
+      ({ isFocused }) => usePerpsHomepageLoadingSession(isFocused),
+      { initialProps: { isFocused: true } },
+    );
+
+    rerender({ isFocused: false });
+    expect(cancelPerpsLoadingSession).toHaveBeenCalledWith('surface_unfocused');
+    jest.mocked(startPerpsLoadingSession).mockClear();
+
+    address = '0xdef';
+    rerender({ isFocused: false });
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+
+    rerender({ isFocused: true });
+    expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+      lifecycle: 'cold_no_cache',
+      restart: false,
+      surface: 'homepage',
+      identity: expect.any(Object),
+    });
+  });
+
   it('cancels before suspension and starts a resume session on return', () => {
     renderHook(() => usePerpsHomepageLoadingSession());
     jest.mocked(startPerpsLoadingSession).mockClear();
