@@ -254,6 +254,13 @@ export enum TraceName {
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
+  // PredictNext
+  PredictNextHomeView = 'PredictNext Home View',
+  PredictNextFeedView = 'PredictNext Feed View',
+  PredictNextEventView = 'PredictNext Event View',
+  PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
+  PredictNextGetFeed = 'PredictNext Get Feed',
+  PredictNextGetEvent = 'PredictNext Get Event',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -271,6 +278,9 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
@@ -304,6 +314,7 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
@@ -363,19 +374,31 @@ const localBufferedTraces: BufferedTrace[] = [];
  */
 export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
 
-/** Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap. */
+/**
+ * Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap.
+ * Retries of the same span key (name + id) keep only the latest successful duration
+ * so multiple social-login attempts in one journey are not added together.
+ *
+ * `OnboardingCreateKeyAndBackupSrp` is deliberately excluded: it nests inside
+ * `OnboardingSRPAccountCreationTime` on the SRP-create-wallet path
+ * (ChoosePassword -> Authentication.newWalletAndKeychain ->
+ * createAndBackupSeedPhrase), so summing both would double-count the overlap.
+ */
 const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
   TraceName.OnboardingScreenTimeToContent,
   TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
   TraceName.OnboardingOAuthSeedlessAuthenticate,
-  TraceName.OnboardingPasswordLoginAttempt,
   TraceName.OnboardingSRPAccountCreationTime,
   TraceName.OnboardingSRPAccountImportTime,
+  TraceName.OnboardingFetchSrps,
+  TraceName.OnboardingAddSrp,
+  TraceName.OnboardingResetPassword,
 ]);
 
-let onboardingMachineTimeMs = 0;
+/** Latest successful duration per machine-time span key (`name:id`). */
+let onboardingMachineTimeByKey = new Map<string, number>();
 /** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
-let pendingOnboardingMachineTimeMs = 0;
+let pendingOnboardingMachineTimeByKey = new Map<string, number>();
 
 const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
 const ONBOARDING_OP_PREFIX = 'onboarding.';
@@ -622,9 +645,12 @@ function finishPendingTrace(
  */
 /**
  * Return the in-flight span for a pending manual trace, if any.
- * Used to nest a security op (e.g. Create Key and Backup SRP) under an
- * already-open journey span (e.g. New Social Create Wallet) without
- * threading the span through route params.
+ * Used to nest a child span under an already-open parent span without
+ * threading the span through route params (perf_fix: trace-registry-v1).
+ *
+ * Onboarding screens call this with `TraceName.OnboardingJourneyOverall` to
+ * fetch the parent context instead of receiving it as a non-serializable
+ * React Navigation route param.
  */
 export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
@@ -652,6 +678,33 @@ export function annotateTrace(
   }
 }
 
+function sumOnboardingMachineTime(byKey: Map<string, number>): number {
+  let total = 0;
+
+  for (const duration of byKey.values()) {
+    total += duration;
+  }
+
+  return total;
+}
+
+function recordOnboardingMachineTime(
+  request: { name: TraceName; id?: string },
+  duration: number,
+  target: Map<string, number> = onboardingMachineTimeByKey,
+): void {
+  target.set(getTraceKey(request), Math.max(duration, 0));
+}
+
+function mergeOnboardingMachineTime(
+  target: Map<string, number>,
+  source: Map<string, number>,
+): void {
+  for (const [key, duration] of source) {
+    target.set(key, duration);
+  }
+}
+
 /** Skip failed spans; capped unmount durations are not real user waits. */
 function addOnboardingMachineTime(
   request: EndTraceRequest,
@@ -665,7 +718,7 @@ function addOnboardingMachineTime(
     return;
   }
 
-  onboardingMachineTimeMs += Math.max(duration, 0);
+  recordOnboardingMachineTime(request, duration);
 }
 
 /** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
@@ -692,7 +745,10 @@ function addOpenOnboardingMachineTime(
       continue;
     }
 
-    onboardingMachineTimeMs += Math.max(cappedEndTime - startTime, 0);
+    recordOnboardingMachineTime(
+      pendingTrace.request,
+      cappedEndTime - startTime,
+    );
   }
 }
 
@@ -703,11 +759,11 @@ function finalizeOnboardingMachineTime(span?: Span): void {
   if (span?.setAttribute !== undefined) {
     span.setAttribute(
       ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-      Math.round(onboardingMachineTimeMs),
+      Math.round(sumOnboardingMachineTime(onboardingMachineTimeByKey)),
     );
   }
 
-  onboardingMachineTimeMs = 0;
+  onboardingMachineTimeByKey = new Map();
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -906,64 +962,73 @@ export function updateCachedConsent(consent: boolean) {
 }
 
 /** Pair buffered start/end machine-time spans before social opt-in discard. */
-function harvestBufferedOnboardingMachineTime(): number {
-  const startsByKey = new Map<string, number>();
-  let harvestedMs = 0;
+function harvestBufferedOnboardingMachineTime(): Map<string, number> {
+  const openStartsByKey = new Map<string, number>();
+  const harvestedByKey = new Map<string, number>();
 
   for (const bufferedItem of localBufferedTraces) {
-    if (bufferedItem.type !== 'start') {
+    if (bufferedItem.type === 'start') {
+      const request = bufferedItem.request as TraceRequest;
+      if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+        continue;
+      }
+
+      openStartsByKey.set(
+        getTraceKey(request),
+        request.startTime ?? Date.now(),
+      );
       continue;
     }
 
-    const request = bufferedItem.request as TraceRequest;
-    const { name, startTime } = request;
-    if (!MACHINE_TIME_TRACE_NAMES.has(name)) {
-      continue;
-    }
-
-    startsByKey.set(getTraceKey(request), startTime ?? Date.now());
-  }
-
-  for (const bufferedItem of localBufferedTraces) {
     if (bufferedItem.type !== 'end') {
       continue;
     }
 
     const request = bufferedItem.request as EndTraceRequest;
-    const { name, timestamp, data } = request;
-    if (!MACHINE_TIME_TRACE_NAMES.has(name) || data?.success === false) {
+    const { timestamp, data } = request;
+    if (
+      !MACHINE_TIME_TRACE_NAMES.has(request.name) ||
+      data?.success === false
+    ) {
       continue;
     }
 
-    const startTime = startsByKey.get(getTraceKey(request));
+    const key = getTraceKey(request);
+    const startTime = openStartsByKey.get(key);
     if (startTime === undefined) {
       continue;
     }
 
-    const endTime = timestamp ?? Date.now();
-    const duration = endTime - startTime;
+    const duration = (timestamp ?? Date.now()) - startTime;
+    openStartsByKey.delete(key);
 
     if (Number.isFinite(duration)) {
-      harvestedMs += Math.max(duration, 0);
+      recordOnboardingMachineTime(request, duration, harvestedByKey);
     }
   }
 
-  return harvestedMs;
+  return harvestedByKey;
 }
 
 /** Apply pending machine time when the journey span is reused after social opt-in. */
 export function applyPendingOnboardingMachineTime(): void {
-  onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
-  pendingOnboardingMachineTimeMs = 0;
+  mergeOnboardingMachineTime(
+    onboardingMachineTimeByKey,
+    pendingOnboardingMachineTimeByKey,
+  );
+  pendingOnboardingMachineTimeByKey = new Map();
 }
 
 export function _resetOnboardingMachineTimeForTesting(): void {
-  onboardingMachineTimeMs = 0;
-  pendingOnboardingMachineTimeMs = 0;
+  onboardingMachineTimeByKey = new Map();
+  pendingOnboardingMachineTimeByKey = new Map();
 }
 
 export function discardBufferedTraces() {
-  pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
+  mergeOnboardingMachineTime(
+    pendingOnboardingMachineTimeByKey,
+    harvestBufferedOnboardingMachineTime(),
+  );
   localBufferedTraces.length = 0;
 }
 
@@ -1023,8 +1088,8 @@ function startTrace(request: TraceRequest): TraceContext {
   const id = getTraceId(request);
 
   if (name === TraceName.OnboardingJourneyOverall) {
-    onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
-    pendingOnboardingMachineTimeMs = 0;
+    onboardingMachineTimeByKey = new Map(pendingOnboardingMachineTimeByKey);
+    pendingOnboardingMachineTimeByKey = new Map();
     onboardingAccountType = undefined;
     rememberOnboardingAccountType(request.tags);
   }

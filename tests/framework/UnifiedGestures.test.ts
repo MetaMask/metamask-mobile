@@ -22,7 +22,6 @@ const mockStrategy = {
 };
 
 jest.mock('./GestureStrategy.ts', () => ({
-  DetoxGestureStrategy: jest.fn(() => mockStrategy),
   AppiumGestureStrategy: jest.fn(() => mockStrategy),
 }));
 

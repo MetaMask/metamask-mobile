@@ -9,9 +9,16 @@ import {
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../../util/haptics';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+
+jest.mock('../../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
@@ -74,6 +81,11 @@ const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
 describe('PerpsProOrderForm', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -95,6 +107,19 @@ describe('PerpsProOrderForm', () => {
       fireEvent.changeText(screen.getByTestId(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('omits the Mid chip when onUseMidPricePress is not provided', () => {
+      renderForm({ orderType: 'limit' });
+
+      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+    });
+
+    it('renders the Mid chip for a plain limit order when provided', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
     });
 
     it('wires limit price blur to onLimitPriceBlur', () => {
@@ -149,6 +174,90 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { orderType: 'stop_limit' as const, title: 'Stop limit' },
+      { orderType: 'take_profit_limit' as const, title: 'Take limit' },
+    ])(
+      'renders trigger and limit price inputs with Mid for $orderType orders',
+      ({ orderType, title }) => {
+        const onUseMidPricePress = jest.fn();
+
+        renderForm({
+          orderType,
+          triggerPrice: '91000',
+          onUseMidPricePress,
+        });
+
+        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+          title,
+        );
+
+        fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
+        expect(onUseMidPricePress).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it.each(['stop_market', 'take_profit_market'] as const)(
+      'renders trigger price and omits limit price for %s orders',
+      (orderType) => {
+        renderForm({ orderType });
+
+        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.LIMIT_PRICE_INPUT),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.MID_PRICE_BUTTON),
+        ).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      },
+    );
+
+    it('hides TP/SL for take-profit order types', () => {
+      renderForm({
+        orderType: 'take_profit_limit',
+        onTPSLPress: jest.fn(),
+      });
+
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('passes raw trigger price text to onTriggerPriceChange', () => {
+      const onTriggerPriceChange = jest.fn();
+      renderForm({ orderType: 'stop_market', onTriggerPriceChange });
+
+      fireEvent.changeText(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), '.123');
+
+      expect(onTriggerPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('wires trigger price blur to onTriggerPriceBlur', () => {
+      const onTriggerPriceBlur = jest.fn();
+      renderForm({ orderType: 'take_profit_market', onTriggerPriceBlur });
+
+      fireEvent(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), 'blur');
+
+      expect(onTriggerPriceBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a blocking helper under the price card', () => {
+      renderForm({
+        orderType: 'stop_market',
+        priceCardMessage: {
+          severity: 'error',
+          message: 'Trigger price must be higher than mid price',
+        },
+      });
+
+      expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+        'Trigger price must be higher than mid price',
+      );
     });
 
     it('renders the size label with the active unit', () => {
@@ -225,15 +334,70 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
 
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
-    it('connects each iOS numeric input to its own keyboard accessory', () => {
-      renderForm({ orderType: 'limit' });
+    it('does not play Add funds haptics when the action is disabled', () => {
+      renderForm({ onAddFundsPress: undefined });
 
-      const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
-      const limitPriceAccessoryID = getPerpsProInputAccessoryID(
-        ids.LIMIT_PRICE_INPUT,
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
+    const triggerAccessoryID = getPerpsProInputAccessoryID(
+      ids.TRIGGER_PRICE_INPUT,
+    );
+    const limitPriceAccessoryID = getPerpsProInputAccessoryID(
+      ids.LIMIT_PRICE_INPUT,
+    );
+    const mountedAccessoryIDs = () =>
+      screen
+        .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
+        .map((accessory) => accessory.props.nativeID);
+
+    it('keeps size, trigger, and limit keyboard accessories mounted on market', () => {
+      renderForm({ orderType: 'market' });
+
+      expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
+    });
+
+    it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
+      renderForm({ orderType: 'stop_market' });
+
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        triggerAccessoryID,
       );
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
+    });
+
+    it('connects each visible iOS numeric input to its own keyboard accessory', () => {
+      renderForm({ orderType: 'limit' });
 
       expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
@@ -244,11 +408,11 @@ describe('PerpsProOrderForm', () => {
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(
-        screen
-          .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
-          .map((accessory) => accessory.props.nativeID),
-      ).toEqual([sizeAccessoryID, limitPriceAccessoryID]);
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {
@@ -339,6 +503,17 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play a haptic when the current direction is re-selected', () => {
+      const onDirectionChange = jest.fn();
+      renderForm({ onDirectionChange, direction: 'long' });
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_LONG));
+
+      expect(onDirectionChange).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('calls onOrderTypeButtonPress when order type is pressed', () => {
@@ -348,6 +523,7 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
 
       expect(onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('exposes Reduce only with checked checkbox semantics', () => {
@@ -370,6 +546,22 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
 
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the size denomination toggle is pressed', () => {
+      const onToggleDenomination = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({
+          canToggleDenomination: true,
+          onToggleDenomination,
+        }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+      expect(onToggleDenomination).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('hides the TP/SL row when Reduce Only is on', () => {
@@ -406,7 +598,17 @@ describe('PerpsProOrderForm', () => {
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onSlippagePress when the slippage value is pressed', () => {
+    it('plays selection when leverage is opened', () => {
+      const onLeveragePress = jest.fn();
+      renderForm({ onLeveragePress });
+
+      fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
+
+      expect(onLeveragePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the slippage summary value opens the sheet', () => {
       const onSlippagePress = jest.fn();
       renderForm({
         summary: {
@@ -420,6 +622,21 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
 
       expect(onSlippagePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps haptics silent when the slippage summary action is disabled', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('disables Place Order when requested', () => {
@@ -430,7 +647,6 @@ describe('PerpsProOrderForm', () => {
 
     it.each([
       ['leverage', ids.LEVERAGE_BUTTON],
-      ['Mid price', ids.MID_PRICE_BUTTON],
       ['size denomination', ids.SIZE_UNIT_BUTTON],
       ['Add funds', ids.ADD_FUNDS_BUTTON],
       ['TP/SL', ids.TPSL],
@@ -442,7 +658,6 @@ describe('PerpsProOrderForm', () => {
         sizeInput: createSizeInput({ canToggleDenomination: false }),
         onAddFundsPress: undefined,
         onTPSLPress: undefined,
-        onUseMidPricePress: undefined,
         onLeveragePress: undefined,
         summary: {
           margin: '--',
@@ -514,6 +729,7 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
   });
 

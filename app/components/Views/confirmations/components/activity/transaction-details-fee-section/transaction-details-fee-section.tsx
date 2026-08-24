@@ -1,10 +1,6 @@
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -17,6 +13,11 @@ import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAcco
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export function TransactionDetailsFeeSection() {
   const { transactionMeta } = useTransactionDetails();
@@ -48,7 +49,7 @@ export function TransactionDetailsFeeSection() {
             color={IconColor.Success}
             size={IconSize.Sm}
           />
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
             {strings('transactions.paid_by_metamask')}
           </Text>
         </Box>

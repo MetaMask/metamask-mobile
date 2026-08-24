@@ -1,7 +1,7 @@
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   parsePredictEvent,
-  parsePredictEventsPage,
+  parsePredictFeed,
   parsePredictVenueStatus,
 } from './marketData';
 
@@ -273,11 +273,17 @@ describe('Predict API canonical response parsers', () => {
   });
 
   it('parses a paginated event response', () => {
-    const input = { items: [createEvent()], nextCursor: 'next-page' };
+    const input = {
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+      nextCursor: 'next-page',
+    };
 
-    const result = parsePredictEventsPage(input);
+    const result = parsePredictFeed(input);
 
-    expect(result.items).toHaveLength(1);
+    expect(result.events).toHaveLength(1);
     expect(result.nextCursor).toBe('next-page');
   });
 

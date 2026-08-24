@@ -21,7 +21,6 @@ import {
 import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
-import { FrameworkDetector } from '../FrameworkDetector.ts';
 
 const execAsync = promisify(exec);
 
@@ -77,14 +76,9 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   }
 
   // Get device ID to target specific device (important for CI with multiple devices)
-  // In Detox: use device.id for multi-device support
   // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
   // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  let deviceFlag = '';
-  if (FrameworkDetector.isDetox()) {
-    const deviceId = device.id || '';
-    deviceFlag = deviceId ? `-s ${deviceId}` : '';
-  }
+  const deviceFlag = '';
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -185,14 +179,9 @@ async function setupAndroidPortForwarding(
   }
 
   // Get device ID to target specific device (important for CI with multiple devices)
-  // In Detox: use device.id for multi-device support
   // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
   // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  let deviceFlag = '';
-  if (FrameworkDetector.isDetox()) {
-    const deviceId = device.id || '';
-    deviceFlag = deviceId ? `-s ${deviceId}` : '';
-  }
+  const deviceFlag = '';
 
   const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 

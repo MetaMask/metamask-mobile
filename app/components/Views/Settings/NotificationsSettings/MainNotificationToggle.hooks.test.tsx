@@ -6,7 +6,10 @@ import { useNotificationsToggle } from '../../../../util/notifications/hooks/use
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
 // Mock dependencies
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
 jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
 
 const mockUseNavigation = jest.mocked(useNavigation);

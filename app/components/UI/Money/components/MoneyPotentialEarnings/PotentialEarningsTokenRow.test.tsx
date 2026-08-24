@@ -1,10 +1,11 @@
 import React from 'react';
+import { EthAccountType } from '@metamask/keyring-api';
 import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
@@ -33,17 +34,41 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
-const makeToken = (overrides: Partial<AssetType>): AssetType =>
+type TokenOverrides = Omit<Partial<MoneyDepositAsset>, 'fiat'> & {
+  balanceInSelectedCurrency?: string;
+  fiat?: {
+    balance: number;
+    currency?: string;
+    conversionRate?: number;
+  };
+};
+
+const makeToken = (overrides: TokenOverrides): MoneyDepositAsset =>
   ({
+    accountType: EthAccountType.Eoa,
+    accountId: 'account-id',
+    assetId: '0x0000000000000000000000000000000000000000',
     name: 'Token',
     symbol: 'TOK',
     address: '0x0000000000000000000000000000000000000000',
     chainId: '0x1',
     decimals: 18,
+    image: '',
+    balance: '0',
+    rawBalance: '0x0',
+    isNative: false,
     balanceInSelectedCurrency: '$0.00',
-    fiat: { balance: 0 },
+    fiat: { balance: 0, currency: 'USD', conversionRate: 1 },
     ...overrides,
-  }) as AssetType;
+    ...(overrides.fiat
+      ? {
+          fiat: {
+            conversionRate: 1,
+            ...overrides.fiat,
+          },
+        }
+      : {}),
+  }) as MoneyDepositAsset;
 
 const MOCK_USDC = makeToken({
   name: 'USD Coin',

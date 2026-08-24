@@ -1,5 +1,6 @@
 export type PredictVenueId = string & { readonly __brand: 'PredictVenueId' };
 export type PredictEntityId = string & { readonly __brand: 'PredictEntityId' };
+export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
 export type PredictTimestamp = string & {
   readonly __brand: 'PredictTimestamp';
 };
@@ -107,13 +108,16 @@ export interface PredictEvent {
   markets: readonly PredictMarket[];
 }
 
-export interface FetchEventsParams {
+export interface FetchFeedParams {
   cursor?: string;
   limit?: number;
 }
 
-export interface PaginatedResult<T> {
-  items: readonly T[];
+export interface PredictFeed {
+  venueId: PredictVenueId;
+  id: PredictFeedId;
+  title: string;
+  events: readonly PredictEvent[];
   nextCursor?: string;
 }
 
