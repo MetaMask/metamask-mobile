@@ -47,6 +47,12 @@ const hyperlink = (uri: string, linkText: string): RichTextNode => ({
   content: [text(linkText)],
 });
 
+const listItem = (...children: RichTextNode[]): RichTextNode => ({
+  nodeType: 'list-item',
+  data: {},
+  content: children,
+});
+
 describe('ContentfulRichText', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,16 +125,8 @@ describe('ContentfulRichText', () => {
       nodeType: 'unordered-list',
       data: {},
       content: [
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Item one'))],
-        },
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Item two'))],
-        },
+        listItem(paragraph(text('Item one'))),
+        listItem(paragraph(text('Item two'))),
       ],
     });
     const { getByText, getAllByText } = render(
@@ -144,16 +142,8 @@ describe('ContentfulRichText', () => {
       nodeType: 'ordered-list',
       data: {},
       content: [
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('First'))],
-        },
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Second'))],
-        },
+        listItem(paragraph(text('First'))),
+        listItem(paragraph(text('Second'))),
       ],
     });
     const { getByText } = render(
@@ -161,6 +151,48 @@ describe('ContentfulRichText', () => {
     );
     expect(getByText('1. ')).toBeOnTheScreen();
     expect(getByText('2. ')).toBeOnTheScreen();
+  });
+
+  it('renders a list item with multiple paragraph blocks', () => {
+    const doc = makeDoc({
+      nodeType: 'unordered-list',
+      data: {},
+      content: [
+        listItem(paragraph(text('First line')), paragraph(text('Second line'))),
+      ],
+    });
+    const { getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+
+    expect(getByText('First line')).toBeOnTheScreen();
+    expect(getByText('Second line')).toBeOnTheScreen();
+  });
+
+  it('renders nested ordered and unordered lists from Contentful', () => {
+    const doc = makeDoc({
+      nodeType: 'unordered-list',
+      data: {},
+      content: [
+        listItem(paragraph(text('Parent item')), {
+          nodeType: 'ordered-list',
+          data: {},
+          content: [
+            listItem(paragraph(text('Nested first'))),
+            listItem(paragraph(text('Nested second'))),
+          ],
+        }),
+      ],
+    });
+    const { getByText, getAllByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+
+    expect(getByText('Parent item')).toBeOnTheScreen();
+    expect(getByText('Nested first')).toBeOnTheScreen();
+    expect(getByText('Nested second')).toBeOnTheScreen();
+    expect(getAllByText('1. ').length).toBe(1);
+    expect(getAllByText('2. ').length).toBe(1);
   });
 
   it('renders a heading', () => {
@@ -173,6 +205,34 @@ describe('ContentfulRichText', () => {
       <ContentfulRichText document={doc} testID="rt" />,
     );
     expect(getByText('Title')).toBeOnTheScreen();
+  });
+
+  it('renders a full-bleed divider before heading-1 through heading-4', () => {
+    const doc = makeDoc({
+      nodeType: 'heading-4',
+      data: {},
+      content: [text('Section')],
+    });
+    const { getByTestId, getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('Section')).toBeOnTheScreen();
+    expect(
+      getByTestId('contentful-rich-text-heading-divider'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a divider before heading-5 or heading-6', () => {
+    const doc = makeDoc({
+      nodeType: 'heading-5',
+      data: {},
+      content: [text('Small heading')],
+    });
+    const { getByText, queryByTestId } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+    expect(getByText('Small heading')).toBeOnTheScreen();
+    expect(queryByTestId('contentful-rich-text-heading-divider')).toBeNull();
   });
 
   it('sets the testID on the container', () => {

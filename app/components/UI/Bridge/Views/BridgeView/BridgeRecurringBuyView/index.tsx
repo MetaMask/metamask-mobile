@@ -1,17 +1,198 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
+import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  selectBridgeBalanceRefreshKey,
+  selectSourceToken,
+} from '../../../../../../core/redux/slices/bridge';
+import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
+import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
+import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
+import {
+  HardwareWalletUnsupportedBanner,
+  InsufficientNativeReserveBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
+  QuoteErrorBanner,
+  SwapsBanners,
+  TokenWarningBanner,
+} from '../../../components/SwapsBanners';
+import { SwapsInputs } from '../../../components/SwapsInputs';
+import { SwapsKeypad } from '../../../components/SwapsKeypad';
+import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
+import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
+import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
+import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
+import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 
-const BridgeRecurringBuyView = () => (
-  <Box
-    twClassName="flex-1 bg-default"
-    testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
-  >
-    <RecurringScheduleFields />
-    <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
-  </Box>
-);
+interface BridgeRecurringBuyViewContentProps {
+  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+}
+
+const BridgeRecurringBuyViewContent = ({
+  latestSourceBalance,
+}: BridgeRecurringBuyViewContentProps) => {
+  const tw = useTailwind();
+  const inputRef = useRef<TokenInputAreaRef>(null);
+
+  const {
+    destToken,
+    destTokenAmount,
+    enabledChainIds,
+    handleDestTokenPress,
+    handleFlipTokensPress,
+    handleSourceMaxPress,
+    handleSourcePresetAmountSelect,
+    handleSourceTokenPress,
+    isDestAmountLoading,
+    isFlipDisabled,
+    isQuoteSponsored,
+    sourceAmountInput,
+    sourceToken,
+    sourceAmount,
+  } = useRecurringBuySwapInputs({ latestSourceBalance });
+
+  const {
+    close: closeKeypad,
+    focusAmount,
+    focusEvery,
+    focusRepeat,
+    handleChange: handleKeypadChange,
+    keypadProps,
+    keypadRef,
+  } = useRecurringBuyKeypad({ sourceAmountInput });
+
+  const dismissInputAndKeypad = useCallback(() => {
+    inputRef.current?.blur();
+    closeKeypad();
+  }, [closeKeypad]);
+
+  return (
+    <Box twClassName="flex-1 bg-default">
+      <Box
+        twClassName="flex-1 min-h-0"
+        testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
+      >
+        <ScrollView
+          testID={BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL}
+          style={tw.style('flex-1 min-h-0')}
+          contentContainerStyle={tw.style('grow-0')}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={dismissInputAndKeypad}
+        >
+          <SwapsInputs
+            inputRef={inputRef}
+            enabledChainIds={enabledChainIds}
+            sourceToken={sourceToken}
+            sourceAmountInput={sourceAmountInput}
+            latestSourceBalance={latestSourceBalance}
+            destToken={destToken}
+            destTokenAmount={destTokenAmount}
+            isDestAmountLoading={isDestAmountLoading}
+            isFlipDisabled={isFlipDisabled}
+            onSourceInputPress={focusAmount}
+            onSourceTokenPress={handleSourceTokenPress}
+            onSourceMaxPress={handleSourceMaxPress}
+            onFlipPress={handleFlipTokensPress}
+            onDestInputPress={closeKeypad}
+            onDestTokenPress={handleDestTokenPress}
+            sourceTokenAreaTestID={
+              BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
+            }
+            destTokenAreaTestID={
+              BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA
+            }
+            sourceAmountTypeToggleTestID={
+              BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
+            }
+            hideDestAmount
+            destAmountReplacementLabelTestID={
+              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
+            }
+          />
+
+          <Box onTouchEnd={dismissInputAndKeypad}>
+            <SwapsBanners
+              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+              onAdjustSourceAmount={handleSourcePresetAmountSelect}
+            >
+              <HardwareWalletUnsupportedBanner />
+              <QuoteErrorBanner />
+              <TokenWarningBanner />
+              <InsufficientNativeReserveBanner />
+              <MissingQuoteAndAssetsPriceDataBanner />
+            </SwapsBanners>
+          </Box>
+
+          <RecurringScheduleFields
+            onEveryPress={focusEvery}
+            onRepeatPress={focusRepeat}
+            onDismissKeypad={dismissInputAndKeypad}
+          />
+
+          <Box onTouchEnd={dismissInputAndKeypad}>
+            <OrdersTabs
+              enabledChainIds={enabledChainIds}
+              openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
+              history={RECURRING_MOCK_HISTORY_TAB}
+            />
+          </Box>
+        </ScrollView>
+
+        <BridgeRecurringBuyFooterView />
+
+        <SwapsKeypad
+          ref={keypadRef}
+          onChange={handleKeypadChange}
+          {...keypadProps}
+        >
+          {sourceAmount && sourceAmount !== '0' ? (
+            <SwapsRecurringBuyConfirmButton
+              onPress={() => 'test'}
+              label="test"
+              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+            />
+          ) : (
+            <GaslessQuickPickOptions
+              token={sourceToken}
+              tokenBalance={latestSourceBalance?.displayBalance}
+              onMaxPress={handleSourceMaxPress}
+              isQuoteSponsored={isQuoteSponsored}
+              onAmountSelect={handleSourcePresetAmountSelect}
+            />
+          )}
+        </SwapsKeypad>
+      </Box>
+    </Box>
+  );
+};
+
+const BridgeRecurringBuyView = () => {
+  const sourceToken = useSelector(selectSourceToken);
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+    refreshKey: balanceRefreshKey,
+  });
+
+  return (
+    <BridgeQuoteDataProvider
+      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+    >
+      <BridgeRecurringBuyViewContent
+        latestSourceBalance={latestSourceBalance}
+      />
+    </BridgeQuoteDataProvider>
+  );
+};
 
 export default BridgeRecurringBuyView;

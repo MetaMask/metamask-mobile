@@ -2,11 +2,10 @@ import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
-import { TextButton } from '@metamask/design-system-react-native';
+import { Text, TextButton } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import { selectTransactions } from '../../../../../selectors/transactionController';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { SPEEDUP_CANCEL_TRANSACTION_URL } from '../../constants/url';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';

@@ -9,6 +9,7 @@ import type { Order, Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { ImpactMoment, playImpact } from '../../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import PerpsProPositionCard from './PerpsProPositionCard';
@@ -16,6 +17,7 @@ import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
+jest.mock('../../../../../../util/haptics');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -125,8 +127,17 @@ jest.mock(
   '../../../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView',
   () => {
     const { View } = jest.requireActual('react-native');
-    return function PerpsCloseAllPositionsView() {
-      return <View testID="perps-close-all-positions-view" />;
+    return function PerpsCloseAllPositionsView({
+      enableHaptics,
+    }: {
+      enableHaptics?: boolean;
+    }) {
+      return (
+        <View
+          testID="perps-close-all-positions-view"
+          accessibilityLabel={enableHaptics ? 'haptics-enabled' : 'haptics-off'}
+        />
+      );
     };
   },
 );
@@ -135,8 +146,17 @@ jest.mock(
   '../../../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet',
   () => {
     const { View } = jest.requireActual('react-native');
-    return function PerpsFlipPositionConfirmSheet() {
-      return <View testID="perps-flip-position-confirm-sheet" />;
+    return function PerpsFlipPositionConfirmSheet({
+      enableHaptics,
+    }: {
+      enableHaptics?: boolean;
+    }) {
+      return (
+        <View
+          testID="perps-flip-position-confirm-sheet"
+          accessibilityLabel={enableHaptics ? 'haptics-enabled' : 'haptics-off'}
+        />
+      );
     };
   },
 );
@@ -145,8 +165,17 @@ jest.mock(
   '../../../Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView',
   () => {
     const { View } = jest.requireActual('react-native');
-    return function PerpsSelectAdjustMarginActionView() {
-      return <View testID="perps-select-adjust-margin-action-view" />;
+    return function PerpsSelectAdjustMarginActionView({
+      enableHaptics,
+    }: {
+      enableHaptics?: boolean;
+    }) {
+      return (
+        <View
+          testID="perps-select-adjust-margin-action-view"
+          accessibilityLabel={enableHaptics ? 'haptics-enabled' : 'haptics-off'}
+        />
+      );
     };
   },
 );
@@ -283,8 +312,34 @@ describe('usePerpsProPositionsPanelActions', () => {
       expect.objectContaining({
         buttonClicked: 'close',
         buttonLocation: 'perp_market_details',
+        enableHaptics: true,
       }),
     );
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('keeps haptics silent when eligibility blocks an action', async () => {
+    (useSelector as jest.Mock)
+      .mockReset()
+      .mockReturnValueOnce(false)
+      .mockReturnValue('0x123');
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleClosePosition(position);
+    });
+
+    expect(mockNavigateToClosePosition).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('opens reverse confirmation sheet for the selected position', async () => {
@@ -307,8 +362,9 @@ describe('usePerpsProPositionsPanelActions', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId('perps-flip-position-confirm-sheet'),
-      ).toBeOnTheScreen();
+      ).toHaveProp('accessibilityLabel', 'haptics-enabled');
     });
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
   it('navigates to share PnL with derived mark price', async () => {
@@ -332,6 +388,7 @@ describe('usePerpsProPositionsPanelActions', () => {
       position,
       marketPrice: '2900',
     });
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
   it('cancels an order using the existing trading flow', async () => {
@@ -361,6 +418,32 @@ describe('usePerpsProPositionsPanelActions', () => {
       }),
     );
     expect(mockShowToast).toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('keeps haptics silent for a non-cancelable order', async () => {
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await actions?.handleCancelOrder({
+        ...order,
+        orderId: 'order-1-synthetic-tp',
+        isSynthetic: true,
+      });
+    });
+
+    expect(mockCancelOrder).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('edits an order price through the limit price sheet', async () => {
@@ -419,6 +502,8 @@ describe('usePerpsProPositionsPanelActions', () => {
     });
 
     expect(mockShowToast).toHaveBeenCalled();
+    expect(playImpact).toHaveBeenNthCalledWith(1, ImpactMoment.PageNavigation);
+    expect(playImpact).toHaveBeenNthCalledWith(2, ImpactMoment.PrimaryCTA);
   });
 
   it('edits an order size through the size bottom sheet', async () => {
@@ -450,6 +535,7 @@ describe('usePerpsProPositionsPanelActions', () => {
         screen.getByTestId('perps-order-size-bottom-sheet'),
       ).toBeOnTheScreen();
     });
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('perps-order-size-confirm'));
@@ -498,10 +584,12 @@ describe('usePerpsProPositionsPanelActions', () => {
 
     expect(mockGate).toHaveBeenCalled();
     await waitFor(() => {
-      expect(
-        screen.getByTestId('perps-close-all-positions-view'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-close-all-positions-view')).toHaveProp(
+        'accessibilityLabel',
+        'haptics-enabled',
+      );
     });
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 });
 
@@ -562,8 +650,31 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId('perps-select-adjust-margin-action-view'),
-      ).toBeOnTheScreen();
+      ).toHaveProp('accessibilityLabel', 'haptics-enabled');
     });
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('keeps haptics silent for a non-editable cross-margin position', async () => {
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleEditPositionMargin({
+        ...position,
+        leverage: { ...position.leverage, type: 'cross' },
+      });
+    });
+
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('navigates to TP/SL screen when edit control is pressed', () => {
@@ -590,8 +701,10 @@ describe('PerpsProPositionsPanel action callbacks', () => {
         initialTakeProfitPrice: position.takeProfitPrice,
         initialStopLossPrice: position.stopLossPrice,
         leverage: position.leverage.value,
+        enableHaptics: true,
       }),
     );
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
   it('invokes edit TP/SL callback from position card control', () => {

@@ -115,6 +115,7 @@ import {
   type ResolvedFirstPredictOnUsLaunch,
 } from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
 import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
   type: string;
@@ -1126,6 +1127,7 @@ const ChoosePassword = () => {
             </Box>
           </KeyboardAwareScrollView>
         )}
+        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };
