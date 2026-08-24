@@ -14,19 +14,11 @@ const WEBVIEW_ELEMENT_WAIT_EXIST_MS = 15_000;
  * for the given page URL before querying DOM selectors.
  */
 export default class AppiumWebMatchers {
-  private static getWebViewUrlFragment(url: string): string {
-    try {
-      const parsed = new URL(url);
-      return `${parsed.host}${parsed.pathname}`;
-    } catch {
-      return url;
-    }
-  }
-
   private static async ensureWebViewContext(pageUrl: string): Promise<void> {
-    const fragment = this.getWebViewUrlFragment(pageUrl);
-    logger.debug(`Ensuring WebView context for: ${fragment}`);
-    await AppiumContextHelpers.switchToWebViewContext(fragment);
+    // Pass the absolute URL through — buildDappUrlPattern / urlsReferToSameDapp
+    // need a parseable URL for localhost ↔ 10.0.2.2 ↔ 127.0.0.1 aliases.
+    logger.debug(`Ensuring WebView context for: ${pageUrl}`);
+    await AppiumContextHelpers.switchToWebViewContext(pageUrl);
   }
 
   static async getElementByWebID(

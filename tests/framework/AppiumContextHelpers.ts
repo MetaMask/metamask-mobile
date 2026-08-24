@@ -325,7 +325,12 @@ export default class AppiumContextHelpers {
     dappUrl: string,
   ): Promise<void> {
     await this.switchToWebViewContext(dappUrl);
-    await actionFn();
+    try {
+      await actionFn();
+    } finally {
+      // Always leave WEBVIEW so later native steps / next tests are not stranded.
+      await this.switchToNativeContext();
+    }
   }
 
   static async withNativeAction(actionFn: () => Promise<void>): Promise<void> {

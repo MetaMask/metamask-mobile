@@ -146,9 +146,10 @@ export default class AppiumMatchers {
       if (!drv) throw new Error('Driver is not available');
       const index = options.index ?? 0;
       if (index > 0) {
-        const elements = await drv.$$(locator);
-        return wrapElement(
-          elements[index] as unknown as ChainablePromiseElement,
+        return this.resolveIndexedElementByLocator(
+          locator,
+          index,
+          `text pattern ${pattern}`,
         );
       }
       const element = await drv.$(locator);
