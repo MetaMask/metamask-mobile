@@ -275,15 +275,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [styles.fixedBottomContainer, insets.bottom],
   );
 
-  DevLogger.log(
-    '[TAT-3822] BUG_MARKER: perps lite CTA bottom inset — ' +
-      JSON.stringify({
-        insetsBottom: insets.bottom,
-        appliedPaddingBottom: insets.bottom + 16,
-        scrollReserve: 120,
-      }),
-  );
-
   // Deferred loading: Load non-critical data after UI renders
   const [isDataReady, setIsDataReady] = useState(false);
   useEffect(() => {
