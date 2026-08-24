@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
+import type { PredictNavigationParamList } from '../../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../../UI/Predict/constants/eventNames';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 import { predictQueries } from '../../../../../UI/Predict/queries';
@@ -20,57 +20,45 @@ export const usePredictNavigationHandlers = (): {
   handleViewAllFromPositions: () => void;
   handlePositionPress: (position: PredictPosition) => void;
 } => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const handleViewAllPredictions = useCallback(
     (transactionActiveAbTests?: TransactionActiveAbTestEntry[]) => {
       const activeAbTests = Array.isArray(transactionActiveAbTests)
         ? transactionActiveAbTests
         : undefined;
 
-      // `{ pop: true }` keeps a single Predict stack (v6 navigate semantics).
-      navigation.navigate(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-            ...(activeAbTests?.length && {
-              transactionActiveAbTests: activeAbTests,
-            }),
-          },
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          ...(activeAbTests?.length && {
+            transactionActiveAbTests: activeAbTests,
+          }),
         },
-        { pop: true },
-      );
+      });
     },
     [navigation],
   );
 
   const handleViewAllFromPositions = useCallback(() => {
-    navigation.navigate(
-      Routes.PREDICT.ROOT,
-      {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        },
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
       },
-      { pop: true },
-    );
+    });
   }, [navigation]);
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
-      navigation.navigate(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: position.marketId,
-            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          },
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: position.marketId,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
         },
-        { pop: true },
-      );
+      });
     },
     [navigation],
   );

@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import {
   Box,
   SectionDivider,
@@ -49,7 +48,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
   transactionActiveAbTests,
   onTreatmentCtaClick,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
   const eventSlotRows = useMemo<ChampionshipRowState[]>(
     () =>
@@ -91,20 +90,16 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         );
         return;
       }
-      navigation.navigate(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-            tab: 'crypto',
-            ...(transactionActiveAbTests?.length && {
-              transactionActiveAbTests,
-            }),
-          },
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          tab: 'crypto',
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
         },
-        { pop: true },
-      );
+      });
     },
     [
       navigateToMarketDetails,

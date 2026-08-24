@@ -99,14 +99,10 @@ describe('PredictActivity', () => {
 
       fireEvent.press(activityRow);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.ROOT,
-        {
-          screen: Routes.PREDICT.ACTIVITY_DETAIL,
-          params: { activity: item },
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.ACTIVITY_DETAIL,
+        params: { activity: item },
+      });
     });
   });
 

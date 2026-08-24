@@ -2071,22 +2071,18 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
     fireEvent.press(screen.getByTestId('row-predict-1'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'PredictModals',
-      {
-        screen: 'PredictActivityDetail',
-        params: {
-          activity: expect.objectContaining({
-            id: 'p1',
-            type: 'BUY',
-            marketTitle: 'Will Spain win the 2026 FIFA World Cup?',
-            amountUsd: 3,
-            outcome: 'Yes',
-          }),
-        },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictActivityDetail',
+      params: {
+        activity: expect.objectContaining({
+          id: 'p1',
+          type: 'BUY',
+          marketTitle: 'Will Spain win the 2026 FIFA World Cup?',
+          amountUsd: 3,
+          outcome: 'Yes',
+        }),
       },
-      { pop: true },
-    );
+    });
   });
 
   it('renders non-EVM swap/bridge rows through ActivityListItemRow', () => {

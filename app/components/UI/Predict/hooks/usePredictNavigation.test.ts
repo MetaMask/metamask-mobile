@@ -65,14 +65,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { throughRoot: true });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params,
+      });
     });
 
     it('passes all params through ROOT navigation', () => {
@@ -85,16 +81,12 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { throughRoot: true });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: expect.objectContaining({
-            entryPoint: 'carousel',
-          }),
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: expect.objectContaining({
+          entryPoint: 'carousel',
+        }),
+      });
     });
 
     it('replace takes precedence over throughRoot', () => {
@@ -179,14 +171,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToMarketDetails(params, { throughRoot: true });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params,
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params,
+      });
     });
 
     it('dispatches replace navigation when replace is true', () => {

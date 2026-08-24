@@ -248,18 +248,14 @@ describe('HomepagePredictDiscovery', () => {
 
       getBtcLiveRowProps().onPress(undefined, undefined);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.ROOT,
-        {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-            tab: 'crypto',
-            transactionActiveAbTests,
-          },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          tab: 'crypto',
+          transactionActiveAbTests,
         },
-        { pop: true },
-      );
+      });
     });
 
     it('tracks the crypto category CTA when the BTC row is pressed', () => {

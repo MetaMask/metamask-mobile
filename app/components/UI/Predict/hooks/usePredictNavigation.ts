@@ -30,16 +30,10 @@ export const usePredictNavigation = () => {
           StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
         );
       } else if (options?.throughRoot) {
-        // v7 `navigate` into an already-mounted Predict stack pushes a
-        // duplicate. `{ pop: true }` restores v6 "go to existing screen".
-        navigation.navigate(
-          Routes.PREDICT.ROOT,
-          {
-            screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-            params,
-          },
-          { pop: true },
-        );
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params,
+        });
       } else {
         navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
       }
@@ -57,14 +51,10 @@ export const usePredictNavigation = () => {
           StackActions.replace(Routes.PREDICT.MARKET_DETAILS, params),
         );
       } else if (options?.throughRoot) {
-        navigation.navigate(
-          Routes.PREDICT.ROOT,
-          {
-            screen: Routes.PREDICT.MARKET_DETAILS,
-            params,
-          },
-          { pop: true },
-        );
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params,
+        });
       } else {
         navigation.navigate(Routes.PREDICT.MARKET_DETAILS, params);
       }
