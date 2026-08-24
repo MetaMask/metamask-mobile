@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       setSelectedProvider: jest.fn(),
-      getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+      getProviders: jest.fn().mockResolvedValue({ providers: [], sorted: [] }),
     },
   },
 }));
@@ -168,6 +168,21 @@ describe('useRampsProviders', () => {
   });
 
   describe('providers state', () => {
+    it('supports providers responses from older controller versions without sorted metadata', () => {
+      mockUseQuery.mockReturnValueOnce({
+        data: { providers: mockProviders },
+        error: null,
+        isLoading: false,
+      } as never);
+      const store = createMockStore();
+
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.providers).toEqual(mockProviders);
+    });
+
     it('returns providers from state', () => {
       const store = createMockStore({ data: mockProviders });
       const { result } = renderHook(() => useRampsProviders(), {
@@ -329,6 +344,7 @@ describe('useRampsProviders', () => {
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
         expect.any(Array),
         mockProviders,
+        mockProviders[0].id,
       );
     });
 
