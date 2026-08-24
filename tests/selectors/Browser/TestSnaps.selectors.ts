@@ -178,19 +178,6 @@ export function snapUIJsxCountIosXPath(count: string): string {
   return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Count, ${count}")]`;
 }
 
-/**
- * JSX Snap Increment — scoped under the Snap UI scrollview.
- * After native-stack v7, Increment is often only in a grouped card label
- * (or an inaccessible child), so exact-text matchers miss it.
- */
-export function snapUIJsxIncrementIosXPath(): string {
-  const scrollView = SnapUIRendererSelectorIDs.scrollView;
-  return [
-    `//*[@name="${scrollView}"]//*[@name="Increment" or @label="Increment"]`,
-    `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Increment")]`,
-  ].join(' | ');
-}
-
 export function snapUIJsxCountAndroidXPath(count: string): string {
   const scrollView = SnapUIRendererSelectorIDs.scrollView;
   return `//*[contains(@resource-id,"${scrollView}")]//*[@text="${count}" or @content-desc="${count}" or contains(@content-desc,"Count, ${count}")]`;
