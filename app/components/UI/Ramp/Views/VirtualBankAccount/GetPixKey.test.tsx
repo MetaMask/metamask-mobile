@@ -6,6 +6,10 @@ import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { startIronKycFlow } from './ironKycFlow';
+import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import Engine from '../../../../../core/Engine';
+
+const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -20,6 +24,19 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./hooks/useKycDisclaimers');
 jest.mock('./ironKycFlow');
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      setMoneyAccountProvisioningIntent: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectSelectedInternalAccountAddress: () => WALLET_ADDRESS,
+}));
 
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockStartIronKycFlow = jest.mocked(startIronKycFlow);
@@ -79,6 +96,12 @@ describe('GetPixKey', () => {
 
     await waitFor(() => {
       expect(mockStartIronKycFlow).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.RampsController.setMoneyAccountProvisioningIntent,
+      ).toHaveBeenCalledWith({
+        address: WALLET_ADDRESS,
+        autoramp: buildMoneyAccountAutorampParams(WALLET_ADDRESS),
+      });
       expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
     });
   });

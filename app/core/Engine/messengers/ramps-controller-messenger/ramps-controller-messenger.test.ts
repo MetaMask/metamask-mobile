@@ -1,14 +1,19 @@
 import { Messenger } from '@metamask/messenger';
+import type { MessengerEvents } from '@metamask/messenger';
 import {
   RampsControllerActions,
   RampsControllerEvents,
   RampsServiceActions,
   RampsServiceEvents,
+  type RampsControllerMessenger,
 } from '@metamask/ramps-controller';
 import { getRampsControllerMessenger } from './ramps-controller-messenger';
 
 type AllActions = RampsControllerActions | RampsServiceActions;
-type AllEvents = RampsControllerEvents | RampsServiceEvents;
+type AllEvents =
+  | RampsControllerEvents
+  | RampsServiceEvents
+  | MessengerEvents<RampsControllerMessenger>;
 
 type RootMessenger = Messenger<'Root', AllActions, AllEvents>;
 

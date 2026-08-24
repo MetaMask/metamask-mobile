@@ -3,9 +3,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import ToastService from '../../../../core/ToastService/ToastService';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
-import { selectKycControllerState } from '../../../../selectors/kycController';
-import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
-import { DEMO_NEOBANK_CUSTOMER_ID } from '../utils/neobankEvents';
 import { useNeobankSandboxDepositEvents } from './useNeobankSandboxDepositEvents';
 
 jest.mock('react-redux', () => ({
@@ -16,34 +13,22 @@ jest.mock('../../../../core/ToastService/ToastService', () => ({
   showToast: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/kycController', () => ({
-  selectKycControllerState: jest.fn(),
-}));
-
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
   selectMoneyMovementBrazilNeobankEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    NeoBankService: {
-      getCustomerByExternalId: jest.fn(),
+    RampsController: {
+      resolveAutorampCustomerId: jest.fn(),
     },
   },
 }));
 
-jest.mock(
-  '../../../../util/notifications/utils/get-session-profile-id',
-  () => ({
-    getSessionProfileId: jest.fn(),
-  }),
-);
-
 const useSelectorMock = jest.mocked(useSelector);
 const showToastMock = jest.mocked(ToastService.showToast);
-const getSessionProfileIdMock = jest.mocked(getSessionProfileId);
-const getCustomerByExternalIdMock = jest.mocked(
-  Engine.context.NeoBankService.getCustomerByExternalId,
+const resolveAutorampCustomerIdMock = jest.mocked(
+  Engine.context.RampsController.resolveAutorampCustomerId,
 );
 
 class MockWebSocket {
@@ -65,35 +50,21 @@ class MockWebSocket {
   }
 }
 
-function mockSelectors(kycState: {
-  activeVendor?: string;
-  moonpayCustomerId?: string | null;
-}) {
-  // Re-renders after the async customer lookup call useSelector again, so the
-  // mock must stay stable across the whole hook lifetime.
-  useSelectorMock.mockImplementation((selector) => {
-    if (selector === selectMoneyMovementBrazilNeobankEnabled) {
-      return true;
-    }
-    if (selector === selectKycControllerState) {
-      return kycState;
-    }
-    return undefined;
-  });
-}
-
 describe('useNeobankSandboxDepositEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     MockWebSocket.instances = [];
     global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
-    delete process.env.NEOBANK_DEMO_CUSTOMER_ID;
-    getSessionProfileIdMock.mockResolvedValue(undefined);
-    getCustomerByExternalIdMock.mockResolvedValue(null);
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectMoneyMovementBrazilNeobankEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    resolveAutorampCustomerIdMock.mockResolvedValue('customer-1');
   });
 
   it('shows success for Completed without calling a vault action', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'customer-1' });
     renderHook(() => useNeobankSandboxDepositEvents());
 
     await waitFor(() => {
@@ -128,76 +99,21 @@ describe('useNeobankSandboxDepositEvents', () => {
         ],
       }),
     );
-    expect(getCustomerByExternalIdMock).not.toHaveBeenCalled();
   });
 
-  it('prefers the real moonpayCustomerId over lookup and demo fallback', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'real-customer' });
-    renderHook(() => useNeobankSandboxDepositEvents());
-
-    await waitFor(() => {
-      expect(MockWebSocket.instances[0]?.url).toContain('userId=real-customer');
-    });
-
-    expect(MockWebSocket.instances[0].url).not.toContain(
-      DEMO_NEOBANK_CUSTOMER_ID,
-    );
-    expect(getCustomerByExternalIdMock).not.toHaveBeenCalled();
-  });
-
-  it('uses the looked-up Iron customer id when moonpayCustomerId is unset', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: null });
-    getSessionProfileIdMock.mockResolvedValue('profile-1');
-    getCustomerByExternalIdMock.mockResolvedValue({
-      id: 'looked-up-customer',
-      external_id: 'profile-1',
-    });
+  it('does not open a socket when customer id resolution fails', async () => {
+    resolveAutorampCustomerIdMock.mockRejectedValue(new Error('not signed in'));
 
     renderHook(() => useNeobankSandboxDepositEvents());
 
     await waitFor(() => {
-      expect(MockWebSocket.instances[0]?.url).toContain(
-        'userId=looked-up-customer',
-      );
+      expect(resolveAutorampCustomerIdMock).toHaveBeenCalled();
     });
 
-    expect(getCustomerByExternalIdMock).toHaveBeenCalledWith('profile-1');
-    expect(MockWebSocket.instances[0].url).not.toContain(
-      DEMO_NEOBANK_CUSTOMER_ID,
-    );
-  });
-
-  it('falls back to the demo customer id when lookup fails', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: null });
-    getSessionProfileIdMock.mockResolvedValue('profile-1');
-    getCustomerByExternalIdMock.mockRejectedValue(new Error('network'));
-
-    renderHook(() => useNeobankSandboxDepositEvents());
-
-    await waitFor(() => {
-      expect(MockWebSocket.instances[0]?.url).toContain(
-        `userId=${DEMO_NEOBANK_CUSTOMER_ID}`,
-      );
-    });
-  });
-
-  it('falls back to the demo customer id when lookup returns nothing', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: null });
-    getSessionProfileIdMock.mockResolvedValue(undefined);
-
-    renderHook(() => useNeobankSandboxDepositEvents());
-
-    await waitFor(() => {
-      expect(MockWebSocket.instances[0]?.url).toContain(
-        `userId=${DEMO_NEOBANK_CUSTOMER_ID}`,
-      );
-    });
-
-    expect(getCustomerByExternalIdMock).not.toHaveBeenCalled();
+    expect(MockWebSocket.instances).toHaveLength(0);
   });
 
   it('ignores duplicate Completed events', async () => {
-    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'customer-1' });
     renderHook(() => useNeobankSandboxDepositEvents());
 
     await waitFor(() => {
