@@ -225,6 +225,21 @@ describe('determinePreferredProvider', () => {
       });
     });
 
+    it('matches backend ranking IDs with a legacy provider prefix', () => {
+      const providers = [mockProvider1, mockProvider2];
+
+      const result = determinePreferredProvider(
+        [],
+        providers,
+        `/providers/${mockProvider2.id}`,
+      );
+
+      expect(result).toEqual({
+        provider: mockProvider2,
+        autoSelected: true,
+      });
+    });
+
     it('falls back to the first provider when ranking metadata is unavailable', () => {
       const providers = [mockProvider1, mockProvider2];
 

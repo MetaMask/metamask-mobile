@@ -71,6 +71,10 @@ export interface PreferredProviderResult {
   autoSelected: boolean;
 }
 
+function normalizeProviderId(providerId?: string): string | undefined {
+  return providerId?.replace(/^\/providers\//i, '').toLowerCase();
+}
+
 /**
  * Determines the preferred provider based on user's completed order history.
  *
@@ -116,7 +120,8 @@ export function determinePreferredProvider(
   const backendDefaultProvider =
     availableProviders.find(
       (provider) =>
-        provider.id.toLowerCase() === backendDefaultProviderId?.toLowerCase(),
+        normalizeProviderId(provider.id) ===
+        normalizeProviderId(backendDefaultProviderId),
     ) ?? availableProviders[0];
 
   return { provider: backendDefaultProvider, autoSelected: true };
