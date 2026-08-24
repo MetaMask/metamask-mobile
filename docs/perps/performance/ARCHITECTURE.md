@@ -152,8 +152,8 @@ Each boundary has exactly one producer.
 | Homepage ready                                      | Existing Mobile Homepage instrumentation                | `Homepage Ready` trace                                                                                                                                |
 | Perps bootstrap start                               | Mounted Mobile Homepage Perps surface                   | slim `Perps Loading Session` anchor and recipe marker                                                                                                 |
 | Controller constructed                              | Core constructor, using Mobile-supplied monotonic clock | Buffer construction/hydration timestamps in Core; after `perps_bootstrap_start`, write the derived offset to the explicit loading-session span handle |
-| Market/user disk hydration identity and age         | Core cache code                                         | corresponding preload trace attributes plus recipe event                                                                                              |
-| Terminal request, parse/validation, adoption        | Core Terminal market service                            | `Perps Market Data Preload` measurements only                                                                                                         |
+| Market/user disk hydration identity and age         | Core cache code                                         | not emitted by this stack; cache-source recipe evidence only                                                                                          |
+| Terminal request, parse/validation, adoption        | Core Terminal market service                            | not split into measurements; only the overall market-preload duration is emitted                                                                      |
 | Global market preload                               | Core controller                                         | `Perps Market Data Preload` trace                                                                                                                     |
 | User preload                                        | Core controller                                         | `Perps User Data Preload` trace                                                                                                                       |
 | Shared provider init, health, socket, subscriptions | Singleton Mobile connection manager                     | `Perps Connection Establishment` measurements                                                                                                         |
@@ -263,13 +263,13 @@ the detail session.
 | Auth-to-home                         | Existing traces remain separate; no synthetic join in this PR                 |
 | Homepage/Perps ordering              | Existing traces remain separate; no per-event offset in this PR               |
 | Controller init                      | Existing connection trace measurement                                         |
-| Terminal network / parse / adoption  | Existing market-preload trace measurements                                    |
+| Overall global market preload        | `perps.operation.market_data_preload` on the market-preload trace             |
 | Markets ready                        | Bootstrap-relative loading-session milestone                                  |
 | Account cache ready                  | Atomic user-snapshot acceptance/delivery bootstrap-relative milestone         |
 | Complete live account                | `max(account_live, positions_live, orders_live)` bootstrap-relative milestone |
 | Live prices                          | `prices_live` bootstrap-relative milestone                                    |
 | Homepage TTC/DFD                     | Existing Homepage section traces                                              |
-| Initial UI / live-visible            | Existing surface trace measurements plus recipe frame evidence                |
+| Initial UI / live-visible            | Recipe frame evidence only                                                    |
 | Detail minimum useful                | Existing `Perps Market Detail Live` duration, split by `detail_mode`          |
 | Detail section resolution            | Detail-mount-relative `Perps Market Detail Session` measurements              |
 | Cache-to-visible / socket-to-visible | Recipe evidence; promote only after semantics are proven                      |
