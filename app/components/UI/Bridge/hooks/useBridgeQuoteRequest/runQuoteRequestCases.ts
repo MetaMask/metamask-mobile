@@ -13,7 +13,12 @@ import * as bridgeSelectors from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -146,46 +151,55 @@ export const runQuoteRequestCases = ({
     it('updates quote parameters with valid input', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
-      await act(async () => {
-        await result.current();
+      act(() => {
+        result.current();
         jest.advanceTimersByTime(debounceMs);
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
     });
 
-    it('starts the quote trace after the debounce delay', async () => {
+    it('starts the quote trace before the debounce delay', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
       act(() => {
         result.current();
-        jest.advanceTimersByTime(debounceMs - 1);
-      });
-
-      expect(mockTrace).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(1);
       });
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.SwapQuoteFetch,
-        data: { isRefresh: false },
+        op: TraceOperation.BridgeDataFetch,
+        data: expect.objectContaining({
+          isRefresh: false,
+          request_id: expect.any(String),
+        }),
+        id: expect.any(String),
         startTime: expect.any(Number),
       });
+
+      await act(async () => {
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
     });
 
     it('marks manually requested quote refreshes in the quote trace', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
-      await act(async () => {
+      act(() => {
         result.current({ isRefresh: true });
         jest.advanceTimersByTime(debounceMs);
       });
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.SwapQuoteFetch,
-        data: { isRefresh: true },
+        op: TraceOperation.BridgeDataFetch,
+        data: expect.objectContaining({
+          isRefresh: true,
+          request_id: expect.any(String),
+        }),
+        id: expect.any(String),
         startTime: expect.any(Number),
       });
     });
@@ -205,8 +219,9 @@ export const runQuoteRequestCases = ({
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.SwapQuoteFetch,
+        id: expect.any(String),
         timestamp: expect.any(Number),
-        data: { success: false },
+        data: { result: 'error' },
       });
     });
 
@@ -683,7 +698,7 @@ export const runQuoteRequestCases = ({
         });
       });
 
-      it.skip('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
+      it('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
           { latestSourceAtomicBalance: undefined },
