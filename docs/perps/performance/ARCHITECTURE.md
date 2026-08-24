@@ -10,6 +10,10 @@ owners. It adds the `perps_bootstrap_start` session and Mobile milestone
 producers; dashboard rows remain `release pending` until the proven
 instrumentation and its Core dependency ship.
 
+This change does not add the recipe-only Homepage surface markers listed below.
+Those names are reserved for a follow-up Mobile producer and remain `recipe
+pending`. The parser recognizing a name is not evidence that Mobile emits it.
+
 ## Two clocks, no assumed ordering
 
 App startup and Perps bootstrap are related but not sequential by definition:
@@ -86,7 +90,10 @@ Resident return, cold disk hydration, short background continuity, and reconnect
 
 ## Canonical stage vocabulary
 
-These names are shared by Mobile emitters, the harness parser, recipe requirements, evidence, runbook, and report:
+The vocabulary below is shared by the target Mobile, parser, evidence, runbook,
+and report contract. Only `perps_bootstrap_start` is emitted by this change. The
+four `surface_*` stages remain `recipe pending` and must not be required or
+reported as measured until their Mobile producer lands.
 
 | Stage                         | Meaning                                                   |
 | ----------------------------- | --------------------------------------------------------- |
@@ -102,23 +109,23 @@ These names are shared by Mobile emitters, the harness parser, recipe requiremen
 
 Each boundary has exactly one producer.
 
-| Boundary or measurement                       | Authoritative producer                                  | Destination                                                                                                                                           |
-| --------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Load Scripts                                  | Existing Mobile startup instrumentation                 | `Load Scripts` trace                                                                                                                                  |
-| UI Startup                                    | Existing Mobile startup instrumentation                 | `UI Startup` trace                                                                                                                                    |
-| Authentication duration                       | Existing Mobile login instrumentation                   | `Authenticate User` trace                                                                                                                             |
-| Homepage ready                                | Existing Mobile Homepage instrumentation                | `Homepage Ready` trace                                                                                                                                |
-| Perps bootstrap start                         | Mounted Mobile Homepage Perps surface                   | slim `Perps Loading Session` anchor and recipe marker                                                                                                 |
-| Controller constructed                        | Core constructor, using Mobile-supplied monotonic clock | Buffer construction/hydration timestamps in Core; after `perps_bootstrap_start`, write the derived offset to the explicit loading-session span handle |
-| Market/user disk hydration identity and age   | Core cache code                                         | corresponding preload trace attributes plus recipe event                                                                                              |
-| Terminal request, parse/validation, adoption  | Core Terminal market service                            | `Perps Market Data Preload` measurements only                                                                                                         |
-| Global market preload                         | Core controller                                         | `Perps Market Data Preload` trace                                                                                                                     |
-| User preload                                  | Core controller                                         | `Perps User Data Preload` trace                                                                                                                       |
-| Provider init, health, socket, subscriptions  | Existing Mobile connection manager                      | `Perps Connection Establishment` measurements                                                                                                         |
-| First live price/positions/orders/account     | Existing Mobile stream manager                          | existing `Perps WebSocket First *` traces                                                                                                             |
-| Homepage Perps TTC/DFD                        | Existing `useSectionPerformance`                        | existing Homepage section traces, extended with source/lifecycle/content variant                                                                      |
-| Surface initial UI and live-visible           | Mobile surface instrumentation                          | measurements on the existing surface trace; recipe stages above                                                                                       |
-| Bootstrap-relative markets/cache/live offsets | Mobile loading-session coordinator                      | slim `Perps Loading Session` only                                                                                                                     |
+| Boundary or measurement                       | Authoritative producer                                     | Destination                                                                                                                                           |
+| --------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Load Scripts                                  | Existing Mobile startup instrumentation                    | `Load Scripts` trace                                                                                                                                  |
+| UI Startup                                    | Existing Mobile startup instrumentation                    | `UI Startup` trace                                                                                                                                    |
+| Authentication duration                       | Existing Mobile login instrumentation                      | `Authenticate User` trace                                                                                                                             |
+| Homepage ready                                | Existing Mobile Homepage instrumentation                   | `Homepage Ready` trace                                                                                                                                |
+| Perps bootstrap start                         | Mounted Mobile Homepage Perps surface                      | slim `Perps Loading Session` anchor and recipe marker                                                                                                 |
+| Controller constructed                        | Core constructor, using Mobile-supplied monotonic clock    | Buffer construction/hydration timestamps in Core; after `perps_bootstrap_start`, write the derived offset to the explicit loading-session span handle |
+| Market/user disk hydration identity and age   | Core cache code                                            | corresponding preload trace attributes plus recipe event                                                                                              |
+| Terminal request, parse/validation, adoption  | Core Terminal market service                               | `Perps Market Data Preload` measurements only                                                                                                         |
+| Global market preload                         | Core controller                                            | `Perps Market Data Preload` trace                                                                                                                     |
+| User preload                                  | Core controller                                            | `Perps User Data Preload` trace                                                                                                                       |
+| Provider init, health, socket, subscriptions  | Existing Mobile connection manager                         | `Perps Connection Establishment` measurements                                                                                                         |
+| First live price/positions/orders/account     | Existing Mobile stream manager                             | existing `Perps WebSocket First *` traces                                                                                                             |
+| Homepage Perps TTC/DFD                        | Existing `useSectionPerformance`                           | existing Homepage section traces, extended with source/lifecycle/content variant                                                                      |
+| Surface initial UI and live-visible           | Planned Mobile surface instrumentation, not in this change | `recipe pending`; no current Mobile marker or measurement                                                                                             |
+| Bootstrap-relative markets/cache/live offsets | Mobile loading-session coordinator                         | slim `Perps Loading Session` only                                                                                                                     |
 
 Core-to-Mobile measurements must target an explicit trace/span handle. Ambient-span measurement writes are not accepted. The Core user-preload trace must not contain a wallet address or any other user identifier.
 
