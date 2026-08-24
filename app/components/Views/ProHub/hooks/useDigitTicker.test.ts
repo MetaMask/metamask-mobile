@@ -111,15 +111,13 @@ describe('useDigitTicker', () => {
       expect(result.current).toBe('$12');
     });
 
-    it('does not throw when unmounted before the ticker finishes', () => {
+    it('cleans up timers without throwing when unmounted mid-animation', () => {
       const { unmount } = renderHook(() => useDigitTicker('$12'));
 
-      expect(() => {
-        unmount();
-        act(() => {
-          jest.runAllTimers();
-        });
-      }).not.toThrow();
+      unmount();
+      act(() => {
+        jest.runAllTimers();
+      });
     });
   });
 });
