@@ -281,6 +281,8 @@ describe('PredictEventScreen', () => {
     expect(empty).toHaveTextContent(
       'Market history is not available for this range.',
     );
+    expect(view.getByText('40%')).toBeOnTheScreen();
+    expect(view.queryByText('+0 pts')).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.CHART),
     ).not.toBeOnTheScreen();

@@ -232,7 +232,7 @@ export const PredictMarketHistory = ({
     ? `${roundProbabilityToWhole(latestPoint.yesPrice)}%`
     : undefined;
   const changeLabel =
-    latestPoint && initialPoint
+    points.length >= 2 && latestPoint && initialPoint
       ? formatProbabilityChange(initialPoint.yesPrice, latestPoint.yesPrice)
       : undefined;
   const header = (
@@ -244,9 +244,14 @@ export const PredictMarketHistory = ({
       {latestProbability ? (
         <Box twClassName="flex-row items-baseline gap-2">
           <Text variant={TextVariant.DisplayMd}>{latestProbability}</Text>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {changeLabel}
-          </Text>
+          {changeLabel ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {changeLabel}
+            </Text>
+          ) : null}
         </Box>
       ) : null}
     </Box>
