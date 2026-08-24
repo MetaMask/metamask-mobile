@@ -18,6 +18,7 @@ import {
   SNAP_UI_DROPDOWN_SHEET_TITLE,
   snapUIJsxCountAndroidXPath,
   snapUIJsxCountIosXPath,
+  snapUIJsxIncrementIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -143,7 +144,9 @@ class TestSnaps {
   }
 
   async tapJsxIncrementButton(): Promise<void> {
-    const button = Matchers.getElementByText(/^Increment$/i);
+    const button = PlatformDetector.isIOSAppium()
+      ? Matchers.getElementByNativeXPath(snapUIJsxIncrementIosXPath())
+      : Matchers.getElementByText(/^Increment$/i);
     await Gestures.waitAndTap(
       button,
       this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),

@@ -36,7 +36,6 @@ const log = createProjectLogger('transaction-confirm');
 export const GO_BACK_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
-  TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -188,6 +187,10 @@ export function useTransactionConfirm() {
         } else {
           navigateToPerpsHome();
         }
+      } else if (type === TransactionType.predictClaim) {
+        // v7 `goBack()` from the Predict confirmation stack lands on the
+        // Predict root (market list) instead of wallet home. Pop to Home.
+        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
           navigation.navigate(

@@ -10,13 +10,13 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../../../UI/Predict/types';
-import type { PredictNavigationParamList } from '../../../../../UI/Predict/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketCardProps {
@@ -88,17 +88,20 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: market.id,
-        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+    navigation.navigate(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: market.id,
+          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+        },
       },
-    });
+      { pop: true },
+    );
   }, [navigation, market.id, transactionActiveAbTests]);
 
   // Get top outcomes to display

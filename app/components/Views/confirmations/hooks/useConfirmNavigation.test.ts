@@ -59,10 +59,14 @@ describe('useConfirmNavigation', () => {
       loader: ConfirmationLoader.CustomAmount,
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(STACK_MOCK, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      params: { loader: ConfirmationLoader.CustomAmount },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      STACK_MOCK,
+      {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: { loader: ConfirmationLoader.CustomAmount },
+      },
+      { pop: true },
+    );
   });
 
   it('navigates to confirmation without stack', () => {

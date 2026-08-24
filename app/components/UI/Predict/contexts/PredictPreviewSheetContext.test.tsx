@@ -439,10 +439,14 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: buyParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: buyParams,
+      },
+      { pop: true },
+    );
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -459,10 +463,14 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: sellParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: sellParams,
+      },
+      { pop: true },
+    );
     expect(
       screen.queryByTestId('predict-sell-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -473,10 +481,14 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: buyParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: buyParams,
+      },
+      { pop: true },
+    );
   });
 
   it('falls back to navigation for sell when used outside provider', () => {
@@ -484,10 +496,14 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: sellParams,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: sellParams,
+      },
+      { pop: true },
+    );
   });
 
   it('renders PredictBuyWithAnyToken when payWithAnyToken flag is ON', () => {

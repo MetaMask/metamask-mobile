@@ -216,13 +216,17 @@ describe('FeaturedCarouselCard', () => {
 
     fireEvent.press(getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD(0)));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: expect.objectContaining({
-        marketId: 'market-1',
-        title: 'Will BTC hit $200k?',
-      }),
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: expect.objectContaining({
+          marketId: 'market-1',
+          title: 'Will BTC hit $200k?',
+        }),
+      },
+      { pop: true },
+    );
   });
 
   it('renders sport card when market has game data', () => {

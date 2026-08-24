@@ -50,15 +50,19 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: market.id,
-        entryPoint,
-        title: market.title,
-        image: market.image,
+    navigation.navigate(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: market.id,
+          entryPoint,
+          title: market.title,
+          image: market.image,
+        },
       },
-    });
+      { pop: true },
+    );
   }, [market, entryPoint, navigation]);
 
   const handleBuy = useCallback(

@@ -104,15 +104,19 @@ describe('PredictMarketRowItem', () => {
     const touchable = getByText('Monad FDV one day after launch?');
     fireEvent.press(touchable);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
-        title: 'Monad FDV one day after launch?',
-        image: 'https://example.com/monad.jpg',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'test-market-1',
+          entryPoint: PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
+          title: 'Monad FDV one day after launch?',
+          image: 'https://example.com/monad.jpg',
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('displays outcome with highest probability', () => {
@@ -431,15 +435,19 @@ describe('PredictMarketRowItem', () => {
     const touchable = getByText('Monad FDV one day after launch?');
     fireEvent.press(touchable);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: 'test-market-1',
-        entryPoint: customEntryPoint,
-        title: 'Monad FDV one day after launch?',
-        image: 'https://example.com/monad.jpg',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'test-market-1',
+          entryPoint: customEntryPoint,
+          title: 'Monad FDV one day after launch?',
+          image: 'https://example.com/monad.jpg',
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('selects first unresolved outcome from sorted list', () => {
@@ -522,15 +530,19 @@ describe('PredictMarketRowItem', () => {
     const touchable = getByText('Monad FDV one day after launch?');
     fireEvent.press(touchable);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
-        title: 'Monad FDV one day after launch?',
-        image: 'https://example.com/monad.jpg',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'test-market-1',
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+          title: 'Monad FDV one day after launch?',
+          image: 'https://example.com/monad.jpg',
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('prioritizes context entryPoint over prop entryPoint', () => {
@@ -551,14 +563,18 @@ describe('PredictMarketRowItem', () => {
     const touchable = getByText('Monad FDV one day after launch?');
     fireEvent.press(touchable);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
-        title: 'Monad FDV one day after launch?',
-        image: 'https://example.com/monad.jpg',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'test-market-1',
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+          title: 'Monad FDV one day after launch?',
+          image: 'https://example.com/monad.jpg',
+        },
       },
-    });
+      { pop: true },
+    );
   });
 });

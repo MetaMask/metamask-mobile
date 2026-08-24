@@ -484,6 +484,24 @@ describe('useTransactionConfirm', () => {
       );
     });
 
+    it('pops to home tabs if predict claim', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.predictClaim,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, undefined, {
+        pop: true,
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
     it('goes back if predict deposit without MoneyAccount payWithOption', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

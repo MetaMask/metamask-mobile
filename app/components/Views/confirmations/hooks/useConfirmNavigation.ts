@@ -79,7 +79,9 @@ export function useConfirmNavigation() {
 
         // `stack` is a runtime string (a caller-provided parent navigator id),
         // so the route name can't be validated at compile time.
-        navigateWithDetails(navigation, [stack, { screen: route, params }]);
+        navigateWithDetails(navigation, [stack, { screen: route, params }], {
+          pop: true,
+        });
         return;
       }
 

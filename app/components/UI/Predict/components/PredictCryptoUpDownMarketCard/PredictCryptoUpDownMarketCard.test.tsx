@@ -462,16 +462,20 @@ describe('PredictCryptoUpDownMarketCard', () => {
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: 'market-live',
-        series: SERIES,
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        title: 'BTC Up or Down - 5 Minutes',
-        image: 'https://example.com/btc.png',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'market-live',
+          series: SERIES,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+          title: 'BTC Up or Down - 5 Minutes',
+          image: 'https://example.com/btc.png',
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('does not navigate when cardPressDisabled is true', () => {
@@ -491,13 +495,17 @@ describe('PredictCryptoUpDownMarketCard', () => {
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: expect.objectContaining({
-        marketId: 'market-live',
-        transactionActiveAbTests,
-      }),
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: expect.objectContaining({
+          marketId: 'market-live',
+          transactionActiveAbTests,
+        }),
+      },
+      { pop: true },
+    );
   });
 
   it('opens the buy sheet for the live market Up and Down outcomes', () => {

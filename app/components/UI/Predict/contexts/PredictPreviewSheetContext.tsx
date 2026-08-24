@@ -204,16 +204,24 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
   const fallback = useMemo(
     () => ({
       openBuySheet: (params: PredictBuyPreviewParams) => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
-        });
+        navigation.navigate(
+          Routes.PREDICT.ROOT,
+          {
+            screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+            params,
+          },
+          { pop: true },
+        );
       },
       openSellSheet: (params: PredictSellPreviewParams) => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-          params,
-        });
+        navigation.navigate(
+          Routes.PREDICT.ROOT,
+          {
+            screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+            params,
+          },
+          { pop: true },
+        );
       },
       dismissPreviewSheet: () => undefined,
       isBuySheetOpen: false,
@@ -319,10 +327,14 @@ export const PredictPreviewSheetProvider: React.FC<
         buyNonceRef.current += 1;
         setBuyNonce(buyNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
-        });
+        navigation.navigate(
+          Routes.PREDICT.ROOT,
+          {
+            screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+            params,
+          },
+          { pop: true },
+        );
       }
     },
     [bottomSheetEnabled, navigation],
@@ -335,10 +347,14 @@ export const PredictPreviewSheetProvider: React.FC<
         sellNonceRef.current += 1;
         setSellNonce(sellNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-          params,
-        });
+        navigation.navigate(
+          Routes.PREDICT.ROOT,
+          {
+            screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+            params,
+          },
+          { pop: true },
+        );
       }
     },
     [bottomSheetEnabled, navigation],

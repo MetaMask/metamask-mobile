@@ -441,13 +441,17 @@ describe('PredictionsSection', () => {
 
     fireEvent.press(screen.getByText('Predictions'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('navigates with homepage_positions entry_point when positions section title is pressed', () => {
@@ -469,12 +473,16 @@ describe('PredictionsSection', () => {
 
     fireEvent.press(screen.getByText('Predictions'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        },
       },
-    });
+      { pop: true },
+    );
   });
 
   it('returns null when predict is disabled', () => {
@@ -710,16 +718,20 @@ describe('PredictionsSection', () => {
 
       fireEvent.press(screen.getByText('EPL: 2027 Champion'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: '659518',
-          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-          title: 'EPL: 2027 Champion',
-          image: undefined,
-          transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: '659518',
+            entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+            title: 'EPL: 2027 Champion',
+            image: undefined,
+            transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+          },
         },
-      });
+        { pop: true },
+      );
     });
 
     it('tracks the EPL slot click as a sports CTA', async () => {
@@ -904,13 +916,17 @@ describe('PredictionsSection', () => {
 
       fireEvent.press(screen.getByText('Will ETH reach $5000?'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: 'market-1',
-          transactionActiveAbTests: predictEmptyStateControlActiveAbTests,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: 'market-1',
+            transactionActiveAbTests: predictEmptyStateControlActiveAbTests,
+          },
         },
-      });
+        { pop: true },
+      );
     });
   });
 

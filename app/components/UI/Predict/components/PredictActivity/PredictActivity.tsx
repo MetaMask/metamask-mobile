@@ -69,12 +69,16 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
         .build(),
     );
 
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.ACTIVITY_DETAIL,
-      params: {
-        activity: item,
+    navigation.navigate(
+      Routes.PREDICT.MODALS.ROOT,
+      {
+        screen: Routes.PREDICT.ACTIVITY_DETAIL,
+        params: {
+          activity: item,
+        },
       },
-    });
+      { pop: true },
+    );
   };
 
   return (

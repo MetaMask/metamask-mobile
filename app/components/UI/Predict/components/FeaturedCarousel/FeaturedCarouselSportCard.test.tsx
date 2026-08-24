@@ -624,13 +624,17 @@ describe('FeaturedCarouselSportCard', () => {
 
     fireEvent.press(getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD(0)));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: expect.objectContaining({
-        marketId: 'market-sport-1',
-        title: 'Lakers vs Celtics',
-      }),
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: expect.objectContaining({
+          marketId: 'market-sport-1',
+          title: 'Lakers vs Celtics',
+        }),
+      },
+      { pop: true },
+    );
   });
 
   it('calls buy handler on percentage button press', () => {

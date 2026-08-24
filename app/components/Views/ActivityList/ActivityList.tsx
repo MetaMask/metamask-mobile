@@ -961,10 +961,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         }
 
         if (raw.type === 'predictActivity') {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.ACTIVITY_DETAIL,
-            params: { activity: predictActivityToItem(raw.data) },
-          });
+          // `{ pop: true }` updates an already-mounted Predict modal stack
+          // instead of pushing a stale/empty activity-detail screen (v7).
+          navigation.navigate(
+            Routes.PREDICT.MODALS.ROOT,
+            {
+              screen: Routes.PREDICT.ACTIVITY_DETAIL,
+              params: { activity: predictActivityToItem(raw.data) },
+            },
+            { pop: true },
+          );
           return;
         }
 
