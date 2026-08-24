@@ -254,6 +254,8 @@ describe('createMobileInfrastructure', () => {
           data: {
             provider: 'hyperliquid',
             perps_session_id: 'session-id',
+            account_generation: 1,
+            context_generation: 1,
           },
         });
       },
