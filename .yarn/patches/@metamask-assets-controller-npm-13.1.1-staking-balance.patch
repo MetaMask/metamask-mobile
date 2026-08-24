@@ -1,0 +1,132 @@
+diff --git a/dist/AssetsController.cjs b/dist/AssetsController.cjs
+index 6ed3087..8273435 100644
+--- a/dist/AssetsController.cjs
++++ b/dist/AssetsController.cjs
+@@ -24,6 +24,7 @@ const bignumber_js_1 = __importDefault(require("bignumber.js"));
+ const lodash_1 = require("lodash");
+ const AccountActivityDataSource_js_1 = require("./data-sources/AccountActivityDataSource.cjs");
+ const AccountsApiDataSource_js_1 = require("./data-sources/AccountsApiDataSource.cjs");
++const index_js_2 = require("./data-sources/evm-rpc-services/index.cjs");
+ const assets_js_1 = require("./data-sources/evm-rpc-services/utils/assets.cjs");
+ const PriceDataSource_js_1 = require("./data-sources/PriceDataSource.cjs");
+ const RpcDataSource_js_1 = require("./data-sources/RpcDataSource.cjs");
+@@ -237,6 +238,15 @@ function mergeAccountBalances(previousBalances, accountBalances, customAssetIds,
+             next[customId] = prev ?? { amount: '0' };
+         }
+     }
++    // Staked vault balances are owned by StakedBalanceDataSource. When an
++    // Accounts API (or other) chain-slice replace omits them, keep the prior
++    // on-chain staked amount instead of clearing it to missing/0.
++    for (const [assetId, balance] of Object.entries(previousBalances)) {
++        if ((0, index_js_2.isStakingContractAssetId)(assetId) &&
++            !Object.prototype.hasOwnProperty.call(next, assetId)) {
++            next[assetId] = balance;
++        }
++    }
+     return next;
+ }
+ // ============================================================================
+diff --git a/dist/AssetsController.mjs b/dist/AssetsController.mjs
+index 4c24a79..fe1e3d1 100644
+--- a/dist/AssetsController.mjs
++++ b/dist/AssetsController.mjs
+@@ -19,6 +19,7 @@ import $lodash from "lodash";
+ const { isEqual } = $lodash;
+ import { AccountActivityDataSource } from "./data-sources/AccountActivityDataSource.mjs";
+ import { AccountsApiDataSource } from "./data-sources/AccountsApiDataSource.mjs";
++import { isStakingContractAssetId } from "./data-sources/evm-rpc-services/index.mjs";
+ import { shouldSkipNativeForCaipChainId } from "./data-sources/evm-rpc-services/utils/assets.mjs";
+ import { isPriceableAsset, PriceDataSource } from "./data-sources/PriceDataSource.mjs";
+ import { RpcDataSource } from "./data-sources/RpcDataSource.mjs";
+@@ -231,6 +232,15 @@ function mergeAccountBalances(previousBalances, accountBalances, customAssetIds,
+             next[customId] = prev ?? { amount: '0' };
+         }
+     }
++    // Staked vault balances are owned by StakedBalanceDataSource. When an
++    // Accounts API (or other) chain-slice replace omits them, keep the prior
++    // on-chain staked amount instead of clearing it to missing/0.
++    for (const [assetId, balance] of Object.entries(previousBalances)) {
++        if (isStakingContractAssetId(assetId) &&
++            !Object.prototype.hasOwnProperty.call(next, assetId)) {
++            next[assetId] = balance;
++        }
++    }
+     return next;
+ }
+ // ============================================================================
+diff --git a/dist/data-sources/AccountsApiDataSource.cjs b/dist/data-sources/AccountsApiDataSource.cjs
+index b22301f..bf8742c 100644
+--- a/dist/data-sources/AccountsApiDataSource.cjs
++++ b/dist/data-sources/AccountsApiDataSource.cjs
+@@ -19,6 +19,7 @@ const logger_js_1 = require("../logger.cjs");
+ const index_js_1 = require("../utils/index.cjs");
+ const snaps_assets_migration_js_1 = require("../utils/snaps-assets-migration.cjs");
+ const AbstractDataSource_js_1 = require("./AbstractDataSource.cjs");
++const index_js_2 = require("./evm-rpc-services/index.cjs");
+ // ============================================================================
+ // CONSTANTS
+ // ============================================================================
+@@ -520,6 +521,12 @@ async function _AccountsApiDataSource_fetchV6Balances(accountIds, fetchOptions,
+         }
+         // Normalize asset ID (checksum EVM addresses for ERC20 tokens)
+         const normalizedAssetId = (0, index_js_1.normalizeAssetId)(item.assetId);
++        // Staked balances are owned by StakedBalanceDataSource. Accounts API may
++        // return the vault share token as a normal ERC-20 (often 0 or stale),
++        // which would overwrite or wipe the on-chain staked amount on merge.
++        if ((0, index_js_2.isStakingContractAssetId)(normalizedAssetId)) {
++            continue;
++        }
+         // Store balance as returned by API
+         assetsBalance[accountId][normalizedAssetId] = {
+             amount: item.balance,
+@@ -553,6 +560,12 @@ async function _AccountsApiDataSource_fetchV6Balances(accountIds, fetchOptions,
+             }
+             // Normalize asset ID (checksum EVM addresses for ERC20 tokens)
+             const normalizedAssetId = (0, index_js_1.normalizeAssetId)(item.assetId);
++            // Staked balances are owned by StakedBalanceDataSource. Accounts API may
++            // return the vault share token as a normal ERC-20 (often 0 or stale),
++            // which would overwrite or wipe the on-chain staked amount on merge.
++            if ((0, index_js_2.isStakingContractAssetId)(normalizedAssetId)) {
++                continue;
++            }
+             // Store balance as returned by API
+             assetsBalance[accountId][normalizedAssetId] = {
+                 amount: item.balance,
+diff --git a/dist/data-sources/AccountsApiDataSource.mjs b/dist/data-sources/AccountsApiDataSource.mjs
+index a38bd9c..fe209d5 100644
+--- a/dist/data-sources/AccountsApiDataSource.mjs
++++ b/dist/data-sources/AccountsApiDataSource.mjs
+@@ -16,6 +16,7 @@ import { projectLogger, createModuleLogger } from "../logger.mjs";
+ import { fetchWithTimeout, normalizeAssetId } from "../utils/index.mjs";
+ import { getMigrationStages, shouldSupportChain } from "../utils/snaps-assets-migration.mjs";
+ import { AbstractDataSource } from "./AbstractDataSource.mjs";
++import { isStakingContractAssetId } from "./evm-rpc-services/index.mjs";
+ // ============================================================================
+ // CONSTANTS
+ // ============================================================================
+@@ -515,6 +516,12 @@ async function _AccountsApiDataSource_fetchV6Balances(accountIds, fetchOptions,
+         }
+         // Normalize asset ID (checksum EVM addresses for ERC20 tokens)
+         const normalizedAssetId = normalizeAssetId(item.assetId);
++        // Staked balances are owned by StakedBalanceDataSource. Accounts API may
++        // return the vault share token as a normal ERC-20 (often 0 or stale),
++        // which would overwrite or wipe the on-chain staked amount on merge.
++        if (isStakingContractAssetId(normalizedAssetId)) {
++            continue;
++        }
+         // Store balance as returned by API
+         assetsBalance[accountId][normalizedAssetId] = {
+             amount: item.balance,
+@@ -548,6 +555,12 @@ async function _AccountsApiDataSource_fetchV6Balances(accountIds, fetchOptions,
+             }
+             // Normalize asset ID (checksum EVM addresses for ERC20 tokens)
+             const normalizedAssetId = normalizeAssetId(item.assetId);
++            // Staked balances are owned by StakedBalanceDataSource. Accounts API may
++            // return the vault share token as a normal ERC-20 (often 0 or stale),
++            // which would overwrite or wipe the on-chain staked amount on merge.
++            if (isStakingContractAssetId(normalizedAssetId)) {
++                continue;
++            }
+             // Store balance as returned by API
+             assetsBalance[accountId][normalizedAssetId] = {
+                 amount: item.balance,

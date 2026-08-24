@@ -1,10 +1,117 @@
+/* eslint-disable import-x/no-commonjs -- ESLint config must use CommonJS */
+
+/** Dual-framework import restrictions. Error everywhere; no allowlist. */
+const dualFrameworkRestrictedImportOptions = {
+  patterns: [
+    {
+      group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+      message:
+        'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+    },
+    {
+      group: [
+        '**/FrameworkDetector',
+        '**/FrameworkDetector.ts',
+        '**/FrameworkDetector.js',
+      ],
+      message:
+        'Do not import FrameworkDetector in POs/specs. Use Gestures/Assertions/Matchers (Appium-only).',
+    },
+    {
+      group: [
+        '**/EncapsulatedElement',
+        '**/EncapsulatedElement.ts',
+        '**/EncapsulatedElement.js',
+      ],
+      importNames: [
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+      ],
+      message:
+        'Do not use encapsulated()/asPlaywrightElement/asDetoxElement. Prefer Matchers + Gestures/Assertions.',
+    },
+    {
+      group: [
+        '**/encapsulatedAction',
+        '**/encapsulatedAction.ts',
+        '**/encapsulatedAction.js',
+      ],
+      message:
+        'Do not import encapsulatedAction. Prefer Gestures/Assertions from tests/framework.',
+    },
+    {
+      group: [
+        '**/PlaywrightMatchers',
+        '**/PlaywrightMatchers.ts',
+        '**/PlaywrightGestures',
+        '**/PlaywrightGestures.ts',
+        '**/PlaywrightAssertions',
+        '**/PlaywrightAssertions.ts',
+        '**/PlaywrightWebMatchers',
+        '**/PlaywrightWebMatchers.ts',
+        '**/PlaywrightAdapter',
+        '**/PlaywrightAdapter.ts',
+      ],
+      message:
+        'Do not import Playwright* dual-framework APIs in POs/specs. Use Gestures/Assertions/Matchers.',
+    },
+    {
+      // Only bare `from '.../framework'` / index re-exports (not framework/EncapsulatedElement etc.)
+      group: [
+        '**/framework/index',
+        '**/framework/index.ts',
+        '**/framework/index.js',
+      ],
+      importNames: [
+        'UnifiedGestures',
+        'FrameworkDetector',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+    // Bare package-style imports that resolve to tests/framework/index
+    {
+      group: [
+        '../../framework',
+        '../framework',
+        '../../../framework',
+        '../../../../framework',
+        '../../../../../framework',
+      ],
+      importNames: [
+        'UnifiedGestures',
+        'FrameworkDetector',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+  ],
+};
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   overrides: [
     {
       files: ['**/*.{js,ts}'],
       rules: {
-        // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
       },
     },
@@ -75,66 +182,22 @@ module.exports = {
       },
     },
     {
-      files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
+      files: [
+        '**/page-objects/**/*.{js,ts}',
+        '**/flows/**/*.{js,ts}',
+        '**/smoke-appium/**/*.{js,ts}',
+      ],
       excludedFiles: [
         '**/page-objects/**/*.test.ts',
         '**/page-objects/**/*.test.js',
         '**/flows/**/*.test.ts',
         '**/flows/**/*.test.js',
+        '**/smoke-appium/**/*.test.ts',
       ],
       rules: {
         'no-restricted-imports': [
-          'warn',
-          {
-            patterns: [
-              {
-                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-              {
-                group: [
-                  '**/framework',
-                  '**/framework/index',
-                  '**/framework/index.ts',
-                  '**/framework/index.js',
-                ],
-                importNames: ['UnifiedGestures'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-            ],
-          },
-        ],
-      },
-    },
-    // MMQA-2174: ban UnifiedGestures in smoke specs (error)
-    {
-      files: ['**/smoke-appium/**/*.{js,ts}', '**/smoke/**/*.{js,ts}'],
-      excludedFiles: ['**/smoke-appium/**/*.test.ts', '**/smoke/**/*.test.ts'],
-      rules: {
-        'no-restricted-imports': [
           'error',
-          {
-            patterns: [
-              {
-                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-              {
-                group: [
-                  '**/framework',
-                  '**/framework/index',
-                  '**/framework/index.ts',
-                  '**/framework/index.js',
-                ],
-                importNames: ['UnifiedGestures'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-            ],
-          },
+          dualFrameworkRestrictedImportOptions,
         ],
       },
     },

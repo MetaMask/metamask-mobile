@@ -215,6 +215,25 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     );
   });
 
+  it('holds back the keyboard and the results subtree until the screen transition settles', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    const searchInput = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+
+    expect(searchInput.props.autoFocus).toBe(false);
+    expect(queryByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL)).toBeNull();
+
+    // Once settled, the input takes focus and the results mount.
+    await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
   it('"All" pill is selected by default and pill row is present on mount', async () => {
     const { getByTestId } = renderExploreSearchScreenWithRoutes();
 

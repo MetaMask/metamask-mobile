@@ -187,16 +187,21 @@ class PerpsConnectionManagerClass {
           !hasPerpsNetworkChanged &&
           !hasHip3Changed;
 
-        // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
+        // User-scoped data must reset on every account switch.
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
-        streamManager.prices.clearCache();
-        streamManager.marketData.clearCache(accountOnly);
-        streamManager.oiCaps.clearCache();
         streamManager.fills.clearCache();
-        streamManager.topOfBook.clearCache();
-        streamManager.candles.clearCache();
+
+        // Global market state is account-independent. Preserve it for an
+        // account-only switch; provider/network/DEX changes invalidate it.
+        if (!accountOnly) {
+          streamManager.prices.clearCache();
+          streamManager.marketData.clearCache();
+          streamManager.oiCaps.clearCache();
+          streamManager.topOfBook.clearCache();
+          streamManager.candles.clearCache();
+        }
 
         // Reset throttle so the next data arrival persists immediately
         streamManager.resetDiskCacheThrottles();
@@ -1134,15 +1139,17 @@ class PerpsConnectionManagerClass {
       const skipMarketNotify = this.pendingSkipMarketNotify;
       this.pendingSkipMarketNotify = false;
 
-      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
-      streamManager.marketData.clearCache(skipMarketNotify);
-      streamManager.oiCaps.clearCache();
       streamManager.fills.clearCache();
-      streamManager.topOfBook.clearCache();
-      streamManager.candles.clearCache();
+      if (!skipMarketNotify) {
+        streamManager.prices.clearCache();
+        streamManager.marketData.clearCache();
+        streamManager.oiCaps.clearCache();
+        streamManager.topOfBook.clearCache();
+        streamManager.candles.clearCache();
+      }
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
@@ -1246,6 +1253,10 @@ class PerpsConnectionManagerClass {
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
+
+      // Candle subscriptions are screen-driven and are not part of the global
+      // preload. Restore mounted consumers only after the new context is ready.
+      streamManager.candles.reconnect();
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();

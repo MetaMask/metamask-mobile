@@ -14,6 +14,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
@@ -35,6 +36,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   tronNetworks: ProcessedNetwork[];
   ///: END:ONLY_INCLUDE_IF
+  stellarNetworks: ProcessedNetwork[];
   selectedEvmAccount: InternalAccount | null;
   selectedSolanaAccount: InternalAccount | null;
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -43,6 +45,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectedTronAccount: InternalAccount | null;
   ///: END:ONLY_INCLUDE_IF
+  selectedStellarAccount: InternalAccount | null;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
@@ -52,6 +55,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   areAllTronNetworksSelected: boolean;
   ///: END:ONLY_INCLUDE_IF
+  areAllStellarNetworksSelected: boolean;
 }
 
 /**
@@ -82,6 +86,9 @@ export const useNetworksToUse = ({
   const selectedTronAccount =
     useSelector(selectSelectedInternalAccountByScope)(TrxScope.Mainnet) || null;
   ///: END:ONLY_INCLUDE_IF
+
+  const selectedStellarAccount =
+    useSelector(selectSelectedInternalAccountByScope)(XlmScope.Pubnet) || null;
 
   const {
     networks: evmNetworks = [],
@@ -119,6 +126,14 @@ export const useNetworksToUse = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
+  const {
+    networks: stellarNetworks = [],
+    areAllNetworksSelected: areAllStellarNetworksSelected = false,
+  } = useNetworksByCustomNamespace({
+    networkType,
+    namespace: KnownCaipNamespace.Stellar,
+  });
+
   // Helper functions to make network selection logic more readable
   const hasSelectedAccounts = useMemo(
     () => ({
@@ -130,6 +145,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       tron: !!selectedTronAccount,
       ///: END:ONLY_INCLUDE_IF
+      stellar: !!selectedStellarAccount,
     }),
     [
       selectedEvmAccount,
@@ -140,6 +156,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       selectedTronAccount,
       ///: END:ONLY_INCLUDE_IF
+      selectedStellarAccount,
     ],
   );
 
@@ -161,6 +178,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       hasSelectedAccounts.tron,
       ///: END:ONLY_INCLUDE_IF
+      hasSelectedAccounts.stellar,
     ].some(Boolean);
 
     if (anySelectedAccount) {
@@ -173,6 +191,7 @@ export const useNetworksToUse = ({
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         hasSelectedAccounts.tron ? tronNetworks : [],
         ///: END:ONLY_INCLUDE_IF
+        hasSelectedAccounts.stellar ? stellarNetworks : [],
       ]);
     }
 
@@ -187,6 +206,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     hasSelectedAccounts.tron,
     ///: END:ONLY_INCLUDE_IF
+    hasSelectedAccounts.stellar,
     networks,
     combineAvailableNetworks,
     evmNetworks,
@@ -197,6 +217,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
     ///: END:ONLY_INCLUDE_IF
+    stellarNetworks,
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
@@ -223,6 +244,10 @@ export const useNetworksToUse = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
+    if (hasSelectedAccounts.stellar) {
+      accountSelectionFlags.push(areAllStellarNetworksSelected);
+    }
+
     // If any accounts are selected, all their networks must be selected
     // If no accounts are selected, fallback to original areAllNetworksSelected
     return accountSelectionFlags.length > 0
@@ -239,6 +264,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
     ///: END:ONLY_INCLUDE_IF
+    areAllStellarNetworksSelected,
   ]);
 
   return {
@@ -251,6 +277,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
     ///: END:ONLY_INCLUDE_IF
+    stellarNetworks,
     selectedEvmAccount,
     selectedSolanaAccount,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -259,6 +286,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     selectedTronAccount,
     ///: END:ONLY_INCLUDE_IF
+    selectedStellarAccount,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
@@ -268,5 +296,6 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
     ///: END:ONLY_INCLUDE_IF
+    areAllStellarNetworksSelected,
   };
 };

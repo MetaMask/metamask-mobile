@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -26,17 +25,17 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
-import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface MoneyMetaMaskCardProps {
@@ -216,9 +215,8 @@ const LinkContent = ({
           twClassName="gap-4"
           testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
         >
-          <Image
-            source={showMetalCard ? mmCardMetal : mmCardRegular}
-            style={styles.linkCardImage}
+          <MoneyCardTiltAnimation
+            isMetalCard={showMetalCard}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           <Box twClassName="gap-2 flex-1 justify-center">
@@ -319,20 +317,23 @@ const MoneyMetaMaskCard = ({
   analyticsReady = true,
 }: MoneyMetaMaskCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
   const cardType = showMetalCard ? 'metal' : 'virtual';
 
   const buildAnalyticsProperties = useCallback(
-    (action?: CardActions) => ({
-      screen: analyticsScreen,
-      entrypoint: analyticsEntryPoint,
-      mode,
-      card_type: cardType,
-      flow: analyticsFlow,
-      card_state: analyticsCardState,
-      action,
-    }),
+    (action?: CardActions) =>
+      withCardProvider(activeProviderId, {
+        screen: analyticsScreen,
+        entrypoint: analyticsEntryPoint,
+        mode,
+        card_type: cardType,
+        flow: analyticsFlow,
+        card_state: analyticsCardState,
+        action,
+      }),
     [
+      activeProviderId,
       analyticsScreen,
       analyticsEntryPoint,
       mode,

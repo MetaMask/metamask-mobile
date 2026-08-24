@@ -9,6 +9,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -61,6 +62,7 @@ import {
   parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -137,6 +139,7 @@ jest.mock('./utils', () => {
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
     parsePolymarketPositions: jest.fn(),
+    previewMaxBuyOrder: jest.fn(),
     previewOrder: jest.fn(),
   };
 });
@@ -252,6 +255,7 @@ const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
+const mockPreviewMaxBuyOrder = jest.mocked(previewMaxBuyOrder);
 const mockResolveDepositWalletAddress = jest.mocked(
   resolveDepositWalletAddress,
 );
@@ -380,6 +384,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
     highlights: [],
     minimumVersion: '7.64.0',
   },
+  hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
@@ -424,115 +429,22 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('adds World Cup child markets to the original feed event before parsing', async () => {
+    it('does not fetch child events when listing markets', async () => {
       const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
       });
-      const moneylineMarket = {
-        id: 'moneyline-market',
-        sportsMarketType: 'moneyline',
-      };
-      const teamToAdvanceMarket = {
-        id: 'team-to-advance-market',
-        sportsMarketType: 'soccer_team_to_advance',
-      };
       const parentEvent = {
         id: 'parent-event',
-        title: 'Feed title to preserve',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [moneylineMarket],
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
       };
-      const fetchedParentEvent = {
-        ...parentEvent,
-        title: 'Fetched parent title should not replace feed title',
-        markets: [],
-      };
-      const childEvent = {
-        id: 'child-event',
-        parentEventId: parentEvent.id,
-        markets: [teamToAdvanceMarket],
-      };
-      const markets = [
-        {
-          id: 'market-1',
-          outcomes: [{ id: 'team-to-advance-outcome' }],
-        },
-      ];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
 
       mockFetchEventsFromPolymarketApi.mockResolvedValue({
         events: [parentEvent],
-        category: 'trending',
-        nextCursor: null,
-      } as never);
-      mockFetchChildEventsFromGammaApi.mockResolvedValue([
-        fetchedParentEvent,
-        childEvent,
-      ] as never);
-      mockParsePolymarketEvents.mockReturnValue(markets as never);
-
-      await expect(
-        provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets,
-        nextCursor: null,
-      });
-      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
-        parentEventId: parentEvent.id,
-      });
-      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            id: parentEvent.id,
-            title: parentEvent.title,
-            markets: [moneylineMarket, teamToAdvanceMarket],
-          }),
-        ],
-        expect.any(Object),
-      );
-    });
-
-    it('does not resolve World Cup child feed events into duplicate parent cards', async () => {
-      const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
-      });
-      const childFeedEvent = {
-        id: 'child-event',
-        parentEventId: 'parent-event',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [
-          {
-            id: 'quarterfinals-market',
-            sportsMarketType: 'soccer_team_to_reach_quarterfinals',
-          },
-        ],
-      };
-      const markets = [
-        {
-          id: 'child-market',
-          outcomes: [{ id: 'quarterfinals-outcome' }],
-        },
-      ];
-
-      mockFetchEventsFromPolymarketApi.mockResolvedValue({
-        events: [childFeedEvent],
         category: 'trending',
         nextCursor: null,
       } as never);
@@ -546,9 +458,60 @@ describe('PolymarketProvider', () => {
       });
       expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [childFeedEvent],
+        [parentEvent],
         expect.any(Object),
       );
+    });
+
+    it('merges child events into parent market details for extended sports leagues', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const parentEvent = {
+        id: '567958',
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'nyk', league: 'nba' },
+          { abbreviation: 'sas', league: 'nba' },
+        ],
+        markets: [
+          { id: 'moneyline', active: true, sportsMarketType: 'moneyline' },
+        ],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        markets: [{ id: 'props', active: true, sportsMarketType: 'points' }],
+      };
+      const parsedMarket = { id: parentEvent.id, outcomes: [] };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        parentEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockResolvedValueOnce([
+        parentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: parentEvent.id,
+      });
+
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(result).toEqual({
+        ...parsedMarket,
+        childMarketIds: [parentEvent.id, childEvent.id],
+      });
     });
 
     it('keeps directly opened child events with ungroupable active markets', async () => {
@@ -650,16 +613,14 @@ describe('PolymarketProvider', () => {
       expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
         order: 'liquidity',
       });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
     });
 
-    it('returns an empty list page when listing markets throws', async () => {
+    it('propagates list market failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchMarketsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
-      await expect(provider.listMarkets({})).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      await expect(provider.listMarkets({})).rejects.toThrow('Failed');
     });
 
     it('lists filter options from related tags, defaulting the slug to "all"', async () => {
@@ -759,16 +720,13 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('returns an empty feed page when fetching markets throws', async () => {
+    it('propagates feed failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchEventsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
       await expect(
         provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      ).rejects.toThrow('Failed');
     });
 
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
@@ -824,6 +782,19 @@ describe('PolymarketProvider', () => {
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
       expect(url).toContain('series_id=series-1');
+    });
+
+    it('propagates market series failures to the query error state', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        provider.getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        }),
+      ).rejects.toThrow('Network error');
     });
   });
 
@@ -892,6 +863,49 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getCryptoTargetPrice', () => {
+    it('requests the matching TWAP price for TWAP markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64544.60401529397 }),
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 60,
+      });
+
+      expect(result).toBe(64544.60401529397);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapEnabled=true');
+      expect(url).toContain('twapLookbackSeconds=60');
+    });
+
+    it('omits TWAP parameters for spot-price markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64551.57 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).not.toContain('twapEnabled');
+      expect(url).not.toContain('twapLookbackSeconds');
+    });
+  });
+
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -933,6 +947,7 @@ describe('PolymarketProvider', () => {
       },
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
+    mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
     mockBuildTradeAllowancesTx.mockResolvedValue({
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
@@ -1050,6 +1065,7 @@ describe('PolymarketProvider', () => {
     });
     expect(global.fetch).toHaveBeenCalledWith(
       `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&limit=1`,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(mockResolveDepositWalletAddress).not.toHaveBeenCalled();
   });
@@ -1233,6 +1249,7 @@ describe('PolymarketProvider', () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: expect.any(AbortSignal),
         },
       );
       expect(mockParsePolymarketActivity).toHaveBeenCalledWith(rawActivity);
@@ -1301,6 +1318,31 @@ describe('PolymarketProvider', () => {
     expect(preview.feeRateBps).toBe('0');
     expect(mockPreviewOrder).toHaveBeenCalledWith(
       expect.objectContaining({ feeCollection: DEFAULT_FEE_COLLECTION_FLAG }),
+    );
+  });
+
+  it('previews the maximum fully fillable buy through the provider', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      availableBalance: 100,
+      signer,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        maxAmountSpent: basePreview.maxAmountSpent,
+        feeRateBps: '0',
+      }),
+    );
+    expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableBalance: 100,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+      }),
     );
   });
 
@@ -2163,7 +2205,10 @@ describe('PolymarketProvider', () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(result).toEqual([
       { timestamp: 1000, value: 10 },
@@ -2235,17 +2280,26 @@ describe('PolymarketProvider', () => {
     expect(global.fetch).toHaveBeenNthCalledWith(
       1,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(global.fetch).toHaveBeenNthCalledWith(
       2,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(global.fetch).toHaveBeenNthCalledWith(
       3,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 

@@ -636,6 +636,65 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenCalledWith('250');
   });
 
+  it('preserves explicit maximum-slider intent separately from the floored amount', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ maxPossibleAmount: 1000.75 })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000.75);
+    });
+
+    expect(result.current.sizeInput.value).toBe('1000');
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(500);
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('clears maximum-slider intent when an interrupted drag previews a smaller amount', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+      result.current.sizeSlider.onDragCancel();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
+  it('clears maximum-slider intent when Place Order flushes a smaller preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+    });
+
+    act(() => {
+      result.current.commitPendingSliderPreview();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
+  it('clears maximum-slider intent after a manual size edit', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeInput.onChange('250');
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
   it('commits the terminal drag value instead of an earlier preview', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
     act(() => {
@@ -681,6 +740,38 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.value).toBe('10');
     expect(result.current.effectiveUsdAmount).toBe('10');
     expect(result.current.sizeSlider.value).toBe(10);
+  });
+
+  it('clears max intent when focus cancels an interrupted max preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
+  it('preserves max intent after a committed max selection', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
   });
 
   it('preserves an interrupted preview when a keyboard edit is rejected', () => {
@@ -762,5 +853,100 @@ describe('usePerpsProSizeInput', () => {
     expect(didCommit).toBe(false);
     expect(mockSetAmount).not.toHaveBeenCalled();
     expect(result.current.commitPendingSliderPreview()).toBe(false);
+  });
+
+  it('keeps the size field empty while the slider still moves', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ keepSizeEmpty: true })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.effectiveUsdAmount).toBe('0');
+    expect(result.current.sizeSlider.value).toBe(250);
+    expect(result.current.sizeSlider.maximumValue).toBe(1000);
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('does not commit slider drags while the size field is kept empty', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ keepSizeEmpty: true })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+      result.current.sizeSlider.onDragEnd(250);
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.sizeSlider.value).toBe(250);
+    expect(mockSetAmount).not.toHaveBeenCalled();
+    expect(result.current.commitPendingSliderPreview()).toBe(false);
+  });
+
+  it('reverts visual-only slider movement on drag cancel while size stays empty', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ keepSizeEmpty: true })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+      result.current.sizeSlider.onDragCancel();
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.sizeSlider.value).toBe(0);
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('ignores typed size while the size field is kept empty', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ keepSizeEmpty: true })),
+    );
+
+    act(() => {
+      result.current.sizeInput.onChange('50');
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('does not commit a stale draft on blur after size is kept empty', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '100' }) },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+    rerender(createParams({ usdAmount: '0', keepSizeEmpty: true }));
+
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('does not commit on denomination toggle while the size field is kept empty', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', keepSizeEmpty: true }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+    expect(mockSetAmount).not.toHaveBeenCalled();
   });
 });

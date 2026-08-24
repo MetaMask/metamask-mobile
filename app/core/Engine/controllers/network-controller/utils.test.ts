@@ -1,25 +1,16 @@
 // Jest tests run in Node, so this is okay.
 // eslint-disable-next-line import-x/no-nodejs-modules
 import assert from 'assert';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
 import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 import {
   PRODUCTION_LIKE_ENVIRONMENTS,
   getIsQuicknodeEndpointUrl,
   getIsMetaMaskInfuraEndpointUrl,
-  shouldCreateRpcServiceEvents,
+  getRpcServiceEventsSampleRate,
   KNOWN_CUSTOM_ENDPOINTS,
   isPublicEndpointUrl,
 } from './utils';
-
-jest.mock('@metamask/remote-feature-flag-controller', () => ({
-  ...jest.requireActual('@metamask/remote-feature-flag-controller'),
-  // This is the name of the property that turns this into an ES module.
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  __esModule: true,
-  generateDeterministicRandomNumber: jest.fn(),
-}));
 
 jest.mock('../../../../util/networks/customNetworks', () => {
   // The network constants file relies on INFURA_PROJECT_ID already being set.
@@ -33,14 +24,7 @@ jest.mock('../../../../util/networks/customNetworks', () => {
   return mod;
 });
 
-const generateDeterministicRandomNumberMock = jest.mocked(
-  generateDeterministicRandomNumber,
-);
-
 const MOCK_METAMASK_INFURA_PROJECT_ID = 'metamask-infura-project-id';
-
-const MOCK_METAMETRICS_ID =
-  '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420';
 
 describe('getIsMetaMaskInfuraEndpointUrl', () => {
   it('returns true if the URL has an Infura hostname with some subdomain whose path starts with the MetaMask API key', () => {
@@ -101,235 +85,33 @@ describe('getIsQuicknodeEndpointUrl', () => {
   });
 });
 
-describe('shouldCreateRpcServiceEvents', () => {
-  describe('if not given an error', () => {
-    const error = undefined;
+describe('getRpcServiceEventsSampleRate', () => {
+  describe.each(PRODUCTION_LIKE_ENVIRONMENTS)(
+    'if the environment is %s',
+    (environment: string) => {
+      it('returns the 1% sample rate', async () => {
+        await withChangesToEnvironmentVariables(() => {
+          process.env.METAMASK_ENVIRONMENT = environment;
 
-    describe('if given a MetaMetrics ID', () => {
-      describe.each(PRODUCTION_LIKE_ENVIRONMENTS)(
-        'if the environment is %s',
-        (environment: string) => {
-          describe('if the user is in the MetaMetrics sample', () => {
-            const sampleUserRanking = 0.009999;
-
-            it('returns true', async () => {
-              await withChangesToEnvironmentVariables(() => {
-                process.env.METAMASK_ENVIRONMENT = environment;
-                generateDeterministicRandomNumberMock.mockReturnValue(
-                  sampleUserRanking,
-                );
-
-                expect(
-                  shouldCreateRpcServiceEvents({
-                    error,
-                    metaMetricsId: MOCK_METAMETRICS_ID,
-                  }),
-                ).toBe(true);
-              });
-            });
-          });
-
-          describe('if the user is not in the MetaMetrics sample', () => {
-            const sampleUserRanking = 0.2;
-
-            it('returns false', async () => {
-              await withChangesToEnvironmentVariables(() => {
-                process.env.METAMASK_ENVIRONMENT = environment;
-                generateDeterministicRandomNumberMock.mockReturnValue(
-                  sampleUserRanking,
-                );
-
-                expect(
-                  shouldCreateRpcServiceEvents({
-                    error,
-                    metaMetricsId: MOCK_METAMETRICS_ID,
-                  }),
-                ).toBe(false);
-              });
-            });
-          });
-        },
-      );
-
-      describe('if the environment is non-production', () => {
-        const environment = 'development';
-
-        it('returns true', async () => {
-          await withChangesToEnvironmentVariables(() => {
-            process.env.METAMASK_ENVIRONMENT = environment;
-
-            expect(
-              shouldCreateRpcServiceEvents({
-                error,
-                metaMetricsId: MOCK_METAMETRICS_ID,
-              }),
-            ).toBe(true);
-          });
+          expect(getRpcServiceEventsSampleRate()).toBe(0.01);
         });
       });
+    },
+  );
 
-      describe('if the environment is not set', () => {
-        it('returns false', async () => {
-          await withChangesToEnvironmentVariables(() => {
-            delete process.env.METAMASK_ENVIRONMENT;
+  it('returns 1 when the environment is non-production', async () => {
+    await withChangesToEnvironmentVariables(() => {
+      process.env.METAMASK_ENVIRONMENT = 'development';
 
-            expect(
-              shouldCreateRpcServiceEvents({
-                error,
-                metaMetricsId: MOCK_METAMETRICS_ID,
-              }),
-            ).toBe(false);
-          });
-        });
-      });
-    });
-
-    describe('if the MetaMetrics ID is undefined', () => {
-      const metaMetricsId = undefined;
-
-      it('returns false', async () => {
-        expect(
-          shouldCreateRpcServiceEvents({
-            error: undefined,
-            metaMetricsId,
-          }),
-        ).toBe(false);
-      });
-    });
-
-    describe('if the MetaMetrics ID is null', () => {
-      const metaMetricsId = null;
-
-      it('returns false', async () => {
-        expect(
-          shouldCreateRpcServiceEvents({
-            error: undefined,
-            metaMetricsId,
-          }),
-        ).toBe(false);
-      });
+      expect(getRpcServiceEventsSampleRate()).toBe(1);
     });
   });
 
-  describe('if given a non-connection error', () => {
-    const error = new Error('some error');
+  it('returns 0 when the environment is not set', async () => {
+    await withChangesToEnvironmentVariables(() => {
+      delete process.env.METAMASK_ENVIRONMENT;
 
-    describe('if given a MetaMetrics ID', () => {
-      describe.each(PRODUCTION_LIKE_ENVIRONMENTS)(
-        'if the environment is %s',
-        (environment: string) => {
-          describe('if the user is in the MetaMetrics sample', () => {
-            const sampleUserRanking = 0.009999;
-
-            it('returns true', async () => {
-              await withChangesToEnvironmentVariables(() => {
-                process.env.METAMASK_ENVIRONMENT = environment;
-                generateDeterministicRandomNumberMock.mockReturnValue(
-                  sampleUserRanking,
-                );
-
-                expect(
-                  shouldCreateRpcServiceEvents({
-                    error,
-                    metaMetricsId: MOCK_METAMETRICS_ID,
-                  }),
-                ).toBe(true);
-              });
-            });
-          });
-
-          describe('if the user is not in the MetaMetrics sample', () => {
-            const sampleUserRanking = 0.2;
-
-            it('returns false', async () => {
-              await withChangesToEnvironmentVariables(() => {
-                process.env.METAMASK_ENVIRONMENT = environment;
-                generateDeterministicRandomNumberMock.mockReturnValue(
-                  sampleUserRanking,
-                );
-
-                expect(
-                  shouldCreateRpcServiceEvents({
-                    error,
-                    metaMetricsId: MOCK_METAMETRICS_ID,
-                  }),
-                ).toBe(false);
-              });
-            });
-          });
-        },
-      );
-
-      describe('if the environment is non-production', () => {
-        const environment = 'development';
-
-        it('returns true', async () => {
-          await withChangesToEnvironmentVariables(() => {
-            process.env.METAMASK_ENVIRONMENT = environment;
-
-            expect(
-              shouldCreateRpcServiceEvents({
-                error,
-                metaMetricsId: MOCK_METAMETRICS_ID,
-              }),
-            ).toBe(true);
-          });
-        });
-      });
-
-      describe('if the environment is not set', () => {
-        it('returns false', async () => {
-          await withChangesToEnvironmentVariables(() => {
-            delete process.env.METAMASK_ENVIRONMENT;
-
-            expect(
-              shouldCreateRpcServiceEvents({
-                error,
-                metaMetricsId: MOCK_METAMETRICS_ID,
-              }),
-            ).toBe(false);
-          });
-        });
-      });
-    });
-
-    describe('if the MetaMetrics ID is undefined', () => {
-      const metaMetricsId = undefined;
-
-      it('returns false', async () => {
-        expect(
-          shouldCreateRpcServiceEvents({
-            error: undefined,
-            metaMetricsId,
-          }),
-        ).toBe(false);
-      });
-    });
-
-    describe('if the MetaMetrics ID is null', () => {
-      const metaMetricsId = null;
-
-      it('returns false', async () => {
-        expect(
-          shouldCreateRpcServiceEvents({
-            error: undefined,
-            metaMetricsId,
-          }),
-        ).toBe(false);
-      });
-    });
-  });
-
-  describe('if given a connection error', () => {
-    const error = new TypeError('Failed to fetch');
-
-    it('returns false', async () => {
-      expect(
-        shouldCreateRpcServiceEvents({
-          error,
-          metaMetricsId: MOCK_METAMETRICS_ID,
-        }),
-      ).toBe(false);
+      expect(getRpcServiceEventsSampleRate()).toBe(0);
     });
   });
 });

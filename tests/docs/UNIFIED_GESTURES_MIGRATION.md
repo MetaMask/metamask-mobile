@@ -2,7 +2,7 @@
 
 ## Why
 
-`Gestures` is the **canonical** interaction API for Appium smoke. `UnifiedGestures` is a legacy dual-runner facade. New page objects and specs must use `Gestures` only (ESLint enforces this: error in smoke specs, warn in page objects).
+`Gestures` is the **canonical** interaction API for Appium smoke. `UnifiedGestures` is a legacy dual-runner facade. New page objects and specs should use `Gestures` only.
 
 On Appium, `Gestures` already delegates to the Appium strategy — calling `UnifiedGestures` from page objects is redundant and confusing for agents/humans.
 
@@ -43,9 +43,8 @@ Prefer Gestures option names already used in the codebase (`elemDescription`, et
 
 ## Do not
 
-- Do not add new `UnifiedGestures` imports.
-- Do not remove the `UnifiedGestures` export from `tests/framework/index.ts` until Phase 2 cleanup (breaks remaining call sites and `Gestures` internals).
-- Full repo-wide codemod is **Phase 2** (after Detox smoke is empty).
+- Do not add new `UnifiedGestures` imports. The barrel export was removed in Phase 2 cleanup; `Gestures` is the public API.
+- Full repo-wide Element API rewrite is **Phase 4** ([MMQA-2239](https://consensyssoftware.atlassian.net/browse/MMQA-2239)).
 
 ## Canonical docs
 
