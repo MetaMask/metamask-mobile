@@ -129,9 +129,7 @@ describe('Earned', () => {
       expect(title).toHaveTextContent(
         strings('pro_hub.earned.paid_for_itself_title'),
       );
-      expect(value).toHaveTextContent(
-        toRegex(MOCK_EARNED_DATA.paidForItself),
-      );
+      expect(value).toHaveTextContent(toRegex(MOCK_EARNED_DATA.paidForItself));
       expect(description).toHaveTextContent(
         strings('pro_hub.earned.paid_for_itself_description', {
           multiplier: MOCK_EARNED_DATA.membershipFeeMultiplier,
@@ -147,9 +145,7 @@ describe('Earned', () => {
       const growDescription = getByTestId(EarnedTestIds.GROW_DESCRIPTION);
       const addMoneyButton = getByTestId(EarnedTestIds.ADD_MONEY_BUTTON);
 
-      expect(growTitle).toHaveTextContent(
-        strings('pro_hub.earned.grow_title'),
-      );
+      expect(growTitle).toHaveTextContent(strings('pro_hub.earned.grow_title'));
       expect(growDescription).toHaveTextContent(
         strings('pro_hub.earned.grow_description'),
       );

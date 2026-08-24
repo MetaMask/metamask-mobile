@@ -89,9 +89,7 @@ describe('ProHub', () => {
     it('renders the manage plans icon button', () => {
       const { getByTestId } = renderProHub();
 
-      const managePlansButton = getByTestId(
-        ProHubTestIds.MANAGE_PLANS_BUTTON,
-      );
+      const managePlansButton = getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON);
 
       expect(managePlansButton).toBeOnTheScreen();
     });
@@ -102,12 +100,8 @@ describe('ProHub', () => {
       const earnedCard = getByTestId(ProHubTestIds.EARNED_CARD);
       const savedCard = getByTestId(ProHubTestIds.SAVED_CARD);
 
-      expect(earnedCard).toHaveTextContent(
-        toRegex(MOCK_PRO_HUB_STATS.earned),
-      );
-      expect(savedCard).toHaveTextContent(
-        toRegex(MOCK_PRO_HUB_STATS.saved),
-      );
+      expect(earnedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.earned));
+      expect(savedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.saved));
     });
 
     it('renders the physical card placeholder, title, and description', () => {
@@ -115,14 +109,10 @@ describe('ProHub', () => {
 
       const placeholder = getByTestId(ProHubTestIds.CARD_PLACEHOLDER);
       const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
-      const description = getByTestId(
-        ProHubTestIds.PHYSICAL_CARD_DESCRIPTION,
-      );
+      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
 
       expect(placeholder).toBeOnTheScreen();
-      expect(title).toHaveTextContent(
-        strings('pro_hub.physical_card.title'),
-      );
+      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
       expect(description).toHaveTextContent(
         strings('pro_hub.physical_card.description'),
       );
@@ -161,9 +151,7 @@ describe('ProHub', () => {
           date: MOCK_NEXT_PAYMENT.date,
         }),
       );
-      expect(manageButton).toHaveTextContent(
-        strings('pro_hub.manage_plan'),
-      );
+      expect(manageButton).toHaveTextContent(strings('pro_hub.manage_plan'));
     });
   });
 
