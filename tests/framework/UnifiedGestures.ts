@@ -1,4 +1,4 @@
-import type { AppiumElement } from './AppiumElement.ts';
+import type { AppiumElement, AppiumElementRef } from './AppiumElement.ts';
 import {
   GestureStrategy,
   UnifiedGestureOptions,
@@ -43,14 +43,14 @@ export default class UnifiedGestures {
   // ── Gesture Methods ─────────────────────────────────────────
 
   static async tap(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.tap(isSelector(elem) ? resolve(elem) : elem, opts);
   }
 
   static async waitAndTap(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.waitAndTap(
@@ -60,7 +60,7 @@ export default class UnifiedGestures {
   }
 
   static async typeText(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -72,7 +72,7 @@ export default class UnifiedGestures {
   }
 
   static async replaceText(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -84,7 +84,7 @@ export default class UnifiedGestures {
   }
 
   static async swipe(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     direction: 'up' | 'down' | 'left' | 'right',
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -96,7 +96,7 @@ export default class UnifiedGestures {
   }
 
   static async scrollToElement(
-    target: Promise<AppiumElement> | Selector,
+    target: AppiumElementRef | Selector,
     scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -108,7 +108,7 @@ export default class UnifiedGestures {
   }
 
   static async longPress(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.longPress(
@@ -118,14 +118,14 @@ export default class UnifiedGestures {
   }
 
   static async dblTap(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.dblTap(isSelector(elem) ? resolve(elem) : elem, opts);
   }
 
   static async tapAtPoint(
-    elem: Promise<AppiumElement> | Selector,
+    elem: AppiumElementRef | Selector,
     point: { x: number; y: number },
     opts?: UnifiedGestureOptions,
   ): Promise<void> {

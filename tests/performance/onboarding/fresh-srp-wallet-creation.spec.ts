@@ -4,6 +4,7 @@ import {
   AppiumAssertions,
   AppiumGestures,
   sleep,
+  type AppiumElement,
 } from '../../framework';
 import {
   withImplicitWait,

@@ -44,7 +44,13 @@ export { DappVariants, TestDapps } from './Constants.ts';
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep, PortManager, ResourceType } from '../framework';
 
-export { AppiumElement, wrapElement, $, $$ } from './AppiumElement.ts';
+export {
+  AppiumElement,
+  wrapElement,
+  $,
+  $$,
+  type AppiumElementRef,
+} from './AppiumElement.ts';
 export { default as AppiumMatchers } from './AppiumMatchers.ts';
 export { default as AppiumGestures } from './AppiumGestures.ts';
 export { default as AppiumAssertions } from './AppiumAssertions.ts';

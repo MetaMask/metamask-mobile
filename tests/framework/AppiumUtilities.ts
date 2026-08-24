@@ -215,7 +215,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
       constructor: {
         name: string;
       };
-      elem?: WebdriverIO.Promise<AppiumElement> | { selector: string }; // WebdriverIO element with selector
+      elem?: { selector?: string }; // optional selector for step naming
     };
     const methodName = context.name as string;
 

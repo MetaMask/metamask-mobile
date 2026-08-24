@@ -10,7 +10,7 @@ import {
   type ScrollContainer,
 } from './types.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
-import { AppiumElement } from './AppiumElement.ts';
+import { AppiumElement, type AppiumElementRef } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
@@ -25,10 +25,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async tap(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tap(elem as Promise<AppiumElement>, {
+    return UnifiedGestures.tap(elem as AppiumElementRef, {
       timeout: options.timeout,
       description: options.elemDescription,
       delay: options.delay,
@@ -45,10 +45,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async waitAndTap(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.waitAndTap(elem as Promise<AppiumElement>, {
+    return UnifiedGestures.waitAndTap(elem as AppiumElementRef, {
       timeout: options.timeout,
       description: options.elemDescription,
       delay: options.delay,
@@ -66,11 +66,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtIndex(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtIndex(elem as Promise<AppiumElement>, index, {
+    return UnifiedGestures.tapAtIndex(elem as AppiumElementRef, index, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -83,11 +83,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtPoint(elem as Promise<AppiumElement>, point, {
+    return UnifiedGestures.tapAtPoint(elem as AppiumElementRef, point, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -100,10 +100,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async dblTap(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.dblTap(elem as Promise<AppiumElement>, {
+    return UnifiedGestures.dblTap(elem as AppiumElementRef, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -115,10 +115,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async longPress(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     options: LongPressOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.longPress(elem as Promise<AppiumElement>, {
+    return UnifiedGestures.longPress(elem as AppiumElementRef, {
       timeout: options.timeout,
       description: options.elemDescription,
       duration: options.duration,
@@ -131,11 +131,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async typeText(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.typeText(elem as Promise<AppiumElement>, text, {
+    return UnifiedGestures.typeText(elem as AppiumElementRef, text, {
       timeout: options.timeout,
       description: options.elemDescription,
       hideKeyboard: options.hideKeyboard,
@@ -147,11 +147,11 @@ export default class Gestures {
   /**
    * Type text into a web element within a webview.
    * Detox uses JS injection; Appium uses Playwright clear + fill on the web element.
-   * @param {Promise<AppiumElement> | Promise<{ clear: () => Promise<void>; fill: (text: string) => Promise<void> }>} element
+   * @param {AppiumElementRef | Promise<{ clear: () => Promise<void>; fill: (text: string) => Promise<void> }>} element
    * @param {string} text - The text to type.
    */
   static async typeInWebElement(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
   ): Promise<void> {
     const input = await elem;
@@ -166,11 +166,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async replaceText(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.replaceText(elem as Promise<AppiumElement>, text, {
+    return UnifiedGestures.replaceText(elem as AppiumElementRef, text, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -182,11 +182,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async swipe(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.swipe(elem as Promise<AppiumElement>, direction, {
+    return UnifiedGestures.swipe(elem as AppiumElementRef, direction, {
       timeout: options.timeout,
       description: options.elemDescription,
       speed: options.speed,
@@ -199,12 +199,12 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async scrollToElement(
-    targetElement: Promise<AppiumElement>,
+    targetElement: AppiumElementRef,
     scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
     return UnifiedGestures.scrollToElement(
-      targetElement as Promise<AppiumElement>,
+      targetElement as AppiumElementRef,
       scrollableContainer,
       {
         timeout: options.timeout,
@@ -220,9 +220,7 @@ export default class Gestures {
    * @returns A Promise that resolves when the element has been successfully scrolled into view
    * @throws Will throw an error if the scroll operation fails after all retry attempts
    */
-  static async scrollToWebViewPort(
-    elem: Promise<AppiumElement>,
-  ): Promise<void> {
+  static async scrollToWebViewPort(elem: AppiumElementRef): Promise<void> {
     const el = await elem;
     await Utilities.executeWithRetry(
       async () => {
@@ -242,7 +240,7 @@ export default class Gestures {
    * @deprecated Use longPress() instead for better error handling and retry mechanisms
    */
   static async tapAndLongPress(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     timeout = 2000,
   ): Promise<void> {
     return this.longPress(elem, { duration: timeout });
@@ -253,17 +251,17 @@ export default class Gestures {
    * @deprecated Use tap() with web elements instead for better error handling and retry mechanisms
    */
   static async tapWebElement(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     timeout = 15000,
   ): Promise<void> {
-    return this.tap(elem as Promise<AppiumElement>, { timeout });
+    return this.tap(elem as AppiumElementRef, { timeout });
   }
 
   /**
    * Legacy method: Double tap an element
    * @deprecated Use dblTap() instead for better error handling and retry mechanisms - we should replace the function name when we have migrated all usages
    */
-  static async doubleTap(elem: Promise<AppiumElement>): Promise<void> {
+  static async doubleTap(elem: AppiumElementRef): Promise<void> {
     return this.dblTap(elem);
   }
 
@@ -272,7 +270,7 @@ export default class Gestures {
    * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
   static async clearField(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     options: GestureOptions = {},
   ): Promise<void> {
     return this.replaceText(elem, '', options);
@@ -283,7 +281,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard option instead for better error handling and retry mechanisms
    */
   static async typeTextAndHideKeyboard(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -297,7 +295,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard: false option instead for better error handling and retry mechanisms
    */
   static async typeTextWithoutKeyboard(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -311,7 +309,7 @@ export default class Gestures {
    * @deprecated Use replaceText() instead for better error handling and retry mechanisms
    */
   static async replaceTextInField(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
     timeout = 10000,
   ): Promise<void> {
@@ -356,7 +354,7 @@ export default class Gestures {
    * Use for iOS multiline TextInputs where Gestures.typeText (fill) is unreliable.
    */
   static async typeTextByCharacters(
-    elem: Promise<AppiumElement>,
+    elem: AppiumElementRef,
     text: string,
     options?: { submitWithReturn?: boolean },
   ): Promise<void> {
@@ -368,10 +366,7 @@ export default class Gestures {
    * Appium: append text via addValue without clearing the field.
    * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
    */
-  static async appendText(
-    elem: Promise<AppiumElement>,
-    text: string,
-  ): Promise<void> {
+  static async appendText(elem: AppiumElementRef, text: string): Promise<void> {
     const field = await elem;
     await field.type(text);
   }
@@ -433,11 +428,11 @@ export default class Gestures {
   /**
    * Appium: scroll an element into view (WDIO native scrollIntoView).
    * Prefer when you already have a AppiumElement (e.g. from
-   * Matchers.getAllElementsByXPath). For Promise<AppiumElement> targets with
+   * Matchers.getAllElementsByXPath). For AppiumElementRef targets with
    * a known scroll container, prefer scrollToElement.
    */
   static async scrollIntoView(
-    elem: Promise<AppiumElement> | AppiumElement,
+    elem: AppiumElementRef | AppiumElement,
     options?: {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;
@@ -463,7 +458,7 @@ export default class Gestures {
    * the target would otherwise sit in the bottom 15% of the screen.
    */
   static async scrollIntoViewFullyVisible(
-    elem: Promise<AppiumElement> | AppiumElement,
+    elem: AppiumElementRef | AppiumElement,
     options?: {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;

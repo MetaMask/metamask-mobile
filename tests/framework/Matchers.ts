@@ -204,7 +204,7 @@ export default class Matchers {
   /**
    * Scroll container for Gestures.scrollToElement (testID string).
    */
-  static async getIdentifier(selectorString: string): Promise<ScrollContainer> {
+  static getIdentifier(selectorString: string): ScrollContainer {
     return this.scrollContainer(selectorString);
   }
 

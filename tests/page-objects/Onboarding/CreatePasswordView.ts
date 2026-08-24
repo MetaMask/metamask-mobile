@@ -3,10 +3,9 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import enContent from '../../../locales/languages/en.json';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import type { AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
-import type { AppiumElement } from '../../framework';
 
 class CreatePasswordView {
   get container(): Promise<AppiumElement> {
