@@ -12,19 +12,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
-import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import type { EarnAssetId } from '../../types/earnAssets';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { selectIsMoneyAccountVisible } from '../../../../UI/Money/selectors/visibility';
+import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import useEarnSectionAssets from '../../../../UI/Earn/hooks/useEarnSectionAssets';
+import useHomeViewedEvent from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import type { EarnAssetId } from '../../../../UI/Earn/types/earnAssets';
 import type {
   EarnSectionAssetSlot,
   EarnSectionRankedAsset,
-} from '../../utils/earnSection';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
+} from '../../../../UI/Earn/utils/earnSection';
+import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
 import EarnSection from './EarnSection';
 
 jest.mock('@react-navigation/native');

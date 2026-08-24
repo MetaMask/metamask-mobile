@@ -33,7 +33,7 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import EarnSection from '../../UI/Earn/components/EarnSection';
+import EarnSection from './Sections/EarnSection';
 import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 
 /**

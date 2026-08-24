@@ -32,34 +32,34 @@ import {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
-import type { TokenI } from '../../../Tokens/types';
-import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import EarnSectionAssetCard from '../EarnSectionAssetCard';
-import EarnSectionCard from '../EarnSectionCard';
+import type { TokenI } from '../../../../UI/Tokens/types';
+import AssetLogo from '../../../../UI/Assets/components/AssetLogo/AssetLogo';
+import EarnSectionAssetCard from '../../../../UI/Earn/components/EarnSectionAssetCard';
+import EarnSectionCard from '../../../../UI/Earn/components/EarnSectionCard';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import useHomeViewedEvent, {
   HomeSectionNames,
-} from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
-import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
+} from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import type { SectionRefreshHandle } from '../../types';
 import { useNavigation } from '@react-navigation/native';
-import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import { truncateNumber } from '../../utils';
+import useEarnSectionAssets from '../../../../UI/Earn/hooks/useEarnSectionAssets';
+import { truncateNumber } from '../../../../UI/Earn/utils';
 import {
   earnAssetToToken,
   getEarnAssetFiatDisplay,
   getEarnAssetMetadata,
-} from '../../utils/earnAssets';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
-import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import type { EarnAsset } from '../../types/earnAssets';
-import EarnNewTag from '../EarnNewTag';
-import EarnNoFeeTag from '../EarnNoFeeTag';
+} from '../../../../UI/Earn/utils/earnAssets';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { selectIsMoneyAccountVisible } from '../../../../UI/Money/selectors/visibility';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import type { EarnAsset } from '../../../../UI/Earn/types/earnAssets';
+import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
+import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
+import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
 
 interface EarnSectionProps {
   sectionIndex: number;
