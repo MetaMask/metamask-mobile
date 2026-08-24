@@ -200,6 +200,10 @@ describe('usePerpsMarketDetailSession', () => {
       appStateListener('background');
       appState = 'active';
       appStateListener('active');
+      // The connection manager may advance before React commits the new
+      // background-resume generation. The hook must retain the pre-resume
+      // baseline captured by the AppState listener.
+      mockConnectionGeneration += 1;
     });
 
     expect(trace).toHaveBeenCalledTimes(1);
@@ -215,7 +219,6 @@ describe('usePerpsMarketDetailSession', () => {
 
     mockDeliveryRevisions.focusedPrice += 1;
     mockDeliveryRevisions.candles += 1;
-    mockConnectionGeneration += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);

@@ -156,7 +156,7 @@ connection, WebSocket, chart-internal, or API duration.
 
 One session owns one market, mode, selected account, provider, network, and
 HIP-3 configuration generation. A market/mode/context change starts a new
-generation. Backgrounding or leaving the screen cancels the active generation,
+generation. Backgrounding or unmounting the screen cancels the active generation,
 so suspended time and stale-market callbacks cannot enter latency percentiles.
 Foreground resume starts a new `lifecycle_context=background_resume` cohort.
 Already-resolved resident sections may correctly record near zero in that

@@ -228,7 +228,9 @@ populate a production trend.
 - Section-error and session-timeout counts in separate reliability widgets.
 - `Perps Market Detail Live` reliability groups bounded unsuccessful reasons:
   `generation_changed` for a superseded context and `stats_error` for explicit
-  stats subscription setup failure. Neither reason enters latency widgets.
+  stats subscription setup failure, plus `app_backgrounded` and
+  `owner_cancelled` when the screen stops owning the trace. None of these
+  reasons enters latency widgets.
 - Chart rows split by configured `chart_strategy` and rendered
   `chart_library`; fallback rows must not be pooled with native Advanced rows.
 - No grouping by market symbol or session id. Drill down by symbol only on an

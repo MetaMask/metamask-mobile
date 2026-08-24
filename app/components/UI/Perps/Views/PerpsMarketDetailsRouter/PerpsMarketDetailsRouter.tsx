@@ -1,5 +1,10 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
@@ -29,6 +34,8 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   const isProModeEnabled = usePerpsProModeEnabled();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const navigation =
+    useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const symbol = route.params?.market?.symbol;
   const mode = isProModeEnabled ? 'pro' : 'lite';
   const previousIdentityRef = useRef<
@@ -36,10 +43,11 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   >(undefined);
   const consumedExplicitTriggerRef = useRef(false);
   const previousIdentity = previousIdentityRef.current;
+  const explicitGenerationTrigger = !consumedExplicitTriggerRef.current
+    ? route.params?.detailGenerationTrigger
+    : undefined;
   const generationTrigger =
-    (!consumedExplicitTriggerRef.current
-      ? route.params?.detailGenerationTrigger
-      : undefined) ??
+    explicitGenerationTrigger ??
     (previousIdentity?.symbol && previousIdentity.symbol !== symbol
       ? 'market_switch'
       : previousIdentity?.mode && previousIdentity.mode !== mode
@@ -49,7 +57,10 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   useLayoutEffect(() => {
     previousIdentityRef.current = { symbol, mode };
     consumedExplicitTriggerRef.current = true;
-  }, [mode, symbol]);
+    if (explicitGenerationTrigger) {
+      navigation.setParams({ detailGenerationTrigger: undefined });
+    }
+  }, [explicitGenerationTrigger, mode, navigation, symbol]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={SAFE_AREA_EDGES}>

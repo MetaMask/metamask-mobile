@@ -10,6 +10,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import performance from 'react-native-performance';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   annotateTraceByRequest,
@@ -100,6 +101,11 @@ interface StreamDeliveryRevisions {
   orders: number;
   positions: number;
   prices: number;
+}
+
+interface ForegroundDeliveryBaseline {
+  deliveryBaselines: StreamDeliveryRevisions;
+  connectionGenerationBaseline: number;
 }
 
 interface DetailGenerationIdentity {
@@ -278,6 +284,8 @@ export function usePerpsMarketDetailSession({
   const marketSourceRef = useRef(marketSource);
   marketSourceRef.current = marketSource;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const foregroundDeliveryBaselineRef =
+    useRef<ForegroundDeliveryBaseline | null>(null);
   const [foregroundGeneration, setForegroundGeneration] = useState(0);
   const [sessionRevision, setSessionRevision] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -417,6 +425,11 @@ export function usePerpsMarketDetailSession({
         return;
       }
       if (previousState !== 'active') {
+        foregroundDeliveryBaselineRef.current = {
+          deliveryBaselines: getStreamDeliveryRevisions(),
+          connectionGenerationBaseline:
+            PerpsConnectionManager.getConnectionGeneration(),
+        };
         setForegroundGeneration((generation) => generation + 1);
       }
     });
@@ -485,6 +498,11 @@ export function usePerpsMarketDetailSession({
       });
     }, PERPS_LOADING_SESSION_TIMEOUT_MS);
 
+    const foregroundDeliveryBaseline =
+      generationTrigger === 'background_resume'
+        ? foregroundDeliveryBaselineRef.current
+        : null;
+    foregroundDeliveryBaselineRef.current = null;
     activeSessionRef.current = {
       id,
       mode,
@@ -494,14 +512,9 @@ export function usePerpsMarketDetailSession({
       recordedSections: new Set(),
       sectionOffsetsMs: {},
       sectionStates: {},
-      requiresCandleFreshness: configuredChartLibrary === 'lightweight',
-      ...(generationTrigger === 'background_resume'
-        ? {
-            deliveryBaselines: getStreamDeliveryRevisions(),
-            connectionGenerationBaseline:
-              PerpsConnectionManager.getConnectionGeneration(),
-          }
-        : {}),
+      requiresCandleFreshness:
+        configuredChartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      ...(foregroundDeliveryBaseline ?? {}),
       timeout,
     };
     setIsSessionActive(true);
