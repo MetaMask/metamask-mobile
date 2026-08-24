@@ -240,7 +240,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Advanced')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('shows order type icons only in the Pro presentation', () => {

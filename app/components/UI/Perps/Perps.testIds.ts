@@ -891,6 +891,7 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   TWAP_OPTION: 'perps-order-type-twap',
   BASIC_SECTION_HEADER: 'perps-order-type-basic-section-header',
   TRIGGERED_SECTION_HEADER: 'perps-order-type-triggered-section-header',
+  ADVANCED_SECTION_HEADER: 'perps-order-type-advanced-section-header',
 } as const;
 
 export const PerpsMarginModeBottomSheetSelectorsIDs = {

@@ -253,7 +253,10 @@ const PerpsOrderTypeBottomSheetView = ({
         )}
       {showTriggeredTypes && TRIGGERED_ORDER_TYPES.map(renderOrderType)}
       {showTwapType &&
-        renderSectionHeader(strings('perps.order.type.advanced'))}
+        renderSectionHeader(
+          strings('perps.order.type.advanced'),
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+        )}
       {showTwapType && renderOrderType(TWAP_ORDER_TYPE)}
     </BottomSheet>
   );

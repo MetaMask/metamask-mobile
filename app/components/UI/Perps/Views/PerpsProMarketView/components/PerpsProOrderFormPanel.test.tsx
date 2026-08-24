@@ -19,9 +19,9 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
-import { selectPerpsProvider } from '../../../selectors/perpsController';
 
 const mockUseSelector = jest.fn();
+const mockUsePerpsProvider = jest.fn();
 const mockUseIsPerpsProModeActive = jest.fn();
 const mockOrderTypeBottomSheet = jest.fn();
 
@@ -31,6 +31,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../utils/perpsModeSwitch', () => ({
   useIsPerpsProModeActive: () => mockUseIsPerpsProModeActive(),
+}));
+
+jest.mock('../../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => mockUsePerpsProvider(),
 }));
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
@@ -211,12 +215,8 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsProvider) {
-        return 'hyperliquid';
-      }
-      return true;
-    });
+    mockUseSelector.mockReturnValue(true);
+    mockUsePerpsProvider.mockReturnValue({ isHyperLiquidProvider: true });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
@@ -438,12 +438,10 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   it('hides triggered types when the remote flag is disabled', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsProvider) {
-        return 'hyperliquid';
-      }
-      return selector !== selectPerpsProTriggeredOrdersEnabledFlag;
-    });
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector !== selectPerpsProTriggeredOrdersEnabledFlag,
+    );
     mockHookResult.isOrderTypeVisible = true;
 
     renderPanel();
@@ -468,12 +466,9 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   it('hides TWAP when its remote flag is disabled', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsProvider) {
-        return 'hyperliquid';
-      }
-      return selector !== selectPerpsProTwapEnabledFlag;
-    });
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector !== selectPerpsProTwapEnabledFlag,
+    );
     mockHookResult.isOrderTypeVisible = true;
 
     renderPanel();
@@ -486,9 +481,7 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   it('hides TWAP for providers without strategy placement support', () => {
-    mockUseSelector.mockImplementation((selector: unknown) =>
-      selector === selectPerpsProvider ? 'myx' : true,
-    );
+    mockUsePerpsProvider.mockReturnValue({ isHyperLiquidProvider: false });
     mockHookResult.isOrderTypeVisible = true;
 
     renderPanel();

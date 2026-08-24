@@ -100,34 +100,97 @@ export function usePerpsOrderExecution(
       // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
       // overlapping orders never collide.
       const placementKind = getOrderPlacementKind(orderParams.orderType);
-      const isRestingOrder = placementKind === 'resting';
-      const isStrategyOrder = placementKind === 'strategy';
-      const isMarketOrder = !isRestingOrder && !isStrategyOrder;
-      // The controller owns strategy placement tracing. A TWAP acceptance does
-      // not have a position/order-render boundary, so Mobile must not record it
-      // under either render CUF.
-      const cufOpId = isStrategyOrder
-        ? undefined
-        : startPerpsCufTrace({
-            name: isMarketOrder
-              ? TraceName.PerpsPlaceOrderToPositionRendered
-              : TraceName.PerpsPlaceLimitOrderToOrderRendered,
+      if (placementKind === 'strategy') {
+        try {
+          setIsPlacing(true);
+          setError(undefined);
+          setLastResult(undefined);
+
+          DevLogger.log(
+            'usePerpsOrderExecution: Placing order',
+            JSON.stringify(orderParams, null, 2),
+          );
+
+          onSubmitted?.();
+
+          const result = await controllerPlaceOrder(orderParams);
+          setLastResult(result);
+
+          if (result.success) {
+            // Strategy acceptance starts a schedule; it does not imply that a
+            // position or resting child order has rendered yet.
+            DevLogger.log(
+              'usePerpsOrderExecution: Order placed successfully',
+              result,
+            );
+            onSuccess?.();
+          } else {
+            const errorMessage =
+              result.error || strings('perps.order.error.unknown');
+            setError(errorMessage);
+            DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
+            onError?.(errorMessage);
+          }
+
+          return result;
+        } catch (err) {
+          const errorObject = ensureError(
+            err,
+            'usePerpsOrderExecution.placeOrder',
+          );
+          const errorMessage =
+            err instanceof Error
+              ? err.message
+              : strings('perps.order.error.unknown');
+          setError(errorMessage);
+          DevLogger.log('usePerpsOrderExecution: Error placing order', err);
+
+          Logger.error(errorObject, {
             tags: {
-              [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
-                ? PERPS_EVENT_VALUE.DIRECTION.LONG
-                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-              [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsOrderExecution',
+              action: 'order_creation',
+              operation: 'order_management',
+            },
+            context: {
+              name: 'usePerpsOrderExecution',
+              data: {
+                symbol: orderParams.symbol,
+                isBuy: orderParams.isBuy,
+                orderType: orderParams.orderType,
+                size: orderParams.size,
+                price: orderParams.price,
+                leverage: orderParams.leverage,
+                takeProfitPrice: orderParams.takeProfitPrice,
+                stopLossPrice: orderParams.stopLossPrice,
+              },
             },
           });
-      const endCuf = (data: Record<string, PerpsOrderTrackingValue>) => {
-        if (cufOpId !== undefined) {
-          endPerpsCufTrace({ id: cufOpId, data });
+
+          onError?.(errorMessage);
+
+          return undefined;
+        } finally {
+          setIsPlacing(false);
         }
-      };
+      }
+
+      const isRestingOrder = placementKind === 'resting';
+      const isMarketOrder = !isRestingOrder;
+      const cufOpId = startPerpsCufTrace({
+        name: isMarketOrder
+          ? TraceName.PerpsPlaceOrderToPositionRendered
+          : TraceName.PerpsPlaceLimitOrderToOrderRendered,
+        tags: {
+          [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
+        },
+      });
+      const endCuf = (data: Record<string, PerpsOrderTrackingValue>) =>
+        endPerpsCufTrace({ id: cufOpId, data });
       const endCufRendered = (renderedAt: number, toastShownAt: number) => {
-        if (cufOpId === undefined) {
-          return;
-        }
         // End at the captured stream render instant, not when this code runs,
         // so the span measures gesture -> actual position render.
         endPerpsCufTrace({
@@ -144,9 +207,6 @@ export function usePerpsOrderExecution(
       // stream cache when we checked, so end at the channel's last delivery
       // instant rather than now (falls back to now if unavailable).
       const endCufStreamRendered = (renderedAt: number | null) => {
-        if (cufOpId === undefined) {
-          return;
-        }
         endPerpsCufTrace({
           id: cufOpId,
           data: {
@@ -173,7 +233,7 @@ export function usePerpsOrderExecution(
         positionsCache?.find((p) => p.symbol === orderParams.symbol) ?? null;
       const positionBaselineSnapshot =
         getPerpsOrderPositionSnapshot(positionBaseline);
-      if (isMarketOrder && cufOpId !== undefined) {
+      if (isMarketOrder) {
         armPerpsPlaceOrderCuf(
           cufOpId,
           orderParams.symbol,
@@ -187,18 +247,16 @@ export function usePerpsOrderExecution(
       // the span. Once the controller settles, stream-specific waits own the
       // timeout window and this watchdog must not race them.
       let controllerSettled = false;
-      if (cufOpId !== undefined) {
-        setTimeout(() => {
-          if (!controllerSettled) {
-            // Distinct from stream_timeout: the controller request itself never
-            // settled, rather than a settled request whose render never arrived.
-            endCuf({
-              [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.CONTROLLER_TIMEOUT,
-            });
-          }
-        }, PERPS_CUF_STREAM_TIMEOUT_MS);
-      }
+      setTimeout(() => {
+        if (!controllerSettled) {
+          // Distinct from stream_timeout: the controller request itself never
+          // settled, rather than a settled request whose render never arrived.
+          endCuf({
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.CONTROLLER_TIMEOUT,
+          });
+        }
+      }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
       try {
         setIsPlacing(true);
@@ -222,12 +280,7 @@ export function usePerpsOrderExecution(
             result,
           );
 
-          if (isStrategyOrder) {
-            // Strategy acceptance starts a schedule; it does not imply that a
-            // position or resting child order has rendered yet.
-            onSuccess?.();
-            endCuf({ [PERPS_CUF_TAG.SUCCESS]: true });
-          } else if (isRestingOrder) {
+          if (isRestingOrder) {
             // Resting orders: accepted, no position renders now. Confirm
             // immediately, then end the order-render CUF when the resting order
             // appears in the stream (or on timeout).
@@ -265,7 +318,7 @@ export function usePerpsOrderExecution(
                 // bounded and never optimistic. Rare branch; the normal path
                 // (watcher observes the live delivery) is exact.
                 endCufStreamRendered(stream.positions.getLastDeliveredAt());
-              } else if (cufOpId !== undefined) {
+              } else {
                 watchPerpsCufLimitRendered(
                   cufOpId,
                   orderId,
@@ -287,10 +340,6 @@ export function usePerpsOrderExecution(
               }
             }
           } else {
-            if (cufOpId === undefined) {
-              onSuccess?.();
-              return result;
-            }
             // Wait briefly for the stream to render the new/changed position so
             // the confirmation toast fires together with it.
             const rendered = await waitForPerpsPlaceOrderPositionRendered(

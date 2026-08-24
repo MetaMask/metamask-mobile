@@ -111,26 +111,29 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
-    it('renders TWAP controls and hides incompatible order fields', () => {
+    it('renders TWAP controls', () => {
       renderForm({
         orderType: 'twap',
-        onTPSLPress: jest.fn(),
-        twap: {
+        twap: createTwap({
           days: '1',
           hours: '2',
           minutes: '3',
-          randomize: false,
-          onDaysChange: jest.fn(),
-          onHoursChange: jest.fn(),
-          onMinutesChange: jest.fn(),
-          onRandomizeChange: jest.fn(),
-        },
+        }),
       });
 
       expect(screen.getByTestId(ids.TWAP_DURATION)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.TWAP_DURATION_LABEL)).toHaveTextContent(
-        'Running time',
+        strings('perps.pro_order_form.twap.running_time'),
       );
+    });
+
+    it('hides incompatible order fields for TWAP', () => {
+      renderForm({
+        orderType: 'twap',
+        onTPSLPress: jest.fn(),
+        twap: createTwap(),
+      });
+
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),

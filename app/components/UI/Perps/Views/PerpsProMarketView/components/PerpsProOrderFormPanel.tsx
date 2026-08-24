@@ -16,7 +16,7 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
-import { selectPerpsProvider } from '../../../selectors/perpsController';
+import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
@@ -51,9 +51,9 @@ const PerpsProOrderFormPanel = ({
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
-  const activeProvider = useSelector(selectPerpsProvider);
+  const { isHyperLiquidProvider } = usePerpsProvider();
   const isTwapEnabled =
-    isProModeActive && isTwapFlagEnabled && activeProvider === 'hyperliquid';
+    isProModeActive && isTwapFlagEnabled && isHyperLiquidProvider;
   const {
     direction,
     onDirectionChange,
