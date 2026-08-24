@@ -28,6 +28,7 @@ jest.mock('../../../../util/trace', () => ({
     PredictNextGetVenueStatus: 'PredictNext Get Venue Status',
     PredictNextGetFeed: 'PredictNext Get Feed',
     PredictNextGetEvent: 'PredictNext Get Event',
+    PredictNextGetMarketHistory: 'PredictNext Get Market History',
   },
   TraceOperation: {
     PredictDataFetch: 'predict.data_fetch',
@@ -129,43 +130,72 @@ describe('PredictMarketDataService', () => {
     expect(result.nextCursor).toBeUndefined();
   });
 
-  it('forwards Market history cancellation to the adapter', async () => {
+  it('traces Market history fetches with safe metadata and point count', async () => {
     const marketData = createMarketData();
     marketData.fetchMarketHistory.mockResolvedValue({
       venueId: KALSHI_VENUE_ID,
       marketId,
       range: 'LIVE',
       observedAt: '2026-08-07T12:00:00Z' as PredictTimestamp,
-      points: [],
-    });
+      points: [
+        {
+          timestamp: '2026-08-07T11:00:00Z' as PredictTimestamp,
+          yesPrice: '0.42',
+          noPrice: '0.58',
+        },
+      ],
+    } as never);
     const service = buildService(marketData);
-    const signal = new AbortController().signal;
 
-    await service.getMarketHistory(KALSHI_VENUE_ID, marketId, 'LIVE', {
-      signal,
+    await service.getMarketHistory(KALSHI_VENUE_ID, marketId, 'LIVE');
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetMarketHistory,
+      op: TraceOperation.PredictDataFetch,
+      id: expect.stringMatching(/^getMarketHistory-\d+$/u),
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId: KALSHI_VENUE_ID,
+        range: 'LIVE',
+      },
     });
-
-    expect(marketData.fetchMarketHistory).toHaveBeenCalledWith(
-      marketId,
-      'LIVE',
-      { signal },
-    );
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetMarketHistory,
+      id: expect.stringMatching(/^getMarketHistory-\d+$/u),
+      data: { success: true, pointCount: 1 },
+    });
   });
 
-  it('rejects unsupported Market history Venues before invoking the adapter', async () => {
+  it('ends the Market history trace when the fetch fails', async () => {
     const marketData = createMarketData();
+    marketData.fetchMarketHistory.mockRejectedValue(
+      PredictError.from(PredictErrorCode.INVALID_RESPONSE),
+    );
     const service = buildService(marketData);
 
-    const result = service.getMarketHistory(
-      'other' as PredictVenueId,
-      marketId,
-      '1D',
-    );
+    const result = service.getMarketHistory(KALSHI_VENUE_ID, marketId, '1D');
 
-    await expect(result).rejects.toThrow(
-      'This prediction venue is not supported.',
-    );
-    expect(marketData.fetchMarketHistory).not.toHaveBeenCalled();
+    await expect(result).rejects.toMatchObject({
+      code: PredictErrorCode.INVALID_RESPONSE,
+    });
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetMarketHistory,
+      op: TraceOperation.PredictDataFetch,
+      id: expect.stringMatching(/^getMarketHistory-\d+$/u),
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId: KALSHI_VENUE_ID,
+        range: '1D',
+      },
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetMarketHistory,
+      id: expect.stringMatching(/^getMarketHistory-\d+$/u),
+      data: {
+        success: false,
+        error: expect.any(String),
+      },
+    });
   });
 
   it('retries transient errors twice after the initial attempt', async () => {

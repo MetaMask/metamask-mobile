@@ -1,7 +1,24 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { ReduceMotion, withRepeat, withTiming } from 'react-native-reanimated';
 import { PredictMarketChart } from './PredictMarketChart';
+
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    width: 375,
+    height: 812,
+    scale: 2,
+    fontScale: 1,
+  })),
+}));
+
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated'),
+  withRepeat: jest.fn((animation) => animation),
+  withTiming: jest.fn((value) => value),
+}));
 
 const testSeries = [
   {
@@ -59,6 +76,16 @@ const createResponderEvent = (locationX: number, locationY: number) => {
 };
 
 describe('PredictMarketChart', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 2,
+      fontScale: 1,
+    });
+  });
+
   it('plots each series over its full observed interval', () => {
     const view = render(
       <PredictMarketChart series={testSeries} testID="market-chart" />,
@@ -148,7 +175,6 @@ describe('PredictMarketChart', () => {
     fireEvent(view.getByTestId('market-chart'), 'layout', {
       nativeEvent: { layout: { width: 343, height: 150 } },
     });
-
     const lowerPath = view.getByTestId('market-chart-line-lower').props
       .d as string;
     const upperPath = view.getByTestId('market-chart-line-upper').props
@@ -156,8 +182,8 @@ describe('PredictMarketChart', () => {
     const lowerY = Number(lowerPath.match(/^M-?[\d.]+,([\d.]+)/)?.[1]);
     const upperY = Number(upperPath.match(/^M-?[\d.]+,([\d.]+)/)?.[1]);
 
-    expect(lowerY).toBeCloseTo(146.4);
-    expect(upperY).toBeCloseTo(45.6);
+    expect(lowerY).toBeCloseTo(112.8);
+    expect(upperY).toBeCloseTo(37.2);
   });
 
   it('keeps a low-probability value label inside the chart viewport', () => {
@@ -220,6 +246,176 @@ describe('PredictMarketChart', () => {
     expect(firstY).toBeGreaterThanOrEqual(13);
   });
 
+  it('reserves scaled space for endpoint labels at large font sizes', () => {
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 430,
+      height: 932,
+      scale: 3,
+      fontScale: 2,
+    });
+    const view = render(
+      <PredictMarketChart
+        series={[
+          {
+            id: 'home',
+            label: 'Minnesota Vikings',
+            color: 'rgb(202, 53, 66)',
+            data: [
+              { time: 100, value: 0.05 },
+              { time: 200, value: 0.02 },
+            ],
+          },
+        ]}
+        formatValue={() => '100%'}
+        labelGutter={116}
+        testID="market-chart"
+      />,
+    );
+
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 430, height: 206 } },
+    });
+
+    const chartHeight = StyleSheet.flatten(
+      view.getByTestId('market-chart').props.style,
+    ).height as number;
+    const name = view.getByTestId('market-chart-label-home');
+    const value = view.getByTestId('market-chart-value-home');
+    const estimatedNameRight = name.props.matrix[4] + 17 * 28 * 0.56;
+
+    expect(chartHeight).toBeGreaterThanOrEqual(211);
+    expect(name.props.matrix[5]).toBeGreaterThan(0);
+    expect(estimatedNameRight).toBeLessThanOrEqual(430);
+    expect(value.props.matrix[5]).toBeLessThanOrEqual(chartHeight - 20);
+  });
+
+  it('reserves scaled width for the percentage label', () => {
+    jest.mocked(useWindowDimensions).mockReturnValue({
+      width: 343,
+      height: 812,
+      scale: 3,
+      fontScale: 2,
+    });
+    const view = render(
+      <PredictMarketChart
+        series={[
+          {
+            id: 'yes',
+            label: 'Yes',
+            color: 'rgb(68, 89, 255)',
+            data: [
+              { time: 100, value: 1 },
+              { time: 200, value: 1 },
+            ],
+          },
+        ]}
+        formatValue={() => '100%'}
+        testID="market-chart"
+      />,
+    );
+
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 192 } },
+    });
+
+    const value = view.getByTestId('market-chart-value-yes');
+    const estimatedValueRight = value.props.matrix[4] + 4 * 56 * 0.62;
+
+    expect(estimatedValueRight).toBeLessThanOrEqual(343);
+  });
+
+  it('uses a 3200 ms endpoint pulse', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    expect(withTiming).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ duration: 3200 }),
+    );
+  });
+
+  it('delegates reduced-motion behavior to the system setting', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    expect(withRepeat).toHaveBeenCalledWith(
+      expect.anything(),
+      -1,
+      false,
+      undefined,
+      ReduceMotion.System,
+    );
+  });
+
+  it('renders a radius-six solid endpoint with a background stroke', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    const endpoint = view.getByTestId('market-chart-endpoint-home');
+    expect(endpoint.props.r).toBe(6);
+    expect(endpoint.props.fill).toBeDefined();
+    expect(endpoint.props.stroke).not.toEqual(endpoint.props.fill);
+    expect(endpoint.props.strokeWidth).toBe(2);
+  });
+
+  it('removes the endpoint pulse while scrubbing and restores it on release', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(90, 80));
+
+    expect(
+      view.queryByTestId('market-chart-endpoint-home-pulse'),
+    ).not.toBeOnTheScreen();
+
+    fireEvent(chart, 'responderRelease', createResponderEvent(90, 80));
+
+    expect(
+      view.getByTestId('market-chart-endpoint-home-pulse'),
+    ).toBeOnTheScreen();
+  });
+
+  it.each([
+    { x: 0, edge: 'left' },
+    { x: 227, edge: 'right' },
+  ] as const)('keeps the scrub timestamp inside the $edge edge', ({ x }) => {
+    const view = render(
+      <PredictMarketChart
+        series={testSeries}
+        formatTime={() => 'Aug 24, 12:00 PM'}
+        testID="market-chart"
+      />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(x, 80));
+
+    expect(view.getByTestId('market-chart-scrub-time').props.matrix[4]).toBe(x);
+  });
+
   it('shows the timestamp and carry-forward prices while scrubbing', () => {
     const view = render(
       <PredictMarketChart
@@ -235,12 +431,6 @@ describe('PredictMarketChart', () => {
 
     fireEvent(chart, 'responderGrant', createResponderEvent(90.8, 80));
 
-    expect(
-      view.queryByTestId('market-chart-endpoint-home-pulse'),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId('market-chart-endpoint-away-pulse'),
-    ).not.toBeOnTheScreen();
     expect(
       view.getByLabelText(
         /Market probability history at Time 1[34][0-9]\. Vikings 58%/,
@@ -267,12 +457,6 @@ describe('PredictMarketChart', () => {
     fireEvent(chart, 'responderRelease', createResponderEvent(154.4, 80));
 
     expect(view.queryByTestId('market-chart-scrub-future')).toBeNull();
-    expect(
-      view.getByTestId('market-chart-endpoint-home-pulse'),
-    ).toBeOnTheScreen();
-    expect(
-      view.getByTestId('market-chart-endpoint-away-pulse'),
-    ).toBeOnTheScreen();
     expect(
       view.getByLabelText(
         'Market probability history. Vikings 61%, Ravens 38%',

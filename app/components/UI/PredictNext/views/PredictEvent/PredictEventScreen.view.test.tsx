@@ -1,7 +1,8 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { focusManager } from '@tanstack/react-query';
 import { processColor } from 'react-native';
 import type {
   PredictEntityId,
@@ -11,7 +12,7 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
-import { PredictMarketHistoryTestIds } from '../../components/PredictMarketHistory/PredictMarketHistory.testIds';
+import { PredictMarketHistoryTestIds } from './internal/PredictMarketHistory.testIds';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const venueId = 'kalshi' as PredictVenueId;
@@ -84,6 +85,33 @@ const createGameEvent = (
     },
   });
 
+const createGameEventWithTeamMarkets = () => {
+  const gameEvent = createGameEvent();
+  const baseMarket = gameEvent.markets[0];
+  const awayMarket = {
+    ...baseMarket,
+    id: 'away-market' as PredictEntityId,
+    outcomes: [
+      { ...baseMarket.outcomes[0], gameSelection: 'away' as const },
+      baseMarket.outcomes[1],
+    ] as typeof baseMarket.outcomes,
+  };
+  const homeMarket = {
+    ...baseMarket,
+    id: 'home-market' as PredictEntityId,
+    outcomes: [
+      { ...baseMarket.outcomes[0], gameSelection: 'home' as const },
+      baseMarket.outcomes[1],
+    ] as typeof baseMarket.outcomes,
+  };
+
+  return {
+    event: { ...gameEvent, markets: [awayMarket, homeMarket] },
+    awayMarket,
+    homeMarket,
+  };
+};
+
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
 const createHistory = (marketId: string, range = 'LIVE', pointCount = 2) => ({
@@ -114,6 +142,10 @@ const resolveEvent = (event: PredictEvent = createEvent()) => {
 describe('PredictEventScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    focusManager.setFocused(undefined);
   });
 
   it('keeps the route title visible while the immutable Event loads', async () => {
@@ -200,28 +232,100 @@ describe('PredictEventScreen', () => {
         undefined,
       ),
     );
+    expect(view.getByText('Latest Yes probability')).toBeOnTheScreen();
+    expect(
+      view.queryByText('Last traded Yes probability'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('retries Market history after an initial error', async () => {
+    messengerCall.mockImplementationOnce((action: string) =>
+      action === 'PredictMarketDataService:getEvent'
+        ? Promise.resolve(createEvent())
+        : Promise.resolve(undefined),
+    );
+    messengerCall
+      .mockRejectedValueOnce(new Error('unsafe history detail'))
+      .mockResolvedValueOnce(createHistory('market-1'));
+    const view = renderPredictEventScreen(routeParams);
+    const error = await view.findByTestId(PredictMarketHistoryTestIds.ERROR);
+
+    fireEvent.press(
+      within(error).getByTestId(PredictMarketHistoryTestIds.RETRY),
+    );
+
+    expect(
+      await view.findByTestId(PredictMarketHistoryTestIds.CHART),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows an empty state when Market history has fewer than two points', async () => {
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string, range?: string) => {
+        if (action === 'PredictMarketDataService:getEvent') {
+          return Promise.resolve(createEvent());
+        }
+        if (action === 'PredictMarketDataService:getMarketHistory') {
+          return Promise.resolve(createHistory(id, range, 1));
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const empty = await view.findByTestId(PredictMarketHistoryTestIds.EMPTY);
+
+    expect(empty).toHaveTextContent(
+      'Market history is not available for this range.',
+    );
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.CHART),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps cached Market history visible when a refetch fails', async () => {
+    resolveEvent();
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    const historyCallsBeforeRefetch = messengerCall.mock.calls.filter(
+      ([action]) => action === 'PredictMarketDataService:getMarketHistory',
+    ).length;
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getMarketHistory') {
+        return Promise.reject(new Error('Market history refetch failed'));
+      }
+      return Promise.resolve(createEvent());
+    });
+
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(
+        messengerCall.mock.calls.filter(
+          ([action]) => action === 'PredictMarketDataService:getMarketHistory',
+        ),
+      ).toHaveLength(historyCallsBeforeRefetch + 1),
+    );
+    expect(
+      view.getByTestId(PredictMarketHistoryTestIds.CHART),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.ERROR),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.LOADING),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders Game chart lines from each Team Market history', async () => {
-    const gameEvent = createGameEvent();
-    const baseMarket = gameEvent.markets[0];
-    const awayMarket = {
-      ...baseMarket,
-      id: 'away-market' as PredictEntityId,
-      outcomes: [
-        { ...baseMarket.outcomes[0], gameSelection: 'away' as const },
-        baseMarket.outcomes[1],
-      ] as typeof baseMarket.outcomes,
-    };
-    const homeMarket = {
-      ...baseMarket,
-      id: 'home-market' as PredictEntityId,
-      outcomes: [
-        { ...baseMarket.outcomes[0], gameSelection: 'home' as const },
-        baseMarket.outcomes[1],
-      ] as typeof baseMarket.outcomes,
-    };
-    resolveEvent({ ...gameEvent, markets: [awayMarket, homeMarket] });
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    resolveEvent(event);
     const view = renderPredictEventScreen(routeParams);
     const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
 
@@ -239,6 +343,27 @@ describe('PredictEventScreen', () => {
         `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
       ).props.stroke.payload,
     ).toEqual(processColor(homeTeamColor));
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          awayMarket.id,
+          'LIVE',
+          undefined,
+        ],
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          homeMarket.id,
+          'LIVE',
+          undefined,
+        ],
+      ]),
+    );
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the Game header for a non-football Event with a Game snapshot', async () => {

@@ -263,14 +263,24 @@ export class PredictMarketDataService extends BaseDataService<
       marketId,
       range,
     );
-    return this.fetchQuery({
-      queryKey: descriptor.queryKey,
-      staleTime: descriptor.staleTime,
-      queryFn: ({ signal }) =>
-        this.#marketData.fetchMarketHistory(marketId, range, {
-          signal: options?.signal ?? signal,
-        }) as Promise<Json & GetMarketHistoryResult>,
-    });
+    return withPredictNextTrace(
+      {
+        method: 'getMarketHistory',
+        name: TraceName.PredictNextGetMarketHistory,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId, range },
+        resultData: (result) => ({ pointCount: result.points.length }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.fetchMarketHistory(marketId, range, {
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetMarketHistoryResult>,
+        }),
+    );
   }
 
   #assertVenue(venueId: PredictVenueId): void {

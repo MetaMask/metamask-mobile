@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
-import METAMASK_WORDMARK from '../../../../../images/branding/metamask-name.png';
+import METAMASK_WORDMARK from '../../../../../../images/branding/metamask-name.png';
 import {
   Box,
   Button,
@@ -11,20 +11,23 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
-import { useMarketHistory } from '../../hooks/useMarketHistory';
+import { useTheme } from '../../../../../../util/theme';
+import { useMarketHistory } from '../../../hooks/useMarketHistory';
 import type {
   PredictMarket,
-  PredictMarketHistoryPoint,
   PredictMarketHistoryRange,
   PredictTeam,
   PredictVenueId,
-} from '../../types';
+} from '../../../types';
 import {
   formatProbabilityChange,
   roundProbabilityToWhole,
-} from '../../utils/formatProbability';
-import { PredictMarketChart } from '../PredictMarketChart';
+} from '../../../utils/formatProbability';
+import {
+  PredictMarketChart,
+  type PredictMarketChartPoint,
+  type PredictMarketChartSeries,
+} from './PredictMarketChart';
 import { PredictMarketHistoryTestIds } from './PredictMarketHistory.testIds';
 
 const HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
@@ -68,7 +71,7 @@ interface MarketHistorySeries {
   id: string;
   label: string;
   color: string;
-  points: readonly PredictMarketHistoryPoint[];
+  points: readonly PredictMarketChartPoint[];
 }
 
 interface MarketHistoryContentProps {
@@ -93,14 +96,11 @@ const MarketHistoryContent = ({
   const { colors } = useTheme();
   const hasDrawableSeries =
     series.length > 0 && series.every((entry) => entry.points.length >= 2);
-  const chartSeries = series.map((entry) => ({
+  const chartSeries: PredictMarketChartSeries[] = series.map((entry) => ({
     id: entry.id,
     label: entry.label,
     color: entry.color,
-    data: entry.points.map((point) => ({
-      time: Date.parse(point.timestamp),
-      value: Number(point.yesPrice),
-    })),
+    data: entry.points,
   }));
 
   return (
@@ -111,6 +111,7 @@ const MarketHistoryContent = ({
         <Box
           accessible
           accessibilityLabel="Loading Market history"
+          accessibilityRole="progressbar"
           testID={PredictMarketHistoryTestIds.LOADING}
           twClassName="h-44 rounded-2xl bg-muted"
         />
@@ -119,8 +120,15 @@ const MarketHistoryContent = ({
           testID={PredictMarketHistoryTestIds.ERROR}
           twClassName="h-44 items-center justify-center gap-4 rounded-2xl bg-muted px-6"
         >
-          <Text>Market history could not be loaded.</Text>
-          <Button onPress={onRetry}>Retry</Button>
+          <Text
+            accessibilityRole="alert"
+            testID={PredictMarketHistoryTestIds.ERROR_MESSAGE}
+          >
+            Market history could not be loaded.
+          </Text>
+          <Button testID={PredictMarketHistoryTestIds.RETRY} onPress={onRetry}>
+            Retry
+          </Button>
         </Box>
       ) : !hasDrawableSeries ? (
         <Box
@@ -196,7 +204,10 @@ export const PredictMarketHistory = ({
             id: yesOutcome.id,
             label: yesOutcome.label || 'Yes',
             color: colors.primary.default,
-            points,
+            points: points.map((point) => ({
+              time: Date.parse(point.timestamp),
+              value: Number(point.yesPrice),
+            })),
           },
         ]
       : []),
@@ -210,8 +221,8 @@ export const PredictMarketHistory = ({
                 : 'No',
             color: colors.error.default,
             points: points.map((point) => ({
-              ...point,
-              yesPrice: point.noPrice,
+              time: Date.parse(point.timestamp),
+              value: Number(point.noPrice),
             })),
           },
         ]
@@ -228,7 +239,7 @@ export const PredictMarketHistory = ({
     <Box twClassName="gap-1">
       <Text variant={TextVariant.HeadingSm}>Market history</Text>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        Last traded Yes probability
+        Latest Yes probability
       </Text>
       {latestProbability ? (
         <Box twClassName="flex-row items-baseline gap-2">
@@ -282,13 +293,19 @@ export const PredictGameMarketHistory = ({
       id: home.market.id,
       label: getCompactTeamLabel(home.team),
       color: home.team.primaryColor ?? colors.success.default,
-      points: homePoints,
+      points: homePoints.map((point) => ({
+        time: Date.parse(point.timestamp),
+        value: Number(point.yesPrice),
+      })),
     },
     {
       id: away.market.id,
       label: getCompactTeamLabel(away.team),
       color: away.team.primaryColor ?? colors.info.default,
-      points: awayPoints,
+      points: awayPoints.map((point) => ({
+        time: Date.parse(point.timestamp),
+        value: Number(point.yesPrice),
+      })),
     },
   ];
 

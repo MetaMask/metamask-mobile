@@ -20,13 +20,24 @@ import type {
   PredictVenueStatus,
 } from '../../types';
 
-const timestamp = refine(
-  string(),
-  'PredictTimestamp',
-  (value) =>
-    !Number.isNaN(Date.parse(value)) &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value),
-);
+const timestamp = refine(string(), 'PredictTimestamp', (value) => {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$/.exec(
+      value,
+    );
+  if (!match) {
+    return false;
+  }
+
+  const [, year, month, day, hour, minute, second, fraction = ''] = match;
+  const milliseconds = fraction.padEnd(3, '0').slice(0, 3);
+  const parsed = Date.parse(value);
+  return (
+    !Number.isNaN(parsed) &&
+    new Date(parsed).toISOString() ===
+      `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}Z`
+  );
+});
 
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(

@@ -27,7 +27,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
   PredictMarketHistory,
-} from '../../components/PredictMarketHistory';
+} from './internal/PredictMarketHistory';
 import {
   EventLoadingHeader,
   GameEventHeader,
@@ -126,7 +126,7 @@ export const PredictEventScreen = () => {
           ) : (
             <StandardEventHeader event={event} />
           )}
-          {event.markets.length > 1 ? (
+          {event.markets.length > 1 && !(game && homeMarket && awayMarket) ? (
             <FilterButtonGroup
               value={selectedMarket?.id ?? ''}
               onChange={setSelectedMarketId}
