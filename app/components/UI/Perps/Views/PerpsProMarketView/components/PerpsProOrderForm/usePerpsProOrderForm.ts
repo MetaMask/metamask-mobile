@@ -112,17 +112,44 @@ import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
+  PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
   PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
+import {
+  buildScaleOrderLadder,
+  coerceScaleSkew,
+  SCALE_DEFAULT_ORDERS,
+  SCALE_DEFAULT_SKEW,
+  type ScaleOrderValidationCode,
+} from '../../../../utils/scaleOrderUtils';
 
 const REDUCE_ONLY_ERROR_I18N_KEYS: Record<ReduceOnlyValidationCode, string> = {
   no_position: 'perps.order.validation.reduce_only_no_position',
   wrong_side: 'perps.order.validation.reduce_only_wrong_side',
   too_large: 'perps.order.validation.reduce_only_too_large',
 };
+
+const SCALE_ERROR_I18N_KEYS: Record<ScaleOrderValidationCode, string> = {
+  prices_required: 'perps.pro_order_form.scale.validation.prices_required',
+  invalid_range: 'perps.pro_order_form.scale.validation.invalid_range',
+  invalid_order_count:
+    'perps.pro_order_form.scale.validation.invalid_order_count',
+  invalid_skew: 'perps.pro_order_form.scale.validation.invalid_skew',
+  minimum_lot: 'perps.pro_order_form.scale.validation.minimum_lot',
+};
+
+const createScaleClientOrderId = (groupSeed: string, index: number): string =>
+  `0x${groupSeed}${index.toString(16).padStart(8, '0')}`;
+
+const createScaleGroupSeed = (): string =>
+  `${Date.now().toString(16).padStart(12, '0')}${Math.floor(
+    Math.random() * 0xffffffffffff,
+  )
+    .toString(16)
+    .padStart(12, '0')}`;
 
 /** Prefix of the interpolated insufficient-balance message (stable across amounts). */
 const INSUFFICIENT_BALANCE_PREFIX = strings(
@@ -368,6 +395,7 @@ export interface UsePerpsProOrderFormResult {
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  scaleOrder: PerpsProScaleOrderModel;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
   onPlaceOrderPress: () => void;
@@ -478,6 +506,12 @@ export const usePerpsProOrderForm = ({
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
+  const [scaleStartPrice, setScaleStartPrice] = useState('');
+  const [scaleEndPrice, setScaleEndPrice] = useState('');
+  const [scaleTotalOrders, setScaleTotalOrders] = useState(
+    SCALE_DEFAULT_ORDERS.toString(),
+  );
+  const [scaleSizeSkew, setScaleSizeSkew] = useState(SCALE_DEFAULT_SKEW);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
   const isSubmittingRef = useRef(false);
@@ -518,6 +552,20 @@ export const usePerpsProOrderForm = ({
   const maxLeverage =
     marketData?.maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage;
   const isLoadingMarketData = isMarketDataLoading && marketData === null;
+  const isScaleOrder = orderForm.type === 'scale';
+
+  const normalizeScaleInput = useCallback(
+    (value: string, previousValue: string, setter: (next: string) => void) => {
+      const result = normalizeNumericTextInput(value, previousValue, {
+        maxDigits: MAX_PERPS_INPUT_DIGITS,
+        acceptedDecimalSeparators: ['.', ','],
+      });
+      if (result.ok) {
+        setter(result.value);
+      }
+    },
+    [],
+  );
 
   const {
     existingPosition: currentMarketPosition,
@@ -657,12 +705,12 @@ export const usePerpsProOrderForm = ({
     setOrderType,
   ]);
   const feeResults = usePerpsOrderFees({
-    orderType: orderForm.type,
+    orderType: calculationOrderType,
     amount: effectiveUsdAmount,
     symbol: orderForm.asset,
     providerId: orderProviderId,
     isClosing: reduceOnly,
-    limitPrice: normalizedLimitPrice,
+    limitPrice: calculationLimitPrice,
     direction: orderForm.direction,
     currentAskPrice: currentTopOfBook?.bestAsk
       ? Number.parseFloat(currentTopOfBook.bestAsk)
@@ -674,7 +722,7 @@ export const usePerpsProOrderForm = ({
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 
-  const isMarketOrder = orderForm.type === 'market';
+  const isMarketOrder = calculationOrderType === 'market';
   const isTriggerMarketOrder =
     isTriggerOrderType(orderForm.type) &&
     getTriggerExecution(orderForm.type) === 'market';
@@ -753,8 +801,8 @@ export const usePerpsProOrderForm = ({
     () =>
       deriveOrderSizing({
         amount: effectiveUsdAmount,
-        orderType: orderForm.type,
-        limitPrice: normalizedLimitPrice,
+        orderType: calculationOrderType,
+        limitPrice: calculationLimitPrice,
         triggerPrice: normalizedTriggerPrice,
         marketPrice: assetData.price,
         markPrice: assetData.markPrice,
@@ -766,8 +814,8 @@ export const usePerpsProOrderForm = ({
       }),
     [
       effectiveUsdAmount,
-      orderForm.type,
-      normalizedLimitPrice,
+      calculationOrderType,
+      calculationLimitPrice,
       normalizedTriggerPrice,
       orderForm.leverage,
       orderForm.direction,
@@ -826,8 +874,18 @@ export const usePerpsProOrderForm = ({
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;
   const effectiveOrderForm = useMemo(
-    () => ({ ...orderForm, amount: effectiveUsdAmount }),
-    [effectiveUsdAmount, orderForm],
+    () => ({
+      ...orderForm,
+      amount: effectiveUsdAmount,
+      type: calculationOrderType,
+      limitPrice: calculationLimitPrice,
+    }),
+    [
+      calculationLimitPrice,
+      calculationOrderType,
+      effectiveUsdAmount,
+      orderForm,
+    ],
   );
 
   const reduceOnlyValidation = useMemo(
@@ -886,6 +944,17 @@ export const usePerpsProOrderForm = ({
     );
     return withoutSize.filter((err) => !fieldMessages.has(err));
   }, [orderValidation.errors, orderValidation.fieldIssues]);
+  const scaleValidationNotice = useMemo<PerpsProOrderNotice | undefined>(() => {
+    if (!isScaleOrder || scaleLadderResult.success) {
+      return undefined;
+    }
+    return {
+      id: 'scale',
+      variant: 'banner',
+      message: strings(SCALE_ERROR_I18N_KEYS[scaleLadderResult.code]),
+    };
+  }, [isScaleOrder, scaleLadderResult]);
+
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -1104,6 +1173,89 @@ export const usePerpsProOrderForm = ({
         return;
       }
 
+      if (isScaleOrder) {
+        if (!scaleLadderResult.success) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings(SCALE_ERROR_I18N_KEYS[scaleLadderResult.code]),
+            ),
+          );
+          return;
+        }
+
+        const groupSeed = createScaleGroupSeed();
+        const trackingData = buildPerpsOrderTrackingData({
+          marginRequired,
+          feeResults,
+          marketPrice: assetData.price,
+          inputMethod: 'default',
+          source,
+          sourceSection,
+          currentMarketPosition,
+          direction: orderForm.direction,
+          chartLibrary,
+          vipTier,
+        });
+        playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+        showToast(
+          PerpsToastOptions.orderManagement.limit.submitted(
+            orderForm.direction,
+            submissionPositionSize,
+            orderForm.asset,
+          ),
+        );
+
+        for (const rung of scaleLadderResult.rungs) {
+          const rungParams = {
+            ...buildPerpsOrderParams({
+              asset: orderForm.asset,
+              isBuy: orderForm.direction === 'long',
+              size: rung.size,
+              orderType: 'limit',
+              effectivePrice: Number.parseFloat(rung.price),
+              leverage: orderForm.leverage,
+              usdAmount: rung.usdAmount,
+              maxSlippageBps: resolvedMaxSlippageBps,
+              limitPrice: rung.price,
+              reduceOnly,
+              trackingData,
+            }),
+            timeInForce: 'GTC' as const,
+            clientOrderId: createScaleClientOrderId(groupSeed, rung.index),
+          };
+          const result = await executeOrder(rungParams);
+          if (!result?.success) {
+            return;
+          }
+        }
+
+        showToast(
+          PerpsToastOptions.orderManagement.limit.confirmed(
+            orderForm.direction,
+            `${scaleLadderResult.rungs.length} orders · ${submissionPositionSize}`,
+            orderForm.asset,
+          ),
+        );
+        Engine.context.PerpsController?.clearPendingTradeConfiguration(
+          orderForm.asset,
+        );
+        updateOrderForm({
+          amount: '',
+          direction: 'long',
+          type: 'market',
+          balancePercent: 0,
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+        });
+        setScaleStartPrice('');
+        setScaleEndPrice('');
+        setScaleTotalOrders(SCALE_DEFAULT_ORDERS.toString());
+        setScaleSizeSkew(SCALE_DEFAULT_SKEW);
+        setReduceOnly(false);
+        return;
+      }
+
       // reduce-only is Pro-specific (TAT-3595); the direct Pro path never
       // uses pay-with-any-token, so those tracking fields are omitted.
       // Finalize trailing decimals so Place Order does not depend on blur timing.
@@ -1247,6 +1399,8 @@ export const usePerpsProOrderForm = ({
     isTriggeredOrdersEnabled,
     isMarketDataBlocking,
     isAtCap,
+    isScaleOrder,
+    scaleLadderResult,
     hasTpslBlocker,
     twapDurationMissing,
     twapDurationError,
@@ -1478,6 +1632,7 @@ export const usePerpsProOrderForm = ({
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
+      ...(scaleValidationNotice ? [scaleValidationNotice] : []),
       ...getBlockingNotices({
         reduceOnlyErrorCode: reduceOnly
           ? reduceOnlyValidation.errorCode
@@ -1535,6 +1690,7 @@ export const usePerpsProOrderForm = ({
     return list;
   }, [
     reduceOnly,
+    scaleValidationNotice,
     isReduceOnlyPositionLoading,
     isTriggerOrderUnavailable,
     marketDataBlockingReason,
@@ -1609,6 +1765,45 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
   ]);
 
+  const scaleOrder = useMemo<PerpsProScaleOrderModel>(
+    () => ({
+      startPrice: scaleStartPrice,
+      endPrice: scaleEndPrice,
+      totalOrders: scaleTotalOrders,
+      sizeSkew: scaleSizeSkew,
+      onStartPriceChange: (value) =>
+        normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice),
+      onEndPriceChange: (value) =>
+        normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice),
+      onTotalOrdersChange: (value) =>
+        normalizeScaleInput(value, scaleTotalOrders, setScaleTotalOrders),
+      onSizeSkewChange: (value) =>
+        normalizeScaleInput(value, scaleSizeSkew, setScaleSizeSkew),
+      onSizeSkewBlur: () => setScaleSizeSkew(coerceScaleSkew(scaleSizeSkew)),
+      rungs: scaleRungs,
+      orderValue: formatPerpsFiat(effectiveUsdAmount || '0', {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
+      marginRequired: formatPerpsFiat(marginRequired || '0', {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
+      fees: formatPerpsFiat(estimatedFees || 0, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
+    }),
+    [
+      effectiveUsdAmount,
+      estimatedFees,
+      marginRequired,
+      normalizeScaleInput,
+      scaleEndPrice,
+      scaleRungs,
+      scaleSizeSkew,
+      scaleStartPrice,
+      scaleTotalOrders,
+    ],
+  );
+
   const isPlaceOrderDisabled =
     !hasValidAmount ||
     !orderValidation.isValid ||
@@ -1617,6 +1812,7 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
+    (isScaleOrder && !scaleLadderResult.success) ||
     (!isTwapEnabled && isTwapOrder) ||
     hasTpslBlocker ||
     isTriggerOrderUnavailable ||
@@ -1878,6 +2074,7 @@ export const usePerpsProOrderForm = ({
     onTPSLPress,
     notices,
     summary,
+    scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading: isPlacing,
     onPlaceOrderPress,

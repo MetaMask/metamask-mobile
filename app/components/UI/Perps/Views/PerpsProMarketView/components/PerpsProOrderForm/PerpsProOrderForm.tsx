@@ -48,9 +48,26 @@ import type {
   PerpsProOrderFormProps,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
+  PerpsProScaleOrderModel,
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+
+const EMPTY_SCALE_ORDER: PerpsProScaleOrderModel = {
+  startPrice: '',
+  endPrice: '',
+  totalOrders: '',
+  sizeSkew: '',
+  onStartPriceChange: () => undefined,
+  onEndPriceChange: () => undefined,
+  onTotalOrdersChange: () => undefined,
+  onSizeSkewChange: () => undefined,
+  onSizeSkewBlur: () => undefined,
+  rungs: [],
+  orderValue: '',
+  marginRequired: '',
+  fees: '',
+};
 
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
@@ -288,6 +305,133 @@ const OrderSummary = ({
   </Box>
 );
 
+const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
+  <Box twClassName="gap-2" testID={ids.SCALE_FIELDS}>
+    <Box twClassName="flex-row gap-2">
+      <Box twClassName="flex-1">
+        <PerpsProCompactInput
+          label={strings('perps.pro_order_form.scale.start_price')}
+          value={model.startPrice}
+          onChangeText={model.onStartPriceChange}
+          testID={ids.SCALE_START_PRICE}
+          startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
+          placeholder="0.00"
+        />
+      </Box>
+      <Box twClassName="flex-1">
+        <PerpsProCompactInput
+          label={strings('perps.pro_order_form.scale.end_price')}
+          value={model.endPrice}
+          onChangeText={model.onEndPriceChange}
+          testID={ids.SCALE_END_PRICE}
+          startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
+          placeholder="0.00"
+        />
+      </Box>
+    </Box>
+    <Box twClassName="flex-row gap-2">
+      <Box twClassName="flex-1">
+        <PerpsProCompactInput
+          label={strings('perps.pro_order_form.scale.total_orders')}
+          value={model.totalOrders}
+          onChangeText={model.onTotalOrdersChange}
+          testID={ids.SCALE_TOTAL_ORDERS}
+        />
+      </Box>
+      <Box twClassName="flex-1">
+        <PerpsProCompactInput
+          label={strings('perps.pro_order_form.scale.size_skew')}
+          value={model.sizeSkew}
+          onChangeText={model.onSizeSkewChange}
+          onBlur={model.onSizeSkewBlur}
+          testID={ids.SCALE_SIZE_SKEW}
+          endAccessory={
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+              testID={ids.SCALE_SKEW_INFO}
+              accessibilityLabel={strings(
+                'perps.pro_order_form.scale.size_skew_hint',
+              )}
+            />
+          }
+        />
+      </Box>
+    </Box>
+  </Box>
+);
+
+const ScalePreview = ({ model }: { model: PerpsProScaleOrderModel }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  if (model.rungs.length === 0) {
+    return null;
+  }
+  const first = model.rungs[0];
+  const last = model.rungs[model.rungs.length - 1];
+  return (
+    <Box twClassName="gap-1 rounded-xl bg-muted p-3" testID={ids.SCALE_PREVIEW}>
+      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        {strings('perps.pro_order_form.scale.preview')}
+      </Text>
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.start')}
+        value={`${first.size} @ $${first.price}`}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.end')}
+        value={`${last.size} @ $${last.price}`}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.order_value')}
+        value={model.orderValue}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.margin_required')}
+        value={model.marginRequired}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.order.fees')}
+        value={model.fees}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <ButtonBase
+        size={ButtonBaseSize.Sm}
+        onPress={() => setIsExpanded((value) => !value)}
+        testID={ids.SCALE_PREVIEW_TOGGLE}
+      >
+        {strings(
+          isExpanded
+            ? 'perps.pro_order_form.scale.hide_ladder'
+            : 'perps.pro_order_form.scale.show_ladder',
+        )}
+      </ButtonBase>
+      {isExpanded ? (
+        <Box twClassName="gap-1" testID={ids.SCALE_PREVIEW_LADDER}>
+          {model.rungs.map((rung) => (
+            <KeyValueRow
+              key={rung.index}
+              keyLabel={`#${rung.index + 1}`}
+              value={`${rung.size} @ $${rung.price}`}
+              twClassName={summaryRowClassName}
+              style={summaryRowStyle}
+            />
+          ))}
+        </Box>
+      ) : null}
+    </Box>
+  );
+};
+
 const PerpsProOrderForm = ({
   direction,
   onDirectionChange,
@@ -298,6 +442,7 @@ const PerpsProOrderForm = ({
   leverageLabel,
   onLeveragePress,
   orderType,
+  scaleOrder = EMPTY_SCALE_ORDER,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
@@ -333,6 +478,7 @@ const PerpsProOrderForm = ({
 }: PerpsProOrderFormProps) => {
   const { playSelection } = useHaptics();
   const isLong = direction === 'long';
+  const isScaleOrder = orderType === 'scale';
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
   const isTwap = orderType === 'twap';
@@ -546,6 +692,7 @@ const PerpsProOrderForm = ({
               />
             ) : null}
           </Box>
+          {isScaleOrder ? <ScaleFields model={scaleOrder} /> : null}
           {priceCardMessage ? (
             <HelpText
               severity={
@@ -612,13 +759,16 @@ const PerpsProOrderForm = ({
           >
             {placeOrderLabel}
           </ButtonSemantic>
+          {isScaleOrder ? <ScalePreview model={scaleOrder} /> : null}
         </Box>
-        <OrderSummary
-          {...summary}
-          onSlippagePress={
-            summaryOnSlippagePress ? handleSlippagePress : undefined
-          }
-        />
+        {!isScaleOrder ? (
+          <OrderSummary
+            {...summary}
+            onSlippagePress={
+              summaryOnSlippagePress ? handleSlippagePress : undefined
+            }
+          />
+        ) : null}
       </Box>
       <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />

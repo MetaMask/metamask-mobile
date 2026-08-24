@@ -71,6 +71,15 @@ const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
   },
 ];
 
+const SCALE_ORDER_TYPE: OrderTypeOption = {
+  type: 'scale',
+  titleKey: 'perps.order.type.scale.title',
+  descriptionKey: 'perps.order.type.scale.description',
+  LightIcon: LimitIconLight,
+  DarkIcon: LimitIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+};
+
 const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
   type: TriggerOrderType;
 })[] = [

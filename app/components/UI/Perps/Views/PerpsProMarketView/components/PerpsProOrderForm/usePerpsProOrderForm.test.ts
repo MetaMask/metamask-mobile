@@ -54,6 +54,7 @@ const mockOrderForm = {
   type: 'market' as
     | 'market'
     | 'limit'
+    | 'scale'
     | 'stop_market'
     | 'stop_limit'
     | 'take_profit_limit'
@@ -1768,6 +1769,84 @@ describe('usePerpsProOrderForm', () => {
       const params = mockExecuteOrder.mock.calls[0][0];
       expect(params.price).toBe('12');
       expect(params.orderType).toBe('limit');
+    });
+  });
+
+  describe('scale orders', () => {
+    const configureScaleOrder = (
+      result: ReturnType<typeof renderProForm>['result'],
+    ) => {
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100');
+        result.current.scaleOrder.onEndPriceChange('200');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+        result.current.scaleOrder.onSizeSkewChange('2.00');
+      });
+    };
+
+    it('submits one GTC limit order per rung with a shared client ID prefix', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(3);
+      const params = mockExecuteOrder.mock.calls.map(
+        ([orderParams]) =>
+          orderParams as {
+            orderType: string;
+            timeInForce: string;
+            clientOrderId: string;
+          },
+      );
+      expect(params.every(({ orderType }) => orderType === 'limit')).toBe(true);
+      expect(params.every(({ timeInForce }) => timeInForce === 'GTC')).toBe(
+        true,
+      );
+      expect(
+        new Set(params.map(({ clientOrderId }) => clientOrderId.slice(0, -8)))
+          .size,
+      ).toBe(1);
+      expect(
+        new Set(params.map(({ clientOrderId }) => clientOrderId)).size,
+      ).toBe(3);
+    });
+
+    it('resets Scale configuration after every rung is placed', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: '', type: 'market' }),
+      );
+      expect(result.current.scaleOrder.startPrice).toBe('');
+      expect(result.current.scaleOrder.endPrice).toBe('');
+      expect(result.current.scaleOrder.totalOrders).toBe('5');
+      expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
+    });
+
+    it('coerces Scale skew to two decimals on blur', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('2.345');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('2.35');
     });
   });
 

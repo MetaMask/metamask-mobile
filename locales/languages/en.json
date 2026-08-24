@@ -1802,6 +1802,10 @@
           "title": "Limit",
           "description": "Execute at your specified price or better"
         },
+        "scale": {
+          "title": "Scale",
+          "description": "Place multiple limit orders across a price range"
+        },
         "stop_limit": {
           "title": "Stop limit",
           "description": "Place a limit order if trigger price hits"

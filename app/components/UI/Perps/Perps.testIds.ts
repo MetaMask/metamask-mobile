@@ -600,6 +600,15 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  SCALE_FIELDS: 'perps-pro-order-form-scale-fields',
+  SCALE_START_PRICE: 'perps-pro-order-form-scale-start-price',
+  SCALE_END_PRICE: 'perps-pro-order-form-scale-end-price',
+  SCALE_TOTAL_ORDERS: 'perps-pro-order-form-scale-total-orders',
+  SCALE_SIZE_SKEW: 'perps-pro-order-form-scale-size-skew',
+  SCALE_SKEW_INFO: 'perps-pro-order-form-scale-skew-info',
+  SCALE_PREVIEW: 'perps-pro-order-form-scale-preview',
+  SCALE_PREVIEW_TOGGLE: 'perps-pro-order-form-scale-preview-toggle',
+  SCALE_PREVIEW_LADDER: 'perps-pro-order-form-scale-preview-ladder',
 };
 
 // ========================================
@@ -888,6 +897,7 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+  SCALE_OPTION: 'perps-order-type-scale',
   STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
   STOP_MARKET_OPTION: 'perps-order-type-stop-market',
   TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',

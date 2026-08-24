@@ -1,6 +1,7 @@
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
+import type { ScaleOrderRung } from '../../../../utils/scaleOrderUtils';
 
 export type PerpsProOrderDirection = 'long' | 'short';
 
@@ -82,6 +83,7 @@ export interface PerpsProOrderFormProps {
   leverageLabel: string;
   onLeveragePress?: () => void;
   orderType: OrderType;
+  scaleOrder?: PerpsProScaleOrderModel;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;

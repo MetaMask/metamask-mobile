@@ -102,6 +102,27 @@ const createProps = (
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
+const createScaleOrder = (): NonNullable<
+  PerpsProOrderFormProps['scaleOrder']
+> => ({
+  startPrice: '100',
+  endPrice: '200',
+  totalOrders: '2',
+  sizeSkew: '1.00',
+  onStartPriceChange: jest.fn(),
+  onEndPriceChange: jest.fn(),
+  onTotalOrdersChange: jest.fn(),
+  onSizeSkewChange: jest.fn(),
+  onSizeSkewBlur: jest.fn(),
+  rungs: [
+    { index: 0, price: '100', size: '1', usdAmount: '100.00' },
+    { index: 1, price: '200', size: '1', usdAmount: '200.00' },
+  ],
+  orderValue: '$300',
+  marginRequired: '$100',
+  fees: '$1',
+});
+
 describe('PerpsProOrderForm', () => {
   beforeEach(() => {
     jest.mocked(playImpact).mockClear();
@@ -196,6 +217,22 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it('renders Scale inputs and preview while omitting Limit and TP/SL rows', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        onTPSLPress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.SCALE_START_PRICE)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SCALE_END_PRICE)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SCALE_TOTAL_ORDERS)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SCALE_PREVIEW)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
     it.each([

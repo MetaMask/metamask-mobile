@@ -125,6 +125,7 @@ const PerpsProOrderFormPanel = ({
     onTPSLPress,
     notices,
     summary,
+    scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading,
     onPlaceOrderPress,
@@ -240,6 +241,7 @@ const PerpsProOrderFormPanel = ({
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
         orderType={orderType}
+        scaleOrder={scaleOrder}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
