@@ -18,6 +18,7 @@ import {
   SNAP_UI_DROPDOWN_SHEET_TITLE,
   snapUIJsxCountAndroidXPath,
   snapUIJsxCountIosXPath,
+  snapUIJsxIncrementCardIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -163,7 +164,7 @@ class TestSnaps {
       throw new Error('Driver is not available');
     }
 
-    const xpath = snapUIJsxCountIosXPath('0');
+    const xpath = snapUIJsxIncrementCardIosXPath();
     const el = await drv.$(xpath);
     const location = await el.getLocation();
     const size = await el.getSize();

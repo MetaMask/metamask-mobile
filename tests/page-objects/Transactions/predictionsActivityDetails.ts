@@ -41,7 +41,7 @@ class PredictActivityDetails {
     const escaped = amount.replace(/"/g, '\\"');
     return Matchers.getElementByNativeXPath(
       [
-        `//*[@name="${container}"]//*[@name="${id}"]`,
+        `//*[@name="${container}"]//*[@name="${id}" and (contains(@label,"${escaped}") or contains(@value,"${escaped}"))]`,
         `//*[@name="${container}"]//*[@accessible="true" and contains(@label,"${escaped}")]`,
         `//*[@name="${container}"]//*[contains(@value,"${escaped}")]`,
       ].join(' | '),
