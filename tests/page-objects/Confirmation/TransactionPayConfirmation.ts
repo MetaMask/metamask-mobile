@@ -414,6 +414,12 @@ class TransactionPayConfirmation {
     });
   }
 
+  async verifyCustomAmount(amount: string, description: string): Promise<void> {
+    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+      description,
+    });
+  }
+
   async verifyReceiveVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.receive, {
       description: "You'll receive row should be visible",

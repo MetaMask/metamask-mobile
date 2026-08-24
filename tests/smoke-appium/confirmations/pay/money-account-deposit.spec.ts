@@ -11,8 +11,9 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
-import { Assertions, Matchers } from '../../../framework/index.js';
+import { Assertions } from '../../../framework/index.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
+import TransactionDetailsModal from '../../../page-objects/Transactions/TransactionDetailsModal.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
 import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
@@ -89,19 +90,17 @@ appiumTest.describe(
 
             await TransactionPayConfirmation.tapPercentage(25);
             await TransactionPayConfirmation.verifyPercentageApplied();
-            await Assertions.expectElementToHaveText(
-              Matchers.getElementByID('custom-amount-input'),
+            await TransactionPayConfirmation.verifyCustomAmount(
               '125',
-              { description: '25% of $500 USDC should set amount to $125' },
+              '25% of $500 USDC should set amount to $125',
             );
             await TransactionPayConfirmation.clearAmount();
 
             await TransactionPayConfirmation.tapPercentage(50);
             await TransactionPayConfirmation.verifyPercentageApplied();
-            await Assertions.expectElementToHaveText(
-              Matchers.getElementByID('custom-amount-input'),
+            await TransactionPayConfirmation.verifyCustomAmount(
               '250',
-              { description: '50% of $500 USDC should set amount to $250' },
+              '50% of $500 USDC should set amount to $250',
             );
             await TransactionPayConfirmation.clearAmount();
 
@@ -116,14 +115,7 @@ appiumTest.describe(
               '+$50',
             );
             await MoneyHomeView.tapActivityItemByLabel('Converted');
-            await Assertions.expectElementToHaveText(
-              Matchers.getElementByID('transaction-details-status'),
-              'Confirmed',
-              {
-                description: 'Transaction status should be Confirmed',
-                timeout: 15_000,
-              },
-            );
+            await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
       },
