@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
@@ -29,13 +30,16 @@ import { transformFillsToTransactions } from '../../utils/transactionTransforms'
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import {
   PERPS_BALANCE_CHAIN_ID,
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -48,6 +52,10 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
@@ -76,7 +84,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
       trackEvent(
-        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
           .addProperties({
             transaction_type: `perps_${transaction.type}`,
             transaction_status: 'confirmed',
@@ -88,12 +96,20 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      // Navigate to the position transaction detail screen
-      navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
+      navigateToPerpsTransactionDetails(
+        navigation,
         transaction,
-      });
+        isTransactionsRedesignEnabled,
+        isTestnet,
+      );
     },
-    [navigation, trackEvent, createEventBuilder],
+    [
+      navigation,
+      isTransactionsRedesignEnabled,
+      isTestnet,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Render right content for trades

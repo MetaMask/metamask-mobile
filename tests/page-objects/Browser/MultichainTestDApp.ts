@@ -6,8 +6,8 @@ import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { MultichainTestDappViewSelectorsIDs } from '../../selectors/Browser/MultichainTestDapp.selectors.js';
 import { createLogger } from '../../framework/logger.js';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
@@ -329,23 +329,25 @@ class MultichainTestDApp {
   }
 
   async tapConfirmButton(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementById(
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      {
+        checkForDisplayed: true,
+        checkEnabled: true,
+        elemDescription: 'MultichainTestDApp confirm button',
+      },
     );
-    await PlaywrightGestures.waitAndTap(el, {
-      checkForDisplayed: true,
-      checkForEnabled: true,
-    });
   }
 
   async tapCancelButton(timeout = 15_000): Promise<void> {
-    const el = await PlaywrightMatchers.getElementById(
-      ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON),
+      {
+        timeout,
+        checkForDisplayed: true,
+        elemDescription: 'MultichainTestDApp cancel button',
+      },
     );
-    await PlaywrightGestures.waitAndTap(el, {
-      timeout,
-      checkForDisplayed: true,
-    });
   }
 
   async subscribeToChainEvents(chainId: string): Promise<boolean> {

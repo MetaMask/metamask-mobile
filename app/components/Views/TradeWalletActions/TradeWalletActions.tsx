@@ -38,14 +38,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  usePureBlack,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
-import {
-  getElevatedSurfaceColor,
-  useElevatedSurface,
-} from '../../../util/theme/themeUtils';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PerpsMode } from '@metamask/perps-controller';
 import {
@@ -133,10 +126,8 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
-  const isPureBlack = usePureBlack();
-  const theme = useTheme();
-  const { colors } = theme;
+  const surfaceClass = 'bg-elevated1';
+  const { colors } = useTheme();
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -356,7 +347,9 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
-  const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+  // Svg fill/stroke take color strings, not classes, so resolve the surface
+  // class to its color value.
+  const elevatedSurfaceColor = tw.color(surfaceClass);
   const layout = buttonLayout as NonNullable<
     TradeWalletActionsParams['buttonLayout']
   >;
@@ -458,7 +451,7 @@ function TradeWalletActions() {
           testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
           style={tw.style(
             `${surfaceClass} p-4 rounded-t-2xl px-0`,
-            isPureBlack && 'border-t border-l border-r border-muted',
+            'border-t border-l border-r border-alternative',
           )}
         >
           {actionList}
@@ -469,7 +462,7 @@ function TradeWalletActions() {
           <View
             style={tw.style(
               `${surfaceClass} flex-1 rounded-bl-2xl`,
-              isPureBlack && 'border-l border-b border-muted',
+              'border-l border-b border-alternative',
             )}
           />
           <BottomShape
@@ -483,29 +476,27 @@ function TradeWalletActions() {
           <View
             style={tw.style(
               `${surfaceClass} flex-1 rounded-br-2xl`,
-              isPureBlack && 'border-r border-b border-muted',
+              'border-r border-b border-alternative',
             )}
           />
-          {isPureBlack ? (
-            <View
-              pointerEvents="none"
-              style={tw.style('absolute bottom-0 inset-x-0 items-center')}
-              testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
-            >
-              <BottomShape
-                width={bottomShapeMaskWidth + 4}
-                height={bottomMaskHeight}
-                peakHeight={16}
-                peakBezierLength={25}
-                baseBezierLength={55}
-                strokeOnly
-                pathProps={{
-                  stroke: colors.border.muted,
-                  strokeWidth: 2,
-                }}
-              />
-            </View>
-          ) : null}
+          <View
+            pointerEvents="none"
+            style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+          >
+            <BottomShape
+              width={bottomShapeMaskWidth + 4}
+              height={bottomMaskHeight}
+              peakHeight={16}
+              peakBezierLength={25}
+              baseBezierLength={55}
+              strokeOnly
+              pathProps={{
+                stroke: colors.border.alternative,
+                strokeWidth: 2,
+              }}
+            />
+          </View>
         </View>
       </View>
     </Animated.View>
@@ -513,13 +504,8 @@ function TradeWalletActions() {
 
   return (
     <View style={tw.style('flex-1 justify-end')}>
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, backdropAnimatedStyle]}
-      >
-        <Pressable
-          style={StyleSheet.absoluteFillObject}
-          onPress={handleNavigateBack}
-        >
+      <Animated.View style={[StyleSheet.absoluteFill, backdropAnimatedStyle]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleNavigateBack}>
           <OverlayWithHole
             width={windowWidth}
             height={windowHeight + insetsTop}

@@ -97,6 +97,97 @@ describe('buildPerpsOrderParams', () => {
     expect(withTpSl.takeProfitPrice).toBe('95000');
     expect(withTpSl).not.toHaveProperty('stopLossPrice');
   });
+
+  it('omits TP/SL when reduceOnly is true even if values are present', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      reduceOnly: true,
+      isFullClose: true,
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+    });
+
+    expect(params.reduceOnly).toBe(true);
+    expect(params.isFullClose).toBe(true);
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('includes triggerPrice and omits TP/SL for a stop-market order', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: '91000',
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+      maxSlippageBps: 150,
+    });
+
+    expect(params.triggerPrice).toBe('91000');
+    expect(params.maxSlippageBps).toBe(150);
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('preserves the effective TP/SL slippage for a trigger-market order', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: '91000',
+      maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps,
+    });
+
+    expect(params.maxSlippageBps).toBe(
+      ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps,
+    );
+  });
+
+  it('includes triggerPrice, limit price, and default limit slippage for a take-limit order', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'take_profit_limit',
+      triggerPrice: '88000',
+      limitPrice: '87000',
+    });
+
+    expect(params.triggerPrice).toBe('88000');
+    expect(params.price).toBe('87000');
+    expect(params.maxSlippageBps).toBe(
+      ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
+    );
+  });
+
+  it('omits empty triggerPrice and leftover limit price on trigger-market orders', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: ' ',
+      limitPrice: '80000',
+    });
+
+    expect(params).not.toHaveProperty('triggerPrice');
+    expect(params).not.toHaveProperty('price');
+  });
+
+  it('omits usdAmount for an exact full reduce-only close', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      size: '0.123',
+      usdAmount: undefined,
+      reduceOnly: true,
+      isFullClose: true,
+    });
+
+    expect(params).toMatchObject({
+      size: '0.123',
+      reduceOnly: true,
+      isFullClose: true,
+    });
+    expect(params).not.toHaveProperty('usdAmount');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {

@@ -46,6 +46,13 @@ import {
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import {
+  toWeiHex,
+  type TokenHolding,
+} from './mmpay-token-holdings-registry.ts';
+import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { CaipAssetType } from '@metamask/utils';
 import type {
   Fixture,
   ProviderConfig,
@@ -1962,6 +1969,163 @@ class FixtureBuilder {
     });
 
     return this;
+  }
+
+  /**
+   * Seeds native and ERC20 balances (plus fiat rates and network enablement) so
+   * each holding appears in both the wallet home Tokens list and the MM Pay
+   * pay-token picker. Spread a PREDEFINED_TOKENS entry and supply only `amount`.
+   * Pair with applyTokenHoldingsMocks so on-chain balance reads resolve.
+   *
+   * @param holdings - Tokens to seed onto the account.
+   * @param defaultAccount - Account to seed when a holding omits `account`.
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withTokenHoldings(
+    holdings: TokenHolding[],
+    defaultAccount: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
+    const engine = this.fixture.state.engine.backgroundState;
+
+    merge(engine, {
+      CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+      AccountTrackerController: { accounts: {}, accountsByChainId: {} },
+      TokenBalancesController: { tokenBalances: {} },
+      TokenRatesController: { marketData: {} },
+    });
+
+    // Home Tokens list hides zero-balance tokens when this flag is on; seeded
+    // balances are non-zero but keep it explicit for visibility.
+    merge(this.fixture.state.settings, { hideZeroBalanceTokens: false });
+
+    for (const holding of holdings) {
+      const { chainId, symbol, decimals, address, isNative, usdValue } =
+        holding;
+      const account = holding.account ?? defaultAccount;
+
+      // Home Tokens list gates on the holding's chain being enabled.
+      this.withNetworkEnabledMap({ eip155: { [chainId]: true } });
+
+      // Mirror every holding into the unified AssetsController state so the
+      // holding surfaces when the assetsUnifyState flag resolves ON (the
+      // production path for app versions >= 8.3.0), which reroutes the asset
+      // selectors away from the legacy controllers written below.
+      this.applyUnifiedAssetHolding(holding, account);
+
+      if (isNative) {
+        const balanceWei = toWeiHex(holding.amount, decimals);
+        merge(engine.AccountTrackerController, {
+          accountsByChainId: {
+            [chainId]: { [account]: { balance: balanceWei } },
+          },
+        });
+        if (chainId === CHAIN_IDS.MAINNET) {
+          merge(engine.AccountTrackerController, {
+            accounts: { [account]: { balance: balanceWei } },
+          });
+        }
+        merge(engine.CurrencyRateController, {
+          currencyRates: {
+            [symbol.toUpperCase()]: {
+              conversionDate: Date.now() / 1000,
+              conversionRate: usdValue,
+              usdConversionRate: usdValue,
+            },
+          },
+        });
+        continue;
+      }
+
+      const checksumAddress = toChecksumHexAddress(address);
+      this.withTokens(
+        [
+          {
+            address: checksumAddress,
+            symbol,
+            decimals,
+            name: symbol,
+            type: 'erc20',
+          },
+        ],
+        chainId,
+        account,
+      );
+      merge(engine.TokenBalancesController, {
+        tokenBalances: {
+          [account]: {
+            [chainId]: {
+              [checksumAddress]: toWeiHex(holding.amount, decimals),
+            },
+          },
+        },
+      });
+      this.withTokenRates(chainId, checksumAddress, usdValue);
+    }
+
+    return this;
+  }
+
+  /**
+   * Writes a single holding into the unified AssetsController state
+   * (assetsInfo + assetsBalance + assetsPrice + customAssets) under the
+   * holding account's internal id and CAIP-19 asset id. Read back by the
+   * asset-migration selectors when assetsUnifyState is enabled.
+   */
+  private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
+    const engine = this.fixture.state.engine.backgroundState;
+    const accountsController = engine.AccountsController;
+    const accountId =
+      accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      accountsController?.internalAccounts?.selectedAccount;
+    if (!accountId) {
+      return;
+    }
+
+    const decimalChainId = parseInt(holding.chainId, 16);
+    const nativeAssetId =
+      SPOT_PRICES_SUPPORT_INFO[
+        holding.chainId as keyof typeof SPOT_PRICES_SUPPORT_INFO
+      ] ?? `eip155:${decimalChainId}/slip44:60`;
+    const assetId: CaipAssetType = holding.isNative
+      ? (nativeAssetId as CaipAssetType)
+      : `eip155:${decimalChainId}/erc20:${holding.address.toLowerCase()}`;
+
+    merge(engine, {
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [assetId]: {
+            type: holding.isNative ? 'native' : 'erc20',
+            symbol: holding.symbol,
+            name: holding.symbol,
+            decimals: holding.decimals,
+          },
+        },
+        assetsBalance: {
+          [accountId]: {
+            [assetId]: { amount: holding.amount },
+          },
+        },
+        assetsPrice: {
+          [assetId]: {
+            assetPriceType: 'fungible',
+            price: holding.usdValue,
+            usdPrice: holding.usdValue,
+            lastUpdated: Date.now(),
+          },
+        },
+      },
+    });
+
+    if (!holding.isNative) {
+      const assetsController =
+        engine.AssetsController as Partial<AssetsControllerState>;
+      const customAssets: Record<string, CaipAssetType[]> =
+        assetsController.customAssets ?? {};
+      const accountCustom = customAssets[accountId] ?? [];
+      customAssets[accountId] = [...new Set([...accountCustom, assetId])];
+      assetsController.customAssets = customAssets;
+    }
   }
 
   /**

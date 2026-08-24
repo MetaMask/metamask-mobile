@@ -3,7 +3,6 @@ import type {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
-import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
@@ -26,11 +25,15 @@ import {
   SWAPS_CTA_BUTTON_COLOR_AB_KEY,
   SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
   SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-} from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
+} from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { useMemo } from 'react';
 
 import {
@@ -82,6 +85,10 @@ export default function useSubmitBridgeTx() {
     SWAPS_CTA_BUTTON_COLOR_VARIANTS,
     SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
   );
+  const {
+    variantName: chainValueOrderVariantName,
+    isActive: isChainValueOrderAbActive,
+  } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -128,6 +135,15 @@ export default function useSubmitBridgeTx() {
       );
     }
 
+    if (isChainValueOrderAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          CHAIN_VALUE_ORDER_AB_KEY,
+          chainValueOrderVariantName,
+        ),
+      );
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
@@ -138,6 +154,8 @@ export default function useSubmitBridgeTx() {
     ambientColorVariantName,
     isCtaButtonColorAbActive,
     ctaButtonColorVariantName,
+    isChainValueOrderAbActive,
+    chainValueOrderVariantName,
   ]);
 
   const submitBridgeTx = async ({
@@ -167,9 +185,7 @@ export default function useSubmitBridgeTx() {
       async () => {
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse: quoteResponse as Parameters<
-              BridgeStatusController['submitIntent']
-            >[0]['quoteResponse'],
+            quoteResponse,
             accountAddress: walletAddress,
             location,
             abTests,
@@ -180,10 +196,7 @@ export default function useSubmitBridgeTx() {
         }
         return await Engine.context.BridgeStatusController.submitTx(
           walletAddress,
-          {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          } as Parameters<BridgeStatusController['submitTx']>[1],
+          quoteResponse,
           stxEnabled,
           undefined, // quotesReceivedContext
           location,

@@ -228,6 +228,7 @@ These tags categorize tests by feature area and can be used with `--grep` for ad
 | `@PerformanceAssetLoading` | Asset and balance loading performance                         |
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
+| `@PerformanceRewards`      | Rewards tab time-to-content (onboarding or dashboard shell)   |
 
 ### Tagging Convention
 
@@ -275,6 +276,7 @@ Tests for users with existing wallets:
 
 - `asset-balances.spec.ts` - Asset balance loading times
 - `asset-view.spec.ts` - Individual asset view performance
+- `rewards-tab-time-to-content.spec.ts` - Rewards tab time-to-content (onboarding or dashboard)
 - `eth-swap-flow.spec.ts` - ETH swap transaction flow
 - `cross-chain-swap-flow.spec.ts` - Cross-chain swap performance
 - `import-multiple-srps.spec.ts` - Multiple SRP import performance
@@ -529,16 +531,6 @@ Complete onboarding flow for importing a wallet:
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 
 await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
-```
-
-### `dismisspredictionsModalPlaywright()`
-
-Dismiss the Predictions modal:
-
-```typescript
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
-
-await dismisspredictionsModalPlaywright();
 ```
 
 ### `selectAccountByDevice(deviceName)`

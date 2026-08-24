@@ -3,6 +3,8 @@ import {
   HardwareWalletError,
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
+  getDmkErrorFromTag,
+  DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
 import { add0x } from '@metamask/utils';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
@@ -132,7 +134,7 @@ function parseLedgerStatusCode(
     // Special handling for ErrorCode.UserRejected which can mean user rejected OR blind signing
     if (hexCode === USER_REJECTED_STATUS_CODE && originalError) {
       const message = originalError.message?.toLowerCase() || '';
-      if (message.includes('blind sign')) {
+      if (message.includes('blind sign') || message.includes('contract data')) {
         return createHardwareWalletError(
           ErrorCode.DeviceStateBlindSignNotSupported,
           walletType,
@@ -157,55 +159,173 @@ function parseLedgerStatusCode(
   );
 }
 
-/**
- * Parse error by checking error name
- * Ledger packages throws errors with specific names like 'DisconnectedDevice'
- */
-function parseErrorByName(
-  error: unknown,
+function parseTransportStatusError(
+  error: object,
   walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
-  if (
-    error === null ||
-    typeof error !== 'object' ||
-    !('name' in error) ||
-    typeof error.name !== 'string'
-  ) {
+  const statusCode = extractStatusCode(error);
+  if (statusCode === null) {
     return null;
   }
 
-  const name = error.name;
+  return parseLedgerStatusCode(
+    statusCode,
+    walletType,
+    isErrorLike(error) ? error : undefined,
+  );
+}
 
-  // TransportStatusError requires special handling - extract and parse the status code
-  // The error name alone doesn't tell us what went wrong; the statusCode does
-  if (name === 'TransportStatusError') {
-    const statusCode = extractStatusCode(error);
-    if (statusCode !== null) {
-      return parseLedgerStatusCode(
-        statusCode,
-        walletType,
-        isErrorLike(error) ? error : undefined,
-      );
-    }
-    // If no status code found, fall through to unknown error
+/**
+ * Extract a DMK device status word from an error's `errorCode` field.
+ *
+ * DMK `DeviceExchangeError` subclasses carry the raw APDU status word as a
+ * 4-hex-digit string WITHOUT the `0x` prefix (e.g. `'6a80'`), unlike legacy
+ * `TransportStatusError.statusCode` (a number). Only well-formed 4-hex-digit
+ * strings are treated as status words; command-specific symbolic error codes
+ * (e.g. `'invalidAddress'`) are ignored.
+ */
+function getDmkErrorCode(error: object): string | null {
+  if (!('errorCode' in error)) {
     return null;
   }
+  const errorCode = (error as Record<string, unknown>).errorCode;
+  if (typeof errorCode !== 'string') {
+    return null;
+  }
+  return /^[0-9a-fA-F]{4}$/.test(errorCode) ? errorCode : null;
+}
 
-  // Check known Ledger error names
-  if (ERROR_NAME_MAPPINGS[name]) {
-    return createHardwareWalletError(
-      ERROR_NAME_MAPPINGS[name],
+function parseDmkError(
+  error: object,
+  walletType?: HardwareWalletType | null,
+): HardwareWalletError | null {
+  const dmk = getDmkErrorFromTag(error);
+  if (dmk) {
+    return createHardwareWalletError(dmk.code, walletType, undefined, {
+      cause: isErrorLike(error) ? error : undefined,
+      metadata: { errorName: dmk.tag },
+    });
+  }
+
+  // Unrecognized DMK tag: a DeviceExchangeError subclass still carries the
+  // device status word in `errorCode`. Classify through the Ledger status
+  // table so sign refusals (e.g. 0x6a80 blind signing disabled) surface as
+  // actionable codes instead of generic Unknown errors.
+  const dmkErrorCode = getDmkErrorCode(error);
+  if (dmkErrorCode !== null) {
+    const statusCode = parseInt(dmkErrorCode, 16);
+    return parseLedgerStatusCode(
+      statusCode,
       walletType,
-      undefined,
-      {
-        cause: isErrorLike(error) ? error : undefined,
-        metadata: { errorName: name },
-      },
+      isErrorLike(error) ? error : undefined,
     );
   }
 
   return null;
 }
+
+/**
+ * Parse error by checking its `name` property, then DMK `_tag` as fallback.
+ *
+ * Legacy @ledgerhq/errors identify themselves via the standard JS `error.name`
+ * (e.g. 'DisconnectedDevice', 'TransportStatusError'). DMK errors do not set
+ * `name`; those are resolved via SDK `getDmkErrorFromTag` when no legacy
+ * `name` is present. This preserves "name over _tag" precedence: when both
+ * fields are present, `name` wins and `_tag` is ignored.
+ */
+function parseErrorByName(
+  error: unknown,
+  walletType?: HardwareWalletType | null,
+): HardwareWalletError | null {
+  if (error === null || typeof error !== 'object') {
+    return null;
+  }
+
+  const name =
+    'name' in error && typeof error.name === 'string' ? error.name : null;
+
+  // DMK errors do not have a legacy name. A present name always takes precedence.
+  if (!name) {
+    return parseDmkError(error, walletType);
+  }
+
+  // TransportStatusError requires its status code to determine the error.
+  if (name === 'TransportStatusError') {
+    return parseTransportStatusError(error, walletType);
+  }
+
+  const errorCode = ERROR_NAME_MAPPINGS[name];
+  if (!errorCode) {
+    return null;
+  }
+
+  return createHardwareWalletError(errorCode, walletType, undefined, {
+    cause: isErrorLike(error) ? error : undefined,
+    metadata: { errorName: name },
+  });
+}
+
+/**
+ * Mobile-owned message→ErrorCode patterns for {@link parseErrorByMessage}.
+ *
+ * Fallback: evaluated AFTER the SDK-owned `DMK_MESSAGE_PATTERNS`, so these
+ * only handle legacy/BLE/OS errors DMK doesn't recognise. MUST stay
+ * substring-disjoint from `DMK_MESSAGE_PATTERNS` — overlap would let DMK
+ * shadow these and misroute legacy errors. Guarded by the collision-invariant
+ * test in parser.test.ts.
+ */
+export const LOCAL_MESSAGE_PATTERNS: {
+  patterns: string[];
+  code: ErrorCode;
+  condition?: (msg: string) => boolean;
+}[] = [
+  {
+    // Ledger devices can only sign EIP-712 typed data with version V4.
+    // The keyring throws "Ledger: Only version 4 of typed data signing is
+    // supported" for V1/V3 requests.
+    patterns: ['version 4 of typed data', 'only version 4'],
+    code: ErrorCode.DeviceStateOnlyV4Supported,
+  },
+  {
+    patterns: ['disconnected', 'disconnect', 'connection lost'],
+    code: ErrorCode.DeviceDisconnected,
+  },
+  { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
+  {
+    patterns: ['locked', 'unlock'],
+    code: ErrorCode.AuthenticationDeviceLocked,
+  },
+  {
+    patterns: ['blind signing', 'blind sign', 'contract data'],
+    code: ErrorCode.DeviceStateBlindSignNotSupported,
+  },
+  {
+    patterns: ['eth app', 'ethereum app'],
+    code: ErrorCode.DeviceStateEthAppClosed,
+    condition: (msg) =>
+      msg.includes('open') || msg.includes('launch') || msg.includes('start'),
+  },
+  {
+    patterns: ['rejected', 'cancelled', 'refused'],
+    code: ErrorCode.UserRejected,
+  },
+  {
+    patterns: ['not authorized', 'unauthorized'],
+    code: ErrorCode.PermissionNearbyDevicesDenied,
+    condition: (msg) => msg.includes('bluetooth'),
+  },
+  {
+    patterns: ['bluetooth'],
+    code: ErrorCode.BluetoothDisabled,
+    condition: (msg) => msg.includes('off') || msg.includes('disabled'),
+  },
+  {
+    patterns: ['bluetooth'],
+    code: ErrorCode.BluetoothScanFailed,
+    condition: (msg) => msg.includes('scan'),
+  },
+  { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
+];
 
 /**
  * Parse error by checking common patterns in error messages
@@ -228,59 +348,12 @@ function parseErrorByMessage(
     );
   }
 
-  // Map message patterns to error codes
+  // SDK-owned DMK patterns first (DMK is source of truth), local fallback.
   const messagePatterns: {
     patterns: string[];
     code: ErrorCode;
     condition?: (msg: string) => boolean;
-  }[] = [
-    {
-      // Ledger devices can only sign EIP-712 typed data with version V4.
-      // The keyring throws "Ledger: Only version 4 of typed data signing is
-      // supported" for V1/V3 requests.
-      patterns: ['version 4 of typed data', 'only version 4'],
-      code: ErrorCode.DeviceStateOnlyV4Supported,
-    },
-    {
-      patterns: ['disconnected', 'disconnect', 'connection lost'],
-      code: ErrorCode.DeviceDisconnected,
-    },
-    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
-    {
-      patterns: ['locked', 'unlock'],
-      code: ErrorCode.AuthenticationDeviceLocked,
-    },
-    {
-      patterns: ['blind signing', 'blind sign', 'contract data'],
-      code: ErrorCode.DeviceStateBlindSignNotSupported,
-    },
-    {
-      patterns: ['eth app', 'ethereum app'],
-      code: ErrorCode.DeviceStateEthAppClosed,
-      condition: (msg) =>
-        msg.includes('open') || msg.includes('launch') || msg.includes('start'),
-    },
-    {
-      patterns: ['rejected', 'cancelled', 'refused'],
-      code: ErrorCode.UserRejected,
-    },
-    {
-      patterns: ['not authorized', 'unauthorized'],
-      code: ErrorCode.PermissionNearbyDevicesDenied,
-      condition: (msg) => msg.includes('bluetooth'),
-    },
-    {
-      patterns: ['bluetooth'],
-      code: ErrorCode.BluetoothDisabled,
-      condition: (msg) => msg.includes('off') || msg.includes('disabled'),
-    },
-    {
-      patterns: ['bluetooth'],
-      code: ErrorCode.BluetoothScanFailed,
-      condition: (msg) => msg.includes('scan'),
-    },
-    { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
-  ];
+  }[] = [...DMK_MESSAGE_PATTERNS, ...LOCAL_MESSAGE_PATTERNS];
 
   for (const { patterns, code, condition } of messagePatterns) {
     const matchesPattern = patterns.some((p) => message.includes(p));

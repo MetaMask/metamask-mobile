@@ -42,8 +42,13 @@ import type {
   PredictThePitchPositionsDto,
   PredictThePitchCampaignParticipantOutcomeDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
+  MoneyAccountSweepstakesOutcomeDto,
   FirstPredictOnUsDto,
   VipDashboardDto,
+  VipEquityMultiplierDto,
   VipRefereeMeDto,
   VipFeesResponseDto,
   VipTransactionDto,
@@ -322,6 +327,31 @@ export interface RewardsDataServiceGetPredictThePitchPrizePoolAction {
   handler: RewardsDataService['getPredictThePitchPrizePool'];
 }
 
+export interface RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesStatsMe`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesStatsMe'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesPrizePool'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesDrawProof'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesParticipantOutcome`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesParticipantOutcome'];
+}
+
+export interface RewardsDataServiceRegisterMoneyAccountBindingAction {
+  type: `${typeof SERVICE_NAME}:registerMoneyAccountBinding`;
+  handler: RewardsDataService['registerMoneyAccountBinding'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -350,6 +380,11 @@ export interface RewardsDataServiceGetBenefitsAction {
 export interface RewardsDataServiceGetVIPDashboardAction {
   type: `${typeof SERVICE_NAME}:getVIPDashboard`;
   handler: RewardsDataService['getVIPDashboard'];
+}
+
+export interface RewardsDataServiceGetVipEquityMultiplierAction {
+  type: `${typeof SERVICE_NAME}:getVipEquityMultiplier`;
+  handler: RewardsDataService['getVipEquityMultiplier'];
 }
 
 export interface RewardsDataServiceGetVipRefereeDashboardAction {
@@ -414,6 +449,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
@@ -438,7 +474,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
   | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -646,6 +687,26 @@ export class RewardsDataService {
       this.getPredictThePitchPrizePool.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesStatsMe`,
+      this.getMoneyAccountSweepstakesStatsMe.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`,
+      this.getMoneyAccountSweepstakesPrizePool.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`,
+      this.getMoneyAccountSweepstakesDrawProof.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesParticipantOutcome`,
+      this.getMoneyAccountSweepstakesParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:registerMoneyAccountBinding`,
+      this.registerMoneyAccountBinding.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -668,6 +729,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVIPDashboard`,
       this.getVIPDashboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipEquityMultiplier`,
+      this.getVipEquityMultiplier.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipRefereeDashboard`,
@@ -1675,6 +1740,34 @@ export class RewardsDataService {
   }
 
   /**
+   * Display-only equity multiplier estimate from client-supplied holdings.
+   * Not settlement input (RWDS-1485); client balance is untrusted.
+   */
+  async getVipEquityMultiplier(
+    subscriptionId: string,
+    holdingsUsd: string,
+  ): Promise<VipEquityMultiplierDto | null> {
+    const response = await this.makeRequest(
+      '/vip/equity-multiplier',
+      {
+        method: 'POST',
+        body: JSON.stringify({ holdingsUsd }),
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP equity multiplier failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipEquityMultiplierDto;
+  }
+
+  /**
    * Get the VIP referee stats for the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referee stats, or null when the user is not a VIP referee.
@@ -2174,5 +2267,114 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PredictThePitchPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesStatsMe(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesStatsMeDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesStatsMeDto;
+  }
+
+  async getMoneyAccountSweepstakesPrizePool(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesPrizePoolDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/prize-pool`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes prize pool failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesDrawProof(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesDrawProofDto | null> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/draw-proof`,
+      { method: 'GET' },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes draw proof failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesDrawProofDto;
+  }
+
+  async getMoneyAccountSweepstakesParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesOutcomeDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesOutcomeDto;
+  }
+
+  /**
+   * Register (or re-assert) the Money Account holder address for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @returns `'bound'` on 201/200, or `'conflict'` when the address is already
+   * bound to a different subscription (409).
+   */
+  async registerMoneyAccountBinding(
+    subscriptionId: string,
+    moneyAccountAddress: string,
+  ): Promise<'bound' | 'conflict'> {
+    const response = await this.makeRequest(
+      '/wr/money-account/binding',
+      {
+        method: 'POST',
+        body: JSON.stringify({ moneyAccountAddress }),
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 409) {
+      return 'conflict';
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Register Money Account binding failed: ${response.status}`,
+      );
+    }
+
+    return 'bound';
   }
 }

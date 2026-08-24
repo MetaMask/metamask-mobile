@@ -721,6 +721,21 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
+    it('includes the entry point on screen views', () => {
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackScreenViewed({
+        entry_point: 'homescreen_balance_breakdown',
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entry_point: 'homescreen_balance_breakdown',
+          surface_type: MONEY_SURFACE_TYPES.SCREEN,
+        }),
+      );
+    });
+
     it('trackBottomSheetViewed fires MONEY_SURFACE_VIEWED with surface_type BOTTOM_SHEET', () => {
       const { result } = renderHook(() => useMoneyAnalytics());
 

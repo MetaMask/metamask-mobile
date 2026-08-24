@@ -115,8 +115,13 @@ export interface MetaMaskPayFiatFlags {
   >;
 }
 
-export interface MetaMaskPayHardwareFlags {
-  enabled: boolean;
+export interface PayHardwareConfig {
+  enabled?: boolean;
+}
+
+export interface PayHardwareFlags {
+  default: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
@@ -356,15 +361,47 @@ export const selectMetaMaskPayFiatFlags = createSelector(
   },
 );
 
+interface RawPayHardwareFlag {
+  default?: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
+}
+
 export const selectMetaMaskPayHardwareFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayHardwareFlags => {
+  (featureFlags): PayHardwareFlags => {
     const raw = featureFlags?.confirmations_pay_hardware as
-      | Record<string, Json>
+      | RawPayHardwareFlag
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      default: {
+        enabled: raw?.default?.enabled ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      },
+      overrides: raw?.overrides,
+    };
+  },
+);
+
+/**
+ * Resolves the effective hardware wallet config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
+ */
+export const selectPayHardwareConfig = createSelector(
+  [
+    selectMetaMaskPayHardwareFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayHardwareConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
+
+    if (!override) {
+      return flags.default;
+    }
+
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
     };
   },
 );

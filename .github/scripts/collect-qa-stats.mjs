@@ -17,8 +17,9 @@
  * Renaming a key in the JSON creates a new series in the DB while the old name stops getting new data, 
  * which breaks the Grafana time series continuity. Adding and removing keys is fine.
  *
- * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
- * renaming either side silently drops that metric from the output.
+ * Artifact names used below are coupled to `name:` fields in run-appium-e2e-workflow.yml
+ * (`playwright-json-report-${test-suite-name}`). Renaming either side silently drops
+ * that metric from the output.
  *
  * MetaMetrics (top-level `metametrics` namespace): static scan of
  * `tests/helpers/analytics/expectations/*.ts` plus `LEGACY_INLINE_METAMETRICS_PATHS`
@@ -30,9 +31,9 @@
  *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
  *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
  *     "integration":   { "total_tests_run": 11,    "total_tests_skipped": 0 },
- *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
- *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
- *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "e2e":           { "total_tests_run": 232,   "total_tests_skipped": 29,
+ *                        "main_tests_run": 200, "main_android_tests_run": 200, "main_ios_tests_run": 200,
+ *                        "confirmations_tests_run": 40 },
  *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
  *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
  *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
@@ -43,12 +44,27 @@
 import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
-import { join } from 'path';
+import { createRequire } from 'module';
+import { join, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const require = createRequire(import.meta.url);
+const {
+  getE2EArtifactDimensions,
+  countExecutedTestsFromPlaywrightJson,
+  aggregateTimingsFromPlaywrightJson,
+  countSkips,
+  countDefinedTests,
+} = require('./qa-stats-e2e.cjs');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
-if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
+function isExecutedDirectly() {
+  const self = fileURLToPath(import.meta.url);
+  const invoked = process.argv[1] && resolve(process.argv[1]);
+  return Boolean(invoked) && invoked === self;
+}
 
 
 // ---------------------------------------------------------------------------
@@ -57,7 +73,7 @@ if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 // change — the collectors below rely on them for skip/defined counts.
 // ---------------------------------------------------------------------------
 const SCAN_APP_DIR        = 'app';
-const SCAN_E2E_SMOKE_DIRS = ['tests/smoke'];
+const SCAN_E2E_SMOKE_DIRS = ['tests/smoke-appium'];
 /** Declarative MetaMetrics expectations (`AnalyticsExpectations`) — primary source for QA event coverage. */
 const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
 /**
@@ -65,7 +81,7 @@ const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
  * Remove paths here when migrated to the expectations folder so the slim parser is enough.
  */
 const LEGACY_INLINE_METAMETRICS_PATHS = [
-  'tests/smoke/confirmations/send/metricsValidationHelper.ts',
+  'tests/smoke-appium/confirmations/send/metricsValidationHelper.ts',
 ];
 const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
 const SCAN_PERFORMANCE_DIR = 'tests/performance';
@@ -242,67 +258,6 @@ async function downloadArtifact(artifactName) {
 // ---------------------------------------------------------------------------
 
 /**
- * Counts the number of individual test cases that are skipped in a source string.
- *
- * Two categories:
- *   1. Explicit: `it.skip()` / `test.skip()` outside any `describe.skip` block — 1 skipped test each.
- *   2. Implicit: every `it()` / `test()` call (including `.skip` variants) inside a `describe.skip`
- *      block, because the whole block is skipped by the runner.
- *
- * `describe.skip` blocks are extracted via brace matching so their contents are
- * not double-counted against the explicit-skip pass.
- *
- * @param {string} source
- * @returns {number}
- */
-function countSkips(source) {
-  // Find all describe.skip blocks using brace matching.
-  const describeBlocks = [];
-  const re = /\bdescribe\.skip\s*\(/g;
-  let m;
-  while ((m = re.exec(source)) !== null) {
-    const braceStart = source.indexOf('{', m.index + m[0].length);
-    if (braceStart === -1) continue;
-    let depth = 1, pos = braceStart + 1;
-    while (pos < source.length && depth > 0) {
-      if (source[pos] === '{') depth++;
-      else if (source[pos] === '}') depth--;
-      pos++;
-    }
-    describeBlocks.push({ start: m.index, end: pos, content: source.slice(braceStart + 1, pos - 1) });
-  }
-
-  // Strip describe.skip regions from source (reverse order to preserve indices).
-  let outside = source;
-  for (let i = describeBlocks.length - 1; i >= 0; i--) {
-    outside = outside.slice(0, describeBlocks[i].start) + outside.slice(describeBlocks[i].end);
-  }
-
-  // Part 1: it.skip / test.skip outside describe.skip blocks.
-  const explicitSkips = (outside.match(/\b(?:it|test)\.skip\s*\(/g) ?? []).length;
-
-  // Part 2: all it() / test() (including .skip) inside describe.skip blocks.
-  const implicitSkips = describeBlocks.reduce(
-    (sum, { content }) => sum + (content.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length,
-    0,
-  );
-
-  return explicitSkips + implicitSkips;
-}
-
-/**
- * Counts all individual test definitions in a source string — both active and
- * skipped. Matches it(, it.skip(, test(, test.skip(.
- * Excludes describe() which is a grouper, not an individual test.
- *
- * @param {string} source
- * @returns {number}
- */
-function countDefinedTests(source) {
-  return (source.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length;
-}
-
-/**
  * Recursively collects file paths under `dir` that satisfy `predicate(filename)`.
  *
  * @param {string} dir
@@ -311,8 +266,17 @@ function countDefinedTests(source) {
  */
 async function walkFiles(dir, predicate) {
   const results = [];
-  const entries = await readdir(dir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return results;
+    throw err;
+  }
   for (const entry of entries) {
+    if (entry.isDirectory() && entry.name === 'api-specs') {
+      continue;
+    }
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...(await walkFiles(fullPath, predicate)));
@@ -925,116 +889,80 @@ async function collectUnitTestCount() {
 }
 
 /**
- * Parses a JUnit artifact name into canonical E2E dimensions.
+ * Reads Playwright JSON report from an extracted artifact directory.
  *
- * Returns null for non-E2E artifacts.
- *
- * @param {string} artifactName
- * @returns {{ channel: 'main'|'flask', platform: 'android'|'ios', suiteTag: string|null } | null}
+ * @param {string} destDir
+ * @returns {Promise<object>}
  */
-function getE2EArtifactDimensions(artifactName) {
-  const match = artifactName.match(/^test-e2e-(.+)-junit-results$/);
-  if (!match) return null;
-
-  let jobName = match[1];
-  // Strip the default 'main-' prefix applied by run-e2e-workflow.yml
-  if (jobName.startsWith('main-')) {
-    jobName = jobName.slice('main-'.length);
+async function readPlaywrightJsonReport(destDir) {
+  const candidates = [
+    join(destDir, 'playwright-report.json'),
+    join(destDir, 'tests/test-reports/playwright-json/playwright-report.json'),
+  ];
+  for (const candidate of candidates) {
+    try {
+      // Read directly — do not access() first (TOCTOU / CodeQL).
+      return JSON.parse(await readFile(candidate, 'utf8'));
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') throw err;
+    }
   }
-
-  const flaskMatch = jobName.match(/^flask-(android|ios)-smoke-\d+$/);
-  if (flaskMatch) {
-    return { channel: 'flask', platform: flaskMatch[1], suiteTag: null };
+  const found = await walkFiles(destDir, (name) => name === 'playwright-report.json');
+  if (found.length === 0) {
+    throw new Error(`playwright-report.json not found in ${destDir}`);
   }
-
-  const mainMatch = jobName.match(/^(.+)-(android|ios)-smoke-\d+$/);
-  if (!mainMatch) return null;
-
-  return {
-    channel: 'main',
-    platform: mainMatch[2],
-    suiteTag: mainMatch[1].replace(/-/g, '_'),
-  };
+  return JSON.parse(await readFile(found[0], 'utf8'));
 }
 
-function getNumericAttribute(tag, name) {
-  const match = tag.match(new RegExp(`${name}="(\\d+)"`));
-  return match ? Number(match[1]) : 0;
-}
-
-function countExecutedTestsFromJUnitXml(rawXml) {
-  const suiteTags = rawXml.match(/<testsuite\b[^>]*>/g) ?? [];
-  return suiteTags.reduce((total, suiteTag) => {
-    const tests = getNumericAttribute(suiteTag, 'tests');
-    const skipped = getNumericAttribute(suiteTag, 'skipped');
-    return total + Math.max(0, tests - skipped);
-  }, 0);
-}
-
-// Collects all E2E test counts from JUnit artifacts.
+// Collects Appium E2E test counts from Playwright JSON artifacts.
 async function collectE2ECounts() {
   const artifacts = await getArtifactList();
 
-  // Per-platform counts for health signalling
-  const platformCounts = {
-    main: { android: 0, ios: 0 },
-    flask: { android: 0, ios: 0 },
-  };
-  // Per-suite counts from Android only (canonical unique count)
+  const platformCounts = { android: 0, ios: 0 };
   const suiteCounts = {};
 
   const e2eArtifacts = artifacts.filter((a) => getE2EArtifactDimensions(a.name));
-  console.log(`[e2e] found ${e2eArtifacts.length} JUnit artifact(s)`);
+  console.log(`[e2e] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
 
   if (e2eArtifacts.length === 0) {
     console.log(
-      '[e2e] no JUnit artifacts found — skipping JUnit-based e2e counts (see `metametrics` namespace for static event coverage)',
+      '[e2e] no Appium Playwright report artifacts found — skipping run counts (see `metametrics` namespace for static event coverage)',
     );
-    return {};
-  }
+  } else {
+    for (const artifact of e2eArtifacts) {
+      const { platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
 
-  for (const artifact of e2eArtifacts) {
-    const { channel, platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
+      const destDir = await downloadArtifact(artifact.name);
+      const report = await readPlaywrightJsonReport(destDir);
+      const count = countExecutedTestsFromPlaywrightJson(report);
+      console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
 
-    const destDir = await downloadArtifact(artifact.name);
-    const junitXml = await readFile(join(destDir, 'junit.xml'), 'utf8');
-    const count = countExecutedTestsFromJUnitXml(junitXml);
-    console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
+      platformCounts[platform] += count;
 
-    platformCounts[channel][platform] += count;
-
-    // Per-suite breakdown uses Android only to represent unique test count
-    if (channel === 'main' && platform === 'android' && suiteTag) {
-      suiteCounts[suiteTag] = (suiteCounts[suiteTag] ?? 0) + count;
+      if (platform === 'android' && suiteTag) {
+        suiteCounts[suiteTag] = (suiteCounts[suiteTag] ?? 0) + count;
+      }
     }
   }
 
-  const androidMain = platformCounts.main.android;
-  const iosMain = platformCounts.main.ios;
-  const androidFlask = platformCounts.flask.android;
-  const iosFlask = platformCounts.flask.ios;
+  const androidMain = platformCounts.android;
+  const iosMain = platformCounts.ios;
 
   const result = {};
 
-  // Canonical unique counts (Android as source of truth — same tests run on iOS)
-  // A missing key means that channel did not run; present-but-zero means it ran and found nothing.
-  if (androidMain > 0 || iosMain > 0) {
-    result.main_tests_run = androidMain; // unique count
-    result.main_android_tests_run = androidMain; // platform health signal
-    result.main_ios_tests_run = iosMain; // drops to 0 if iOS infrastructure is broken
-  }
-  if (androidFlask > 0 || iosFlask > 0) {
-    result.flask_tests_run = androidFlask; // unique count
-    result.flask_android_tests_run = androidFlask;
-    result.flask_ios_tests_run = iosFlask;
-  }
-  result.total_tests_run = androidMain + androidFlask;
+  if (e2eArtifacts.length > 0) {
+    if (androidMain > 0 || iosMain > 0) {
+      result.main_tests_run = androidMain;
+      result.main_android_tests_run = androidMain;
+      result.main_ios_tests_run = iosMain;
+    }
+    result.total_tests_run = androidMain;
 
-  for (const [tag, count] of Object.entries(suiteCounts)) {
-    result[`${tag}_tests_run`] = count;
+    for (const [tag, count] of Object.entries(suiteCounts)) {
+      result[`${tag}_tests_run`] = count;
+    }
   }
 
-  // Static scan — independent of which platform/channel ran
   const isSpecTs = (name) => PATTERN_E2E_SPEC_FILE.test(name);
   let defined = 0, skips = 0;
   for (const dir of SCAN_E2E_SMOKE_DIRS) {
@@ -1051,128 +979,22 @@ async function collectE2ECounts() {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// E2E per-spec wall-clock timings (top-level `e2e_test_times` namespace)
-// Consumed by .github/scripts/e2e-split-tags-shards.mjs (PR #28667) for
-// time-based bin-packing of the smoke-shard distribution.
-// ---------------------------------------------------------------------------
-
-/**
- * Decodes XML entities that may appear in attribute values (`&amp;`, `&quot;`,
- * `&#39;`, etc.). The merged junit.xml only escapes a handful of characters,
- * so a tiny lookup table is sufficient.
- *
- * @param {string} value
- * @returns {string}
- */
-function decodeXmlEntities(value) {
-  return value
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&');
-}
-
-/**
- * Extracts every `<testcase>` open tag from a JUnit XML string and returns
- * its `classname` and `time` attributes.
- *
- * The merged `junit.xml` produced by `e2e-merge-detox-junit-reports.mjs`
- * uses `classNameTemplate: '{filepath}'` (see `tests/jest.e2e.detox.config.js`),
- * so `classname` holds the absolute path to the spec file. Self-closing
- * tags (`<testcase ... />`) and tags wrapping `<failure>`/`<skipped>` are
- * both supported because we only inspect the open-tag string.
- *
- * @param {string} rawXml
- * @returns {Array<{ classname: string, time: number }>}
- */
-export function parseTestcaseTimings(rawXml) {
-  const out = [];
-  const tagRe = /<testcase\b[^>]*>/g;
-  let m;
-  while ((m = tagRe.exec(rawXml)) !== null) {
-    const tag = m[0];
-    const classMatch = tag.match(/\bclassname="([^"]*)"/);
-    const timeMatch = tag.match(/\btime="([^"]*)"/);
-    if (!classMatch || !timeMatch) continue;
-    const classname = decodeXmlEntities(classMatch[1]);
-    const time = Number(timeMatch[1]);
-    if (!Number.isFinite(time)) continue;
-    out.push({ classname, time });
-  }
-  return out;
-}
-
-/**
- * Maps a JUnit `classname` to the canonical repo-relative spec path used as
- * the `e2e_test_times` key (e.g. `tests/smoke/.../foo.spec.ts`).
- *
- * `classname` may be absolute (`/var/folders/.../tests/smoke/foo.spec.ts`),
- * already relative, or use OS-specific separators. Anything that does not
- * resolve to a `tests/...spec.{ts,tsx,js,jsx}` path is rejected so that
- * non-spec entries cannot pollute the output.
- *
- * @param {string} classname
- * @returns {string|null}
- */
-export function normalizeSpecPath(classname) {
-  if (!classname) return null;
-  const unified = classname.replace(/\\/g, '/');
-  const idx = unified.indexOf('tests/');
-  if (idx === -1) return null;
-  const rel = unified.slice(idx);
-  if (!/\.spec\.(ts|tsx|js|jsx)$/.test(rel)) return null;
-  return rel;
-}
-
-/**
- * Folds the testcase timings parsed from one junit.xml into an accumulator
- * shaped `{ <spec>: { android?: number, ios?: number } }`. Duplicate
- * testcases for the same spec are summed; non-positive durations are
- * ignored to avoid corrupting the consumer's median fallback.
- *
- * @param {string} rawXml
- * @param {'android' | 'ios'} platform
- * @param {Record<string, Record<string, number>>} acc
- */
-export function aggregateTimingsFromJUnit(rawXml, platform, acc) {
-  for (const { classname, time } of parseTestcaseTimings(rawXml)) {
-    if (time <= 0) continue;
-    const spec = normalizeSpecPath(classname);
-    if (!spec) continue;
-    const entry = acc[spec] ?? (acc[spec] = {});
-    entry[platform] = (entry[platform] ?? 0) + time;
-  }
-}
-
-/**
- * Builds the `e2e_test_times` map consumed by PR #28667's shard splitter.
- *
- * Only `main` channel artifacts are considered; flask runs the same spec
- * files but on a separate matrix, so including them would collide on the
- * spec-path key with potentially different durations.
- *
- * @returns {Promise<Record<string, { android?: number, ios?: number }>>}
- */
 async function collectE2ETestTimes() {
   const artifacts = await getArtifactList();
   const e2eArtifacts = artifacts
     .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
-    .filter(({ dims }) => dims && dims.channel === 'main');
+    .filter(({ dims }) => dims);
 
-  console.log(`[e2e_test_times] found ${e2eArtifacts.length} main-channel JUnit artifact(s)`);
+  console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
   if (e2eArtifacts.length === 0) return {};
 
   const acc = {};
   for (const { artifact, dims } of e2eArtifacts) {
     const destDir = await downloadArtifact(artifact.name);
-    const junitXml = await readFile(join(destDir, 'junit.xml'), 'utf8');
-    aggregateTimingsFromJUnit(junitXml, dims.platform, acc);
+    const report = await readPlaywrightJsonReport(destDir);
+    aggregateTimingsFromPlaywrightJson(report, dims.platform, acc);
   }
 
-  // Round to 3 decimals to match the shape of tests/e2e-test-times.json.
   for (const spec of Object.keys(acc)) {
     for (const platform of Object.keys(acc[spec])) {
       acc[spec][platform] = Math.round(acc[spec][platform] * 1000) / 1000;
@@ -1265,6 +1087,10 @@ async function collectFeatureFlagCoverage() {
 // ---------------------------------------------------------------------------
 
 async function main() {
+  if (!GITHUB_TOKEN) {
+    throw new Error('Missing required GITHUB_TOKEN env var');
+  }
+
   const stats = {};
 
   const collectors = [
@@ -1294,7 +1120,9 @@ async function main() {
   console.log(`✅ QA stats written to ${outputPath}:`, stats);
 }
 
-main().catch((err) => {
-  console.error('\n❌ Unexpected error:', err);
-  process.exit(1);
-});
+if (isExecutedDirectly()) {
+  main().catch((err) => {
+    console.error('\n❌ Unexpected error:', err);
+    process.exit(1);
+  });
+}
