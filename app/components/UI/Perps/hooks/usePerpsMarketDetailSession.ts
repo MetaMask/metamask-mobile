@@ -502,6 +502,15 @@ export function usePerpsMarketDetailSession({
       generationTrigger === 'background_resume'
         ? foregroundDeliveryBaselineRef.current
         : null;
+    const contextSwitchDeliveryBaseline =
+      generationTrigger === 'account_switch' ||
+      generationTrigger === 'network_switch'
+        ? {
+            deliveryBaselines: getStreamDeliveryRevisions(),
+            connectionGenerationBaseline:
+              PerpsConnectionManager.getConnectionGeneration(),
+          }
+        : null;
     foregroundDeliveryBaselineRef.current = null;
     activeSessionRef.current = {
       id,
@@ -514,7 +523,7 @@ export function usePerpsMarketDetailSession({
       sectionStates: {},
       requiresCandleFreshness:
         configuredChartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-      ...(foregroundDeliveryBaseline ?? {}),
+      ...(foregroundDeliveryBaseline ?? contextSwitchDeliveryBaseline ?? {}),
       timeout,
     };
     setIsSessionActive(true);
