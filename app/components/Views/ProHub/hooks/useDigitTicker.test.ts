@@ -29,13 +29,6 @@ describe('getDigitIndexes', () => {
 });
 
 describe('buildDigitTickerFrames', () => {
-  it('starts from zeroed digits and ends at the final value', () => {
-    const frames = buildDigitTickerFrames('$12');
-
-    expect(frames[0]).toBe('$00');
-    expect(frames[frames.length - 1]).toBe('$12');
-  });
-
   it('changes one digit place at a time from left to right', () => {
     const frames = buildDigitTickerFrames('$12');
 

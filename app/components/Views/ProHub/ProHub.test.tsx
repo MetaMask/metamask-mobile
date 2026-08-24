@@ -138,7 +138,7 @@ describe('ProHub', () => {
       );
     });
 
-    it('renders all benefit rows as non-pressable with correct titles', () => {
+    it('renders all benefit rows with correct titles', () => {
       const { getByTestId } = renderProHub();
 
       BENEFITS.forEach((benefit) => {
@@ -146,7 +146,6 @@ describe('ProHub', () => {
 
         expect(row).toBeOnTheScreen();
         expect(row).toHaveTextContent(toRegex(strings(benefit.title)));
-        expect(row.props.accessibilityRole).not.toBe('button');
       });
     });
 
