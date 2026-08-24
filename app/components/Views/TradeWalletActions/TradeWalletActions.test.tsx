@@ -392,17 +392,9 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-let mockIsPureBlack = false;
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
-  usePureBlack: () => mockIsPureBlack,
-}));
-
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsPureBlack = false;
     mockParentCanGoBack = true;
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     (
@@ -486,42 +478,6 @@ describe('TradeWalletActions', () => {
     // Feature flag is disabled by default
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
-    ).toBeNull();
-  });
-
-  it('renders a bottom cutout stroke when pure black is enabled', () => {
-    mockIsPureBlack = true;
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
-    ).toBeTruthy();
-  });
-
-  it('does not render the bottom cutout stroke when pure black is disabled', () => {
-    mockIsPureBlack = false;
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
     ).toBeNull();
   });
 

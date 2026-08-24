@@ -92,6 +92,8 @@ export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBann
 
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 
+export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
+
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
@@ -105,3 +107,6 @@ export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_
 export const PUSH_PRE_PROMPT_SHOWN = `${prefix}PUSH_PRE_PROMPT_SHOWN`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
+
+/** Persisted while an OAuth round trip is in flight (Android process-death detection). */
+export const OAUTH_IN_PROGRESS = `${prefix}oauthInProgress`;

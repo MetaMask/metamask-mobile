@@ -1,40 +1,21 @@
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { sleep, type EncapsulatedElementType } from '../../framework';
 import { TestSnapBottomSheetSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
-import {
-  PlaywrightAssertions,
-  PlaywrightElement,
-  PlaywrightGestures,
-  sleep,
-} from '../../framework';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 class SnapSignModal {
   get confirmButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
-            { exact: true },
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+    );
   }
 
   get cancelButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//*[contains(@resource-id,"cancel") ` +
-            `and contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.SNAP_FOOTER_BUTTON_ID}")]`,
-        ),
-    });
+    return Matchers.getElementByNativeXPath(
+      `//*[contains(@resource-id,"cancel") ` +
+        `and contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.SNAP_FOOTER_BUTTON_ID}")]`,
+    );
   }
 
   async tapConfirmButton({
@@ -46,20 +27,11 @@ class SnapSignModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        let element: PlaywrightElement | undefined;
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          element = await asPlaywrightElement(this.confirmButton);
-          await element.waitForDisplayed({
-            timeout,
-            timeoutMsg: 'SnapSignModal: confirm button not visible',
-          });
-          await PlaywrightGestures.waitAndTap(element);
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the modal to close
-      },
+    await Gestures.waitAndTap(this.confirmButton, {
+      timeout,
+      elemDescription: 'SnapSignModal confirm button',
     });
+    await sleep(1000); // Wait for the modal to close
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
@@ -74,15 +46,9 @@ class SnapSignModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.cancelButton);
-        await element.waitForDisplayed({
-          timeout,
-          timeoutMsg: 'SnapSignModal: cancel button not visible',
-        });
-        await element.click();
-      },
+    await Gestures.waitAndTap(this.cancelButton, {
+      timeout,
+      elemDescription: 'SnapSignModal cancel button',
     });
     if (shouldCooldown) {
       await sleep(timeToCooldown);

@@ -38,8 +38,8 @@ export const CardHomeSelectors = {
   FREEZE_CARD_TOGGLE: 'freeze-card-toggle',
   VIEW_PIN_BUTTON: 'view-pin-button',
   SET_PIN_BUTTON: 'set-pin-button',
-  CARD_WALLET_ADDRESS: 'card-wallet-address',
   LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM: 'link-money-account-divider-bottom',
   CREDIT_BALANCE_INFO_BUTTON: 'credit-balance-info-button',
   CREDIT_BANNER: 'credit-banner',
+  CARD_ARRIVAL_RIVE: 'card-arrival-rive',
 };
