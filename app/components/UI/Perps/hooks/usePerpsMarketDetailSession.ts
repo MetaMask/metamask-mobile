@@ -90,6 +90,7 @@ interface ActiveDetailSession {
   sectionStates: PerpsMarketDetailSections;
   deliveryBaselines?: StreamDeliveryRevisions;
   connectionGenerationBaseline?: number;
+  requiresConnectionGenerationAdvance?: boolean;
   requiresCandleFreshness: boolean;
   timeout: ReturnType<typeof setTimeout>;
 }
@@ -215,37 +216,41 @@ const hasFreshSectionDelivery = (
   section: PerpsMarketDetailSection,
   baseline: StreamDeliveryRevisions | undefined,
   connectionGenerationBaseline: number | undefined,
+  requiresConnectionGenerationAdvance: boolean,
   requiresCandleFreshness: boolean,
 ): boolean => {
   if (!baseline) {
     return true;
   }
   const current = getStreamDeliveryRevisions();
-  const connectionAdvanced =
+  const connectionFresh =
     connectionGenerationBaseline !== undefined &&
-    PerpsConnectionManager.getConnectionGeneration() >
-      connectionGenerationBaseline;
+    (requiresConnectionGenerationAdvance
+      ? PerpsConnectionManager.getConnectionGeneration() >
+        connectionGenerationBaseline
+      : PerpsConnectionManager.getConnectionGeneration() >=
+        connectionGenerationBaseline);
   switch (section) {
     case PERPS_MARKET_DETAIL_SECTION.PRICE:
       return (
-        connectionAdvanced &&
+        connectionFresh &&
         (current.focusedPrice > baseline.focusedPrice ||
           current.prices > baseline.prices)
       );
     case PERPS_MARKET_DETAIL_SECTION.CHART:
       return (
         !requiresCandleFreshness ||
-        (connectionAdvanced && current.candles > baseline.candles)
+        (connectionFresh && current.candles > baseline.candles)
       );
     case PERPS_MARKET_DETAIL_SECTION.ACCOUNT:
-      return connectionAdvanced && current.account > baseline.account;
+      return connectionFresh && current.account > baseline.account;
     case PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK:
       // Pro readiness is reset by market-context generation and resolves only
       // after the dedicated aggregated order-book socket delivers again.
       return true;
     case PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS:
       return (
-        connectionAdvanced &&
+        connectionFresh &&
         current.positions > baseline.positions &&
         current.orders > baseline.orders
       );
@@ -511,6 +516,9 @@ export function usePerpsMarketDetailSession({
               PerpsConnectionManager.getConnectionGeneration(),
           }
         : null;
+    const requiresConnectionGenerationAdvance =
+      generationTrigger === 'background_resume' ||
+      generationTrigger === 'account_switch';
     foregroundDeliveryBaselineRef.current = null;
     activeSessionRef.current = {
       id,
@@ -524,6 +532,7 @@ export function usePerpsMarketDetailSession({
       requiresCandleFreshness:
         configuredChartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
       ...(foregroundDeliveryBaseline ?? contextSwitchDeliveryBaseline ?? {}),
+      requiresConnectionGenerationAdvance,
       timeout,
     };
     setIsSessionActive(true);
@@ -610,6 +619,7 @@ export function usePerpsMarketDetailSession({
           section,
           session.deliveryBaselines,
           session.connectionGenerationBaseline,
+          session.requiresConnectionGenerationAdvance ?? false,
           session.requiresCandleFreshness,
         )
       ) {
