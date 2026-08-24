@@ -102,7 +102,7 @@ const LegacyActivityView = () => {
 
   // Prevent back button returning to confirmation screen in case that users are redirected after a successful transaction.
   const handleNavigateHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS);
+    navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {

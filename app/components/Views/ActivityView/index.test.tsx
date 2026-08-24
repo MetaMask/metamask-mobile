@@ -472,7 +472,11 @@ describe('ActivityView', () => {
 
       fireEvent.press(getByTestId('activity-view-back-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
@@ -483,7 +487,11 @@ describe('ActivityView', () => {
 
       fireEvent.press(getByTestId('activity-view-back-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
@@ -508,7 +516,11 @@ describe('ActivityView', () => {
 
       const result = handler();
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(result).toBe(true);
     });
 
@@ -527,6 +539,8 @@ describe('ActivityView', () => {
 
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.HOME_TABS,
+        undefined,
+        { pop: true },
       );
     });
   });

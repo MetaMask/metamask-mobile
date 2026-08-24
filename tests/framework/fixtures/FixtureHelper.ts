@@ -67,7 +67,6 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
-import { FrameworkDetector } from '../FrameworkDetector';
 import { DeviceCommandHandler } from '../services/device-commands';
 import {
   getPhaseTimer,
@@ -688,11 +687,7 @@ export async function withFixtures(
     }
 
     // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
-    if (
-      process.env.CI !== 'true' &&
-      FrameworkDetector.isAppium() &&
-      shouldHandleMetroDevLauncherLocally()
-    ) {
+    if (process.env.CI !== 'true' && shouldHandleMetroDevLauncherLocally()) {
       if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
         await dismissDevelopmentServerPickerPlaywright();
       }

@@ -201,13 +201,18 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(),
-  ImpactMoment: {
-    SliderGrip: 'SliderGrip',
-    SliderTick: 'SliderTick',
-  },
-}));
+jest.mock('../../../../../util/haptics', () => {
+  const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
+  return {
+    playImpact: mockPlayImpact,
+    useHaptics: () => ({ playImpact: mockPlayImpact }),
+    ImpactMoment: {
+      PrimaryCTA: 'PrimaryCTA',
+      SliderGrip: 'SliderGrip',
+      SliderTick: 'SliderTick',
+    },
+  };
+});
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -265,6 +270,7 @@ describe('PerpsAdjustMarginView', () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'add',
+        enableHaptics: true,
       };
     });
 
@@ -681,12 +687,14 @@ describe('PerpsAdjustMarginView', () => {
       });
 
       expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('removes margin on confirm in remove mode', async () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'remove',
+        enableHaptics: true,
       };
       mockUsePerpsAdjustMarginData.mockReturnValue({
         position: mockPosition,
@@ -724,6 +732,8 @@ describe('PerpsAdjustMarginView', () => {
       });
 
       expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('does not submit when amount is zero', () => {
@@ -740,6 +750,7 @@ describe('PerpsAdjustMarginView', () => {
 
       expect(mockHandleAddMargin).not.toHaveBeenCalled();
       expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('does not remove margin when amount exceeds max removable', async () => {
