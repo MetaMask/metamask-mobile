@@ -88,7 +88,7 @@ import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRef
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { SwapsKeypadRef } from '../../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions/index.tsx';
-import { SwapsConfirmButton } from '../../../components/SwapsConfirmButton/index.tsx';
+import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOrderConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
@@ -658,7 +658,7 @@ const BridgeMarketViewContent = ({
           decimals={sourceAmountInput.keypadDecimals}
         >
           {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsConfirmButton
+            <SwapsMarketOrderConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
               transactionActiveAbTests={transactionActiveAbTests}
