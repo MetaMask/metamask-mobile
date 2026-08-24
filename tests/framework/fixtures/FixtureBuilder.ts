@@ -1863,6 +1863,33 @@ class FixtureBuilder {
     return this;
   }
 
+  withStellarEnabled() {
+    // Seed the remote flag in fixture state so Stellar is available on first
+    // paint (API mock can race with startup). Pair with testSpecificMock using
+    // remoteFeatureFlagStellarAccounts(true) so the flag fetch cannot disable it.
+    merge(this.fixture.state.engine.backgroundState, {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          stellarAccounts: {
+            enabled: true,
+            featureVersion: null,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    });
+
+    return this.withNetworkEnabledMap({
+      stellar: {
+        'stellar:pubnet': true,
+        'stellar:testnet': true,
+      },
+      eip155: {
+        '0x539': true,
+      },
+    }).ensureMultichainIntroModalSuppressed();
+  }
+
   withCleanBannerState() {
     merge(this.fixture.state, {
       banners: {
