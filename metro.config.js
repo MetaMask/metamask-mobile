@@ -184,11 +184,8 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
-              // Swaps in a SafeAreaView that applies the top inset via
-              // useSafeAreaInsets; the native inset recalculates on mount and
-              // visibly drops headers a frame late. Bare specifier only —
-              // subpaths (jest/mock, and the shim's own `src/` imports) must
-              // still resolve to node_modules.
+              // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+              // Jest does not remap this package — mapping breaks jest/mock's requireActual().
               if (moduleName === 'react-native-safe-area-context') {
                 return {
                   type: 'sourceFile',
