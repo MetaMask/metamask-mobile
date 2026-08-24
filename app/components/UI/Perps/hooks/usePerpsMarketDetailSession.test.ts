@@ -21,7 +21,6 @@ const mockDeliveryRevisions = {
   orders: 0,
   positions: 0,
   prices: 0,
-  topOfBook: 0,
 };
 
 jest.mock('react-redux', () => ({

@@ -100,7 +100,6 @@ interface StreamDeliveryRevisions {
   orders: number;
   positions: number;
   prices: number;
-  topOfBook: number;
 }
 
 interface DetailGenerationIdentity {
@@ -203,7 +202,6 @@ const getStreamDeliveryRevisions = (): StreamDeliveryRevisions => {
     orders: stream.orders.getDeliveryRevision(),
     positions: stream.positions.getDeliveryRevision(),
     prices: stream.prices.getDeliveryRevision(),
-    topOfBook: stream.topOfBook.getDeliveryRevision(),
   };
 };
 
@@ -236,7 +234,9 @@ const hasFreshSectionDelivery = (
     case PERPS_MARKET_DETAIL_SECTION.ACCOUNT:
       return connectionAdvanced && current.account > baseline.account;
     case PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK:
-      return connectionAdvanced && current.topOfBook > baseline.topOfBook;
+      // Pro readiness is reset by market-context generation and resolves only
+      // after the dedicated aggregated order-book socket delivers again.
+      return true;
     case PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS:
       return (
         connectionAdvanced &&

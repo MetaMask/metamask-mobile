@@ -90,6 +90,7 @@ interface PerpsProOrderBookColumnProps {
   symbol: string;
   marketPrice?: number;
   isMarketContextReady: boolean;
+  marketContextKey: string;
   onCollapse: () => void;
   onResolvedStateChange?: (
     symbol: string,
@@ -108,6 +109,7 @@ const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
   isMarketContextReady,
+  marketContextKey,
   onCollapse,
   onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
@@ -154,6 +156,7 @@ const PerpsProOrderBookColumn = ({
       symbol={symbol}
       marketPrice={marketPrice}
       isMarketContextReady={isMarketContextReady}
+      marketContextKey={marketContextKey}
       szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
@@ -601,6 +604,7 @@ const PerpsProMarketView = ({
                   symbol={market.symbol}
                   marketPrice={marketPrice}
                   isMarketContextReady={isMarketContextReady}
+                  marketContextKey={marketSectionContextKey}
                   onCollapse={handleCollapseOrderBook}
                   onResolvedStateChange={handleOrderBookResolvedStateChange}
                 />
