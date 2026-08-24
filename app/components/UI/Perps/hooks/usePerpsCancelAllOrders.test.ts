@@ -29,6 +29,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
+const mockNavigateToPerpsHome = jest.fn();
+jest.mock('../utils/perpsModeSwitch', () => ({
+  useNavigateToPerpsHome: () => mockNavigateToPerpsHome,
+}));
+
 const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
   orderId: 'order-1',
   symbol: 'BTC',
@@ -53,6 +58,7 @@ describe('usePerpsCancelAllOrders', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigation.canGoBack.mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
@@ -326,6 +332,23 @@ describe('usePerpsCancelAllOrders', () => {
 
     // Assert
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('falls back to the mode-aware Perps home when there is nothing to go back to', () => {
+    // Arrange - a hardcoded Perps Home fallback would drop Pro-mode users into
+    // the Lite hub.
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const orders = [createMockOrder()];
+    const { result } = renderHook(() => usePerpsCancelAllOrders(orders));
+
+    // Act
+    act(() => {
+      result.current.handleKeepOrders();
+    });
+
+    // Assert
+    expect(mockNavigateToPerpsHome).toHaveBeenCalled();
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
   it('does nothing when handleCancelAll called with no orders', async () => {

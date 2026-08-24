@@ -411,8 +411,6 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
-      isMaxDeposit: false,
-      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -421,10 +419,7 @@ describe('CustomAmountInfo', () => {
       fieldAlerts: [] as Alert[],
     } as AlertsContextParams);
 
-    useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: undefined,
-      alertMessage: undefined,
-    });
+    useTransactionCustomAmountAlertsMock.mockReturnValue({});
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayAvailableTokensMock.mockReturnValue({
@@ -525,16 +520,15 @@ describe('CustomAmountInfo', () => {
     ).not.toBeDisabled();
   });
 
-  it('renders alert', () => {
+  it('renders help text under the amount when a blocking error is present', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: 'Test Alert Title',
-      alertMessage: 'Test Alert Message',
+      alertMessage: 'Test Help Text',
     });
 
-    const { getByText } = render();
+    const { getByTestId, getByText } = render();
 
-    expect(getByText('Test Alert Title')).toBeDefined();
-    expect(getByText('Test Alert Message')).toBeDefined();
+    expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
+    expect(getByText('Test Help Text')).toBeDefined();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
@@ -1351,7 +1345,6 @@ describe('CustomAmountInfo', () => {
     });
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: strings('confirm.custom_amount.insufficient_funds'),
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 
@@ -1359,8 +1352,7 @@ describe('CustomAmountInfo', () => {
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    // The alert message appears in AlertMessage and in the keyboard's alertMessage
-    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
+    // The help text renders under the amount for the blocking error.
     expect(
       getAllByText(strings('alert_system.account_no_funds.message'))[0],
     ).toBeOnTheScreen();
@@ -1697,6 +1689,36 @@ describe('CustomAmountInfo', () => {
       // Keyboard stays open and the page never enters the loading/commit path.
       expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('auto-submits when Max leaves amountFiat unchanged (already at max)', async () => {
+      // amountFiat is already the max (e.g. defaultAmount / prefill) while
+      // percentage buttons are still shown. Max must commit via the Loading
+      // stage transition, not wait for amountFiat to change.
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -2206,6 +2228,67 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.custom_amount.buy_predict')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders headless buy error when no alert message is present', () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByText } = render();
+
+    expect(getByText(headlessBuyError)).toBeOnTheScreen();
+  });
+
+  it('keeps Done enabled and final confirm disabled when only a headless buy error is present', async () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByTestId } = render();
+
+    // Continue is allowed: the headless buy error does not disable Done.
+    const doneButton = getByTestId('deposit-keyboard-done-button');
+    expect(doneButton).not.toBeDisabled();
+
+    // Advance to the review stage and assert the final confirm is blocked.
+    await act(async () => {
+      fireEvent.press(doneButton);
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('resets submitting state when onConfirm rejects', async () => {

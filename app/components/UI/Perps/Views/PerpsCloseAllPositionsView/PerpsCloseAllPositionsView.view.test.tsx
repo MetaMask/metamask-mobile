@@ -44,6 +44,13 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       await screen.findByText(strings('perps.close_all_modal.title')),
     ).toBeOnTheScreen();
+    // Literal copy rather than `strings(...)`: asserting against the same call
+    // the component makes would pass even if pluralization resolved to nothing.
+    expect(
+      screen.getByText(
+        "We'll close your 2 open positions at current market price.",
+      ),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_position.margin')),
     ).toBeOnTheScreen();
@@ -52,12 +59,31 @@ describe('PerpsCloseAllPositionsView', () => {
     ).toBeOnTheScreen();
 
     fireEvent.press(
-      screen.getByText(strings('perps.close_all_modal.close_all')),
+      screen.getByText(
+        strings('perps.close_all_modal.close_count', {
+          count: positions.length,
+        }),
+      ),
     );
 
     await waitFor(() => {
-      expect(closePositions).toHaveBeenCalledWith({ closeAll: true });
+      expect(closePositions).toHaveBeenCalledWith({
+        symbols: positions.map((p) => p.symbol),
+      });
     });
+  });
+
+  it('drops the count and singularises the copy for a lone position', async () => {
+    renderPerpsCloseAllPositionsView({
+      streamOverrides: { positions: [positions[0]] },
+    });
+
+    expect(
+      await screen.findByText(
+        "We'll close your open position at current market price.",
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Close (1)')).toBeOnTheScreen();
   });
 
   it('does not expose the close action when there are no open positions', async () => {
@@ -72,7 +98,9 @@ describe('PerpsCloseAllPositionsView', () => {
       await screen.findByText(strings('perps.position.no_positions')),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByText(strings('perps.close_all_modal.close_all')),
+      screen.queryByText(
+        strings('perps.close_all_modal.close_count', { count: 0 }),
+      ),
     ).not.toBeOnTheScreen();
     expect(closePositions).not.toHaveBeenCalled();
   });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyBalanceSummary from './MoneyBalanceSummary';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
@@ -292,5 +293,18 @@ describe('MoneyBalanceSummary', () => {
         getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
       ).toHaveTextContent('•'.repeat(12));
     });
+  });
+
+  it('sits flush under the header, matching the Home page balance', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
+    );
+
+    const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
+
+    expect(container).toHaveStyle({ paddingLeft: 16, paddingRight: 16 });
+    expect(
+      StyleSheet.flatten(container.props.style).paddingTop,
+    ).toBeUndefined();
   });
 });

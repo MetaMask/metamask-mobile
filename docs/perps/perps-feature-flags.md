@@ -170,6 +170,7 @@ Follow existing test patterns covering:
 | `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner                                                                                |
 | `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                     |
 | `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                       |
+| `perpsProModeEnabled`                              | `perps-pro-mode-enabled`                                 | —                                              | false   | Lite/Pro mode toggle and Pro-mode entry points (Pro market view)                                         |
 | `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                 |
 | `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only) |
 | `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                  |
@@ -201,6 +202,10 @@ These flags are managed via `FeatureFlagConfigurationService` and control runtim
 | `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`                     | Geo-blocking regions list                                                                 |
 
 > **Note:** `perpsPerpTradingGeoBlockedCountries` (without V2) is deprecated. Use the V2 variant.
+
+### Terminal API source selection
+
+The schema-v2 global snapshot is not controlled by the legacy `perpsTerminalBackendEnabled` flag. A configured `terminalApi.globalSnapshotUrl` enables the strict v2 snapshot attempt for Hyperliquid; Core validates provider/network/DEX identity and freshness, then falls back directly to the provider when the snapshot is unavailable or invalid. The legacy flag controls only v1 metadata enrichment on the provider path. Development builds may override the v2 URL with `MM_PERPS_TERMINAL_GLOBAL_SNAPSHOT_URL`.
 
 ---
 

@@ -27,12 +27,15 @@ import {
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsProMarketViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTutorialSelectorsIDs,
@@ -504,7 +507,97 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
       expect(screen.getByText('Ethereum')).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD perp')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE),
+      ).toHaveTextContent('ETH-USD perp');
+    });
+
+    it('opens the market list when the header identity is pressed', async () => {
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('toggles watchlist when the header favorite button is pressed', async () => {
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockReturnValue([]);
+
+      renderEligibleNoPositionPerpsDetails();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(toggleWatchlistMarket).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('shows Lite header actions without the Pro wallet button', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
     });
 
     it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {

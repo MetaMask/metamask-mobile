@@ -3,9 +3,12 @@
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
+import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
-import FCMService from '../../util/notifications/services/FCMService';
+import FCMService, {
+  toPushTapResult,
+} from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
@@ -17,6 +20,7 @@ import {
   AppStateEventProcessor,
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -191,6 +195,28 @@ export class DeeplinkManager {
       if (tap.opened) {
         onPushTap(AppOpenedPushProvider.Wallet, tap);
       }
+    });
+
+    const handleNotifeeNotification = (
+      notification: NotifeeNotification | undefined,
+    ) => {
+      if (!notification) {
+        return;
+      }
+
+      const tap = toPushTapResult(notification.data, true);
+      if (!tap.deeplink && !tap.notificationType && !tap.notificationSubtype) {
+        return;
+      }
+
+      onPushTap(AppOpenedPushProvider.Wallet, tap);
+    };
+
+    NotificationsService.onForegroundEvent(async (event) => {
+      await NotificationsService.handleNotificationEvent({
+        ...event,
+        callback: handleNotifeeNotification,
+      });
     });
 
     getBrazeInitialPush().then(({ opened, deeplink }) => {

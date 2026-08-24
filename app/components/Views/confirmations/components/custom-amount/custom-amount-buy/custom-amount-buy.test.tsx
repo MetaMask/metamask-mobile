@@ -2,16 +2,18 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountBuy } from './custom-amount-buy';
+import { CustomAmountBuy, getBuyMessage } from './custom-amount-buy';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { AssetType } from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -19,7 +21,6 @@ import { Hex } from '@metamask/utils';
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
 const mockGoToBuy = jest.fn();
 
@@ -43,9 +44,6 @@ describe('CustomAmountBuy', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -56,10 +54,6 @@ describe('CustomAmountBuy', () => {
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.contractInteraction,
-      txParams: { from: '0x123' },
-    } as never);
   });
 
   it('renders without crashing', () => {
@@ -99,18 +93,39 @@ describe('CustomAmountBuy', () => {
     fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0x123',
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: 'eip155:1/erc20:0x123',
+      },
+      { surface: 'confirmation' },
+    );
+  });
+});
+
+describe('getBuyMessage', () => {
+  it('returns the perps buy message for a perps deposit', () => {
+    expect(
+      getBuyMessage({ type: TransactionType.perpsDeposit } as TransactionMeta),
+    ).toBe(strings('confirm.custom_amount.buy_perps'));
   });
 
-  it('renders the perps deposit buy message when no tokens available', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.perpsDeposit,
-    } as never);
-    const { getByText } = render();
+  it('returns the predict buy message for a predict deposit', () => {
     expect(
-      getByText(strings('confirm.custom_amount.buy_perps')),
-    ).toBeOnTheScreen();
+      getBuyMessage({
+        type: TransactionType.predictDeposit,
+      } as TransactionMeta),
+    ).toBe(strings('confirm.custom_amount.buy_predict'));
+  });
+
+  it('returns undefined for other transaction types', () => {
+    expect(
+      getBuyMessage({
+        type: TransactionType.contractInteraction,
+      } as TransactionMeta),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when no transaction metadata', () => {
+    expect(getBuyMessage(undefined)).toBeUndefined();
   });
 });

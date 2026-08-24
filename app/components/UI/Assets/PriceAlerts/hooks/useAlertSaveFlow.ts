@@ -143,6 +143,7 @@ const useAlertSaveFlow = ({
         if (!editingAlert && shouldAutoWatchlistOnCreate) {
           const watchlistAnalyticsProperties = {
             source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
+            asset_id: assetId,
             asset_type: getWatchlistAssetType(assetId),
           };
 

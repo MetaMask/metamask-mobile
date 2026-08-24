@@ -11,7 +11,7 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
@@ -39,7 +39,7 @@ jest.mock(
   '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update',
 );
 jest.mock('../../../../../util/transaction-controller');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount');
+jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -523,7 +523,7 @@ describe('useUpdateTransactionPayAmount', () => {
       );
     });
 
-    it('rounds fractional atomic amounts up before encoding', async () => {
+    it('rounds fractional atomic amounts down before encoding', async () => {
       const { result } = runHook({
         transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
       });
@@ -532,7 +532,8 @@ describe('useUpdateTransactionPayAmount', () => {
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4241' }],
+          // 1.0000005 floored to 6 decimals → 1000000 (0xf4240)
+          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4240' }],
         }),
         expect.any(String),
       );

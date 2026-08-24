@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-syntax */
-import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
 import {
   LongPressOptions,
@@ -10,78 +9,20 @@ import {
   TypeTextOptions,
   type ScrollContainer,
 } from './types.ts';
-import { createLogger } from './logger.ts';
-import { sleep } from '../../app/util/testUtils';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
-
-const logger = createLogger({ name: 'Gestures' });
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 /**
  * Gestures class with element stability and auto-retry
  */
 export default class Gestures {
-  /**
-   * Tap an element with stability checking (internal method)
-   * @param elem - The Detox or Web element to tap
-   * @param options - Options for the tap action
-   */
-  private static tapWithChecks = async (
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
-    options: {
-      checkStability?: boolean;
-      checkVisibility?: boolean;
-      checkEnabled?: boolean;
-      elemDescription?: string;
-      delay?: number;
-      waitForElementToDisappear?: boolean;
-    },
-    point?: { x: number; y: number },
-  ) => {
-    const {
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-    } = options;
-
-    if (Utilities.isWebElement(await elem)) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(await elem) as any).toExist();
-      await (await elem).tap();
-      if (options.waitForElementToDisappear) {
-        await Utilities.waitForElementToDisappear(elem);
-      }
-      return;
-    }
-
-    const el = await Utilities.checkElementReadyState(elem, {
-      checkStability,
-      checkVisibility,
-      checkEnabled,
-    });
-
-    if (options.delay) {
-      await new Promise((resolve) => setTimeout(resolve, options.delay));
-    } else {
-      await new Promise((resolve) =>
-        setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-      );
-    }
-    await el.tap(point);
-
-    if (options.waitForElementToDisappear) {
-      await Utilities.waitForElementToDisappear(elem);
-    }
-
-    const successMessage = elemDescription
-      ? `✅ Successfully tapped element: ${elemDescription}`
-      : `✅ Successfully tapped element`;
-    logger.debug(successMessage);
-  };
-
   /**
    * Tap an element with stability checking and auto-retry
    * @returns A Promise that resolves when the tap is successful
@@ -91,39 +32,12 @@ export default class Gestures {
     elem: DetoxElement | WebElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        delay: options.delay,
-        checkForDisplayed: options.checkForDisplayed,
-        checkForEnabled: options.checkEnabled,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-      waitForElementToDisappear = false,
-      delay = 500,
-    } = options;
-
-    const fn = () =>
-      this.tapWithChecks(elem, {
-        checkStability,
-        checkVisibility,
-        checkEnabled,
-        elemDescription,
-        waitForElementToDisappear,
-        delay,
-      });
-    return Utilities.executeWithRetry(fn, {
-      timeout,
-      description: 'tap()',
-      elemDescription,
+    return UnifiedGestures.tap(elem as EncapsulatedElementType, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+      delay: options.delay,
+      checkForDisplayed: options.checkForDisplayed,
+      checkForEnabled: options.checkEnabled,
     });
   }
 
@@ -138,40 +52,15 @@ export default class Gestures {
     elem: DetoxElement | WebElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.waitAndTap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        delay: options.delay,
-        checkForDisplayed: options.checkForDisplayed,
-        checkForEnabled: options.checkEnabled,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-      delay = 500,
-      waitForElementToDisappear = false,
-    } = options;
-
-    const fn = async () =>
-      await this.tapWithChecks(elem, {
-        checkStability,
-        checkVisibility,
-        checkEnabled,
-        elemDescription,
-        delay,
-        waitForElementToDisappear,
-      });
-
-    return Utilities.executeWithRetry(fn, {
-      timeout,
-      description: 'waitAndTap()',
-      elemDescription,
+    return UnifiedGestures.waitAndTap(elem as EncapsulatedElementType, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+      delay: options.delay,
+      checkForDisplayed: options.checkForDisplayed,
+      checkForEnabled: options.checkEnabled,
+      waitForInteractive: options.waitForInteractive,
+      // Detox checkStability ≈ Appium position-stable wait
+      checkForStable: options.checkStability,
     });
   }
 
@@ -185,51 +74,10 @@ export default class Gestures {
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tapAtIndex(
-        elem as EncapsulatedElementType,
-        index,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      elemDescription,
-      delay = 0,
-    } = options;
-
-    // Add delay before tapping if provided
-    if (delay > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-
-    // Use a shorter inner timeout to allow for retries within the overall timeout
-    // If inner timeout equals outer timeout, no retries can happen
-    const innerTimeout = Math.min(3000, timeout / 3);
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        const itemElementAtIndex = el.atIndex(index);
-        await waitFor(itemElementAtIndex)
-          .toBeVisible()
-          .withTimeout(innerTimeout);
-        await itemElementAtIndex.tap();
-        const successMessage = elemDescription
-          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
-          : `✅ Successfully tapped element at index: ${index}`;
-        logger.debug(successMessage);
-      },
-      {
-        timeout,
-        description: `tapAtIndex(${index})`,
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.tapAtIndex(elem as EncapsulatedElementType, index, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+    });
   }
 
   /**
@@ -243,40 +91,9 @@ export default class Gestures {
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tapAtPoint(
-        elem as EncapsulatedElementType,
-        point,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-    } = options;
-    const fn = () =>
-      this.tapWithChecks(
-        elem,
-        {
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-          elemDescription,
-        },
-        point,
-      );
-
-    return Utilities.executeWithRetry(fn, {
-      timeout,
-      description: 'tapAtPoint()',
-      elemDescription,
+    return UnifiedGestures.tapAtPoint(elem as EncapsulatedElementType, point, {
+      timeout: options.timeout,
+      description: options.elemDescription,
     });
   }
 
@@ -290,41 +107,10 @@ export default class Gestures {
     elem: DetoxElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.dblTap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.multiTap(2);
-      },
-      {
-        timeout,
-        description: 'dblTap()',
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.dblTap(elem as EncapsulatedElementType, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+    });
   }
 
   /**
@@ -336,43 +122,11 @@ export default class Gestures {
     elem: DetoxElement | EncapsulatedElementType,
     options: LongPressOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.longPress(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        duration: options.duration,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      duration = 2000,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.longPress(duration);
-      },
-      {
-        timeout,
-        description: `longPress() for ${duration}ms`,
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.longPress(elem as EncapsulatedElementType, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+      duration: options.duration,
+    });
   }
 
   /**
@@ -385,62 +139,13 @@ export default class Gestures {
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        hideKeyboard: options.hideKeyboard,
-        clearFirst: options.clearFirst,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      clearFirst = true,
-      hideKeyboard = false,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      sensitive = false,
-      delay = BASE_DEFAULTS.actionDelay,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        if (clearFirst) {
-          await el.replaceText('');
-        }
-
-        const textToType = hideKeyboard ? text + '\n' : text;
-        await el.typeText(textToType);
-        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
-
-        // small delay to prevent the app not registering text input
-        // the action is too fast
-        await sleep(500);
-
-        logger.debug(
-          `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
-            elemDescription || 'unknown'
-          }`,
-        );
-      },
-      {
-        timeout,
-        description: `typeText("${text}")`,
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+      hideKeyboard: options.hideKeyboard,
+      clearFirst: options.clearFirst,
+      checkForDisplayed: options.checkForDisplayed,
+    });
   }
 
   /**
@@ -458,39 +163,13 @@ export default class Gestures {
         }>,
     text: string,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      const input = (await elem) as {
-        clear: () => Promise<void>;
-        fill: (value: string) => Promise<void>;
-      };
-      await input.clear();
-      await input.fill(text);
-      return;
-    }
-
-    try {
-      await (
-        await (elem as Promise<IndexableWebElement>)
-      ).runScript(
-        (
-          el: {
-            focus: () => void;
-            value: string;
-            _valueTracker?: { setValue: (v: string) => void };
-            dispatchEvent: (event: { bubbles?: boolean }) => void;
-          },
-          value: string,
-        ) => {
-          el.focus();
-          el.value = value;
-          el._valueTracker && el._valueTracker.setValue('');
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-        },
-        [text],
-      );
-    } catch {
-      await this.typeText(elem as Promise<IndexableWebElement>, text);
-    }
+    const input = (await elem) as {
+      clear: () => Promise<void>;
+      fill: (value: string) => Promise<void>;
+    };
+    await input.clear();
+    await input.fill(text);
+    return;
   }
 
   /**
@@ -503,46 +182,10 @@ export default class Gestures {
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.replaceText(
-        elem as EncapsulatedElementType,
-        text,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.replaceText(text);
-        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
-      },
-      {
-        timeout,
-        description: `replaceText("${text}")`,
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.replaceText(elem as EncapsulatedElementType, text, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+    });
   }
 
   /**
@@ -555,52 +198,12 @@ export default class Gestures {
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.swipe(elem as EncapsulatedElementType, direction, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        speed: options.speed,
-        percentage: options.percentage,
-      });
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      speed = 'fast',
-      percentage = 0.75,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      elemDescription,
-      startOffsetPercentage = { x: NaN, y: NaN },
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.swipe(
-          direction,
-          speed,
-          percentage,
-          startOffsetPercentage.x,
-          startOffsetPercentage.y,
-        );
-      },
-      {
-        timeout,
-        description: `swipe(${direction})`,
-        elemDescription,
-      },
-    );
+    return UnifiedGestures.swipe(elem as EncapsulatedElementType, direction, {
+      timeout: options.timeout,
+      description: options.elemDescription,
+      speed: options.speed,
+      percentage: options.percentage,
+    });
   }
   /**
    * Scroll to element with dynamic retry and platform-specific adjustments
@@ -612,71 +215,14 @@ export default class Gestures {
     scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.scrollToElement(
-        targetElement as EncapsulatedElementType,
-        scrollableContainer,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-          direction: options.direction,
-          scrollAmount: options.scrollAmount,
-        },
-      );
-    }
-
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      direction = 'down',
-      scrollAmount = 350,
-      elemDescription,
-      delay = 0,
-      startPositionX = NaN,
-      startPositionY = NaN,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        // Add delay before scrolling
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable =
-          typeof scrollableContainer === 'string'
-            ? by.id(scrollableContainer)
-            : await scrollableContainer;
-
-        if (!scrollable) {
-          throw new Error(
-            'Gestures.scrollToElement requires a scroll container matcher on Detox.',
-          );
-        }
-
-        if (device.getPlatform() === 'android') {
-          const scrollableElement = element(scrollable);
-          try {
-            await waitFor(target).toBeVisible().withTimeout(100);
-            return;
-          } catch {
-            await scrollableElement.scroll(
-              scrollAmount,
-              direction,
-              startPositionX,
-              startPositionY,
-            );
-            await waitFor(target).toBeVisible().withTimeout(100);
-          }
-        } else {
-          await waitFor(target)
-            .toBeVisible()
-            .whileElement(scrollable)
-            .scroll(scrollAmount, direction, startPositionX, startPositionY);
-        }
-      },
+    return UnifiedGestures.scrollToElement(
+      targetElement as EncapsulatedElementType,
+      scrollableContainer,
       {
-        timeout,
-        description: `scrollToElement(${direction})`,
-        elemDescription,
+        timeout: options.timeout,
+        description: options.elemDescription,
+        direction: options.direction,
+        scrollAmount: options.scrollAmount,
       },
     );
   }
@@ -689,25 +235,10 @@ export default class Gestures {
   static async scrollToWebViewPort(
     elem: WebElement | Promise<PlaywrightElement>,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      const el = await elem;
-      if (el instanceof PlaywrightElement) {
-        await Utilities.executeWithRetry(
-          async () => {
-            await el.scrollToView();
-          },
-          {
-            timeout: BASE_DEFAULTS.timeout,
-            description: 'scrollToWebViewPort()',
-          },
-        );
-        return;
-      }
-    }
-
+    const el = await elem;
     await Utilities.executeWithRetry(
       async () => {
-        await (await elem).scrollToView();
+        await el.scrollToView();
       },
       {
         timeout: BASE_DEFAULTS.timeout,
@@ -737,18 +268,7 @@ export default class Gestures {
     elem: Promise<Detox.IndexableWebElement>,
     timeout = 15000,
   ): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-        await (expect(await elem) as any).toExist();
-        await (await elem).tap();
-        return;
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    }
-    throw new Error('Web element not found or not tappable');
+    return this.tap(elem as EncapsulatedElementType, { timeout });
   }
 
   /**
@@ -758,15 +278,7 @@ export default class Gestures {
   static async doubleTap(
     elem: DetoxElement | EncapsulatedElementType,
   ): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        await el.multiTap(2);
-      },
-      {
-        description: 'Double tapped element',
-      },
-    );
+    return this.dblTap(elem);
   }
 
   /**
@@ -777,34 +289,7 @@ export default class Gestures {
     elem: DetoxElement | EncapsulatedElementType,
     options: GestureOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.replaceText('');
-      },
-      {
-        timeout,
-        description: 'clearField()',
-        elemDescription,
-      },
-    );
+    return this.replaceText(elem, '', options);
   }
 
   /**
@@ -845,5 +330,171 @@ export default class Gestures {
     timeout = 10000,
   ): Promise<void> {
     return this.replaceText(elem, text, { timeout });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key (Appium iOS only).
+   * For return/submit keys (Done, Next, Go, Search), use tapKeyboardReturnKey.
+   */
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
+    }
+    await PlaywrightGestures.tapIosKeyboardKey(keyName);
+  }
+
+  /**
+   * Tap the soft-keyboard return/submit key (Appium).
+   * iOS tries `Done:` / keyboard-scoped locators before bare `~Done` — required
+   * to fire onSubmitEditing when returnKeyType is done/next/go/search.
+   */
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    await PlaywrightGestures.tapKeyboardReturnKey(keyName);
+  }
+
+  /**
+   * Type via the focused iOS soft keyboard by tapping keys (Appium iOS only).
+   */
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.typeViaIosKeyboard is Appium iOS only');
+    }
+    await PlaywrightGestures.typeViaIosKeyboard(text, options);
+  }
+
+  /**
+   * Appium: click, clear, type via per-character addValue (optional Return).
+   * Use for iOS multiline TextInputs where Gestures.typeText (fill) is unreliable.
+   */
+  static async typeTextByCharacters(
+    elem: EncapsulatedElementType,
+    text: string,
+    options?: { submitWithReturn?: boolean },
+  ): Promise<void> {
+    const field = await asPlaywrightElement(elem);
+    await PlaywrightGestures.typeTextByCharacters(field, text, options);
+  }
+
+  /**
+   * Appium: append text via addValue without clearing the field.
+   * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
+   */
+  static async appendText(
+    elem: EncapsulatedElementType,
+    text: string,
+  ): Promise<void> {
+    const field = await asPlaywrightElement(elem);
+    await field.type(text);
+  }
+
+  /**
+   * Hide the soft keyboard (Appium).
+   * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
+   * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
+   */
+  static async hideKeyboard(): Promise<void> {
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
+   * Activate an app by device details or package/bundle id.
+   */
+  static async activateApp(
+    currentDeviceDetails?: CurrentDeviceDetails,
+    packageId?: string,
+  ): Promise<void> {
+    await PlaywrightGestures.activateApp(currentDeviceDetails, packageId);
+  }
+
+  /**
+   * Terminate the app identified by device details.
+   */
+  static async terminateApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    options?: Parameters<typeof PlaywrightGestures.terminateApp>[1],
+  ): Promise<void> {
+    await PlaywrightGestures.terminateApp(currentDeviceDetails, options);
+  }
+
+  /**
+   * Submit the focused Android URL field via KEYCODE_ENTER.
+   */
+  static async submitAndroidUrlBar(): Promise<void> {
+    await PlaywrightGestures.submitAndroidUrlBar();
+  }
+
+  /**
+   * Screen-level swipe (no target element). Prefer Gestures.swipe when a
+   * locator exists.
+   */
+  static async swipeScreen(
+    options: Parameters<typeof PlaywrightGestures.swipe>[0],
+  ): Promise<void> {
+    await PlaywrightGestures.swipe(options);
+  }
+
+  /**
+   * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
+   * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
+
+  /**
+   * Appium: scroll an element into view (WDIO native scrollIntoView).
+   * Prefer when you already have a PlaywrightElement (e.g. from
+   * Matchers.getAllElementsByXPath). For EncapsulatedElementType targets with
+   * a known scroll container, prefer scrollToElement.
+   */
+  static async scrollIntoView(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoView(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
+  }
+
+  /**
+   * Appium: scroll into view, then nudge clear of the bottom nav bar when
+   * the target would otherwise sit in the bottom 15% of the screen.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
   }
 }

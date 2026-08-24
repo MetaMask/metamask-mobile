@@ -40,6 +40,7 @@ import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
@@ -363,14 +364,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey={'geo_block'}
-              testID={
-                PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
-              }
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey={'geo_block'}
+                testID={
+                  PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+                }
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

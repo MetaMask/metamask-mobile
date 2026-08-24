@@ -6,8 +6,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useRef } from 'react';
-import { Keyboard, Platform, Pressable, type TextInput } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Platform, Pressable, type TextInput } from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -18,10 +18,20 @@ interface PerpsProCompactInputProps {
   onChangeText: (value: string) => void;
   testID: string;
   variant?: 'stacked' | 'inline';
+  startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  onFocus?: () => void;
+  onBlur?: () => void;
+  /** Fires on every field tap, including while already focused. Idempotent. */
+  onFieldPress?: () => void;
+  /**
+   * Keeps the native input mounted so its iOS keyboard accessory can bind
+   * before the field is shown. Hidden fields take no layout and ignore taps.
+   */
+  isHidden?: boolean;
 }
 
 const PerpsProCompactInput = ({
@@ -30,16 +40,38 @@ const PerpsProCompactInput = ({
   onChangeText,
   testID,
   variant = 'stacked',
+  startAccessory,
   endAccessory,
   footer,
   placeholder = '0',
   placeholderColor = 'muted',
+  onFocus,
+  onBlur,
+  onFieldPress,
+  isHidden = false,
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
-  const focusInput = () => inputRef.current?.focus();
+  useEffect(() => {
+    if (isHidden) {
+      inputRef.current?.blur();
+    }
+  }, [isHidden]);
+
+  const hiddenProps = isHidden
+    ? ({
+        pointerEvents: 'none' as const,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants' as const,
+        style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
+      } as const)
+    : undefined;
+  const focusInput = () => {
+    inputRef.current?.focus();
+    onFieldPress?.();
+  };
 
   const input = (
     <Input
@@ -47,14 +79,17 @@ const PerpsProCompactInput = ({
       value={value}
       onChangeText={onChangeText}
       keyboardType="decimal-pad"
-      returnKeyType="done"
-      onSubmitEditing={Keyboard.dismiss}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      // A tap landing here is consumed by the input, so neither the inline
+      // variant's wrapping pressable nor the stacked variant's label fires.
+      onPressIn={onFieldPress}
       inputAccessoryViewID={inputAccessoryViewID}
       placeholder={placeholder}
       placeholderTextColor={tw.color(`text-${placeholderColor}`)}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0 font-medium"
+      twClassName="flex-1 border-0 bg-transparent p-0"
       testID={testID}
       accessibilityLabel={label}
     />
@@ -63,17 +98,40 @@ const PerpsProCompactInput = ({
   if (variant === 'inline') {
     return (
       <Box
-        twClassName="h-12 flex-row items-center border-t border-muted px-3"
+        twClassName={
+          isHidden
+            ? undefined
+            : 'h-12 flex-row items-center border-t border-muted px-3'
+        }
         testID={`${testID}-container`}
+        {...hiddenProps}
       >
-        {input}
+        {/* The input's text occupies only ~20px of this 48px row, so most of
+            the row is dead space. Without a pressable filling it, taps there
+            reach the enclosing ScrollView instead, and its
+            `keyboardShouldPersistTaps="handled"` treats an unhandled tap as a
+            request to dismiss the keyboard. `endAccessory` stays outside so the
+            mid-price button keeps its own press. */}
+        <Pressable
+          onPress={focusInput}
+          accessible={false}
+          style={tw`h-full min-w-0 flex-1 flex-row items-center`}
+          testID={`${testID}-field`}
+        >
+          {startAccessory}
+          {input}
+        </Pressable>
         {endAccessory}
       </Box>
     );
   }
 
   return (
-    <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
+    <Box
+      twClassName={isHidden ? undefined : 'rounded-xl bg-muted p-3'}
+      testID={`${testID}-container`}
+      {...hiddenProps}
+    >
       <Box twClassName="flex-row items-center justify-between">
         {/* Tapping the label focuses the input and opens the keyboard, same
             as tapping the (visually small) input row itself. */}
@@ -84,7 +142,10 @@ const PerpsProCompactInput = ({
         </Pressable>
         {endAccessory}
       </Box>
-      {input}
+      <Box twClassName="flex-row items-center">
+        {startAccessory}
+        {input}
+      </Box>
       {footer ? (
         <Box twClassName="mt-3" testID={`${testID}-footer`}>
           {footer}

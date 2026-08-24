@@ -49,7 +49,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
@@ -94,6 +94,7 @@ import {
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
@@ -379,10 +380,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
     if (market) {
       return (
-        <PerpsMarketHeader
+        <PerpsMarketInlineHeader
           market={market}
-          onBackPress={handleBack}
           currentPrice={currentPrice}
+          onBackPress={handleBack}
           endAccessory={groupingSelectButton}
         />
       );
@@ -821,13 +822,15 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {selectedTooltip && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={handleTooltipClose}
-              contentKey={selectedTooltip}
-              testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-              buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={handleTooltipClose}
+                contentKey={selectedTooltip}
+                testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+                buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

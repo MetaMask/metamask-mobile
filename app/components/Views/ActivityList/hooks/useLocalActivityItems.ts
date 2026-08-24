@@ -1,9 +1,10 @@
 /**
  * Builds enriched TransactionGroups from Mobile's local transactions and maps them
- * to ActivityListItem[] using the shared mapLocalTransaction adapter.
+ * to ActivityListItem[] using mapLocalTransaction from @metamask/client-utils.
  */
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { mapLocalTransaction } from '@metamask/client-utils';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -22,8 +23,8 @@ import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
-  mapLocalTransaction,
-  mobileActivityAdapterEnvironment,
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
   type TransactionGroup,
   type ActivityListItem,
   type Status,
@@ -168,25 +169,25 @@ function buildTransactionGroups(
 }
 
 /**
- * Returns bridge activity status override for a local bridge transaction.
+ * Status override for a local bridge transaction.
+ *
+ * A bridge is only done once the destination leg lands, which the local
+ * `TransactionMeta` can't know — it goes `confirmed` as soon as the source tx
+ * confirms. Takes an already-resolved history entry so every caller shares the
+ * single `findBridgeHistoryItem` lookup.
+ *
+ * Exported for the per-asset activity lists, which build the same
+ * {@link TransactionGroup} enrichment from a single transaction.
  */
-function getBridgeActivityStatus(
+export function getBridgeActivityStatus(
   tx: TransactionMeta,
-  bridgeHistory: ReturnType<typeof selectBridgeHistoryForAccount>,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
 ): Status | undefined {
-  if (tx.type !== TransactionType.bridge) return undefined;
-  const historyItem =
-    bridgeHistory[tx.id] ??
-    (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
-    Object.values(bridgeHistory).find(
-      (item) =>
-        (item as unknown as { originalTransactionId?: string })
-          .originalTransactionId === tx.id,
-    );
+  if (tx.type !== TransactionType.bridge || !bridgeHistoryItem) {
+    return undefined;
+  }
 
-  if (!historyItem) return undefined;
-
-  if (historyItem.status?.destChain?.txHash) {
+  if (bridgeHistoryItem.status?.destChain?.txHash) {
     return 'success';
   }
 
@@ -225,13 +226,17 @@ function tokenFromQuoteAsset(
  * Unified swaps store their token metadata in the bridge/swaps quote, not on the
  * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
  * `swapMetaData` / native fallback) can miss a leg — most visibly a native
- * destination — leaving the row as `swapIncomplete` (empty "You received", no
- * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * destination — leaving the row as a `swap` with an empty received amount
+ * until the indexer backfills a full copy. Prefer the
  * quote (symbol always, amount/decimals/assetId when present) so the row resolves
  * to a complete swap immediately and reactively; fall back to the legacy
  * on-device fields for older SwapsController transactions with no bridge quote.
+ *
+ * Exported for the per-asset activity lists, which would otherwise re-derive
+ * this and drift — an asset page that skips it would miss destination tokens
+ * on unified swaps.
  */
-function getSwapTokenEnrichment(
+export function getSwapTokenEnrichment(
   tx: TransactionMeta,
   nativeSymbol: string | undefined,
   bridgeHistoryItem: BridgeHistoryItem | undefined,
@@ -348,7 +353,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
       });
 
       // Bridge activity status override
-      const activityStatus = getBridgeActivityStatus(tx, bridgeHistory);
+      const activityStatus = getBridgeActivityStatus(tx, bridgeHistoryItem);
 
       // Swap token enrichment
       const { sourceToken, destinationToken } = getSwapTokenEnrichment(
@@ -369,8 +374,18 @@ export function useLocalActivityItems(): ActivityListItem[] {
         isHardwareWalletAccount,
       };
 
-      const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
-      items.push({ ...item, isEarliestNonce });
+      const prepared = prepareLocalTransactionGroup(group);
+      const item = enrichLocalActivity(
+        mapLocalTransaction(
+          prepared as Parameters<typeof mapLocalTransaction>[0],
+        ) as ActivityListItem,
+        prepared,
+      );
+      items.push({
+        ...item,
+        raw: { type: 'localTransaction' as const, data: group },
+        isEarliestNonce,
+      });
     }
 
     return items;

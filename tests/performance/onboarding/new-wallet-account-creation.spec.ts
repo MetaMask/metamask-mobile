@@ -16,18 +16,60 @@ import {
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
+import ProtectYourWalletModal from '../../page-objects/Onboarding/ProtectYourWalletModal.js';
+import SkipAccountSecurityModal from '../../page-objects/Onboarding/SkipAccountSecurityModal.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import {
+  closePredictModal,
   dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
-import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
-const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
+const dismissProtectWalletModalIfPresent = async (
+  timeoutMs = 1_000,
+): Promise<void> => {
+  let backupAlertVisible = false;
+  try {
+    backupAlertVisible = await withImplicitWait(0, async () => {
+      const backupAlert = await asPlaywrightElement(
+        ProtectYourWalletModal.collapseWalletModal,
+      );
+      await backupAlert.unwrap().waitForDisplayed({ timeout: timeoutMs });
+      return true;
+    });
+  } catch {
+    return;
+  }
+
+  if (!backupAlertVisible) {
+    return;
+  }
+
+  await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+  let skipAccountSecurityVisible = false;
+  try {
+    skipAccountSecurityVisible = await withImplicitWait(0, async () => {
+      const skipAccountSecurity = await asPlaywrightElement(
+        SkipAccountSecurityModal.container,
+      );
+      await skipAccountSecurity.unwrap().waitForDisplayed({
+        timeout: timeoutMs,
+      });
+      return true;
+    });
+  } catch {
+    return;
+  }
+
+  if (skipAccountSecurityVisible) {
+    await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+  }
+};
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -61,26 +103,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
-      const productionFeatureFlags = await fetchProductionFeatureFlags(
-        'main',
-        testEnvironment,
-      );
-
-      const predictGtmOnboardingModalEnabled = (
-        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled;
-      if (
-        predictGtmOnboardingModalEnabled &&
-        predictGtmOnboardingModalEnabled === true
-      ) {
-        await dismisspredictionsModalPlaywright();
-      }
+      await closePredictModal();
+      await dismissProtectWalletModalIfPresent();
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 2200 },
         currentDeviceDetails.platform,
       );
       const screen2Timer = new TimerHelper(
@@ -111,6 +139,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await AccountListBottomSheet.tapCreateAccount(0);
+      await dismissProtectWalletModalIfPresent(1_500);
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(

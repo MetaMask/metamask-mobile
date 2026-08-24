@@ -10,16 +10,9 @@ const mockHandleCancelPress = jest.fn();
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useNavigationState: jest.fn(),
-  createNavigatorFactory: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn(() => ({
-    Navigator: ({ children }: { children: React.ReactNode }) => children,
-    Screen: ({ children }: { children: React.ReactNode }) => children,
-  })),
 }));
 
 jest.mock('./useSendActions', () => ({

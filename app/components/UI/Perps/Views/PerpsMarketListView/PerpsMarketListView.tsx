@@ -9,6 +9,7 @@ import {
   HeaderStandard,
   Text,
   TextColor,
+  TextFieldSearch,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -19,7 +20,6 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
@@ -55,6 +55,7 @@ import {
   RouteProp,
   useNavigation,
   useFocusEffect,
+  CommonActions,
   StackActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -64,6 +65,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
@@ -90,6 +92,7 @@ const PerpsMarketListView = ({
   );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const { playSelection } = useHaptics();
 
   const perpsNavigation = usePerpsNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -105,6 +108,8 @@ const PerpsMarketListView = ({
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const replaceOnSelect = route.params?.replaceOnSelect === true;
+  const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isRecentlyViewedEnabled = useSelector(
@@ -244,9 +249,14 @@ const PerpsMarketListView = ({
     ],
   );
 
-  // Handler for market press (defined early to avoid use-before-define)
+  // Handler for market press (defined early to avoid use-before-define).
+  // Covers FlashList rows, watchlist rows, and recently-viewed tiles.
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
@@ -293,26 +303,56 @@ const PerpsMarketListView = ({
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS;
         }
 
+        const detailsParams = {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source_section,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        };
+
+        if (replaceOnSelect) {
+          // Header slide-up picker: dismiss this list and replace the stale
+          // MARKET_DETAILS beneath it so Back does not return to the prior market.
+          navigation.dispatch((state) => {
+            const routes = state.routes.slice(0, -1);
+            if (
+              routes[routes.length - 1]?.name === Routes.PERPS.MARKET_DETAILS
+            ) {
+              routes.pop();
+            }
+            return CommonActions.reset({
+              ...state,
+              index: routes.length,
+              routes: [
+                ...routes,
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: detailsParams,
+                },
+              ],
+            });
+          });
+          return;
+        }
+
         // Use push instead of navigate so that MARKET_LIST is always beneath
         // MARKET_DETAILS in the stack. navigate() can jump to an existing
         // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
         // component's ROOT-based navigation), which would skip MARKET_LIST on
         // back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
-            market,
-            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-            source_section,
-            ...(transactionActiveAbTests?.length
-              ? { transactionActiveAbTests }
-              : {}),
-          }),
+          StackActions.push(Routes.PERPS.MARKET_DETAILS, detailsParams),
         );
       }
     },
     [
+      enableHaptics,
+      playSelection,
       onMarketSelect,
       navigation,
+      replaceOnSelect,
       transactionActiveAbTests,
       searchQuery,
       showFavoritesOnly,
@@ -425,6 +465,7 @@ const PerpsMarketListView = ({
     ];
     // mode: chips/category narrow the set → discovery; a short ticker-like
     // token → intent; free-text or empty context → browse.
+    // Interface Lite/Pro uses `perps_mode` (see getPerpsModeAnalyticsProperties).
     const mode = activeChips.length
       ? 'discovery'
       : /^[a-z0-9]{1,6}$/.test(normalizedQuery)
@@ -697,7 +738,7 @@ const PerpsMarketListView = ({
     // filtered (via the memoized visibleWatchlistMarkets / visibleSuggestedMarkets
     // above) so the user can find any relevant market by name or symbol, and so
     // search analytics (visibleSearchResults) match what's rendered here.
-    // "No tokens found" is only shown when nothing matches in either section.
+    // Empty search description is only shown when nothing matches in either section.
     if (isWatchlistEnabled && showFavoritesOnly) {
       if (
         trimmedSearchQuery &&
@@ -707,7 +748,6 @@ const PerpsMarketListView = ({
         return (
           <PerpsMarketListEmptyState
             containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-            title={strings('perps.no_tokens_found')}
             description={strings('perps.no_tokens_found_description', {
               searchQuery,
             })}
@@ -738,14 +778,13 @@ const PerpsMarketListView = ({
     const hasSearchQuery = searchQuery.trim().length > 0;
     const hasActiveFilter = marketTypeFilter !== 'all';
 
-    // Filter-priority: both search and category filter active, no results.
-    // Show a filter-aware description and a "Clear filter" CTA so the user
-    // can widen results without losing their search term.
+    // Search + active filter, no results in this category → "Clear filter".
+    // Consistent regardless of whether there are global results; the description
+    // tells the user they can also try a different search.
     if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_search_description', {
             searchQuery: searchQuery.trim(),
           })}
@@ -761,7 +800,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_tokens_found')}
           description={strings('perps.no_tokens_found_description', {
             searchQuery,
           })}
@@ -777,7 +815,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_found_description')}
           ctaLabel={strings('perps.clear_filter')}
           onCtaPress={() => setMarketTypeFilter('all')}
@@ -857,12 +894,14 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
-            autoComplete="off"
-            autoCorrect={false}
-            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
+            }}
+            inputProps={{
+              autoComplete: 'off',
+              autoCorrect: false,
+              autoCapitalize: 'none',
+              testID: PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
             }}
           />
         </View>

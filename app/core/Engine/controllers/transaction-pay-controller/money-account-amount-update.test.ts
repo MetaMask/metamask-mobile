@@ -140,7 +140,8 @@ describe('updateMoneyAccountDepositAmount', () => {
     ).resolves.toBe(true);
 
     expect(buildDepositBatchMock).toHaveBeenCalledWith({
-      amount: 1_000_001n,
+      // 1.0000001 floored to 6 mUSD decimals (ROUND_DOWN), not rounded up.
+      amount: 1_000_000n,
       chainId: CHAIN_ID,
       boringVault: VAULT_CONFIG.boringVault,
       tellerAddress: VAULT_CONFIG.tellerAddress,
@@ -162,7 +163,7 @@ describe('updateMoneyAccountDepositAmount', () => {
       ],
     });
     expect(currentTransaction.requiredAssets).toStrictEqual([
-      { address: MUSD_ADDRESS, amount: '0xf4241', standard: 'erc20' },
+      { address: MUSD_ADDRESS, amount: '0xf4240', standard: 'erc20' },
       {
         address: SECOND_ASSET_ADDRESS,
         amount: '0x7',

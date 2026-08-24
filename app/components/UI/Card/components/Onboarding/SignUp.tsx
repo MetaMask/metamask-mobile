@@ -41,7 +41,13 @@ import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboar
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
@@ -53,11 +59,13 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
-  selectCardFeatureFlag,
-  selectImmersveOnboardingEnabled,
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
+import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -79,10 +87,8 @@ const SignUp = () => {
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const immersveOnboardingEnabled = useSelector(
-    selectImmersveOnboardingEnabled,
-  );
+  const immersveCountries = useSelector(selectCardImmersveCountries);
+  const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
     allRegions,
     getRegionByCode,
@@ -114,16 +120,6 @@ const SignUp = () => {
     }
     navigation.navigate(Routes.CARD.AUTHENTICATION);
   }, [navigation, postAuthRedirect]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SIGN_UP,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
 
   const {
     sendEmailVerification,
@@ -190,7 +186,42 @@ const SignUp = () => {
   const isImmersveCountry = Boolean(
     immersveOnboardingEnabled &&
       selectedCountry &&
-      (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
+      immersveCountries.includes(selectedCountry.key),
+  );
+
+  const lastTrackedSignUpView = useRef<string | null>(null);
+  useEffect(() => {
+    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
+    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
+    if (!selectedCountry) {
+      return;
+    }
+    const provider = isImmersveCountry
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
+    if (lastTrackedSignUpView.current === viewKey) {
+      return;
+    }
+    lastTrackedSignUpView.current = viewKey;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(provider, {
+            screen: CardScreens.SIGN_UP,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, selectedCountry, isImmersveCountry]);
+
+  const {
+    onboardingDocuments,
+    isLoading: isLegalDocsLoading,
+    error: legalDocsError,
+    refetch: refetchLegalDocs,
+  } = useImmersveSupportedRegions(
+    isImmersveCountry ? selectedCountry?.key : undefined,
   );
 
   const isWaitlistMode = Boolean(
@@ -207,8 +238,15 @@ const SignUp = () => {
     }
     if (isImmersveCountry) {
       // Email + phone are collected; SIWE binds to the selected account.
+      // Legal docs must be loaded before Continue (clickwrap agreement).
       return (
-        !email || !isPhoneValid || !immersveAddress || isImmersveSubmitting
+        !email ||
+        !isPhoneValid ||
+        !immersveAddress ||
+        isImmersveSubmitting ||
+        isLegalDocsLoading ||
+        Boolean(legalDocsError) ||
+        onboardingDocuments.length === 0
       );
     }
     return (
@@ -225,6 +263,9 @@ const SignUp = () => {
     isImmersveCountry,
     immersveAddress,
     isImmersveSubmitting,
+    isLegalDocsLoading,
+    legalDocsError,
+    onboardingDocuments.length,
     email,
     isPhoneValid,
     password,
@@ -260,6 +301,15 @@ const SignUp = () => {
       setIsPhoneNumberError(true);
       return;
     }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.SIGN_UP_BUTTON,
+          }),
+        )
+        .build(),
+    );
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
@@ -268,6 +318,7 @@ const SignUp = () => {
         address: immersveAddress,
         email,
         phone: `+${phoneRegion.areaCode}${phoneNumber}`,
+        entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
@@ -281,6 +332,8 @@ const SignUp = () => {
     phoneNumber,
     phoneRegion?.areaCode,
     resumeImmersveOnboarding,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleJoinWaitlist = useCallback(() => {
@@ -328,9 +381,11 @@ const SignUp = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SIGN_UP_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SIGN_UP_BUTTON,
+            }),
+          )
           .build(),
       );
       const { contactVerificationId } = await sendEmailVerification(email);
@@ -526,7 +581,7 @@ const SignUp = () => {
           </Box>
           <Box>
             <Label>
-              {strings('card.card_onboarding.sign_up.account_label')}
+              {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
             <SelectField
               value={accountName ?? undefined}
@@ -537,7 +592,9 @@ const SignUp = () => {
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"
             >
-              {strings('card.card_onboarding.sign_up.account_description')}
+              {strings(
+                'card.card_onboarding.sign_up.account_description_immersve',
+              )}
             </Text>
             {immersveError ? (
               <Text
@@ -605,6 +662,19 @@ const SignUp = () => {
 
   const renderActions = () => (
     <>
+      {isImmersveCountry ? (
+        <Box twClassName="mb-6">
+          <ImmersveLegalClickwrap
+            documents={onboardingDocuments}
+            isLoading={isLegalDocsLoading}
+            error={legalDocsError}
+            treatEmptyAsError
+            onRetry={() => {
+              refetchLegalDocs().catch(() => undefined);
+            }}
+          />
+        </Box>
+      ) : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -635,7 +705,11 @@ const SignUp = () => {
           fontWeight={FontWeight.Medium}
           twClassName="text-default text-center p-4"
         >
-          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+          {strings(
+            isImmersveCountry
+              ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
+              : 'card.card_onboarding.sign_up.i_already_have_an_account',
+          )}
         </Text>
       </TouchableOpacity>
     </>
@@ -644,7 +718,11 @@ const SignUp = () => {
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.sign_up.title')}
-      description={strings('card.card_onboarding.sign_up.description')}
+      description={strings(
+        isImmersveCountry
+          ? 'card.card_onboarding.sign_up.description_immersve'
+          : 'card.card_onboarding.sign_up.description',
+      )}
       formFields={renderFormFields()}
       actions={renderActions()}
       headerMode="back"

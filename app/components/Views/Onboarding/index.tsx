@@ -79,6 +79,7 @@ import {
   discardBufferedTraces,
   updateCachedConsent,
 } from '../../../util/trace';
+import { replayPendingAppInstall } from '../../../util/analytics/appInstallEvent';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import type { RootState } from '../../../reducers';
@@ -94,8 +95,19 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import {
   isPreOAuthSocialLoginFailure,
+  shouldAttemptAndroidGoogleBrowserFallback,
   trackSocialLoginFailed,
 } from '../../../core/OAuthService/socialLoginAnalytics';
+import {
+  detectOAuthProcessRestart,
+  finalizeOAuthLifecycle,
+  getOAuthBackgroundAnalyticsProperties,
+  getOAuthLifecycleAuthConnection,
+  OAUTH_RESUME_OUTCOME,
+  recordOAuthBackgrounded,
+  recordOAuthResumed,
+  startOAuthLifecycleTracking,
+} from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -180,6 +192,17 @@ function getSocialCtaId(provider: string): OnboardingCtaId {
     SOCIAL_CTA_IDS[provider as AuthConnection] ??
     OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE
   );
+}
+
+function getOAuthResumeOutcomeForLoginError(error: unknown) {
+  if (
+    error instanceof OAuthError &&
+    (error.code === OAuthErrorType.UserCancelled ||
+      error.code === OAuthErrorType.UserDismissed)
+  ) {
+    return OAUTH_RESUME_OUTCOME.DISMISSED;
+  }
+  return OAUTH_RESUME_OUTCOME.FAILED;
 }
 
 /**
@@ -332,6 +355,7 @@ const Onboarding = () => {
   const abandonmentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const socialLoginIsRehydrationRef = useRef<boolean | undefined>(undefined);
 
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const hasInitializedOnboarding = useRef<boolean>(false);
@@ -476,7 +500,6 @@ const Onboarding = () => {
       });
       navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: onboardingTraceCtx.current,
       });
       dispatch(
         setAccountType({
@@ -526,7 +549,6 @@ const Onboarding = () => {
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
       dispatch(
@@ -570,9 +592,21 @@ const Onboarding = () => {
       dispatch(setAccountType({ accountType, onboardingVersion }));
       annotateTrace(onboardingTraceCtx.current, { account_type: accountType });
 
+      const backgroundProperties = {
+        ...getOAuthBackgroundAnalyticsProperties(),
+        resume_outcome: OAUTH_RESUME_OUTCOME.SUCCESS,
+      };
+      finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.SUCCESS).catch((error) => {
+        Logger.error(
+          error as Error,
+          'Failed to finalize OAuth lifecycle after success',
+        );
+      });
+
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
         ...walletSetupAttributionAnalyticsProps,
+        ...backgroundProperties,
       });
       // Anchor the CTA navigation span here rather than at the tap so it covers
       // only the navigation to the destination screen, not the OAuth round trip.
@@ -584,7 +618,6 @@ const Onboarding = () => {
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: onboardingTraceCtx.current,
             provider,
           });
         } else {
@@ -602,7 +635,6 @@ const Onboarding = () => {
               {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             );
@@ -611,7 +643,6 @@ const Onboarding = () => {
             navigation.navigate('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
               provider,
             });
           }
@@ -629,20 +660,17 @@ const Onboarding = () => {
               {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             )
           : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: onboardingTraceCtx.current,
           provider,
         });
       }
@@ -735,7 +763,12 @@ const Onboarding = () => {
           // fallback catch block to prevent nested fallback attempts. The browser-based
           // fallback handler won't throw ACM-specific errors, but this pattern ensures
           // we don't accidentally create infinite fallback loops if the code is refactored.
-          if (Platform.OS === 'android' && socialConnectionType === 'google') {
+          if (
+            shouldAttemptAndroidGoogleBrowserFallback(
+              error,
+              socialConnectionType,
+            )
+          ) {
             try {
               setLoading();
               const fallbackHandler = createLoginHandler(
@@ -763,6 +796,14 @@ const Onboarding = () => {
               return;
             } catch (fallbackError) {
               unsetLoading();
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(fallbackError),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after browser fallback error',
+                );
+              });
               if (
                 fallbackError instanceof OAuthError &&
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
@@ -934,6 +975,10 @@ const Onboarding = () => {
       }
       discardBufferedTraces();
 
+      // Social login opts in without ever showing OptinMetrics, so the install
+      // captured before consent has to be replayed from here too.
+      await replayPendingAppInstall();
+
       const accountType = getSocialAccountType(provider, !createWallet);
       const onboardingPathTags = {
         'onboarding.method': OnboardingMethod.Social,
@@ -962,6 +1007,7 @@ const Onboarding = () => {
           name: TraceName.OnboardingJourneyOverall,
           op: TraceOperation.OnboardingUserJourney,
           tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
+          data: { perf_fix: 'trace-registry-v1' },
         });
       } else {
         // Consent was already live at mount, so the journey span is reused rather
@@ -1053,6 +1099,18 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
+          socialLoginIsRehydrationRef.current = !createWallet;
+          startOAuthLifecycleTracking(provider).catch((error) => {
+            Logger.error(
+              error as Error,
+              'Failed to start OAuth lifecycle tracking',
+            );
+          });
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STARTED, {
+            auth_connection: provider,
+            is_rehydration: (!createWallet).toString(),
+          });
+
           try {
             const result = await OAuthLoginService.handleOAuthLogin(
               loginHandler,
@@ -1077,6 +1135,16 @@ const Onboarding = () => {
             }, 1000);
           } catch (error) {
             unsetLoading();
+            if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(error),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after login error',
+                );
+              });
+            }
             await handleLoginError(error as Error, provider, createWallet);
           }
         } catch (error) {
@@ -1089,6 +1157,14 @@ const Onboarding = () => {
               error,
             });
           }
+          finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.FAILED).catch(
+            (finalizeError) => {
+              Logger.error(
+                finalizeError as Error,
+                'Failed to finalize OAuth lifecycle after login setup error',
+              );
+            },
+          );
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
@@ -1318,6 +1394,7 @@ const Onboarding = () => {
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
+      data: { perf_fix: 'trace-registry-v1' },
     });
 
     unsetLoading();
@@ -1375,17 +1452,40 @@ const Onboarding = () => {
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
 
+  useEffect(() => {
+    detectOAuthProcessRestart()
+      .then(({ detected, authConnection, analyticsProperties }) => {
+        if (detected && authConnection && analyticsProperties) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
+            auth_connection: authConnection,
+            ...analyticsProperties,
+          });
+        }
+      })
+      .catch((error) => {
+        Logger.error(error as Error, 'Failed to detect OAuth process restart');
+      });
+  }, [track]);
+
   // Fix 5: end OnboardingSocialLoginAttempt as abandoned only on foreground return when no OAuth
   // result arrived. socialLoginTraceCtx.current is set while an attempt is in flight and cleared
   // by endSocialLoginAttemptTrace on success/failure, so "still set" == "no result yet".
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
-      if (
-        (nextState === 'background' || nextState === 'inactive') &&
-        socialLoginTraceCtx.current
-      ) {
+      // iOS resume is background -> inactive -> active. Treating inactive as a
+      // new background overwrites lastBackgroundedAt and zeros duration.
+      if (nextState === 'background' && socialLoginTraceCtx.current) {
         appBackgroundedDuringSocialLoginRef.current = true;
+        const startedBackgroundPeriod = recordOAuthBackgrounded();
+        const authConnection = getOAuthLifecycleAuthConnection();
+        if (startedBackgroundPeriod && authConnection) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED, {
+            auth_connection: authConnection,
+            is_rehydration: String(socialLoginIsRehydrationRef.current),
+            ...getOAuthBackgroundAnalyticsProperties(),
+          });
+        }
         // Returning to the external browser means the login is still active.
         // Cancel any grace countdown started by a brief foreground transition.
         if (abandonmentTimerRef.current) {
@@ -1401,6 +1501,15 @@ const Onboarding = () => {
         appBackgroundedDuringSocialLoginRef.current
       ) {
         appBackgroundedDuringSocialLoginRef.current = false;
+        recordOAuthResumed();
+        const authConnection = getOAuthLifecycleAuthConnection();
+        if (authConnection) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_RESUMED, {
+            auth_connection: authConnection,
+            is_rehydration: String(socialLoginIsRehydrationRef.current),
+            ...getOAuthBackgroundAnalyticsProperties(),
+          });
+        }
         if (abandonmentTimerRef.current) {
           clearTimeout(abandonmentTimerRef.current);
         }
@@ -1410,6 +1519,29 @@ const Onboarding = () => {
             // attempt span: their promises may never settle after abandonment.
             finalizeInFlightOAuthTraces();
             endSocialLoginAttemptTrace(false, 'login_abandoned');
+            const authConnectionForAbandon = getOAuthLifecycleAuthConnection();
+            const backgroundProperties = {
+              ...getOAuthBackgroundAnalyticsProperties(),
+              resume_outcome: OAUTH_RESUME_OUTCOME.ABANDONED,
+            };
+            if (authConnectionForAbandon) {
+              track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
+                auth_connection: authConnectionForAbandon,
+                is_rehydration: String(socialLoginIsRehydrationRef.current),
+                ...backgroundProperties,
+              });
+            }
+            // Analytics + Sentry only: leave loading / OAuth local state to the
+            // existing success and error paths so an in-flight handleOAuthLogin
+            // can still complete after the grace window.
+            finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.ABANDONED).catch(
+              (error) => {
+                Logger.error(
+                  error as Error,
+                  'Failed to finalize abandoned OAuth attempt',
+                );
+              },
+            );
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
@@ -1421,7 +1553,7 @@ const Onboarding = () => {
         abandonmentTimerRef.current = null;
       }
     };
-  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces]);
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces, track]);
 
   useEffect(() => {
     updateNavBar();

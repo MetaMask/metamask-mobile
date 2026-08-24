@@ -21,7 +21,6 @@ import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsM
 import PredictPositionsView from '../views/PredictPositionsView';
 import PredictMarketListRoute from './PredictMarketListRoute';
 import PredictFeedView from '../views/PredictFeedView';
-import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
 import { PredictPreviewSheetProvider } from '../contexts';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
@@ -48,10 +47,6 @@ const PredictModalStack = () => {
         component={PredictUnavailableModal}
       />
       <ModalStack.Screen
-        name={Routes.PREDICT.MODALS.GTM_MODAL}
-        component={PredictGTMModal}
-      />
-      <ModalStack.Screen
         name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
         component={PredictAddFundsModal}
       />
@@ -62,12 +57,12 @@ const PredictModalStack = () => {
       <ModalStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
-        options={emptyNavHeaderOptions}
+        options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
       <ModalStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
         component={Confirm}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
     </ModalStack.Navigator>
   );

@@ -1,13 +1,14 @@
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
+  blurAndroidWebView,
   fillAndroidWebId,
   readAndroidWebIdText,
   scrollAndroidWebIdIntoView,
+  selectAndroidWebId,
   tapAndroidWebId,
   type AndroidWebViewScrollOptions,
   type AndroidWebViewTapOptions,
 } from './AndroidWebViewNative.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
 import { type PlaywrightElement } from './PlaywrightAdapter.ts';
@@ -35,6 +36,16 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  */
 export default class WebView {
   /**
+   * Run `action` in the page's WEBVIEW context, then always restore NATIVE_APP.
+   */
+  static async withWebViewAction(
+    pageUrl: string,
+    action: () => Promise<void>,
+  ): Promise<void> {
+    await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
+  }
+
+  /**
    * iOS Appium / Detox only. Android Appium never reaches this — public
    * methods route to native UiAutomator first.
    */
@@ -42,17 +53,10 @@ export default class WebView {
     pageUrl: string | undefined,
     action: () => Promise<void>,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      if (!pageUrl) {
-        throw new Error(
-          'pageUrl is required for Appium WebView context actions',
-        );
-      }
-      await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
-      return;
+    if (!pageUrl) {
+      throw new Error('pageUrl is required for Appium WebView context actions');
     }
-
-    await action();
+    await this.withWebViewAction(pageUrl, action);
   }
 
   static async tapById(
@@ -114,69 +118,37 @@ export default class WebView {
     options: WebViewByIdOptions = {},
   ): Promise<void> {
     if (PlatformDetector.isAndroidAppium()) {
-      await tapAndroidWebId(webId, {
+      await selectAndroidWebId(webId, optionText, {
         ...options,
         timeout: 60_000,
         description: options.description ?? `WebView select open "${webId}"`,
       });
-      await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
-        elemDescription: `WebView select option "${optionText}"`,
-        timeout: 30_000,
-      });
       return;
     }
 
-    if (FrameworkDetector.isAppium()) {
-      await this.withContext(options.pageUrl, async () => {
-        await getDriver().execute(
-          (id: string, searchText: string) => {
-            const el = document.getElementById(id) as HTMLSelectElement | null;
-            if (!el?.options) {
-              throw new Error(`Select element #${id} not found`);
-            }
-            const option = Array.from(el.options).find((opt) =>
-              opt.text.includes(searchText),
+    await this.withContext(options.pageUrl, async () => {
+      await getDriver().execute(
+        (id: string, searchText: string) => {
+          const el = document.getElementById(id) as HTMLSelectElement | null;
+          if (!el?.options) {
+            throw new Error(`Select element #${id} not found`);
+          }
+          const option = Array.from(el.options).find((opt) =>
+            opt.text.includes(searchText),
+          );
+          if (!option) {
+            throw new Error(
+              `Option containing "${searchText}" not found in #${id}`,
             );
-            if (!option) {
-              throw new Error(
-                `Option containing "${searchText}" not found in #${id}`,
-              );
-            }
-            el.value = option.value;
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-          },
-          webId,
-          optionText,
-        );
-      });
-      return;
-    }
-
-    // Detox web element — runScript is Detox-only.
-    const webElement = await Matchers.getElementByWebID(
-      options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      webId,
-    );
-
-    const source = await webElement.runScript(
-      (el: HTMLSelectElement, searchText: string) => {
-        if (!el?.options) return null;
-        const option = Array.from(el.options).find((opt) =>
-          opt.text.includes(searchText),
-        );
-        return option ? option.value : null;
-      },
-      [optionText],
-    );
-
-    await webElement.runScript(
-      (el: HTMLSelectElement, value: string | null) => {
-        el.value = value ?? '';
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-      [source],
-    );
+          }
+          el.value = option.value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        },
+        webId,
+        optionText,
+      );
+    });
   }
 
   /**
@@ -186,15 +158,8 @@ export default class WebView {
    * @param pageUrl - Required on iOS to switch into the WebView context.
    */
   static async blurActiveElement(pageUrl: string): Promise<void> {
-    if (!FrameworkDetector.isAppium()) {
-      throw new Error(
-        'WebView.blurActiveElement is Appium-only. Do not add new Detox coverage for this path.',
-      );
-    }
-
     if (PlatformDetector.isAndroidAppium()) {
-      // No Chromedriver context — dismiss the soft keyboard only.
-      await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+      await blurAndroidWebView(pageUrl);
       return;
     }
 
@@ -236,15 +201,9 @@ export default class WebView {
     const webviewId =
       options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
 
-    if (FrameworkDetector.isAppium()) {
-      if (!options.pageUrl) {
-        throw new Error(
-          'pageUrl is required for Appium WebView element lookup',
-        );
-      }
-      return Matchers.getElementByWebID(webviewId, webId, options.pageUrl);
+    if (!options.pageUrl) {
+      throw new Error('pageUrl is required for Appium WebView element lookup');
     }
-
-    return Matchers.getElementByWebID(webviewId, webId);
+    return Matchers.getElementByWebID(webviewId, webId, options.pageUrl);
   }
 }

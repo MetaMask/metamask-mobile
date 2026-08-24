@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
   type Order,
@@ -23,6 +24,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCancelAllOrders: undefined;
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
+  PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
   };
@@ -138,12 +140,30 @@ export type PerpsStackParamList = {
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * When true, selecting a market replaces the underlying MARKET_DETAILS
+         * (and dismisses this list) instead of pushing another details screen.
+         * Used by the header slide-up picker.
+         */
+        replaceOnSelect?: boolean;
+        /**
+         * When true, fires selection haptics on market row taps.
+         * Defaults off so Lite entry points stay silent.
+         */
+        enableHaptics?: boolean;
       }
     | undefined;
 
   PerpsMarketDetails: {
     /** Full market when available; Partial is accepted for trade-details deep entries. */
     market: PerpsMarketData | Partial<PerpsMarketData>;
+    /**
+     * Preselects a side in Pro mode's inline order form. Set by entry points
+     * that already express a trade intent, e.g. the spot token details
+     * Long/Short buttons. Ignored by the Lite market screen.
+     */
+    direction?: 'long' | 'short';
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
@@ -165,11 +185,13 @@ export type PerpsStackParamList = {
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
 
   PerpsAdjustMargin: {
     position: Position;
     mode: 'add' | 'remove';
+    enableHaptics?: boolean;
   };
 
   // Action selection routes
@@ -232,10 +254,15 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
-    orderType?: 'market' | 'limit';
+    orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * When true, fires catalog haptics for meaningful TP/SL gestures.
+     * Defaults off so Lite entry points stay silent.
+     */
+    enableHaptics?: boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
@@ -309,6 +336,7 @@ export type PerpsStackParamList = {
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
       }
     | undefined;
   PerpsOrderDetailsView: {
