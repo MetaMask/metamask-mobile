@@ -5,34 +5,49 @@
 # in production as ClassNotFoundException / NoSuchMethodError, not at build time.
 #
 # This job builds R8 for the PR and diffs `usage.txt` — the list of everything R8 removed —
-# against the same file built from the merge base, failing if a class in a protected namespace is
-# newly stripped.
+# against the same file built from the PR's base commit, failing if a class in a protected
+# namespace is newly stripped.
 #
-# Scope: only runs when Android build config or keep rules change. A full R8 build is expensive
-# (~20-40 min) and app-code PRs cannot change what R8 keeps, only what it can prove is reachable.
-# The nightly release build is the backstop for the drift those PRs can cause.
+# It is manual-only; see the note above the `on:` block for why.
 
 name: Android R8 Gate
 
+# MANUAL ONLY, deliberately.
+#
+# An automatic pull_request trigger was measured against 90 days of history before being rejected:
+#
+#   package.json / yarn.lock                287 commits
+#   all Android build config + proguard      ~24 commits
+#   distinct commits touching any of them    292   (~3.2/day)
+#
+# Each run builds R8 twice (PR + merge base) at ~10-15 min each, so an automatic trigger would add
+# roughly 100 blocking double-builds per month — 98% of them dependency bumps — to guard against a
+# regression class we have not yet observed in practice. That is the kind of gate teams disable
+# within a month.
+#
+# Run it manually when the risk is real:
+#   - changing proguard-rules.pro (especially REMOVING a keep rule)
+#   - changing the ProGuard default file or R8 properties
+#   - a dependency bump that touches a reflection-heavy SDK
+#
+#   gh workflow run android-r8-gate.yml -f pr_number=<N>
+#
+# If it proves its worth, the cheap next step is a pull_request trigger scoped to the Android
+# config paths ONLY (~24 commits/90d, about one every four days) — NOT package.json/yarn.lock.
 on:
-  pull_request:
-    paths:
-      - 'android/app/proguard-rules.pro'
-      - 'android/app/build.gradle'
-      - 'android/build.gradle'
-      - 'android/gradle.properties'
-      - 'android/gradle.properties.release'
-      - 'scripts/android/r8-usage-gate.mjs'
-      - '.github/workflows/android-r8-gate.yml'
-      # Dependency changes can add or remove consumer keep rules.
-      - 'package.json'
-      - 'yarn.lock'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to check (compares head against its merge base)'
+        required: true
+        type: string
 
 permissions:
   contents: read
+  pull-requests: read   # `gh pr view` in the Resolve PR refs step
 
 concurrency:
-  group: android-r8-gate-${{ github.event.pull_request.number || github.ref }}
+  group: android-r8-gate-${{ inputs.pr_number }}
   cancel-in-progress: true
 
 env:
@@ -46,8 +61,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Need the merge base to build the baseline.
+          # Need full history to resolve the merge base.
           fetch-depth: 0
+
+      - name: Resolve PR refs
+        id: refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA=$(gh pr view "${{ inputs.pr_number }}" --json headRefOid -q .headRefOid)
+          BASE_SHA=$(gh pr view "${{ inputs.pr_number }}" --json baseRefOid -q .baseRefOid)
+          echo "head=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          git fetch --no-tags origin "$HEAD_SHA" "$BASE_SHA"
+          git checkout --detach "$HEAD_SHA"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -76,7 +104,7 @@ jobs:
       - name: Build R8 (merge base)
         run: |
           set -euo pipefail
-          git checkout --detach "${{ github.event.pull_request.base.sha }}"
+          git checkout --detach "${{ steps.refs.outputs.base }}"
           # Dependencies may differ at the base commit.
           yarn install --immutable
           cd android && ./gradlew :app:minifyProdReleaseWithR8 --console=plain
@@ -87,7 +115,7 @@ jobs:
           cp "$MAPPING_DIR"/usage.txt /tmp/r8/baseline/
 
       - name: Restore PR checkout
-        run: git checkout "${{ github.event.pull_request.head.sha }}"
+        run: git checkout "${{ steps.refs.outputs.head }}"
 
       - name: Fail if a dependency disabled the optimizer
         run: |
