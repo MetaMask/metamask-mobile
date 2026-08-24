@@ -16,30 +16,12 @@ import {
 import { NATIVE_TOKEN_ADDRESS, formatUnits } from './adapters/shims';
 import type { TokenAmount } from './types';
 
-const TOKEN_QUANTITY_MAX_FRACTION_DIGITS = 4;
-const MIN_DISPLAYABLE_TOKEN_QUANTITY = 0.00001;
-const MIN_DISPLAYABLE_TOKEN_QUANTITY_LABEL = '0.00001';
-
 /** Minimal token descriptor used for market-rate lookups. */
 export interface MarketRateLookupToken {
   address: string;
   symbol: string;
   decimals: number;
   chainId: Hex;
-}
-
-export function calculateFiatFromMarketRates(
-  amount: string | undefined,
-  token: MarketRateLookupToken | undefined,
-  marketRates: Record<number, Record<string, number>>,
-) {
-  if (amount === undefined || !token) {
-    return undefined;
-  }
-
-  const parsed = Number.parseFloat(amount);
-  const rate = marketRates[Number.parseInt(token.chainId, 16)]?.[token.address];
-  return rate === undefined ? undefined : parsed * rate;
 }
 
 export function getDisplaySignPrefix(
@@ -61,7 +43,14 @@ export function getDisplaySignPrefix(
 export function getHumanReadableTokenAmount(
   token: TokenAmount,
 ): string | undefined {
-  if (!token.amount) {
+  if (
+    token.amount === undefined ||
+    token.amount === null ||
+    token.amount === ''
+  ) {
+    if (token.symbol || token.assetId) {
+      return '0';
+    }
     return undefined;
   }
 
@@ -73,39 +62,6 @@ export function getHumanReadableTokenAmount(
   }
 
   return value.startsWith('-') ? value.slice(1) : value;
-}
-
-export function formatTokenQuantity(amount: string): string {
-  const value = Number(amount);
-  const absoluteValue = Math.abs(value);
-
-  if (!Number.isFinite(value)) return amount;
-  if (value === 0) return '0';
-
-  if (absoluteValue < MIN_DISPLAYABLE_TOKEN_QUANTITY) {
-    return `<${MIN_DISPLAYABLE_TOKEN_QUANTITY_LABEL}`;
-  }
-
-  if (absoluteValue < 1) {
-    return new Intl.NumberFormat(undefined, {
-      minimumSignificantDigits: 1,
-      maximumSignificantDigits: 4,
-    }).format(value);
-  }
-
-  if (absoluteValue < 1000000) {
-    return new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: TOKEN_QUANTITY_MAX_FRACTION_DIGITS,
-    }).format(value);
-  }
-
-  return new Intl.NumberFormat(undefined, {
-    notation: 'compact',
-    compactDisplay: 'short',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 // Applies display + or - sign to a formatted display value
@@ -132,7 +88,7 @@ export function applyDisplaySign(
   return formattedDisplay;
 }
 
-export function getTokenAddressForMarketRates(
+function getTokenAddressForMarketRates(
   assetId: CaipAssetType | undefined,
 ): string | undefined {
   if (!assetId) {

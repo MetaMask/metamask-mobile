@@ -13,6 +13,7 @@ import {
   RegistrationSettingsResponse,
   CardLocation,
   CardStatus,
+  CardType,
   type CardNetwork,
 } from '../../../../../components/UI/Card/types';
 import type {
@@ -118,12 +119,6 @@ interface BaanxCursorPayload {
   /** IDs from page 0, used to detect the API wrapping back to page 0. */
   i?: string[];
 }
-
-// The Baanx API has no page-size parameter; the server returns fixed-size
-// pages. A short page is therefore the last one. This is the smallest page
-// size observed, so `length < BAANX_MIN_FULL_PAGE` safely means "no more
-// pages" (worst case: one extra request that returns empty).
-const BAANX_MIN_FULL_PAGE = 20;
 
 interface BaanxFundingSourceRaw {
   id?: string;
@@ -395,6 +390,7 @@ export class BaanxProvider implements ICardProvider {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsTransactionHistory: true,
+    supportsMoneyAccountLinking: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -628,7 +624,10 @@ export class BaanxProvider implements ICardProvider {
       const primaryFundingAsset = this.pickPrimaryAsset(fundingAssets);
 
       const card = cardDetailsResponse
-        ? this.mapCardDetails(cardDetailsResponse)
+        ? this.mapCardDetails(
+            cardDetailsResponse,
+            tokens.location as CardLocation,
+          )
         : null;
       const account = user
         ? this.mapAccountStatus(user, cardDetailsResponse)
@@ -677,7 +676,7 @@ export class BaanxProvider implements ICardProvider {
         '/v1/card/status',
         tokens,
       );
-      return this.mapCardDetails(response);
+      return this.mapCardDetails(response, tokens.location as CardLocation);
     } catch (error) {
       if (error instanceof CardApiError && error.statusCode === 404) {
         throw new CardProviderError(
@@ -699,6 +698,10 @@ export class BaanxProvider implements ICardProvider {
    * carries page 0's ordered row ids. Their position on later pages
    * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
    * transactions.
+   *
+   * The server page size is unknown, so page length says nothing about whether
+   * more pages remain: the end of the list is only reached once a page comes
+   * back empty or wrapped. That costs one extra request per list.
    *
    * `params.limit` is accepted for interface compatibility but ignored: the
    * page size is fixed server-side.
@@ -725,9 +728,6 @@ export class BaanxProvider implements ICardProvider {
 
       const query = new URLSearchParams();
       query.set('page', String(page));
-      if (params.searchQuery) {
-        query.set('searchKey', params.searchQuery);
-      }
       // The API rejects a lone dateFrom/dateTo; only send them as a pair.
       if (params.fromDate != null && params.toDate != null) {
         query.set('dateFrom', toDateOnly(params.fromDate));
@@ -754,10 +754,6 @@ export class BaanxProvider implements ICardProvider {
       }
 
       const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
-      if (items.length < BAANX_MIN_FULL_PAGE) {
-        return { items: mapped };
-      }
-
       const nextCursor = encodeCardCursor(this.id, {
         pg: page + 1,
         i: page === 0 ? items.map((item) => item.id) : pageZeroIds,
@@ -1806,7 +1802,10 @@ export class BaanxProvider implements ICardProvider {
     return fallback ?? userPriority;
   }
 
-  private mapCardDetails(response: CardDetailsResponse): CardDetails {
+  private mapCardDetails(
+    response: CardDetailsResponse,
+    location: CardLocation,
+  ): CardDetails {
     return {
       id: response.id,
       status: response.status,
@@ -1814,6 +1813,7 @@ export class BaanxProvider implements ICardProvider {
       lastFour: response.panLast4,
       holderName: response.holderName,
       isFreezable: response.isFreezable,
+      hasPin: location === 'us' || response.type !== CardType.VIRTUAL,
     };
   }
 
@@ -1844,7 +1844,7 @@ export class BaanxProvider implements ICardProvider {
       raw.fundingSources ?? []
     ).map((fs) => ({
       txHash: fs.txHash,
-      address: fs.address,
+      walletAddress: fs.address,
       network: fs.network,
       chainId: networkToCaipChainId(fs.network),
       amount: fs.amount,
@@ -1950,6 +1950,7 @@ export class BaanxProvider implements ICardProvider {
         ? user.countryOfResidence.toUpperCase()
         : null,
       usState: user.usState ? user.usState.toUpperCase() : null,
+      createdAt: user.createdAt ?? null,
     };
   }
 

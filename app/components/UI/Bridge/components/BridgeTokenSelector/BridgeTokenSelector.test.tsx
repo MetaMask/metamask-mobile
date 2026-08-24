@@ -14,6 +14,9 @@ import {
   setIsSelectingToken,
   setSourceAmount,
   setTokenSelectorNetworkFilter,
+  setSourceToken,
+  setDestToken,
+  selectAllowedChainRanking,
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -43,6 +46,15 @@ const defaultMockBridgeState: MockBridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
 };
+
+interface MockBridgeAction {
+  type: string;
+  payload?:
+    | CaipChainId
+    | CaipChainId[]
+    | ReturnType<typeof createMockToken>
+    | undefined;
+}
 
 // Create a Redux store with all the state needed by the component
 const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
@@ -77,7 +89,7 @@ const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
       }),
       bridge: (
         state: MockBridgeState | undefined,
-        action: { type: string; payload?: CaipChainId | CaipChainId[] },
+        action: MockBridgeAction,
       ) => {
         const resolvedState = state ?? {
           ...defaultMockBridgeState,
@@ -98,6 +110,22 @@ const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
             visiblePillChainIds: action.payload as CaipChainId[] | undefined,
           };
         }
+        if (action.type === 'bridge/setSourceToken') {
+          return {
+            ...resolvedState,
+            sourceToken: action.payload as ReturnType<
+              typeof createMockToken
+            > | null,
+          };
+        }
+        if (action.type === 'bridge/setDestToken') {
+          return {
+            ...resolvedState,
+            destToken: action.payload as ReturnType<
+              typeof createMockToken
+            > | null,
+          };
+        }
         return resolvedState;
       },
     },
@@ -113,7 +141,11 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigationDispatch = jest.fn();
-let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
+let mockRouteParams: {
+  type: 'source' | 'dest';
+  enabledChainIds?: CaipChainId[];
+  excludeRwaTokens?: boolean;
+} = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -149,7 +181,7 @@ jest.mock('../../../../../hooks', () => ({
 // Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
 // This is needed because jest.mock is hoisted before variable declarations
 jest.mock('../../../../../core/redux/slices/bridge', () => {
-  const emptyChainRanking: CaipChainId[] = [];
+  const emptyChainRanking: { chainId: CaipChainId; name: string }[] = [];
   return {
     selectBridgeFeatureFlags: jest.fn(
       (state: {
@@ -168,7 +200,9 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
           backgroundState: {
             BridgeController: {
               bridgeState: {
-                bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
+                bridgeFeatureFlags?: {
+                  chainRanking?: { chainId: CaipChainId; name: string }[];
+                };
               };
             };
           };
@@ -195,6 +229,14 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setVisiblePillChainIds: jest.fn((chainIds) => ({
       type: 'bridge/setVisiblePillChainIds',
       payload: chainIds,
+    })),
+    setSourceToken: jest.fn((token) => ({
+      type: 'bridge/setSourceToken',
+      payload: token,
+    })),
+    setDestToken: jest.fn((token) => ({
+      type: 'bridge/setDestToken',
+      payload: token,
     })),
   };
 });
@@ -484,11 +526,13 @@ jest.mock('./NetworkPills', () => ({
     onMorePress,
     onWatchlistFilterPress,
     showWatchlistFilter,
+    enabledChainIds,
   }: {
     onChainSelect: (chainId?: CaipChainId) => void;
     onMorePress: () => void;
     onWatchlistFilterPress?: () => void;
     showWatchlistFilter?: boolean;
+    enabledChainIds?: CaipChainId[];
   }) => {
     const { createElement } = jest.requireActual('react');
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -528,6 +572,11 @@ jest.mock('./NetworkPills', () => ({
         Text,
         { testID: 'visible-pill-chain-ids' },
         JSON.stringify(visiblePillChainIds ?? []),
+      ),
+      createElement(
+        Text,
+        { testID: 'network-pills-enabled-chain-ids' },
+        JSON.stringify(enabledChainIds ?? null),
       ),
     );
   },
@@ -992,6 +1041,151 @@ describe('BridgeTokenSelector', () => {
         ]);
       });
     });
+
+    // Restores the default (unfiltered-by-enabledChainIds) mock
+    // implementation for subsequent tests.
+    const restoreDefaultAllowedChainRankingMock = () => {
+      // The state shape here mirrors this file's local jest.mock stub for
+      // the bridge slice (see top of file), not the real RootState, since
+      // this module is fully mocked. Cast past the real selector's type to
+      // keep jest.mocked() happy about the mockImplementation's signature.
+      jest.mocked(selectAllowedChainRanking).mockImplementation(
+        ((state: {
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                bridgeState: {
+                  bridgeFeatureFlags?: {
+                    chainRanking?: { chainId: CaipChainId; name: string }[];
+                  };
+                };
+              };
+            };
+          };
+        }) =>
+          state.engine.backgroundState.BridgeController.bridgeState
+            .bridgeFeatureFlags?.chainRanking ??
+          []) as unknown as typeof selectAllowedChainRanking,
+      );
+    };
+
+    it('falls back to all enabled chains when the initial dest filter chain is outside enabledChainIds', async () => {
+      // Selected dest token lives on Polygon, but this picker (e.g. Limit
+      // Order) is scoped to Ethereum only, so Polygon is excluded from the
+      // allowed chainRanking returned to pills/network modal.
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'dest', enabledChainIds };
+      mockSelectedToken = createMockToken({ chainId: '0x89' });
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      renderWithReduxProvider(<BridgeTokenSelector />);
+
+      try {
+        await waitFor(() => {
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+            MOCK_CHAIN_IDS.ethereum,
+          ]);
+        });
+        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
+      } finally {
+        restoreDefaultAllowedChainRankingMock();
+      }
+    });
+
+    it('clears a stale Redux network filter and re-anchors source/dest to ETH/mUSD when Ethereum is enabled', async () => {
+      // Redux still holds a filter set by a previous (unrestricted) picker
+      // instance, but this picker (e.g. Limit Order) is scoped to Ethereum
+      // only, so Polygon is excluded from the allowed chainRanking. Leaving
+      // the stale filter in place would fetch all enabled chains while no
+      // pill (and no "All networks" option) appears selected, and the
+      // underlying source/dest pair would still reference an unsupported
+      // chain for this picker.
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      const store = createMockStore({
+        tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.polygon,
+      });
+
+      try {
+        renderWithReduxProvider(<BridgeTokenSelector />, store);
+
+        await waitFor(() => {
+          expect(
+            store.getState().bridge.tokenSelectorNetworkFilter,
+          ).toBeUndefined();
+        });
+
+        expect(setSourceToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x1', symbol: 'ETH' }),
+        );
+        expect(setDestToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x1', symbol: 'mUSD' }),
+        );
+        // Source and dest must share the same chainId format (hex for EVM).
+        const [dispatchedSourceToken] =
+          jest.mocked(setSourceToken).mock.calls[0];
+        const [dispatchedDestToken] = jest.mocked(setDestToken).mock.calls[0];
+        expect(dispatchedSourceToken?.chainId).toBe(
+          dispatchedDestToken?.chainId,
+        );
+      } finally {
+        restoreDefaultAllowedChainRankingMock();
+      }
+    });
+
+    it('re-anchors source/dest to the first enabled chain default pair when Ethereum is not enabled', async () => {
+      // Picker is scoped to Polygon only (e.g. a Polygon-only flow), so
+      // Ethereum isn't an option — the fallback pair should come from the
+      // top-ranked enabled chain instead.
+      const enabledChainIds = [MOCK_CHAIN_IDS.polygon];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      const store = createMockStore({
+        tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.ethereum,
+      });
+
+      try {
+        renderWithReduxProvider(<BridgeTokenSelector />, store);
+
+        await waitFor(() => {
+          expect(
+            store.getState().bridge.tokenSelectorNetworkFilter,
+          ).toBeUndefined();
+        });
+
+        expect(setSourceToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x89' }),
+        );
+        expect(setSourceToken).not.toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH' }),
+        );
+      } finally {
+        restoreDefaultAllowedChainRankingMock();
+      }
+    });
   });
 
   describe('token selection', () => {
@@ -1008,6 +1202,181 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
+  });
+
+  describe('RWA filtering', () => {
+    const createRwaPopularToken = (symbol: string, name: string) =>
+      ({
+        ...createMockPopularToken({
+          assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
+          symbol,
+          name,
+        }),
+        rwaData: { instrumentType: 'stock' },
+      }) as never;
+
+    it('keeps RWA tokens when excludeRwaTokens is not set', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(getByTestId('token-AAPLX')).toBeTruthy();
+    });
+
+    it('hides RWA popular tokens when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-AAPLX')).toBeNull();
+    });
+
+    it('hides Ondo Tokenized popular tokens matched by name', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createMockPopularToken({
+            assetId: 'eip155:1/erc20:0xondo' as never,
+            symbol: 'TSLAon',
+            name: 'Ondo Tokenized Tesla',
+          }),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-TSLAon')).toBeNull();
+    });
+
+    it('hides RWA search results when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [
+          createSearchToken('WETH'),
+          createRwaPopularToken('MSFTX', 'Microsoft Corp'),
+        ],
+        currentSearchQuery: 'WET',
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      expect(queryByTestId('token-MSFTX')).toBeNull();
+    });
+
+    it('hides empty state while an all-RWA page still has a cursor to auto-load', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: 'next-cursor',
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } =
+        renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      const { FlatList } = jest.requireActual('react-native');
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onLayout({
+          nativeEvent: { layout: { height: 500 } },
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('MSF', 'next-cursor');
+      });
+      expect(queryByTestId('bridge-token-selector-empty-state')).toBeNull();
+    });
+
+    it('shows empty state once an all-RWA search exhausts its cursor', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: undefined,
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-selector-empty-state')).toBeTruthy(),
+      );
+    });
+
+    it.each([
+      { excludeRwaTokens: undefined, isRwaVisible: true },
+      { excludeRwaTokens: true, isRwaVisible: false },
+    ])(
+      'renders Ondo Tokenized watchlist tokens: $isRwaVisible when excludeRwaTokens is $excludeRwaTokens',
+      async ({ excludeRwaTokens, isRwaVisible }) => {
+        mockRouteParams = { type: 'source', excludeRwaTokens };
+        mockIsWatchlistEnabled = true;
+        mockUseTokenWatchlistQuery.mockReturnValue({
+          data: [
+            {
+              assetId: 'eip155:1/slip44:60',
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+              balance: '1.5',
+              balanceFiat: 3000,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+            {
+              assetId: 'eip155:1/erc20:0xondo',
+              name: 'Ondo Tokenized Tesla',
+              symbol: 'TSLAon',
+              decimals: 18,
+              balance: '2',
+              balanceFiat: 500,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+          ],
+          isLoading: false,
+        });
+
+        const { getByTestId, queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
+        expect(Boolean(queryByTestId('token-TSLAon'))).toBe(isRwaVisible);
+      },
+    );
   });
 
   describe('chain selection', () => {
@@ -1295,6 +1664,29 @@ describe('BridgeTokenSelector', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: { enabledChainIds: undefined },
+      });
+    });
+
+    it('passes enabledChainIds from route params to the selector, NetworkPills, and the network list modal navigation', () => {
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+      expect(
+        getByTestId('network-pills-enabled-chain-ids').props.children,
+      ).toBe(JSON.stringify(enabledChainIds));
+
+      fireEvent.press(getByTestId('open-network-modal'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: { enabledChainIds },
       });
     });
 

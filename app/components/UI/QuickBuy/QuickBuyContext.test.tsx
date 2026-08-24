@@ -102,6 +102,7 @@ const buildController = (
   },
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
+  hasNoPayWithFunds: false,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: false,
@@ -292,5 +293,52 @@ describe('QuickBuyProvider — isConfirmDisabled', () => {
 
     const ctx = renderProvider(featuresWithModal);
     expect(ctx.current.isConfirmDisabled).toBe(true);
+  });
+});
+
+describe('QuickBuyProvider — isKeypadOpen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the keypad by default when the user has funds', () => {
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ hasNoPayWithFunds: false }),
+    );
+
+    const ctx = renderProvider(featuresWithModal);
+    expect(ctx.current.isKeypadOpen).toBe(true);
+  });
+
+  // Regression guard: gating the keypad on funds made the sheet's height depend
+  // on a flag that is not settled on the first render, so a funded account
+  // opened collapsed and then expanded — a visible flash. The keypad must stay
+  // expanded regardless of funds; `QuickBuyAmountScreen` dims and blocks it
+  // instead, which keeps the height constant.
+  it('keeps the keypad open even when the user has nothing to pay with', () => {
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ hasNoPayWithFunds: true }),
+    );
+
+    const ctx = renderProvider(featuresWithModal);
+    expect(ctx.current.isKeypadOpen).toBe(true);
+  });
+
+  it('lets a consumer collapse and reopen the keypad regardless of funds', () => {
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ hasNoPayWithFunds: true }),
+    );
+
+    const ctx = renderProvider(featuresWithModal);
+
+    act(() => {
+      ctx.current.setIsKeypadOpen(false);
+    });
+    expect(ctx.current.isKeypadOpen).toBe(false);
+
+    act(() => {
+      ctx.current.setIsKeypadOpen(true);
+    });
+    expect(ctx.current.isKeypadOpen).toBe(true);
   });
 });

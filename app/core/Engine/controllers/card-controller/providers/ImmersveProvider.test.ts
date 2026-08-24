@@ -118,6 +118,8 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.authMethod).toBe('siwe');
       expect(provider.capabilities.supportsCashback).toBe(false);
       expect(provider.capabilities.supportsCredit).toBe(false);
+      expect(provider.capabilities.supportsTransactionHistory).toBe(true);
+      expect(provider.capabilities.supportsMoneyAccountLinking).toBe(false);
       expect(provider.capabilities.onboarding.type).toBe('webview');
     });
   });
@@ -235,6 +237,46 @@ describe('ImmersveProvider', () => {
         ).rejects.toMatchObject({ code: expectedCode, statusCode });
       },
     );
+
+    it('reports non-auth initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(500, '/auth/login-init', 'fail');
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: 'immersve' },
+          context: expect.objectContaining({
+            name: 'ImmersveProvider',
+            data: expect.objectContaining({
+              method: 'initiateAuth',
+              network: 'base-sepolia',
+              country: 'GB',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('does not report 401 initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(401, '/auth/login-init', 'unauthorized'),
+      );
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
 
     it('maps non-API errors to Unknown', async () => {
       const { provider, service } = createProvider();
@@ -772,13 +814,24 @@ describe('ImmersveProvider', () => {
 
     it('createCard maps API failures', async () => {
       const { provider, service } = createProvider();
-      service.post.mockRejectedValue(
-        new CardApiError(500, '/api/cards', 'down'),
-      );
+      const apiError = new CardApiError(500, '/api/cards', 'down');
+      service.post.mockRejectedValue(apiError);
 
       await expect(provider.createCard('fs-1', TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.ServerError,
       });
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'createCard',
+              fundingSourceId: 'fs-1',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
     });
 
     it('getResumeCardInfo returns null when the account has no card', async () => {
@@ -958,6 +1011,7 @@ describe('ImmersveProvider', () => {
         holderName: 'John Doe',
         isFreezable: true,
         regionCode: undefined,
+        hasPin: true,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',
@@ -1383,6 +1437,132 @@ describe('ImmersveProvider', () => {
         errorCode: 'INVALID_PIN_FORMAT',
       });
       expect(Logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('listTransactions', () => {
+    const rawTx = {
+      id: '4e4607f1',
+      description: 'Air NZ Online Auckland',
+      accountId: 'cardholder-1',
+      status: 'cleared' as const,
+      cardId: 'card-1',
+      amount: '31412',
+      currency: 'USD',
+      acquirerAmount: '31412',
+      acquirerCurrency: 'NZD',
+      feeAmount: '12',
+      transactionDate: '2022-11-09T03:24:15.182Z',
+      processedDate: '2022-11-09T03:24:15.182Z',
+      reference: '1000000178145',
+      cardAcceptor: {
+        city: 'Auckland',
+        countryCode: 'NZ',
+        name: 'Air NZ Online',
+      },
+      creditDebitIndicator: 'debit' as const,
+      paymentType: 'purchase' as const,
+    };
+
+    it('maps amounts from minor units and cardAcceptor fields', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [rawTx],
+        pageInfo: { nextCursor: 'abc' },
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '/api/accounts/cardholder-1/transactions?statuses=all',
+        ),
+        TOKENS,
+      );
+      expect(page.items[0]).toMatchObject({
+        id: '4e4607f1',
+        status: 'completed',
+        type: 'purchase',
+        billingAmount: { value: '314.12', currency: 'USD' },
+        feeAmount: { value: '0.12', currency: 'USD' },
+        merchant: {
+          name: 'Air NZ Online',
+          city: 'Auckland',
+          countryCode: 'NZ',
+        },
+        fundingSources: [],
+      });
+      expect(page.nextCursor).toBeDefined();
+    });
+
+    it('maps failureReason to failed status', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...rawTx, status: 'init', failureReason: 'cvv-invalid' }],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'failed',
+        declineReason: { code: 'cvv-invalid' },
+      });
+      expect(page.nextCursor).toBeUndefined();
+    });
+
+    it('maps holding status to completed', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...rawTx, status: 'holding' }],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0].status).toBe('completed');
+    });
+
+    it('throws when cardholderAccountId is missing', async () => {
+      const { provider } = createProvider();
+      const tokensWithoutAccount = {
+        ...TOKENS,
+        cardholderAccountId: undefined,
+      };
+
+      await expect(
+        provider.listTransactions({}, tokensWithoutAccount),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+  });
+
+  describe('getTransaction', () => {
+    it('includes PAN fields from the detail endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        id: 'tx-1',
+        description: 'Air NZ',
+        accountId: 'cardholder-1',
+        status: 'cleared',
+        cardId: 'card-1',
+        amount: '100',
+        currency: 'USD',
+        transactionDate: '2022-11-09T03:24:15.182Z',
+        reference: 'ref',
+        cardAcceptor: { name: 'Air NZ', city: 'AKL', countryCode: 'NZ' },
+        paymentType: 'purchase',
+        panFirst6: '123456',
+        panLast6: '7890',
+      });
+
+      const details = await provider.getTransaction('tx-1', TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/transactions/tx-1',
+        TOKENS,
+      );
+      expect(details).toMatchObject({
+        cardFirstSix: '123456',
+        cardLastFour: '7890',
+      });
     });
   });
 });

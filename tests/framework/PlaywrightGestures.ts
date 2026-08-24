@@ -289,6 +289,29 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Click, clear, then type via per-character addValue.
+   * Prefer over fill/setValue for iOS multiline TextInputs where bulk set
+   * drops characters or Return does not submit via goNext().
+   */
+  @boxedStep
+  static async typeTextByCharacters(
+    elem: PlaywrightElement,
+    text: string,
+    options?: { submitWithReturn?: boolean },
+  ): Promise<void> {
+    await debugElementAction(logger, 'Typing into element by characters', elem);
+    const native = elem.unwrap();
+    await native.click();
+    await native.clearValue();
+    for (const char of text) {
+      await native.addValue(char);
+    }
+    if (options?.submitWithReturn) {
+      await native.addValue('\n');
+    }
+  }
+
+  /**
    * Swipe element in a direction
    * @param options - The options for the swipe
    * @returns A promise that resolves when the swipe is complete

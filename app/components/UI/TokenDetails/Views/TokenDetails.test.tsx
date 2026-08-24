@@ -8,7 +8,6 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import {
   selectDepositActiveFlag,
@@ -19,6 +18,7 @@ import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -138,6 +138,16 @@ const mockUseStickyTokenActions = jest.fn();
 jest.mock('../hooks/useStickyTokenActions', () => ({
   useStickyTokenActions: () => mockUseStickyTokenActions(),
 }));
+
+jest.mock(
+  '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing',
+  () => ({
+    useAddNetworkIfMissingQuery: jest.fn(),
+  }),
+);
+const mockUseAddNetworkIfMissingQuery = jest.mocked(
+  useAddNetworkIfMissingQuery,
+);
 
 const defaultUseTokenTransactionsReturn = {
   transactions: [],
@@ -310,10 +320,6 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => ({
     ETH: { conversionRate: 1, usdConversionRate: 1 },
   })),
-}));
-
-jest.mock('../../Earn/selectors/featureFlags', () => ({
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -489,7 +495,6 @@ describe('TokenDetails', () => {
       if (selector === selectCurrencyRates)
         // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
@@ -506,6 +511,19 @@ describe('TokenDetails', () => {
     const { UNSAFE_getByType } = render(<TokenDetails />);
 
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  it('requests the auto-add of the network for the token chain', () => {
+    mockRouteParams.mockReturnValue({
+      ...defaultRouteParams,
+      chainId: '0x1237',
+    });
+
+    render(<TokenDetails />);
+
+    expect(mockUseAddNetworkIfMissingQuery).toHaveBeenCalledWith({
+      chainId: '0x1237',
+    });
   });
 
   describe('Swap/Buy sticky buttons', () => {
@@ -709,7 +727,6 @@ describe('TokenDetails', () => {
         return { '0x1': { nativeCurrency: 'ETH' } };
       if (selector === selectCurrencyRates)
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
@@ -885,7 +902,6 @@ describe('TokenDetails', () => {
         if (selector === selectNetworkConfigurations)
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates) return {};
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -989,7 +1005,6 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -1159,12 +1174,21 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('closes ShareTokenBottomSheet when onClose is invoked', async () => {
-      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+    it('does not re-render TokenDetails when the share sheet opens', async () => {
+      render(<TokenDetails />);
+      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
+
       await invokeSharePress();
 
-      expect(getByTestId('share-token-sheet')).toBeTruthy();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
+        headerRenderCount,
+      );
+    });
 
+    it('closes ShareTokenBottomSheet without re-rendering TokenDetails', async () => {
+      const { queryByTestId } = render(<TokenDetails />);
+      await invokeSharePress();
+      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
       const { onClose } = (mockShareTokenBottomSheet.mock.calls.at(-1)?.[0] ??
         {}) as { onClose: () => void };
 
@@ -1172,7 +1196,10 @@ describe('TokenDetails', () => {
         onClose();
       });
 
-      expect(queryByTestId('share-token-sheet')).toBeNull();
+      expect(queryByTestId('share-token-sheet')).not.toBeOnTheScreen();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
+        headerRenderCount,
+      );
     });
   });
 

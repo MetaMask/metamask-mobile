@@ -29,6 +29,7 @@ jest.mock('../../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
     CREDIT_BUTTON: 'CREDIT_BUTTON',
@@ -82,6 +83,7 @@ jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardHomeDataStatus: () => 'success',
   selectIsCardAuthenticated: jest.fn(() => true),
+  selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
 interface DestinationReturn {
