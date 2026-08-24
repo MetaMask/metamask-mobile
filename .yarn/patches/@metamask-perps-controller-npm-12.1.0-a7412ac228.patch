@@ -1,3 +1,59 @@
+diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
+index 4786919ca708885700c216f5fe81e0d82684a463..253defdf6fa9f4eb4403587f0e91242911e4fc00 100644
+--- a/dist/providers/HyperLiquidProvider.cjs
++++ b/dist/providers/HyperLiquidProvider.cjs
+@@ -3309,14 +3309,16 @@ class HyperLiquidProvider {
+             hip3Markets: combinedUniverse.length -
+                 (latestDexResults[0]?.meta?.universe?.length ?? 0),
+         });
+-        // Debug: Log combinedAllMids to diagnose price lookup issues
+-        const hip3Keys = Object.keys(combinedAllMids).filter((key) => key.includes(':'));
++        // Keep this diagnostic bounded. Logging every price stalls React Native
++        // DevTools and other CDP clients when thousands of spot keys are present.
++        const allMidEntries = Object.entries(combinedAllMids);
++        const hip3Entries = allMidEntries.filter(([key]) => key.includes(':'));
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Combined allMids price data:', {
+-            totalKeys: Object.keys(combinedAllMids).length,
+-            allKeys: Object.keys(combinedAllMids),
+-            hip3Keys,
+-            hip3Prices: Object.fromEntries(hip3Keys.map((key) => [key, combinedAllMids[key]])),
+-            samplePrices: Object.fromEntries(Object.entries(combinedAllMids).slice(0, 5)),
++            totalKeys: allMidEntries.length,
++            hip3Keys: hip3Entries.length,
++            keySample: allMidEntries.slice(0, 5).map(([key]) => key),
++            hip3KeySample: hip3Entries.slice(0, 5).map(([key]) => key),
++            samplePrices: Object.fromEntries(allMidEntries.slice(0, 5)),
+         });
+         // Transform to UI-friendly format using standalone utility
+         const transformedMarketData = (0, marketDataTransform_js_1.transformMarketData)({
+diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
+index 9ca5f5e0626ba6d3da8e10ce0ae15a9a83cf1b52..1b9008c268ccc81017ebedda594489cc31c697e9 100644
+--- a/dist/providers/HyperLiquidProvider.mjs
++++ b/dist/providers/HyperLiquidProvider.mjs
+@@ -3306,14 +3306,16 @@ export class HyperLiquidProvider {
+             hip3Markets: combinedUniverse.length -
+                 (latestDexResults[0]?.meta?.universe?.length ?? 0),
+         });
+-        // Debug: Log combinedAllMids to diagnose price lookup issues
+-        const hip3Keys = Object.keys(combinedAllMids).filter((key) => key.includes(':'));
++        // Keep this diagnostic bounded. Logging every price stalls React Native
++        // DevTools and other CDP clients when thousands of spot keys are present.
++        const allMidEntries = Object.entries(combinedAllMids);
++        const hip3Entries = allMidEntries.filter(([key]) => key.includes(':'));
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Combined allMids price data:', {
+-            totalKeys: Object.keys(combinedAllMids).length,
+-            allKeys: Object.keys(combinedAllMids),
+-            hip3Keys,
+-            hip3Prices: Object.fromEntries(hip3Keys.map((key) => [key, combinedAllMids[key]])),
+-            samplePrices: Object.fromEntries(Object.entries(combinedAllMids).slice(0, 5)),
++            totalKeys: allMidEntries.length,
++            hip3Keys: hip3Entries.length,
++            keySample: allMidEntries.slice(0, 5).map(([key]) => key),
++            hip3KeySample: hip3Entries.slice(0, 5).map(([key]) => key),
++            samplePrices: Object.fromEntries(allMidEntries.slice(0, 5)),
+         });
+         // Transform to UI-friendly format using standalone utility
+         const transformedMarketData = transformMarketData({
 diff --git a/dist/services/HyperLiquidClientService.cjs b/dist/services/HyperLiquidClientService.cjs
 index 17358067e3be8b2e39b1e27cba21ec3be63a7817..f06d838a00b27097a83f06b7bb666162882a03e6 100644
 --- a/dist/services/HyperLiquidClientService.cjs
