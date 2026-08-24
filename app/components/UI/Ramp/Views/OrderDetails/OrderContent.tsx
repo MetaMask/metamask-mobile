@@ -34,6 +34,8 @@ import { toDateFormat } from '../../../../../util/date';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { toRampsOrderCaipChainId } from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+import { getTokenImageSource } from '../../../ActivityListItemRow/tokenIcon';
 import Logger from '../../../../../util/Logger';
 import { hasDepositOrderField } from '../../utils/depositUtils';
 import BankDetailRow from '../../components/BankDetailRow/BankDetailRow';
@@ -80,7 +82,18 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const providerName = order.provider?.name ?? '';
   const providerOrderLink = order.providerOrderLink;
-  const cryptoIconUrl = order.cryptoCurrency?.iconUrl;
+  // Prefer the asset-id CDN url (environment-independent, and the same source
+  // Activity details use) over the provider-supplied `iconUrl`, which points at
+  // a per-environment host that does not resolve outside production.
+  const cryptoImageSource =
+    getTokenImageSource({
+      assetId: order.cryptoCurrency?.assetId,
+      symbol: order.cryptoCurrency?.symbol,
+      direction: 'in',
+    }) ??
+    (order.cryptoCurrency?.iconUrl
+      ? { uri: order.cryptoCurrency.iconUrl }
+      : undefined);
   const fiatDecimals = order.fiatCurrency?.decimals ?? 2;
   const providerSupportUrl =
     order.provider?.links?.find((link) =>
@@ -233,19 +246,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
     trackEvent,
   ]);
 
-  const normalizeChainIdForBadge = (chainId: string): string => {
-    if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
-      return chainId;
-    }
-    const decimal = parseInt(chainId, 10);
-    return isNaN(decimal) ? chainId : `0x${decimal.toString(16)}`;
-  };
-
-  const normalizedNetworkChainId = normalizeChainIdForBadge(
-    order.network?.chainId ?? '',
-  );
-  const networkImageSource = normalizedNetworkChainId
-    ? getNetworkImageSource({ chainId: normalizedNetworkChainId })
+  // Providers disagree on the `network` shape: some send the declared
+  // `{ chainId, name }` object, others a bare decimal string ("1"). Reuse the
+  // Activity resolver, which walks network object -> network string ->
+  // cryptoCurrency.chainId -> assetId and always yields a CAIP chain id.
+  const networkChainId = toRampsOrderCaipChainId(order) ?? '';
+  const networkName = order.network?.name || networkChainId;
+  const networkImageSource = networkChainId
+    ? getNetworkImageSource({ chainId: networkChainId })
     : null;
 
   const capitalizeWords = useCallback(
@@ -335,7 +343,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           badgeElement={
             networkImageSource ? (
               <BadgeNetwork
-                name={normalizedNetworkChainId}
+                name={networkName}
                 imageSource={networkImageSource}
               />
             ) : null
@@ -343,7 +351,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         >
           <AvatarToken
             name={cryptoSymbol}
-            imageSource={cryptoIconUrl ? { uri: cryptoIconUrl } : undefined}
+            imageSource={cryptoImageSource}
             size={AvatarSize.Lg}
           />
         </BadgeWrapper>
