@@ -7650,6 +7650,21 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "earn_module": {
+    "new_tag": "New",
+    "money_account": "Money account",
+    "get_started": "Get started",
+    "rate_apy": "{{percentage}}% APY",
+    "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Get {{percentage}}% APY",
+    "get_rate_apr": "Get {{percentage}}% APR",
+    "rate_unavailable": "Rate unavailable",
+    "balance_unavailable": "Balance unavailable",
+    "asset_unavailable": "Asset unavailable",
+    "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
+    "retry": "Retry",
+    "view_more": "View more"
+  },
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
@@ -10883,6 +10898,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",
@@ -10962,6 +10978,18 @@
       "title": "Get your physical card.",
       "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
       "cta": "Get card"
+    },
+    "earned": {
+      "total_label": "Earned since joining Pro",
+      "interest_title": "Interest",
+      "interest_subtitle": "Up to 7% APY on Money balance",
+      "card_cashback_title": "Card cashback",
+      "card_cashback_subtitle": "3% in mUSD on {{amount}}",
+      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
+      "grow_title": "Grow your balance",
+      "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
+      "add_money": "Add money"
     },
     "explore_benefits": "Explore benefits",
     "membership": {

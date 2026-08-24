@@ -259,18 +259,36 @@ const useEarnAssetCatalogue = () => {
     enabled: isStablecoinLendingEnabled && isEarnEligible,
   });
 
-  const lendingAssetIds = useMemo(
+  const walletAssetsById = useMemo(
+    () =>
+      new Map(
+        walletAssets.flatMap((asset) => {
+          const assetId = getAssetEarnId(asset);
+          return assetId ? [[assetId.toLowerCase(), asset] as const] : [];
+        }),
+      ),
+    [walletAssets],
+  );
+
+  const discoveryLendingAssetIds = useMemo(
     () =>
       isStablecoinLendingEnabled && isEarnEligible
         ? [
             ...new Set(
-              lendingMarkets.map((market) =>
-                getLendingAssetId(market.chainId, market.underlying.address),
-              ),
+              lendingMarkets
+                .map((market) =>
+                  getLendingAssetId(market.chainId, market.underlying.address),
+                )
+                .filter((assetId) => !walletAssetsById.has(assetId)),
             ),
           ]
         : [],
-    [isEarnEligible, isStablecoinLendingEnabled, lendingMarkets],
+    [
+      isEarnEligible,
+      isStablecoinLendingEnabled,
+      lendingMarkets,
+      walletAssetsById,
+    ],
   );
   const {
     tokensByAssetId: lendingMetadata,
@@ -278,7 +296,7 @@ const useEarnAssetCatalogue = () => {
     isSettled: isLendingMetadataSettled,
     error: lendingMetadataError,
     refresh: refreshLendingMetadata,
-  } = useEarnSectionTokenMetadata(lendingAssetIds);
+  } = useEarnSectionTokenMetadata(discoveryLendingAssetIds);
 
   const moneyRateStatus = getRateStatus({
     percentage: moneyApyPercent,
@@ -295,16 +313,6 @@ const useEarnAssetCatalogue = () => {
   });
   const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
   const ethRateStatus = getRateStatus({ percentage: ethRatePercent });
-  const walletAssetsById = useMemo(
-    () =>
-      new Map(
-        walletAssets.flatMap((asset) => {
-          const assetId = getAssetEarnId(asset);
-          return assetId ? [[assetId.toLowerCase(), asset] as const] : [];
-        }),
-      ),
-    [walletAssets],
-  );
 
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
@@ -380,6 +388,21 @@ const useEarnAssetCatalogue = () => {
 
         const address = market.underlying.address;
         const assetId = getLendingAssetId(market.chainId, address);
+        const lendingExperience = {
+          id: experienceId,
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          role: 'underlying' as const,
+          rate: {
+            type: 'APY' as const,
+            percentage: ratePercentage,
+            status: getRateStatus({
+              percentage: ratePercentage,
+            }),
+          },
+          isFeeSubsidized: false,
+          market,
+        };
+
         const metadata = lendingMetadata[assetId];
         if (!metadata || metadata.decimals === undefined) return;
 
@@ -399,22 +422,7 @@ const useEarnAssetCatalogue = () => {
               isStaked: false,
               chainId,
             },
-            [
-              {
-                id: experienceId,
-                type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-                role: 'underlying',
-                rate: {
-                  type: 'APY',
-                  percentage: ratePercentage,
-                  status: getRateStatus({
-                    percentage: ratePercentage,
-                  }),
-                },
-                isFeeSubsidized: false,
-                market,
-              },
-            ],
+            [lendingExperience],
           ),
         );
       });
@@ -496,7 +504,7 @@ const useEarnAssetCatalogue = () => {
   );
   const hasMissingLendingMetadata =
     isLendingMetadataSettled &&
-    lendingAssetIds.some(
+    discoveryLendingAssetIds.some(
       (assetId) => lendingMetadata[assetId]?.decimals === undefined,
     );
   const hasUnresolvedMoneyAsset =
