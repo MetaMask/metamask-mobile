@@ -19,7 +19,10 @@ import {
 import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { HOMEPAGE_URL } from '../../../app/components/Views/BrowserTab/constants';
+
+/** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
+const HOMEPAGE_URL =
+  'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
