@@ -71,6 +71,69 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(options.getMetaMetricsId?.()).toBeUndefined();
   });
 
+  it('returns undefined MetaMetrics id when AnalyticsController is not registered yet', () => {
+    const messenger = {
+      call: jest.fn(() => {
+        throw new Error('AnalyticsController:getState not registered');
+      }),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getMetaMetricsId?.()).toBeUndefined();
+  });
+
+  it('resolves the canonical profile id from AuthenticationController via the messenger', () => {
+    const messenger = {
+      call: jest.fn(() => ({
+        srpSessionData: {
+          'srp-1': { profile: { canonicalProfileId: 'canonical-id' } },
+        },
+      })),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getCanonicalProfileId?.()).toBe('canonical-id');
+    expect(messenger.call).toHaveBeenCalledWith(
+      'AuthenticationController:getState',
+    );
+  });
+
+  it('returns an empty canonical profile id when AuthenticationController is not registered yet', () => {
+    const messenger = {
+      call: jest.fn(() => {
+        throw new Error('AuthenticationController:getState not registered');
+      }),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getCanonicalProfileId?.()).toBe('');
+  });
+
+  it('returns an empty canonical profile id when no session profile is present', () => {
+    const messenger = {
+      call: jest.fn(() => ({ srpSessionData: {} })),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getCanonicalProfileId?.()).toBe('');
+  });
+
   it('reads prevClientVersion from persisted AppMetadataController state', () => {
     const options = getRemoteFeatureFlagControllerInstanceOptions({
       messenger: buildMessenger('metrics-id'),
