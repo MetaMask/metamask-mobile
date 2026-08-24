@@ -326,6 +326,8 @@ PODS:
     - React-Core
     - React-runtimescheduler
     - ReactCommon
+  - ExpoScreenCapture (55.0.16):
+    - ExpoModulesCore
   - ExpoScreenOrientation (55.0.16):
     - boost
     - DoubleConversion
@@ -2856,7 +2858,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (8.0.0):
+  - react-native-pager-view (8.0.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -3127,7 +3129,7 @@ PODS:
   - react-native-tcp-socket (6.3.0):
     - CocoaAsyncSocket
     - React-Core
-  - react-native-video (6.19.1):
+  - react-native-video (6.19.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3145,7 +3147,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-video/Video (= 6.19.1)
+    - react-native-video/Video (= 6.19.2)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -3156,7 +3158,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Fabric (6.19.1):
+  - react-native-video/Fabric (6.19.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3184,7 +3186,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Video (6.19.1):
+  - react-native-video/Video (6.19.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4527,6 +4529,7 @@ DEPENDENCIES:
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
+  - ExpoScreenCapture (from `../node_modules/expo-screen-capture/ios`)
   - ExpoScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -4780,6 +4783,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-core"
+  ExpoScreenCapture:
+    :path: "../node_modules/expo-screen-capture/ios"
   ExpoScreenOrientation:
     :path: "../node_modules/expo-screen-orientation/ios"
   ExpoSensors:
@@ -5118,6 +5123,7 @@ SPEC CHECKSUMS:
   ExpoLogBox: a678d36477ab9544fe63e0b5328a0716539b6774
   ExpoModulesCore: cc07ebf5b947a239f1669cb5856d905cb2b093f7
   ExpoModulesJSI: 964334271fc77832736f66ee1785761cdc778dbe
+  ExpoScreenCapture: 4f1837dae9f4379fa444a44f2e45e6fbc60991e0
   ExpoScreenOrientation: d6f7486ab8c0dca13220ee8f8b64511563570838
   ExpoSensors: f52b1ac7794da9c91be3d893aae612475f1ab94a
   ExpoSplashScreen: 049301b226bce8284fcafb7923fcad3a43f23a9f
@@ -5208,7 +5214,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
   react-native-netinfo: 57447b5a45c98808f8eae292cf641f3d91d13830
-  react-native-pager-view: d7d2aa47f54343bf55fdcee3973503dd27c2bd37
+  react-native-pager-view: 1baaa3452a7d5efbd642856cbbdafbd8958028b4
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
   react-native-quick-base64: 17dc4b8daee50e680d5f57cc3ee6773b6ee0110a
   react-native-quick-crypto: 871ae85b4f28dc5b10263cb61ce2050d00a21860
@@ -5219,7 +5225,7 @@ SPEC CHECKSUMS:
   react-native-sdk: 6eb6c9de60e510a9ea93ddc09a3822cddf04f8cb
   react-native-slider: 4faf1b2266c73f1afb7b30cc6ebb3df238a37c0b
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
-  react-native-video: ce907959c67ad2abaa0411082db621036944737a
+  react-native-video: f8e9788554c53a1852166cd119d6e7c324b16dfe
   react-native-view-shot: 39463aa6cfaeab0a3533cc63f869d52d025ef2ff
   react-native-wallet: e082f2023e0fc86b51ac6c0a7596dcdf17ee30b0
   react-native-webview-mm: 7aecbcdea6e0a0172f11dcbfd97e6921781b32a8

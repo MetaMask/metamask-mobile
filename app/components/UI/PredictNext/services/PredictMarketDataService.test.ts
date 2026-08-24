@@ -1,6 +1,13 @@
 import { ConstantBackoff } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { VenueMarketDataAdapter } from '../adapters/types';
+import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
   KALSHI_VENUE_ID,
@@ -13,6 +20,19 @@ import {
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
 } from './PredictMarketDataService';
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PredictNextGetVenueStatus: 'PredictNext Get Venue Status',
+    PredictNextGetFeed: 'PredictNext Get Feed',
+    PredictNextGetEvent: 'PredictNext Get Event',
+  },
+  TraceOperation: {
+    PredictDataFetch: 'predict.data_fetch',
+  },
+}));
 
 const createService = (marketData: VenueMarketDataAdapter) => {
   const messenger: PredictMarketDataServiceMessenger = new Messenger({
@@ -41,6 +61,10 @@ describe('PredictMarketDataService', () => {
 
   beforeAll(() => {
     jest.useFakeTimers({ advanceTimers: true });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -172,5 +196,35 @@ describe('PredictMarketDataService', () => {
       code: PredictErrorCode.INVALID_RESPONSE,
     });
     expect(marketData.fetchVenueStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('traces Feed fetches with Event count', async () => {
+    const marketData = createMarketData();
+    marketData.fetchFeed.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      id: feedId,
+      title: 'NFL Games',
+      events: [{ id: 'event-1' }],
+    } as never);
+    const service = buildService(marketData);
+
+    await service.getFeed(KALSHI_VENUE_ID, feedId, { limit: 20 });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetFeed,
+      op: TraceOperation.PredictDataFetch,
+      id: expect.stringMatching(/^getFeed-\d+$/u),
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId: KALSHI_VENUE_ID,
+        feedId,
+      },
+      data: { hasCursor: false, limit: 20 },
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetFeed,
+      id: expect.stringMatching(/^getFeed-\d+$/u),
+      data: { success: true, eventCount: 1 },
+    });
   });
 });

@@ -63,7 +63,15 @@ if command -v ffmpeg >/dev/null 2>&1; then
 fi
 
 echo "Installing ffmpeg via Homebrew (bottles cached under ${BREW_CACHE_DIR})..."
-brew install ffmpeg
+if ! brew install ffmpeg; then
+  # A Homebrew older than the bottles it downloads cannot read their metadata and
+  # crashes (Utils::Bottles.load_tab NoMethodError) — brew's own error text says to
+  # run `brew update` and retry. Only reached when the plain install fails, so
+  # runners with a current brew never pay the update cost.
+  echo "brew install failed — updating Homebrew once and retrying..." >&2
+  brew update --quiet
+  brew install ffmpeg
+fi
 
 if ! command -v ffmpeg >/dev/null 2>&1; then
   echo "ffmpeg install finished but binary is not on PATH" >&2

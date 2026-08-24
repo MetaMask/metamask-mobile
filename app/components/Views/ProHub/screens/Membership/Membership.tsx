@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -20,7 +20,9 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MembershipTestIds } from './Membership.testIds';
 import {
   MOCK_MEMBERSHIP_STATS,
@@ -183,8 +185,9 @@ const STAT_SHEET_CONTENT: Record<
 };
 
 const Membership = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { top } = useSafeAreaInsets();
   const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
 
   const handleBack = useCallback(() => {
@@ -208,17 +211,16 @@ const Membership = () => {
   }, []);
 
   const handleCancelMembership = useCallback(() => {
-    // TODO: navigate to cancellation flow
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
+  }, [navigation]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
+    <View
+      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={MembershipTestIds.CONTAINER}
-      edges={['top']}
     >
       <HeaderBase
-        twClassName="pl-4 pr-3"
+        twClassName="px-4"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -230,7 +232,7 @@ const Membership = () => {
       />
 
       <ScrollView
-        contentContainerStyle={tw.style('px-6 pt-2 pb-10')}
+        contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
@@ -245,7 +247,7 @@ const Membership = () => {
         </Text>
 
         {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <Box twClassName="gap-y-4" testID={MembershipTestIds.STATS_SECTION}>
+        <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow
             label={strings('pro_hub.membership.plan')}
             value={MOCK_MEMBERSHIP_STATS.plan}
@@ -371,7 +373,7 @@ const Membership = () => {
         {/* ── Manage ───────────────────────────────────────────────────────── */}
         <Box
           testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col gap-y-4"
+          twClassName="flex flex-col gap-y-6"
         >
           <Text
             variant={TextVariant.HeadingMd}
@@ -400,7 +402,7 @@ const Membership = () => {
           onClose={handleCloseSheet}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

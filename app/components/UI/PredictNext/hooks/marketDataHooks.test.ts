@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@metamask/react-data-query';
-import { useEventDetail } from './useEventDetail';
+import { useEvent } from './useEvent';
 import { useFeed } from './useFeed';
 import { useMarketHistory } from './useMarketHistory';
 import { useVenueStatus } from './useVenueStatus';
@@ -27,10 +27,20 @@ describe('PredictNext market data hooks', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: undefined,
     });
   });
 
-  it('uses a cursor-free Event list key and returns the next cursor', () => {
+  it('forwards the enabled gate to the Venue Status query', () => {
+    useVenueStatus(venueId, { enabled: false });
+
+    expect(mockedUseQuery).toHaveBeenCalledWith({
+      queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: false,
+    });
+  });
+
+  it('uses a cursor-free Feed key and returns the next cursor', () => {
     useFeed(venueId, feedId, { limit: 20 });
     const options = mockedUseInfiniteQuery.mock.calls[0][0];
 
@@ -72,8 +82,8 @@ describe('PredictNext market data hooks', () => {
     expect(nextCursor).toBeUndefined();
   });
 
-  it('uses the Event detail descriptor', () => {
-    useEventDetail(venueId, eventId);
+  it('uses the immutable Event descriptor', () => {
+    useEvent(venueId, eventId);
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],

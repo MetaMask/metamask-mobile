@@ -1,12 +1,13 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { TextButton } from '@metamask/design-system-react-native';
-import InfoRow from '../../UI/info-row';
-import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-import Text, {
+import {
+  Text,
+  TextButton,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import InfoRow from '../../UI/info-row';
+import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -71,7 +72,7 @@ export function PercentageRow() {
         </Text>
       }
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
         {MUSD_CONVERSION_APY}%
       </Text>
     </InfoRow>
