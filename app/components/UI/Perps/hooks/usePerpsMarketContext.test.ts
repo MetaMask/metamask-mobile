@@ -4,11 +4,9 @@ import { usePerpsMarketContext } from './usePerpsMarketContext';
 let mockNetwork = 'testnet';
 let mockProvider = 'hyperliquid';
 let mockHip3ConfigVersion = 1;
-let mockAddress = '0xabc';
 let mockIsInitialized = true;
 let mockInitializedContextKey: string | null = 'testnet|hyperliquid|1';
-let mockInitializedUserContextKey: string | null =
-  'testnet|hyperliquid|1|0xabc';
+let mockIsUserReady = true;
 let mockContextListener: (() => void) | undefined;
 let mockUserContextListener: (() => void) | undefined;
 
@@ -22,9 +20,6 @@ jest.mock('../selectors/perpsController', () => ({
   selectPerpsNetwork: () => mockNetwork,
   selectPerpsProvider: () => mockProvider,
 }));
-jest.mock('../selectors/selectedAccountAddress', () => ({
-  selectPerpsSelectedAccountAddress: () => mockAddress,
-}));
 jest.mock('../services/PerpsConnectionManager', () => ({
   PerpsConnectionManager: {
     getInitializedMarketContextKey: () => mockInitializedContextKey,
@@ -32,7 +27,7 @@ jest.mock('../services/PerpsConnectionManager', () => ({
       mockContextListener = listener;
       return jest.fn();
     },
-    getInitializedUserContextKey: () => mockInitializedUserContextKey,
+    isSelectedUserContextReady: () => mockIsUserReady,
     subscribeToInitializedUserContext: (listener: () => void) => {
       mockUserContextListener = listener;
       return jest.fn();
@@ -48,10 +43,9 @@ describe('usePerpsMarketContext', () => {
     mockNetwork = 'testnet';
     mockProvider = 'hyperliquid';
     mockHip3ConfigVersion = 1;
-    mockAddress = '0xabc';
     mockIsInitialized = true;
     mockInitializedContextKey = 'testnet|hyperliquid|1';
-    mockInitializedUserContextKey = 'testnet|hyperliquid|1|0xabc';
+    mockIsUserReady = true;
     mockContextListener = undefined;
     mockUserContextListener = undefined;
   });
@@ -100,13 +94,13 @@ describe('usePerpsMarketContext', () => {
   });
 
   it('holds user readiness until the selected account reconnects', () => {
-    mockAddress = '0xdef';
+    mockIsUserReady = false;
     const { result } = renderHook(() => usePerpsMarketContext());
 
     expect(result.current.isReady).toBe(true);
     expect(result.current.isUserReady).toBe(false);
 
-    mockInitializedUserContextKey = 'testnet|hyperliquid|1|0xdef';
+    mockIsUserReady = true;
     act(() => mockUserContextListener?.());
 
     expect(result.current.isUserReady).toBe(true);

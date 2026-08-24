@@ -1623,6 +1623,13 @@ class PerpsConnectionManagerClass {
     return this.initializedUserContextKey;
   }
 
+  isSelectedUserContextReady(): boolean {
+    return (
+      this.initializedUserContextKey !== null &&
+      this.initializedUserContextKey === this.getSelectedUserContextKey()
+    );
+  }
+
   subscribeToInitializedUserContext(listener: () => void): () => void {
     this.initializedUserContextListeners.add(listener);
     return () => this.initializedUserContextListeners.delete(listener);
