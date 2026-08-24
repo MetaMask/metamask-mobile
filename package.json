@@ -185,7 +185,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/assets-controller": "^14.0.0",
     "@metamask/network-controller": "35.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
@@ -399,7 +398,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^69.5.2",
-    "@metamask/transaction-pay-controller": "^26.4.0",
+    "@metamask/transaction-pay-controller": "^26.4.1",
     "@metamask/tron-wallet-snap": "^1.33.1",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^11.0.0",
