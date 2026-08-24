@@ -17,8 +17,7 @@ import {
   DappVariants,
   TestDapps,
   sleep,
-  PlaywrightGestures,
-  asPlaywrightElement,
+  Gestures,
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -149,7 +148,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -194,10 +193,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
           ACCOUNT_1_SOLANA_ADDRESS,
         );
         // Verify solana sign works when solana is connected
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.solanaCard),
-          { scrollParams: { direction: 'down' } },
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.solanaCard, {
+          direction: 'down',
+        });
         await BrowserPlaygroundDapp.tapSolanaSignMessage();
       }, DAPP_URL);
 
@@ -221,7 +219,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -248,8 +246,8 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
         // Purposely terminate the app without accepting the approval
-        await PlaywrightGestures.terminateApp(currentDeviceDetails);
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await Gestures.terminateApp(currentDeviceDetails);
+        await Gestures.activateApp(currentDeviceDetails);
         await loginToAppPlaywright();
         await sleep(1000);
       });

@@ -51,6 +51,10 @@ To save infra resources while waiting for static analysis findings and potential
 
 ## Smart AI E2E test selection
 
+When an E2E-relevant workflow changes, Smart E2E Selection applies a hard rule
+before calling AI: it returns the `ALL` tag set with 100% confidence. This protects
+workflow and runner changes that can affect every E2E suite.
+
 Runs only when all of the following are true:
 
 - Event is a pull request
