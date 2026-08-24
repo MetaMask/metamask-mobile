@@ -14,7 +14,12 @@ import {
   isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
 
@@ -125,11 +130,13 @@ export const useLatestBalance = (token: {
       selectedAddress &&
       isEthAddress(selectedAddress)
     ) {
-      // Create a unique UUID for this trace to prevent collisions
       const traceId = uuidv4();
+      let traceResult: 'success' | 'error' = 'success';
+
       try {
         trace({
           name: TraceName.BridgeBalancesUpdated,
+          op: TraceOperation.BridgeDataFetch,
           id: traceId,
           data: {
             srcChainId: chainId,
@@ -150,11 +157,15 @@ export const useLatestBalance = (token: {
             atomicBalance,
           });
         }
+      } catch (error) {
+        traceResult = 'error';
+        console.error('Error fetching EVM token balance:', error);
       } finally {
         endTrace({
           name: TraceName.BridgeBalancesUpdated,
           id: traceId,
           timestamp: Date.now(),
+          data: { result: traceResult },
         });
       }
     }
