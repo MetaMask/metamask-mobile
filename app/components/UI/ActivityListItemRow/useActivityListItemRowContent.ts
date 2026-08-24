@@ -10,9 +10,8 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../selectors/networkController';
-import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
+import { useConvertToFiat } from '../../hooks/useConvertToFiat';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 import {
   MUSD_DECIMALS,
@@ -20,10 +19,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import {
-  renderShortAddress,
-  safeToChecksumAddress,
-} from '../../../util/address';
+import { renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -33,15 +29,12 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
-  isNativeActivityToken,
   isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type Status,
   type TokenAmount,
-  toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
-import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
 import {
   addCurrencySymbol,
   balanceToFiatNumber,
@@ -529,20 +522,30 @@ function resolveCoreContent(
           cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
-        ...(counterpartyName && address
-          ? {
-              subtitleAccount: {
-                prefix: subtitlePrefix,
-                address,
-                name: counterpartyName,
-              },
-            }
-          : {}),
         primaryToken: token,
       };
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
+      const hasDestination = Boolean(destinationToken?.symbol);
+
+      if (!hasDestination) {
+        return {
+          title: statusTitle(item, {
+            success: withOptionalSymbol(
+              strings('transactions.activity_swapped'),
+              sourceToken?.symbol,
+            ),
+            pending: withOptionalSymbol(
+              strings('transactions.activity_swapping'),
+              sourceToken?.symbol,
+            ),
+            failed: strings('transactions.activity_swap_failed'),
+          }),
+          subtitle: protocolSubtitle(item),
+          primaryToken: sourceToken,
+        };
+      }
 
       return {
         title: statusTitle(item, {
@@ -555,24 +558,6 @@ function resolveCoreContent(
           protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
-      };
-    }
-    case 'swapIncomplete': {
-      const { sourceToken } = item.data;
-      return {
-        title: statusTitle(item, {
-          success: withOptionalSymbol(
-            strings('transactions.activity_swapped'),
-            sourceToken?.symbol,
-          ),
-          pending: withOptionalSymbol(
-            strings('transactions.activity_swapping'),
-            sourceToken?.symbol,
-          ),
-          failed: strings('transactions.activity_swap_failed'),
-        }),
-        subtitle: protocolSubtitle(item),
-        primaryToken: sourceToken,
       };
     }
     case 'wrap':
@@ -945,114 +930,26 @@ function getHexChainId(chainId: string | undefined): Hex | undefined {
     : (`0x${parsedChainId.toString(16)}` as Hex);
 }
 
-function getMusdMarketRateToken(
-  token: TokenAmount,
-  hexChainId: Hex,
-): MarketRateLookupToken | undefined {
-  if (
-    token.symbol !== MUSD_TOKEN.symbol ||
-    !MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId]
-  ) {
-    return undefined;
-  }
-
-  return {
-    address: MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId].toLowerCase(),
-    symbol: MUSD_TOKEN.symbol,
-    decimals: token.decimals ?? MUSD_DECIMALS,
-    chainId: hexChainId,
-  };
-}
-
-function getMusdNativeExchangeRate({
-  usdConversionRate,
-}: {
-  usdConversionRate: number | null | undefined;
-}): number | undefined {
-  if (!usdConversionRate) {
-    return undefined;
-  }
-
-  return 1 / usdConversionRate;
-}
-
-/**
- * Looks up a token's market `price` from contractExchangeRates. Market data is
- * keyed by checksummed addresses, but the lookup address is lowercased (CAIP
- * asset references are normalized to lowercase), so try the checksum first and
- * fall back to a case-insensitive match. Mirrors `getTokenToEthPrice` in
- * `Money/utils/moneyActivityFiat`.
- */
-function getMarketPriceForAddress(
-  contractExchangeRates:
-    | Record<string, { price?: number | null } | undefined>
-    | undefined,
-  address: string,
-): number | null | undefined {
-  if (!contractExchangeRates) return undefined;
-
-  const checksum = safeToChecksumAddress(address);
-  if (checksum) {
-    const price = contractExchangeRates[checksum]?.price;
-    if (price !== undefined && price !== null) return price;
-  }
-
-  const lower = address.toLowerCase();
-  const key = Object.keys(contractExchangeRates).find(
-    (k) => k.toLowerCase() === lower,
-  );
-  return key !== undefined ? contractExchangeRates[key]?.price : undefined;
-}
-
 function resolveFiatAmount({
   activityType,
-  contractExchangeRates,
-  conversionRate,
+  convertToFiat,
   currentCurrency,
   formatters,
-  hexChainId,
-  nativeSymbol,
   token,
-  usdConversionRate,
 }: {
   activityType: ActivityListItem['type'];
-  contractExchangeRates:
-    | Record<string, { price?: number | null } | undefined>
-    | undefined;
-  conversionRate: number | null | undefined;
+  convertToFiat: (token: TokenAmount | undefined) => number | undefined;
   currentCurrency: string | undefined;
   formatters: Formatters;
-  hexChainId: Hex | undefined;
-  nativeSymbol: string | undefined;
   token: TokenAmount | undefined;
-  usdConversionRate: number | null | undefined;
 }): string | undefined {
-  if (!token || !currentCurrency || !hexChainId) return undefined;
-  if (token.isUnlimitedApproval) return undefined;
+  if (!token || !currentCurrency) return undefined;
 
-  const humanAmount = getHumanReadableTokenAmount(token);
-  if (humanAmount === undefined) return undefined;
-
-  const lookupToken =
-    toMarketRateLookupToken(token, hexChainId) ??
-    getMusdMarketRateToken(token, hexChainId);
-  const exchangeRate = isNativeActivityToken(token, nativeSymbol)
-    ? 1
-    : lookupToken
-      ? (getMarketPriceForAddress(contractExchangeRates, lookupToken.address) ??
-        (lookupToken.symbol === MUSD_TOKEN.symbol
-          ? getMusdNativeExchangeRate({ usdConversionRate })
-          : undefined))
-      : undefined;
-
-  if (!conversionRate || !exchangeRate) return undefined;
+  const fiatValue = convertToFiat(token);
+  if (fiatValue === undefined) return undefined;
 
   const fiatAmount = formatters.formatCurrencyWithMinThreshold(
-    balanceToFiatNumber(
-      Number.parseFloat(humanAmount),
-      conversionRate,
-      exchangeRate,
-    ),
+    fiatValue,
     currentCurrency,
   );
 
@@ -1165,19 +1062,12 @@ export function useActivityListItemRowContent(
       ? selectConversionRateByChainId(state, hexChainId, true)
       : undefined,
   );
-  const contractExchangeRates = useSelector((state: RootState) =>
-    hexChainId
-      ? selectContractExchangeRatesByChainId(state, hexChainId)
-      : undefined,
-  );
   const usdConversionRate = useSelector((state: RootState) =>
     hexChainId
       ? selectUSDConversionRateByChainId(state, hexChainId)
       : undefined,
   );
-  const nativeSymbol = useSelector((state: RootState) =>
-    hexChainId ? selectNativeCurrencyByChainId(state, hexChainId) : undefined,
-  );
+  const convertToFiat = useConvertToFiat(networkChainId);
 
   // Spending caps: resolve the token's symbol/decimals from the tokens API by
   // its asset id (mirroring the extension's ApprovalDetails), so the row/details
@@ -1301,14 +1191,10 @@ export function useActivityListItemRowContent(
   );
   const secondaryFiatAmount = resolveFiatAmount({
     activityType: item.type,
-    contractExchangeRates,
-    conversionRate,
+    convertToFiat,
     currentCurrency,
     formatters,
-    hexChainId,
-    nativeSymbol,
     token: secondaryToken,
-    usdConversionRate,
   });
   const primaryFiatAmount = shouldUsePrimaryFiatFallback(
     item.type,
@@ -1316,14 +1202,10 @@ export function useActivityListItemRowContent(
   )
     ? resolveFiatAmount({
         activityType: item.type,
-        contractExchangeRates,
-        conversionRate,
+        convertToFiat,
         currentCurrency,
         formatters,
-        hexChainId,
-        nativeSymbol,
         token: primaryToken,
-        usdConversionRate,
       })
     : undefined;
 

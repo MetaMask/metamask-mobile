@@ -22,7 +22,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectNativeCurrencyByChainId } from '../../../selectors/networkController';
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -150,6 +150,10 @@ jest.mock('../../../selectors/currencyRateController', () => ({
   ),
   selectConversionRateByChainId: jest.fn(() => 2500),
   selectCurrencyRateForChainId: jest.fn(() => 2500),
+  selectCurrencyRates: jest.fn(
+    (state) =>
+      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  ),
   selectUSDConversionRateByChainId: jest.fn(() => 2500),
 }));
 
@@ -164,9 +168,8 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   ),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  ...jest.requireActual('../../../selectors/networkController'),
-  selectNativeCurrencyByChainId: jest.fn(() => 'ETH'),
+jest.mock('../../../selectors/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
@@ -468,7 +471,7 @@ beforeEach(() => {
   jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
     [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
   } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
-  jest.mocked(selectNativeCurrencyByChainId).mockReturnValue('ETH');
+  jest.mocked(selectMultichainAssetsRates).mockReturnValue({});
 });
 
 // ---------------------------------------------------------------------------
@@ -538,20 +541,17 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'out',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: ETH DeFi',
+    );
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
-  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+  it('renders the account name for a non-EVM (Solana) owned counterparty', () => {
     const item = makeItem({
       type: 'send',
       status: 'success',
@@ -566,14 +566,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('Solana');
-    // The non-hex address is passed straight through to the avatar (no
-    // checksumming), so the multichain row renders without error.
-    expect(
-      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: Solana',
+    );
   });
 
   it('renders the account name in the subtitle when receiving from an owned account', () => {
@@ -587,19 +582,14 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
-      'From: ',
+      'From: ETH DeFi',
     );
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -1921,6 +1911,31 @@ describe('ActivityListItemRow — network badge', () => {
 });
 
 describe('ActivityListItemRow — amount display', () => {
+  it('renders fiat for a non-EVM token using its multichain asset rate', () => {
+    const solanaChainId = SolScope.Mainnet;
+    const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    jest.mocked(selectMultichainAssetsRates).mockReturnValue({
+      [usdcAssetId]: { rate: '1', conversionTime: 0 },
+    } as ReturnType<typeof selectMultichainAssetsRates>);
+
+    const item = makeItem({
+      status: 'success',
+      chainId: solanaChainId,
+      token: {
+        amount: '524800',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: usdcAssetId,
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.5248 USDC')).toBeOnTheScreen();
+    expect(getByText('-$0.52')).toBeOnTheScreen();
+  });
+
   it('formats raw token base units and renders fiat when rates are available', () => {
     const item = makeItem({
       status: 'success',
@@ -1959,41 +1974,6 @@ describe('ActivityListItemRow — amount display', () => {
 
     expect(getByText('+30 mUSD')).toBeOnTheScreen();
     expect(queryByText('+0.00003 mUSD')).toBeNull();
-  });
-
-  it('renders fiat for native ETH without an assetId when the symbol matches the chain ticker', () => {
-    const item = makeItem({
-      status: 'success',
-      token: {
-        amount: '20970000000000',
-        decimals: 18,
-        symbol: 'ETH',
-        direction: 'out',
-      },
-    });
-
-    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
-
-    expect(getByText('-0.00002097 ETH')).toBeOnTheScreen();
-    expect(getByText('-$0.05')).toBeOnTheScreen();
-  });
-
-  it('renders fiat for native ETH identified by the zero-address CAIP asset id', () => {
-    const item = makeItem({
-      status: 'success',
-      token: {
-        amount: '20970000000000',
-        decimals: 18,
-        symbol: 'ETH',
-        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        direction: 'out',
-      },
-    });
-
-    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
-
-    expect(getByText('-0.00002097 ETH')).toBeOnTheScreen();
-    expect(getByText('-$0.05')).toBeOnTheScreen();
   });
 
   it('does not render fiat when token market data is unavailable', () => {
@@ -2089,7 +2069,6 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
   'rampBuy',
@@ -2151,7 +2130,6 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
   rampBuy: 'Bought',

@@ -3,9 +3,9 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import type { RootState } from '../../../../reducers';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
-import type { AssetType } from '../../../Views/confirmations/types/token';
 import {
   filterMoneyDepositEligibleAssets,
+  type MoneyDepositAsset,
   selectMoneyDepositEligibleAssets,
 } from './depositTokens';
 import { selectMoneyDepositMinBalance } from './featureFlags';
@@ -24,7 +24,9 @@ const mockSelectMoneyDepositMinBalance = jest.mocked(
   selectMoneyDepositMinBalance,
 );
 
-const createAsset = (overrides: Partial<AssetType> = {}): AssetType =>
+const createAsset = (
+  overrides: Partial<MoneyDepositAsset> = {},
+): MoneyDepositAsset =>
   ({
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -38,20 +40,19 @@ const createAsset = (overrides: Partial<AssetType> = {}): AssetType =>
     balance: '10',
     rawBalance: '0x989680',
     fiat: { balance: 10, currency: 'usd' },
-    logo: 'usdc.png',
-    isETH: false,
     ...overrides,
-  }) as AssetType;
+  }) as MoneyDepositAsset;
 
-const asAsset = (asset: AssetType) => asset as unknown as Asset;
 const emptyBlockedTokens = { chainIds: [], tokens: [] };
 
 describe('filterMoneyDepositEligibleAssets', () => {
   it('keeps held EVM assets at the minimum fiat balance', () => {
-    const asset = createAsset({ fiat: { balance: 0.01, currency: 'usd' } });
+    const asset = createAsset({
+      fiat: { balance: 0.01, currency: 'usd', conversionRate: 1 },
+    });
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(asset)],
+      [asset],
       emptyBlockedTokens,
       0.01,
     );
@@ -60,13 +61,15 @@ describe('filterMoneyDepositEligibleAssets', () => {
   });
 
   it('excludes non-EVM assets', () => {
-    const asset = createAsset({
+    const asset = {
+      ...createAsset(),
       accountType: SolAccountType.DataAccount,
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    });
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:mock-token',
+    } as unknown as Asset;
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(asset)],
+      [asset],
       emptyBlockedTokens,
       0.01,
     );
@@ -78,7 +81,7 @@ describe('filterMoneyDepositEligibleAssets', () => {
     const asset = createAsset();
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(asset)],
+      [asset],
       {
         chainIds: [],
         tokens: [{ address: asset.address, chainId: asset.chainId as string }],
@@ -90,10 +93,12 @@ describe('filterMoneyDepositEligibleAssets', () => {
   });
 
   it('excludes assets below the minimum fiat balance', () => {
-    const asset = createAsset({ fiat: { balance: 0.009, currency: 'usd' } });
+    const asset = createAsset({
+      fiat: { balance: 0.009, currency: 'usd', conversionRate: 1 },
+    });
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(asset)],
+      [asset],
       emptyBlockedTokens,
       0.01,
     );
@@ -105,7 +110,7 @@ describe('filterMoneyDepositEligibleAssets', () => {
     const asset = createAsset({ fiat: undefined });
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(asset)],
+      [asset],
       emptyBlockedTokens,
       0.01,
     );
@@ -117,16 +122,16 @@ describe('filterMoneyDepositEligibleAssets', () => {
     const smaller = createAsset({
       address: '0x0000000000000000000000000000000000000001',
       symbol: 'SMALL',
-      fiat: { balance: 1, currency: 'usd' },
+      fiat: { balance: 1, currency: 'usd', conversionRate: 1 },
     });
     const larger = createAsset({
       address: '0x0000000000000000000000000000000000000002',
       symbol: 'LARGE',
-      fiat: { balance: 2, currency: 'usd' },
+      fiat: { balance: 2, currency: 'usd', conversionRate: 1 },
     });
 
     const result = filterMoneyDepositEligibleAssets(
-      [asAsset(smaller), asAsset(larger)],
+      [smaller, larger],
       emptyBlockedTokens,
       0.01,
     );
@@ -140,7 +145,7 @@ describe('selectMoneyDepositEligibleAssets', () => {
     const asset = createAsset();
     const state = {} as RootState;
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
-      'eip155:1': [asAsset(asset)],
+      'eip155:1': [asset],
     });
     mockSelectMetaMaskPayTokensFlags.mockReturnValue({
       preferredTokens: { default: [], overrides: {} },

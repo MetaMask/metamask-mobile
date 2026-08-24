@@ -558,7 +558,7 @@ const EarnInputView = () => {
             tokens_to_stake_usd_value: amountFiatNumber,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
           })
           .build(),
       );
@@ -585,7 +585,7 @@ const EarnInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
-      experience: EARN_EXPERIENCES.POOLED_STAKING,
+      experience: stakingExperienceType,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -660,6 +660,7 @@ const EarnInputView = () => {
     earnToken?.chainId,
     earnToken?.isETH,
     earnToken?.experience?.type,
+    stakingExperienceType,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -889,13 +890,12 @@ const EarnInputView = () => {
   ]);
 
   const handleInfoPress = useCallback(() => {
-    const isTronStakingExperience =
-      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING;
-    const apr = isTronStakingExperience
-      ? (tronApyPercent ?? undefined)
-      : earnToken?.experience?.apr !== undefined
-        ? `${earnToken.experience.apr}%`
-        : undefined;
+    const apr =
+      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING
+        ? (tronApyPercent ?? undefined)
+        : earnToken?.experience?.apr !== undefined
+          ? `${earnToken.experience.apr}%`
+          : undefined;
     const tooltipName =
       stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING
         ? 'Lending Historic Market APY Graph'

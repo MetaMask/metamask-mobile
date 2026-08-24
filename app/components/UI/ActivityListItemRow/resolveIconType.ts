@@ -43,7 +43,6 @@ export function resolveIconType(type: ActivityKind): string {
     case 'perpsReceivedFundingFees':
       return 'receive';
     case 'swap':
-    case 'swapIncomplete':
     case 'bridge':
     case 'convert':
       return 'swap';

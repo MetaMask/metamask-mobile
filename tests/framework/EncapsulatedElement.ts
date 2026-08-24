@@ -1,5 +1,4 @@
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 
 /**
@@ -100,27 +99,7 @@ export class EncapsulatedElement {
    * }
    */
   static create(config: LocatorConfig): EncapsulatedElementType {
-    if (FrameworkDetector.isDetox()) {
-      return this.createDetoxElement(config);
-    }
-    if (FrameworkDetector.isAppium()) {
-      return this.createAppiumElement(config);
-    }
-    throw new Error('Unable to create encapsulated element');
-  }
-
-  /**
-   * Create Detox element from configuration
-   */
-  private static createDetoxElement(config: LocatorConfig): DetoxElement {
-    if (!config.detox) {
-      throw new Error(
-        'Detox configuration is required when running in Detox context',
-      );
-    }
-
-    // Execute the function to get the DetoxElement
-    return config.detox() as unknown as DetoxElement;
+    return this.createAppiumElement(config);
   }
 
   /**

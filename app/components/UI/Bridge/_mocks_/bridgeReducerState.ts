@@ -43,9 +43,16 @@ export const mockBridgeReducerState: BridgeState = {
   selectedQuoteRequestId: undefined,
   balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
+
+  // Batch Sell
   batchSellSourceTokens: [],
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
   recurring: initialRecurringState,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };

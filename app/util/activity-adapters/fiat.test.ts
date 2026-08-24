@@ -1,10 +1,7 @@
 import {
   applyDisplaySign,
-  calculateFiatFromMarketRates,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
-  getTokenAddressForMarketRates,
-  isNativeActivityToken,
   type MarketRateLookupToken,
   toMarketRateLookupToken,
 } from './fiat';
@@ -18,42 +15,6 @@ const ethToken: MarketRateLookupToken = {
 };
 
 describe('activity adapter fiat helpers', () => {
-  describe('calculateFiatFromMarketRates', () => {
-    const marketRates = {
-      1: { [NATIVE_TOKEN_ADDRESS]: 2500 },
-    };
-
-    it('returns fiat amount for a valid token and amount', () => {
-      expect(calculateFiatFromMarketRates('1.5', ethToken, marketRates)).toBe(
-        3750,
-      );
-    });
-
-    it('preserves sign for negative amounts', () => {
-      expect(calculateFiatFromMarketRates('-1', ethToken, marketRates)).toBe(
-        -2500,
-      );
-    });
-
-    it('parses leading plus amounts', () => {
-      expect(calculateFiatFromMarketRates('+1.5', ethToken, marketRates)).toBe(
-        3750,
-      );
-    });
-
-    it('returns undefined when amount, token, or rate is missing', () => {
-      expect(
-        calculateFiatFromMarketRates(undefined, ethToken, marketRates),
-      ).toBeUndefined();
-      expect(calculateFiatFromMarketRates('1', undefined, marketRates)).toBe(
-        undefined,
-      );
-      expect(
-        calculateFiatFromMarketRates('1', ethToken, { 1: {} }),
-      ).toBeUndefined();
-    });
-  });
-
   it('returns an unsigned human-readable token amount', () => {
     expect(
       getHumanReadableTokenAmount({
@@ -94,22 +55,6 @@ describe('activity adapter fiat helpers', () => {
     expect(applyDisplaySign('1.5 ETH', '')).toBe('1.5 ETH');
   });
 
-  it('maps CAIP asset ids to market-rate token addresses', () => {
-    expect(getTokenAddressForMarketRates('eip155:1/slip44:60')).toBe(
-      NATIVE_TOKEN_ADDRESS,
-    );
-    expect(
-      getTokenAddressForMarketRates(
-        'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      ),
-    ).toBe(NATIVE_TOKEN_ADDRESS);
-    expect(
-      getTokenAddressForMarketRates(
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      ),
-    ).toBe('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48');
-  });
-
   it('builds a market-rate lookup token from an activity token amount', () => {
     expect(
       toMarketRateLookupToken(
@@ -123,50 +68,5 @@ describe('activity adapter fiat helpers', () => {
         '0x1',
       ),
     ).toStrictEqual(ethToken);
-  });
-
-  describe('isNativeActivityToken', () => {
-    it('treats slip44, native, and zero-address CAIP ids as native', () => {
-      expect(
-        isNativeActivityToken({
-          direction: 'out',
-          assetId: 'eip155:1/slip44:60',
-        }),
-      ).toBe(true);
-      expect(
-        isNativeActivityToken({
-          direction: 'out',
-          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/native:sol',
-        }),
-      ).toBe(true);
-      expect(
-        isNativeActivityToken({
-          direction: 'out',
-          assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        }),
-      ).toBe(true);
-    });
-
-    it('treats a missing assetId as native only when the symbol matches the chain ticker', () => {
-      expect(
-        isNativeActivityToken({ direction: 'out', symbol: 'ETH' }, 'ETH'),
-      ).toBe(true);
-      expect(
-        isNativeActivityToken({ direction: 'out', symbol: 'USDC' }, 'ETH'),
-      ).toBe(false);
-      expect(
-        isNativeActivityToken({ direction: 'out', symbol: 'ETH' }),
-      ).toBe(false);
-    });
-
-    it('does not treat ERC-20 asset ids as native', () => {
-      expect(
-        isNativeActivityToken({
-          direction: 'out',
-          symbol: 'USDC',
-          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        }),
-      ).toBe(false);
-    });
   });
 });
