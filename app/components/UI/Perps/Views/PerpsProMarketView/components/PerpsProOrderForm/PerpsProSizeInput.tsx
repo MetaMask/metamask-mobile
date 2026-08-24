@@ -17,7 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import DevLogger from '../../../../../../../../core/SDKConnect/utils/DevLogger';
+import DevLogger from '../../../../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
