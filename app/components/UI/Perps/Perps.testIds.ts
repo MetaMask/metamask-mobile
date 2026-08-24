@@ -265,6 +265,8 @@ export const PerpsHomeViewSelectorsIDs = {
   SEARCH_INPUT: 'perps-home-search',
   HOME_HEADING: 'perps-home-heading',
   SCROLL_CONTENT: 'scroll-content',
+  FIXED_FOOTER: 'perps-home-fixed-footer',
+  BOTTOM_SPACER: 'perps-home-bottom-spacer',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',

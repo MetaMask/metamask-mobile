@@ -1,7 +1,12 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
+import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
@@ -534,6 +539,27 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
+  .useBottomSafeAreaInset as jest.Mock;
+
+// Stand-in for a real Android gesture navigation bar (24dp), so a regression that
+// drops the inset from a layout calculation changes the asserted value.
+const NAVIGATION_BAR_INSET = 24;
+
+const fundedAccount = {
+  account: {
+    totalBalance: '100',
+    spendableBalance: '100',
+    withdrawableBalance: '100',
+    unrealizedPnl: '0',
+    returnOnEquity: '0',
+  },
+  isInitialLoading: false,
+};
+
+const flattenStyle = (node: { props: { style: unknown } }) =>
+  StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
+
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
     positions: [],
@@ -557,6 +583,8 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks drops the factory implementation; restore the default inset.
+    mockUseBottomSafeAreaInset.mockReturnValue(0);
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
@@ -1276,6 +1304,59 @@ describe('PerpsHomeView', () => {
       expect(
         getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeTruthy();
+    });
+
+    it('adds the system navigation bar inset to the fixed footer padding', () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER)),
+      ).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
+    });
+
+    it('reserves scroll space for the navigation bar inset below the fixed footer', () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.BOTTOM_SPACER)),
+      ).toEqual(
+        expect.objectContaining({
+          height:
+            FIXED_BOTTOM_CONTAINER_BASE_HEIGHT +
+            NAVIGATION_BAR_INSET +
+            FIXED_BOTTOM_CONTAINER_PADDING,
+        }),
+      );
+    });
+  });
+
+  describe('scroll content bottom padding', () => {
+    it('adds the system navigation bar inset when no fixed footer is rendered', () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      const contentContainerStyle = StyleSheet.flatten(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT).props
+          .contentContainerStyle as StyleProp<ViewStyle>,
+      );
+
+      expect(contentContainerStyle).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
     });
   });
 

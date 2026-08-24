@@ -96,6 +96,7 @@ import {
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
+import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -163,9 +164,7 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
-import createStyles, {
-  FIXED_BOTTOM_CONTAINER_PADDING,
-} from './PerpsOrderView.styles';
+import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';

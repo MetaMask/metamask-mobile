@@ -111,6 +111,10 @@ import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
+import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -1000,9 +1004,9 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Calculate actual footer dimensions
-  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + bottomSafeAreaInset)
-  const footerHeight = 80 + bottomSafeAreaInset;
+  // Calculate actual footer dimensions: the base footer geometry plus the
+  // system navigation-bar inset added to its bottom padding at runtime.
+  const footerHeight = FIXED_BOTTOM_CONTAINER_BASE_HEIGHT + bottomSafeAreaInset;
 
   const showsFixedFooter =
     !isBalanceEmpty &&
@@ -1013,14 +1017,21 @@ const PerpsHomeView = () => {
   const bottomSpacerStyle = useMemo(
     () => ({
       // Reserve space for the fixed footer only when it is rendered.
-      height: showsFixedFooter ? footerHeight + 16 : 16,
+      height: showsFixedFooter
+        ? footerHeight + FIXED_BOTTOM_CONTAINER_PADDING
+        : FIXED_BOTTOM_CONTAINER_PADDING,
     }),
     [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
   const fixedFooterStyle = useMemo(
-    () => [styles.fixedFooter, { paddingBottom: 16 + bottomSafeAreaInset }],
+    () => [
+      styles.fixedFooter,
+      {
+        paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+      },
+    ],
     [styles.fixedFooter, bottomSafeAreaInset],
   );
 
@@ -1029,7 +1040,9 @@ const PerpsHomeView = () => {
       styles.scrollViewContent,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : { paddingBottom: 16 + bottomSafeAreaInset },
+        : {
+            paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+          },
     ],
     [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
@@ -1187,7 +1200,10 @@ const PerpsHomeView = () => {
         <PerpsHomeSectionList sections={homeSections} />
 
         {/* Bottom spacing for tab bar */}
-        <View style={bottomSpacerStyle} />
+        <View
+          style={bottomSpacerStyle}
+          testID={PerpsHomeViewSelectorsIDs.BOTTOM_SPACER}
+        />
       </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
@@ -1208,7 +1224,10 @@ const PerpsHomeView = () => {
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
       {showsFixedFooter && (
-        <View style={fixedFooterStyle}>
+        <View
+          style={fixedFooterStyle}
+          testID={PerpsHomeViewSelectorsIDs.FIXED_FOOTER}
+        >
           <View style={styles.footerButtonsContainer} accessible={false}>
             <Button
               variant={ButtonVariant.Secondary}
