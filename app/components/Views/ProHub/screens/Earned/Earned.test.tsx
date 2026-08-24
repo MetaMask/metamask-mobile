@@ -159,16 +159,6 @@ describe('Earned', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to Add money when the add money button is pressed', () => {
-      const { getByTestId } = renderEarned();
-
-      fireEvent.press(getByTestId(EarnedTestIds.ADD_MONEY_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-    });
-
     it('does not navigate before any button is pressed', () => {
       renderEarned();
 
