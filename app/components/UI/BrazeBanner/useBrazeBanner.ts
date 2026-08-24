@@ -123,6 +123,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
   const brazeTraceIdRef = useRef<string>('');
   const brazeTraceEndedRef = useRef(false);
+  const endBrazeTrace = useCallback((data: Record<string, unknown>) => {
+    if (brazeTraceEndedRef.current) return;
+    brazeTraceEndedRef.current = true;
+    endTrace({
+      name: TraceName.BrazeBannerTimeToContent,
+      id: brazeTraceIdRef.current,
+      data,
+    });
+  }, []);
 
   const clearNoResponseTimeout = useCallback(() => {
     if (noResponseTimeoutRef.current) {
@@ -230,27 +239,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       setBanner(candidate);
       setStatus('visible');
 
-      if (!brazeTraceEndedRef.current) {
-        brazeTraceEndedRef.current = true;
-        const candidateBannerName = getRawStringProp(
-          candidate,
-          PROP_BANNER_NAME,
-        );
-        endTrace({
-          name: TraceName.BrazeBannerTimeToContent,
-          id: brazeTraceIdRef.current,
-          data: {
-            success: true,
-            source,
-            placement_id: placementId,
-            ...(candidateBannerName
-              ? { banner_name: candidateBannerName }
-              : {}),
-          },
-        });
-      }
+      const candidateBannerName = getRawStringProp(candidate, PROP_BANNER_NAME);
+      endBrazeTrace({
+        success: true,
+        source,
+        placement_id: placementId,
+        ...(candidateBannerName ? { banner_name: candidateBannerName } : {}),
+      });
     },
-    [placementId, clearNoResponseTimeout],
+    [placementId, clearNoResponseTimeout, endBrazeTrace],
   );
 
   useEffect(() => {
@@ -321,18 +318,11 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         initialBannerWindowOpenRef.current = false;
         setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
 
-        if (!brazeTraceEndedRef.current) {
-          brazeTraceEndedRef.current = true;
-          endTrace({
-            name: TraceName.BrazeBannerTimeToContent,
-            id: brazeTraceIdRef.current,
-            data: {
-              success: false,
-              reason: 'timeout',
-              placement_id: placementId,
-            },
-          });
-        }
+        endBrazeTrace({
+          success: false,
+          reason: 'timeout',
+          placement_id: placementId,
+        });
       }
     }, SKELETON_TIMEOUT_MS);
 
@@ -341,20 +331,19 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       appStateSubscription.remove();
       clearNoResponseTimeout();
 
-      if (!brazeTraceEndedRef.current) {
-        brazeTraceEndedRef.current = true;
-        endTrace({
-          name: TraceName.BrazeBannerTimeToContent,
-          id: brazeTraceIdRef.current,
-          data: {
-            success: false,
-            reason: 'unmounted',
-            placement_id: placementId,
-          },
-        });
-      }
+      endBrazeTrace({
+        success: false,
+        reason: 'unmounted',
+        placement_id: placementId,
+      });
     };
-  }, [placementId, dispatch, handleBanner, clearNoResponseTimeout]);
+  }, [
+    placementId,
+    dispatch,
+    handleBanner,
+    clearNoResponseTimeout,
+    endBrazeTrace,
+  ]);
 
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;
