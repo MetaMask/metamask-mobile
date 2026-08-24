@@ -253,8 +253,6 @@ module.exports = {
         'tests/flows/**/*.test.js',
       ],
       rules: {
-        // UnifiedGestures Identifier stays out of this error list so legacy PO
-        // usages remain warn-only via no-restricted-imports (MMQA-2174).
         'no-restricted-syntax': [
           'error',
           {
@@ -264,6 +262,15 @@ module.exports = {
           {
             selector: 'SequenceExpression',
             message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in POs/flows. Use Gestures/Assertions/Matchers.',
           },
         ],
       },

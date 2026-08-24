@@ -21,6 +21,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
 import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
@@ -101,6 +102,7 @@ const PerpsProPositionsPanel = ({
   onResolvedStateChange,
   isMarketContextReady = true,
 }: PerpsProPositionsPanelProps) => {
+  const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -117,6 +119,16 @@ const PerpsProPositionsPanel = ({
     setSideFilter: setOrdersSideFilter,
     setSortConfig: setOrderSortConfig,
   } = usePerpsProOrdersPreferences();
+  const handleTickerOnlyChange = useCallback(
+    (nextIsTickerOnly: boolean) => {
+      if (nextIsTickerOnly === isTickerOnly) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setIsTickerOnly(nextIsTickerOnly);
+    },
+    [isTickerOnly, playSelection],
+  );
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
     useLivePnl: true,
@@ -233,6 +245,9 @@ const PerpsProPositionsPanel = ({
     [positionsSideFilter, visiblePositions],
   );
 
+  const isPositionsFiltered =
+    isTickerOnly || positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER;
+
   const sideFilteredOrders = useMemo(
     () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
     [ordersSideFilter, visibleOrders],
@@ -326,10 +341,7 @@ const PerpsProPositionsPanel = ({
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
             positionCount={sideFilteredPositions.length}
-            isFiltered={
-              isTickerOnly ||
-              positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
-            }
+            isFiltered={isPositionsFiltered}
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -419,7 +431,7 @@ const PerpsProPositionsPanel = ({
         ticker: displaySymbol,
       })}
       isSelected={isTickerOnly}
-      onChange={setIsTickerOnly}
+      onChange={handleTickerOnlyChange}
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
     />
   );
@@ -495,7 +507,7 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(sideFilteredPositions)}
+      {renderActionSheets(sideFilteredPositions, isPositionsFiltered)}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}

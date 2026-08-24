@@ -19,7 +19,10 @@ import {
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
+import { playSelection } from '../../../../../../util/haptics';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
+
+jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
@@ -377,6 +380,31 @@ describe('PerpsProPositionsPanel', () => {
     expectTabLabel('Orders (1)');
     expect(screen.getByText('SOL')).toBeOnTheScreen();
     expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('plays selection when the ticker-only checkbox changes', () => {
+    renderPanel('SOL');
+    const tickerOnlyCheckbox = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY,
+    );
+
+    fireEvent.press(tickerOnlyCheckbox);
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps haptics silent when the ticker-only value does not change', () => {
+    renderPanel('SOL');
+    const tickerOnlyCheckbox = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY,
+    );
+
+    fireEvent(tickerOnlyCheckbox, 'onChange', false);
+
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('uses filtered count and filtered empty copy for ticker-only orders with no match', () => {

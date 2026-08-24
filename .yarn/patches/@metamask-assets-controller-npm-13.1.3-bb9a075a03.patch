@@ -1,5 +1,5 @@
 diff --git a/dist/data-sources/AccountsApiDataSource.cjs b/dist/data-sources/AccountsApiDataSource.cjs
-index bf8742cc220732a274d1f40e20d2a9b2a1dbca66..2fe7a3b92055ba6705d944d0c9ef15e876db8cdf 100644
+index bf8742cc220732a274d1f40e20d2a9b2a1dbca66..8fcb90883945afd1d0209d6b7085071b98e7da2b 100644
 --- a/dist/data-sources/AccountsApiDataSource.cjs
 +++ b/dist/data-sources/AccountsApiDataSource.cjs
 @@ -187,7 +187,7 @@ class AccountsApiDataSource extends AbstractDataSource_js_1.AbstractDataSource {
@@ -11,8 +11,25 @@ index bf8742cc220732a274d1f40e20d2a9b2a1dbca66..2fe7a3b92055ba6705d944d0c9ef15e8
                  : undefined;
              // Feature-flagged: v6 endpoint with a fallback to legacy v5. The flag is
              // read here (not cached) so a runtime toggle can revert v6 -> v5.
+@@ -349,9 +349,16 @@ class AccountsApiDataSource extends AbstractDataSource_js_1.AbstractDataSource {
+                     return;
+                 }
+                 // Use stored request (which gets updated on account changes)
++                // forceUpdate bypasses the TanStack Query cache (staleTime/gcTime
++                // 0/0 below) so each recurring poll tick issues a real network
++                // request, matching the `pollInterval` cadence instead of being
++                // silently served a cached response for up to `STALE_TIMES.BALANCES`
++                // (60s in @metamask/core-backend), which is longer than the default
++                // 30s poll interval.
+                 const fetchResponse = await this.fetch({
+                     ...subscription.request,
+                     chainIds: subscription.chains,
++                    forceUpdate: true,
+                 });
+                 // Report update to AssetsController via callback
+                 await subscription.onAssetsUpdate(fetchResponse);
 diff --git a/dist/data-sources/AccountsApiDataSource.mjs b/dist/data-sources/AccountsApiDataSource.mjs
-index fe209d53cd62299cb5e53c1685ed29d792fe5530..762ab07e282e6b46e90bd4384098c902f1f29230 100644
+index fe209d53cd62299cb5e53c1685ed29d792fe5530..6692a0f8ca60bab8c0fc838f952b3eff37fa3d9c 100644
 --- a/dist/data-sources/AccountsApiDataSource.mjs
 +++ b/dist/data-sources/AccountsApiDataSource.mjs
 @@ -183,7 +183,7 @@ export class AccountsApiDataSource extends AbstractDataSource {
@@ -24,3 +41,20 @@ index fe209d53cd62299cb5e53c1685ed29d792fe5530..762ab07e282e6b46e90bd4384098c902
                  : undefined;
              // Feature-flagged: v6 endpoint with a fallback to legacy v5. The flag is
              // read here (not cached) so a runtime toggle can revert v6 -> v5.
+@@ -345,9 +345,16 @@ export class AccountsApiDataSource extends AbstractDataSource {
+                     return;
+                 }
+                 // Use stored request (which gets updated on account changes)
++                // forceUpdate bypasses the TanStack Query cache (staleTime/gcTime
++                // 0/0 below) so each recurring poll tick issues a real network
++                // request, matching the `pollInterval` cadence instead of being
++                // silently served a cached response for up to `STALE_TIMES.BALANCES`
++                // (60s in @metamask/core-backend), which is longer than the default
++                // 30s poll interval.
+                 const fetchResponse = await this.fetch({
+                     ...subscription.request,
+                     chainIds: subscription.chains,
++                    forceUpdate: true,
+                 });
+                 // Report update to AssetsController via callback
+                 await subscription.onAssetsUpdate(fetchResponse);

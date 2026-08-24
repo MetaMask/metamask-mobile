@@ -60,13 +60,14 @@ const crossMarginWarningRoute: PerpsExtraRoute = {
 const emitEthPrice = (
   stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
   percentChange24h = '2',
+  price = '2500',
 ) => {
   act(() => {
     stream.emitPrices({
       ETH: {
         symbol: 'ETH',
-        price: '2500',
-        markPrice: '2500',
+        price,
+        markPrice: price,
         percentChange24h,
         timestamp: Date.now(),
         isTradable: true,
@@ -194,6 +195,70 @@ describe('PerpsOrderView', () => {
       { timeout: TIMEOUT_MS },
     );
     await waitForDeferredOrderData();
+  });
+
+  it('shows loading while validation is pending after a live price update', async () => {
+    const validateOrder = Engine.context.PerpsController
+      .validateOrder as jest.Mock;
+    let resolvePendingValidation:
+      | ((result: { isValid: boolean }) => void)
+      | undefined;
+    const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
+      resolvePendingValidation = resolve;
+    });
+    validateOrder.mockResolvedValue({ isValid: true });
+
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      },
+    });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(placeOrderButton).toBeEnabled());
+
+    validateOrder.mockReturnValue(pendingValidation);
+    await new Promise<void>((resolve) => setTimeout(resolve, 1100));
+    emitEthPrice(stream, '2', '2501');
+
+    expect(placeOrderButton).toBeOnTheScreen();
+    expect(placeOrderButton).toBeDisabled();
+    expect(placeOrderButton.props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolvePendingValidation?.({ isValid: true });
+      await pendingValidation;
+    });
+    validateOrder.mockResolvedValue({ isValid: true });
+
+    await waitFor(() => {
+      expect(placeOrderButton).toBeEnabled();
+    });
   });
 
   it('switches to limit order, accepts the Mid preset, and routes to TP/SL setup', async () => {

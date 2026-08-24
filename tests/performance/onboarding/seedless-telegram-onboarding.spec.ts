@@ -70,8 +70,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     'Seedless Onboarding: Telegram Login New User',
     { tag: '@metamask-onboarding-team' },
     // Request `driver` so the Playwright/Appium fixture boots before page-object
-    // actions run. Without it, FrameworkDetector falls back to Detox and
-    // Matchers throw ReferenceError: element is not defined.
+    // actions run.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
       // Conservative initial guardrails — calibrate against BrowserStack
       // baselines once this coverage has 10+ clean RC/release-profile runs

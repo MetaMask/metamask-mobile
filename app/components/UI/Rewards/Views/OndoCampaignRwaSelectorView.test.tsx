@@ -40,9 +40,9 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
   useRoute: () => ({ params: mockRouteParams }),
-  StackActions: { push: jest.fn() },
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({

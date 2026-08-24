@@ -19,7 +19,10 @@ import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSele
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
+
+jest.mock('../../../../../../util/haptics');
 
 interface MockLivePriceHeaderProps {
   currentPrice: number;
@@ -216,6 +219,7 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
 describe('PerpsProChartPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playSelection).mockClear();
     mockUsePerpsLiveCandles.mockReturnValue({
       candleData: MOCK_CANDLE_DATA,
       isLoading: false,
@@ -730,6 +734,7 @@ describe('PerpsProChartPanel', () => {
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(true);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
@@ -751,6 +756,7 @@ describe('PerpsProChartPanel', () => {
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(false);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({

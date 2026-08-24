@@ -34,6 +34,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -400,6 +401,7 @@ const PerpsProOrderBookPanel = ({
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const { colors } = useTheme();
+  const { playSelection } = useHaptics();
   const buyColor = colors.success.default;
   const sellColor = colors.error.default;
 
@@ -407,6 +409,31 @@ const PerpsProOrderBookPanel = ({
   const [metric, setMetric] = useState<OrderBookListMetric>('total');
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  const handleCollapse = useCallback(() => {
+    if (!onCollapse) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onCollapse();
+  }, [onCollapse, playSelection]);
+
+  const handleOpenConfig = useCallback(() => {
+    playSelection().catch(() => undefined);
+    setIsConfigOpen(true);
+  }, [playSelection]);
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      if (!onSelectPrice) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onSelectPrice(price);
+    },
+    [onSelectPrice, playSelection],
+  );
+  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -680,7 +707,7 @@ const PerpsProOrderBookPanel = ({
               iconName={IconName.Collapse}
               accessibilityLabel={strings('perps.order_book.collapse')}
               size={ButtonIconSize.Md}
-              onPress={onCollapse}
+              onPress={handleCollapse}
               testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
             />
           ) : null}
@@ -694,7 +721,7 @@ const PerpsProOrderBookPanel = ({
             iconName={IconName.Setting}
             accessibilityLabel={strings('perps.order_book.config_title')}
             size={ButtonIconSize.Md}
-            onPress={() => setIsConfigOpen(true)}
+            onPress={handleOpenConfig}
             testID={`${testID}-grouping-trigger`}
           />
         </Box>
@@ -771,7 +798,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
               ))}
@@ -818,7 +845,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />
               ))}

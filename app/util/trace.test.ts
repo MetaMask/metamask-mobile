@@ -418,6 +418,82 @@ describe('Trace', () => {
     it('returns undefined when no pending trace matches', () => {
       expect(getTraceContext({ name: NAME_MOCK })).toBeUndefined();
     });
+
+    // perf_fix: trace-registry-v1 — verify trace registry parent linkage
+    it('enables child spans to look up parent by TraceName for parent linkage', () => {
+      updateCachedConsent(true);
+
+      const parentEnd = jest.fn();
+      const parentSpan = {
+        end: parentEnd,
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(parentSpan, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: TraceName.OnboardingJourneyOverall,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+
+      const lookedUp = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      expect(lookedUp).toBe(parentSpan);
+
+      const childEnd = jest.fn();
+      const childSpan = { end: childEnd } as unknown as Span;
+      startSpanManualMock.mockImplementationOnce((opts, fn) => {
+        expect(opts.parentSpan).toBe(parentSpan);
+        return fn(childSpan, () => {
+          // Intentionally empty
+        });
+      });
+
+      trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: lookedUp,
+      });
+
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+    });
+
+    it('returns undefined after the parent trace is ended', () => {
+      updateCachedConsent(true);
+
+      const parentEnd = jest.fn();
+      const parentSpan = {
+        end: parentEnd,
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(parentSpan, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: TraceName.OnboardingJourneyOverall,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+
+      expect(
+        getTraceContext({ name: TraceName.OnboardingJourneyOverall }),
+      ).toBe(parentSpan);
+
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expect(
+        getTraceContext({ name: TraceName.OnboardingJourneyOverall }),
+      ).toBeUndefined();
+    });
   });
 
   describe('targeted trace metadata', () => {
