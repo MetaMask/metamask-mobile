@@ -355,7 +355,11 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CLOSE_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.description')),
+      screen.getByText(
+        strings('perps.close_all_modal.description', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_position.margin')),
@@ -367,7 +371,11 @@ describe('Active Trader Flow', () => {
       screen.getByText(strings('perps.close_all_modal.keep_positions')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.close_all')),
+      screen.getByText(
+        strings('perps.close_all_modal.close_count', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
 
     // After closing — no positions → empty state

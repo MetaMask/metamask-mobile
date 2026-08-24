@@ -3,16 +3,18 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-const mockGoBack = jest.fn();
+let mockGoBack: jest.Mock;
+let mockNavigate: jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   };
 });
 
@@ -33,6 +35,8 @@ const renderProHub = () => render(<ProHub />);
 describe('ProHub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoBack = jest.fn();
+    mockNavigate = jest.fn();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -78,14 +82,6 @@ describe('ProHub', () => {
       expect(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON)).toBeOnTheScreen();
     });
 
-    it('renders the explore benefits button with correct label', () => {
-      const { getByTestId } = renderProHub();
-
-      expect(getByTestId(ProHubTestIds.EXPLORE_BUTTON)).toHaveTextContent(
-        strings('pro_hub.explore_benefits'),
-      );
-    });
-
     it('renders the manage subscription button with correct label', () => {
       const { getByTestId } = renderProHub();
 
@@ -110,6 +106,32 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Navigation ───────────────────────────────────────────────────────────
+
+  describe('navigation', () => {
+    it('navigates to Membership when manage subscription button is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+    });
+
+    it('navigates to Membership when manage plans icon is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+    });
+
+    it('does not navigate before any button is pressed', () => {
+      renderProHub();
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

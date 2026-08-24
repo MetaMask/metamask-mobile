@@ -45,6 +45,16 @@ Proposed ADRs and examples in these docs are working direction, not accepted con
 - For placement and imports, follow `docs/module-structure.md`: organize product UI by owning feature/domain, import across modules through deliberate `index.ts` APIs, and keep private implementation under the owner's `internal/` directory.
 - Work one behavior at a time: red → green → refactor.
 
+## Testing locations and boundaries
+
+PredictNext test support also lives outside this directory:
+
+- `tests/component-view/renderers/predictNext.ts` owns the shared screen renderer and registered routes.
+- `tests/component-view/fixtures/predictNext.ts` owns reusable Event fixtures, Feed messenger setup, and card assertions.
+- `tests/integration/harnesses/predict-next.ts` owns the controller-to-service integration harness.
+
+Keep screen loading, error, empty, cached-data, and navigation journeys in colocated `*.view.test.tsx` files. Reuse the shared component-view fixture instead of recreating Event builders or Feed messenger setup. Keep Feed contracts, pagination, retry, and circuit-breaker behavior in the integration harness; do not add a separate rendered-Home integration harness.
+
 ## Agent readiness
 
 `Selected for Development` is reserved for work that has explicit acceptance criteria, verification instructions, relevant context, and no unresolved product, design, or architecture questions.
