@@ -121,7 +121,7 @@ Properties:
 
 - `venueId` is explicit and part of every cache key,
 - no selected wallet, bearer token, or account session is required,
-- Feed and Event detail responses use the same complete canonical Event shape and include the initial Outcome Bid Price and Ask Price snapshot,
+- Feed and immutable Event responses use the same complete canonical Event shape and include the initial Outcome Bid Price and Ask Price snapshot,
 - rolling Series reads return the backend-selected current Event while immutable Event reads always preserve the requested Event identity,
 - transport and DTO normalization stay below the service,
 - Event and Market Volume remain independent decimal-string projections, and image URLs come from backend-approved HTTPS sources,
