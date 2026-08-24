@@ -79,6 +79,4 @@ export const BRIDGE_API_BASE_URL = getBridgeApiBaseUrlForMetaMaskEnv();
 export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';
 
 export const BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE =
-  (process.env
-    .BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE as QuoteMetadataMigrationPhase) ??
   QuoteMetadataMigrationPhase.V2WithV1Fallback;
