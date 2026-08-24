@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { trace, TraceName } from '../../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import type { BridgeToken, BridgeViewMode } from '../types';
 
 export interface SwapBridgePageLoadTraceRoute {
@@ -26,6 +26,7 @@ export const startSwapBridgePageLoadTrace = <
 
   trace({
     name: TraceName.SwapViewLoaded,
+    op: TraceOperation.BridgeScreenPerformance,
     id,
     data: {
       entry_point: route.sourcePage,

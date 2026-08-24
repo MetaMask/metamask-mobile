@@ -14,7 +14,12 @@ import {
   isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
 
@@ -131,6 +136,7 @@ export const useLatestBalance = (token: {
       try {
         trace({
           name: TraceName.BridgeBalancesUpdated,
+          op: TraceOperation.BridgeDataFetch,
           id: traceId,
           data: {
             srcChainId: chainId,

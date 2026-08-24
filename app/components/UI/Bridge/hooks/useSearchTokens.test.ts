@@ -7,7 +7,12 @@ import {
   MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
 import { PopularToken } from '../types';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 global.fetch = jest.fn();
 
@@ -90,6 +95,7 @@ describe('useSearchTokens', () => {
       );
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.SwapTokenSearch,
+        op: TraceOperation.BridgeDataFetch,
         id: expect.any(String),
         data: {
           chain_scope: 'single_chain',
