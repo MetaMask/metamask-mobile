@@ -5,6 +5,10 @@ import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
+  startBrowserStackProfiler,
+  stopBrowserStackProfiler,
+} from '../../framework/services/appium/BrowserStackProfiler';
+import {
   Performance,
   PerformanceLogin,
   PerformanceAssetLoading,
@@ -30,18 +34,28 @@ perfTest.describe(
         );
 
         await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('ETH');
+        let profilingStarted = false;
+        await startBrowserStackProfiler(driver);
+        profilingStarted = true;
 
-        await assetViewScreen.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.priceChartContainer),
-          );
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.container),
-          );
-        });
+        try {
+          await WalletView.tapOnToken('ETH');
 
-        performanceTracker.addTimer(assetViewScreen);
+          await assetViewScreen.measure(async () => {
+            await PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(TokenOverview.priceChartContainer),
+            );
+            await PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(TokenOverview.container),
+            );
+          });
+
+          performanceTracker.addTimer(assetViewScreen);
+        } finally {
+          if (profilingStarted) {
+            await stopBrowserStackProfiler(driver);
+          }
+        }
       },
     );
   },
