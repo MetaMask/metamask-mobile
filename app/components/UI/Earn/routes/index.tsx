@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
-import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -39,11 +38,6 @@ const EarnScreenStack = () => {
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
         options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
-      />
-      <Stack.Screen
-        name={Routes.EARN.MUSD.CONVERSION_EDUCATION}
-        component={EarnMusdConversionEducationView}
-        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

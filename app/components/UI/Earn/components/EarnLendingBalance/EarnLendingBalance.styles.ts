@@ -1,12 +1,8 @@
 import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { userHasLendingPositions: boolean };
-}) => {
-  const { vars, theme } = params;
-  const { userHasLendingPositions } = vars;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     container: {
@@ -35,10 +31,6 @@ const styleSheet = (params: {
       ...theme.typography.sBodySM,
       color: theme.colors.text.alternative,
     } as TextStyle,
-    musdConversionCta: {
-      paddingTop: 16,
-      paddingBottom: userHasLendingPositions ? 8 : 0,
-    },
     earnings: {
       paddingHorizontal: 16,
     },

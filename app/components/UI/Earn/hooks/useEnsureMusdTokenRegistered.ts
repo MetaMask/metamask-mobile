@@ -5,7 +5,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
 import { selectMusdTokenRegistrationChainIds } from '../selectors/featureFlags';
-import { ensureMusdTokenRegistered } from '../utils/musdConversionTransaction';
+import { ensureMusdTokenRegistered } from '../utils/musdTokenRegistration';
 
 /**
  * Registers the mUSD token in TokensController for all supported chains on mount.

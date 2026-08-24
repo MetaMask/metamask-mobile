@@ -1063,7 +1063,6 @@ export type RootStackParamList = {
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
-  EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
