@@ -370,6 +370,8 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   const settleSeries = useCallback(
     (payload?: ChartRangeSettlePayload) => {
+      if (isLoading) return;
+
       const open = activeVisibilityTraceRef.current;
       if (open) {
         const completedAt = performance.now();
@@ -403,7 +405,15 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onResolved?.(ohlcvSeriesKey, state);
       }
     },
-    [symbol, interval, surface, ohlcvData.length, ohlcvSeriesKey, onResolved],
+    [
+      isLoading,
+      symbol,
+      interval,
+      surface,
+      ohlcvData.length,
+      ohlcvSeriesKey,
+      onResolved,
+    ],
   );
 
   const handleSkeletonHidden = useCallback(

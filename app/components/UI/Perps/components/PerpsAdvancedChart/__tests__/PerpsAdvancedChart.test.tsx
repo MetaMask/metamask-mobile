@@ -472,6 +472,40 @@ describe('PerpsAdvancedChart', () => {
     expect(onResolved).toHaveBeenCalledWith('BTC|4h', 'content');
   });
 
+  it('does not resolve an empty series from a layout callback while candles are loading', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: true,
+    });
+    const { rerender } = renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).not.toHaveBeenCalled();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: false,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    act(() => {
+      latestAdvancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+  });
+
   it('starts a new initial trace when the symbol changes without an interval change', () => {
     const { rerender } = renderChart();
 
