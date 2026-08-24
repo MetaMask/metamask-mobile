@@ -1,0 +1,117 @@
+# R8 regression gate.
+#
+# R8 cannot see reflective, JNI or JS-driven access, so removing a keep rule (or a dependency bump
+# renaming a class) can silently strip code that is still reached at runtime. The failure shows up
+# in production as ClassNotFoundException / NoSuchMethodError, not at build time.
+#
+# This job builds R8 for the PR and diffs `usage.txt` — the list of everything R8 removed —
+# against the same file built from the merge base, failing if a class in a protected namespace is
+# newly stripped.
+#
+# Scope: only runs when Android build config or keep rules change. A full R8 build is expensive
+# (~20-40 min) and app-code PRs cannot change what R8 keeps, only what it can prove is reachable.
+# The nightly release build is the backstop for the drift those PRs can cause.
+
+name: Android R8 Gate
+
+on:
+  pull_request:
+    paths:
+      - 'android/app/proguard-rules.pro'
+      - 'android/app/build.gradle'
+      - 'android/build.gradle'
+      - 'android/gradle.properties'
+      - 'android/gradle.properties.release'
+      - 'scripts/android/r8-usage-gate.mjs'
+      - '.github/workflows/android-r8-gate.yml'
+      # Dependency changes can add or remove consumer keep rules.
+      - 'package.json'
+      - 'yarn.lock'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-r8-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAPPING_DIR: android/app/build/outputs/mapping/prodRelease
+
+jobs:
+  r8-diff:
+    name: R8 usage diff vs merge base
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need the merge base to build the baseline.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # R8 runs before packaging, so `minifyProdReleaseWithR8` produces the DEX and all four
+      # diagnostic files without needing signing keys.
+      - name: Build R8 (PR)
+        run: cd android && ./gradlew :app:minifyProdReleaseWithR8 --console=plain
+
+      - name: Archive PR results
+        run: |
+          mkdir -p /tmp/r8/current
+          cp "$MAPPING_DIR"/{usage,seeds,configuration}.txt /tmp/r8/current/
+
+      - name: Build R8 (merge base)
+        run: |
+          set -euo pipefail
+          git checkout --detach "${{ github.event.pull_request.base.sha }}"
+          # Dependencies may differ at the base commit.
+          yarn install --immutable
+          cd android && ./gradlew :app:minifyProdReleaseWithR8 --console=plain
+
+      - name: Archive baseline results
+        run: |
+          mkdir -p /tmp/r8/baseline
+          cp "$MAPPING_DIR"/usage.txt /tmp/r8/baseline/
+
+      - name: Restore PR checkout
+        run: git checkout "${{ github.event.pull_request.head.sha }}"
+
+      - name: Fail if a dependency disabled the optimizer
+        run: |
+          set -euo pipefail
+          # A single library shipping -dontoptimize in its consumer rules silently cancels the
+          # optimizer for the entire app. configuration.txt is the merged ruleset.
+          if grep -nE '^-(dontoptimize|dontshrink|dontobfuscate)' /tmp/r8/current/configuration.txt; then
+            echo "::error::A dependency is disabling R8 optimization for the whole app."
+            echo "::error::Find the offending library and filter or replace it."
+            exit 1
+          fi
+          echo "No optimizer-disabling directives in the merged configuration."
+
+      - name: Usage regression gate
+        run: |
+          node scripts/android/r8-usage-gate.mjs \
+            --baseline /tmp/r8/baseline/usage.txt \
+            --current  /tmp/r8/current/usage.txt \
+            --json     /tmp/r8/report.json
+
+      - name: Upload R8 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r8-diagnostics
+          path: /tmp/r8/
+          retention-days: 14

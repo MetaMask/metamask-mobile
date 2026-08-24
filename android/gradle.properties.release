@@ -31,6 +31,12 @@ android.enableJetifier=true
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
 
+# R8 full mode (whole-program analysis). NOTE: already the default from AGP 8.0 onward, and this
+# project resolves AGP 8.12 from React Native's version catalog — so this changes nothing today.
+# Pinned only to make the contract explicit and survive a future AGP default flip. The change that
+# actually enables the optimizer is proguard-android-optimize.txt in app/build.gradle.
+android.enableR8.fullMode=true
+
 # ALL architectures for Play Store distribution (differs from E2E which uses x86_64 only)
 reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
 
