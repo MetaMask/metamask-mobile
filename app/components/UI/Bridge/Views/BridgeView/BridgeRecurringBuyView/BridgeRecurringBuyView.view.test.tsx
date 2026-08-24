@@ -279,8 +279,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveDisplayValue('1');
-    expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
-    expect(renderResult.queryByText('Max')).not.toBeOnTheScreen();
   });
 
   it('commits the selected interval unit on confirm', async () => {
@@ -494,9 +492,31 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await openAmountKeypad(renderResult);
 
       expect(renderResult.getByText('25%')).toBeOnTheScreen();
+      expect(
+        renderResult.queryByTestId(
+          BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
-    it('reuses the same keypad for the every field, hiding the amount quick picks', async () => {
+    it('replaces amount quick picks with the keypad confirm button after a source amount is entered', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+    });
+
+    it('reuses the same keypad for the every field after the amount keypad was open', async () => {
       const renderResult = renderBridgeView();
 
       await openRecurringTab(renderResult);
@@ -511,11 +531,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
 
       await waitFor(() => {
-        expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+        expect(
+          renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        ).toBeOnTheScreen();
       });
-      expect(
-        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
-      ).toBeOnTheScreen();
+      expect(renderResult.getByText('25%')).toBeOnTheScreen();
 
       fireEvent.press(renderResult.getByTestId('keypad-key-2'));
 
@@ -528,21 +548,98 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
     });
 
+    it('keeps the keypad confirm button when the every field is focused after an amount is entered', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+        'pressIn',
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+    });
+
     it('returns the keypad to the amount after the schedule was edited', async () => {
       const renderResult = renderBridgeView();
 
       await openRecurringTab(renderResult);
       await openEveryKeypad(renderResult);
-      expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+          ),
+        ).toHaveDisplayValue('12');
+      });
 
       await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-3'));
 
-      expect(renderResult.getByText('25%')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+          ),
+        ).toHaveDisplayValue('3');
+      });
       expect(
         renderResult.getByTestId(
           RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
         ),
-      ).toHaveDisplayValue('1');
+      ).toHaveDisplayValue('12');
+    });
+
+    it('shows You get on dest and does not fill a dest amount after source amount is entered', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+          ),
+        ).toHaveDisplayValue('2');
+      });
+      expect(
+        renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByText(strings('bridge.recurring.you_get')),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.queryByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_INPUT,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -590,5 +687,15 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBeOnTheScreen();
     expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
     expect(renderResult.getAllByText(pair)).toHaveLength(1);
+  });
+
+  it('hides the footer confirm button after opening the tab without a quote', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+
+    expect(
+      renderResult.queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 });

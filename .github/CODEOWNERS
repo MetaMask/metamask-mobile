@@ -206,6 +206,8 @@ app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
+**/EarnSection/**    @MetaMask/earn
+
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
