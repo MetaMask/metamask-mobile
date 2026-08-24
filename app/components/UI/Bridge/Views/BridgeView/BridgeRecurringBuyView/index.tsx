@@ -112,6 +112,10 @@ const BridgeRecurringBuyViewContent = ({
             sourceAmountTypeToggleTestID={
               BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
             }
+            hideDestAmount
+            destAmountReplacementLabelTestID={
+              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
+            }
           />
 
           <SwapsBanners

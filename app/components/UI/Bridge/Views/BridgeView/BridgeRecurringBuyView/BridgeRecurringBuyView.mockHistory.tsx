@@ -37,7 +37,6 @@ function renderRecurringHistoryOrder(item: MockRecurringHistoryOrder) {
       primaryValue={`+0.325 ${item.token.symbol}`}
       secondaryValue="-0.1 ETH"
       primaryColor={TextColor.SuccessDefault}
-      subtitleFontWeight={FontWeight.Medium}
       titleEndAccessory={
         <Tag severity={TagSeverity.Success}>
           {strings('bridge.recurring.filled')}
