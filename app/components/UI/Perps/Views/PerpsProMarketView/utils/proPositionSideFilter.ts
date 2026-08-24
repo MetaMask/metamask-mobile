@@ -6,6 +6,7 @@ import {
   type ProPositionsSideFilter,
 } from '@metamask/perps-controller';
 import { getOrderPositionDirection } from '../../../utils/orderUtils';
+import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
 
@@ -66,7 +67,15 @@ export const filterProOrdersBySide = (
   orders: Order[],
   sideFilter: ProPositionSideFilter,
 ): Order[] =>
-  filterProItemsBySide(orders, sideFilter, getOrderPositionDirection);
+  filterProItemsBySide(orders, sideFilter, (order) => {
+    const resolved = getOrderPositionDirection(order);
+    if ((order.reduceOnly || order.isTrigger) && resolved === sideFilter) {
+      DevLogger.log(
+        `[TAT-3807] BUG_MARKER: closing order ${order.orderId} side=${order.side} matched sideFilter=${sideFilter}`,
+      );
+    }
+    return resolved;
+  });
 
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
