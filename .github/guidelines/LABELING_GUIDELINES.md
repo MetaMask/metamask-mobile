@@ -37,7 +37,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Skip Smart E2E Selection
 
-- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite runs instead of an AI-picked subset. This label does **not** force E2E builds/tests to run on a PR that would otherwise skip them (e.g. docs-only changes). Whether E2E runs at all is determined by path filters, branch, and other skip labels — not this label.
+- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite runs instead of an AI-picked subset. When E2E would already run on at least one platform (path filters, branch, etc.), this label also forces **both** Android and iOS builds and Appium smoke tests — useful for Android-only or iOS-only PRs that need full cross-platform validation. It does **not** force E2E on PRs that would otherwise skip it entirely (e.g. docs-only / ignorable-only changes, `skip-e2e`, or `pr-not-ready-for-e2e`). Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Force Performance Tests
 

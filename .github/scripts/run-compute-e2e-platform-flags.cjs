@@ -32,11 +32,14 @@ const ignorableOnly =
   ignorableCount === allChangesCount &&
   e2eWorkflowsCount === 0;
 
+const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
+
 const flags = computeE2EPlatformFlags({
   githubEventName: process.env.GITHUB_EVENT_NAME || '',
   prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
   shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
+  skipSmartSelection,
   allChangesCount,
   ignorableCount,
   e2eTestFilesCount: readInt(process.env.E2E_TEST_FILES_COUNT),
@@ -59,6 +62,11 @@ if (
     runAppiumIos = true;
     console.log(
       "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
+    );
+  } else if (skipSmartSelection && flags.e2eNeeded) {
+    runAppiumIos = true;
+    console.log(
+      "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR",
     );
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;

@@ -153,6 +153,7 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
           RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}

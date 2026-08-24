@@ -12,6 +12,7 @@ function computeE2EPlatformFlags(input) {
     prBaseRef = '',
     isFork,
     shouldSkipE2E,
+    skipSmartSelection = false,
     allChangesCount,
     ignorableCount,
     e2eTestFilesCount,
@@ -92,6 +93,26 @@ function computeE2EPlatformFlags(input) {
   }
 
   const e2eNeeded = android || ios;
+
+  if (
+    skipSmartSelection &&
+    githubEventName === 'pull_request' &&
+    !isFork &&
+    !isStableTarget &&
+    !shouldSkipE2E &&
+    e2eNeeded &&
+    !(android && ios)
+  ) {
+    android = true;
+    ios = true;
+    message =
+      'E2E for both platforms (skip-smart-e2e-selection label — full suite on Android and iOS)';
+    if (testOnlyChanges) {
+      nativeBuildNeeded = false;
+    } else {
+      nativeBuildNeeded = true;
+    }
+  }
 
   const runSmartE2ESelection =
     githubEventName === 'pull_request' &&

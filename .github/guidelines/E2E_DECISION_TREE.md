@@ -20,7 +20,7 @@ flowchart TD
     GR -->|Scheduled or Push to main/release/*| Full[Run all E2E Suites for Both]
 
     Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
-    LABEL -->|yes| AllTags[Run all E2E needed]
+    LABEL -->|yes| AllTags[Run all E2E tags on both Android and iOS]
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF{{Confidence >= 85% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
@@ -63,8 +63,11 @@ Runs only when all of the following are true:
 - No `skip-smart-e2e-selection` label
 - PR does not target `stable`
 
-For PRs targeting `main` or `release/*`, Smart E2E selects the test tags. Release
-cherry-pick PRs use the same Android-first platform policy as main PRs: Android
+For PRs targeting `main` or `release/*`, Smart E2E selects the test tags. When
+`skip-smart-e2e-selection` is present and E2E is already required on at least
+one platform, CI runs the full `ALL` tag set on **both** Android and iOS
+(including Appium iOS smoke), not only the platform implied by path filters.
+Release cherry-pick PRs otherwise use the Android-first platform policy: Android
 is selected by path filters and iOS is opt-in through the Appium iOS label or
 shared smoke/Appium infrastructure changes.
 
@@ -76,7 +79,7 @@ shared smoke/Appium infrastructure changes.
 ## Appium smoke platform policy
 
 - Pull requests targeting `main` or `release/*` run Appium Android when Android E2E is required. Smart E2E controls the selected tags.
-- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` is added or shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`), provided an iOS build is required by path filters.
+- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` or `skip-smart-e2e-selection` is added (the latter only when E2E is already required on at least one platform), or when shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`), provided an iOS build is required by path filters.
 - Pushes to `main` and `release/*` run Appium Android and Appium iOS with the full `ALL` tag set.
 - PRs targeting `stable` from `release/*` are synchronization-only and run no E2E, including Appium.
 - Stable branch synchronization automation remains active; stable is not the release-build source.
