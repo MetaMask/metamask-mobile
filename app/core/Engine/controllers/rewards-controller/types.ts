@@ -1566,7 +1566,12 @@ export type PredictThePitchPrizePoolState = {
 export type MoneyAccountSweepstakesTodayStatus =
   | 'on_track'
   | 'not_yet_qualified'
-  | 'lost_today';
+  | 'lost_today'
+  // Today is outside the campaign's scored set, so day close writes no entry
+  // either way and no verdict exists. `qualifyingDepositsUsd` still reports
+  // real progress, so a shortfall must NOT be derived from it here — the
+  // participant may already be over the threshold.
+  | 'not_scored';
 
 export interface MoneyAccountSweepstakesStatsMeDto {
   entryCount: number;
