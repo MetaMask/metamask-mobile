@@ -621,9 +621,27 @@ function requiresLiveAccount(
 ): boolean {
   return (
     data.success !== false &&
-    (data.content_variant === 'positions' ||
+    (activeLifecycle === 'cold_no_cache' ||
+      activeLifecycle === 'cold_disk_cache' ||
+      activeLifecycle === 'background_reconnect' ||
+      activeLifecycle === 'account_switch' ||
+      activeLifecycle === 'network_switch' ||
+      data.content_variant === 'positions' ||
       data.content_variant === 'orders' ||
       data.content_variant === 'positions_and_orders')
+  );
+}
+
+function requiresFreshMarkets(
+  data: Record<string, string | number | boolean>,
+): boolean {
+  return (
+    data.success !== false &&
+    (data.content_variant === 'trending' || data.content_variant === 'pills') &&
+    (activeLifecycle === 'cold_no_cache' ||
+      activeLifecycle === 'cold_disk_cache' ||
+      activeLifecycle === 'background_reconnect' ||
+      activeLifecycle === 'network_switch')
   );
 }
 
@@ -631,10 +649,13 @@ function hasRequiredLiveStreams(
   data: Record<string, string | number | boolean>,
 ): boolean {
   return (
-    !requiresLiveAccount(data) ||
-    (recordedMilestones.has('positions_live') &&
-      recordedMilestones.has('orders_live') &&
-      recordedMilestones.has('account_live'))
+    (!requiresLiveAccount(data) ||
+      (recordedMilestones.has('positions_live') &&
+        recordedMilestones.has('orders_live') &&
+        recordedMilestones.has('account_live'))) &&
+    (!requiresFreshMarkets(data) ||
+      marketsReadySource === 'terminal_global_snapshot_v2' ||
+      marketsReadySource === 'provider')
   );
 }
 

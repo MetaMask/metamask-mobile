@@ -532,7 +532,7 @@ describe('perpsLoadingSession', () => {
     });
 
     it('does not carry post-completion live ticks into the next generation', () => {
-      startPerpsLoadingSession();
+      startPerpsLoadingSession({ lifecycle: 'navigate_return' });
       finishPerpsLoadingSession({
         success: true,
         content_state: 'empty',
@@ -633,7 +633,7 @@ describe('perpsLoadingSession', () => {
     };
 
     it('ends the active session once', () => {
-      startPerpsLoadingSession();
+      startPerpsLoadingSession({ lifecycle: 'navigate_return' });
 
       finishPerpsLoadingSession(finishData);
       finishPerpsLoadingSession({
@@ -660,7 +660,7 @@ describe('perpsLoadingSession', () => {
     });
 
     it('clears active session state so a new lifecycle can start', () => {
-      startPerpsLoadingSession();
+      startPerpsLoadingSession({ lifecycle: 'navigate_return' });
       finishPerpsLoadingSession(finishData);
 
       const nextId = startPerpsLoadingSession();
@@ -677,15 +677,32 @@ describe('perpsLoadingSession', () => {
       });
     });
 
-    it('finishes trending without waiting for prices_live', () => {
-      startPerpsLoadingSession();
-      recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
-      recordFresh('positions', 0);
-      recordFresh('orders', 0);
-
+    it('waits for fresh markets and the complete live account on a network switch', () => {
+      startPerpsLoadingSession({ lifecycle: 'network_switch' });
       finishPerpsLoadingSession(finishData);
 
-      expect(endTrace).toHaveBeenCalledTimes(1);
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
+
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady(
+        'markets',
+        'terminal_global_snapshot_v2',
+        4,
+      );
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_variant: 'trending',
+            required_live_streams_complete: true,
+          }),
+        }),
+      );
       expect(setMeasurement).not.toHaveBeenCalledWith(
         expect.anything(),
         'prices_live_ms',
@@ -878,7 +895,7 @@ describe('perpsLoadingSession', () => {
     });
 
     it('finishes without waiting for Homepage Ready', () => {
-      startPerpsLoadingSession();
+      startPerpsLoadingSession({ lifecycle: 'navigate_return' });
       finishPerpsLoadingSession(finishData);
 
       expect(endTrace).toHaveBeenCalledTimes(1);
