@@ -72,7 +72,7 @@ Navigated is a navigation-state commit, not first paint.
 
 ## Deeplink Navigated
 
-**Start when locked:** unlock submit via `startUnlockDeeplinkTraces` (Login password, Login biometric, OAuth rehydration). `start_source: unlock`. `navigateToPendingStartupDeeplink` also calls `startDeeplinkNavigatedTrace`; the in-flight guard makes that a no-op when Login/OAuth already started it (covers saga-driven biometric auto-unlock, which never hits an unlock screen).
+**Start when locked:** unlock submit via `startUnlockTraces` (Login password, Login biometric, OAuth rehydration). `start_source: unlock`. `navigateToPendingStartupDeeplink` also calls `startDeeplinkNavigatedTrace`; the in-flight guard makes that a no-op when Login/OAuth already started it (covers saga-driven biometric auto-unlock, which never hits an unlock screen).
 
 **Start when already unlocked:** `handleDeeplink` after duplicate-delivery and MWP short-circuits, only if `user.userLoggedIn`. `start_source: intake`, `app_start_type: warm`. This **includes** saga waits (SDK warm-up, MainNavigator ready) because the user sits through them.
 
@@ -87,7 +87,7 @@ Navigated is a navigation-state commit, not first paint.
 
 **Cancel:** `unlock_failed` is token-scoped so a stale failed attempt cannot close a newer submit's span. Every Processed cancel also cancels Navigated.
 
-`startUnlockDeeplinkTraces` always starts **Homepage Ready** as well. Navigated starts only when a pending deeplink will divert the launch. Failed unlock cancels both (`cancelUnlockDeeplinkTraces`).
+`startUnlockTraces` always starts **Homepage Ready** as well. Navigated starts only when a pending deeplink will divert the launch. Failed unlock cancels both (`cancelUnlockTraces`).
 
 ---
 
@@ -150,15 +150,15 @@ Set at **end** (unknown at start):
 
 Same definition as Login (`loginPerformanceTags.ts`): `cold` until the first login interaction in this JS process completes, then `warm`. Lock-then-unlock in a live process is `warm`.
 
-Login flips `getLoginAppStartType()` to warm at submit, so deeplink code **captures** the type at unlock (`rememberUnlockDeeplinkAppStartType`) and reads it later (`getUnlockDeeplinkAppStartType`). In practice the saga reads it when forking the post-unlock `parse` (`consumeNextParseAppStartType() ?? getUnlockDeeplinkAppStartType()`); `resolve()` would also use it if it ever ran. Already-unlocked intake and ordinary saga `parse()` are `warm`.
+Login flips `getLoginAppStartType()` to warm at submit, so deeplink code **captures** the type at unlock (`rememberUnlockAppStartType`) and reads it later (`getUnlockAppStartType`). In practice the saga reads it when forking the post-unlock `parse` (`consumeNextParseAppStartType() ?? getUnlockAppStartType()`); `resolve()` would also use it if it ever ran. Already-unlocked intake and ordinary saga `parse()` are `warm`.
 
-`clearUnlockDeeplinkAppStartType()` runs on failed unlock, interstitial reject, successful startup execute, and no pending deeplink. It does **not** always pair with `clearPendingDeeplink`.
+`clearUnlockAppStartType()` runs on failed unlock, interstitial reject, successful startup execute, and no pending deeplink. It does **not** always pair with `clearPendingDeeplink`.
 
 ---
 
 ## Leftover parse
 
-This sequence only runs when startup `resolve` actually sees the pending link. Today it does not (see the current-behavior note): the saga clears `pendingDeeplink` first and forks `parse` directly, passing the unlock-session type via the `getUnlockDeeplinkAppStartType()` fallback. The steps below describe the latent startup-resolve path.
+This sequence only runs when startup `resolve` actually sees the pending link. Today it does not (see the current-behavior note): the saga clears `pendingDeeplink` first and forks `parse` directly, passing the unlock-session type via the `getUnlockAppStartType()` fallback. The steps below describe the latent startup-resolve path.
 
 Startup `resolve` only produces an intent for `intent/` handlers. For a leftover `legacy/` link (or a throw during startup execute):
 
@@ -179,8 +179,8 @@ A startup throw must **not** clear the remembered type — leftover parse still 
 | `executeDeeplinkIntent.ts`           | Prepare child, record Navigated target, Processed `pre_navigate`                                    |
 | `handleUniversalLink.ts`             | Signature child; interstitial shown / continued                                                     |
 | `handleDeeplink.ts`                  | Navigated `intake` if already unlocked                                                              |
-| `unlockDeeplinkTraces.ts`            | Unlock submit: Homepage Ready; Navigated if pending; remember `app_start_type`                      |
-| Login / OAuthRehydration             | Call `startUnlockDeeplinkTraces` / `cancelUnlockDeeplinkTraces`                                     |
+| `unlockTraces.ts`                    | Unlock submit: Homepage Ready; Navigated if pending; remember `app_start_type`                      |
+| Login / OAuthRehydration             | Call `startUnlockTraces` / `cancelUnlockTraces`                                                     |
 | `startupDeeplinkNavigation.ts`       | Auto-unlock Navigated fallback; error cancel; leftover-parse flag                                   |
 | `app/store/sagas/index.ts`           | Forwards leftover `appStartType` into parse before clearing pending                                 |
 | `NavigationProvider.tsx`             | Navigated close on `onStateChange`                                                                  |
@@ -283,7 +283,7 @@ Do not start a second Processed/Navigated pair from a screen. Do not hardcode `a
 ## Code
 
 - [`DeeplinkPerformance.ts`](../../app/core/Performance/DeeplinkPerformance.ts)
-- [`unlockDeeplinkTraces.ts`](../../app/core/Performance/unlockDeeplinkTraces.ts)
+- [`unlockTraces.ts`](../../app/core/Performance/unlockTraces.ts)
 - [`DeeplinkManager.ts`](../../app/core/DeeplinkManager/DeeplinkManager.ts)
 - [`executeDeeplinkIntent.ts`](../../app/core/DeeplinkManager/utils/executeDeeplinkIntent.ts)
 - [`startupDeeplinkNavigation.ts`](../../app/core/DeeplinkManager/utils/startupDeeplinkNavigation.ts)

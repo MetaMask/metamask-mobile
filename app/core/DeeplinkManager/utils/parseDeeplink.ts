@@ -39,7 +39,6 @@ async function parseDeeplink({
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
   mode?: DeeplinkParseMode;
-  /** null (recursive parse hit the guard) makes the detached settle a no-op. */
   processedTraceToken?: DeeplinkTraceToken | null;
 }): Promise<boolean | DeeplinkIntent | null> {
   try {
@@ -80,10 +79,11 @@ async function parseDeeplink({
           source: origin,
           mode,
         });
+
         if (mode === 'resolve') {
           return (await result) ?? null;
         }
-        // Not awaited — parse must return promptly; settle the trace from this continuation.
+
         Promise.resolve(result)
           .then((flowResult) => {
             if (flowResult === false) {

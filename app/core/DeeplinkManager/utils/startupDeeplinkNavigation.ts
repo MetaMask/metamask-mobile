@@ -18,10 +18,8 @@ import {
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
 
-/**
- * When startup `resolve` yields no intent, Home resets and the saga `parse`s.
- * Carry the unlock-session `app_start_type` onto that parse.
- */
+// Set before the fallback parse so consumeNextParseAppStartType stamps it with
+// the unlock-session app_start_type. Cleared after one read.
 let nextParseIsUnlockSession = false;
 
 export const markNextParseAsUnlockSession = () => {

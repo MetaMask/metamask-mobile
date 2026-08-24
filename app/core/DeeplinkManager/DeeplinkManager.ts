@@ -99,7 +99,6 @@ export class DeeplinkManager {
       appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
-    // null if a recursive parse already owns the span — token guards end/cancel.
     const processedTraceToken = startDeeplinkProcessedTrace({
       url,
       source: 'parse',

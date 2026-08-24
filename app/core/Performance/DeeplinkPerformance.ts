@@ -1,10 +1,10 @@
 import {
   endTrace,
+  getTraceContext,
   trace,
   type TraceContext,
   TraceName,
   TraceOperation,
-  TRACES_CLEANUP_INTERVAL,
 } from '../../util/trace';
 
 /**
@@ -29,9 +29,8 @@ import {
  * hole between spans rather than noise inside one, and Navigated starts at
  * unlock submit so the password dwell is excluded.
  *
- * Abandoned flows are deliberately left open rather than ended on a timer:
- * `TRACES_CLEANUP_INTERVAL` marks those `trace.timed_out` and
- * `beforeSendTransaction` drops them.
+ * Abandoned flows are deliberately left open: `trace.ts` times them out after
+ * `TRACES_CLEANUP_INTERVAL` and `beforeSendTransaction` drops them.
  */
 
 /** Which DeeplinkManager method opened the Processed span. */
@@ -185,15 +184,16 @@ export const startDeeplinkProcessedTrace = ({
   appStartType,
   startTime,
 }: StartDeeplinkProcessedTraceOptions): DeeplinkTraceToken | null => {
-  const now = Date.now();
   if (
     processed !== null &&
-    now - processed.startedAt < TRACES_CLEANUP_INTERVAL
+    (processed.phase === 'awaiting_continue' ||
+      getTraceContext({ name: TraceName.DeeplinkProcessed }) !== undefined)
   ) {
     return null;
   }
 
   nextTraceToken += 1;
+  const now = Date.now();
   processed = {
     token: nextTraceToken,
     startedAt: now,
@@ -391,10 +391,9 @@ export const startDeeplinkNavigatedTrace = ({
   appStartType,
   startTime,
 }: StartDeeplinkNavigatedTraceOptions): DeeplinkTraceToken | null => {
-  const now = Date.now();
   if (
     navigated !== null &&
-    now - navigated.startedAt < TRACES_CLEANUP_INTERVAL
+    getTraceContext({ name: TraceName.DeeplinkNavigated }) !== undefined
   ) {
     return null;
   }
@@ -405,7 +404,7 @@ export const startDeeplinkNavigatedTrace = ({
   nextTraceToken += 1;
   navigated = {
     token: nextTraceToken,
-    startedAt: now,
+    startedAt: Date.now(),
     targetRoute: null,
   };
   processedEndedAt = null;
