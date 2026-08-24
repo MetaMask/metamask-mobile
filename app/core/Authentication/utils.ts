@@ -114,6 +114,14 @@ export const classifyUnlockError = (error: Error): UnlockWalletErrorType => {
   ) {
     // Vault corruption detected.
     return UnlockWalletErrorType.VAULT_CORRUPTION;
+  } else if (
+    containsErrorMessage(
+      error,
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    )
+  ) {
+    // OS reports the stored biometric/keychain credential is no longer usable.
+    return UnlockWalletErrorType.USER_NOT_AUTHENTICATED;
   }
   // Other password submission errors.
   return UnlockWalletErrorType.UNRECOGNIZED_ERROR;

@@ -93,6 +93,18 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
+  it('throws error if user not authenticated error is detected', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    );
+    const expectedThrownError = new Error(
+      `${UnlockWalletErrorType.USER_NOT_AUTHENTICATED}: ${error.message}`,
+    );
+    expect(() => handlePasswordSubmissionError(error)).toThrow(
+      expectedThrownError,
+    );
+  });
+
   it('throws error if other password submission errors are detected', () => {
     const error = new Error('Unrecognized error!');
     const expectedThrownError = new Error(
@@ -120,6 +132,16 @@ describe('classifyUnlockError', () => {
 
     expect(classifyUnlockError(error)).toBe(
       UnlockWalletErrorType.VAULT_CORRUPTION,
+    );
+  });
+
+  it('returns USER_NOT_AUTHENTICATED for a user-not-authenticated error', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    );
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.USER_NOT_AUTHENTICATED,
     );
   });
 

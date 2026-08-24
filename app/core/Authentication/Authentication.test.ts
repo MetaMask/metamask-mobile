@@ -5894,6 +5894,26 @@ describe('Authentication', () => {
           lockAppSpy.mockRestore();
         });
 
+        it('tracks forced reset as USER_NOT_AUTHENTICATED when biometric changed alert is confirmed', async () => {
+          const trackForcedResetSpy = jest.mocked(trackForcedReset);
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(trackForcedResetSpy).toHaveBeenCalledWith(
+            UnlockWalletErrorType.USER_NOT_AUTHENTICATED,
+            true,
+          );
+
+          alertSpy.mockRestore();
+        });
+
         it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {
           const Engine = jest.requireMock('../Engine');
           (
