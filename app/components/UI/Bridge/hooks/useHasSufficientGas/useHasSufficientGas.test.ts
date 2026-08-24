@@ -2,7 +2,12 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useHasSufficientGas } from './index';
 import { useLatestBalance } from '../useLatestBalance';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
+} from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 
 // Mock dependencies
@@ -104,6 +109,9 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '0.001',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.ETH),
+                    ),
                   },
                 ],
               },
@@ -135,6 +143,9 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '0.01',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.ETH),
+                    ),
                   },
                 ],
               },
@@ -166,6 +177,9 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '9.200359292e-8',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.ETH),
+                    ),
                   },
                 ],
               },
@@ -288,6 +302,9 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '0.001',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.SOLANA),
+                    ),
                   },
                 ],
               },
@@ -319,6 +336,9 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '0.01',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.SOLANA),
+                    ),
                   },
                 ],
               },
@@ -350,9 +370,15 @@ describe('useHasSufficientGas', () => {
                 network: [
                   {
                     normalizedAmount: '0.00005',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.BTC),
+                    ),
                   },
                   {
                     normalizedAmount: '0.00005',
+                    asset: toBridgeAssetV2(
+                      getNativeAssetForChainId(ChainId.BTC),
+                    ),
                   },
                 ],
               },

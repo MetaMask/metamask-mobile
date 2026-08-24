@@ -147,7 +147,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(incomingTitle).toHaveTextContent('Received');
+    expect(incomingTitle).toHaveTextContent('Received ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(incomingHash)),
     ).toHaveTextContent('From: 0x80181...229cC');
@@ -177,7 +177,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(outgoingTitle).toHaveTextContent('Sent');
+    expect(outgoingTitle).toHaveTextContent('Sent ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(outgoingHash)),
     ).toHaveTextContent('To: 0x80181...229cC');

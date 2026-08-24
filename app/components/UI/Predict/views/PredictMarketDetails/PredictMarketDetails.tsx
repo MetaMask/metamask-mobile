@@ -33,6 +33,7 @@ import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   PredictOutcomeToken,
+  PredictPositionStatus,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -57,6 +58,7 @@ import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -99,6 +101,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: currentSeriesMarketId,
     isLoading: isCurrentSeriesMarketLoading,
     isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
     refetch: refetchCurrentSeriesMarket,
   } = useCurrentPredictMarketFromSeries({
     series,
@@ -116,6 +119,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     data: marketData,
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
@@ -450,11 +454,37 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const actionableClaimablePositions = claimablePositions.filter(
+    (position) =>
+      (position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE) &&
+      (position.currentValue ?? 0) > 0,
   );
+  const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          titleLineCount={titleLineCount}
+          insetsTop={insets.top}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (
@@ -481,7 +511,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={actionableClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}

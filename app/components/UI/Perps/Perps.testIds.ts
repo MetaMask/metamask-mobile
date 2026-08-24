@@ -85,6 +85,7 @@ export const PerpsPositionCardSelectorsIDs = {
   DIRECTION_VALUE: 'position-card-direction-value',
   ENTRY_VALUE: 'position-card-entry-value',
   LIQUIDATION_PRICE_VALUE: 'position-card-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'position-card-liquidation-distance-value',
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
@@ -415,6 +416,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   HEADER: 'perps-market-header',
   MARKET_SUMMARY: 'perps-market-details-market-summary',
   FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
+  CHART_EDGE_GUARD: 'perps-market-details-chart-edge-guard',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
   STATISTICS_VOLUME_24H: 'perps-statistics-volume-24h',
@@ -548,6 +550,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  TRIGGER_PRICE_INPUT: 'perps-pro-order-form-trigger-price-input',
+  TRIGGER_PRICE_PREFIX: 'perps-pro-order-form-trigger-price-prefix',
+  PRICE_CARD_MESSAGE: 'perps-pro-order-form-price-card-message',
   MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
   SIZE_CARD: 'perps-pro-order-form-size-card',
   SIZE_FIELD: 'perps-pro-order-form-size-field',
@@ -860,6 +865,12 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+  STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
+  STOP_MARKET_OPTION: 'perps-order-type-stop-market',
+  TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',
+  TAKE_PROFIT_MARKET_OPTION: 'perps-order-type-take-profit-market',
+  BASIC_SECTION_HEADER: 'perps-order-type-basic-section-header',
+  TRIGGERED_SECTION_HEADER: 'perps-order-type-triggered-section-header',
 } as const;
 
 export const PerpsMarginModeBottomSheetSelectorsIDs = {

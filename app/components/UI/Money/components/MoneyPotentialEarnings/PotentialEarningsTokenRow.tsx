@@ -34,8 +34,8 @@ import {
 } from '../../utils/projections';
 import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 
 const styles = StyleSheet.create({
@@ -51,7 +51,7 @@ const PotentialEarningsTokenRow = ({
   testID,
   privacyMode = false,
 }: {
-  token: AssetType;
+  token: MoneyDepositAsset;
   hasSubsidizedFee: boolean;
   /** APY as a decimal (e.g. 0.04 for 4%). */
   apyDecimal: number;
@@ -111,7 +111,13 @@ const PotentialEarningsTokenRow = ({
               )
             }
           >
-            <AssetLogo asset={token} />
+            <AssetLogo
+              asset={{
+                ...token,
+                logo: token.image,
+                isETH: token.isNative && token.symbol === 'ETH',
+              }}
+            />
           </BadgeWrapper>
 
           <Box twClassName="flex-1">
