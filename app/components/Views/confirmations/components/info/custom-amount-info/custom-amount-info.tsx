@@ -380,6 +380,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
+    const canEditZeroAmount =
+      !isPrefillPending &&
+      !isDepositPrefillLoading &&
+      (amountFiat === '0' || amountFiat === '');
+
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
@@ -397,18 +402,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             isLoading={
               !hasAccountNoFunds &&
               !isFiatPrefillSkip &&
-              (isPrefillPending ||
-                isDepositPrefillLoading ||
-                // Tokens / pay token can lag a frame (skipDepositPrefill true,
-                // hasPrefilled already flipped). Keep the skeleton until a
-                // real amount is on screen so $0.00 never flashes.
-                (isDepositPrefillEnabled &&
-                  (amountFiat === '0' || amountFiat === '') &&
-                  stage !== CustomAmountStage.AmountInput))
+              (isPrefillPending || isDepositPrefillLoading)
             }
             preserveAmountOnMaxQuoteLoad={isMoneyAccountDeposit}
             onPress={
-              stage === CustomAmountStage.Loading
+              stage === CustomAmountStage.Loading && !canEditZeroAmount
                 ? undefined
                 : handleAmountPress
             }

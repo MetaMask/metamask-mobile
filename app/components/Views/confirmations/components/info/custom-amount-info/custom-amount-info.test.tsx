@@ -2643,6 +2643,35 @@ describe('CustomAmountInfo', () => {
       expect(queryByTestId('custom-amount-input')).toBeNull();
     });
 
+    it('shows the zero amount and keeps it pressable after prefill finishes with no value', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: true,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: () => false,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
+        expect.any(Function),
+      );
+    });
+
     it('hides keyboard when deposit prefill is enabled and tokens are available', () => {
       setupDepositPrefillEnabled();
 
