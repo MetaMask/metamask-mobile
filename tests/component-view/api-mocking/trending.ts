@@ -92,10 +92,7 @@ export const mockBnbChainToken: MockTrendingToken[] = [
 ];
 
 const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
-const RWA_ORIGINS = [
-  TRENDING_ORIGIN,
-  'https://token.dev-api.cx.metamask.io',
-];
+const RWA_ORIGINS = [TRENDING_ORIGIN, 'https://token.dev-api.cx.metamask.io'];
 const TRENDING_PATH = '/v3/tokens/trending';
 const TOKEN_SEARCH_PATH = '/tokens/search';
 const RWA_PATH = '/v1/rwas';
