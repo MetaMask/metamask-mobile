@@ -307,3 +307,49 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
       EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
     ],
   };
+
+// ─── Wallet header & bottom NavBar refresh (TMCU-1276) ───────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1276).
+ */
+export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
+
+export enum HeaderNavBarVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface HeaderNavBarVariantConfig {
+  /**
+   * Treatment ships the refreshed chrome as one bundle: a rewards icon replaces
+   * the header Activity entry point, the account list and settings consolidate
+   * behind the hamburger menu, and the bottom NavBar is reorganized. The arms
+   * cannot be split — a 2-arm test cannot attribute an outcome to one of them.
+   */
+  useRefreshedHeaderAndNavBar: boolean;
+}
+
+export const HEADER_NAV_BAR_VARIANTS: Record<
+  HeaderNavBarVariant,
+  HeaderNavBarVariantConfig
+> = {
+  [HeaderNavBarVariant.Control]: { useRefreshedHeaderAndNavBar: false },
+  [HeaderNavBarVariant.Treatment]: { useRefreshedHeaderAndNavBar: true },
+};
+
+export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Header and Nav Bar refresh',
+  variationNames: {
+    control: 'Current header and NavBar',
+    treatment: 'Refreshed header with consolidated hamburger menu and NavBar',
+  },
+} as const;
+
+export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HEADER_NAV_BAR_AB_KEY,
+    validVariants: Object.values(HeaderNavBarVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+  };
