@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const {
   computeE2EPlatformFlags,
+  applyE2ELabelOverrides,
 } = require('./compute-e2e-platform-flags.cjs');
 
 function readBool(value) {
@@ -32,9 +33,15 @@ const ignorableOnly =
   ignorableCount === allChangesCount &&
   e2eWorkflowsCount === 0;
 
+const testOnlyChanges =
+  allChangesCount > 0 &&
+  readInt(process.env.E2E_TEST_OR_IGNORABLE_COUNT) >= allChangesCount &&
+  readInt(process.env.E2E_TEST_FILES_COUNT) > 0 &&
+  e2eWorkflowsCount === 0;
+
 const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
 
-const flags = computeE2EPlatformFlags({
+const baseFlags = computeE2EPlatformFlags({
   githubEventName: process.env.GITHUB_EVENT_NAME || '',
   prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
@@ -49,6 +56,16 @@ const flags = computeE2EPlatformFlags({
   androidOrIgnorableCount: readInt(process.env.ANDROID_OR_IGNORABLE_COUNT),
   iosOrIgnorableCount: readInt(process.env.IOS_OR_IGNORABLE_COUNT),
   changedSpecFiles: process.env.CHANGED_SPEC_FILES || '',
+});
+
+const flags = applyE2ELabelOverrides(baseFlags, {
+  runAppiumIosLabel: readBool(process.env.RUN_APPIUM_IOS_LABEL),
+  githubEventName: process.env.GITHUB_EVENT_NAME || '',
+  prBaseRef: process.env.PR_BASE_REF || '',
+  isFork: readBool(process.env.IS_FORK),
+  shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
+  ignorableOnly,
+  testOnlyChanges,
 });
 
 let runAppiumIos = false;

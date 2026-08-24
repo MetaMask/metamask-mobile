@@ -110,6 +110,49 @@ function computeE2EPlatformFlags(input) {
   };
 }
 
+/**
+ * Apply PR label overrides on top of path-filter platform flags.
+ * Labels must not bypass ignorable-only or hard E2E skip signals.
+ *
+ * @param {object} flags
+ * @param {object} input
+ * @returns {object}
+ */
+function applyE2ELabelOverrides(flags, input) {
+  const {
+    runAppiumIosLabel = false,
+    githubEventName,
+    prBaseRef = '',
+    isFork,
+    shouldSkipE2E,
+    ignorableOnly,
+    testOnlyChanges,
+  } = input;
+
+  const isEligiblePullRequest =
+    githubEventName === 'pull_request' &&
+    prBaseRef !== 'stable' &&
+    !isFork &&
+    !shouldSkipE2E &&
+    !ignorableOnly;
+
+  if (!isEligiblePullRequest || !runAppiumIosLabel || flags.ios) {
+    return flags;
+  }
+
+  const ios = true;
+  const e2eNeeded = flags.android || ios;
+
+  return {
+    ...flags,
+    ios,
+    e2eNeeded,
+    nativeBuildNeeded: e2eNeeded && !testOnlyChanges,
+    message: `${flags.message} + iOS build (run-appium-ios-tests label)`,
+  };
+}
+
 module.exports = {
   computeE2EPlatformFlags,
+  applyE2ELabelOverrides,
 };

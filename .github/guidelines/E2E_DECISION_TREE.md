@@ -82,7 +82,7 @@ require iOS, this label also enables Appium iOS smoke (otherwise opt-in via
 ## Appium smoke platform policy
 
 - Pull requests targeting `main` or `release/*` run Appium Android when Android E2E is required. Smart E2E controls the selected tags.
-- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` is added, when `skip-smart-e2e-selection` is added and path filters already require iOS, or when shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`), provided an iOS build is required by path filters.
+- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` is added (also opts into the iOS native build on Android-only PRs), when `skip-smart-e2e-selection` is added and path filters already require iOS, or when shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`) and path filters require an iOS build.
 - Pushes to `main` and `release/*` run Appium Android and Appium iOS with the full `ALL` tag set.
 - PRs targeting `stable` from `release/*` are synchronization-only and run no E2E, including Appium.
 - Stable branch synchronization automation remains active; stable is not the release-build source.
@@ -100,7 +100,7 @@ Flakiness detection is applied to modified E2E test files in PRs:
 `release/*` branches are release candidates. Their E2E policy is:
 
 - Cherry-pick PRs from `main` use Smart E2E selection with the Android-first platform policy.
-- Release cherry-pick PRs do not automatically run iOS; use `run-appium-ios-tests` when an iOS build is required.
+- Release cherry-pick PRs do not automatically run iOS; use `run-appium-ios-tests` to opt into the iOS build and Appium iOS smoke when needed.
 - Every push to `release/*` runs Android and iOS Appium E2E with `ALL` tags.
 - PRs from `release/*` to `stable` are synchronization PRs and run no E2E.
 - The final release decision is based on the latest tested `release/*` SHA, which is also the source for the production build.

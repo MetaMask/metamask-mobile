@@ -1,4 +1,7 @@
-const { computeE2EPlatformFlags } = require('./compute-e2e-platform-flags.cjs');
+const {
+  computeE2EPlatformFlags,
+  applyE2ELabelOverrides,
+} = require('./compute-e2e-platform-flags.cjs');
 
 describe('computeE2EPlatformFlags', () => {
   const baseInput = {
@@ -111,6 +114,20 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
+  it('does not widen platform scope when skip-smart-e2e-selection is applied to an Android-only PR', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      androidCount: 1,
+      androidOrIgnorableCount: 1,
+    });
+
+    expect(result.android).toBe(true);
+    expect(result.ios).toBe(false);
+    expect(result.nativeBuildNeeded).toBe(true);
+  });
+
   it('runs both platforms on pushes to main and release/*', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
@@ -122,5 +139,72 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.e2eNeeded).toBe(true);
     expect(result.message).toContain('push to main/release/*');
     expect(result.runSmartE2ESelection).toBe(false);
+  });
+});
+
+describe('applyE2ELabelOverrides', () => {
+  const overrideInput = {
+    runAppiumIosLabel: true,
+    githubEventName: 'pull_request',
+    prBaseRef: 'main',
+    isFork: false,
+    shouldSkipE2E: false,
+    ignorableOnly: false,
+    testOnlyChanges: false,
+  };
+
+  it('opts into iOS build on Android-only PRs via run-appium-ios-tests', () => {
+    const baseFlags = computeE2EPlatformFlags({
+      githubEventName: 'pull_request',
+      isFork: false,
+      shouldSkipE2E: false,
+      allChangesCount: 1,
+      ignorableCount: 0,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      e2eWorkflowsCount: 0,
+      androidCount: 1,
+      iosCount: 0,
+      androidOrIgnorableCount: 1,
+      iosOrIgnorableCount: 0,
+    });
+
+    const result = applyE2ELabelOverrides(baseFlags, overrideInput);
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      nativeBuildNeeded: true,
+      message: expect.stringContaining('run-appium-ios-tests'),
+    });
+  });
+
+  it('does not opt into iOS build for ignorable-only PRs', () => {
+    const baseFlags = computeE2EPlatformFlags({
+      githubEventName: 'pull_request',
+      isFork: false,
+      shouldSkipE2E: false,
+      allChangesCount: 1,
+      ignorableCount: 1,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 1,
+      e2eWorkflowsCount: 0,
+      androidCount: 0,
+      iosCount: 0,
+      androidOrIgnorableCount: 0,
+      iosOrIgnorableCount: 0,
+    });
+
+    const result = applyE2ELabelOverrides(baseFlags, {
+      ...overrideInput,
+      ignorableOnly: true,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+    });
   });
 });
