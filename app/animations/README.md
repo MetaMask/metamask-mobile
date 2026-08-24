@@ -11,15 +11,17 @@ A `.riv` file is a binary runtime export. Author and inspect it in the
 
 ## At a glance
 
-> **Use `rive-react-native`, not `@rive-app/react-native`.** The repository
-> currently uses Rive's legacy React Native runtime, so examples from the latest
-> upstream documentation are not directly compatible.
+> **Use `@rive-app/react-native`.** The repository uses Rive's Nitro React
+> Native runtime. The legacy `rive-react-native` component, ref, callback, and
+> data-binding APIs are not compatible.
 
 - Import bundled `.riv` files statically; shared assets belong in
   `app/animations/`, while feature-owned assets should follow their neighboring
   convention.
 - Prefer View Model data binding for new integrations. Keep runtime-facing
   artboard, state machine, input, trigger, and binding names together in code.
+- Load files with `useRiveFile`, render `RiveView`, and wait for
+  `useRive().riveViewRef` before sending imperative inputs.
 - Always provide a non-Rive fallback for essential content and handle native
   errors, Reduce Motion, timeouts, and detached refs.
 - Jest validates the React component contract only. It cannot inspect the
@@ -36,15 +38,22 @@ Jump to [adding or updating a file](#add-or-update-a-file),
 
 ## Runtime used by this repository
 
-MetaMask Mobile currently uses the legacy `rive-react-native` package. Rive's
-documentation now shows the newer `@rive-app/react-native` API first, so do not
-copy examples using `RiveView`, `useRiveFile`, `dataBind`, or `autoPlay` into
-this repository. The API used here is:
+MetaMask Mobile uses the Nitro-based `@rive-app/react-native` package. The main
+API used here is:
 
-- `Rive` with `source`, `dataBinding`, and `autoplay`
-- `RiveRef` or the legacy `useRive()` tuple
-- `AutoBind(true)` and `useRiveString`, `useRiveNumber`,
-  `useRiveBoolean`, and `useRiveTrigger`
+- `useRiveFile(asset)` to load a bundled file, then `RiveView` with `file`,
+  `autoPlay`, and optional `artboardName` / `stateMachineName`
+- `useRive()` for `riveRef`, readiness-aware `riveViewRef`, and `setHybridRef`
+  passed to `RiveView` as `hybridRef`
+- `useViewModelInstance(riveFile, { artboardName, async: true })` with
+  `RiveView`'s `dataBind` prop
+- `useRiveString`, `useRiveNumber`, `useRiveBoolean`, and `useRiveTrigger` for
+  View Model properties and events
+
+The Nitro runtime does not expose the legacy `onPlay`, `onStateChanged`,
+`animationName`, `source`, `dataBinding`, `autoplay`, `AutoBind`, `RiveRef`, or
+`fireState` APIs. Treat a non-null `riveViewRef` as the view-ready signal and
+model completion with View Model triggers or a bounded timer.
 
 Check `package.json` and `yarn.lock` before relying on version-specific Rive
 features.
@@ -113,20 +122,24 @@ Jest and is only detected by the native runtime.
 
 ## Render a bundled file
 
-Use a typed ref when code needs to control playback or legacy state machine
-inputs. Fire inputs only after `onPlay`; calling the native ref before the view
-is ready can fail or be silently dropped. For delayed reveal triggers, reuse
+Use `useRive()` when code needs to control playback or state machine inputs.
+Pass `setHybridRef` to `RiveView`, and fire inputs only after `riveViewRef`
+becomes non-null; calling the native ref before Nitro resolves
+`awaitViewReady()` can be silently dropped. For delayed View Model reveal
+triggers, reuse
 [`useRiveRevealTrigger`](../components/UI/Money/hooks/useRiveRevealTrigger.ts).
 
 ```tsx
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
-import Rive, {
+import {
   Alignment,
   Fit,
-  type RiveRef,
-  type RNRiveError,
-} from 'rive-react-native';
+  RiveView,
+  useRive,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import Logger from '../../../util/Logger';
 import AccountIntroAnimation from '../../../animations/account_intro_v2.riv';
 import AccountIntroFallback from '../../../images/account_intro.png';
@@ -139,19 +152,22 @@ const styles = StyleSheet.create({
 });
 
 const AccountIntro = () => {
-  const riveRef = useRef<RiveRef>(null);
+  const { riveFile } = useRiveFile(AccountIntroAnimation);
+  const { riveRef, riveViewRef, setHybridRef } = useRive();
   const [hasRiveError, setHasRiveError] = useState(false);
 
-  const handlePlay = useCallback(() => {
+  useEffect(() => {
+    if (!riveViewRef) return;
+
     try {
-      riveRef.current?.fireState(RIVE_STATE_MACHINE_NAME, RIVE_START_TRIGGER);
+      riveRef.current?.triggerInput(RIVE_START_TRIGGER);
     } catch (error) {
       Logger.error(error as Error, 'AccountIntro: Rive trigger failed');
       setHasRiveError(true);
     }
-  }, []);
+  }, [riveRef, riveViewRef]);
 
-  const handleError = useCallback((riveError: RNRiveError) => {
+  const handleError = useCallback((riveError: RiveError) => {
     Logger.error(
       new Error(riveError.message),
       `AccountIntro: Rive error (${riveError.type})`,
@@ -170,16 +186,17 @@ const AccountIntro = () => {
     );
   }
 
+  if (!riveFile) return null;
+
   return (
-    <Rive
-      ref={riveRef}
-      source={AccountIntroAnimation}
+    <RiveView
+      hybridRef={setHybridRef}
+      file={riveFile}
       stateMachineName={RIVE_STATE_MACHINE_NAME}
-      autoplay
+      autoPlay
       fit={Fit.Contain}
       alignment={Alignment.Center}
       style={styles.animation}
-      onPlay={handlePlay}
       onError={handleError}
       testID="account-intro-animation"
     />
@@ -187,17 +204,17 @@ const AccountIntro = () => {
 };
 ```
 
-Use `Fit.Layout` with `layoutScaleFactor={PixelRatio.get()}` when the artboard
-was authored as a responsive layout. Otherwise, choose `Fit.Contain`,
-`Fit.FitWidth`, or another fit explicitly and give the Rive view deterministic
+Use `Fit.Layout` with `layoutScaleFactor={PixelRatio.get()}` for an artboard
+authored as a responsive layout. Otherwise, choose `Fit.Contain`,
+`Fit.FitWidth`, or another fit explicitly and give `RiveView` deterministic
 dimensions.
 
 Existing examples:
 
-- Basic state machine and typed ref:
+- Basic state machine inputs and readiness:
   [`OnboardingAnimation`](../components/UI/OnboardingAnimation/OnboardingAnimation.tsx)
 - Responsive data-bound screen:
-  [`MoneyFirstTimeDepositView`](../components/UI/Money/Views/MoneyFirstTimeDepositView/MoneyFirstTimeDepositView.tsx)
+  [`MoneyOnboardingView`](../components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx)
 - High-frequency numeric data and static fallback:
   [`MoneyCardTiltAnimation`](../components/UI/Money/components/MoneyCardTiltAnimation/MoneyCardTiltAnimation.tsx)
 - Loading timeout, first-frame fallback, and native error handling:
@@ -207,20 +224,22 @@ Existing examples:
 
 Prefer View Models and data binding for new files. In the Rive Editor, attach a
 default View Model and default instance to the artboard, then bind its
-properties. In React Native, enable auto-binding and access properties by their
-exact paths. The example omits the error fallback already shown above.
+properties. In React Native, create the instance from the loaded file, pass it
+to `RiveView.dataBind`, and access properties by their exact paths. The example
+omits the error fallback already shown above.
 
 ```tsx
 import React, { useEffect } from 'react';
 import { PixelRatio, StyleSheet } from 'react-native';
-import Rive, {
-  AutoBind,
+import {
   Fit,
-  useRive,
+  RiveView,
+  useRiveFile,
   useRiveNumber,
   useRiveString,
   useRiveTrigger,
-} from 'rive-react-native';
+  useViewModelInstance,
+} from '@rive-app/react-native';
 import AccountIntroAnimation from '../../../animations/account_intro_v2.riv';
 
 interface DataBoundAccountIntroProps {
@@ -232,54 +251,59 @@ const DataBoundAccountIntro = ({
   title,
   onComplete,
 }: DataBoundAccountIntroProps) => {
-  const [setRiveRef, riveRef] = useRive();
-  const [, setTitle] = useRiveString(riveRef, 'content/title');
-  const [, setProgress] = useRiveNumber(riveRef, 'progress');
+  const { riveFile } = useRiveFile(AccountIntroAnimation);
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName: 'AccountIntro',
+    async: true,
+  });
+  const { setValue: setTitle } = useRiveString('content/title', instance);
+  const { setValue: setProgress } = useRiveNumber('progress', instance);
 
-  useRiveTrigger(riveRef, 'complete', onComplete);
+  useRiveTrigger('complete', instance, { onTrigger: onComplete });
 
   useEffect(() => {
-    if (!riveRef) return;
+    if (!instance) return;
     setTitle(title);
     setProgress(50);
-  }, [riveRef, setProgress, setTitle, title]);
+  }, [instance, setProgress, setTitle, title]);
 
-  return (
-    <Rive
-      ref={setRiveRef}
-      source={AccountIntroAnimation}
+  return riveFile && instance ? (
+    <RiveView
+      file={riveFile}
       artboardName="AccountIntro"
       stateMachineName="AccountIntroState"
-      dataBinding={AutoBind(true)}
+      dataBind={instance}
+      autoPlay
       fit={Fit.Layout}
       layoutScaleFactor={PixelRatio.get()}
-      style={StyleSheet.absoluteFillObject}
+      style={StyleSheet.absoluteFill}
       testID="account-intro-animation"
     />
-  );
+  ) : null;
 };
 ```
 
 For high-frequency writes such as device orientation, avoid a data-binding hook
-that mirrors every value into React state. Use a `RiveRef`, check that
-`riveRef.current?.viewTag()` is not `null`, and call `setNumber` directly. See
-[`useRiveTiltWriter`](../components/UI/Money/hooks/useRiveTiltWriter.ts).
+that mirrors every value into React state. Cache
+`instance.numberProperty(path)` handles and call their `set(value)` methods
+directly. See
+[`useRiveParallaxTilt`](../components/UI/Money/hooks/useRiveParallaxTilt.ts).
 
 If changing `artboardName` leaves bindings attached to the previous artboard,
-key the `Rive` component by artboard so React remounts the native view. Keep
-`referencedAssets` stable after mount because changing it reloads the view. The
-current runtime marks this prop as experimental, so retest it after runtime
-upgrades.
+key `RiveView` by artboard so React remounts the native view. Pass
+`referencedAssets` on the first `useRiveFile` render and keep the mapping
+stable; Nitro installs the asset loader at file-load time, so updating the
+mapping after the file loads does not rebind assets.
 
 ## Error handling and fallbacks
 
 Treat a Rive animation as a native dependency that can fail independently of
 the surrounding React screen.
 
-- Implement `onError`. Decide which `RNRiveErrorType` values are fatal for the
+- Implement `onError`. Decide which `RiveErrorType` values are fatal for the
   flow and which only affect optional content.
-- Never block navigation or app startup indefinitely on `onPlay` or a state
-  transition. Add a timeout for critical flows.
+- Never block navigation or app startup indefinitely on `riveViewRef`, a View
+  Model trigger, or a state transition. Add a timeout for critical flows.
 - Use a static image or normal React Native UI for essential content when
   animation is disabled, Reduce Motion is enabled, the file fails, or a feature
   flag is off. Decorative animations can be omitted.
@@ -287,16 +311,14 @@ the surrounding React screen.
   rely on visual elements inside the Rive artboard as the only accessible
   representation of content or actions.
 - For first-frame black flashes, render a matching static image or background
-  behind Rive and reveal the Rive layer after `onPlay`.
+  behind `RiveView`; after `riveViewRef` becomes non-null, allow a frame or a
+  short fade before hiding the static layer.
 - Wrap imperative ref calls in `try/catch`; a valid TypeScript string does not
   prove that the name exists in the binary.
-- On Android, `fireState` with a missing input can abort in JNI before a
-  JavaScript `catch` runs. Validate every input on Android and use a safe
-  animation fallback when an exported artboard does not expose it. See the
-  documented workaround in
-  [`WalletHomeOnboardingSteps`](../components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.tsx).
-- Do not dispatch through a detached native ref. Guard `viewTag()` before
-  high-frequency imperative calls such as `setNumber` or `trigger`.
+- Validate every state machine input and View Model property on Android and
+  iOS; incorrect runtime names may throw or arrive through `onError`.
+- Do not dispatch through a detached native view. Gate imperative work on
+  `riveViewRef`, and stop sensors, timers, and subscriptions during cleanup.
 - Add a `testID` to the Rive view and separate IDs for fallback content.
 
 For onboarding performance traces, use
@@ -307,47 +329,47 @@ introducing a second instrumentation pattern.
 
 [`jest.config.js`](../../jest.config.js):
 
-- Maps `rive-react-native` to the
-  [`Rive mock`](../__mocks__/rive-react-native.tsx).
+- Maps `@rive-app/react-native` to the
+  [`Nitro Rive mock`](../__mocks__/rive-app-react-native.tsx).
 - Transforms `.riv` imports with
   [`assetFileTransformer.js`](../util/test/assetFileTransformer.js).
 
 A component test therefore does not load the binary or native runtime.
 
-The shared mock renders a `View`, invokes `onPlay`, and exposes mocked
-imperative methods. This is enough for rendering and legacy trigger tests:
+The shared mock renders `RiveView` as a `View`, supplies stable loaded-file,
+View Model, and ready-view values, and exposes helpers for imperative methods,
+property setters, and trigger callbacks:
 
 ```tsx
 import { render } from '@testing-library/react-native';
 import {
-  __mockRiveFireState,
-  __resetAllMocks,
-} from '../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 
 beforeEach(() => {
-  __resetAllMocks();
+  __resetRiveMocks();
 });
 
-it('fires the start trigger when Rive starts playing', () => {
+it('fires the start input when the Rive view is ready', () => {
   render(<AccountIntro />);
 
-  expect(__mockRiveFireState).toHaveBeenCalledWith(
-    'AccountIntroState',
-    'start',
-  );
+  expect(__mockRiveTriggerInput).toHaveBeenCalledWith('start');
 });
 ```
 
-Use a test-local `jest.mock('rive-react-native', factory)` when a component
-needs data-binding hooks or when a test must manually invoke `onPlay`,
-`onError`, or `onStateChanged`. Capture the callbacks and property paths in the
-factory, then assert the resulting application behavior. Examples:
+Use `__getLastRiveViewMethods()` for view-method assertions,
+`__getRivePropertySetter(path)` for bound-value writes, and
+`__fireRiveTrigger(path)` for Rive-to-React Native callbacks. Use a test-local
+`jest.mock('@rive-app/react-native', factory)` only when a test needs loading,
+error, or delayed-readiness behavior not represented by the shared mock.
+Examples:
 
 - Shared mock:
   [`RiveOnboardingStepper.test.tsx`](../components/UI/RiveOnboardingStepper/RiveOnboardingStepper.test.tsx)
 - Data-binding hooks:
   [`MoneyFirstTimeDepositView.test.tsx`](../components/UI/Money/Views/MoneyFirstTimeDepositView/MoneyFirstTimeDepositView.test.tsx)
-- Manually controlled runtime callbacks:
+- Loading, readiness, and error behavior:
   [`FoxLoader.test.tsx`](../components/UI/FoxLoader/FoxLoader.test.tsx)
 
 Run the focused unit test:
@@ -358,13 +380,13 @@ yarn jest app/path/to/Component.test.tsx --no-coverage
 ```
 
 Unit tests must cover application behavior, not merely that the mocked Rive
-`View` exists. Depending on the integration, cover:
+`RiveView` exists. Depending on the integration, cover:
 
 - Runtime props and data-binding paths sent by the component.
 - Inputs/triggers fired in response to user or runtime events.
 - Trigger callbacks received from the Rive file.
 - `onError`, timeout, feature-flag, and Reduce Motion fallbacks.
-- Guards for an unready or detached Rive ref.
+- Guards for an unready or detached `riveViewRef`.
 
 Unit tests cannot verify visuals, file compatibility, fonts, asset loading,
 animation timing, or whether a runtime-facing name exists in the binary.
@@ -406,15 +428,18 @@ same navigation and completion behavior.
   exported file. Names are case-sensitive.
 - **The editor works but the app reports an unsupported runtime version:** the
   file uses a feature newer than the native runtime bundled by
-  `rive-react-native`. Check the Rive feature support matrix before changing
-  native runtime versions.
-- **Data-bound values do not change:** verify `dataBinding={AutoBind(true)}`, the
-  default View Model/instance, the complete property path, and that `riveRef` is
-  ready.
-- **Android throws `found null reactTag`:** the native view detached before an
-  imperative write. Check `viewTag()` and stop sensors/timers during cleanup.
+  `@rive-app/react-native`. Check the Rive feature support matrix before
+  changing native runtime versions.
+- **Data-bound values do not change:** verify `useViewModelInstance` resolved
+  for the correct artboard, `dataBind={instance}` is set, and the complete
+  property path matches the exported View Model.
+- **An imperative input is ignored:** pass `setHybridRef` as `hybridRef` and
+  wait for `riveViewRef` before calling `riveRef.current`.
+- **Calls fail after navigation:** the native view detached. Stop sensors,
+  timers, and subscriptions during cleanup and gate new calls on `riveViewRef`.
 - **The first frame flashes black:** keep a matching background/static image
-  visible until `onPlay`, then fade Rive in.
+  visible until `riveViewRef` is non-null, then fade it out after Rive has had
+  time to composite a frame.
 - **Jest cannot import a `.riv` file:** retain the `.riv` transform in
   [`jest.config.js`](../../jest.config.js). Do not parse the binary in a unit
   test.
@@ -422,7 +447,7 @@ same navigation and completion behavior.
   `yarn watch:clean`, rebuild if the runtime dependency changed, and verify that
   the expected asset is imported.
 
-When upgrading `rive-react-native` itself, use the
+When upgrading `@rive-app/react-native`, use the
 [native development setup](../../README.md#native-development), rebuild both
 platforms, and test iOS and Android separately.
 
