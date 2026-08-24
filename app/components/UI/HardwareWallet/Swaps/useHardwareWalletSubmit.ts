@@ -313,7 +313,7 @@ export function useHardwareWalletSubmit({
               type: HardwareWalletsSwapsEventType.TransactionFailed,
             }),
           );
-          return;
+          return undefined;
         }
 
         return await withPostTradeNotificationSuppression(() =>
@@ -333,9 +333,9 @@ export function useHardwareWalletSubmit({
     dispatch,
     walletAddress,
     runSubmit,
+    submissionGenerationRef,
     ensureDeviceReady,
     setPendingOperationAddress,
-    submissionGenerationRef,
   ]);
 
   const submit = useCallback(async () => {

@@ -82,7 +82,7 @@ interface UseHwSwapLifecycleInputs {
     options?: EnsureDeviceReadyOptions,
   ) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
   /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
   isQrHardwareWallet?: boolean;
 }
@@ -251,7 +251,7 @@ export function useHwSwapLifecycle({
     dispatch(incrementBridgeBalanceRefreshKey());
     dispatch(resetHardwareWalletsSwaps());
     // Keep BridgeView beneath the modal, not the reset HW progress screen.
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, undefined, { pop: true });
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
       params: {
@@ -379,9 +379,11 @@ export function useHwSwapLifecycle({
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
     } else if (target.params) {
-      navigateWithDetails(navigation, [target.route as string, target.params]);
+      navigateWithDetails(navigation, [target.route as string, target.params], {
+        pop: true,
+      });
     } else {
-      navigateWithDetails(navigation, [target.route as string]);
+      navigateWithDetails(navigation, [target.route as string], { pop: true });
     }
   }, [navigation, strategy.cancelTarget]);
 
@@ -457,7 +459,7 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
   }, [dispatch, navigation, clearCachedSubmission]);
 
   return {

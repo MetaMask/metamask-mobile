@@ -14,7 +14,6 @@
 const FRAMEWORK_INFRA_EXACT_FILES = new Set([
   'tests/framework/Assertions.ts',
   'tests/framework/EncapsulatedElement.ts',
-  'tests/framework/encapsulatedAction.ts',
   'tests/framework/Gestures.ts',
   'tests/framework/GestureStrategy.ts',
   'tests/framework/UnifiedGestures.ts',
@@ -23,7 +22,6 @@ const FRAMEWORK_INFRA_EXACT_FILES = new Set([
   'tests/framework/index.ts',
   'tests/framework/SoftAssert.ts',
   'tests/framework/PlatformLocator.ts',
-  'tests/framework/FrameworkDetector.ts',
 ]);
 
 /**

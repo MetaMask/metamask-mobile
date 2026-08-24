@@ -1,11 +1,17 @@
 import React from 'react';
 import { act, render, fireEvent } from '@testing-library/react-native';
+import Logger from '../../../../../util/Logger';
 import ImmersveKYCModal, {
   setImmersveKycOnClose,
   clearImmersveKycOnClose,
 } from './ImmersveKYCModal';
 
 const mockGoBack = jest.fn();
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
@@ -73,6 +79,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 let capturedProps: {
   onNavigationStateChange?: (s: { url: string }) => void;
+  onError?: (e?: { nativeEvent?: { statusCode?: number } }) => void;
+  onHttpError?: (e?: { nativeEvent?: { statusCode?: number } }) => void;
   mediaPlaybackRequiresUserGesture?: boolean;
 } = {};
 
@@ -82,6 +90,8 @@ jest.mock('@metamask/react-native-webview', () => {
   return {
     WebView: (props: {
       onNavigationStateChange?: (s: { url: string }) => void;
+      onError?: (e?: { nativeEvent?: { statusCode?: number } }) => void;
+      onHttpError?: (e?: { nativeEvent?: { statusCode?: number } }) => void;
       mediaPlaybackRequiresUserGesture?: boolean;
       testID?: string;
     }) => {
@@ -150,5 +160,37 @@ describe('ImmersveKYCModal', () => {
     fireEvent.press(getByTestId('immersve-kyc-back-button'));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('reports webview load errors to Sentry with host context', async () => {
+    const { getByTestId } = render(<ImmersveKYCModal />);
+    await act(async () => {
+      capturedProps.onHttpError?.({ nativeEvent: { statusCode: 502 } });
+    });
+    expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: { feature: 'card', provider: 'immersve' },
+        context: expect.objectContaining({
+          name: 'ImmersveKYCModal',
+          data: expect.objectContaining({
+            method: 'handleError',
+            urlHost: 'verify.immersve.com',
+            redirectHost: 'metamask.io',
+            httpStatus: 502,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('dedupes onError and onHttpError for a single failure', async () => {
+    render(<ImmersveKYCModal />);
+    await act(async () => {
+      capturedProps.onError?.();
+      capturedProps.onHttpError?.({ nativeEvent: { statusCode: 500 } });
+    });
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 });
