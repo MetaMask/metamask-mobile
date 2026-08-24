@@ -12,7 +12,6 @@ import {
   createRouteMessenger,
 } from '../messengers/route-messenger';
 import { captureException } from '@sentry/react-native';
-import { value } from '../components/Snaps/SnapUIRenderer/components/value';
 import {
   UIMessengerActions,
   UIMessengerEvents,
