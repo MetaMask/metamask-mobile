@@ -6,7 +6,6 @@ export interface ScaleOrderRung {
   index: number;
   price: string;
   size: string;
-  usdAmount: string;
 }
 
 export type PerpsProOrderDirection = 'long' | 'short';

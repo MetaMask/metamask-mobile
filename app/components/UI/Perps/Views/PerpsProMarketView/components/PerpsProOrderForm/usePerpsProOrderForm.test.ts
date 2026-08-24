@@ -6,6 +6,7 @@ import {
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
@@ -17,6 +18,9 @@ import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 // Mock scaffolding
 // ---------------------------------------------------------------------------
 const mockTrack = jest.fn();
+const mockInsufficientFundsMessage = strings(
+  'perps.order.validation.insufficient_funds',
+);
 const mockShowToast = jest.fn();
 const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
@@ -118,6 +122,16 @@ const mockValidation = {
     isValid: true,
   }),
 };
+
+let mockOrderValidationParams:
+  | {
+      marginRequired: string;
+      spendableBalance: number;
+      positionSize: string;
+      originalUsdAmount?: string;
+    }
+  | undefined;
+let mockValidateCalculatedMargin = false;
 
 let mockExistingPosition: {
   leverage?: { type?: string; value?: number };
@@ -347,6 +361,9 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockMinimumOrderAmount = 10;
+    mockOrderValidationParams = undefined;
+    mockValidateCalculatedMargin = false;
+    mockContextValue.balanceForValidation = 500;
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
     mockMarketDataLoading = false;
@@ -1817,6 +1834,8 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.size).toBe('3.725');
+      expect(params).not.toHaveProperty('usdAmount');
       expect(params).not.toHaveProperty('timeInForce');
       expect(params).not.toHaveProperty('clientOrderId');
       expect(params).not.toHaveProperty('price');
@@ -1841,7 +1860,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
 
-    it('surfaces a partial controller result and resets to prevent duplicate retry', async () => {
+    it('shows localized Scale-specific copy for a partial controller result', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       mockExecuteOrder.mockResolvedValueOnce({
@@ -1856,11 +1875,45 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(confirmed).toHaveBeenCalledWith(
-        'long',
-        '2/3 orders · 2.222',
-        'BTC',
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings(
+                'perps.pro_order_form.scale.orders_partially_placed',
+              ),
+            },
+            {
+              label: strings(
+                'perps.pro_order_form.scale.partial_placement_summary',
+                {
+                  submittedCount: 2,
+                  totalCount: 3,
+                  size: '2.222',
+                  assetSymbol: 'BTC',
+                },
+              ),
+            },
+          ],
+        }),
       );
+    });
+
+    it('resets Scale configuration after a partial controller result', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102'],
+        submittedSize: '2.222',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
       expect(mockUpdateOrderForm).toHaveBeenCalledWith(
         expect.objectContaining({ amount: '', type: 'market' }),
       );
@@ -1886,7 +1939,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.startPrice).toBe('100');
     });
 
-    it('rejects fractional order counts instead of truncating them', async () => {
+    it('blocks a fractional Scale order count instead of truncating it', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
@@ -1905,19 +1958,34 @@ describe('usePerpsProOrderForm', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'scale',
-            message: 'Total orders must be between 2 and 20',
+            message: strings(
+              'perps.pro_order_form.scale.validation.invalid_order_count',
+            ),
           }),
         ]),
       );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('tracks a fractional Scale order-count validation error', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100');
+        result.current.scaleOrder.onEndPriceChange('200');
+        result.current.scaleOrder.onTotalOrdersChange('3.5');
+      });
+
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            'scale_validation_error_shown',
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
           [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
         }),
       );
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it('rejects a ladder when a rung is below the market minimum', () => {
@@ -1932,17 +2000,19 @@ describe('usePerpsProOrderForm', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'scale',
-            message: 'Every Scale order must meet the market minimum lot size',
+            message: strings(
+              'perps.pro_order_form.scale.validation.minimum_lot',
+            ),
           }),
         ]),
       );
     });
 
-    it('blocks Scale placement when the whole ladder exceeds available margin', async () => {
+    it('validates margin from the whole rounded Scale ladder notional', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      mockValidation.isValid = false;
-      mockValidation.errors = ['Insufficient funds'];
+      mockContextValue.balanceForValidation = 120;
+      mockValidateCalculatedMargin = true;
       const { result } = renderProForm();
       configureScaleOrder(result);
 
@@ -1950,8 +2020,13 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
+      expect(mockOrderValidationParams).toMatchObject({
+        marginRequired: '120.02',
+        spendableBalance: 120,
+        positionSize: '3.725',
+        originalUsdAmount: undefined,
+      });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
-      expect(validationError).toHaveBeenCalledWith('Insufficient funds');
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
@@ -1971,14 +2046,12 @@ describe('usePerpsProOrderForm', () => {
       expect(
         result.current.notices.find((notice) => notice.id === 'reduce-only')
           ?.message,
-      ).toBe(
-        'You need to have an open position in this market to place reduce-only orders',
-      );
+      ).toBe(strings('perps.order.validation.reduce_only_no_position'));
       expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('builds the preview from controller price and skew-aware size helpers', () => {
+    it('renders the controller-formatted Scale price ladder', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
@@ -1988,9 +2061,26 @@ describe('usePerpsProOrderForm', () => {
       expect(first.price).toBe('100');
       expect(middle.price).toBe('150');
       expect(last.price).toBe('200');
+    });
+
+    it('weights an above-one Scale skew toward the end of the range', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
       expect(Number(first.size)).toBeLessThan(Number(middle.size));
       expect(Number(middle.size)).toBeLessThan(Number(last.size));
-      expect(result.current.scaleOrder.orderValue).not.toBe('$600.00');
+    });
+
+    it('keeps the preview notional aligned with the entered USD amount', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.scaleOrder.orderValue).toBe('$600.10');
     });
 
     it('weights a below-one Scale skew toward the start of the range', () => {
@@ -2008,9 +2098,9 @@ describe('usePerpsProOrderForm', () => {
       expect(Number(middle.size)).toBeGreaterThan(Number(last.size));
     });
 
-    it('keeps an exactly-one Scale skew even within one size-grid unit', () => {
+    it('keeps an exactly-one Scale skew evenly sized', () => {
       mockOrderForm.type = 'scale';
-      mockOrderForm.amount = '600';
+      mockOrderForm.amount = '599.85';
       const { result } = renderProForm();
       configureScaleOrder(result);
 
@@ -2019,8 +2109,8 @@ describe('usePerpsProOrderForm', () => {
       });
 
       const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(first.size).toBe(middle.size);
       expect(middle.size).toBe(last.size);
-      expect(Number(first.size) - Number(middle.size)).toBeCloseTo(0.001, 10);
     });
 
     it('coerces Scale skew to two decimals on blur', () => {
@@ -2037,7 +2127,33 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.sizeSkew).toBe('2.35');
     });
 
-    it('tracks configuration and preview expansion interactions', () => {
+    it('preserves an invalid Scale skew on blur for validation', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('0');
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: strings(
+              'perps.pro_order_form.scale.validation.invalid_skew',
+            ),
+          }),
+        ]),
+      );
+    });
+
+    it('tracks a Scale configuration interaction', () => {
       mockOrderForm.type = 'scale';
       const { result } = renderProForm();
 
@@ -2046,21 +2162,33 @@ describe('usePerpsProOrderForm', () => {
       });
       act(() => {
         result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
+          [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
+          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
+        }),
+      );
+    });
+
+    it('tracks a Scale preview-expansion interaction', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
         result.current.scaleOrder.onPreviewToggle(true);
       });
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
-          [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'size_skew',
-          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
-        }),
-      );
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_UI_INTERACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_preview_expanded',
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_PREVIEW_EXPANDED,
         }),
       );
     });
@@ -2076,23 +2204,31 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.selectedTooltip).toBe('size_skew');
     });
 
-    it('blocks Scale selection and placement when the remote flag is disabled', async () => {
+    it('blocks Scale selection when the remote flag is disabled', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, false);
+
+      act(() => {
+        result.current.onOrderTypeSelect('scale');
+      });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('scale');
+    });
+
+    it('blocks Scale placement when the remote flag is disabled', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, false);
       configureScaleOrder(result);
 
-      act(() => {
-        result.current.onOrderTypeSelect('scale');
-      });
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockSetOrderType).toHaveBeenCalledWith('market');
-      expect(mockSetOrderType).not.toHaveBeenCalledWith('scale');
       expect(validationError).toHaveBeenCalledWith(
-        'Scale orders are temporarily unavailable. Select another order type.',
+        strings('perps.pro_order_form.scale.validation.unavailable'),
       );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });

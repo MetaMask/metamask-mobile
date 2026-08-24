@@ -120,8 +120,8 @@ const createScaleOrder = (): NonNullable<
   onSizeSkewInfoPress: jest.fn(),
   onPreviewToggle: jest.fn(),
   rungs: [
-    { index: 0, price: '100', size: '1', usdAmount: '100.00' },
-    { index: 1, price: '200', size: '1', usdAmount: '200.00' },
+    { index: 0, price: '100', size: '1' },
+    { index: 1, price: '200', size: '1' },
   ],
   orderValue: '$300',
   marginRequired: '$100',
@@ -236,19 +236,32 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
     });
 
-    it('renders the Scale preview with dedicated value selectors', () => {
+    it('renders Scale rung prices with canonical fiat formatting', () => {
+      const scaleOrder = createScaleOrder();
+      scaleOrder.rungs = [
+        { index: 0, price: '1234.5678', size: '1' },
+        { index: 1, price: '0.00123456', size: '1' },
+      ];
       renderForm({
         orderType: 'scale',
-        scaleOrder: createScaleOrder(),
+        scaleOrder,
       });
 
       expect(screen.getByTestId(ids.SCALE_PREVIEW)).toBeOnTheScreen();
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
-      ).toHaveTextContent('1 @ $100');
+      ).toHaveTextContent('1 @ $1,234.6');
       expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
-        '1 @ $200',
+        '1 @ $0.001235',
       );
+    });
+
+    it('renders Scale aggregate preview values with dedicated selectors', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+      });
+
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_ORDER_VALUE),
       ).toHaveTextContent('$300');
@@ -571,16 +584,25 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
     });
 
-    it('expands the full Scale ladder and reports the preview interaction', () => {
+    it('reports the Scale preview expansion interaction', () => {
       const scaleOrder = createScaleOrder();
       renderForm({ orderType: 'scale', scaleOrder });
 
       fireEvent.press(screen.getByTestId(ids.SCALE_PREVIEW_TOGGLE));
 
       expect(scaleOrder.onPreviewToggle).toHaveBeenCalledWith(true);
+    });
+
+    it('expands the full Scale ladder with canonical fiat prices', () => {
+      const scaleOrder = createScaleOrder();
+      scaleOrder.rungs[0].price = '1234.5678';
+      renderForm({ orderType: 'scale', scaleOrder });
+
+      fireEvent.press(screen.getByTestId(ids.SCALE_PREVIEW_TOGGLE));
+
       expect(screen.getByTestId(ids.SCALE_PREVIEW_LADDER)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.scalePreviewRung(0))).toHaveTextContent(
-        '1 @ $100',
+        '1 @ $1,234.6',
       );
     });
 

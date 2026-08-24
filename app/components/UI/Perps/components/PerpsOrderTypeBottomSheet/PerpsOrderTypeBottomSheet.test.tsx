@@ -67,6 +67,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
         'Execute at your specified price or better',
+      'perps.order.type.scale.title': 'Scale',
+      'perps.order.type.scale.description':
+        'Place multiple limit orders across a price range',
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
@@ -546,6 +549,26 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       expect(onSelect).toHaveBeenCalledWith('limit');
       expect(onClose).toHaveBeenCalled();
+    });
+
+    it('emits Scale when its enabled option is pressed', () => {
+      const onSelect = jest.fn();
+      const onClose = jest.fn();
+
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          onSelect={onSelect}
+          onClose={onClose}
+          showScaleType
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION),
+      );
+
+      expect(onSelect).toHaveBeenCalledWith('scale');
     });
 
     it('handles selecting the same order type', () => {

@@ -34,6 +34,10 @@ import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
 import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../../utils/formatUtils';
+import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
@@ -52,6 +56,9 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+
+const formatScalePrice = (price: string) =>
+  formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
 
 const EMPTY_SCALE_ORDER: PerpsProScaleOrderModel = {
   startPrice: '',
@@ -384,14 +391,14 @@ const ScalePreview = ({ model }: { model: PerpsProScaleOrderModel }) => {
       </Text>
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.start')}
-        value={`${first.size} @ $${first.price}`}
+        value={`${first.size} @ ${formatScalePrice(first.price)}`}
         valueTextProps={{ testID: ids.SCALE_PREVIEW_START_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.end')}
-        value={`${last.size} @ $${last.price}`}
+        value={`${last.size} @ ${formatScalePrice(last.price)}`}
         valueTextProps={{ testID: ids.SCALE_PREVIEW_END_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
@@ -440,7 +447,7 @@ const ScalePreview = ({ model }: { model: PerpsProScaleOrderModel }) => {
             <KeyValueRow
               key={rung.index}
               keyLabel={`#${rung.index + 1}`}
-              value={`${rung.size} @ $${rung.price}`}
+              value={`${rung.size} @ ${formatScalePrice(rung.price)}`}
               valueTextProps={{ testID: ids.scalePreviewRung(rung.index) }}
               twClassName={summaryRowClassName}
               style={summaryRowStyle}

@@ -124,6 +124,7 @@ import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 
 const SCALE_DEFAULT_ORDERS = 5;
 const SCALE_DEFAULT_SKEW = '1.00';
+const SCALE_SKEW_DECIMAL_PLACES = 2;
 
 type ScaleOrderValidationCode =
   | 'prices_required'
@@ -131,6 +132,14 @@ type ScaleOrderValidationCode =
   | 'invalid_order_count'
   | 'invalid_skew'
   | 'minimum_lot';
+
+type ScaleSettingType = (typeof PERPS_EVENT_VALUE.SETTING_TYPE)[keyof Pick<
+  typeof PERPS_EVENT_VALUE.SETTING_TYPE,
+  | 'SCALE_START_PRICE'
+  | 'SCALE_END_PRICE'
+  | 'SCALE_TOTAL_ORDERS'
+  | 'SCALE_SIZE_SKEW'
+>];
 
 type ScaleLadderResult =
   | {
@@ -141,6 +150,7 @@ type ScaleLadderResult =
       orderCount: number;
       skew: number;
       orderValue: string;
+      totalSize: string;
     }
   | { success: false; code: ScaleOrderValidationCode };
 
@@ -162,8 +172,10 @@ const SCALE_ERROR_I18N_KEYS: Record<ScaleOrderValidationCode, string> = {
 const coerceScaleSkew = (value: string): string => {
   const parsed = new BigNumber(value);
   return parsed.isFinite() && parsed.gt(0)
-    ? parsed.decimalPlaces(2, BigNumber.ROUND_HALF_UP).toFixed(2)
-    : SCALE_DEFAULT_SKEW;
+    ? parsed
+        .decimalPlaces(SCALE_SKEW_DECIMAL_PLACES, BigNumber.ROUND_HALF_UP)
+        .toFixed(SCALE_SKEW_DECIMAL_PLACES)
+    : value;
 };
 
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
@@ -736,7 +748,7 @@ export const usePerpsProOrderForm = ({
   ]);
   const feeResults = usePerpsOrderFees({
     orderType: calculationOrderType,
-    amount: effectiveUsdAmount,
+    amount: calculationUsdAmount,
     symbol: orderForm.asset,
     providerId: orderProviderId,
     isClosing: reduceOnly,
@@ -830,7 +842,7 @@ export const usePerpsProOrderForm = ({
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
-        amount: effectiveUsdAmount,
+        amount: calculationUsdAmount,
         orderType: calculationOrderType,
         limitPrice: calculationLimitPrice,
         triggerPrice: normalizedTriggerPrice,
@@ -843,7 +855,7 @@ export const usePerpsProOrderForm = ({
         isLoadingMarketData,
       }),
     [
-      effectiveUsdAmount,
+      calculationUsdAmount,
       calculationOrderType,
       calculationLimitPrice,
       normalizedTriggerPrice,
@@ -856,136 +868,17 @@ export const usePerpsProOrderForm = ({
       resolvedMaxSlippageBps,
     ],
   );
-
-  const exactFullCloseSize = useMemo(() => {
-    if (
-      !reduceOnly ||
-      !isAtMaxAmount ||
-      isReduceOnlyPositionLoading ||
-      keepReduceOnlySizeEmpty ||
-      !currentMarketPosition?.size
-    ) {
-      return undefined;
-    }
-
-    const absolutePositionSize = new BigNumber(
-      currentMarketPosition.size,
-    ).abs();
-    if (!absolutePositionSize.isFinite() || absolutePositionSize.lte(0)) {
-      return undefined;
-    }
-
-    return formatHyperLiquidSize({
-      size: absolutePositionSize.toString(),
-      szDecimals,
-    });
-  }, [
-    currentMarketPosition?.size,
-    isAtMaxAmount,
-    isReduceOnlyPositionLoading,
-    keepReduceOnlySizeEmpty,
-    reduceOnly,
-    szDecimals,
-  ]);
-  const submissionPositionSize = exactFullCloseSize ?? positionSize;
-  const isExactFullClose = exactFullCloseSize !== undefined;
-
-  const scaleLadderResult = useMemo<ScaleLadderResult>(() => {
-    const minPrice = Number(scaleStartPrice);
-    const maxPrice = Number(scaleEndPrice);
-    const orderCount = Number(scaleTotalOrders);
-    const skew = Number(scaleSizeSkew);
-    const totalSize = Number(submissionPositionSize);
-
-    if (
-      !Number.isFinite(minPrice) ||
-      !Number.isFinite(maxPrice) ||
-      minPrice <= 0 ||
-      maxPrice <= 0
-    ) {
-      return { success: false, code: 'prices_required' };
-    }
-    if (minPrice >= maxPrice) {
-      return { success: false, code: 'invalid_range' };
-    }
-    if (
-      !Number.isInteger(orderCount) ||
-      orderCount < SCALE_ORDER_COUNT.min ||
-      orderCount > SCALE_ORDER_COUNT.max
-    ) {
-      return { success: false, code: 'invalid_order_count' };
-    }
-    if (!Number.isFinite(skew) || skew <= 0) {
-      return { success: false, code: 'invalid_skew' };
-    }
-    if (!Number.isFinite(totalSize) || totalSize <= 0) {
-      return { success: false, code: 'minimum_lot' };
-    }
-
-    try {
-      const scalePrices = computeScalePriceLadder({
-        minPrice,
-        maxPrice,
-        count: orderCount,
-      }).map((price) => formatHyperLiquidPrice({ price, szDecimals }));
-      if (new Set(scalePrices).size !== scalePrices.length) {
-        return { success: false, code: 'invalid_range' };
-      }
-
-      const sizes = splitScaleSizes({
-        totalSize,
-        count: orderCount,
-        szDecimals,
-        skew,
-      });
-      const rungs = scalePrices.map((price, index) => {
-        const usdAmount = new BigNumber(sizes[index]).times(price);
-        return {
-          index,
-          price,
-          size: sizes[index],
-          usdAmount: usdAmount
-            .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-            .toFixed(2),
-        };
-      });
-      if (
-        rungs.some(
-          (rung) => Number(rung.size) * Number(rung.price) < minimumOrderAmount,
-        )
-      ) {
-        return { success: false, code: 'minimum_lot' };
-      }
-
-      return {
-        success: true,
-        rungs,
-        minPrice: minPrice.toString(),
-        maxPrice: maxPrice.toString(),
-        orderCount,
-        skew,
-        orderValue: rungs
-          .reduce(
-            (total, rung) =>
-              total.plus(new BigNumber(rung.size).times(rung.price)),
-            new BigNumber(0),
-          )
-          .toFixed(),
-      };
-    } catch {
-      // Controller preview helpers reject values that cannot survive venue
-      // precision; translate that expected validation outcome into form copy.
-      return { success: false, code: 'minimum_lot' };
-    }
-  }, [
-    minimumOrderAmount,
-    scaleEndPrice,
-    scaleSizeSkew,
-    scaleStartPrice,
-    scaleTotalOrders,
-    submissionPositionSize,
-    szDecimals,
-  ]);
+  const submissionPositionSize =
+    isScaleOrder && scaleLadderResult.success
+      ? scaleLadderResult.totalSize
+      : (exactFullCloseSize ?? positionSize);
+  const effectiveMarginRequired =
+    isScaleOrder && scaleLadderResult.success
+      ? calculateMarginRequired({
+          amount: scaleLadderResult.orderValue,
+          leverage: orderForm.leverage,
+        })
+      : marginRequired;
   const scaleRungs = useMemo(
     () => (scaleLadderResult.success ? scaleLadderResult.rungs : []),
     [scaleLadderResult],
@@ -995,7 +888,11 @@ export const usePerpsProOrderForm = ({
     const maxPrice = Number(scaleEndPrice);
     const orderCount = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
-    const orderValue = Number(effectiveUsdAmount);
+    const orderValue = Number(
+      scaleLadderResult.success
+        ? scaleLadderResult.orderValue
+        : effectiveUsdAmount,
+    );
     const scaleRangePercentage = getScaleRangePercentage(minPrice, maxPrice);
 
     return {
@@ -1017,6 +914,7 @@ export const usePerpsProOrderForm = ({
     orderForm.asset,
     reduceOnly,
     scaleEndPrice,
+    scaleLadderResult,
     scaleSizeSkew,
     scaleStartPrice,
     scaleTotalOrders,
@@ -1038,14 +936,14 @@ export const usePerpsProOrderForm = ({
   const effectiveOrderForm = useMemo(
     () => ({
       ...orderForm,
-      amount: effectiveUsdAmount,
+      amount: calculationUsdAmount,
       type: calculationOrderType,
       limitPrice: calculationLimitPrice,
     }),
     [
       calculationLimitPrice,
       calculationOrderType,
-      effectiveUsdAmount,
+      calculationUsdAmount,
       orderForm,
     ],
   );
@@ -1074,12 +972,13 @@ export const usePerpsProOrderForm = ({
     // Reduce-only orders release margin from the existing position; they don't
     // draw from spendableBalance. Pass '0' so the balance gate is not triggered
     // for a valid close/reduce when free collateral is low.
-    marginRequired: reduceOnly ? '0' : marginRequired || '0',
+    marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     // Skip protocol validation until position data is ready so we don't flash
     // unrelated errors while waiting for the position snapshot.
     skipValidation: isReduceOnlyPositionLoading,
-    originalUsdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
+    originalUsdAmount:
+      isExactFullClose || isScaleOrder ? undefined : effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     triggerPrice: normalizedTriggerPrice,
@@ -1128,7 +1027,8 @@ export const usePerpsProOrderForm = ({
 
     lastTrackedScaleValidationRef.current = scaleLadderResult.code;
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_validation_error_shown',
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: scaleLadderResult.code,
       ...scaleAnalyticsProperties,
     });
@@ -1363,7 +1263,7 @@ export const usePerpsProOrderForm = ({
         }
 
         const trackingData = buildPerpsOrderTrackingData({
-          marginRequired,
+          marginRequired: effectiveMarginRequired,
           feeResults,
           marketPrice: assetData.price,
           inputMethod: 'default',
@@ -1382,7 +1282,6 @@ export const usePerpsProOrderForm = ({
             orderType: 'scale',
             effectivePrice,
             leverage: orderForm.leverage,
-            usdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly,
             isFullClose: reduceOnly
@@ -1399,13 +1298,25 @@ export const usePerpsProOrderForm = ({
         // Haptics are non-critical feedback; a device haptics failure must not
         // prevent the already-validated controller request from being placed.
         playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
-        showToast(
-          PerpsToastOptions.orderManagement.limit.submitted(
+        showToast({
+          ...PerpsToastOptions.orderManagement.limit.submitted(
             orderForm.direction,
             submissionPositionSize,
             orderForm.asset,
           ),
-        );
+          labelOptions: [
+            {
+              label: strings('perps.pro_order_form.scale.orders_submitted'),
+            },
+            {
+              label: strings('perps.pro_order_form.scale.submission_summary', {
+                totalCount: scaleLadderResult.orderCount,
+                size: submissionPositionSize,
+                assetSymbol: orderForm.asset,
+              }),
+            },
+          ],
+        });
 
         const orderResult = await executeOrder(scaleOrderParams);
         if (!orderResult?.success) {
@@ -1416,18 +1327,37 @@ export const usePerpsProOrderForm = ({
           orderResult.childOrderIds?.length ?? scaleLadderResult.orderCount;
         const submittedSize =
           orderResult.submittedSize ?? submissionPositionSize;
-        const placementSummary =
-          submittedOrderCount < scaleLadderResult.orderCount
-            ? `${submittedOrderCount}/${scaleLadderResult.orderCount} orders · ${submittedSize}`
-            : `${submittedOrderCount} orders · ${submittedSize}`;
-
-        showToast(
-          PerpsToastOptions.orderManagement.limit.confirmed(
+        const isPartialPlacement =
+          submittedOrderCount < scaleLadderResult.orderCount;
+        showToast({
+          ...PerpsToastOptions.orderManagement.limit.confirmed(
             orderForm.direction,
-            placementSummary,
+            submittedSize,
             orderForm.asset,
           ),
-        );
+          labelOptions: [
+            {
+              label: strings(
+                isPartialPlacement
+                  ? 'perps.pro_order_form.scale.orders_partially_placed'
+                  : 'perps.pro_order_form.scale.orders_placed',
+              ),
+            },
+            {
+              label: strings(
+                isPartialPlacement
+                  ? 'perps.pro_order_form.scale.partial_placement_summary'
+                  : 'perps.pro_order_form.scale.placement_summary',
+                {
+                  submittedCount: submittedOrderCount,
+                  totalCount: scaleLadderResult.orderCount,
+                  size: submittedSize,
+                  assetSymbol: orderForm.asset,
+                },
+              ),
+            },
+          ],
+        });
         Engine.context.PerpsController?.clearPendingTradeConfiguration(
           orderForm.asset,
         );
@@ -1484,7 +1414,7 @@ export const usePerpsProOrderForm = ({
           ? reduceOnlyValidation.isFullClose || isExactFullClose
           : undefined,
         trackingData: buildPerpsOrderTrackingData({
-          marginRequired,
+          marginRequired: effectiveMarginRequired,
           feeResults,
           marketPrice: assetData.price,
           inputMethod: 'default',
@@ -1926,8 +1856,9 @@ export const usePerpsProOrderForm = ({
     }
     return {
       margin:
-        marginRequired !== undefined && marginRequired !== null
-          ? formatPerpsFiat(marginRequired, {
+        effectiveMarginRequired !== undefined &&
+        effectiveMarginRequired !== null
+          ? formatPerpsFiat(effectiveMarginRequired, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })
           : PERPS_CONSTANTS.FallbackDataDisplay,
@@ -1946,7 +1877,7 @@ export const usePerpsProOrderForm = ({
     isMarketOrder,
     isTriggerMarketOrder,
     hidesSlippage,
-    marginRequired,
+    effectiveMarginRequired,
     hasValidAmount,
     liquidationPrice,
     estimatedSlippagePctDisplay,
@@ -1959,9 +1890,13 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const trackScaleConfiguration = useCallback(
-    (settingType: string, overrides: Record<string, unknown> = {}) => {
+    (
+      settingType: ScaleSettingType,
+      overrides: Record<string, unknown> = {},
+    ) => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
         [PERPS_EVENT_PROPERTY.SETTING_TYPE]: settingType,
         ...scaleAnalyticsProperties,
         ...overrides,
@@ -1978,27 +1913,38 @@ export const usePerpsProOrderForm = ({
       sizeSkew: scaleSizeSkew,
       onStartPriceChange: (value) =>
         normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice),
-      onStartPriceBlur: () => trackScaleConfiguration('start_price'),
+      onStartPriceBlur: () =>
+        trackScaleConfiguration(
+          PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
+        ),
       onEndPriceChange: (value) =>
         normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice),
-      onEndPriceBlur: () => trackScaleConfiguration('end_price'),
+      onEndPriceBlur: () =>
+        trackScaleConfiguration(PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE),
       onTotalOrdersChange: (value) =>
         normalizeScaleInput(value, scaleTotalOrders, setScaleTotalOrders),
-      onTotalOrdersBlur: () => trackScaleConfiguration('total_orders'),
+      onTotalOrdersBlur: () =>
+        trackScaleConfiguration(
+          PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_TOTAL_ORDERS,
+        ),
       onSizeSkewChange: (value) =>
         normalizeScaleInput(value, scaleSizeSkew, setScaleSizeSkew),
       onSizeSkewBlur: () => {
         const coercedSkew = coerceScaleSkew(scaleSizeSkew);
         setScaleSizeSkew(coercedSkew);
-        trackScaleConfiguration('size_skew', {
-          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: Number(coercedSkew),
-        });
+        trackScaleConfiguration(
+          PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
+          {
+            [PERPS_EVENT_PROPERTY.SCALE_SKEW]: Number(coercedSkew),
+          },
+        );
       },
       onSizeSkewInfoPress: () => setSelectedTooltip('size_skew'),
       onPreviewToggle: (isExpanded) => {
         if (isExpanded) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_preview_expanded',
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_PREVIEW_EXPANDED,
             ...scaleAnalyticsProperties,
           });
         }
@@ -2011,10 +1957,10 @@ export const usePerpsProOrderForm = ({
         : PERPS_CONSTANTS.FallbackDataDisplay,
       marginRequired:
         scaleLadderResult.success &&
-        marginRequired !== undefined &&
-        marginRequired !== null &&
-        marginRequired !== ''
-          ? formatPerpsFiat(marginRequired, {
+        effectiveMarginRequired !== undefined &&
+        effectiveMarginRequired !== null &&
+        effectiveMarginRequired !== ''
+          ? formatPerpsFiat(effectiveMarginRequired, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })
           : PERPS_CONSTANTS.FallbackDataDisplay,
@@ -2029,7 +1975,7 @@ export const usePerpsProOrderForm = ({
     }),
     [
       estimatedFees,
-      marginRequired,
+      effectiveMarginRequired,
       normalizeScaleInput,
       scaleAnalyticsProperties,
       scaleEndPrice,

@@ -51,6 +51,39 @@ index 4786919ca708885700c216f5fe81e0d82684a463..801264767dbdfaa370f9cbcf289842d4
      });
      const minimumOrderSize = __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_getMinimumOrderSize).call(this);
      const cheapestRungNotional = Math.min(...sizes.map((size, index) => parseFloat(size) * parseFloat(prices[index])));
+@@ -7080,7 +7083,8 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context) {
+     const restedRungs = statuses
+         .map((status, index) => ({
+         orderId: __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderIdFromStatus).call(this, status),
+         size: sizes[index],
++        price: prices[index],
+     }))
+         .filter((rung) => rung.orderId !== undefined);
+     // A ladder that came back with no IDs at all rested nothing; reporting it
+@@ -7103,14 +7107,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context) {
+             statuses,
+         });
+     }
++    const submittedSize = isPartial
++        ? (0, hyperLiquidAdapter_js_1.formatHyperLiquidSize)({
++            size: restedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
++            szDecimals,
++        })
++        : formattedSize;
++    const submittedValue = restedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
+     return {
+         success: true,
+         orderId: groupId,
+         childOrderIds,
+-        submittedSize: isPartial
+-            ? (0, hyperLiquidAdapter_js_1.formatHyperLiquidSize)({
+-                size: restedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
+-                szDecimals,
+-            })
+-            : formattedSize,
++        submittedSize,
++        averagePrice: String(submittedValue / parseFloat(submittedSize)),
+     };
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
 index 9ca5f5e0626ba6d3da8e10ce0ae15a9a83cf1b52..529c3957ea15bbc75aadf34c5a07989769f25cb2 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
@@ -78,6 +111,39 @@ index 9ca5f5e0626ba6d3da8e10ce0ae15a9a83cf1b52..529c3957ea15bbc75aadf34c5a079897
      });
      const minimumOrderSize = __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_getMinimumOrderSize).call(this);
      const cheapestRungNotional = Math.min(...sizes.map((size, index) => parseFloat(size) * parseFloat(prices[index])));
+@@ -7076,7 +7079,8 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context) {
+     const restedRungs = statuses
+         .map((status, index) => ({
+         orderId: __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderIdFromStatus).call(this, status),
+         size: sizes[index],
++        price: prices[index],
+     }))
+         .filter((rung) => rung.orderId !== undefined);
+     // A ladder that came back with no IDs at all rested nothing; reporting it
+@@ -7099,14 +7103,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context) {
+             statuses,
+         });
+     }
++    const submittedSize = isPartial
++        ? formatHyperLiquidSize({
++            size: restedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
++            szDecimals,
++        })
++        : formattedSize;
++    const submittedValue = restedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
+     return {
+         success: true,
+         orderId: groupId,
+         childOrderIds,
+-        submittedSize: isPartial
+-            ? formatHyperLiquidSize({
+-                size: restedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
+-                szDecimals,
+-            })
+-            : formattedSize,
++        submittedSize,
++        averagePrice: String(submittedValue / parseFloat(submittedSize)),
+     };
 diff --git a/dist/types/index.d.cts b/dist/types/index.d.cts
 index f67c373a7b53392d6a92452646aa1981671002c2..b8ee4dba5976d87606f2a33624b012288e30b64a 100644
 --- a/dist/types/index.d.cts
@@ -650,6 +716,27 @@ index 127a7ef52..f5439e1a0 100644
      LIMIT_PRICE: 'limit_price',
      FEES: 'fees',
      FEE: 'fee',
+@@ -441,6 +445,9 @@ exports.PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_PREVIEW_EXPANDED: 'scale_preview_expanded',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -544,6 +551,10 @@ exports.PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
 diff --git a/dist/constants/eventNames.mjs b/dist/constants/eventNames.mjs
 index 8fa620019..a97b022a7 100644
 --- a/dist/constants/eventNames.mjs
@@ -665,6 +752,27 @@ index 8fa620019..a97b022a7 100644
      LIMIT_PRICE: 'limit_price',
      FEES: 'fees',
      FEE: 'fee',
+@@ -438,6 +442,9 @@ export const PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_PREVIEW_EXPANDED: 'scale_preview_expanded',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -541,6 +548,10 @@ export const PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
 diff --git a/dist/constants/eventNames.d.cts b/dist/constants/eventNames.d.cts
 index 4471a1fed..5cb61623d 100644
 --- a/dist/constants/eventNames.d.cts
@@ -680,6 +788,27 @@ index 4471a1fed..5cb61623d 100644
      readonly LIMIT_PRICE: "limit_price";
      readonly FEES: "fees";
      readonly FEE: "fee";
+@@ -371,6 +375,9 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_PREVIEW_EXPANDED: "scale_preview_expanded";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -461,6 +468,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
 diff --git a/dist/constants/eventNames.d.mts b/dist/constants/eventNames.d.mts
 index 4471a1fed..5cb61623d 100644
 --- a/dist/constants/eventNames.d.mts
@@ -695,10 +824,48 @@ index 4471a1fed..5cb61623d 100644
      readonly LIMIT_PRICE: "limit_price";
      readonly FEES: "fees";
      readonly FEE: "fee";
+@@ -371,6 +375,9 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_PREVIEW_EXPANDED: "scale_preview_expanded";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -461,6 +468,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
 diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
 index c2267c09e..4e4a23d8b 100644
 --- a/dist/services/TradingService.cjs
 +++ b/dist/services/TradingService.cjs
+@@ -1360,6 +1360,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     const status = result?.success === true
+         ? eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED
+         : eventNames_js_1.PERPS_EVENT_VALUE.STATUS.FAILED;
++    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
+     // Build base properties
+     const properties = {
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.STATUS]: status,
+@@ -1369,7 +1370,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             : eventNames_js_1.PERPS_EVENT_VALUE.DIRECTION.SHORT,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
+-        [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(result?.filledSize ?? params.size),
++        [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: trackedOrderSize,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
+     };
+     // Add optional properties
 @@ -1385,6 +1385,23 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
      if ((0, orderTypes_js_2.isLimitExecutionOrderType)(params.orderType) && params.price) {
          properties[eventNames_js_1.PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(params.price);
@@ -723,10 +890,42 @@ index c2267c09e..4e4a23d8b 100644
      if (params.trackingData?.source) {
          properties[eventNames_js_1.PERPS_EVENT_PROPERTY.SOURCE] = params.trackingData.source;
      }
+@@ -1420,12 +1437,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             eventNames_js_1.PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
+     }
+     // Calculate order value in USD (size * price)
+-    const orderSize = parseFloat(result?.filledSize ?? params.size);
+     const assetPrice = result?.averagePrice
+         ? parseFloat(result.averagePrice)
+         : params.trackingData?.marketPrice;
+-    if (assetPrice && orderSize) {
+-        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
++    if (assetPrice && trackedOrderSize) {
++        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
+     }
+     // Add success-specific properties
+     if (status === eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED) {
 diff --git a/dist/services/TradingService.mjs b/dist/services/TradingService.mjs
 index 1944e2815..cff4e7c4b 100644
 --- a/dist/services/TradingService.mjs
 +++ b/dist/services/TradingService.mjs
+@@ -1356,6 +1356,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     const status = result?.success === true
+         ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+         : PERPS_EVENT_VALUE.STATUS.FAILED;
++    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
+     // Build base properties
+     const properties = {
+         [PERPS_EVENT_PROPERTY.STATUS]: status,
+@@ -1365,7 +1366,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+         [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+         [PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
+-        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(result?.filledSize ?? params.size),
++        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: trackedOrderSize,
+         [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
+     };
+     // Add optional properties
 @@ -1381,6 +1381,22 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
      if (isLimitExecutionOrderType(params.orderType) && params.price) {
          properties[PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(params.price);
@@ -750,3 +949,18 @@ index 1944e2815..cff4e7c4b 100644
      if (params.trackingData?.source) {
          properties[PERPS_EVENT_PROPERTY.SOURCE] = params.trackingData.source;
      }
+@@ -1416,12 +1432,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
+     }
+     // Calculate order value in USD (size * price)
+-    const orderSize = parseFloat(result?.filledSize ?? params.size);
+     const assetPrice = result?.averagePrice
+         ? parseFloat(result.averagePrice)
+         : params.trackingData?.marketPrice;
+-    if (assetPrice && orderSize) {
+-        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
++    if (assetPrice && trackedOrderSize) {
++        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
+     }
+     // Add success-specific properties
+     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
