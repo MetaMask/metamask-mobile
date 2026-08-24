@@ -2,11 +2,12 @@ diff --git a/dist/PerpsController.cjs b/dist/PerpsController.cjs
 index 2d130eaf73466432755255890297794879e28c22..444d1e876b7b2e14e389be54696794738b93d9b8 100644
 --- a/dist/PerpsController.cjs
 +++ b/dist/PerpsController.cjs
-@@ -3912,6 +3912,9 @@ _a = PerpsController, _PerpsController_initializationPromise = new WeakMap(), _Pe
+@@ -3912,6 +3912,10 @@ _a = PerpsController, _PerpsController_initializationPromise = new WeakMap(), _Pe
          __classPrivateFieldSet(this, _PerpsController_myxRegistrationPromise, import(
          /* webpackIgnore: true */ myxModulePath)
              .then(({ MYXProvider }) => {
 +            if (typeof MYXProvider !== 'function') {
++                __classPrivateFieldGet(this, _PerpsController_instances, "m", _PerpsController_debugLog).call(this, 'PerpsController: MYX provider export unavailable');
 +                return undefined;
 +            }
              this.registerMYXProvider(MYXProvider);
@@ -16,11 +17,12 @@ diff --git a/dist/PerpsController.mjs b/dist/PerpsController.mjs
 index b684ca7b9c88773bfd33acac616f9032e234765b..1261960519d8ca10f2a0db72b2dc4a07a5a6f8e5 100644
 --- a/dist/PerpsController.mjs
 +++ b/dist/PerpsController.mjs
-@@ -3900,6 +3900,9 @@ _a = PerpsController, _PerpsController_initializationPromise = new WeakMap(), _Pe
+@@ -3900,6 +3900,10 @@ _a = PerpsController, _PerpsController_initializationPromise = new WeakMap(), _Pe
          __classPrivateFieldSet(this, _PerpsController_myxRegistrationPromise, import(
          /* webpackIgnore: true */ myxModulePath)
              .then(({ MYXProvider }) => {
 +            if (typeof MYXProvider !== 'function') {
++                __classPrivateFieldGet(this, _PerpsController_instances, "m", _PerpsController_debugLog).call(this, 'PerpsController: MYX provider export unavailable');
 +                return undefined;
 +            }
              this.registerMYXProvider(MYXProvider);

@@ -84,11 +84,11 @@ class PerpsConnectionManagerClass {
   private isInitialized = false;
   private initializedMarketContextKey: string | null = null;
   private initializedConnectionGeneration: number | null = null;
-  private initializedMarketContextListeners = new Set<() => void>();
+  private readonly initializedMarketContextListeners = new Set<() => void>();
   private connectionGeneration = 0;
-  private connectionGenerationListeners = new Set<() => void>();
+  private readonly connectionGenerationListeners = new Set<() => void>();
   private initializedUserContextKey: string | null = null;
-  private initializedUserContextListeners = new Set<() => void>();
+  private readonly initializedUserContextListeners = new Set<() => void>();
   private isDisconnecting = false;
   private error: string | null = null;
   private connectionRefCount = 0;
@@ -212,15 +212,25 @@ class PerpsConnectionManagerClass {
         !hasProviderChanged &&
         !hasPerpsNetworkChanged &&
         !hasHip3Changed;
+      const hasContextChanged =
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed;
+
+      if (
+        hasContextChanged &&
+        this.pendingReconnectPromise &&
+        !this.isConnected
+      ) {
+        this.pendingReconnectRequest = {
+          userContextKey: this.getSelectedUserContextKey(),
+          force: true,
+        };
+      }
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
-      if (
-        (hasAccountChanged ||
-          hasPerpsNetworkChanged ||
-          hasProviderChanged ||
-          hasHip3Changed) &&
-        this.isConnected
-      ) {
+      if (hasContextChanged && this.isConnected) {
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'

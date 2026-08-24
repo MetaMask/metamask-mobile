@@ -125,8 +125,8 @@ source of truth.
 - `lifecycle`
 - `provider`
 - `network`
-- `market_source`: `terminal_v2`, `provider`, `memory_cache`, `disk_cache`
-- `account_source`: `provider_snapshot`, `memory_cache`, `disk_cache`, `fresh_socket`
+- `market_source`: `terminal_v2`, `provider`, `memory_cache`
+- `account_source`: `provider_snapshot`, `memory_cache`, `fresh_socket`
 - `required_live_streams_complete`
 - `content_state`
 - `success`
@@ -167,10 +167,8 @@ released Core trace-targeting API provides the post-hydration controller
 construction timestamp and routes preload measurements to their explicit trace
 IDs; no values are inferred from ambient spans.
 
-`disk_cache` and the `cold_disk_cache` lifecycle remain reserved until Core
-exposes durable-cache provenance to Mobile. Cold-disk-cache recipe evidence is
-currently excluded, so production widgets must not label memory-hydrated rows
-as disk cache.
+Durable-cache provenance is not emitted by this Mobile stack. Production
+widgets must not label memory-hydrated rows as disk cache.
 
 Dashboards aggregate each authoritative transaction independently using the same bounded release/platform/lifecycle/source attributes. Bootstrap-relative Perps widgets query the slim loading session; app startup and Homepage Ready remain separate release/platform cohorts.
 

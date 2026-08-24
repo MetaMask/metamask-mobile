@@ -123,6 +123,40 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
     );
   });
 
+  it('starts a new demand when the session lifecycle upgrades', () => {
+    renderHook(
+      (props: typeof defaultProps) => useHomepagePerpsSurfaceMetrics(props),
+      { initialProps: defaultProps },
+    );
+
+    act(() => {
+      mockLoadingSessionListener?.({
+        type: 'lifecycle',
+        context: {
+          id: 'session-1',
+          marketSource: 'unknown',
+          accountSource: 'unknown',
+          lifecycle: 'background_reconnect',
+          accountGeneration: 2,
+          contextGeneration: 4,
+        },
+      });
+    });
+
+    expect(parseStages().slice(-2)).toEqual([
+      expect.objectContaining({
+        stage: 'surface_demand',
+        demand_id: 'demand-2',
+        lifecycle: 'background_reconnect',
+      }),
+      expect.objectContaining({
+        stage: 'surface_initial_ui_recorded',
+        demand_id: 'demand-2',
+        lifecycle: 'background_reconnect',
+      }),
+    ]);
+  });
+
   it('records the connection generation for fresh account content', () => {
     const props = {
       ...defaultProps,

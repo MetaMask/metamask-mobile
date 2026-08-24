@@ -199,6 +199,69 @@ interface MarketDetailsRouteParams {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
+const resolveMarketSource = (
+  hasRouteMetadata: boolean,
+  hasStreamMetadata: boolean,
+): 'route' | 'stream_enrichment' | 'unknown' => {
+  if (hasRouteMetadata) return 'route';
+  if (hasStreamMetadata) return 'stream_enrichment';
+  return 'unknown';
+};
+
+const resolveBasicSectionState = (
+  hasContent: boolean,
+  isLoading: boolean,
+  hasError: boolean,
+): PerpsMarketDetailSectionState => {
+  if (hasContent) return 'content';
+  if (isLoading) return 'loading';
+  return hasError ? 'error' : 'empty';
+};
+
+const resolveChartSectionState = ({
+  isContextReady,
+  isAdvanced,
+  advancedState,
+  isFallbackReady,
+  hasFallbackData,
+}: {
+  isContextReady: boolean;
+  isAdvanced: boolean;
+  advancedState?: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>;
+  isFallbackReady: boolean;
+  hasFallbackData: boolean;
+}): PerpsMarketDetailSectionState => {
+  if (!isContextReady) return 'loading';
+  if (isAdvanced) return advancedState ?? 'loading';
+  if (!isFallbackReady) return 'loading';
+  return hasFallbackData ? 'content' : 'empty';
+};
+
+const resolveInsightsSectionState = ({
+  enabled,
+  loading,
+  error,
+  hasCurrentReport,
+}: {
+  enabled: boolean;
+  loading: boolean;
+  error: boolean;
+  hasCurrentReport: boolean;
+}): PerpsMarketDetailSectionState => {
+  if (!enabled) return 'not_applicable';
+  if (loading) return 'loading';
+  if (error) return 'error';
+  return hasCurrentReport ? 'content' : 'empty';
+};
+
+const resolveAccountSectionState = (
+  loading: boolean,
+  hasAccount: boolean,
+): PerpsMarketDetailSectionState => {
+  if (loading) return 'loading';
+  return hasAccount ? 'content' : 'empty';
+};
+
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
@@ -889,66 +952,59 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         market.maxLeverage.endsWith('x')) ||
         marketData?.name === market.symbol),
   );
-  const detailMarketSource =
-    typeof market?.maxLeverage === 'string' && market.maxLeverage.endsWith('x')
-      ? ('route' as const)
-      : marketData?.name === market?.symbol
-        ? ('stream_enrichment' as const)
-        : ('unknown' as const);
-  const marketSectionState: PerpsMarketDetailSectionState =
-    marketHasResolvedMetadata
-      ? 'content'
-      : isLoadingMarketData
-        ? 'loading'
-        : marketDataError
-          ? 'error'
-          : 'empty';
+  const detailMarketSource = resolveMarketSource(
+    typeof market?.maxLeverage === 'string' && market.maxLeverage.endsWith('x'),
+    marketData?.name === market?.symbol,
+  );
+  const marketSectionState = resolveBasicSectionState(
+    marketHasResolvedMetadata,
+    isLoadingMarketData,
+    Boolean(marketDataError),
+  );
   const priceSectionState: PerpsMarketDetailSectionState =
     isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
-  const chartSectionState: PerpsMarketDetailSectionState = !isMarketContextReady
-    ? 'loading'
-    : isAdvancedChartEnabled
-      ? advancedChartResolution?.key === advancedChartReadinessKey
-        ? advancedChartResolution.state
-        : 'loading'
-      : market?.symbol &&
-          candleData?.symbol === market.symbol &&
-          candleData.interval === selectedCandlePeriod &&
-          !isLoadingHistory
-        ? hasHistoricalData
-          ? 'content'
-          : 'empty'
-        : 'loading';
-  const statsSectionState: PerpsMarketDetailSectionState = marketStats.hasError
-    ? 'error'
-    : marketStats.dataSymbol === market?.symbol && marketStats.hasLiveData
-      ? 'content'
-      : 'loading';
-  const insightsSectionState: PerpsMarketDetailSectionState =
-    !isPerpsInsightsEnabled
-      ? 'not_applicable'
-      : !isInsightsStateForCurrentSymbol || isPerpsInsightsLoading
-        ? 'loading'
-        : perpsInsightsError
-          ? 'error'
-          : perpsInsightsReport && perpsInsightsAssetId === market?.symbol
-            ? 'content'
-            : 'empty';
-  const accountSectionState: PerpsMarketDetailSectionState =
-    !isMarketContextReady || !isUserContextReady || isLoadingAccount
-      ? 'loading'
-      : account
-        ? 'content'
-        : 'empty';
-  const positionsOrdersSectionState: PerpsMarketDetailSectionState =
+  const currentAdvancedChartState =
+    advancedChartResolution?.key === advancedChartReadinessKey
+      ? advancedChartResolution.state
+      : undefined;
+  const chartSectionState = resolveChartSectionState({
+    isContextReady: isMarketContextReady,
+    isAdvanced: isAdvancedChartEnabled,
+    advancedState: currentAdvancedChartState,
+    isFallbackReady: Boolean(
+      market?.symbol &&
+        candleData?.symbol === market.symbol &&
+        candleData.interval === selectedCandlePeriod &&
+        !isLoadingHistory,
+    ),
+    hasFallbackData: hasHistoricalData,
+  });
+  const statsSectionState = resolveBasicSectionState(
+    !marketStats.hasError &&
+      marketStats.dataSymbol === market?.symbol &&
+      marketStats.hasLiveData,
+    false,
+    Boolean(marketStats.hasError),
+  );
+  const insightsSectionState = resolveInsightsSectionState({
+    enabled: isPerpsInsightsEnabled,
+    loading: !isInsightsStateForCurrentSymbol || isPerpsInsightsLoading,
+    error: Boolean(perpsInsightsError),
+    hasCurrentReport: Boolean(
+      perpsInsightsReport && perpsInsightsAssetId === market?.symbol,
+    ),
+  });
+  const accountSectionState = resolveAccountSectionState(
+    !isMarketContextReady || !isUserContextReady || isLoadingAccount,
+    Boolean(account),
+  );
+  const positionsOrdersSectionState = resolveAccountSectionState(
     !isMarketContextReady ||
-    !isUserContextReady ||
-    isLoadingPosition ||
-    areOrdersInitiallyLoading
-      ? 'loading'
-      : existingPosition || displayOrders.length > 0
-        ? 'content'
-        : 'empty';
+      !isUserContextReady ||
+      isLoadingPosition ||
+      areOrdersInitiallyLoading,
+    Boolean(existingPosition || displayOrders.length > 0),
+  );
   const detailSections = useMemo(
     () => ({
       [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
@@ -1686,6 +1742,59 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const shouldShowLongShortButtonsOnly =
     shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
+  let detailChartContent: React.ReactNode = (
+    <Skeleton
+      height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+      width="100%"
+      testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+    />
+  );
+  if (isMarketContextReady && isAdvancedChartEnabled && market?.symbol) {
+    detailChartContent = (
+      <PerpsAdvancedChart
+        key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
+        symbol={market.symbol}
+        interval={selectedCandlePeriod}
+        visibleCandleCount={
+          visibleCandleCount ?? PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT
+        }
+        height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+        tpslLines={tpslLines}
+        positionSize={existingPosition?.size}
+        szDecimals={marketData?.szDecimals}
+        onCrosshairDataChange={setOhlcData}
+        onLatestPriceChange={setAdvancedChartCurrentPrice}
+        onResolved={handleAdvancedChartResolved}
+        onError={handleChartError}
+        fallbackCandleData={candleData}
+        fallbackFetchMoreHistory={fetchMoreHistory}
+        paginationDuration={TimeDuration.YearToDate}
+      />
+    );
+  } else if (
+    isMarketContextReady &&
+    market?.symbol &&
+    candleData?.symbol === market.symbol &&
+    candleData.interval === selectedCandlePeriod &&
+    !isLoadingHistory
+  ) {
+    detailChartContent = (
+      <TradingViewChart
+        ref={chartRef}
+        candleData={candleData}
+        height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+        visibleCandleCount={visibleCandleCount}
+        tpslLines={tpslLines}
+        symbol={market.symbol}
+        showOverlay={false}
+        coloredVolume
+        onOhlcDataChange={setOhlcData}
+        onNeedMoreHistory={fetchMoreHistory}
+        testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+      />
+    );
+  }
+
   return (
     <View
       style={styles.mainContainer}
@@ -1771,57 +1880,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     testID={PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD}
                   />
                 )}
-                {!isMarketContextReady ? (
-                  <Skeleton
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    width="100%"
-                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-                  />
-                ) : isAdvancedChartEnabled && market?.symbol ? (
-                  <PerpsAdvancedChart
-                    key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
-                    symbol={market.symbol}
-                    interval={selectedCandlePeriod}
-                    visibleCandleCount={
-                      visibleCandleCount ??
-                      PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT
-                    }
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    tpslLines={tpslLines}
-                    positionSize={existingPosition?.size}
-                    szDecimals={marketData?.szDecimals}
-                    onCrosshairDataChange={setOhlcData}
-                    onLatestPriceChange={setAdvancedChartCurrentPrice}
-                    onResolved={handleAdvancedChartResolved}
-                    onError={handleChartError}
-                    fallbackCandleData={candleData}
-                    fallbackFetchMoreHistory={fetchMoreHistory}
-                    paginationDuration={TimeDuration.YearToDate}
-                  />
-                ) : market?.symbol &&
-                  candleData?.symbol === market.symbol &&
-                  candleData.interval === selectedCandlePeriod &&
-                  !isLoadingHistory ? (
-                  <TradingViewChart
-                    ref={chartRef}
-                    candleData={candleData}
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    visibleCandleCount={visibleCandleCount}
-                    tpslLines={tpslLines}
-                    symbol={market?.symbol}
-                    showOverlay={false}
-                    coloredVolume
-                    onOhlcDataChange={setOhlcData}
-                    onNeedMoreHistory={fetchMoreHistory}
-                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-                  />
-                ) : (
-                  <Skeleton
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    width="100%"
-                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-                  />
-                )}
+                {detailChartContent}
               </View>
             </ComponentErrorBoundary>
 

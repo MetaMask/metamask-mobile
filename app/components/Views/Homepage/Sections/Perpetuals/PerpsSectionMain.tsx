@@ -30,6 +30,7 @@ import {
   usePerpsLiveOrders,
   usePerpsLiveAccount,
 } from '../../../../UI/Perps/hooks';
+
 import {
   formatPnl,
   formatPercentage,
@@ -65,6 +66,29 @@ import {
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
 import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
 import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
+
+type HomepagePerpsContentVariant =
+  | 'positions_and_orders'
+  | 'positions'
+  | 'orders'
+  | 'pills'
+  | 'trending';
+
+const resolveContentVariant = (
+  positionCount: number,
+  orderCount: number,
+  showPills: boolean,
+): HomepagePerpsContentVariant => {
+  if (positionCount > 0 && orderCount > 0) return 'positions_and_orders';
+  if (positionCount > 0) return 'positions';
+  if (orderCount > 0) return 'orders';
+  return showPills ? 'pills' : 'trending';
+};
+
+const resolveContentState = (hasError: boolean, hasItems: boolean) => {
+  if (hasError) return 'error';
+  return hasItems ? 'filled' : 'empty';
+};
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -317,18 +341,17 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
-    const contentVariant =
-      displayPositions.length > 0 && displayOrders.length > 0
-        ? 'positions_and_orders'
-        : displayPositions.length > 0
-          ? 'positions'
-          : displayOrders.length > 0
-            ? 'orders'
-            : shouldShowPillsEmptyState
-              ? 'pills'
-              : 'trending';
+    const contentVariant = resolveContentVariant(
+      displayPositions.length,
+      displayOrders.length,
+      shouldShowPillsEmptyState,
+    );
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const sessionId = sessionContext?.id;
+    const marketCount =
+      allCarouselMarkets.length > 0
+        ? allCarouselMarkets.length
+        : markets.length;
     const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
     const accountSource = sessionContext?.accountSource ?? 'unknown';
     const cohortTags = useMemo(
@@ -389,6 +412,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           {
             success: true,
             content_state: 'empty',
+            market_count: marketCount,
             ...cohortTags,
           },
           sessionId,
@@ -399,11 +423,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       finishPerpsLoadingSession(
         {
           success: !connectionError,
-          content_state: connectionError
-            ? 'error'
-            : hasItems
-              ? 'filled'
-              : 'empty',
+          content_state: resolveContentState(
+            Boolean(connectionError),
+            hasItems,
+          ),
+          market_count: marketCount,
           ...cohortTags,
         },
         sessionId,
@@ -413,6 +437,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       connectionError,
       hasItems,
       isLoadingSection,
+      marketCount,
       pillsEmptyFeedHidden,
       sessionId,
       sessionReady,

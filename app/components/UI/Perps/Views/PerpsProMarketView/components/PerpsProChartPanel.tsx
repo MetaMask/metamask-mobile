@@ -279,16 +279,14 @@ const PerpsProChartPanel = ({
     });
   }, [chartAnalyticsProperties, symbol, track]);
 
-  let chartContent: React.ReactNode;
-  if (!isMarketContextReady) {
-    chartContent = (
-      <Skeleton
-        height={PRO_CHART_HEIGHT}
-        width="100%"
-        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
-      />
-    );
-  } else if (isAdvancedChartEnabled) {
+  let chartContent: React.ReactNode = (
+    <Skeleton
+      height={PRO_CHART_HEIGHT}
+      width="100%"
+      testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
+    />
+  );
+  if (isMarketContextReady && isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
         key={`${symbol}|${marketContextKey}`}
@@ -309,6 +307,7 @@ const PerpsProChartPanel = ({
       />
     );
   } else if (
+    isMarketContextReady &&
     candleData?.symbol === symbol &&
     candleData.interval === selectedCandlePeriod &&
     !isLoading
@@ -326,14 +325,6 @@ const PerpsProChartPanel = ({
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
         testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
-      />
-    );
-  } else {
-    chartContent = (
-      <Skeleton
-        height={PRO_CHART_HEIGHT}
-        width="100%"
-        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
       />
     );
   }

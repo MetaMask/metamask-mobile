@@ -14,6 +14,22 @@ import type { PerpsStackParamList } from '../../types/navigation';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 
+function resolveGenerationTrigger(
+  explicitTrigger: 'market_switch' | undefined,
+  previousIdentity: { symbol?: string; mode: string } | undefined,
+  symbol: string | undefined,
+  mode: string,
+): 'initial' | 'market_switch' | 'mode_switch' {
+  if (explicitTrigger) return explicitTrigger;
+  if (previousIdentity?.symbol && previousIdentity.symbol !== symbol) {
+    return 'market_switch';
+  }
+  if (previousIdentity?.mode && previousIdentity.mode !== mode) {
+    return 'mode_switch';
+  }
+  return 'initial';
+}
+
 /**
  * Route component registered for `Routes.PERPS.MARKET_DETAILS`.
  *
@@ -46,13 +62,12 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   const explicitGenerationTrigger = !consumedExplicitTriggerRef.current
     ? route.params?.detailGenerationTrigger
     : undefined;
-  const generationTrigger =
-    explicitGenerationTrigger ??
-    (previousIdentity?.symbol && previousIdentity.symbol !== symbol
-      ? 'market_switch'
-      : previousIdentity?.mode && previousIdentity.mode !== mode
-        ? 'mode_switch'
-        : 'initial');
+  const generationTrigger = resolveGenerationTrigger(
+    explicitGenerationTrigger,
+    previousIdentity,
+    symbol,
+    mode,
+  );
 
   useLayoutEffect(() => {
     previousIdentityRef.current = { symbol, mode };

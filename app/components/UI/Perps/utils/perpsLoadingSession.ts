@@ -21,7 +21,6 @@ import {
   type PerpsLoadingSessionUpdate,
   type PerpsLoadingSource,
   type PerpsLoadingStream,
-  type PerpsLoadingSurface,
   type PerpsSessionAccountSource,
   type PerpsSessionMarketSource,
   type StartPerpsLoadingSessionOptions,
@@ -93,8 +92,6 @@ let preSessionEvents: {
   connectionGeneration?: number;
   recordedAtMs: number;
 }[] = [];
-let preSessionFinishData: Record<string, string | number | boolean> | null =
-  null;
 let preSessionBufferArmed = false;
 
 function notifySessionListeners(update: PerpsLoadingSessionUpdate): void {
@@ -114,7 +111,6 @@ export function preparePerpsLoadingSession(): void {
   }
   if (!preSessionBufferArmed) {
     preSessionEvents = [];
-    preSessionFinishData = null;
   }
   preSessionBufferArmed = true;
 }
@@ -220,11 +216,6 @@ export function startPerpsLoadingSession(
   bufferedEvents.forEach((event) => {
     recordValuesReady(event);
   });
-  if (preSessionFinishData) {
-    const finishData = preSessionFinishData;
-    preSessionFinishData = null;
-    finishPerpsLoadingSession(finishData);
-  }
   return sessionId;
 }
 
@@ -475,8 +466,7 @@ function recordedMarketSource(): PerpsSessionMarketSource {
   }
   if (
     marketsReadySource === 'provider' ||
-    marketsReadySource === 'memory_cache' ||
-    marketsReadySource === 'disk_cache'
+    marketsReadySource === 'memory_cache'
   ) {
     return marketsReadySource;
   }
@@ -486,7 +476,6 @@ function recordedMarketSource(): PerpsSessionMarketSource {
 function recordedAccountSource(): PerpsSessionAccountSource {
   if (
     accountCacheSource === 'memory_cache' ||
-    accountCacheSource === 'disk_cache' ||
     accountCacheSource === 'provider_snapshot'
   ) {
     return accountCacheSource;
@@ -607,7 +596,6 @@ function resetActiveLoadingSession(): void {
   accountCacheSource = null;
   pendingFinishData = null;
   preSessionEvents = [];
-  preSessionFinishData = null;
   preSessionBufferArmed = false;
 }
 
@@ -616,7 +604,6 @@ export function cancelPerpsLoadingSession(
 ): void {
   if (!activeSessionId) {
     preSessionEvents = [];
-    preSessionFinishData = null;
     preSessionBufferArmed = false;
     return;
   }
@@ -641,7 +628,6 @@ function requiresLiveAccount(
   return (
     data.success !== false &&
     (activeLifecycle === 'cold_no_cache' ||
-      activeLifecycle === 'cold_disk_cache' ||
       activeLifecycle === 'background_reconnect' ||
       activeLifecycle === 'account_switch' ||
       activeLifecycle === 'network_switch' ||
@@ -656,10 +642,9 @@ function requiresFreshMarkets(
 ): boolean {
   return (
     data.success !== false &&
-    data.content_state !== 'empty' &&
+    data.market_count !== 0 &&
     (data.content_variant === 'trending' || data.content_variant === 'pills') &&
     (activeLifecycle === 'cold_no_cache' ||
-      activeLifecycle === 'cold_disk_cache' ||
       activeLifecycle === 'background_reconnect' ||
       activeLifecycle === 'network_switch')
   );
@@ -697,9 +682,6 @@ export function finishPerpsLoadingSession(
     return;
   }
   if (!activeSessionId) {
-    if (preSessionBufferArmed) {
-      preSessionFinishData = data;
-    }
     return;
   }
   if (pendingFinishData?.success === false && data.success !== false) {
@@ -732,6 +714,5 @@ export function resetPerpsLoadingSessionForTesting(): void {
     sessionTimeout = null;
   }
   preSessionEvents = [];
-  preSessionFinishData = null;
   preSessionBufferArmed = false;
 }

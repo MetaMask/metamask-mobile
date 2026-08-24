@@ -294,7 +294,7 @@ export function usePerpsAdvancedChartAdapter({
 
   const latestBar =
     latestBarSeriesKey === `${symbol}|${interval}`
-      ? (realtimeBar ?? ohlcvData[ohlcvData.length - 1])
+      ? (realtimeBar ?? ohlcvData.at(-1))
       : undefined;
 
   return {

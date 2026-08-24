@@ -174,14 +174,15 @@ export function useHomepagePerpsSurfaceMetrics({
       return;
     }
     recordAfterPaint('surface_resolved_recorded');
-    const resolvedSource = resolvedSourceRef.current;
+    const currentResolvedSource = resolvedSourceRef.current;
     const isAccountVariant =
       contentVariantRef.current === 'positions' ||
       contentVariantRef.current === 'orders' ||
       contentVariantRef.current === 'positions_and_orders';
     const isFreshForLifecycle = isAccountVariant
       ? proofContextRef.current?.connectionGeneration !== undefined
-      : resolvedSource === 'terminal_v2' || resolvedSource === 'provider';
+      : currentResolvedSource === 'terminal_v2' ||
+        currentResolvedSource === 'provider';
     if (
       !hasErrorRef.current &&
       isFreshForLifecycle &&
@@ -191,11 +192,50 @@ export function useHomepagePerpsSurfaceMetrics({
     }
   }, [recordAfterPaint]);
 
+  const beginDemand = useCallback(
+    (
+      proofContext: PerpsLoadingSessionContext,
+      demandLifecycle: PerpsLoadingLifecycle,
+    ) => {
+      proofContextRef.current = proofContext;
+      const demand = {
+        id: uuidv4(),
+        sessionId: proofContext.id,
+        startedAtMs: performance.now(),
+        lifecycle: demandLifecycle,
+        dataReadyAtDemand: contentReadyRef.current,
+        accountGeneration: proofContext.accountGeneration,
+        contextGeneration: proofContext.contextGeneration,
+      };
+      const sessionAlreadyFinished = finishedSessionsRef.current.has(
+        proofContext.id,
+      );
+      finishedSessionsRef.current.clear();
+      if (sessionAlreadyFinished) {
+        finishedSessionsRef.current.add(proofContext.id);
+      }
+      activeDemandRef.current = demand;
+      recordedStagesRef.current.clear();
+      recordedStagesRef.current.add('surface_demand');
+      logSurfaceStage('surface_demand', demand);
+      recordAfterPaint('surface_initial_ui_recorded');
+      recordResolvedAndLive();
+    },
+    [recordAfterPaint, recordResolvedAndLive],
+  );
+
   useEffect(
     () =>
       subscribeToPerpsLoadingSession((update) => {
         if (activeDemandRef.current?.sessionId === update.context.id) {
           proofContextRef.current = update.context;
+          if (
+            update.type === 'lifecycle' &&
+            activeDemandRef.current.lifecycle !== update.context.lifecycle
+          ) {
+            beginDemand(update.context, update.context.lifecycle);
+            return;
+          }
         }
         if (update.type === 'finished') {
           finishedSessionsRef.current.add(update.context.id);
@@ -204,7 +244,7 @@ export function useHomepagePerpsSurfaceMetrics({
           finishedSessionsRef.current.delete(update.context.id);
         }
       }),
-    [recordResolvedAndLive],
+    [beginDemand, recordResolvedAndLive],
   );
 
   useEffect(() => {
@@ -221,34 +261,8 @@ export function useHomepagePerpsSurfaceMetrics({
     if (!proofContext) {
       return;
     }
-    proofContextRef.current = proofContext;
-    const demand = {
-      id: uuidv4(),
-      sessionId,
-      startedAtMs: performance.now(),
-      lifecycle,
-      dataReadyAtDemand: contentReadyRef.current,
-      accountGeneration: proofContext.accountGeneration,
-      contextGeneration: proofContext.contextGeneration,
-    };
-    const sessionAlreadyFinished = finishedSessionsRef.current.has(sessionId);
-    finishedSessionsRef.current.clear();
-    if (sessionAlreadyFinished) {
-      finishedSessionsRef.current.add(sessionId);
-    }
-    activeDemandRef.current = demand;
-    recordedStagesRef.current.clear();
-    recordedStagesRef.current.add('surface_demand');
-    logSurfaceStage('surface_demand', demand);
-    recordAfterPaint('surface_initial_ui_recorded');
-    recordResolvedAndLive();
-  }, [
-    isSurfaceVisible,
-    lifecycle,
-    recordAfterPaint,
-    recordResolvedAndLive,
-    sessionId,
-  ]);
+    beginDemand(proofContext, lifecycle);
+  }, [beginDemand, isSurfaceVisible, lifecycle, sessionId]);
 
   useEffect(() => {
     recordResolvedAndLive();

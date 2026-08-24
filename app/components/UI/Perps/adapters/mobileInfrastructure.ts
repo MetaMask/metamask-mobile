@@ -96,6 +96,8 @@ function getPreloadTraceData(
   return getActivePerpsLoadingSessionTraceData();
 }
 
+const MAX_TRACKED_PERPS_TRACE_IDS = 100;
+
 /**
  * Creates a mobile-specific analytics adapter that implements PerpsMetrics
  */
@@ -294,6 +296,18 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       }): void {
         const traceName = toTraceName(params.name);
         const loadingSessionData = getPreloadTraceData(params.name);
+        if (
+          !traceNamesById.has(params.id) &&
+          traceNamesById.size >= MAX_TRACKED_PERPS_TRACE_IDS
+        ) {
+          const oldestId = traceNamesById.keys().next().value;
+          if (oldestId) {
+            traceNamesById.delete(oldestId);
+            DevLogger.log('Perps tracing evicted an unfinished trace id', {
+              traceId: oldestId,
+            });
+          }
+        }
         traceNamesById.set(params.id, traceName);
         trace({
           name: traceName,

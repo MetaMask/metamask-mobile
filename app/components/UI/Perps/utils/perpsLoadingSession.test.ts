@@ -359,13 +359,46 @@ describe('perpsLoadingSession', () => {
       ]);
     });
 
+    it('updates market readiness when fresh data replaces cache', () => {
+      startSessionAt(400);
+      jest
+        .mocked(performance.now)
+        .mockReturnValueOnce(450)
+        .mockReturnValue(520);
+
+      recordPerpsLoadingSessionValuesReady('markets', 'memory_cache', 5);
+      recordPerpsLoadingSessionValuesReady(
+        'markets',
+        'terminal_global_snapshot_v2',
+        5,
+      );
+
+      expect(setMeasurement).toHaveBeenNthCalledWith(
+        1,
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        'markets_ready_ms',
+        50,
+        'millisecond',
+      );
+      expect(setMeasurement).toHaveBeenNthCalledWith(
+        2,
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        'markets_ready_ms',
+        120,
+        'millisecond',
+      );
+      expect(getActivePerpsLoadingSessionContext()?.marketSource).toBe(
+        'terminal_v2',
+      );
+    });
+
     it('does not record account_cache_ready from mixed cache sources', () => {
       startSessionAt(400);
       jest.mocked(performance.now).mockReturnValue(480);
 
       recordPerpsLoadingSessionValuesReady('positions', 'memory_cache', 2);
       recordPerpsLoadingSessionValuesReady('orders', 'provider_snapshot', 0);
-      recordPerpsLoadingSessionValuesReady('account', 'disk_cache', 1);
+      recordPerpsLoadingSessionValuesReady('account', 'memory_cache', 1);
 
       expect(setMeasurement).not.toHaveBeenCalled();
       expect(valuesReadyRecords()).toHaveLength(0);
@@ -712,6 +745,26 @@ describe('perpsLoadingSession', () => {
       );
     });
 
+    it('waits for fresh markets when the empty account still renders markets', () => {
+      startPerpsLoadingSession({ lifecycle: 'cold_no_cache' });
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
+
+      finishPerpsLoadingSession({ ...finishData, market_count: 5 });
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 5);
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_state: 'empty',
+            required_live_streams_complete: true,
+          }),
+        }),
+      );
+    });
+
     it('waits for the complete live account on positions content', () => {
       startPerpsLoadingSession();
       finishPerpsLoadingSession({
@@ -799,7 +852,7 @@ describe('perpsLoadingSession', () => {
       recordFresh('orders', 0);
       recordFresh('account', 1);
 
-      finishPerpsLoadingSession(finishData);
+      finishPerpsLoadingSession({ ...finishData, market_count: 0 });
 
       expect(endTrace).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -11,32 +11,28 @@ export type PerpsLoadingStream =
 
 export type PerpsLoadingSource =
   | 'memory_cache'
-  | 'disk_cache'
   | 'provider_snapshot'
   | 'terminal_global_snapshot_v2'
   | 'provider'
   | 'fresh_socket';
 
 export const PERPS_LOADING_CACHE_SOURCES: ReadonlySet<PerpsLoadingSource> =
-  new Set(['memory_cache', 'disk_cache', 'provider_snapshot']);
+  new Set(['memory_cache', 'provider_snapshot']);
 
 export type PerpsSessionMarketSource =
   | 'terminal_v2'
   | 'provider'
   | 'memory_cache'
-  | 'disk_cache'
   | 'unknown';
 
 export type PerpsSessionAccountSource =
   | 'provider_snapshot'
   | 'memory_cache'
-  | 'disk_cache'
   | 'fresh_socket'
   | 'unknown';
 
 export type PerpsLoadingLifecycle =
   | 'cold_no_cache'
-  | 'cold_disk_cache'
   | 'navigate_return'
   | 'background_short'
   | 'background_reconnect'
