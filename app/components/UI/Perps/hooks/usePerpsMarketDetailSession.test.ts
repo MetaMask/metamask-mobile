@@ -315,6 +315,15 @@ describe('usePerpsMarketDetailSession', () => {
           }),
         }),
       );
+      expect(endTrace).not.toHaveBeenCalled();
+
+      mockDeliveryRevisions.focusedPrice += 1;
+      mockDeliveryRevisions.candles += 1;
+      rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
     },
   );
 
