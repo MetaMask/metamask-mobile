@@ -282,6 +282,8 @@ PODS:
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
+  - ExpoScreenCapture (56.0.5):
+    - ExpoModulesCore
   - ExpoScreenOrientation (56.0.5):
     - ExpoModulesCore
     - hermes-engine
@@ -3528,6 +3530,7 @@ DEPENDENCIES:
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
   - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
+  - ExpoScreenCapture (from `../node_modules/expo-screen-capture/ios`)
   - ExpoScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -3778,6 +3781,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesWorkletsAdapter:
     :path: "../node_modules/expo-modules-core"
+  ExpoScreenCapture:
+    :path: "../node_modules/expo-screen-capture/ios"
   ExpoScreenOrientation:
     :path: "../node_modules/expo-screen-orientation/ios"
   ExpoSensors:
@@ -4114,6 +4119,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: e62656cfaffb5aeb3fdc1dd2bc49f77e87ed2261
   ExpoModulesWorklets: 3a3bbf269f2a9b599f8f7f42c410b9b9851fe922
   ExpoModulesWorkletsAdapter: 8ed612963423a06b1fa4d96c5e1d73325e56c3a4
+  ExpoScreenCapture: 807784aab5809f28685e0349273992ac4ad8497b
   ExpoScreenOrientation: 75ebc86da7f64e94d34d10a743acbd75f9814dd6
   ExpoSensors: d34558ddf1f1d61c7a22180d1d40d8bd89d67d7b
   ExpoSplashScreen: 0c06099febe733279021ca62b0b7534005a43c93

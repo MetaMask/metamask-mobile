@@ -18,7 +18,6 @@
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
 		2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
-		2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
 		2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
@@ -58,7 +57,6 @@
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
-		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
@@ -185,8 +183,6 @@
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
-		CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTScreenshotDetect.h; sourceTree = "<group>"; };
-		CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RCTScreenshotDetect.m; sourceTree = "<group>"; };
 		D0CBAE789660472DB719C765 /* libLottie.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libLottie.a; sourceTree = "<group>"; };
 		D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
@@ -302,7 +298,6 @@
 			isa = PBXGroup;
 			children = (
 				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
-				CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */,
 			);
 			name = NativeModules;
 			sourceTree = "<group>";
@@ -448,15 +443,6 @@
 				CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */,
 			);
 			name = RCTMinimizer;
-			sourceTree = "<group>";
-		};
-		CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */ = {
-			isa = PBXGroup;
-			children = (
-				CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */,
-				CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */,
-			);
-			name = RCTScreenshotDetect;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -941,7 +927,6 @@
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
-				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
 			);
@@ -957,7 +942,6 @@
 				2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */,
 				2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
-				2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
 				F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */,
 			);
