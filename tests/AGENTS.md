@@ -25,9 +25,16 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
 
-## Canonical Appium APIs
+## Dual-framework imports
 
-Prefer `Gestures` / `Assertions` / `Matchers` in POs, flows, and Appium specs. Avoid `UnifiedGestures`, `FrameworkDetector`, `encapsulated*` / `asPlaywrightElement` / `asDetoxElement`, and direct `Playwright*` dual-framework APIs.
+ESLint **errors** on dual-framework debt in POs, flows, and Appium specs (no warn allowlist):
+
+| Banned                                                                                         | Prefer                                             |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `UnifiedGestures`                                                                              | `Gestures`                                         |
+| `FrameworkDetector`                                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
+| `encapsulated` / `encapsulatedAction` / `asPlaywrightElement` / `asDetoxElement`               | `Matchers` + `Gestures` / `Assertions`             |
+| `PlaywrightMatchers` / `PlaywrightGestures` / `PlaywrightAssertions` / `PlaywrightWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
 
 Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 

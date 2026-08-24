@@ -14,6 +14,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { useComplianceGate } from '../../Compliance';
 import PerpsBottomSheetTooltip from '../components/PerpsBottomSheetTooltip';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
@@ -84,6 +85,7 @@ export const usePerpsProPositionsPanelActions =
     const { cancelOrder } = usePerpsTrading();
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
+    const { playImpact } = useHaptics();
 
     const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
     const [reversePosition, setReversePosition] = useState<Position | null>(
@@ -176,34 +178,41 @@ export const usePerpsProPositionsPanelActions =
       (position: Position) => {
         runGatedEligibleAction(
           PERPS_EVENT_VALUE.SOURCE.CLOSE_POSITION_ACTION,
-          () =>
+          () => {
+            playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
             navigateToClosePosition(position, PRO_MARKET_SOURCE, {
               buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
               buttonLocation: PRO_MARKET_BUTTON_LOCATION,
-            }),
+              enableHaptics: true,
+            });
+          },
         );
       },
-      [navigateToClosePosition, runGatedEligibleAction],
+      [navigateToClosePosition, playImpact, runGatedEligibleAction],
     );
 
     const handleReversePosition = useCallback(
       (position: Position) => {
         runGatedEligibleAction(
           PERPS_EVENT_VALUE.SOURCE.MODIFY_POSITION_ACTION,
-          () => setReversePosition(position),
+          () => {
+            playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+            setReversePosition(position);
+          },
         );
       },
-      [runGatedEligibleAction],
+      [playImpact, runGatedEligibleAction],
     );
 
     const handleSharePosition = useCallback(
       (position: Position) => {
+        playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice: getPositionMarkPrice(position),
         });
       },
-      [navigation],
+      [navigation, playImpact],
     );
 
     const handleEditPositionTpSl = useCallback(
@@ -211,6 +220,7 @@ export const usePerpsProPositionsPanelActions =
         runGatedEligibleAction(
           PERPS_EVENT_VALUE.SOURCE.AUTO_CLOSE_ACTION,
           () => {
+            playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
             const markPrice = parseFloat(getPositionMarkPrice(position));
             const currentPrice =
               Number.isFinite(markPrice) && markPrice > 0
@@ -224,6 +234,7 @@ export const usePerpsProPositionsPanelActions =
               initialTakeProfitPrice: position.takeProfitPrice,
               initialStopLossPrice: position.stopLossPrice,
               leverage: position.leverage.value,
+              enableHaptics: true,
               onConfirm: async (
                 positionFromRoute?: Position,
                 takeProfitPrice?: string,
@@ -242,7 +253,7 @@ export const usePerpsProPositionsPanelActions =
           },
         );
       },
-      [handleUpdateTPSL, navigation, runGatedEligibleAction],
+      [handleUpdateTPSL, navigation, playImpact, runGatedEligibleAction],
     );
 
     const isPositionMarginEditable = useCallback(
@@ -258,10 +269,13 @@ export const usePerpsProPositionsPanelActions =
 
         runGatedEligibleAction(
           PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
-          () => setAdjustMarginPosition(position),
+          () => {
+            playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+            setAdjustMarginPosition(position);
+          },
         );
       },
-      [isPositionMarginEditable, runGatedEligibleAction],
+      [isPositionMarginEditable, playImpact, runGatedEligibleAction],
     );
 
     const isOrderCancelable = useCallback(
@@ -276,6 +290,7 @@ export const usePerpsProPositionsPanelActions =
           return;
         }
 
+        playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
         setCancelingOrderId(order.orderId);
 
         const orderDirection = getOrderPositionDirection(order);
@@ -334,6 +349,7 @@ export const usePerpsProPositionsPanelActions =
         cancelingOrderId,
         editingOrderId,
         isOrderCancelable,
+        playImpact,
         showToast,
       ],
     );
@@ -341,9 +357,12 @@ export const usePerpsProPositionsPanelActions =
     const handleCloseAllPress = useCallback(() => {
       runGatedEligibleAction(
         PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
-        () => setShowCloseAllSheet(true),
+        () => {
+          playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+          setShowCloseAllSheet(true);
+        },
       );
-    }, [runGatedEligibleAction]);
+    }, [playImpact, runGatedEligibleAction]);
 
     const renderActionSheets = useCallback(
       (filteredPositions?: Position[], isFiltered?: boolean) => (
@@ -355,6 +374,7 @@ export const usePerpsProPositionsPanelActions =
                 onClose={handleCloseAllSheetClose}
                 positions={filteredPositions}
                 isFiltered={isFiltered}
+                enableHaptics
               />
             </PerpsProModalPortal>
           )}
@@ -366,6 +386,7 @@ export const usePerpsProPositionsPanelActions =
                 sheetRef={reversePositionSheetRef}
                 onClose={handleReverseSheetClose}
                 onConfirm={handleReverseSheetClose}
+                enableHaptics
               />
             </PerpsProModalPortal>
           )}
@@ -376,6 +397,7 @@ export const usePerpsProPositionsPanelActions =
                 sheetRef={adjustMarginSheetRef}
                 position={adjustMarginPosition}
                 onClose={handleAdjustMarginSheetClose}
+                enableHaptics
               />
             </PerpsProModalPortal>
           )}

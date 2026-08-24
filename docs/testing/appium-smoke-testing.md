@@ -10,7 +10,7 @@ Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs liv
 | **Build**               | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)       |
 | **Local yarn commands** | `yarn appium-smoke:ios` / `yarn appium-smoke:android`  |
 
-Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework lint freeze: [tests/AGENTS.md](../tests/AGENTS.md).
+Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework imports are ESLint errors: [tests/AGENTS.md](../tests/AGENTS.md).
 
 ## Architecture
 

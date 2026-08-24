@@ -447,7 +447,9 @@ jobs:
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
         env:
-          NODE_OPTIONS: --max_old_space_size=12288
+          # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
+          # into gen-bundle:ios, an inline value silently shadows it.
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'

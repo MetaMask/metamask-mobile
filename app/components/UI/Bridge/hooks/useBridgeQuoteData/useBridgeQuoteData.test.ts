@@ -1,29 +1,38 @@
-import '../../_mocks_/initialState';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
-import { createBridgeTestState } from '../../testUtils';
-// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
-import * as quoteUtils from '../../utils/quoteUtils';
-import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
-// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
-import * as bridgeController from '@metamask/bridge-controller';
-import AppConstants from '../../../../../core/AppConstants';
-import { useBridgeQuoteData } from '.';
-import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { act, waitFor } from '@testing-library/react-native';
-import { BigNumber } from 'ethers';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import {
+  RequestStatus,
+  getNativeAssetForChainId,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  selectBridgeFeatureFlags as selectAppBridgeFeatureFlags,
-  selectBridgeQuotes as selectAppBridgeQuotes,
-  selectControllerFields,
-  setSourceAmount,
-} from '../../../../../core/redux/slices/bridge';
+import { BigNumber } from 'ethers';
 import { merge } from 'lodash';
 
+import AppConstants from '../../../../../core/AppConstants';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import type { BridgeState } from '../../../../../core/redux/slices/bridge';
+import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as quoteUtils from '../../utils/quoteUtils';
+import { useBridgeQuoteData } from '.';
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: () => 'USD',
+}));
+
 const defaultSelectBridgeQuotesResults: ReturnType<
-  typeof bridgeController.selectBridgeQuotes
+  typeof bridgeSlice.selectBridgeQuotes
 > = {
   recommendedQuote: mockQuoteWithMetadata,
   sortedQuotes: [mockQuoteWithMetadata],
@@ -73,9 +82,86 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+interface QuoteDataState {
+  bridgeReducerOverrides?: Partial<BridgeState>;
+  bridgeControllerOverrides?: {
+    quotesLoadingStatus?: RequestStatus | null;
+    quoteFetchError?: string | null;
+    quotesLastFetched?: number | null;
+    quotesRefreshCount?: number;
+    quoteStreamComplete?: ReturnType<
+      typeof bridgeSlice.selectQuoteStreamComplete
+    >;
+    quotes?: unknown;
+  };
+}
+
+const createBridgeTestState = (
+  overrides: QuoteDataState = {},
+): QuoteDataState => overrides;
+
+const applyQuoteDataState = ({
+  bridgeReducerOverrides = {},
+  bridgeControllerOverrides = {},
+}: QuoteDataState = {}) => {
+  const bridge = { ...mockBridgeReducerState, ...bridgeReducerOverrides };
+  const sourceIsSolana = Boolean(
+    bridge.sourceToken?.chainId && isSolanaChainId(bridge.sourceToken.chainId),
+  );
+  const destIsSolana = Boolean(
+    bridge.destToken?.chainId && isSolanaChainId(bridge.destToken.chainId),
+  );
+
+  jest
+    .spyOn(bridgeSlice, 'selectSourceToken')
+    .mockReturnValue(bridge.sourceToken);
+  jest.spyOn(bridgeSlice, 'selectDestToken').mockReturnValue(bridge.destToken);
+  const selectSourceAmountSpy = jest
+    .spyOn(bridgeSlice, 'selectSourceAmount')
+    .mockReturnValue(bridge.sourceAmount);
+  jest.spyOn(bridgeSlice, 'selectSlippage').mockReturnValue(bridge.slippage);
+  jest
+    .spyOn(bridgeSlice, 'selectIsSubmittingTx')
+    .mockReturnValue(bridge.isSubmittingTx);
+  jest
+    .spyOn(bridgeSlice, 'selectSelectedQuoteRequestId')
+    .mockReturnValue(bridge.selectedQuoteRequestId);
+  jest.spyOn(bridgeSlice, 'selectBridgeControllerState').mockReturnValue({
+    quoteFetchError: bridgeControllerOverrides.quoteFetchError ?? null,
+    quotesLoadingStatus: bridgeControllerOverrides.quotesLoadingStatus ?? null,
+    quotesLastFetched: bridgeControllerOverrides.quotesLastFetched,
+    quotesRefreshCount: bridgeControllerOverrides.quotesRefreshCount ?? 0,
+  } as ReturnType<typeof bridgeSlice.selectBridgeControllerState>);
+  jest
+    .spyOn(bridgeSlice, 'selectQuoteStreamComplete')
+    .mockReturnValue(
+      (bridgeControllerOverrides.quoteStreamComplete as ReturnType<
+        typeof bridgeSlice.selectQuoteStreamComplete
+      >) ?? null,
+    );
+  jest
+    .spyOn(bridgeSlice, 'selectIsSolanaSwap')
+    .mockReturnValue(sourceIsSolana && destIsSolana);
+  jest
+    .spyOn(bridgeSlice, 'selectIsSolanaToNonSolana')
+    .mockReturnValue(sourceIsSolana && !destIsSolana);
+
+  return { selectSourceAmountSpy };
+};
+
+const renderUseBridgeQuoteData = (
+  overrides: QuoteDataState = {},
+  hookOptions?: Parameters<typeof useBridgeQuoteData>[0],
+) => {
+  const { selectSourceAmountSpy } = applyQuoteDataState(overrides);
+  return {
+    ...renderHook(() => useBridgeQuoteData(hookOptions)),
+    selectSourceAmountSpy,
+  };
+};
+
 describe('useBridgeQuoteData', () => {
   let isQuoteExpired: jest.SpyInstance;
-  let getQuoteRefreshRate: jest.SpyInstance;
   let shouldRefreshQuote: jest.SpyInstance;
   let selectBridgeQuotes: jest.SpyInstance;
   let selectBridgeFeatureFlags: jest.SpyInstance;
@@ -84,15 +170,8 @@ describe('useBridgeQuoteData', () => {
     jest.clearAllMocks();
     jest.resetAllMocks();
 
-    selectControllerFields.clearCache();
-    selectControllerFields.memoizedResultFunc.clearCache();
-    selectAppBridgeQuotes.clearCache();
-    selectAppBridgeQuotes.memoizedResultFunc.clearCache();
-    selectAppBridgeFeatureFlags.clearCache();
-    selectAppBridgeFeatureFlags.memoizedResultFunc.clearCache();
-
     selectBridgeFeatureFlags = jest
-      .spyOn(bridgeController, 'selectBridgeFeatureFlags')
+      .spyOn(bridgeSlice, 'selectBridgeFeatureFlags')
       .mockImplementation(() => ({
         minimumVersion: '7.58.0',
         priceImpactThreshold: {
@@ -107,14 +186,12 @@ describe('useBridgeQuoteData', () => {
         chains: {},
       }));
     selectBridgeQuotes = jest
-      .spyOn(bridgeController, 'selectBridgeQuotes')
+      .spyOn(bridgeSlice, 'selectBridgeQuotes')
       .mockImplementation(jest.fn());
     isQuoteExpired = jest
       .spyOn(quoteUtils, 'isQuoteExpired')
       .mockReturnValue(false);
-    getQuoteRefreshRate = jest
-      .spyOn(quoteUtils, 'getQuoteRefreshRate')
-      .mockReturnValue(5000);
+    jest.spyOn(quoteUtils, 'getQuoteRefreshRate').mockReturnValue(5000);
     shouldRefreshQuote = jest
       .spyOn(quoteUtils, 'shouldRefreshQuote')
       .mockReturnValue(false);
@@ -162,9 +239,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current).toEqual({
       activeQuote: mockQuoteWithMetadata,
@@ -225,9 +300,7 @@ describe('useBridgeQuoteData', () => {
         bridgeControllerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(
         result.current.activeQuote?.quote.priceData?.priceImpact?.amount,
@@ -261,9 +334,7 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     // priceImpact '5' >= warning threshold 5 → shouldShowPriceImpactWarning is true
     expect(result.current.shouldShowPriceImpactWarning).toBe(true);
@@ -304,9 +375,7 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     // priceImpact meets AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD → true
     expect(result.current.shouldShowPriceImpactWarning).toBe(true);
@@ -331,9 +400,7 @@ describe('useBridgeQuoteData', () => {
       bridgeControllerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current).toEqual({
       activeQuote: null,
@@ -370,9 +437,7 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.isNoQuotesAvailable).toBe(false);
   });
@@ -393,9 +458,7 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.isNoQuotesAvailable).toBe(false);
   });
@@ -429,9 +492,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     // destTokenAmount should be undefined because quote's destAsset doesn't match selected destToken
     // This prevents showing incorrect amounts when switching destination tokens
@@ -464,9 +525,7 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
@@ -502,15 +561,13 @@ describe('useBridgeQuoteData', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(true);
   });
 
-  it('handles expired quotes correctly', () => {
+  it('serves cached quotes when expired and not refreshing', () => {
     // Set up mock for this specific test
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
@@ -533,9 +590,7 @@ describe('useBridgeQuoteData', () => {
       bridgeControllerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     // When expired but not loading, the hook serves the last known Redux quotes
     // as a cache so the UI can keep displaying them until the user requests a
@@ -581,9 +636,7 @@ describe('useBridgeQuoteData', () => {
       bridgeControllerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current).toEqual({
       activeQuote: null,
@@ -620,9 +673,7 @@ describe('useBridgeQuoteData', () => {
       bridgeControllerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current).toEqual({
       activeQuote: null,
@@ -651,9 +702,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe(undefined);
   });
@@ -664,7 +713,7 @@ describe('useBridgeQuoteData', () => {
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
-            network: null,
+            network: [],
           },
         },
       }),
@@ -672,9 +721,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('-');
   });
@@ -690,6 +737,8 @@ describe('useBridgeQuoteData', () => {
             ...mockQuoteWithMetadata.quote.feeData,
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: undefined,
                 valueInCurrency: '10',
               },
@@ -701,9 +750,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('-');
   });
@@ -716,6 +763,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.01',
               },
             ],
@@ -726,9 +775,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('-');
   });
@@ -741,6 +788,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.01',
                 valueInCurrency: '10',
               },
@@ -752,9 +801,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
   });
@@ -767,6 +814,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.0001',
                 valueInCurrency: '0.005',
               },
@@ -778,14 +827,12 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('<$0.01');
   });
 
-  it('formats network fee normally when value is exactly 0.01', () => {
+  it('formats network fee as "$0.01" when value is 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
@@ -793,6 +840,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.0001',
                 valueInCurrency: '0.01',
               },
@@ -804,14 +853,12 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('$0.01');
   });
 
-  it('formats network fee normally when value is 0', () => {
+  it('formats network fee as "$0" when value is 0', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
@@ -819,6 +866,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0',
                 valueInCurrency: '0',
               },
@@ -830,16 +879,14 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.networkFee).toBe('$0');
   });
 
   // Additional coverage tests
 
-  it('handles validation errors gracefully', async () => {
+  it('keeps blockaidError null when validateBridgeTx throws a network error', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -849,18 +896,33 @@ describe('useBridgeQuoteData', () => {
 
     mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
 
-    const testState = createBridgeTestState({});
-
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        sourceToken: {
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address: '11111111111111111111111111111112',
+          decimals: 9,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      },
     });
+
+    const { result } = renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
-      expect(result.current.blockaidError).toBe(null);
+      expect(mockValidateBridgeTx).toHaveBeenCalled();
     });
+    expect(result.current.blockaidError).toBe(null);
   });
 
-  it('calculates quote rate correctly when sourceAmount is zero', () => {
+  it('returns "--" rate when sourceAmount is zero', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
@@ -874,9 +936,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.rate).toBe('--');
   });
@@ -895,14 +955,12 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     expect(result.current.formattedQuoteData?.slippage).toBe('Auto');
   });
 
-  it('works with latestSourceAtomicBalance parameter', () => {
+  it('passes latestSourceAtomicBalance to useIsInsufficientBalance', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
@@ -913,12 +971,9 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({});
 
-    const { result } = renderHookWithProvider(
-      () => useBridgeQuoteData({ latestSourceAtomicBalance: latestBalance }),
-      {
-        state: testState,
-      },
-    );
+    const { result } = renderUseBridgeQuoteData(testState, {
+      latestSourceAtomicBalance: latestBalance,
+    });
 
     expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
       amount: '1000000000000000000',
@@ -934,7 +989,7 @@ describe('useBridgeQuoteData', () => {
   });
 
   // Validation logic coverage
-  it('executes validation for Solana swaps and handles success', async () => {
+  it('keeps blockaidError null when Solana validateBridgeTx succeeds', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -966,9 +1021,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
       expect(result.current.blockaidError).toBe(null);
@@ -980,7 +1033,7 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('executes validation for Solana to EVM bridges and handles error', async () => {
+  it('sets blockaidError from error_details when Solana-to-EVM validateBridgeTx returns ERROR', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1019,9 +1072,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
       expect(result.current.blockaidError).toBe(
@@ -1030,7 +1081,7 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('handles validation error without error_details message', async () => {
+  it('sets blockaidError from validation.reason when error_details is absent', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1067,16 +1118,14 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
       expect(result.current.blockaidError).toBe('Fallback validation error');
     });
   });
 
-  it('handles validation exception in catch block', async () => {
+  it('keeps blockaidError null when validateBridgeTx throws a network timeout', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1106,13 +1155,12 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
-      expect(result.current.blockaidError).toBe(null);
+      expect(mockValidateBridgeTx).toHaveBeenCalled();
     });
+    expect(result.current.blockaidError).toBe(null);
   });
 
   it('retries validation for the same requestId after validation throws', async () => {
@@ -1165,9 +1213,8 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { store } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { rerender, selectSourceAmountSpy } =
+      renderUseBridgeQuoteData(testState);
 
     await waitFor(() => {
       expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
@@ -1180,11 +1227,8 @@ describe('useBridgeQuoteData', () => {
     });
 
     recommendedQuote = secondMockQuote;
-    selectAppBridgeQuotes.clearCache();
-    selectAppBridgeQuotes.memoizedResultFunc.clearCache();
-    act(() => {
-      store.dispatch(setSourceAmount('2'));
-    });
+    selectSourceAmountSpy.mockReturnValue('2');
+    rerender({});
 
     await waitFor(() => {
       expect(mockValidateBridgeTx).toHaveBeenCalledTimes(2);
@@ -1227,9 +1271,7 @@ describe('useBridgeQuoteData', () => {
       bridgeReducerOverrides,
     });
 
-    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-      state: testState,
-    });
+    const { result } = renderUseBridgeQuoteData(testState);
 
     // Wait for the hook to stabilize
     await waitFor(() => {
@@ -1251,10 +1293,9 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           dest: {
+            ...mockQuoteWithMetadata.quote.dest,
             asset: {
               ...mockQuoteWithMetadata.quote.dest.asset,
-              address:
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
               assetId:
                 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             },
@@ -1267,12 +1308,10 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           dest: {
+            ...mockQuoteWithMetadata.quote.dest,
             asset: {
               ...mockQuoteWithMetadata.quote.dest.asset,
-              address: '0x0000000000000000000000000000000000000000',
-              assetId:
-                bridgeController.getNativeAssetForChainId(1151111081099710)
-                  .assetId,
+              assetId: getNativeAssetForChainId(1151111081099710).assetId,
             },
           },
         },
@@ -1298,9 +1337,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.validQuotes).toHaveLength(1);
       expect(result.current.validQuotes[0]).toEqual(mockQuote1);
@@ -1318,9 +1355,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.validQuotes).toEqual([]);
       expect(result.current.isExpired).toBe(true);
@@ -1343,9 +1378,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.validQuotes).toEqual([]);
     });
@@ -1359,6 +1392,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           src: {
+            ...mockQuoteWithMetadata.quote.src,
             asset: {
               ...mockQuoteWithMetadata.quote.src.asset,
               assetId:
@@ -1393,26 +1427,22 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.destTokenAmount).toBeUndefined();
     });
 
-    it('handles non-EVM source chain IDs correctly', () => {
+    it('keeps activeQuote when Solana source assetId matches selected source token', () => {
       const mockQuoteWithSolanaSource = {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
           src: {
+            ...mockQuoteWithMetadata.quote.src,
             asset: {
+              ...mockQuoteWithMetadata.quote.src.asset,
               assetId:
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
-              decimals: 9,
-              symbol: 'SOL',
-              chainId: bridgeController.ChainId.SOLANA,
-              name: 'SOL',
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112',
             },
           },
         },
@@ -1444,9 +1474,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.activeQuote).toEqual(mockQuoteWithSolanaSource);
     });
@@ -1467,9 +1495,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.formattedQuoteData?.estimatedTime).toBe(
         '< 1 second',
@@ -1489,9 +1515,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.formattedQuoteData?.estimatedTime).toBe(
         '30 seconds',
@@ -1511,9 +1535,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.formattedQuoteData?.estimatedTime).toBe('2 min');
     });
@@ -1531,9 +1553,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.formattedQuoteData?.estimatedTime).toBe('2 min');
     });
@@ -1546,7 +1566,10 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destTokenAmount: '2500000000',
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            amount: '2500000000',
+          },
         },
       };
 
@@ -1577,12 +1600,11 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
-      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+      expect(result.current.formattedQuoteData?.rate).toBe(
+        '1 SOL = 2,500.0 USDC',
+      );
     });
 
     it('formats rate with 3 significant digits when rate is less than 1', () => {
@@ -1590,7 +1612,10 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destTokenAmount: '100000',
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            amount: '100000',
+          },
         },
       };
 
@@ -1621,16 +1646,12 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
-      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+      expect(result.current.formattedQuoteData?.rate).toBe('1 SOL = 0.10 USDC');
     });
   });
 
-  // Test race condition handling
   describe('validation race condition handling', () => {
     it('aborts previous validation when quote changes', async () => {
       const mockQuote1 = {
@@ -1641,83 +1662,94 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: { ...mockQuoteWithMetadata.quote, requestId: 'quote2' },
       };
+      let recommendedQuote = mockQuote1;
+      const mockAbort = jest.fn();
+      const originalAbortController = global.AbortController;
+      let resolveFirstValidation: ((value: unknown) => void) | undefined;
 
-      // Start with first quote
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
-        recommendedQuote: mockQuote1,
+        recommendedQuote,
       }));
-
-      let abortCallCount = 0;
-      const mockAbort = jest.fn(() => {
-        abortCallCount++;
-      });
-
-      const originalAbortController = global.AbortController;
       global.AbortController = jest.fn().mockImplementation(() => ({
         signal: {},
         abort: mockAbort,
       })) as typeof AbortController;
-
-      mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
-
-      const bridgeReducerOverrides = {
-        sourceToken: {
-          symbol: 'SOL',
-          chainId: SolScope.Mainnet,
-          address: '11111111111111111111111111111112',
-          decimals: 9,
-        },
-        destToken: {
-          symbol: 'USDC',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          decimals: 6,
-        },
-      };
+      mockValidateBridgeTx
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirstValidation = resolve;
+            }),
+        )
+        .mockResolvedValue({ status: 'SUCCESS' });
 
       const testState = createBridgeTestState({
-        bridgeReducerOverrides,
-      });
-
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
-
-      await waitFor(() => {
-        expect(result.current.blockaidError).toBe(null);
-      });
-
-      // Change to second quote
-      selectBridgeQuotes.mockImplementation(() => ({
-        ...defaultSelectBridgeQuotesResults,
-        recommendedQuote: mockQuote2,
-      }));
-
-      // Re-render with new quote
-      const { result: result2 } = renderHookWithProvider(
-        () => useBridgeQuoteData(),
-        {
-          state: testState,
+        bridgeReducerOverrides: {
+          sourceToken: {
+            symbol: 'SOL',
+            chainId: SolScope.Mainnet,
+            address: '11111111111111111111111111111112',
+            decimals: 9,
+          },
+          destToken: {
+            symbol: 'USDC',
+            chainId: SolScope.Mainnet,
+            address:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            decimals: 6,
+          },
         },
-      );
-
-      await waitFor(() => {
-        expect(result2.current.blockaidError).toBe(null);
       });
 
-      // Verify abort was called when quote changed
-      expect(abortCallCount).toBeGreaterThan(0);
+      try {
+        const { result, rerender, selectSourceAmountSpy } =
+          renderUseBridgeQuoteData(testState);
 
-      // Restore original AbortController
-      global.AbortController = originalAbortController;
+        await waitFor(() => {
+          expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+        });
+        const abortCountAfterFirstValidation = mockAbort.mock.calls.length;
+
+        recommendedQuote = mockQuote2;
+        selectSourceAmountSpy.mockReturnValue('2');
+        rerender({});
+
+        await waitFor(() => {
+          expect(mockValidateBridgeTx).toHaveBeenCalledTimes(2);
+        });
+        await act(async () => {
+          resolveFirstValidation?.({
+            status: 'ERROR',
+            result: {
+              validation: {
+                reason: 'stale quote validation failed',
+              },
+            },
+            error_details: {
+              message: 'stale quote was accepted',
+            },
+          });
+        });
+
+        expect(mockAbort.mock.calls.length).toBe(
+          abortCountAfterFirstValidation + 1,
+        );
+        expect(
+          mockValidateBridgeTx.mock.calls[1][0].quoteResponse.quote.requestId,
+        ).toBe('quote2');
+        await waitFor(() => {
+          expect(result.current.blockaidError).toBe(null);
+        });
+      } finally {
+        global.AbortController = originalAbortController;
+      }
     });
   });
 
   // Test abort controller cleanup
   describe('abort controller cleanup', () => {
-    it('cleans up abort controller on unmount', () => {
+    it('does not throw on unmount', () => {
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
@@ -1725,9 +1757,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { unmount } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { unmount } = renderUseBridgeQuoteData(testState);
 
       // Should not throw when unmounting
       expect(() => unmount()).not.toThrow();
@@ -1767,9 +1797,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
       expect(result.current.bestQuote).toEqual(recommendedQuote);
@@ -1792,9 +1820,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.activeQuote).toEqual(recommendedQuote);
       expect(result.current.bestQuote).toEqual(recommendedQuote);
@@ -1816,16 +1842,12 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { store } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      renderUseBridgeQuoteData(testState);
 
-      // After the effect runs, selectedQuoteRequestId should be cleared in the store
       await waitFor(() => {
-        expect(
-          (store.getState() as { bridge: { selectedQuoteRequestId?: string } })
-            .bridge.selectedQuoteRequestId,
-        ).toBeUndefined();
+        expect(mockDispatch).toHaveBeenCalledWith(
+          bridgeSlice.setSelectedQuoteRequestId(undefined),
+        );
       });
     });
 
@@ -1864,9 +1886,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       // When expired but not loading, the last known Redux quotes are served as
       // a cache. The manually-selected quote is still shown (not cleared).
@@ -1909,9 +1929,7 @@ describe('useBridgeQuoteData', () => {
         bridgeReducerOverrides,
       });
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       // When isSubmittingTx is true, activeQuote should remain (even if expired)
       expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
@@ -1924,7 +1942,7 @@ describe('useBridgeQuoteData', () => {
       shouldRefreshQuote.mockReturnValueOnce(true);
     });
 
-    it('sets willRefresh to true when conditions are met', () => {
+    it('sets willRefresh to true when shouldRefreshQuote returns true', () => {
       isQuoteExpired.mockReturnValueOnce(false);
       selectBridgeQuotes.mockImplementationOnce(() => ({
         ...defaultSelectBridgeQuotesResults,
@@ -1933,9 +1951,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.willRefresh).toBe(true);
     });
@@ -1949,9 +1965,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
+      const { result } = renderUseBridgeQuoteData(testState);
 
       expect(result.current.isExpired).toBe(true);
       expect(result.current.willRefresh).toBe(true);
@@ -1969,12 +1983,7 @@ describe('useBridgeQuoteData', () => {
 
       const testState = createBridgeTestState({});
 
-      const { result, rerender } = renderHookWithProvider(
-        () => useBridgeQuoteData(),
-        {
-          state: testState,
-        },
-      );
+      const { result, rerender } = renderUseBridgeQuoteData(testState);
 
       const firstResult = result.current;
 

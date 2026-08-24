@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -110,7 +109,6 @@ function renderLimitOpenOrder(item: MockLimitOpenOrder) {
         source: 'ETH',
         dest: item.token.symbol,
       })}
-      subtitleFontWeight={FontWeight.Medium}
       {...getLimitOpenOrderSlots(item)}
     />
   );
