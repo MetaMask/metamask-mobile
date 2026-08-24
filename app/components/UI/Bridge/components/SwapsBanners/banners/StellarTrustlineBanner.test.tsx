@@ -52,24 +52,28 @@ const mockStellarXlm = createMockToken({
 describe('StellarTrustlineBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(getIsAssetRequireActivate)
-      .mockImplementation((_state, { assetId }) =>
+    jest.mocked(getIsAssetRequireActivate).mockImplementation(
+      (_state, { assetId }) =>
         // Mirror real selector: only classic Stellar assets can require activation.
         typeof assetId === 'string' &&
         assetId.startsWith('stellar:pubnet/asset:'),
-      );
+    );
   });
 
   it('shows a warning banner for cross-chain Stellar destinations that need a trustline', () => {
-    const { getByTestId, getByText } = renderBanner(<StellarTrustlineBanner />, {
-      state: createBannerState({
-        sourceToken: mockEthSource,
-        destToken: mockStellarUsdc,
-      }),
-    });
+    const { getByTestId, getByText } = renderBanner(
+      <StellarTrustlineBanner />,
+      {
+        state: createBannerState({
+          sourceToken: mockEthSource,
+          destToken: mockStellarUsdc,
+        }),
+      },
+    );
 
-    expect(getByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE)).toBeTruthy();
+    expect(
+      getByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+    ).toBeTruthy();
     expect(
       getByText(
         strings('bridge.stellar_trustline_warning_title', { token: 'USDC' }),
