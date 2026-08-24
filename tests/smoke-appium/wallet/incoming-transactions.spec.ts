@@ -154,6 +154,7 @@ function mergeTrustedSenderForIncomingNative(fixture: Fixture): void {
     isBackupAndSyncEnabled: false,
     isAccountSyncingEnabled: false,
     isContactSyncingEnabled: false,
+    isRampsSyncingEnabled: false,
   });
 
   merge(fixture.state.engine.backgroundState.AddressBookController, {

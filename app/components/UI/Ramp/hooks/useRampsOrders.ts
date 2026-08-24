@@ -13,7 +13,7 @@ export interface AddPrecreatedOrderParams {
   orderId: string;
   providerCode: string;
   walletAddress: string;
-  chainId?: string;
+  chainId: string;
 }
 
 export interface UseRampsOrdersResult {

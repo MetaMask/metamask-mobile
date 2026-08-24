@@ -392,16 +392,14 @@ const Checkout = () => {
   useEffect(() => {
     // For external-browser flows (e.g. PayPal), addPrecreatedOrder is called in
     // BuildQuote; the user never reaches Checkout. For WebView flows,
-    // providerCode and walletAddress are passed, so hasCallbackFlow is true
-    // and we can register. hasCallbackFlow being false means we lack the data
-    // required for addPrecreatedOrder anyway.
-    // Note: network/chainId is optional in addPrecreatedOrder; do not require it
-    // in the guard, otherwise orders with unusual chain ID formats (e.g. empty
-    // string from chainId.split(':')[1]) would silently skip registration here
-    // while external-browser flows would still register (BuildQuote passes
-    // chainId: network || undefined without requiring network).
+    // providerCode, walletAddress, and network are passed, so hasCallbackFlow is
+    // true and we can register. The controller requires a non-empty chain ID.
     const canRegister =
-      hasCallbackFlow && effectiveOrderId && providerCode && walletAddress;
+      hasCallbackFlow &&
+      effectiveOrderId &&
+      providerCode &&
+      walletAddress &&
+      network;
     if (!canRegister) return;
     if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
     registeredOrderIdsRef.current.add(effectiveOrderId);
@@ -409,7 +407,7 @@ const Checkout = () => {
       orderId: effectiveOrderId,
       providerCode,
       walletAddress,
-      chainId: network || undefined,
+      chainId: network,
     });
   }, [
     hasCallbackFlow,

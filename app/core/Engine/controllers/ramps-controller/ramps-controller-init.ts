@@ -7,6 +7,9 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { trace } from '../../../../util/trace';
+import { buildAndTrackEvent } from '../../utils/analytics';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -36,6 +39,19 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
+    // @ts-expect-error: Type of `TraceRequest` is different.
+    trace,
+    onOrderSyncErroneousSituation: (situationMessage) => {
+      buildAndTrackEvent(
+        initMessenger,
+        MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+        {
+          feature_name: 'Ramps Order Sync',
+          action: 'Ramps Order Sync Erroneous Situation',
+          additional_description: situationMessage,
+        },
+      );
+    },
     // The all-providers widening is driven by the `moneyHeadlessAllProviders`
     // remote feature flag, which the controller reads itself through the
     // `RemoteFeatureFlagController:getState` messenger action per quote call.

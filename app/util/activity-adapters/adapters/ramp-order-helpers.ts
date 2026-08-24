@@ -85,6 +85,18 @@ export function caipChainIdFromAssetId(
 }
 
 /**
+ * Placeholder values providers send in place of a real hash. `DUMMY_TX_ID` in
+ * particular has been observed on multiple completed orders, which collapsed
+ * distinct buys into a single Activity row.
+ */
+const RAMP_TX_HASH_PLACEHOLDERS = new Set([
+  '0x',
+  'dummy_tx_id',
+  'null',
+  'undefined',
+]);
+
+/**
  * Returns true when `txHash` looks like a real on-chain hash. Provider
  * placeholders such as `""`, `"0x"`, and all-zero hashes must not be used as
  * Activity row keys — they collide across orders in `mergeActivityItems`.
@@ -96,7 +108,7 @@ export function isPlausibleRampTxHash(
     return false;
   }
   const normalized = txHash.trim().toLowerCase();
-  if (!normalized || normalized === '0x') {
+  if (!normalized || RAMP_TX_HASH_PLACEHOLDERS.has(normalized)) {
     return false;
   }
   if (/^0x0+$/u.test(normalized)) {

@@ -12,6 +12,7 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
 type AllowedActions = MessengerActions<RampsControllerMessenger>;
@@ -46,6 +47,10 @@ export function getRampsControllerMessenger(
       // Spread the package-owned required list so new service actions
       // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      'UserStorageController:getState',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performBatchSetStorage',
+      'AuthenticationController:isSignedIn',
     ],
     events: [],
   });
@@ -57,9 +62,13 @@ export type RampsControllerInitMessenger = ReturnType<
   typeof getRampsControllerInitMessenger
 >;
 
+type RampsControllerInitMessengerActions =
+  | RemoteFeatureFlagControllerGetStateAction
+  | AnalyticsControllerActions;
+
 /**
  * Get the init messenger for the RampsController. Scoped to actions
- * needed during initialization (reading feature flags).
+ * needed during initialization (reading feature flags and analytics).
  *
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.
@@ -67,7 +76,7 @@ export type RampsControllerInitMessenger = ReturnType<
 export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
+    RampsControllerInitMessengerActions,
     | RampsControllerOrderStatusChangedEvent
     | RemoteFeatureFlagControllerStateChangeEvent,
     RootMessenger
@@ -77,7 +86,10 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   });
 
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
+    ],
     events: [
       'RampsController:orderStatusChanged',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)

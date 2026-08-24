@@ -4,6 +4,7 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
+import { USER_STORAGE_RAMPS_ORDERS_FEATURE } from '@metamask/ramps-controller';
 import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 
 const accountsStorageUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_FEATURE_NAMES.accounts}`;
@@ -13,6 +14,8 @@ const contactStorageUrl = `https://user-storage.api.cx.metamask.io/api/v1/userst
 const multichainWalletsUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_WALLETS_FEATURE_KEY}`;
 
 const multichainGroupsUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_GROUPS_FEATURE_KEY}`;
+
+const rampsOrdersStorageUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_RAMPS_ORDERS_FEATURE}`;
 
 const assetsWatchlistUrl =
   'https://user-storage.api.cx.metamask.io/api/v1/preferences/assets-watchlist';
@@ -84,6 +87,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
       response: [],
     },
     {
+      urlEndpoint: rampsOrdersStorageUrl,
+      responseCode: 200,
+      response: [],
+    },
+    {
       urlEndpoint: assetsWatchlistUrl,
       responseCode: 200,
       response: { assets: [], version: 1 },
@@ -136,6 +144,17 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint: multichainGroupsUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/rampsOrders\/[a-fA-F0-9]+$/,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: rampsOrdersStorageUrl,
       responseCode: 200,
       response: 'OK',
     },
