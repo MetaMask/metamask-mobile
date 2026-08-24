@@ -1,6 +1,7 @@
 const {
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
+  resolveE2EPlatformRequirements,
 } = require('./compute-e2e-platform-flags.cjs');
 
 describe('computeE2EPlatformFlags', () => {
@@ -114,7 +115,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('does not widen platform scope when skip-smart-e2e-selection is applied to an Android-only PR', () => {
+  it('selects Android only for Android-only path filters', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       e2eTestFilesCount: 0,
@@ -205,6 +206,93 @@ describe('applyE2ELabelOverrides', () => {
       android: false,
       ios: false,
       e2eNeeded: false,
+    });
+  });
+});
+
+describe('resolveE2EPlatformRequirements', () => {
+  const eligibleLabelInput = {
+    runAppiumIosLabel: false,
+    githubEventName: 'pull_request',
+    prBaseRef: 'main',
+    isFork: false,
+    shouldSkipE2E: false,
+    ignorableOnly: false,
+    testOnlyChanges: false,
+  };
+
+  const androidOnlyPathFilters = {
+    githubEventName: 'pull_request',
+    isFork: false,
+    shouldSkipE2E: false,
+    allChangesCount: 1,
+    ignorableCount: 0,
+    e2eTestFilesCount: 0,
+    e2eTestOrIgnorableCount: 0,
+    e2eWorkflowsCount: 0,
+    androidCount: 1,
+    iosCount: 0,
+    androidOrIgnorableCount: 1,
+    iosOrIgnorableCount: 0,
+  };
+
+  it('does not widen platforms when skip-smart-e2e-selection is applied to an Android-only PR', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: androidOnlyPathFilters,
+      labelOverrideInput: eligibleLabelInput,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+      nativeBuildNeeded: true,
+      runAppiumIos: false,
+    });
+  });
+
+  it('enables Appium iOS smoke when skip-smart-e2e-selection is applied and path filters require iOS', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        androidCount: 1,
+        iosCount: 1,
+        androidOrIgnorableCount: 1,
+        iosOrIgnorableCount: 1,
+      },
+      labelOverrideInput: eligibleLabelInput,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      runAppiumIos: true,
+    });
+  });
+
+  it('does not revive E2E when skip-smart-e2e-selection is applied to an ignorable-only PR', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        androidCount: 0,
+        androidOrIgnorableCount: 0,
+        ignorableCount: 1,
+        e2eTestOrIgnorableCount: 1,
+      },
+      labelOverrideInput: {
+        ...eligibleLabelInput,
+        ignorableOnly: true,
+      },
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      runAppiumIos: false,
     });
   });
 });
