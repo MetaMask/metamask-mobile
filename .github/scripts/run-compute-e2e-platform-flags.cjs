@@ -39,7 +39,6 @@ const flags = computeE2EPlatformFlags({
   prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
   shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
-  skipSmartSelection,
   allChangesCount,
   ignorableCount,
   e2eTestFilesCount: readInt(process.env.E2E_TEST_FILES_COUNT),
@@ -63,10 +62,10 @@ if (
     console.log(
       "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
     );
-  } else if (skipSmartSelection && flags.e2eNeeded) {
+  } else if (skipSmartSelection && flags.ios) {
     runAppiumIos = true;
     console.log(
-      "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR",
+      "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR (iOS already required by path filters)",
     );
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;
