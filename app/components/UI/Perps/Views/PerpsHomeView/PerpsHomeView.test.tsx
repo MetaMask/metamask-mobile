@@ -565,7 +565,7 @@ const settleAsyncChildren = async () => {
   });
 };
 
-const flattenStyle = (node: { props: { style: unknown } }) =>
+const flattenStyle = (node: { props: Record<string, unknown> }) =>
   StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
 
 describe('PerpsHomeView', () => {
