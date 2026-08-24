@@ -530,7 +530,6 @@ describe('PerpsPositionCard', () => {
     });
 
     it('omits the distance when no current price is available', () => {
-      // Arrange
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
