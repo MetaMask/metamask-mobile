@@ -172,7 +172,32 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-ratio`)).toBeOnTheScreen();
   });
 
+  it('hides a prior-symbol raw spread beside the current ladder', () => {
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook: mockOrderBook,
+        dataSymbol: params.channel === 'orderBookAggregated' ? 'BTC' : 'ETH',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
+    expect(
+      within(getByTestId(`${testID}-spread`)).queryByText('$100 (0.2%)'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows a reconnect affordance when the aggregated stream errors', () => {
+    const onResolvedStateChange = jest.fn();
     mockUsePerpsLiveOrderBook.mockImplementation(
       (params: { channel?: string }) => {
         if (params.channel === 'orderBookAggregated') {
@@ -195,11 +220,16 @@ describe('PerpsProOrderBookPanel', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
     expect(getByTestId(`${testID}-connection-error`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'error');
     fireEvent.press(getByTestId(`${testID}-reconnect`));
     expect(mockReconnect).toHaveBeenCalledTimes(1);
   });

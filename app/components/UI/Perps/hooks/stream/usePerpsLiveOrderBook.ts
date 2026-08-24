@@ -223,6 +223,7 @@ export function usePerpsLiveOrderBook(
     } catch (err) {
       const catchError = err instanceof Error ? err : new Error(String(err));
       DevLogger.log('usePerpsLiveOrderBook: Setup error', catchError);
+      setDataSymbol(symbol);
       setError(catchError);
       setIsLoading(false);
       if (isAggregated) {
