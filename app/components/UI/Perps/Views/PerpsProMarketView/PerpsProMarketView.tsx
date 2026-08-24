@@ -461,6 +461,8 @@ const PerpsProMarketView = ({
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketDetailLive,
     resetKey: detailSession.liveResetKey,
+    ownerActive: detailSession.isActive,
+    cancelOnAppBackground: true,
     endConditions: [
       marketSectionState === 'content',
       priceSectionState === 'content',

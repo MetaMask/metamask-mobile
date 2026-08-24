@@ -187,8 +187,9 @@ market detail become resolved from one screen-open anchor.
 - Market/mode/account/provider/network/HIP-3 changes start a new generation.
 - Backgrounding and teardown cancel the generation.
 - `content`, valid `empty`, and `error` remain distinct section states.
-- A resolved section error keeps the session completed with
-  `has_section_error=true`; latency filters exclude that section's error row.
+- A terminal section error ends the session with `success=false`,
+  `reason=section_error`, and `has_section_error=true`; latency filters exclude
+  that section's error row.
 - Disabled or collapsed sections use `not_applicable` and emit no numeric zero.
 - Chart and WebSocket traces keep their original anchors and durations.
 

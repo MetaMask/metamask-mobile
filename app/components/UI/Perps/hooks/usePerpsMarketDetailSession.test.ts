@@ -11,6 +11,18 @@ let mockAddress = '0xabc';
 let mockNetwork = 'testnet';
 let mockProvider = 'hyperliquid';
 let mockHip3ConfigVersion = 1;
+let mockIsMarketContextReady = true;
+let mockIsUserContextReady = true;
+let mockConnectionGeneration = 0;
+const mockDeliveryRevisions = {
+  account: 0,
+  candles: 0,
+  focusedPrice: 0,
+  orders: 0,
+  positions: 0,
+  prices: 0,
+  topOfBook: 0,
+};
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
@@ -24,6 +36,26 @@ jest.mock('../selectors/perpsController', () => ({
 }));
 jest.mock('../selectors/selectedAccountAddress', () => ({
   selectPerpsSelectedAccountAddress: () => mockAddress,
+}));
+jest.mock('./usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    isReady: mockIsMarketContextReady,
+    isUserReady: mockIsUserContextReady,
+  }),
+}));
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: () =>
+    Object.fromEntries(
+      Object.entries(mockDeliveryRevisions).map(([channel, revision]) => [
+        channel,
+        { getDeliveryRevision: () => revision },
+      ]),
+    ),
+}));
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    getConnectionGeneration: () => mockConnectionGeneration,
+  },
 }));
 jest.mock('../utils/perpsCufTrace', () => ({
   buildPerpsCufStartTags: (tags: object) => ({
@@ -73,6 +105,12 @@ describe('usePerpsMarketDetailSession', () => {
     mockNetwork = 'testnet';
     mockProvider = 'hyperliquid';
     mockHip3ConfigVersion = 1;
+    mockIsMarketContextReady = true;
+    mockIsUserContextReady = true;
+    mockConnectionGeneration = 0;
+    Object.keys(mockDeliveryRevisions).forEach((channel) => {
+      mockDeliveryRevisions[channel as keyof typeof mockDeliveryRevisions] = 0;
+    });
     appState = 'active';
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
@@ -153,8 +191,8 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
-  it('replays unchanged resolved sections into a separate resume cohort', () => {
-    const { result } = renderSession();
+  it('waits for fresh stream deliveries before completing a resume cohort', () => {
+    const { result, rerender } = renderSession();
     const initialLiveResetKey = result.current.liveResetKey;
     jest.clearAllMocks();
 
@@ -173,6 +211,14 @@ describe('usePerpsMarketDetailSession', () => {
         }),
       }),
     );
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(1);
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockDeliveryRevisions.focusedPrice += 1;
+    mockDeliveryRevisions.candles += 1;
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
     expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
     expect(endTrace).toHaveBeenCalledWith(
@@ -305,7 +351,7 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
-  it('completes with section-error metadata for a resolved error state', () => {
+  it('completes an error section as an unsuccessful session', () => {
     renderSession({
       [PERPS_MARKET_DETAIL_SECTION.MARKET]: 'content',
       [PERPS_MARKET_DETAIL_SECTION.STATS]: 'error',
@@ -314,8 +360,33 @@ describe('usePerpsMarketDetailSession', () => {
     expect(setTraceMeasurement).toHaveBeenCalledTimes(2);
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { success: true, has_section_error: true },
+        data: {
+          success: false,
+          has_section_error: true,
+          reason: 'section_error',
+        },
       }),
+    );
+  });
+
+  it('keeps account-owned sections loading until the selected user is ready', () => {
+    mockIsUserContextReady = false;
+    const sections: PerpsMarketDetailSections = {
+      [PERPS_MARKET_DETAIL_SECTION.MARKET]: 'content',
+      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: 'content',
+      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]: 'empty',
+    };
+    const { rerender } = renderSession(sections);
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(1);
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockIsUserContextReady = true;
+    rerender({ symbol: 'ETH', currentSections: sections });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
     );
   });
 

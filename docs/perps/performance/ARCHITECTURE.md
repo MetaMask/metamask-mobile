@@ -96,6 +96,14 @@ These names are shared by Mobile emitters, the harness parser, recipe requiremen
 | `surface_resolved_recorded`   | Valid content, resolved-empty, or visible error committed |
 | `surface_live_recorded`       | Lifecycle-fresh data consumed by that surface committed   |
 
+Terminal rows already resident in the Mobile market cache remain
+`market_source=memory_cache`, even if each row retains Terminal provenance.
+Only a Terminal fetch accepted during the current lifecycle can emit
+`market_source=terminal_v2` and satisfy `surface_live_recorded`.
+An account variant may resolve from cache, but its live stage records
+`source=fresh_socket` and the matching connection generation only after the
+session accepts fresh positions, orders, and account milestones.
+
 `react_commit`, `next_frame_checkpoint`, `socket_received`, and `subscriber_delivery` are lower-level recipe diagnostics, not public funnel stages.
 
 ## Authoritative producer table
@@ -186,9 +194,9 @@ measurement has a matching `<section>_state` attribute with `content`, `empty`,
 or `error`. `not_applicable` is stored as state without a fabricated zero
 measurement. Latency widgets include `content` and valid `empty` rows and
 exclude `error`; reliability widgets count error and timeout rows separately.
-Resolved sessions keep `success=true` even when one section resolves as
-`error`; `has_section_error=true` and the section state drive reliability
-queries. Cancellation and timeout rows do not count as completed sessions.
+A terminal section error ends the session with `success=false`,
+`reason=section_error`, and `has_section_error=true`. Cancellation and timeout
+rows also remain outside completed-session cohorts.
 
 Trade-control readiness has no independent async producer. Dashboard queries
 derive it as `max(market_resolved_ms, price_resolved_ms,

@@ -120,6 +120,7 @@ jest.mock('../../hooks/usePerpsMarketContext', () => ({
 
 const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
   generationTrigger: 'initial',
+  isActive: true,
   liveResetKey: 'detail-session',
 }));
 jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({
@@ -527,6 +528,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 const mockUseMarketInsights = jest.fn(
   (_assetId?: string | null, _isEnabled?: boolean) => ({
     report: null as Record<string, unknown> | null,
+    reportAssetId: null as string | null,
     isLoading: false,
     error: null,
     timeAgo: '',
@@ -5435,6 +5437,7 @@ describe('PerpsMarketDetailsView', () => {
       // Default: a report is available and loading is complete
       mockUseMarketInsights.mockReturnValue({
         report: mockReport,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '5m ago',
@@ -5510,6 +5513,7 @@ describe('PerpsMarketDetailsView', () => {
     it('passes market_insights_displayed: false to PERPS_SCREEN_VIEWED when no report is returned', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',
@@ -5538,6 +5542,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows skeleton when loading and no report is available', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: true,
         error: null,
         timeAgo: '',
@@ -5571,6 +5576,7 @@ describe('PerpsMarketDetailsView', () => {
     it('hides market insights section entirely when not loading and no report', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',

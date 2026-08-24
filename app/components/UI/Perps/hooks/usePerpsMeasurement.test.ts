@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
@@ -49,8 +50,26 @@ const mockDevLogger = DevLogger.log as jest.MockedFunction<
 >;
 
 describe('usePerpsMeasurement', () => {
+  let appState: AppStateStatus;
+  let appStateListener: (state: AppStateStatus) => void;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    appState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => appState,
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListener = listener;
+        return { remove: jest.fn() };
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('simple API with conditions', () => {
@@ -502,6 +521,52 @@ describe('usePerpsMeasurement', () => {
         expect.objectContaining({
           data: { success: false, reason: 'reset' },
         }),
+      );
+    });
+  });
+
+  describe('owner and app lifecycle', () => {
+    it('ends an active measurement when the app leaves the foreground', () => {
+      renderHook(() =>
+        usePerpsMeasurement({
+          traceName: TraceName.PerpsMarketDetailLive,
+          endConditions: [false],
+          cancelOnAppBackground: true,
+        }),
+      );
+
+      act(() => {
+        appState = 'background';
+        appStateListener('background');
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'app_backgrounded' },
+        }),
+      );
+    });
+
+    it('does not finish after its owning session is cancelled', () => {
+      const { rerender } = renderHook(
+        ({ ownerActive, ready }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [ready],
+            ownerActive,
+          }),
+        { initialProps: { ownerActive: true, ready: false } },
+      );
+
+      rerender({ ownerActive: false, ready: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'owner_cancelled' },
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: { success: true } }),
       );
     });
   });

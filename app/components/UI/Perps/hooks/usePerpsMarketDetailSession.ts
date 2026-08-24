@@ -25,8 +25,11 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { buildPerpsCufStartTags } from '../utils/perpsCufTrace';
 import { PERPS_LOADING_SESSION_TIMEOUT_MS } from '../utils/perpsLoadingSession';
+import { usePerpsMarketContext } from './usePerpsMarketContext';
 
 export const PERPS_MARKET_DETAIL_SECTION = {
   MARKET: 'market',
@@ -84,7 +87,20 @@ interface ActiveDetailSession {
   recordedSections: Set<PerpsMarketDetailSection>;
   sectionOffsetsMs: Partial<Record<PerpsMarketDetailSection, number>>;
   sectionStates: PerpsMarketDetailSections;
+  deliveryBaselines?: StreamDeliveryRevisions;
+  connectionGenerationBaseline?: number;
+  requiresCandleFreshness: boolean;
   timeout: ReturnType<typeof setTimeout>;
+}
+
+interface StreamDeliveryRevisions {
+  account: number;
+  candles: number;
+  focusedPrice: number;
+  orders: number;
+  positions: number;
+  prices: number;
+  topOfBook: number;
 }
 
 interface DetailGenerationIdentity {
@@ -156,12 +172,14 @@ interface UsePerpsMarketDetailSessionOptions {
 
 interface UsePerpsMarketDetailSessionResult {
   generationTrigger: PerpsMarketDetailGenerationTrigger;
+  isActive: boolean;
   liveResetKey: string;
 }
 
 interface EndSessionOptions {
   success: boolean;
   reason?: string;
+  failureReason?: string;
   missingSections?: PerpsMarketDetailSection[];
   hasSectionError?: boolean;
 }
@@ -175,6 +193,60 @@ const roundedOffsets = (
       Number(offset.toFixed(3)),
     ]),
   );
+
+const getStreamDeliveryRevisions = (): StreamDeliveryRevisions => {
+  const stream = getStreamManagerInstance();
+  return {
+    account: stream.account.getDeliveryRevision(),
+    candles: stream.candles.getDeliveryRevision(),
+    focusedPrice: stream.focusedPrice.getDeliveryRevision(),
+    orders: stream.orders.getDeliveryRevision(),
+    positions: stream.positions.getDeliveryRevision(),
+    prices: stream.prices.getDeliveryRevision(),
+    topOfBook: stream.topOfBook.getDeliveryRevision(),
+  };
+};
+
+const hasFreshSectionDelivery = (
+  section: PerpsMarketDetailSection,
+  baseline: StreamDeliveryRevisions | undefined,
+  connectionGenerationBaseline: number | undefined,
+  requiresCandleFreshness: boolean,
+): boolean => {
+  if (!baseline) {
+    return true;
+  }
+  const current = getStreamDeliveryRevisions();
+  const connectionAdvanced =
+    connectionGenerationBaseline !== undefined &&
+    PerpsConnectionManager.getConnectionGeneration() >
+      connectionGenerationBaseline;
+  switch (section) {
+    case PERPS_MARKET_DETAIL_SECTION.PRICE:
+      return (
+        connectionAdvanced &&
+        (current.focusedPrice > baseline.focusedPrice ||
+          current.prices > baseline.prices)
+      );
+    case PERPS_MARKET_DETAIL_SECTION.CHART:
+      return (
+        !requiresCandleFreshness ||
+        (connectionAdvanced && current.candles > baseline.candles)
+      );
+    case PERPS_MARKET_DETAIL_SECTION.ACCOUNT:
+      return connectionAdvanced && current.account > baseline.account;
+    case PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK:
+      return connectionAdvanced && current.topOfBook > baseline.topOfBook;
+    case PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS:
+      return (
+        connectionAdvanced &&
+        current.positions > baseline.positions &&
+        current.orders > baseline.orders
+      );
+    default:
+      return true;
+  }
+};
 
 /**
  * Owns one market-detail trace per market/mode/account/provider generation.
@@ -196,6 +268,8 @@ export function usePerpsMarketDetailSession({
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
+  const { isReady: isMarketContextReady, isUserReady: isUserContextReady } =
+    usePerpsMarketContext();
   const activeSessionRef = useRef<ActiveDetailSession | null>(null);
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
@@ -206,6 +280,7 @@ export function usePerpsMarketDetailSession({
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const [foregroundGeneration, setForegroundGeneration] = useState(0);
   const [sessionRevision, setSessionRevision] = useState(0);
+  const [isSessionActive, setIsSessionActive] = useState(false);
   const activeGenerationTriggerRef =
     useRef<PerpsMarketDetailGenerationTrigger>(surfaceTrigger);
   const previousGenerationRef = useRef<DetailGenerationIdentity | null>(null);
@@ -225,6 +300,9 @@ export function usePerpsMarketDetailSession({
         .join('|'),
     [sections],
   );
+  const streamDeliveryRevisionsKey = Object.values(
+    getStreamDeliveryRevisions(),
+  ).join('|');
   const generationIdentity: DetailGenerationIdentity | null = symbol
     ? {
         address,
@@ -279,6 +357,7 @@ export function usePerpsMarketDetailSession({
     ({
       success,
       reason,
+      failureReason,
       missingSections,
       hasSectionError,
     }: EndSessionOptions) => {
@@ -294,7 +373,9 @@ export function usePerpsMarketDetailSession({
         data: {
           success,
           ...(hasSectionError ? { has_section_error: true } : {}),
-          ...(reason ? { reason } : {}),
+          ...(reason || failureReason
+            ? { reason: reason ?? failureReason }
+            : {}),
           ...(missingSections?.length
             ? { missing_sections: missingSections.join(',') }
             : {}),
@@ -310,7 +391,9 @@ export function usePerpsMarketDetailSession({
           symbol: session.symbol,
           success,
           ...(hasSectionError ? { has_section_error: true } : {}),
-          ...(reason ? { reason } : {}),
+          ...(reason || failureReason
+            ? { reason: reason ?? failureReason }
+            : {}),
           section_offsets_ms: roundedOffsets(session.sectionOffsetsMs),
           section_states: session.sectionStates,
           ...(missingSections?.length
@@ -319,6 +402,7 @@ export function usePerpsMarketDetailSession({
         })}`,
       );
       activeSessionRef.current = null;
+      setIsSessionActive(false);
     },
     [],
   );
@@ -410,8 +494,17 @@ export function usePerpsMarketDetailSession({
       recordedSections: new Set(),
       sectionOffsetsMs: {},
       sectionStates: {},
+      requiresCandleFreshness: configuredChartLibrary === 'lightweight',
+      ...(generationTrigger === 'background_resume'
+        ? {
+            deliveryBaselines: getStreamDeliveryRevisions(),
+            connectionGenerationBaseline:
+              PerpsConnectionManager.getConnectionGeneration(),
+          }
+        : {}),
       timeout,
     };
+    setIsSessionActive(true);
     setSessionRevision((revision) => revision + 1);
     DevLogger.log(
       `${PROOF_MARKER} ${JSON.stringify({
@@ -470,7 +563,12 @@ export function usePerpsMarketDetailSession({
 
   useEffect(() => {
     const session = activeSessionRef.current;
-    if (!session || session.symbol !== symbol || session.mode !== mode) {
+    if (
+      !session ||
+      appStateRef.current !== 'active' ||
+      session.symbol !== symbol ||
+      session.mode !== mode
+    ) {
       return;
     }
 
@@ -479,7 +577,20 @@ export function usePerpsMarketDetailSession({
         continue;
       }
       const state = sectionsRef.current[section] ?? 'loading';
-      if (state === 'loading') {
+      const isUserSection =
+        section === PERPS_MARKET_DETAIL_SECTION.ACCOUNT ||
+        section === PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS;
+      if (
+        state === 'loading' ||
+        !isMarketContextReady ||
+        (isUserSection && !isUserContextReady) ||
+        !hasFreshSectionDelivery(
+          section,
+          session.deliveryBaselines,
+          session.connectionGenerationBaseline,
+          session.requiresCandleFreshness,
+        )
+      ) {
         continue;
       }
 
@@ -520,15 +631,29 @@ export function usePerpsMarketDetailSession({
         session.recordedSections.has(section),
       )
     ) {
+      const hasSectionError = Object.values(session.sectionStates).includes(
+        'error',
+      );
       endActiveSession({
-        success: true,
-        hasSectionError: Object.values(session.sectionStates).includes('error'),
+        success: !hasSectionError,
+        ...(hasSectionError ? { failureReason: 'section_error' } : {}),
+        hasSectionError,
       });
     }
-  }, [endActiveSession, mode, sectionStatesKey, sessionRevision, symbol]);
+  }, [
+    endActiveSession,
+    isMarketContextReady,
+    isUserContextReady,
+    mode,
+    sectionStatesKey,
+    sessionRevision,
+    streamDeliveryRevisionsKey,
+    symbol,
+  ]);
 
   return {
     generationTrigger,
+    isActive: isSessionActive,
     liveResetKey,
   };
 }
