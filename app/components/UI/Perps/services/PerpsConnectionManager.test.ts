@@ -353,6 +353,56 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('reconnects when the selected account changes during initial preload', async () => {
+      const initialAddress = '0x1111111111111111111111111111111111111111';
+      const nextAddress = '0x2222222222222222222222222222222222222222';
+      let resolveInitialPrewarm: ((cleanup: () => void) => void) | undefined;
+
+      jest
+        .mocked(selectSelectedInternalAccountByScope)
+        .mockReturnValue(() => ({ address: initialAddress }));
+      mockPerpsController.init.mockResolvedValue();
+      mockStreamManagerInstance.prices.prewarm.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveInitialPrewarm = resolve;
+          }),
+      );
+
+      const connectPromise = PerpsConnectionManager.connect();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      if (!resolveInitialPrewarm) {
+        throw new Error('Initial preload did not start.');
+      }
+
+      jest
+        .mocked(selectSelectedInternalAccountByScope)
+        .mockReturnValue(() => ({ address: nextAddress }));
+      storeCallbacks[storeCallbacks.length - 1]();
+
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      resolveInitialPrewarm(jest.fn());
+      await connectPromise;
+
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (mockPerpsController.init.mock.calls.length >= 2) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      const pendingReconnect = (
+        PerpsConnectionManager as unknown as {
+          pendingReconnectPromise: Promise<void> | null;
+        }
+      ).pendingReconnectPromise;
+      await pendingReconnect;
+
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(2);
+      expect(PerpsConnectionManager.isSelectedUserContextReady()).toBe(true);
+    });
+
     it('sets error state and resets flags when connection fails', async () => {
       const error = new Error('Connection failed');
       mockPerpsController.init.mockRejectedValueOnce(error);

@@ -1017,8 +1017,14 @@ class PerpsConnectionManagerClass {
 
         // Stage 3: Pre-load positions and orders subscriptions to populate cache
         const preloadStart = performance.now();
+        const preloadedUserContextKey = this.getSelectedUserContextKey();
         await this.preloadSubscriptions();
-        this.setInitializedUserContextKey(this.getSelectedUserContextKey());
+        if (
+          this.isInitialized &&
+          preloadedUserContextKey === this.getSelectedUserContextKey()
+        ) {
+          this.setInitializedUserContextKey(preloadedUserContextKey);
+        }
         setMeasurement(
           PerpsMeasurementName.PerpsSubscriptionsPreload,
           performance.now() - preloadStart,
@@ -1120,8 +1126,9 @@ class PerpsConnectionManagerClass {
           'PerpsConnectionManager: Waiting for pending initialization before reconnecting',
         );
         await this.initPromise;
-        // After init completes, check if we're already connected
-        if (this.isConnected) {
+        // A context change can land while the initial preload is in flight.
+        // Keep reconnecting when that connection belongs to the prior user.
+        if (this.isConnected && this.isSelectedUserContextReady()) {
           return;
         }
       }
@@ -1332,8 +1339,14 @@ class PerpsConnectionManagerClass {
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();
+      const preloadedUserContextKey = this.getSelectedUserContextKey();
       await this.preloadSubscriptions();
-      this.setInitializedUserContextKey(this.getSelectedUserContextKey());
+      if (
+        this.isInitialized &&
+        preloadedUserContextKey === this.getSelectedUserContextKey()
+      ) {
+        this.setInitializedUserContextKey(preloadedUserContextKey);
+      }
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionPreload,
         performance.now() - preloadStart,
