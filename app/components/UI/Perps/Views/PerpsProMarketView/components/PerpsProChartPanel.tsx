@@ -26,6 +26,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
@@ -101,6 +102,7 @@ const PerpsProChartPanel = ({
   onLatestPriceChange,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
+  const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
@@ -169,6 +171,7 @@ const PerpsProChartPanel = ({
 
   const handleToggleChartExpanded = useCallback(
     (expanded: boolean) => {
+      playSelection().catch(() => undefined);
       setChartExpanded(expanded);
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -180,7 +183,7 @@ const PerpsProChartPanel = ({
         ...chartAnalyticsProperties,
       });
     },
-    [chartAnalyticsProperties, setChartExpanded, symbol, track],
+    [chartAnalyticsProperties, playSelection, setChartExpanded, symbol, track],
   );
 
   const handleFullscreenChartOpen = useCallback(() => {
