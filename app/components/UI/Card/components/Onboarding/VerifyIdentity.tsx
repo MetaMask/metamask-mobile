@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
+import { setLockTime } from '../../../../../actions/settings';
+import { selectLockTime } from '../../../../../selectors/settings';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -32,6 +35,8 @@ import useRegions from '../../hooks/useRegions';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+  const lockTime = useSelector(selectLockTime);
   const tw = useTailwind();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -90,6 +95,8 @@ const VerifyIdentity = () => {
 
     if (sessionUrl) {
       setIsLaunchingVeriff(true);
+      const previousLockTime = lockTime;
+      dispatch(setLockTime(-1));
       try {
         const result = await VeriffSdk.launchVeriff({
           sessionUrl,
@@ -132,6 +139,7 @@ const VerifyIdentity = () => {
           },
         });
       } finally {
+        dispatch(setLockTime(previousLockTime));
         setIsLaunchingVeriff(false);
       }
     }
@@ -142,6 +150,8 @@ const VerifyIdentity = () => {
     createEventBuilder,
     veriffBranding,
     selectedCountry?.key,
+    lockTime,
+    dispatch,
   ]);
 
   useEffect(() => {

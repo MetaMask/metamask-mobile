@@ -10,6 +10,7 @@ import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import useRegions from '../../hooks/useRegions';
+import Logger from '../../../../../util/Logger';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -258,6 +259,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Create test store
+const PREVIOUS_LOCK_TIME = 30000;
+
 const createTestStore = (initialState = {}) =>
   configureStore({
     reducer: {
@@ -277,6 +280,15 @@ const createTestStore = (initialState = {}) =>
           default:
             return state;
         }
+      },
+      settings: (
+        state = { lockTime: PREVIOUS_LOCK_TIME },
+        action: { type?: string; lockTime?: number } = {},
+      ) => {
+        if (action.type === 'SET_LOCK_TIME') {
+          return { ...state, lockTime: action.lockTime };
+        }
+        return state;
       },
     },
   });
@@ -582,6 +594,45 @@ describe('VerifyIdentity Component', () => {
       });
     });
 
+    it('disables auto-lock while Veriff is open and restores it after completion', async () => {
+      (VeriffSdk.launchVeriff as jest.Mock).mockImplementation(async () => {
+        expect(store.getState().settings.lockTime).toBe(-1);
+        return { status: VeriffSdk.statusDone };
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId('verify-identity-continue-button'));
+
+      await waitFor(() => {
+        expect(VeriffSdk.launchVeriff).toHaveBeenCalled();
+      });
+      expect(store.getState().settings.lockTime).toBe(PREVIOUS_LOCK_TIME);
+    });
+
+    it('restores previous lockTime when Veriff launch throws', async () => {
+      (VeriffSdk.launchVeriff as jest.Mock).mockRejectedValue(
+        new Error('launch failed'),
+      );
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId('verify-identity-continue-button'));
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalled();
+      });
+      expect(store.getState().settings.lockTime).toBe(PREVIOUS_LOCK_TIME);
+    });
+
     it('does not launch Veriff SDK when continue button is pressed without sessionUrl', async () => {
       (useStartVerification as jest.Mock).mockReturnValue({
         data: null,
@@ -602,6 +653,7 @@ describe('VerifyIdentity Component', () => {
       await waitFor(() => {
         expect(VeriffSdk.launchVeriff).not.toHaveBeenCalled();
       });
+      expect(store.getState().settings.lockTime).toBe(PREVIOUS_LOCK_TIME);
     });
   });
 
