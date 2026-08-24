@@ -48,6 +48,15 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => mockStream),
 }));
 
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: jest.fn(() => ({
+    key: 'test-market-context',
+    isReady: true,
+    isUserReady: true,
+    isConnectionInitialized: true,
+  })),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
