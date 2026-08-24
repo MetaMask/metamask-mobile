@@ -11,7 +11,6 @@ import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import {
   InteractionManager,
   ScrollView,
-  View,
   type RefreshControlProps,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -39,11 +38,8 @@ import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
-import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
-import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
 
@@ -120,13 +116,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       null;
     const isSolanaSelected = selectedSolanaAccount !== null;
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
+    const shouldExcludeMusdFromMainList = useSelector(
+      selectMoneyHubEnabledFlag,
     );
-    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const shouldExcludeMusdFromMainList =
-      isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -271,26 +263,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       if (tokenKeysForList.length > 0) {
         return (
-          <>
-            {!showOnlyMusd && isMusdConversionFlowEnabled && isGeoEligible && (
-              <View style={isFullView ? tw`px-4` : undefined}>
-                <MusdConversionAssetListCta />
-              </View>
-            )}
-            <TokenList
-              tokenKeys={tokenKeysForList}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-              maxItems={maxItems}
-              isFullView={isFullView}
-              listHeaderComponent={listHeaderComponent}
-              listFooterComponent={listFooterComponent}
-              refreshControl={refreshControl}
-              hideSecondaryPriceRow={hideSecondaryPriceRow}
-            />
-          </>
+          <TokenList
+            tokenKeys={tokenKeysForList}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+            listHeaderComponent={listHeaderComponent}
+            listFooterComponent={listFooterComponent}
+            refreshControl={refreshControl}
+            hideSecondaryPriceRow={hideSecondaryPriceRow}
+          />
         );
       }
 
@@ -336,14 +321,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       tokenKeysForList,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
-      isMusdConversionFlowEnabled,
       tw,
       refreshing,
       onRefresh,
       showRemoveMenu,
       handleScamWarningModal,
       maxItems,
-      isGeoEligible,
       listHeaderComponent,
       listFooterComponent,
       refreshControl,
