@@ -1174,12 +1174,21 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('closes ShareTokenBottomSheet when onClose is invoked', async () => {
-      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+    it('does not re-render TokenDetails when the share sheet opens', async () => {
+      render(<TokenDetails />);
+      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
+
       await invokeSharePress();
 
-      expect(getByTestId('share-token-sheet')).toBeTruthy();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
+        headerRenderCount,
+      );
+    });
 
+    it('closes ShareTokenBottomSheet without re-rendering TokenDetails', async () => {
+      const { queryByTestId } = render(<TokenDetails />);
+      await invokeSharePress();
+      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
       const { onClose } = (mockShareTokenBottomSheet.mock.calls.at(-1)?.[0] ??
         {}) as { onClose: () => void };
 
@@ -1187,7 +1196,10 @@ describe('TokenDetails', () => {
         onClose();
       });
 
-      expect(queryByTestId('share-token-sheet')).toBeNull();
+      expect(queryByTestId('share-token-sheet')).not.toBeOnTheScreen();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
+        headerRenderCount,
+      );
     });
   });
 
