@@ -45,9 +45,16 @@ const PerpsProTabEmptyState = ({
       : strings(emptyDescriptionKey);
 
   return (
-    // TabEmptyState does not forward testID to a measurable native view, so the
-    // locator lives on a wrapping View that automated checks can resolve.
-    <View testID={testID} style={tw.style('flex-1')}>
+    // TabEmptyState does not forward testID to its rendered view, so the locator
+    // lives on a wrapping View. It is exposed to accessibility with the empty
+    // description as its label so assistive tech and automated checks both
+    // resolve a single node for this state.
+    <View
+      testID={testID}
+      accessible
+      accessibilityLabel={description}
+      style={tw.style('flex-1')}
+    >
       <TabEmptyState
         icon={
           <Image
