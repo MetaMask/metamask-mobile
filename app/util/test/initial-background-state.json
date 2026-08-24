@@ -783,6 +783,9 @@
     "email": null,
     "termsAcceptedAt": null,
     "acceptedDisclaimerIds": [],
+    "termsAcceptedVendor": null,
+    "sumsubTncAccepted": null,
+    "idosTncAccepted": null,
     "disclaimers": [],
     "disclaimersError": null,
     "geoCountry": null,
@@ -941,6 +944,7 @@
     "marketOverview": null
   },
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],
