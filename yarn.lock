@@ -7746,9 +7746,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:@metamask-previews/assets-controller@13.1.4-preview-57cd9b4fb":
-  version: 13.1.4-preview-57cd9b4fb
-  resolution: "@metamask-previews/assets-controller@npm:13.1.4-preview-57cd9b4fb"
+"@metamask/assets-controller@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@metamask/assets-controller@npm:14.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7758,7 +7758,7 @@ __metadata:
     "@metamask/assets-controllers": "npm:^111.1.1"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
-    "@metamask/config-registry-controller": "npm:^2.0.1"
+    "@metamask/config-registry-controller": "npm:^3.0.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/core-backend": "npm:^8.1.2"
     "@metamask/keyring-api": "npm:^24.0.0"
@@ -7767,7 +7767,7 @@ __metadata:
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/network-controller": "npm:^35.0.1"
-    "@metamask/network-enablement-controller": "npm:^6.0.3"
+    "@metamask/network-enablement-controller": "npm:^6.0.4"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/polling-controller": "npm:^16.0.9"
@@ -7781,7 +7781,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/f35366d2da367bcccaa499533408b8b59e68d1437994e398381e202d2691081dcefcbce9896c3856091e60f4ee6647fe69b6537ba217407dd59c93e7685e106a
+  checksum: 10/727afe60f0a1f63a423f0cba83235215c2cde914f58ecc47d17ecb26f23060780dc268648c572266051403d0620244c05698928d1de53664644a37bb9f90c134
   languageName: node
   linkType: hard
 
@@ -9434,7 +9434,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^6.0.3":
+"@metamask/network-enablement-controller@npm:^6.0.3, @metamask/network-enablement-controller@npm:^6.0.4":
   version: 6.0.4
   resolution: "@metamask/network-enablement-controller@npm:6.0.4"
   dependencies:

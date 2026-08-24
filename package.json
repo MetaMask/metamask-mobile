@@ -185,7 +185,7 @@
     ]
   },
   "resolutions": {
-    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@13.1.4-preview-57cd9b4fb",
+    "@metamask/assets-controller": "^14.0.0",
     "@metamask/network-controller": "35.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
