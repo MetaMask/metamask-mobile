@@ -1,6 +1,5 @@
 import type {
   MetaMetricsSwapsEventSource,
-  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
