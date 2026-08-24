@@ -3,10 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import { BENEFITS } from '../ProSubscription/screens/Benefits/Benefits.constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import { BenefitsTestIds } from '../ProSubscription/screens/Benefits/Benefits.testIds';
+import { BENEFITS, BenefitRowTestIds } from '../shared/pro';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -124,7 +121,7 @@ describe('ProHub', () => {
       const { getByTestId } = renderProHub();
 
       BENEFITS.forEach((benefit) => {
-        const row = getByTestId(BenefitsTestIds.BENEFIT_ROW(benefit.id));
+        const row = getByTestId(BenefitRowTestIds.ROW(benefit.id));
 
         expect(row).toBeOnTheScreen();
         expect(row).toHaveTextContent(toRegex(strings(benefit.title)));
@@ -213,7 +210,7 @@ describe('ProHub', () => {
     it('does not navigate when a benefit row is pressed', () => {
       const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(BENEFITS[0].id)));
+      fireEvent.press(getByTestId(BenefitRowTestIds.ROW(BENEFITS[0].id)));
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });

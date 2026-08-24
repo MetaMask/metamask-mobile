@@ -28,10 +28,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import PhysicalCardPreview from './components/PhysicalCardPreview';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import { BENEFITS } from '../ProSubscription/screens/Benefits/Benefits.constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import BenefitRow from '../ProSubscription/screens/Benefits/components/BenefitRow';
+import { BENEFITS, BenefitRow } from '../shared/pro';
 
 interface StatCardProps {
   iconName: IconName;
