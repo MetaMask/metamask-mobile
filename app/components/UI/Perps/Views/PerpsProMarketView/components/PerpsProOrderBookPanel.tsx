@@ -28,6 +28,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -80,12 +81,20 @@ export interface PerpsProOrderBookPanelProps {
 }
 
 /**
- * Price and value share the row equally (Figma: two 62px columns with an 8px
- * gutter). Fixed halves plus single-line text are what keep the two from
- * running into each other once either side grows.
+ * The row cannot be two equal halves. The order-book column is a fixed 132px
+ * (`PRO_ORDER_BOOK_COLUMN_WIDTH`), so equal halves give each side 62px, and a
+ * sub-cent price needs more than that: kPEPE renders "$0.002645" — nine
+ * characters at the 1e-6 grouping step — and got ellipsised to "$0.0026…",
+ * which makes every ladder row read the same (TAT-3713).
+ *
+ * The value side is the one with room to give: `formatColumnValue` compacts
+ * anything at or above 1,000 to K/M/B/T, so it never exceeds ~7 characters.
+ * Sizing it to its content and letting the price take the remainder keeps both
+ * whole. Each side still keeps single-line text, so the extreme case degrades
+ * to a truncated price rather than a row that wraps or overflows.
  */
-const COLUMN_CLASS = 'relative z-10 flex-1';
-const VALUE_COLUMN_CLASS = `${COLUMN_CLASS} text-right`;
+const PRICE_COLUMN_CLASS = 'relative z-10 flex-1';
+const VALUE_COLUMN_CLASS = 'relative z-10 shrink-0 text-right';
 
 interface OrderBookRowProps {
   level: OrderBookLevel;
@@ -149,7 +158,7 @@ const OrderBookRow = ({
         fontWeight={FontWeight.Medium}
         color={sideColor}
         numberOfLines={1}
-        twClassName={COLUMN_CLASS}
+        twClassName={PRICE_COLUMN_CLASS}
         testID={`${testID}-price`}
       >
         {priceLabel}
@@ -377,6 +386,7 @@ const PerpsProOrderBookPanel = ({
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const { colors } = useTheme();
+  const { playSelection } = useHaptics();
   const buyColor = colors.success.default;
   const sellColor = colors.error.default;
 
@@ -384,6 +394,31 @@ const PerpsProOrderBookPanel = ({
   const [metric, setMetric] = useState<OrderBookListMetric>('total');
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  const handleCollapse = useCallback(() => {
+    if (!onCollapse) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onCollapse();
+  }, [onCollapse, playSelection]);
+
+  const handleOpenConfig = useCallback(() => {
+    playSelection().catch(() => undefined);
+    setIsConfigOpen(true);
+  }, [playSelection]);
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      if (!onSelectPrice) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onSelectPrice(price);
+    },
+    [onSelectPrice, playSelection],
+  );
+  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -614,7 +649,7 @@ const PerpsProOrderBookPanel = ({
               iconName={IconName.Collapse}
               accessibilityLabel={strings('perps.order_book.collapse')}
               size={ButtonIconSize.Md}
-              onPress={onCollapse}
+              onPress={handleCollapse}
               testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
             />
           ) : null}
@@ -628,7 +663,7 @@ const PerpsProOrderBookPanel = ({
             iconName={IconName.Setting}
             accessibilityLabel={strings('perps.order_book.config_title')}
             size={ButtonIconSize.Md}
-            onPress={() => setIsConfigOpen(true)}
+            onPress={handleOpenConfig}
             testID={`${testID}-grouping-trigger`}
           />
         </Box>
@@ -642,6 +677,7 @@ const PerpsProOrderBookPanel = ({
           color={TextColor.TextAlternative}
           numberOfLines={1}
           twClassName="flex-1"
+          testID={`${testID}-column-header-price`}
         >
           {strings('perps.order_book.price')}
         </Text>
@@ -650,7 +686,8 @@ const PerpsProOrderBookPanel = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="flex-1 text-right"
+          twClassName="shrink-0 text-right"
+          testID={`${testID}-column-header-value`}
         >
           {`${metricLabel} (${unitLabel})`}
         </Text>
@@ -703,7 +740,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
               ))}
@@ -750,7 +787,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />
               ))}

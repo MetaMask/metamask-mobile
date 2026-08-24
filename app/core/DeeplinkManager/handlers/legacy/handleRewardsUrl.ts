@@ -20,7 +20,7 @@ interface HandleRewardsUrlParams {
 interface RewardsNavigationParams {
   referral?: string;
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch' | 'money';
 }
 
 /**
@@ -45,9 +45,13 @@ const parseRewardsNavigationParams = (
     page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
       ? pageParam
       : undefined) as RewardsNavigationParams['page'],
-    campaign: (['ondo', 'season1', 'perps-comp', 'predict-the-pitch'].includes(
-      campaignParam ?? '',
-    )
+    campaign: ([
+      'ondo',
+      'season1',
+      'perps-comp',
+      'predict-the-pitch',
+      'money',
+    ].includes(campaignParam ?? '')
       ? campaignParam
       : undefined) as RewardsNavigationParams['campaign'],
   };
@@ -67,6 +71,7 @@ const parseRewardsNavigationParams = (
  * - https://link.metamask.io/rewards?campaign=ondo
  * - https://link.metamask.io/rewards?campaign=season1
  * - https://link.metamask.io/rewards?campaign=predict-the-pitch
+ * - https://link.metamask.io/rewards?campaign=money
  */
 const prepareRewardsDeeplink = (rewardsPath: string) => {
   // Parse navigation parameters from URL

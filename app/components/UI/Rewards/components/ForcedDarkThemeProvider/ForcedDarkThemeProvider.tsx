@@ -8,10 +8,9 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../../../util/theme/themeUtils';
 import Device from '../../../../../util/device';
 
-const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
+const resolvedDarkTheme = resolveDarkTheme(true);
 
 const forcedDarkTheme: Theme = {
   colors: resolvedDarkTheme.colors,
@@ -57,10 +56,7 @@ const ForcedDarkThemeProvider: React.FC<ForcedDarkThemeProviderProps> = ({
 
   return (
     <ThemeContext.Provider value={forcedDarkTheme}>
-      <DesignSystemThemeProvider
-        theme={DesignSystemTheme.Dark}
-        isPureBlack={isPureBlackEnabled}
-      >
+      <DesignSystemThemeProvider theme={DesignSystemTheme.Dark}>
         {children}
       </DesignSystemThemeProvider>
     </ThemeContext.Provider>

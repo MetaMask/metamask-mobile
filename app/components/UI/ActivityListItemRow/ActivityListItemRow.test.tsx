@@ -22,6 +22,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -161,6 +162,10 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
+}));
+
+jest.mock('../../../selectors/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
@@ -454,6 +459,17 @@ const makeItem = (
   } as unknown as ActivityListItem;
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+  jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
+    [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
+  } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+  jest.mocked(selectMultichainAssetsRates).mockReturnValue({});
+});
+
 // ---------------------------------------------------------------------------
 // Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
@@ -521,20 +537,17 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'out',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: ETH DeFi',
+    );
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
-  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+  it('renders the account name for a non-EVM (Solana) owned counterparty', () => {
     const item = makeItem({
       type: 'send',
       status: 'success',
@@ -549,14 +562,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('Solana');
-    // The non-hex address is passed straight through to the avatar (no
-    // checksumming), so the multichain row renders without error.
-    expect(
-      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: Solana',
+    );
   });
 
   it('renders the account name in the subtitle when receiving from an owned account', () => {
@@ -570,19 +578,14 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
-      'From: ',
+      'From: ETH DeFi',
     );
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -1816,14 +1819,22 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
-  // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so restore the suite-wide defaults (USD, equal rates) after
-  // each test to keep overrides from leaking.
-  afterEach(() => {
-    jest.clearAllMocks();
+  const restoreSelectorDefaults = () => {
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
+  };
+
+  // Persistent mockReturnValue is not cleared by clearAllMocks. beforeEach
+  // isolates tests in this suite; afterEach restores defaults so later
+  // suites (amount display, ERC-20 fiat) are not left on EUR / missing rates.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreSelectorDefaults();
+  });
+
+  afterEach(() => {
+    restoreSelectorDefaults();
   });
 
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
@@ -1896,6 +1907,31 @@ describe('ActivityListItemRow — network badge', () => {
 });
 
 describe('ActivityListItemRow — amount display', () => {
+  it('renders fiat for a non-EVM token using its multichain asset rate', () => {
+    const solanaChainId = SolScope.Mainnet;
+    const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    jest.mocked(selectMultichainAssetsRates).mockReturnValue({
+      [usdcAssetId]: { rate: '1', conversionTime: 0 },
+    } as ReturnType<typeof selectMultichainAssetsRates>);
+
+    const item = makeItem({
+      status: 'success',
+      chainId: solanaChainId,
+      token: {
+        amount: '524800',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: usdcAssetId,
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.5248 USDC')).toBeOnTheScreen();
+    expect(getByText('-$0.52')).toBeOnTheScreen();
+  });
+
   it('formats raw token base units and renders fiat when rates are available', () => {
     const item = makeItem({
       status: 'success',
@@ -1991,8 +2027,8 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     >;
 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
-  // so restore the suite default (lowercased mUSD key) after each test.
-  afterEach(() => {
+  // so set the suite default (lowercased mUSD key) before each test.
+  beforeEach(() => {
     jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
@@ -2029,10 +2065,11 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
+  'rampBuy',
   'sell',
+  'rampSell',
   'claim',
   'claimMusdBonus',
   'deposit',
@@ -2089,10 +2126,11 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
+  rampBuy: 'Bought',
   sell: 'Sold',
+  rampSell: 'Sold',
   claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',

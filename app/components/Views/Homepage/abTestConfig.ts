@@ -261,10 +261,13 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
   'homeTMCU1209AbtestHomepageBalanceBreakdown';
+export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
+  'homescreen_balance_breakdown';
 
 export enum HomepageBalanceBreakdownVariant {
   Control = 'control',
   Icons = 'icons',
+  IconsWithArrows = 'iconsWithArrows',
   Allocation = 'allocation',
 }
 
@@ -272,6 +275,7 @@ export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
 
 interface HomepageBalanceBreakdownVariantConfig {
   layout: HomepageBalanceBreakdownLayout | null;
+  showRowArrows: boolean;
 }
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
@@ -280,12 +284,19 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
 > = {
   [HomepageBalanceBreakdownVariant.Control]: {
     layout: null,
+    showRowArrows: false,
   },
   [HomepageBalanceBreakdownVariant.Icons]: {
     layout: 'icons',
+    showRowArrows: false,
+  },
+  [HomepageBalanceBreakdownVariant.IconsWithArrows]: {
+    layout: 'icons',
+    showRowArrows: true,
   },
   [HomepageBalanceBreakdownVariant.Allocation]: {
     layout: 'allocation',
+    showRowArrows: false,
   },
 };
 
@@ -294,9 +305,26 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
   variationNames: {
     control: 'Current homepage without balance breakdown',
     icons: 'Primitive breakdown with icons',
+    iconsWithArrows: 'Primitive breakdown with icons and row arrows',
     allocation: 'Primitive allocation breakdown',
   },
 } as const;
+
+export function getHomepageBalanceBreakdownTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+      variantName,
+    ),
+  ];
+}
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
@@ -304,6 +332,27 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     validVariants: Object.values(HomepageBalanceBreakdownVariant),
     eventNames: [
       EVENT_NAME.HOME_VIEWED,
-      EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
+      EVENT_NAME.MONEY_SURFACE_VIEWED,
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PREDICT_FEED_VIEWED,
+      EVENT_NAME.PREDICT_HOME_VIEWED,
+      EVENT_NAME.POSITION_SCREEN_VIEWED,
     ],
+    eventPropertyRequirements: {
+      [EVENT_NAME.MONEY_SURFACE_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PERPS_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_FEED_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_HOME_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.POSITION_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+    },
   };

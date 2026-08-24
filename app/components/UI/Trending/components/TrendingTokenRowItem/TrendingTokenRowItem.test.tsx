@@ -1,7 +1,8 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
 } from './TrendingTokenRowItem';
@@ -14,6 +15,21 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 jest.mock('../../utils/trendingNetworksList', () => ({
   TRENDING_NETWORKS_LIST: [],
 }));
+
+const renderWithProvider: typeof renderWithProviderBase = (
+  component,
+  ...rest
+) =>
+  renderWithProviderBase(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+      }
+    >
+      {component}
+    </QueryClientProvider>,
+    ...rest,
+  );
 
 const mockTrackTokenClick = jest.fn();
 
@@ -754,7 +770,7 @@ describe('TrendingTokenRowItem', () => {
       mockIsCaipChainId.mockReturnValue(true);
     });
 
-    it('navigates to Asset page with token data when network is already added', () => {
+    it('navigates to Asset page with token data when network is already added', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -799,16 +815,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates with tokenDetailsSource TrendingSwaps for Swaps trending analytics', () => {
+    it('navigates with tokenDetailsSource TrendingSwaps for Swaps trending analytics', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -854,15 +872,17 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.TrendingSwaps),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.TrendingSwaps),
+          ),
         ),
       );
     });
 
-    it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', () => {
+    it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/slip44:60',
         symbol: 'ETH',
@@ -905,16 +925,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', () => {
+    it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', async () => {
       const token = createMockToken({
         assetId: 'eip155:137/slip44:966',
         symbol: 'MATIC',
@@ -957,13 +979,15 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('adds network directly when network is not added and navigates to asset', async () => {
@@ -1117,7 +1141,7 @@ describe('TrendingTokenRowItem', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('navigates with assetId as address for non-EVM chains', () => {
+    it('navigates with assetId as address for non-EVM chains', async () => {
       const token = createMockToken({
         assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
         symbol: 'BTC',
@@ -1165,16 +1189,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates directly when network is not popular but is added', () => {
+    it('navigates directly when network is not popular but is added', async () => {
       const token = createMockToken({
         assetId: 'eip155:999/erc20:0x123',
         symbol: 'TEST',
@@ -1222,14 +1248,16 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(queryByTestId('network-modal')).toBeNull();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push(
-          'Asset',
-          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         ),
       );
+      expect(queryByTestId('network-modal')).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

@@ -2,23 +2,15 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
-  encapsulated,
-  FrameworkDetector,
+  Gestures,
   Matchers,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-  PlaywrightMatchers,
   PortManager,
   ResourceType,
   sleep,
   Utilities,
 } from '../framework';
 import Assertions from '../framework/Assertions';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-} from '../framework/EncapsulatedElement';
 import NetworkEducationModal from '../page-objects/Network/NetworkEducationModal';
 import {
   getAnvilPortForFixture,
@@ -48,7 +40,6 @@ import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
   getDriver,
 } from '../framework/PlaywrightUtilities';
-import UnifiedGestures from '../framework/UnifiedGestures';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
@@ -99,7 +90,7 @@ export const waitForWalletHomePlaywright = async (
 };
 
 const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
-  if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+  if (PlatformDetector.isAndroid()) {
     return isWalletHomeReadyOnAndroidStable();
   }
   if (!(await isWalletHomeReadyOnAppium())) {
@@ -277,7 +268,7 @@ export const addLocalhostNetwork = async (): Promise<void> => {
     description: 'Network Education Modal should be visible',
   });
   await Assertions.expectElementToHaveText(
-    asDetoxElement(NetworkEducationModal.networkName),
+    NetworkEducationModal.networkName,
     'Localhost',
     {
       description: 'Network Name should be Localhost',
@@ -351,26 +342,34 @@ export const dismissOnboardingInterestQuestionnaire =
 
     while (Date.now() < deadline) {
       try {
-        const walletContainer = await asPlaywrightElement(WalletView.container);
-        if (await walletContainer.unwrap().isExisting()) {
+        if (await isWalletHomeReadyOnAppium()) {
           logger.debug(
             'Wallet home already visible; skipping interest questionnaire',
           );
           return;
         }
 
-        const skipButton = await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.skipButton,
-        );
-        if (await skipButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(skipButton, {
-            timeout: 5000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await skipButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 5000 });
+        if (
+          await Utilities.isElementVisible(
+            OnboardingInterestQuestionnaireView.skipButton,
+            250,
+          )
+        ) {
+          await Gestures.waitAndTap(
+            OnboardingInterestQuestionnaireView.skipButton,
+            {
+              timeout: 5000,
+              checkForDisplayed: true,
+              checkEnabled: true,
+            },
+          );
+          await Assertions.expectElementToNotBeVisible(
+            OnboardingInterestQuestionnaireView.skipButton,
+            {
+              timeout: 5000,
+              description: 'Interest questionnaire skip should close',
+            },
+          );
           return;
         }
       } catch {
@@ -455,15 +454,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    if (FrameworkDetector.isAppium()) {
-      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
-    } else {
-      await Assertions.expectElementToBeVisible(WalletView.container, {
-        description:
-          'Wallet home should be visible after onboarding completion',
-        timeout: 15000,
-      });
-    }
+    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -579,31 +570,16 @@ export const CreateNewWallet = async ({
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
-  // Detox hangs after wallet creation without disabling sync; Appium has no sync layer.
-  if (FrameworkDetector.isDetox()) {
-    await device.disableSynchronization();
-  }
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
     // iOS Appium: wallet-screen often exists but reports displayed=false; use readiness helpers.
-    if (FrameworkDetector.isAppium()) {
-      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
-    } else {
-      await Assertions.expectElementToBeVisible(WalletView.container, {
-        description:
-          'Wallet home should be visible after onboarding completion',
-        timeout: 15000,
-      });
-    }
+    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
   }
 
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-  if (FrameworkDetector.isDetox()) {
-    await device.enableSynchronization();
-  }
 };
 
 /**
@@ -624,7 +600,7 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
   );
   await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
   await Assertions.expectElementToHaveText(
-    asDetoxElement(NetworkEducationModal.networkName),
+    NetworkEducationModal.networkName,
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
@@ -694,42 +670,23 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     try {
-      const sheetTitle = await asPlaywrightElement(
-        encapsulated({
-          detox: () =>
-            Matchers.getElementByID(ExistingUserSheetSelectorsIDs.TITLE),
-          appium: () =>
-            PlaywrightMatchers.getElementByText('Never miss a move', true),
-        }),
-      );
-      await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
+      const sheetTitle = Matchers.getElementByExactText('Never miss a move');
+      await Assertions.expectElementToBeVisible(sheetTitle, {
         timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
       try {
-        const notNowById = await asPlaywrightElement(
-          encapsulated({
-            detox: () =>
-              Matchers.getElementByID(
-                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
-              ),
-            appium: () =>
-              PlaywrightMatchers.getElementById(
-                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
-                { exact: true },
-              ),
-          }),
+        const notNowById = Matchers.getElementByID(
+          ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
         );
-        await PlaywrightGestures.waitAndTap(notNowById, { timeout: 5_000 });
+        await Gestures.waitAndTap(notNowById, { timeout: 5_000 });
       } catch {
-        const notNowByText = await asPlaywrightElement(
-          PlaywrightMatchers.getElementByText('Not now', true),
-        );
-        await PlaywrightGestures.waitAndTap(notNowByText, { timeout: 5_000 });
+        const notNowByText = Matchers.getElementByExactText('Not now');
+        await Gestures.waitAndTap(notNowByText, { timeout: 5_000 });
       }
 
-      await PlaywrightAssertions.expectElementToNotBeVisible(sheetTitle, {
+      await Assertions.expectElementToNotBeVisible(sheetTitle, {
         timeout: 10_000,
         description: 'Push notification existing user sheet should close',
       });
@@ -750,19 +707,20 @@ export const closePredictModal = async (
   const timeoutMs = options.timeoutMs ?? 2_000;
 
   try {
-    const predictTitle = await asPlaywrightElement(
-      PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByExactText('PREDICT AND WIN'),
+      { timeout: timeoutMs, description: 'Predict GTM modal' },
     );
-    await predictTitle.unwrap().waitForDisplayed({ timeout: timeoutMs });
 
-    const notNow = await asPlaywrightElement(
-      PlaywrightMatchers.getElementByText('Not now', true),
-    );
-    await notNow.unwrap().waitForDisplayed({ timeout: 2_000 });
-    await PlaywrightGestures.waitAndTap(notNow, {
+    const notNow = Matchers.getElementByExactText('Not now');
+    await Assertions.expectElementToBeVisible(notNow, {
+      timeout: 2_000,
+      description: 'Predict GTM Not now',
+    });
+    await Gestures.waitAndTap(notNow, {
       timeout: 2_000,
       checkForDisplayed: false,
-      checkForEnabled: false,
+      checkEnabled: false,
     });
     return true;
   } catch {
@@ -818,24 +776,18 @@ export const loginToAppPlaywright = async (
   }
 
   try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(LoginView.passwordInput),
-      {
-        description: 'Login password input',
-        timeout: 3_000,
-      },
-    );
+    await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+      description: 'Login password input',
+      timeout: 3_000,
+    });
   } catch {
     // Dev menu can overlay login on local builds — dismiss and retry once.
     await dismissDeveloperMenuPlaywright();
     await dismissAndroidSystemOverlaysPlaywright();
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(LoginView.passwordInput),
-      {
-        description: 'Login password input',
-        timeout: 5_000,
-      },
-    );
+    await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+      description: 'Login password input',
+      timeout: 5_000,
+    });
   }
 
   const password = getPasswordForScenario(scenarioType);
@@ -859,8 +811,7 @@ async function dismissUnlockBlockers(): Promise<void> {
 
 async function isPasswordFieldVisible(): Promise<boolean> {
   try {
-    const passwordInput = await asPlaywrightElement(LoginView.passwordInput);
-    return await passwordInput.isVisible();
+    return await Utilities.isElementVisible(LoginView.passwordInput, 500);
   } catch {
     return false;
   }
@@ -882,10 +833,10 @@ async function waitForLockScreenGone(timeoutMs: number): Promise<boolean> {
  * make that check fail for ~10s even when a plain tap would succeed.
  */
 async function tapUnlockWithoutInteractiveWait(): Promise<void> {
-  await UnifiedGestures.waitAndTap(LoginView.loginButton, {
-    description: 'Login Button (MM Connect unlock)',
+  await Gestures.waitAndTap(LoginView.loginButton, {
+    elemDescription: 'Login Button (MM Connect unlock)',
     checkForDisplayed: true,
-    checkForEnabled: true,
+    checkEnabled: true,
     waitForInteractive: false,
     timeout: 10_000,
   });
@@ -949,26 +900,23 @@ export const unlockIfLockScreenVisible = async (): Promise<void> => {
 export const ensureAccountGroupsFinishedLoading = async (
   currentDeviceDetails: CurrentDeviceDetails,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
-  );
-  await PlaywrightGestures.terminateApp(currentDeviceDetails);
-  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    timeout: 15000,
+  });
+  await Gestures.terminateApp(currentDeviceDetails);
+  await Gestures.activateApp(currentDeviceDetails);
   await loginToAppPlaywright();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
-  );
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    timeout: 15000,
+  });
   await WalletView.tapIdenticon();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
-  await PlaywrightGestures.terminateApp(currentDeviceDetails);
-  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await Gestures.terminateApp(currentDeviceDetails);
+  await Gestures.activateApp(currentDeviceDetails);
   await loginToAppPlaywright();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
-  );
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    timeout: 15000,
+  });
 };
 
 /**
@@ -1025,9 +973,7 @@ export const selectAccountByDevice = async (
   logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
 
   await WalletView.tapIdenticon();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(AccountListBottomSheet.accountList),
-  );
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
@@ -1041,19 +987,13 @@ export const selectAccountByDevice = async (
 export const onboardingFlowImportSRPPlaywright = async (
   srp: string,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingView.newWalletButton),
-  );
+  await Assertions.expectElementToBeVisible(OnboardingView.newWalletButton);
 
   await OnboardingView.tapHaveAnExistingWallet();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingSheet.importSeedButton),
-  );
+  await Assertions.expectElementToBeVisible(OnboardingSheet.importSeedButton);
 
   await OnboardingSheet.tapImportSeedButton();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(ImportWalletView.title),
-  );
+  await Assertions.expectElementToBeVisible(ImportWalletView.title);
 
   await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
 
@@ -1067,16 +1007,12 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(MetaMetricsOptInView.iAgreeButton),
-  );
+  await Assertions.expectElementToBeVisible(MetaMetricsOptInView.iAgreeButton);
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
   await dismissPushNotificationExistingUserSheet();
   // Predict GTM is A/B — may sit on top of wallet home after Agree.
   await closePredictModal();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(WalletView.container),
-  );
+  await Assertions.expectElementToBeVisible(WalletView.container);
 };
