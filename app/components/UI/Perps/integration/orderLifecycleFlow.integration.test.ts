@@ -257,9 +257,11 @@ describe('Perps order lifecycle — FLOW integration', () => {
         const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
 
         // Act
-        let placeOrderResult: OrderResult | null = null;
+        const placeOrderResultRef: { current: OrderResult | null } = {
+          current: null,
+        };
         await act(async () => {
-          placeOrderResult = await result.current.placeOrder({
+          placeOrderResultRef.current = await result.current.placeOrder({
             symbol: 'BTC',
             isBuy: true,
             size: '0.6',
@@ -273,12 +275,12 @@ describe('Perps order lifecycle — FLOW integration', () => {
         });
 
         // Assert
-        expect(placeOrderResult).toMatchObject({
+        expect(placeOrderResultRef.current).toMatchObject({
           success: true,
           childOrderIds,
           submittedSize,
         });
-        expect(Number(placeOrderResult?.averagePrice)).toBeCloseTo(
+        expect(Number(placeOrderResultRef.current?.averagePrice)).toBeCloseTo(
           submittedValue / Number(submittedSize),
         );
         expect(
