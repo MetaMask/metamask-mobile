@@ -517,8 +517,7 @@ export function usePerpsMarketDetailSession({
           }
         : null;
     const requiresConnectionGenerationAdvance =
-      generationTrigger === 'background_resume' ||
-      generationTrigger === 'account_switch';
+      generationTrigger === 'background_resume';
     foregroundDeliveryBaselineRef.current = null;
     activeSessionRef.current = {
       id,

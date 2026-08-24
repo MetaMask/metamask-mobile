@@ -281,7 +281,6 @@ describe('usePerpsMarketDetailSession', () => {
     expect(setTraceMeasurement).toHaveBeenCalledTimes(1);
     expect(endTrace).not.toHaveBeenCalled();
 
-    mockConnectionGeneration += 1;
     mockDeliveryRevisions.focusedPrice += 1;
     mockDeliveryRevisions.candles += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
