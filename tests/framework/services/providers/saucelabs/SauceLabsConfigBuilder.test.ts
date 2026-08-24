@@ -1,5 +1,9 @@
 import { ProviderName, Platform } from '../../../types.ts';
 import { SauceLabsConfigBuilder } from './SauceLabsConfigBuilder.ts';
+import {
+  DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
+  DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+} from '../../../Constants.ts';
 
 describe('SauceLabsConfigBuilder', () => {
   const originalUsername = process.env.SAUCE_USERNAME;
@@ -36,9 +40,34 @@ describe('SauceLabsConfigBuilder', () => {
       'Google_Pixel_7_POC49',
     );
     expect(config.capabilities).not.toHaveProperty('appium:platformVersion');
+    expect(config.capabilities['appium:newCommandTimeout']).toBe(
+      DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+    );
+    expect(config.capabilities['appium:appPackage']).toBe('io.metamask');
+    expect(config.capabilities['appium:appActivity']).toBe(
+      'io.metamask.MainActivity',
+    );
+    expect(config.capabilities['appium:disableIdLocatorAutocompletion']).toBe(
+      true,
+    );
+    expect(
+      config.capabilities['appium:settings[waitForIdleTimeout]'],
+    ).toBe(0);
+    expect(
+      config.capabilities['appium:settings[snapshotMaxDepth]'],
+    ).toBe(62);
+    expect(
+      config.capabilities['appium:settings[actionAcknowledgmentTimeout]'],
+    ).toBe(3000);
+    expect(
+      config.capabilities['appium:settings[ignoreUnimportantViews]'],
+    ).toBe(true);
+    expect(config.capabilities['appium:disableWindowAnimation']).toBe(true);
+    expect(config.capabilities['appium:skipDeviceInitialization']).toBe(true);
     expect(config.capabilities['sauce:options']).toMatchObject({
       app: 'storage:filename=app.apk',
       appiumVersion: 'latest',
+      idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
       capturePerformance: true,
       privateDevicesOnly: true,
     });

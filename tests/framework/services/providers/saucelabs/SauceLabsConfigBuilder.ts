@@ -2,7 +2,16 @@
 import path from 'path';
 import type { ProjectConfig } from '../../common/types.ts';
 import type { SauceLabsConfig } from '../../../types.ts';
+import {
+  DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
+  DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+} from '../../../Constants';
 
+/**
+ * Builder for Sauce Labs WebDriver configuration.
+ * Appium performance settings mirror TestMu HE / BrowserStack so provider
+ * benchmarks stay comparable (waitForIdleTimeout, animations, etc.).
+ */
 export class SauceLabsConfigBuilder {
   constructor(private readonly project: ProjectConfig) {}
 
@@ -35,6 +44,7 @@ export class SauceLabsConfigBuilder {
       deviceName: device.name,
       platformName,
       app: appUrl,
+      idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
       extendedDebugging: true,
       capturePerformance: true,
       recordVideo: true,
@@ -65,6 +75,34 @@ export class SauceLabsConfigBuilder {
         'appium:autoGrantPermissions': true,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
+        'appium:newCommandTimeout':
+          DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+        // Performance Appium settings (parity with TestMu HE / BrowserStack)
+        'appium:settings[actionAcknowledgmentTimeout]': 3000,
+        'appium:settings[ignoreUnimportantViews]': true,
+        'appium:settings[waitForSelectorTimeout]': 1000,
+        'appium:settings[waitForIdleTimeout]': 0,
+        'appium:settings[snapshotMaxDepth]': 62,
+        'appium:includeSafariInWebviews': true,
+        'appium:chromedriverAutodownload': true,
+        'appium:waitForQuiescence': false,
+        'appium:animationCoolOffTimeout': 0,
+        'appium:reduceMotion': true,
+        'appium:customSnapshotTimeout': 15,
+        'appium:disableWindowAnimation': true,
+        'appium:skipDeviceInitialization': true,
+        ...(platformName === 'android'
+          ? {
+              'appium:appPackage': this.project.use.app?.packageName,
+              'appium:appActivity': this.project.use.app?.launchableActivity,
+              'appium:disableIdLocatorAutocompletion': true,
+            }
+          : {
+              'appium:bundleId': this.project.use.app?.appId,
+              'appium:shouldUseCompactResponses': true,
+              'appium:elementResponseAttributes':
+                'name,label,value,type,enabled,visible,rect',
+            }),
         'sauce:options': sauceOptions,
         ...(device.otherApps && device.otherApps.length > 0
           ? { 'appium:otherApps': device.otherApps }
