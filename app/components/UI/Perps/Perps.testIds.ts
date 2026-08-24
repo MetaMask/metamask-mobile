@@ -522,7 +522,6 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
-  ORDERS_EMPTY_STATE: 'perps-pro-market-orders-empty-state',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_EDIT: 'perps-pro-market-order-edit',
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',

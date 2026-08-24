@@ -1,7 +1,7 @@
 import { TabEmptyState } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../../../util/theme';
 import emptyStatePerpsLight from '../../../../../../images/empty-state-perps-light.png';
@@ -16,8 +16,6 @@ export interface PerpsProTabEmptyStateProps {
   emptyDescriptionKey: string;
   /** i18n key for the ticker-filtered empty description. */
   filteredTickerDescriptionKey: string;
-  /** Test ID applied to the rendered empty state. */
-  testID?: string;
 }
 
 /**
@@ -28,7 +26,6 @@ const PerpsProTabEmptyState = ({
   filteredSideDescriptionKey,
   emptyDescriptionKey,
   filteredTickerDescriptionKey,
-  testID,
 }: PerpsProTabEmptyStateProps) => {
   const tw = useTailwind();
   const perpsImage = useAssetFromTheme(
@@ -45,28 +42,17 @@ const PerpsProTabEmptyState = ({
       : strings(emptyDescriptionKey);
 
   return (
-    // TabEmptyState does not forward testID to its rendered view, so the locator
-    // lives on a wrapping View. It is exposed to accessibility with the empty
-    // description as its label so assistive tech and automated checks both
-    // resolve a single node for this state.
-    <View
-      testID={testID}
-      accessible
-      accessibilityLabel={description}
-      style={tw.style('flex-1')}
-    >
-      <TabEmptyState
-        icon={
-          <Image
-            source={perpsImage}
-            resizeMode="contain"
-            style={tw.style('w-[72px] h-[72px]')}
-            accessible={false}
-          />
-        }
-        description={description}
-      />
-    </View>
+    <TabEmptyState
+      icon={
+        <Image
+          source={perpsImage}
+          resizeMode="contain"
+          style={tw.style('w-[72px] h-[72px]')}
+          accessible={false}
+        />
+      }
+      description={description}
+    />
   );
 };
 
