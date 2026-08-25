@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsProvider } from './usePerpsProvider';
@@ -23,7 +23,11 @@ const mockGetOrderCapabilities = jest.mocked(
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetOrderCapabilities.mockReturnValue({ supportedStrategies: [] });
+  mockGetOrderCapabilities.mockResolvedValue({
+    status: 'ready',
+    providerId: 'hyperliquid',
+    supportedStrategies: [],
+  });
   // Default: hyperliquid active, MYX flag off
   mockUseSelector.mockImplementation((selector: unknown) => {
     const fn = selector as (s: unknown) => unknown;
@@ -149,11 +153,22 @@ describe('usePerpsProvider', () => {
       expect(result.current.supportsTwapOrders).toBe(false);
     });
 
-    it('returns TWAP support from the controller capability for a market route', () => {
+    it('does not query capabilities without a market route', () => {
       mockUseSelector
-        .mockReturnValueOnce('aggregated')
-        .mockReturnValueOnce(true);
-      mockGetOrderCapabilities.mockReturnValue({
+        .mockReturnValueOnce('hyperliquid')
+        .mockReturnValueOnce(false);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.supportsTwapOrders).toBe(false);
+      expect(mockGetOrderCapabilities).not.toHaveBeenCalled();
+    });
+
+    it('returns TWAP support from a ready controller capability', async () => {
+      mockUseSelector.mockReturnValue('aggregated');
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
         supportedStrategies: ['twap'],
       });
 
@@ -161,11 +176,70 @@ describe('usePerpsProvider', () => {
         usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
       );
 
-      expect(result.current.supportsTwapOrders).toBe(true);
+      await waitFor(() => {
+        expect(result.current.supportsTwapOrders).toBe(true);
+      });
       expect(mockGetOrderCapabilities).toHaveBeenCalledWith({
         symbol: 'BTC',
         providerId: 'hyperliquid',
       });
+    });
+
+    it('keeps TWAP disabled when capabilities are unavailable', async () => {
+      mockUseSelector
+        .mockReturnValueOnce('aggregated')
+        .mockReturnValueOnce(true);
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'unavailable',
+        providerId: 'hyperliquid',
+        reason: 'provider_unavailable',
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+
+      await waitFor(() => {
+        expect(mockGetOrderCapabilities).toHaveBeenCalled();
+      });
+      expect(result.current.supportsTwapOrders).toBe(false);
+    });
+
+    it('ignores a stale capability response after the market route changes', async () => {
+      type Capabilities = Awaited<
+        ReturnType<typeof Engine.context.PerpsController.getOrderCapabilities>
+      >;
+      let resolveFirst = (_value: Capabilities): void => undefined;
+      const firstResponse = new Promise<Capabilities>((resolve) => {
+        resolveFirst = resolve;
+      });
+      mockGetOrderCapabilities
+        .mockReturnValueOnce(firstResponse)
+        .mockResolvedValueOnce({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [],
+        });
+      mockUseSelector.mockReturnValue('aggregated');
+      const { result, rerender } = renderHook(
+        ({ symbol }) => usePerpsProvider({ symbol, providerId: 'hyperliquid' }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      rerender({ symbol: 'ETH' });
+      await waitFor(() => {
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+      });
+      await act(async () => {
+        resolveFirst({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap'],
+        });
+        await firstResponse;
+      });
+
+      expect(result.current.supportsTwapOrders).toBe(false);
     });
 
     it('isMultiProviderEnabled is false when only one provider available', () => {

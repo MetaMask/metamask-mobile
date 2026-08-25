@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPerpsProvider } from '../selectors/perpsController';
@@ -18,7 +18,7 @@ import type {
  * - Method to switch between providers
  */
 export function usePerpsProvider(
-  orderCapabilitiesParams: GetOrderCapabilitiesParams = {},
+  orderCapabilitiesParams?: GetOrderCapabilitiesParams,
 ) {
   const activeProvider = useSelector(selectPerpsProvider);
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
@@ -75,11 +75,46 @@ export function usePerpsProvider(
     [activeProvider],
   );
 
-  const supportsTwapOrders =
-    Engine.context.PerpsController.getOrderCapabilities({
-      symbol: orderCapabilitiesParams.symbol,
-      providerId: orderCapabilitiesParams.providerId,
-    }).supportedStrategies.includes('twap');
+  const [supportsTwapOrders, setSupportsTwapOrders] = useState(false);
+
+  useEffect(() => {
+    let isCurrent = true;
+    const symbol = orderCapabilitiesParams?.symbol;
+    const providerId = orderCapabilitiesParams?.providerId;
+
+    setSupportsTwapOrders(false);
+    if (!symbol) {
+      return () => {
+        isCurrent = false;
+      };
+    }
+
+    const loadCapabilities = async () => {
+      try {
+        const capabilities =
+          await Engine.context.PerpsController.getOrderCapabilities({
+            symbol,
+            providerId,
+          });
+        if (isCurrent) {
+          setSupportsTwapOrders(
+            capabilities.status === 'ready' &&
+              capabilities.supportedStrategies.includes('twap'),
+          );
+        }
+      } catch {
+        if (isCurrent) {
+          setSupportsTwapOrders(false);
+        }
+      }
+    };
+
+    loadCapabilities();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [orderCapabilitiesParams?.providerId, orderCapabilitiesParams?.symbol]);
 
   /**
    * Check if multi-provider mode is enabled (more than one provider available)
