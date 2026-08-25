@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import type { CaipChainId } from '@metamask/utils';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   BASE_USDC_TOKEN_ADDRESS,
@@ -23,9 +24,11 @@ export function immersveNetworkToCaipChainId(network?: string): string {
 }
 
 export interface ImmersveFundingTokenInfo {
-  caipChainId: string;
+  caipChainId: CaipChainId;
   tokenAddress: string;
   decimals: number;
+  symbol: string;
+  networkName: string;
 }
 
 export function immersveNetworkToFundingToken(
@@ -37,24 +40,32 @@ export function immersveNetworkToFundingToken(
         caipChainId: 'eip155:8453',
         tokenAddress: BASE_USDC_TOKEN_ADDRESS,
         decimals: 6,
+        symbol: 'USDC',
+        networkName: 'Base',
       };
     case 'base-sepolia':
       return {
         caipChainId: 'eip155:84532',
         tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
         decimals: 6,
+        symbol: 'USDC',
+        networkName: 'Base Sepolia',
       };
     case 'arbitrum-sepolia':
       return {
         caipChainId: 'eip155:421614',
         tokenAddress: ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
         decimals: 6,
+        symbol: 'USDC',
+        networkName: 'Arbitrum Sepolia',
       };
     case 'monad-mainnet':
       return {
         caipChainId: 'eip155:143',
         tokenAddress: MONAD_USDC_TOKEN_ADDRESS,
         decimals: 6,
+        symbol: 'USDC',
+        networkName: 'Monad',
       };
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);

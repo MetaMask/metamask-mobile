@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -44,27 +50,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import {
-  KYC_REDIRECT_URL,
-  BAANX_MAX_LIMIT,
-  cardNetworkInfos,
-  BASE_USDC_TOKEN_ADDRESS,
-} from '../../constants';
+import { KYC_REDIRECT_URL, BAANX_MAX_LIMIT } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
+import { immersveNetworkToFundingToken } from '../../util/immersveFunding';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-
-const BASE_CAIP_CHAIN_ID = cardNetworkInfos.base.caipChainId;
-const BASE_NETWORK_IMAGE = getNetworkImageSource({
-  chainId: safeFormatChainIdToHex(BASE_CAIP_CHAIN_ID),
-});
-// Always the real Base-mainnet USDC address, regardless of env — the icon CDN
-// doesn't index per-env testnet token addresses (e.g. Base Sepolia's USDC),
-// and this is display-only (the approve call uses the real API-provided
-// contract address).
-const TOKEN_ICON_URL = buildTokenIconUrl(
-  BASE_CAIP_CHAIN_ID,
-  BASE_USDC_TOKEN_ADDRESS,
-);
 
 const ReadOnlyAccountRow = ({
   selectedAccount,
@@ -104,7 +93,17 @@ const ReadOnlyAccountRow = ({
   </Box>
 );
 
-const ReadOnlyTokenRow = () => (
+const ReadOnlyTokenRow = ({
+  label,
+  symbol,
+  tokenIconUrl,
+  networkImage,
+}: {
+  label: string;
+  symbol: string;
+  tokenIconUrl: string;
+  networkImage: ReturnType<typeof getNetworkImageSource> | undefined;
+}) => (
   <Box
     twClassName="flex-row items-center p-4"
     testID="immersve-funding-approval-token-row"
@@ -118,13 +117,11 @@ const ReadOnlyTokenRow = () => (
     <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
-        badge={
-          BASE_NETWORK_IMAGE ? <BadgeNetwork src={BASE_NETWORK_IMAGE} /> : null
-        }
+        badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
       >
         <AvatarToken
-          name="USDC"
-          src={{ uri: TOKEN_ICON_URL }}
+          name={symbol}
+          src={{ uri: tokenIconUrl }}
           size={AvatarBaseSize.Sm}
         />
       </BadgeWrapper>
@@ -132,8 +129,9 @@ const ReadOnlyTokenRow = () => (
         variant={TextVariant.BodyMd}
         twClassName="text-text-default font-medium self-center shrink"
         numberOfLines={1}
+        testID="immersve-funding-approval-token-label"
       >
-        USDC on Base
+        {label}
       </Text>
     </Box>
   </Box>
@@ -141,10 +139,10 @@ const ReadOnlyTokenRow = () => (
 
 /**
  * Approves the Immersve `funding` prerequisite (an on-chain smart-contract
- * write, e.g. an ERC-20 approve on Base USDC) and, once settled, creates the
- * card. Reached only via useImmersveOnboardingRouter's `funding` case.
- * Mirrors SpendingLimit.tsx's onboarding layout (header copy + read-only
- * settings card + footer button).
+ * write, e.g. an ERC-20 approve on the funding-source network) and, once
+ * settled, creates the card. Reached only via useImmersveOnboardingRouter's
+ * `funding` case. Mirrors SpendingLimit.tsx's onboarding layout (header copy +
+ * read-only settings card + footer button).
  */
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
@@ -165,7 +163,7 @@ const ImmersveFundingApproval = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const accountGroupName = useAccountGroupName();
 
-  const { nextAction, error, isLoading, refresh } =
+  const { nextAction, network, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
       fundingSourceId: fundingSourceId ?? undefined,
       kycRegion: countryKey,
@@ -177,6 +175,26 @@ const ImmersveFundingApproval = () => {
     isLoading: fundingIsLoading,
     error: fundingError,
   } = useImmersveFunding();
+
+  const fundingToken = useMemo(() => {
+    try {
+      return immersveNetworkToFundingToken(network);
+    } catch {
+      return null;
+    }
+  }, [network]);
+
+  const tokenLabel = fundingToken
+    ? `${fundingToken.symbol} on ${fundingToken.networkName}`
+    : '';
+  const tokenIconUrl = fundingToken
+    ? buildTokenIconUrl(fundingToken.caipChainId, fundingToken.tokenAddress)
+    : '';
+  const networkImage = fundingToken
+    ? getNetworkImageSource({
+        chainId: safeFormatChainIdToHex(fundingToken.caipChainId),
+      })
+    : undefined;
 
   useEffect(() => {
     trackEvent(
@@ -397,6 +415,7 @@ const ImmersveFundingApproval = () => {
           >
             {strings(
               'card.card_onboarding.immersve_funding_approval.description',
+              { token: tokenLabel },
             )}
           </Text>
         </Box>
@@ -407,7 +426,14 @@ const ImmersveFundingApproval = () => {
             avatarAccountType={avatarAccountType}
             accountGroupName={accountGroupName}
           />
-          <ReadOnlyTokenRow />
+          {fundingToken && (
+            <ReadOnlyTokenRow
+              label={tokenLabel}
+              symbol={fundingToken.symbol}
+              tokenIconUrl={tokenIconUrl}
+              networkImage={networkImage}
+            />
+          )}
         </Box>
 
         {displayError && (

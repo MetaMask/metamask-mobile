@@ -96,7 +96,8 @@ export const useImmersveFunding = () => {
       const metricsProps = withCardProvider(CardProviderIds.Immersve, {
         step: 'approve',
       });
-      const network = immersveConfig?.network;
+      const network =
+        fundingNetwork ?? getImmersveSignupNetwork(immersveConfig);
       let caipChainId: string | undefined;
       try {
         caipChainId = immersveNetworkToCaipChainId(network);

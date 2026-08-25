@@ -9297,7 +9297,7 @@
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
-        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "description": "Approve MetaMask Card to use your {{token}} for purchases.",
         "helper_text": "This usually takes a few seconds. Please do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again"

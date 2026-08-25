@@ -42,11 +42,19 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardImmersveConfig: jest.fn(() => ({ network: 'base-sepolia' })),
 }));
 
-jest.mock('./useEnsureCardNetworkExists', () => ({
-  useEnsureCardNetworkExists: () => ({
-    ensureNetworkExists: jest.fn().mockResolvedValue('network-client-1'),
-  }),
-}));
+jest.mock('./useEnsureCardNetworkExists', () => {
+  const ensureNetworkExists = jest.fn().mockResolvedValue('network-client-1');
+  return {
+    useEnsureCardNetworkExists: () => ({ ensureNetworkExists }),
+    __mockEnsureNetworkExists: ensureNetworkExists,
+  };
+});
+
+const mockEnsureNetworkExists = (
+  jest.requireMock('./useEnsureCardNetworkExists') as {
+    __mockEnsureNetworkExists: jest.Mock;
+  }
+).__mockEnsureNetworkExists;
 
 jest.mock(
   '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed',
@@ -284,5 +292,32 @@ describe('useImmersveFunding', () => {
         }),
       }),
     );
+  });
+
+  it('executeFunding prefers the passed fundingNetwork over the flag config', async () => {
+    mockAwait.mockImplementation(async ({ submit }) => {
+      await submit();
+      return { txHash: '0xtxhash', transactionMeta: {} };
+    });
+    (mockTx.addTransaction as jest.Mock).mockResolvedValue({
+      result: Promise.resolve('0xtxhash'),
+      transactionMeta: {},
+    });
+    // Flag still points at Base Sepolia — the explicit fundingNetwork must win.
+    cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
+      network: 'base-sepolia',
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await result.current.executeFunding(
+        APPROVE_WRITE,
+        undefined,
+        'monad-mainnet',
+      );
+    });
+
+    expect(mockEnsureNetworkExists).toHaveBeenCalledWith('eip155:143');
   });
 });

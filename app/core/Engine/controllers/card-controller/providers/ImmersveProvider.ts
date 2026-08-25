@@ -1,4 +1,3 @@
-import type { CaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
@@ -1241,7 +1240,7 @@ export class ImmersveProvider implements ICardProvider {
       address: tokenInfo.tokenAddress,
       walletAddress,
       decimals: tokenInfo.decimals,
-      chainId: tokenInfo.caipChainId as CaipChainId,
+      chainId: tokenInfo.caipChainId,
       spendableBalance,
       spendingCap,
       priority: 0,

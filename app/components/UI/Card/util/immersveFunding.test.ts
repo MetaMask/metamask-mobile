@@ -50,6 +50,8 @@ describe('immersveNetworkToFundingToken', () => {
       caipChainId: 'eip155:8453',
       tokenAddress: BASE_USDC_TOKEN_ADDRESS,
       decimals: 6,
+      symbol: 'USDC',
+      networkName: 'Base',
     });
   });
 
@@ -58,6 +60,8 @@ describe('immersveNetworkToFundingToken', () => {
       caipChainId: 'eip155:84532',
       tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
       decimals: 6,
+      symbol: 'USDC',
+      networkName: 'Base Sepolia',
     });
   });
 
@@ -66,6 +70,8 @@ describe('immersveNetworkToFundingToken', () => {
       caipChainId: 'eip155:143',
       tokenAddress: MONAD_USDC_TOKEN_ADDRESS,
       decimals: 6,
+      symbol: 'USDC',
+      networkName: 'Monad',
     });
   });
 

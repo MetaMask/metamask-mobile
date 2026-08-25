@@ -31,6 +31,7 @@ interface UseImmersveSpendingPrerequisitesParams {
 interface PrerequisitesState {
   prerequisites: CardSpendingPrerequisite[];
   nextAction: ImmersveNextAction | null;
+  network?: string;
   isLoading: boolean;
   error: string | null;
 }
@@ -44,6 +45,7 @@ export const useImmersveSpendingPrerequisites = ({
   const [state, setState] = useState<PrerequisitesState>({
     prerequisites: [],
     nextAction: null,
+    network: undefined,
     isLoading: false,
     error: null,
   });
@@ -61,7 +63,13 @@ export const useImmersveSpendingPrerequisites = ({
           kycRedirectUrl,
         });
       const nextAction = deriveNextImmersveAction(prerequisites, network);
-      setState({ prerequisites, nextAction, isLoading: false, error: null });
+      setState({
+        prerequisites,
+        nextAction,
+        network,
+        isLoading: false,
+        error: null,
+      });
       return nextAction;
     } catch (e) {
       // Provider already reports API failures via reportAndMap. Setting error
@@ -113,6 +121,7 @@ export const useImmersveSpendingPrerequisites = ({
   return {
     prerequisites: state.prerequisites,
     nextAction: state.nextAction,
+    network: state.network,
     isLoading: state.isLoading,
     error: state.error,
     refresh,

@@ -172,9 +172,13 @@ const setNextAction = (
   nextAction: ImmersveNextAction | null,
   error: string | null = null,
   isLoading = false,
+  network?: string,
 ) => {
   (useImmersveSpendingPrerequisites as jest.Mock).mockReturnValue({
     nextAction,
+    network:
+      network ??
+      (nextAction?.type === 'funding' ? nextAction.network : undefined),
     refresh: mockRefresh,
     prerequisites: [],
     isLoading,
@@ -221,18 +225,30 @@ describe('ImmersveFundingApproval', () => {
   });
 
   it('renders the settings card and an enabled confirm button once funding is known', () => {
-    setNextAction({ type: 'funding', write: WRITE });
+    setNextAction({ type: 'funding', write: WRITE, network: 'base-mainnet' });
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
     expect(getByTestId('immersve-funding-approval-token-row')).toBeTruthy();
+    expect(
+      getByTestId('immersve-funding-approval-token-label').props.children,
+    ).toBe('USDC on Base');
     const button = getByTestId('immersve-funding-approval-confirm-button');
     expect(button.props.accessibilityState.disabled).toBeFalsy();
   });
 
+  it('renders USDC on Monad when the funding source network is monad-mainnet', () => {
+    setNextAction({ type: 'funding', write: WRITE, network: 'monad-mainnet' });
+    const { getByTestId } = render(<ImmersveFundingApproval />);
+
+    expect(
+      getByTestId('immersve-funding-approval-token-label').props.children,
+    ).toBe('USDC on Monad');
+  });
+
   it('does not poll in the background while sitting idle on funding (no flicker)', () => {
     jest.useFakeTimers();
-    setNextAction({ type: 'funding', write: WRITE });
+    setNextAction({ type: 'funding', write: WRITE, network: 'base-mainnet' });
     render(<ImmersveFundingApproval />);
     expect(mockRefresh).toHaveBeenCalledTimes(1); // mount only
 
@@ -244,12 +260,16 @@ describe('ImmersveFundingApproval', () => {
   });
 
   it('keeps the settings card mounted and disables the button while approving (no full-screen swap)', async () => {
-    setNextAction({ type: 'funding', write: WRITE });
+    setNextAction({ type: 'funding', write: WRITE, network: 'base-mainnet' });
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
     fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
 
-    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
+    expect(mockExecuteFunding).toHaveBeenCalledWith(
+      WRITE,
+      '2199023255551',
+      'base-mainnet',
+    );
     // Settling flips synchronously on press — the card stays mounted, only the
     // button's own state changes.
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
@@ -263,7 +283,7 @@ describe('ImmersveFundingApproval', () => {
 
   it('locally polls for settlement after approving, and stops once active', async () => {
     jest.useFakeTimers();
-    setNextAction({ type: 'funding', write: WRITE });
+    setNextAction({ type: 'funding', write: WRITE, network: 'base-mainnet' });
     const { getByTestId, rerender } = render(<ImmersveFundingApproval />);
 
     await act(async () => {
@@ -279,7 +299,7 @@ describe('ImmersveFundingApproval', () => {
     });
     expect(mockRefresh).toHaveBeenCalledTimes(3); // still 'funding' — settling poll fired
 
-    setNextAction({ type: 'active' });
+    setNextAction({ type: 'active' }, null, false, 'base-mainnet');
     rerender(<ImmersveFundingApproval />);
 
     await act(async () => {
@@ -317,7 +337,7 @@ describe('ImmersveFundingApproval', () => {
   });
 
   it('shows an inline error and re-enables the button to retry when executeFunding fails', () => {
-    setNextAction({ type: 'funding', write: WRITE });
+    setNextAction({ type: 'funding', write: WRITE, network: 'base-mainnet' });
     setFundingState(false, 'Approval failed');
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
@@ -328,7 +348,11 @@ describe('ImmersveFundingApproval', () => {
     expect(retryButton.props.accessibilityState.disabled).toBeFalsy();
 
     fireEvent.press(retryButton);
-    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
+    expect(mockExecuteFunding).toHaveBeenCalledWith(
+      WRITE,
+      '2199023255551',
+      'base-mainnet',
+    );
   });
 
   it('shows an inline error and retries createCard when it fails', () => {
