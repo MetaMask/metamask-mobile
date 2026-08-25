@@ -6,6 +6,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
+import { usePerpsMarketContext } from '../../../../../UI/Perps/hooks/usePerpsMarketContext';
 import { SPARKLINE_CANDLE_COUNT, SPARKLINE_TARGET_POINTS } from '../constants';
 
 export interface UseHomepageSparklinesResult {
@@ -67,13 +68,19 @@ export function useHomepageSparklines(
 ): UseHomepageSparklinesResult {
   const safeMarkets = useMemo(() => markets ?? [], [markets]);
   const stream = usePerpsStream();
-  const [fallbackSparklines, setFallbackSparklines] = useState<
-    Record<string, number[]>
-  >({});
+  const { key: marketContextKey } = usePerpsMarketContext();
+  const [fallbackState, setFallbackState] = useState<{
+    contextKey: string;
+    values: Record<string, number[]>;
+  }>(() => ({ contextKey: marketContextKey, values: {} }));
   const fallbackDataRef = useRef<Record<string, number[]>>({});
+  const fallbackContextKeyRef = useRef(marketContextKey);
   const refreshCountBySymbolRef = useRef(new Map<string, number>());
   const flushScheduledRef = useRef(false);
-  const lastSparklinesRef = useRef<Record<string, number[]>>({});
+  const lastSparklinesRef = useRef<{
+    contextKey: string;
+    values: Record<string, number[]>;
+  }>({ contextKey: marketContextKey, values: {} });
 
   const { fallbackSymbolsKey, trendSparklines } = useMemo(() => {
     const fallbacks: string[] = [];
@@ -97,18 +104,24 @@ export function useHomepageSparklines(
     const fallbackSymbols = fallbackSymbolsKey
       ? fallbackSymbolsKey.split(',')
       : [];
-    fallbackDataRef.current = retainFallbackSymbols(
-      fallbackDataRef.current,
-      fallbackSymbols,
-    );
+    const contextChanged = fallbackContextKeyRef.current !== marketContextKey;
+    fallbackContextKeyRef.current = marketContextKey;
+    fallbackDataRef.current = contextChanged
+      ? {}
+      : retainFallbackSymbols(fallbackDataRef.current, fallbackSymbols);
     flushScheduledRef.current = false;
-    setFallbackSparklines((current) => {
-      const next = retainFallbackSymbols(current, fallbackSymbols);
-      const currentSymbols = Object.keys(current);
-      return currentSymbols.length === Object.keys(next).length &&
-        currentSymbols.every((symbol) => current[symbol] === next[symbol])
+    setFallbackState((current) => {
+      const currentValues =
+        current.contextKey === marketContextKey ? current.values : {};
+      const next = contextChanged
+        ? {}
+        : retainFallbackSymbols(currentValues, fallbackSymbols);
+      const currentSymbols = Object.keys(currentValues);
+      return current.contextKey === marketContextKey &&
+        currentSymbols.length === Object.keys(next).length &&
+        currentSymbols.every((symbol) => currentValues[symbol] === next[symbol])
         ? current
-        : next;
+        : { contextKey: marketContextKey, values: next };
     });
 
     if (fallbackSymbols.length === 0) return undefined;
@@ -119,7 +132,10 @@ export function useHomepageSparklines(
       queueMicrotask(() => {
         if (!active) return;
         flushScheduledRef.current = false;
-        setFallbackSparklines({ ...fallbackDataRef.current });
+        setFallbackState({
+          contextKey: marketContextKey,
+          values: { ...fallbackDataRef.current },
+        });
       });
     };
 
@@ -129,12 +145,15 @@ export function useHomepageSparklines(
         interval: CandlePeriod.FifteenMinutes,
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
+          if (!active) return;
           if (!candleData?.candles || candleData.candles.length === 0) {
             return;
           }
           if (
             fallbackDataRef.current[symbol] &&
-            (refreshCountBySymbolRef.current.get(symbol) ?? 0) === 0
+            (refreshCountBySymbolRef.current.get(
+              `${marketContextKey}:${symbol}`,
+            ) ?? 0) === 0
           ) {
             return;
           }
@@ -156,29 +175,36 @@ export function useHomepageSparklines(
       active = false;
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [fallbackSymbolsKey, stream]);
+  }, [fallbackSymbolsKey, marketContextKey, stream]);
 
   const sparklines = useMemo(() => {
+    const fallbackSparklines =
+      fallbackState.contextKey === marketContextKey ? fallbackState.values : {};
     const current = { ...fallbackSparklines, ...trendSparklines };
+    const previous =
+      lastSparklinesRef.current.contextKey === marketContextKey
+        ? lastSparklinesRef.current.values
+        : {};
     const next = Object.fromEntries(
       safeMarkets.flatMap(({ symbol }) => {
-        const values = current[symbol] ?? lastSparklinesRef.current[symbol];
+        const values = current[symbol] ?? previous[symbol];
         return values ? [[symbol, values]] : [];
       }),
     );
-    lastSparklinesRef.current = next;
+    lastSparklinesRef.current = { contextKey: marketContextKey, values: next };
     return next;
-  }, [fallbackSparklines, safeMarkets, trendSparklines]);
+  }, [fallbackState, marketContextKey, safeMarkets, trendSparklines]);
 
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
     const symbols = fallbackSymbolsKey.split(',');
-    symbols.forEach((symbol) =>
+    symbols.forEach((symbol) => {
+      const key = `${marketContextKey}:${symbol}`;
       refreshCountBySymbolRef.current.set(
-        symbol,
-        (refreshCountBySymbolRef.current.get(symbol) ?? 0) + 1,
-      ),
-    );
+        key,
+        (refreshCountBySymbolRef.current.get(key) ?? 0) + 1,
+      );
+    });
     try {
       await Promise.all(
         symbols.map((symbol) =>
@@ -192,15 +218,16 @@ export function useHomepageSparklines(
       );
     } finally {
       symbols.forEach((symbol) => {
-        const count = (refreshCountBySymbolRef.current.get(symbol) ?? 1) - 1;
+        const key = `${marketContextKey}:${symbol}`;
+        const count = (refreshCountBySymbolRef.current.get(key) ?? 1) - 1;
         if (count > 0) {
-          refreshCountBySymbolRef.current.set(symbol, count);
+          refreshCountBySymbolRef.current.set(key, count);
         } else {
-          refreshCountBySymbolRef.current.delete(symbol);
+          refreshCountBySymbolRef.current.delete(key);
         }
       });
     }
-  }, [fallbackSymbolsKey, stream]);
+  }, [fallbackSymbolsKey, marketContextKey, stream]);
 
   return useMemo(() => ({ refresh, sparklines }), [refresh, sparklines]);
 }
