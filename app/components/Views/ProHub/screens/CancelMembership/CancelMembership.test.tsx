@@ -11,7 +11,7 @@ import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
 const mockSetOptions = jest.fn();
-const mockAddListener = jest.fn().mockReturnValue(jest.fn());
+const mockAddListener = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -80,7 +80,8 @@ const renderScreen = () => render(<CancelMembership />);
 
 describe('CancelMembership', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockAddListener.mockReturnValue(jest.fn());
   });
 
   afterEach(() => {
