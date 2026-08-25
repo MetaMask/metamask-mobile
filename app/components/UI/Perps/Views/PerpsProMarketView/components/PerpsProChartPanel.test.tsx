@@ -278,6 +278,9 @@ describe('PerpsProChartPanel', () => {
     expect(
       screen.getByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
+    ).toHaveProp('pointerEvents', 'none');
   });
 
   it('hides the Limit overlay host when live orders are empty', () => {

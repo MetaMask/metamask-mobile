@@ -639,7 +639,7 @@ const TradingViewChart = React.forwardRef<
         testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
         accessibilityLabel={
           tpslLines?.limitOrders && tpslLines.limitOrders.length > 0
-            ? 'Limit order on chart'
+            ? strings('perps.order.limit')
             : undefined
         }
       >

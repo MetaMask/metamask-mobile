@@ -335,6 +335,7 @@ const PerpsProChartPanel = ({
                       testID={TradingViewChartSelectorsIDs.LIMIT_OVERLAY}
                       accessible
                       accessibilityLabel={strings('perps.order.limit')}
+                      pointerEvents="none"
                       twClassName="absolute inset-0"
                     />
                   ) : null}
