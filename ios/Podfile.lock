@@ -496,17 +496,17 @@ PODS:
     - libavif/core
     - libdav1d (>= 0.6.0)
   - libdav1d (1.2.0)
-  - libwebp (1.5.0):
-    - libwebp/demux (= 1.5.0)
-    - libwebp/mux (= 1.5.0)
-    - libwebp/sharpyuv (= 1.5.0)
-    - libwebp/webp (= 1.5.0)
-  - libwebp/demux (1.5.0):
+  - libwebp (1.6.0):
+    - libwebp/demux (= 1.6.0)
+    - libwebp/mux (= 1.6.0)
+    - libwebp/sharpyuv (= 1.6.0)
+    - libwebp/webp (= 1.6.0)
+  - libwebp/demux (1.6.0):
     - libwebp/webp
-  - libwebp/mux (1.5.0):
+  - libwebp/mux (1.6.0):
     - libwebp/demux
-  - libwebp/sharpyuv (1.5.0)
-  - libwebp/webp (1.5.0):
+  - libwebp/sharpyuv (1.6.0)
+  - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
   - lottie-react-native (7.3.8):
@@ -539,10 +539,14 @@ PODS:
     - SocketRocket
     - Yoga
   - MpcLibsReactNative (0.1.0):
+    - boost
     - DoubleConversion
+    - fast_float
+    - fmt
     - glog
     - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
+    - RCT-Folly
+    - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
     - React-Core
@@ -551,13 +555,16 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-renderercss
     - React-rendererdebug
     - React-utils
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - SocketRocket
     - uniffi-bindgen-react-native (= 0.29.3-1)
     - Yoga
   - MultiplatformBleAdapter (0.2.0)
@@ -715,8 +722,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - OpenSSL-Universal (3.6.0000)
-  - PromisesObjC (2.4.0)
+  - OpenSSL-Universal (3.6.2000)
+  - PromisesObjC (2.4.1)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -4509,9 +4516,9 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.1.3):
     - React-Core
+  - SwiftUIIntrospect (1.3.0)
   - uniffi-bindgen-react-native (0.29.3-1):
     - React-Core
-  - SwiftUIIntrospect (1.3.0)
   - VeriffSDK (8.12.0)
   - VisionCamera (4.7.3):
     - VisionCamera/Core (= 4.7.3)
@@ -4706,6 +4713,7 @@ DEPENDENCIES:
   - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
   - SocketRocket (~> 0.7.1)
   - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
+  - uniffi-bindgen-react-native (from `../node_modules/uniffi-bindgen-react-native`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -4744,7 +4752,6 @@ SPEC REPOS:
     - SDWebImageWebPCoder
     - Sentry
     - SocketRocket
-    - uniffi-bindgen-react-native
     - SwiftUIIntrospect
     - VeriffSDK
     - YttriumWrapper
@@ -5105,6 +5112,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native"
   sovran-react-native:
     :path: "../node_modules/@segment/sovran-react-native"
+  uniffi-bindgen-react-native:
+    :path: "../node_modules/uniffi-bindgen-react-native"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -5171,10 +5180,10 @@ SPEC CHECKSUMS:
   hermes-engine: f37e1d6f1eb198649a60b3f17b6f685a6ac12470
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
-  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: b410d8c9dcaf536198ce852ea47e73c9158ad04e
-  MpcLibsReactNative: 2e801fb7945c54f41ed0e17cfd45a2918a109042
+  MpcLibsReactNative: eaa74f924a22e005f80f8d4b0cbd568400953406
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
@@ -5182,8 +5191,8 @@ SPEC CHECKSUMS:
   NitroFetchWebsockets: 8ce4909248acd869f7002be2c9b1eefcbb60544a
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   RCT-Folly: b29feb752b08042c62badaef7d453f3bb5e6ae23
   RCTDeprecation: c5e70bcdbc24b9edbca24b96f3997319f01ba8fb
   RCTRequired: 7fbf6c9b97de59aab5c6a1ca5a5d91555d5ba403
@@ -5321,8 +5330,8 @@ SPEC CHECKSUMS:
   Sentry: d587a8fe91ca13503ecd69a1905f3e8a0fcf61be
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: a3ad3f8ff90c2002b2aa9790001a78b0b0a38594
-  uniffi-bindgen-react-native: 125eae9e3a0cf34bf8f3d4b0ceed517df7cc0733
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
+  uniffi-bindgen-react-native: 076bf125ee96728ccca853fadd7f93bb31b7cf26
   VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: 7187b3dac1ff3071234ead959ce311875748e14f
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
