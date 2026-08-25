@@ -16,6 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { getEventGame } from '../../events/game';
+import { MarketList, MarketStandardCard } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
@@ -92,6 +93,17 @@ export const PredictEventScreen = () => {
         ) : (
           <StandardEventHeader event={query.data} />
         )}
+        <Box
+          testID={PredictEventScreenTestIds.PREDICT_SECTION}
+          twClassName="mt-8 gap-[14px]"
+        >
+          <Text variant={TextVariant.HeadingMd}>Predict</Text>
+          <MarketList>
+            {query.data.markets.map((market) => (
+              <MarketStandardCard key={market.id} market={market} />
+            ))}
+          </MarketList>
+        </Box>
       </EventScreenLayout>
     );
   }

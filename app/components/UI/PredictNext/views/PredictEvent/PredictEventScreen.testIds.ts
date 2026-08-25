@@ -12,6 +12,7 @@ export const PredictEventScreenTestIds = {
   GAME_HEADER: 'predict-next-event-game-header',
   GAME_STATUS: 'predict-next-event-game-status',
   GAME_METADATA: 'predict-next-event-game-metadata',
+  PREDICT_SECTION: 'predict-next-event-predict-section',
   team: (selection: 'away' | 'home') => `predict-next-event-team-${selection}`,
   teamLogo: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo`,

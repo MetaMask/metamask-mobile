@@ -1,10 +1,10 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { StakeConfirmViewSelectors } from '../../selectors/Stake/StakeConfirmView.selectors.js';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class StakeConfirmationView {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeConfirmViewSelectors.CONFIRM);
   }
 
