@@ -19,6 +19,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -712,7 +713,10 @@ describe('PerpsProOrderForm', () => {
       const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
 
       expect(editButton).toHaveProp('accessibilityRole', 'button');
-      expect(editButton).toHaveProp('accessibilityLabel', 'Set slippage');
+      expect(editButton).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.slippage.config_title'),
+      );
       expect(editButton).toHaveProp('hitSlop', 12);
     });
 
