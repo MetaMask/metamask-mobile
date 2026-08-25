@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -36,7 +36,6 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Perps account balance bottom sheet.
@@ -69,14 +68,6 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const unrealizedPnl = parseFloat(perpsAccount?.unrealizedPnl || '0');
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-
-  useEffect(() => {
-    if (isVisible) {
-      DevLogger.log(
-        '[PR-TAT-3778] BUG_MARKER: Activity entry point is visible in the Perps balance bottom sheet',
-      );
-    }
-  }, [isVisible]);
 
   const pnlColor = privacyMode
     ? TextColor.TextDefault
