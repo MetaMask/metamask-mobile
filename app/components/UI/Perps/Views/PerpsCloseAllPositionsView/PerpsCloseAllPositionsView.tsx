@@ -15,7 +15,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { NotificationMoment } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  NotificationMoment,
+  useHaptics,
+} from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
@@ -49,6 +53,7 @@ interface PerpsCloseAllPositionsViewProps {
   positions?: Position[];
   /** Drops "all" from the title, which would misdescribe a filtered subset. */
   isFiltered?: boolean;
+  enableHaptics?: boolean;
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
@@ -56,6 +61,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   onClose: onExternalClose,
   positions: propPositions,
   isFiltered = false,
+  enableHaptics = false,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -63,6 +69,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
+  const { playImpact } = useHaptics();
 
   // Fetch positions from live stream (used only when no positions prop is passed)
   const liveResult = usePerpsLivePositions({
@@ -210,6 +217,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       },
     });
 
+  const handleCloseAllPress = useCallback(() => {
+    if (isClosing) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
+    handleCloseAll();
+  }, [enableHaptics, handleCloseAll, isClosing, playImpact]);
+
   const handleClose = useCallback(() => {
     if (externalSheetRef) {
       sheetRef.current?.onCloseBottomSheet(() => {
@@ -249,13 +266,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       children: isClosing
         ? strings('perps.close_all_modal.closing')
         : strings('perps.close_all_modal.close_count', { count: closeCount }),
-      onPress: handleCloseAll,
+      onPress: handleCloseAllPress,
       size: ButtonSize.Lg,
       isDisabled: isClosing,
       isDanger: true,
       testID: PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
     }),
-    [closeCount, handleCloseAll, isClosing],
+    [closeCount, handleCloseAllPress, isClosing],
   );
 
   const title = isFiltered

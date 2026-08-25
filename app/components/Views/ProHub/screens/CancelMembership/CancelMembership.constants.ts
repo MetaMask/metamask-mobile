@@ -35,3 +35,6 @@ export const MOCK_CANCEL_STATS: CancelMembershipStats = {
   earnedAsMember: '+$503.51',
   membershipCost: '$49.99/yr',
 };
+
+/** Mock cancellation end-date shown in the success step. */
+export const MOCK_CANCELLATION_END_DATE = 'July 20th, 2027';

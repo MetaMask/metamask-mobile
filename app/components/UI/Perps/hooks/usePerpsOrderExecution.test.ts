@@ -332,6 +332,64 @@ describe('usePerpsOrderExecution', () => {
     });
   });
 
+  describe('trigger orders (order-render CUF, never position-render)', () => {
+    it.each([
+      'stop_market',
+      'stop_limit',
+      'take_profit_market',
+      'take_profit_limit',
+    ] as const)(
+      'uses the resting-order confirmation path for %s',
+      async (orderType) => {
+        jest.useFakeTimers();
+        try {
+          const onSuccess = jest.fn();
+          mockPlaceOrder.mockResolvedValue({
+            success: true,
+            orderId: `trigger-${orderType}`,
+          });
+
+          const { result } = renderHook(() =>
+            usePerpsOrderExecution({ onSuccess }),
+          );
+
+          await act(async () => {
+            await result.current.placeOrder({
+              ...mockOrderParams,
+              orderType,
+              triggerPrice: '51000',
+              ...(orderType.endsWith('_limit') ? { price: '51000' } : {}),
+            });
+          });
+
+          expect(onSuccess).toHaveBeenCalledWith();
+          expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
+          expect(mockEndTrace).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.stringContaining(
+                TraceName.PerpsPlaceOrderToPositionRendered,
+              ),
+            }),
+          );
+          expect(mockEndTrace).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.stringContaining(
+                TraceName.PerpsPlaceLimitOrderToOrderRendered,
+              ),
+              data: expect.objectContaining({ success: true }),
+            }),
+          );
+
+          act(() => {
+            jest.runOnlyPendingTimers();
+          });
+        } finally {
+          jest.useRealTimers();
+        }
+      },
+    );
+  });
+
   describe('successful order placement', () => {
     it('calls onSuccess with the position once the stream renders it', async () => {
       const onSuccess = jest.fn();

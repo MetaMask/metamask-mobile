@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  FontWeight,
   Tag,
   TagSeverity,
   TextColor,
@@ -40,7 +39,6 @@ function getRecurringOpenOrderSlots(
   | 'primaryValue'
   | 'secondaryValue'
   | 'primaryColor'
-  | 'subtitleFontWeight'
   | 'titleEndAccessory'
 > {
   const pair = strings('bridge.recurring.pair', {
@@ -56,7 +54,6 @@ function getRecurringOpenOrderSlots(
         primaryValue: `+0.325 ${item.token.symbol}`,
         secondaryValue: '-0.1 ETH',
         primaryColor: TextColor.SuccessDefault,
-        subtitleFontWeight: FontWeight.Medium,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Success}>
             {strings('bridge.recurring.filled')}

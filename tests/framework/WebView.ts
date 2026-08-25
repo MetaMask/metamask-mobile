@@ -9,14 +9,13 @@ import {
   type AndroidWebViewScrollOptions,
   type AndroidWebViewTapOptions,
 } from './AndroidWebViewNative.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
-import { type PlaywrightElement } from './PlaywrightAdapter.ts';
-import PlaywrightGestures from './PlaywrightGestures.ts';
-import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
+import { type AppiumElement } from './AppiumElement.ts';
+import AppiumGestures from './AppiumGestures.ts';
+import AppiumWebMatchers from './AppiumWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
-import { getDriver } from './PlaywrightUtilities.ts';
+import { getDriver } from './AppiumUtilities.ts';
 
 export type WebViewByIdOptions = AndroidWebViewScrollOptions & {
   /** Required for Appium Chromedriver / iOS WebView context lookups. */
@@ -43,7 +42,7 @@ export default class WebView {
     pageUrl: string,
     action: () => Promise<void>,
   ): Promise<void> {
-    await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
+    await AppiumWebMatchers.withWebViewAction(pageUrl, action);
   }
 
   /**
@@ -54,17 +53,10 @@ export default class WebView {
     pageUrl: string | undefined,
     action: () => Promise<void>,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      if (!pageUrl) {
-        throw new Error(
-          'pageUrl is required for Appium WebView context actions',
-        );
-      }
-      await this.withWebViewAction(pageUrl, action);
-      return;
+    if (!pageUrl) {
+      throw new Error('pageUrl is required for Appium WebView context actions');
     }
-
-    await action();
+    await this.withWebViewAction(pageUrl, action);
   }
 
   static async tapById(
@@ -134,57 +126,29 @@ export default class WebView {
       return;
     }
 
-    if (FrameworkDetector.isAppium()) {
-      await this.withContext(options.pageUrl, async () => {
-        await getDriver().execute(
-          (id: string, searchText: string) => {
-            const el = document.getElementById(id) as HTMLSelectElement | null;
-            if (!el?.options) {
-              throw new Error(`Select element #${id} not found`);
-            }
-            const option = Array.from(el.options).find((opt) =>
-              opt.text.includes(searchText),
+    await this.withContext(options.pageUrl, async () => {
+      await getDriver().execute(
+        (id: string, searchText: string) => {
+          const el = document.getElementById(id) as HTMLSelectElement | null;
+          if (!el?.options) {
+            throw new Error(`Select element #${id} not found`);
+          }
+          const option = Array.from(el.options).find((opt) =>
+            opt.text.includes(searchText),
+          );
+          if (!option) {
+            throw new Error(
+              `Option containing "${searchText}" not found in #${id}`,
             );
-            if (!option) {
-              throw new Error(
-                `Option containing "${searchText}" not found in #${id}`,
-              );
-            }
-            el.value = option.value;
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-          },
-          webId,
-          optionText,
-        );
-      });
-      return;
-    }
-
-    // Detox web element — runScript is Detox-only.
-    const webElement = await Matchers.getElementByWebID(
-      options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      webId,
-    );
-
-    const source = await webElement.runScript(
-      (el: HTMLSelectElement, searchText: string) => {
-        if (!el?.options) return null;
-        const option = Array.from(el.options).find((opt) =>
-          opt.text.includes(searchText),
-        );
-        return option ? option.value : null;
-      },
-      [optionText],
-    );
-
-    await webElement.runScript(
-      (el: HTMLSelectElement, value: string | null) => {
-        el.value = value ?? '';
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-      [source],
-    );
+          }
+          el.value = option.value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        },
+        webId,
+        optionText,
+      );
+    });
   }
 
   /**
@@ -194,12 +158,6 @@ export default class WebView {
    * @param pageUrl - Required on iOS to switch into the WebView context.
    */
   static async blurActiveElement(pageUrl: string): Promise<void> {
-    if (!FrameworkDetector.isAppium()) {
-      throw new Error(
-        'WebView.blurActiveElement is Appium-only. Do not add new Detox coverage for this path.',
-      );
-    }
-
     if (PlatformDetector.isAndroidAppium()) {
       await blurAndroidWebView(pageUrl);
       return;
@@ -213,18 +171,18 @@ export default class WebView {
         }
       });
     });
-    await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+    await AppiumGestures.hideKeyboard().catch(() => undefined);
   }
 
   static async scrollIntoView(
     webId: string,
     options: WebViewByIdOptions = {},
-  ): Promise<PlaywrightElement | WebElement> {
+  ): Promise<AppiumElement> {
     if (PlatformDetector.isAndroidAppium()) {
       return scrollAndroidWebIdIntoView(webId, options);
     }
 
-    let webElement: PlaywrightElement | WebElement | undefined;
+    let webElement: AppiumElement | undefined;
     await this.withContext(options.pageUrl, async () => {
       const resolved = await this.getElementById(webId, options);
       await Gestures.scrollToWebViewPort(resolved);
@@ -239,19 +197,13 @@ export default class WebView {
   private static async getElementById(
     webId: string,
     options: WebViewByIdOptions,
-  ): Promise<PlaywrightElement | WebElement> {
+  ): Promise<AppiumElement> {
     const webviewId =
       options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
 
-    if (FrameworkDetector.isAppium()) {
-      if (!options.pageUrl) {
-        throw new Error(
-          'pageUrl is required for Appium WebView element lookup',
-        );
-      }
-      return Matchers.getElementByWebID(webviewId, webId, options.pageUrl);
+    if (!options.pageUrl) {
+      throw new Error('pageUrl is required for Appium WebView element lookup');
     }
-
-    return Matchers.getElementByWebID(webviewId, webId);
+    return Matchers.getElementByWebID(webviewId, webId, options.pageUrl);
   }
 }

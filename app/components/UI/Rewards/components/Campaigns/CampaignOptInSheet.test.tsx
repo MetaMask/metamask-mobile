@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import {
   type CampaignDto,
@@ -341,5 +341,60 @@ describe('CampaignOptInSheet', () => {
     );
     // Button still renders while loading
     expect(getByTestId('campaign-opt-in-cta')).toBeDefined();
+  });
+
+  it('shows error banner when custom onOptIn returns false', async () => {
+    const onOptIn = jest.fn().mockResolvedValue(false);
+    const onClose = jest.fn();
+    const { getByTestId, findByTestId } = render(
+      <CampaignOptInSheet
+        campaign={createTestCampaign()}
+        onOptIn={onOptIn}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+
+    expect(await findByTestId('campaign-opt-in-error-banner')).toBeDefined();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('shows error banner when custom onOptIn throws', async () => {
+    const onOptIn = jest.fn().mockRejectedValue(new Error('Network down'));
+    const onClose = jest.fn();
+    const { getByTestId, findByTestId } = render(
+      <CampaignOptInSheet
+        campaign={createTestCampaign()}
+        onOptIn={onOptIn}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+
+    expect(await findByTestId('campaign-opt-in-error-banner')).toBeDefined();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('closes and toasts when custom onOptIn succeeds', async () => {
+    const onOptIn = jest.fn().mockResolvedValue(true);
+    const onClose = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <CampaignOptInSheet
+        campaign={createTestCampaign()}
+        onOptIn={onOptIn}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+    expect(queryByTestId('campaign-opt-in-error-banner')).toBeNull();
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
   });
 });
