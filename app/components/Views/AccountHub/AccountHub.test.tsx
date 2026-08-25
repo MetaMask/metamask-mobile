@@ -14,6 +14,7 @@ import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
+  getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
@@ -88,10 +89,16 @@ const INTERNAL_ACCOUNTS = [{ id: 'account-1' }, { id: 'account-2' }];
 const arrangeSelectors = ({
   accountGroup = SELECTED_GROUP,
   unreadCount = 0,
-}: { accountGroup?: unknown; unreadCount?: number } = {}) => {
+  readCount = 3,
+}: {
+  accountGroup?: unknown;
+  unreadCount?: number;
+  readCount?: number;
+} = {}) => {
   jest.mocked(useSelector).mockImplementation((selector: unknown) => {
     if (selector === selectSelectedInternalAccount) return SELECTED_ACCOUNT;
     if (selector === selectInternalAccounts) return INTERNAL_ACCOUNTS;
+    if (selector === getMetamaskNotificationsReadCount) return readCount;
     if (selector === selectSelectedAccountGroup) return accountGroup;
     if (selector === selectAvatarAccountType) return 'JazzIcon';
     if (selector === selectIsMetamaskNotificationsEnabled) return true;
@@ -167,11 +174,17 @@ describe('AccountHub', () => {
   });
 
   it('opens notifications from the bell', () => {
+    arrangeSelectors({ unreadCount: 2, readCount: 5 });
+
     const { getByTestId } = render(<AccountHub />);
 
     fireEvent.press(getByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      unread_count: 2,
+      read_count: 5,
+    });
   });
 
   it('opens the settings flow from the hamburger', () => {
@@ -229,12 +242,14 @@ describe('AccountHub', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('does not navigate from Info when no account group is selected', () => {
+  it('disables Info when no account group is selected', () => {
     arrangeSelectors({ accountGroup: null });
 
     const { getByTestId } = render(<AccountHub />);
-    fireEvent.press(getByTestId(AccountHubSelectorsIDs.INFO_BUTTON));
+    const infoButton = getByTestId(AccountHubSelectorsIDs.INFO_BUTTON);
+    fireEvent.press(infoButton);
 
+    expect(infoButton).toBeDisabled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -268,8 +283,8 @@ describe('AccountHub', () => {
     expect(useSyncSRPs).toHaveBeenCalled();
   });
 
-  it('scrolls the whole screen by handing the list its header and footer', () => {
-    const { UNSAFE_getByType } = render(<AccountHub />);
+  it('scrolls the header with the list and pins Add wallet below it', () => {
+    const { UNSAFE_getByType, getByTestId } = render(<AccountHub />);
     const list = UNSAFE_getByType(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList')
@@ -277,9 +292,11 @@ describe('AccountHub', () => {
     );
 
     expect(list.props.ListHeaderComponent).toBeTruthy();
-    expect(list.props.ListFooterComponent).toBeTruthy();
-    // Without this the mount-time centering scroll hides the header.
-    expect(list.props.disableAutoScrollToSelected).toBe(true);
+    // Add wallet is a sibling below the list (sticky), not a list footer.
+    expect(list.props.ListFooterComponent).toBeUndefined();
+    expect(
+      getByTestId(AccountHubSelectorsIDs.ADD_WALLET_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('hides search in the reused account list', () => {

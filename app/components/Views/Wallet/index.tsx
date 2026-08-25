@@ -83,7 +83,6 @@ import {
 } from '../../../util/analytics/actionButtonTracking';
 import { RootState } from '../../../reducers';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   selectChainId,
   selectProviderConfig,
@@ -230,15 +229,8 @@ const createStyles = ({ colors }: Theme) =>
     compactHeaderAccountName: {
       marginTop: 12,
       marginHorizontal: 16,
-      marginBottom: -12,
-      maxWidth: '50%',
-    },
-    // Standalone variant for the balance-breakdown arm: no cluster gap to cancel
-    compactHeaderAccountNameStandalone: {
-      marginTop: 12,
-      marginHorizontal: 16,
       marginBottom: 4,
-      maxWidth: '50%',
+      maxWidth: '70%',
     },
   });
 
@@ -384,11 +376,6 @@ const Wallet = ({
   const { navigateToSendPage } = useSendNavigation();
 
   const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
-
-  /**
-   * Object containing the balance of the current selected account
-   */
-  const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
    * A string that represents the selected address
@@ -827,14 +814,16 @@ const Wallet = ({
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      homepageScrollY.value = event.nativeEvent.contentOffset.y;
+      if (isCompactHeader) {
+        homepageScrollY.value = event.nativeEvent.contentOffset.y;
+      }
       const now = Date.now();
       if (now - lastScrollTickTimeRef.current >= 100) {
         lastScrollTickTimeRef.current = now;
         scrollSubscribersRef.current.forEach((cb) => cb());
       }
     },
-    [homepageScrollY],
+    [homepageScrollY, isCompactHeader],
   );
 
   const touchAreaSlop = useMemo(
@@ -1107,11 +1096,7 @@ const Wallet = ({
   const compactHeaderAccountName = isCompactHeader ? (
     <CustomText
       variant={TextVariant.HeadingMd}
-      style={
-        balanceBreakdownLayout
-          ? styles.compactHeaderAccountNameStandalone
-          : styles.compactHeaderAccountName
-      }
+      style={styles.compactHeaderAccountName}
       numberOfLines={1}
       onLayout={handleAccountNameLayout}
       testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
@@ -1133,15 +1118,19 @@ const Wallet = ({
       {compactHeaderAccountName}
     </>
   ) : (
-    <View style={styles.portfolioHeaderCluster}>
-      {bannerContent}
+    <>
+      {hasBannerContent ? (
+        <View style={styles.treatmentBannerContainer}>{bannerContent}</View>
+      ) : null}
       {compactHeaderAccountName}
-      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
-      {walletHomeMainAssetDetailsActions}
-      {growthBanner}
-      {homepageDiscoveryPills}
-      {showMoneyBalanceCard && <MoneyBalanceCard />}
-    </View>
+      <View style={styles.portfolioHeaderCluster}>
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+        {walletHomeMainAssetDetailsActions}
+        {growthBanner}
+        {homepageDiscoveryPills}
+        {showMoneyBalanceCard && <MoneyBalanceCard />}
+      </View>
+    </>
   );
 
   const balanceBreakdownSectionProps = balanceBreakdownLayout
@@ -1182,8 +1171,6 @@ const Wallet = ({
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
                   displayName={displayName}
-                  isNotificationEnabled={isNotificationEnabled}
-                  unreadNotificationCount={unreadNotificationCount}
                   handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
                   touchAreaSlop={touchAreaSlop}

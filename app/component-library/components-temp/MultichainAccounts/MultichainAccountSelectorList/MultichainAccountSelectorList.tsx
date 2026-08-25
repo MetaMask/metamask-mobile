@@ -65,6 +65,15 @@ const keyExtractor = (
   }
 };
 
+const renderListSlot = (
+  slot: MultichainAccountSelectorListProps['ListHeaderComponent'],
+) => {
+  if (!slot) {
+    return null;
+  }
+  return React.isValidElement(slot) ? slot : React.createElement(slot);
+};
+
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -77,7 +86,6 @@ const MultichainAccountSelectorList = ({
   chainId,
   hideAccountCellMenu = false,
   hideSearch = false,
-  disableAutoScrollToSelected = false,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
@@ -258,7 +266,7 @@ const MultichainAccountSelectorList = ({
 
   // Scroll to selected item on initial mount
   useEffect(() => {
-    if (disableAutoScrollToSelected) {
+    if (props.ListHeaderComponent) {
       return undefined;
     }
     if (
@@ -287,7 +295,7 @@ const MultichainAccountSelectorList = ({
     }
     return undefined;
   }, [
-    disableAutoScrollToSelected,
+    props.ListHeaderComponent,
     flattenedData,
     selectedAccountGroups,
     listRefToUse,
@@ -464,23 +472,28 @@ const MultichainAccountSelectorList = ({
           ) : null}
         </View>
       )}
-      <View style={styles.listContainer} testID={testID}>
+      <View style={styles.listContainer}>
         {flattenedData.length === 0 ? (
-          <View
-            style={styles.emptyState}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextMuted}
-              style={styles.emptyStateText}
+          <>
+            {renderListSlot(props.ListHeaderComponent)}
+            <View
+              style={styles.emptyState}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
             >
-              {emptyStateText}
-            </Text>
-          </View>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextMuted}
+                style={styles.emptyStateText}
+              >
+                {emptyStateText}
+              </Text>
+            </View>
+            {renderListSlot(props.ListFooterComponent)}
+          </>
         ) : (
           <FlashList
             ref={listRefToUse}
+            testID={testID}
             data={flattenedData}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}

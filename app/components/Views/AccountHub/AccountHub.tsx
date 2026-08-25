@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -16,12 +16,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   HeaderStandard,
   IconName,
   MainActionButton,
@@ -32,6 +28,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import AddWalletButton from '../../../component-library/components-temp/MultichainAccounts/AddWalletButton';
 import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -41,7 +38,7 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
-import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useHasUnreadNotifications } from '../../hooks/useHasUnreadNotifications';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -49,17 +46,13 @@ import {
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
+  getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 
-/**
- * Consolidated account and settings surface introduced by the Header & NavBar
- * refresh experiment (TMCU-1276). Reached from the wallet header avatar in the
- * treatment arm only — the caller owns the flag check.
- */
 const AccountHub = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -76,8 +69,8 @@ const AccountHub = () => {
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
-  const { isAccountSyncingInProgress, loadingMessage } =
-    useAccountsOperationsLoadingStates();
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const hasUnreadNotifications = useHasUnreadNotifications();
 
   useSyncSRPs();
 
@@ -95,7 +88,10 @@ const AccountHub = () => {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_MENU_OPENED)
-          .addProperties({ unread_count: unreadNotificationCount })
+          .addProperties({
+            unread_count: unreadNotificationCount,
+            read_count: readNotificationCount,
+          })
           .build(),
       );
     }
@@ -103,6 +99,7 @@ const AccountHub = () => {
     navigation,
     isNotificationEnabled,
     unreadNotificationCount,
+    readNotificationCount,
     trackEvent,
     createEventBuilder,
   ]);
@@ -154,89 +151,68 @@ const AccountHub = () => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
-  const addWalletLabel = isAccountSyncingInProgress
-    ? loadingMessage
-    : strings('multichain_accounts.add_wallet');
-
-  const listHeader = (
-    <>
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="px-4 pt-2 pb-6 gap-3"
-      >
-        {selectedInternalAccount ? (
-          <AvatarAccount
-            address={selectedInternalAccount.address}
-            variant={getAvatarAccountVariant(avatarAccountType)}
-            size={AvatarAccountSize.Xl}
-            testID={AccountHubSelectorsIDs.ACCOUNT_AVATAR}
-          />
-        ) : null}
-        <Text
-          variant={TextVariant.HeadingLg}
-          numberOfLines={1}
-          testID={AccountHubSelectorsIDs.ACCOUNT_NAME}
-        >
-          {selectedAccountGroup?.metadata.name ?? ''}
-        </Text>
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="px-4 pb-4 gap-3 justify-between"
-      >
-        <MainActionButton
-          twClassName="flex-1"
-          iconName={IconName.Info}
-          label={strings('account_hub.info')}
-          onPress={handleInfoPress}
-          isDisabled={!selectedAccountGroup}
-          testID={AccountHubSelectorsIDs.INFO_BUTTON}
-        />
-        <MainActionButton
-          twClassName="flex-1"
-          iconName={IconName.QrCode}
-          label={strings('account_hub.scan')}
-          onPress={openQRScanner}
-          testID={AccountHubSelectorsIDs.SCAN_BUTTON}
-        />
-        <MainActionButton
-          twClassName="flex-1"
-          iconName={IconName.Clock}
-          label={strings('account_hub.activity')}
-          onPress={handleActivityPress}
-          testID={AccountHubSelectorsIDs.ACTIVITY_BUTTON}
-        />
-      </Box>
-    </>
-  );
-
-  const listFooter = (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-6 pb-5">
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={handleAddWallet}
-        isDisabled={isAccountSyncingInProgress}
-        testID={AccountHubSelectorsIDs.ADD_WALLET_BUTTON}
-        twClassName="flex-1"
-      >
+  const listHeader = useMemo(
+    () => (
+      <>
         <Box
-          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          gap={2}
+          twClassName="px-4 pt-8 pb-6 gap-3"
         >
-          {isAccountSyncingInProgress ? (
-            <ActivityIndicator size="small" />
+          {selectedInternalAccount ? (
+            <AvatarAccount
+              address={selectedInternalAccount.address}
+              variant={getAvatarAccountVariant(avatarAccountType)}
+              size={AvatarAccountSize.Xl}
+              testID={AccountHubSelectorsIDs.ACCOUNT_AVATAR}
+            />
           ) : null}
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {addWalletLabel}
+          <Text
+            variant={TextVariant.HeadingLg}
+            numberOfLines={1}
+            testID={AccountHubSelectorsIDs.ACCOUNT_NAME}
+          >
+            {selectedAccountGroup?.metadata.name ?? ''}
           </Text>
         </Box>
-      </Button>
-    </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="px-4 pb-4 gap-2 justify-between"
+        >
+          <MainActionButton
+            twClassName="flex-1"
+            iconName={IconName.Info}
+            label={strings('account_hub.info')}
+            onPress={handleInfoPress}
+            isDisabled={!selectedAccountGroup}
+            testID={AccountHubSelectorsIDs.INFO_BUTTON}
+          />
+          <MainActionButton
+            twClassName="flex-1"
+            iconName={IconName.QrCode}
+            label={strings('account_hub.scan')}
+            onPress={openQRScanner}
+            testID={AccountHubSelectorsIDs.SCAN_BUTTON}
+          />
+          <MainActionButton
+            twClassName="flex-1"
+            iconName={IconName.Clock}
+            label={strings('account_hub.activity')}
+            onPress={handleActivityPress}
+            testID={AccountHubSelectorsIDs.ACTIVITY_BUTTON}
+          />
+        </Box>
+      </>
+    ),
+    [
+      selectedInternalAccount,
+      avatarAccountType,
+      selectedAccountGroup,
+      handleInfoPress,
+      openQRScanner,
+      handleActivityPress,
+    ],
   );
 
   return (
@@ -255,7 +231,7 @@ const AccountHub = () => {
                 position={BadgeWrapperPosition.TopRight}
                 positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
                 badge={
-                  isNotificationEnabled && unreadNotificationCount > 0 ? (
+                  hasUnreadNotifications ? (
                     <BadgeStatus
                       status={BadgeStatusStatus.Attention}
                       testID={AccountHubSelectorsIDs.NOTIFICATIONS_BADGE}
@@ -287,17 +263,16 @@ const AccountHub = () => {
           onSelectAccount={handleSelectAccount}
           selectedAccountGroups={selectedAccountGroups}
           hideSearch
-          disableAutoScrollToSelected
           ListHeaderComponent={listHeader}
-          ListFooterComponent={listFooter}
           testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
         />
       ) : (
-        <ScrollView>
-          {listHeader}
-          {listFooter}
-        </ScrollView>
+        <ScrollView style={tw.style('flex-1')}>{listHeader}</ScrollView>
       )}
+      <AddWalletButton
+        onPress={handleAddWallet}
+        testID={AccountHubSelectorsIDs.ADD_WALLET_BUTTON}
+      />
     </SafeAreaView>
   );
 };

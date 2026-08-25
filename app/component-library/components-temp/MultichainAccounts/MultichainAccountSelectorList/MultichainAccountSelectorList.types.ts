@@ -73,18 +73,8 @@ export interface MultichainAccountSelectorListProps
    * Optional boolean to hide the account cell menu
    */
   hideAccountCellMenu?: boolean;
-  /**
-   * Optional boolean to hide the search field. Filtering still works if a
-   * `selectedExternalAddress` seeds the query, so callers that hide search
-   * should not also pass one.
-   */
+  /** Optional boolean to hide the search field (do not combine with `selectedExternalAddress`) */
   hideSearch?: boolean;
-  /**
-   * Optional boolean to skip the mount-time scroll that centers the selected
-   * account. Set this when passing a `ListHeaderComponent`, which the scroll
-   * would otherwise push off screen.
-   */
-  disableAutoScrollToSelected?: boolean;
   /**
    * Optional boolean to show the external account on empty search
    */

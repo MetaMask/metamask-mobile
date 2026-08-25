@@ -17,13 +17,7 @@ export interface QRScanResult {
   seed?: string;
 }
 
-/**
- * Opens the QR tab switcher and handles the three scan outcomes: a private key
- * (offer to import), a seed phrase (refuse — importing one requires a logout),
- * and anything else (hand to the deeplink parser).
- *
- * @returns `openQRScanner`, ready to wire to a button press.
- */
+/** Opens the QR tab switcher; scans resolve to private-key import, seed-phrase refusal, or the deeplink parser. */
 export function useQRScanner(): { openQRScanner: () => void } {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -77,7 +71,6 @@ export function useQRScanner(): { openQRScanner: () => void } {
   );
 
   const openQRScanner = useCallback(() => {
-    // Broader ScanSuccess param; avoid cross-route type import (ADR-0020).
     navigateWithDetails(navigation, [
       Routes.QR_TAB_SWITCHER,
       { onScanSuccess },

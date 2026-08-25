@@ -2011,8 +2011,6 @@ describe('Header and Nav Bar refresh AB test', () => {
     }
   });
 
-  // The header handlers use the `navigation` prop, not `useNavigation`, so these
-  // render with an explicit prop rather than through `render()`.
   const renderWithNavigationProp = () => {
     const navigationProp = {
       navigate: mockNavigate,
