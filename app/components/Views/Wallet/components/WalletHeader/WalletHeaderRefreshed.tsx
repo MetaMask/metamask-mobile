@@ -3,6 +3,7 @@ import { TouchableOpacity, View, type ViewStyle } from 'react-native';
 import {
   AvatarAccount,
   AvatarAccountSize,
+  AvatarBaseShape,
   BadgeStatus,
   BadgeStatusStatus,
   BadgeWrapper,
@@ -99,7 +100,8 @@ const WalletHeaderRefreshed = ({
         <AvatarAccount
           address={accountAddress}
           variant={getAvatarAccountVariant(avatarAccountType)}
-          size={AvatarAccountSize.Md}
+          size={AvatarAccountSize.Lg}
+          shape={AvatarBaseShape.Circle}
         />
       </BadgeWrapper>
     </TouchableOpacity>

@@ -223,12 +223,11 @@ const createStyles = ({ colors }: Theme) =>
       marginRight: 16,
       backgroundColor: 'transparent',
     },
-    // The refreshed header drops the account name, so the balance cluster
-    // carries it instead. `marginHorizontal` matches AccountGroupBalance so the
-    // name aligns with the balance; the negative bottom absorbs the cluster gap.
     refreshedHeaderAccountName: {
+      marginTop: 12,
       marginHorizontal: 16,
       marginBottom: -12,
+      maxWidth: '50%',
     },
   });
 
@@ -1094,7 +1093,7 @@ const Wallet = ({
       {bannerContent}
       {useRefreshedHeader && (
         <CustomText
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.HeadingMd}
           style={styles.refreshedHeaderAccountName}
           numberOfLines={1}
           testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}

@@ -155,7 +155,8 @@ const AccountHub = () => {
         ) : null}
         <Text
           variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          // twClassName="text-center"
           testID={AccountHubSelectorsIDs.ACCOUNT_NAME}
         >
           {selectedAccountGroup?.metadata.name ?? ''}
