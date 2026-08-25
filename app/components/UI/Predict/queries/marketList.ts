@@ -97,6 +97,7 @@ export const predictMarketListOptions = (
       ...params,
       afterCursor: typeof pageParam === 'string' ? pageParam : null,
     }),
+  initialPageParam: undefined as string | undefined,
   getNextPageParam: (lastPage: PredictMarketListResponse) =>
     lastPage.nextCursor ?? undefined,
   staleTime: 10_000,
