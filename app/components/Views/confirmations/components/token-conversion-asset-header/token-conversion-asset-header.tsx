@@ -15,16 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import BigNumber from 'bignumber.js';
 import { useStyles } from '../../../../hooks/useStyles';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { AssetType } from '../../types/token';
 import styleSheet from './token-conversion-asset-header.styles';
@@ -32,12 +25,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../hooks/pay/useTransactionPayData';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { useNetworkName } from '../../hooks/useNetworkName';
 
@@ -228,16 +215,15 @@ export const TokenConversionAssetHeader = ({
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
       >
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             inputNetworkImageSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
+              <BadgeNetwork
                 name={inputNetworkName}
                 src={inputNetworkImageSource}
                 testID={TokenConversionAssetHeaderTestIds.INPUT_NETWORK_BADGE}
               />
-            ) : undefined
+            ) : null
           }
         >
           <AvatarToken
@@ -291,16 +277,15 @@ export const TokenConversionAssetHeader = ({
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
       >
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             outputNetworkImageSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
+              <BadgeNetwork
                 name={outputNetworkName}
                 src={outputNetworkImageSource}
                 testID={TokenConversionAssetHeaderTestIds.OUTPUT_NETWORK_BADGE}
               />
-            ) : undefined
+            ) : null
           }
         >
           <AvatarToken

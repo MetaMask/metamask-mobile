@@ -122,17 +122,7 @@ describe('AddressElement', () => {
       },
     );
 
-    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
-  });
-
-  it('does not render network badge when network image source is missing', () => {
-    const { getByTestId, queryByTestId } = renderComponent(initialState, {
-      displayNetworkBadge: true,
-      chainId: '0xdeadbeef',
-    });
-
-    expect(getByTestId('address-element')).toBeOnTheScreen();
-    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
+    expect(getByTestId('address-element-network-badge')).toBeOnTheScreen();
   });
 
   it('does not render network badge when network image source is missing', () => {

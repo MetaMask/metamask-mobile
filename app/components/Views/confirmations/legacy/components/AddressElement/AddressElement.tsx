@@ -30,16 +30,7 @@ import { useSelector } from 'react-redux';
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
-import { useSelector } from 'react-redux';
-
-import { Hex } from '@metamask/utils';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 
 const AddressElement: React.FC<AddressElementProps> = ({
@@ -71,16 +62,16 @@ const AddressElement: React.FC<AddressElementProps> = ({
 
       return (
         <BadgeWrapper
-          badgeElement={
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             networkImageSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkImageSource}
+              <BadgeNetwork
+                src={networkImageSource}
                 name={addressElementNetwork?.name}
+                testID="address-element-network-badge"
               />
-            ) : undefined
+            ) : null
           }
-          badgePosition={BadgePosition.BottomRight}
         >
           <Identicon address={address} diameter={28} />
         </BadgeWrapper>

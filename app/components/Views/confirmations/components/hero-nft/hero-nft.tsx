@@ -64,16 +64,15 @@ const NftImageAndNetworkBadge = ({
   return (
     <TouchableOpacity onPress={onPress} style={styles.touchableOpacity}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
           networkImage ? (
-            <Badge
-              imageSource={networkImage}
+            <BadgeNetwork
+              src={networkImage}
               name={networkName}
-              variant={BadgeVariant.Network}
               testID="hero-nft-badge-network"
             />
-          ) : undefined
+          ) : null
         }
       >
         <CollectibleMedia
