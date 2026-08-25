@@ -78,7 +78,6 @@ permissions:
   pull-requests: write
   statuses: write
 
-
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -285,6 +284,22 @@ jobs:
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
     secrets: inherit
 
+  trigger-ios-dual-versions:
+    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    needs: [prepare]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true'
+    with:
+      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
+      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
+      branch_name: ${{ inputs.branch_name }}
+      source_ref: ${{ inputs.source_ref }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+    secrets: inherit
+
   # =============================================================================
   # ONBOARDING TESTS
   # =============================================================================
@@ -323,7 +338,14 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !failure() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
+      - trigger-ios-dual-versions
+    if: >-
+      always() && !failure() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      (
+        inputs.browserstack_app_url_ios_onboarding != '' ||
+        needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != ''
+      )
     with:
       platform: ios
       build_type: onboarding
@@ -331,8 +353,8 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.ios_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_onboarding }}
-      app_version: Manual-Input
+      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
@@ -374,7 +396,14 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
+      - trigger-ios-dual-versions
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      (
+        inputs.browserstack_app_url_ios_imported_wallet != '' ||
+        needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != ''
+      )
     with:
       platform: ios
       build_type: imported-wallet
@@ -382,8 +411,8 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.ios_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
-      app_version: Manual-Input
+      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
