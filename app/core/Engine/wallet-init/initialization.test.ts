@@ -98,7 +98,10 @@ describe('initializeWallet', () => {
   it('threads the messenger and state through to the builders that need them', () => {
     initializeWallet({ messenger, state });
 
-    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
+    );
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
       state,

@@ -12,6 +12,9 @@ PredictNext/
       EventCardGame.tsx        # Public composition
       EventCardStandard.tsx    # Public composition
       internal/                # Card primitives, helpers, and private composition
+    game/
+      index.ts                 # Game presentation for cards and Event Screen
+      createGamePresentation.ts
 
   views/                       # Existing screens awaiting proven feature ownership
   hooks/                       # Existing cross-screen React query integration

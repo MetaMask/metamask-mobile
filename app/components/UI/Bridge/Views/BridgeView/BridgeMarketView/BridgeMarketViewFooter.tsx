@@ -8,19 +8,17 @@ import {
   selectSourceAmount,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsSolanaSourced,
 } from '../../../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../../../locales/i18n';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../../util/address';
+import {
+  BlockaidErrorBanner,
+  HardwareWalletSolanaSignUnsupportedBanner,
+} from '../../../components/SwapsBanners';
 import {
   DiscountType,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { SwapsConfirmButton } from '../../../components/SwapsConfirmButton/index.tsx';
+import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOrderConfirmButton/index.tsx';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeMarketView.styles.ts';
 import {
@@ -50,22 +48,13 @@ export const BridgeMarketViewFooter = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const isSolanaSourced = useSelector(selectIsSolanaSourced);
 
-  const { activeQuote, isLoading, blockaidError, needsNewQuote } =
-    useBridgeQuoteDataContext();
+  const { activeQuote, isLoading, needsNewQuote } = useBridgeQuoteDataContext();
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
-
-  const isHardwareAddress = selectedAddress
-    ? !!isHardwareAccount(selectedAddress)
-    : false;
 
   if (isLoading && !activeQuote && !needsNewQuote) {
     return null;
@@ -79,7 +68,7 @@ export const BridgeMarketViewFooter = ({
   if (needsNewQuote) {
     return (
       <Box style={footerContainerStyle}>
-        <SwapsConfirmButton
+        <SwapsMarketOrderConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
@@ -97,20 +86,9 @@ export const BridgeMarketViewFooter = ({
     activeQuote &&
     quotesLastFetched && (
       <Box style={footerContainerStyle}>
-        {isHardwareAddress && isSolanaSourced && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={strings('bridge.hardware_wallet_not_supported_solana')}
-          />
-        )}
-        {blockaidError && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('bridge.blockaid_error_title')}
-            description={blockaidError}
-          />
-        )}
-        <SwapsConfirmButton
+        <HardwareWalletSolanaSignUnsupportedBanner />
+        <BlockaidErrorBanner />
+        <SwapsMarketOrderConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}

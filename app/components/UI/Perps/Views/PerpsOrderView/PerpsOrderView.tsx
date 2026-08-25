@@ -88,7 +88,6 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
-  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -151,7 +150,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { willFlipPosition } from '../../utils/orderUtils';
+import {
+  getOrderManagementToastKey,
+  willFlipPosition,
+} from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
@@ -1016,7 +1018,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
@@ -1025,7 +1027,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].creationFailed(error),
         );
       },
@@ -1332,6 +1334,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      if (orderValidation.isValidating) {
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1522,7 +1528,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 
@@ -1582,6 +1588,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       commitAmount,
       liveDragAmount,
       orderValidation.isValid,
+      orderValidation.isValidating,
       orderValidation.errors,
       track,
       orderForm.asset,
@@ -2175,7 +2182,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2195,7 +2202,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
