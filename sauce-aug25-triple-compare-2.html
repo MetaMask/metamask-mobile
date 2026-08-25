@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sauce Labs · 3-run compare · Aug 25</title>
+  <title>Sauce Labs · 3-run compare · Aug 25 batch 2</title>
   <style>
     :root {
       --bg: #0b1220; --panel: #121a2b; --ink: #e8eefc; --muted: #93a0b8;
@@ -82,7 +82,7 @@
     .P { background:#064e3b66; color:var(--green); }
     .F { background:#7f1d1d66; color:var(--red); }
     .N { background:#78350f66; color:var(--amber); }
-    .T { background:#7f1d1d99; color:#fecaca; } /* timeout fail */
+    .T { background:#7f1d1d99; color:#fecaca; }
     .win { box-shadow: inset 0 0 0 1px #34d399aa; }
     .badge {
       display:inline-block; font-size:10px; font-weight:700; border-radius:999px;
@@ -100,12 +100,13 @@
 <body>
   <main class="wrap">
     <header class="hero">
-      <div class="eyebrow">MetaMask Mobile · Sauce Labs under evaluation</div>
-      <h1>3-run compare · Aug 25</h1>
+      <div class="eyebrow">MetaMask Mobile · Sauce Labs under evaluation · batch 2</div>
+      <h1>3-run compare · Aug 25 (afternoon)</h1>
       <p>
-        Side-by-side Private vs Cloud for three consecutive manual performance runs
-        (same commit <code>725f4d37</code>). Built for quick visual comparison of
-        pass rate, timeouts, and job speed.
+        Same Private vs Cloud matrix as
+        <a href="./sauce-aug25-triple-compare.html" style="color:#fff;text-decoration:underline">batch 1 (Runs E–G)</a>,
+        for three later consecutive manual performance runs
+        (same commit <code>94e421fd</code>).
       </p>
       <div class="banner">
         <strong>Sauce Labs remains under evaluation.</strong>
@@ -153,22 +154,24 @@
     <section class="section">
       <h2>Analysis</h2>
       <ul>
+        <li><strong>Best of this batch:</strong> Run H (#32853052997) — Private <strong>7/23</strong>, Cloud <strong>9/23</strong>.
+          Still far from a clean suite, but the strongest Sauce result in this trio.</li>
+        <li><strong>Vs batch 1</strong> (<a href="./sauce-aug25-triple-compare.html">Runs E–G</a>):
+          Private moved from ~3–6/23 to <strong>1–7/23</strong>; Cloud from ~2–6/23 to <strong>7–9/23</strong>.
+          Real QG fails dropped sharply (often 0–2); session-create failures still dominate.</li>
         <li><strong>Root cause of the “~300s” cluster:</strong> Sauce session allocation failures.
-          Logs show <code>WebDriverError: The operation was aborted due to timeout</code> on
-          <code>POST https://ondemand.eu-central-1.saucelabs.com/wd/hub/session</code> after ~5 minutes
-          (<code>connectionRetryTimeout: 300_000</code> in <code>SauceLabsConfigBuilder</code>).</li>
-        <li>The PerformanceReporter then stores <code>total = result.duration / 1000</code> for failed tests
-          with <em>no steps / no quality gates</em> — so ~300.2s is wall-clock waiting for a session, not an app timer.</li>
-        <li>Only a handful of scenarios actually produced real timers (pass or QG fail). The rest are session failures.</li>
-        <li>That also explains the inflated job phase (~57–63 min): many tests burned 5 min each failing to start.</li>
-        <li><strong>Sauce Labs stays under evaluation</strong> — this batch is infrastructure/session capacity noise, not a fair app-performance signal.</li>
+          Same pattern — <code>POST .../wd/hub/session</code> aborted after ~5 min
+          (<code>connectionRetryTimeout: 300_000</code>). Those cells are <em>not</em> app timings.</li>
+        <li><strong>Trend inside the batch:</strong> H best → I worse → J Private collapses (1/23, 16 session fails).
+          Cloud stays ahead of Private on pass rate in all three runs.</li>
+        <li><strong>Test phase:</strong> ~55–66 min per lane — inflated by the many 5-minute session waits.</li>
+        <li><strong>Sauce Labs stays under evaluation</strong> — better than the morning batch, but still mostly infrastructure noise.</li>
       </ul>
     </section>
-    <p class="foot">Branch MMQA-TestMu-PoC-HyperExecute · commit 725f4d37 · Generated 2026-08-25 · Values in seconds / minutes.
-      · Sibling: <a href="./sauce-aug25-triple-compare-2.html">batch 2 (Runs H–J)</a></p>
+    <p class="foot">Branch MMQA-TestMu-PoC-HyperExecute · commit 94e421fd · Generated 2026-08-25 14:58 UTC · Sibling: <a href="./sauce-aug25-triple-compare.html">batch 1</a> · Values in seconds / minutes.</p>
   </main>
   <script>
-    const DATA = {"rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "labels": {"32831401570": "Run E", "32831428412": "Run F", "32831453242": "Run G"}, "runs": {"32831401570": {"id": "32831401570", "createdAt": "2026-08-25T09:20:19Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831401570", "lanes": {"sauce_private": {"pass": 6, "qgFail": 16, "noMetrics": 1, "timeouts": 14, "total": 23, "scenarios": {"Cold Start → Onboarding": [1.025, "P"], "Fresh SRP wallet creation": [10.734, "P"], "Import SRP onboarding +50": [5.804, "P"], "Money Home · empty": [null, "N"], "Account creation": [4.895, "F"], "Money Home · funded": [300.007, "F"], "Perps open/close": [300.203, "F"], "Seedless Apple": [5.27, "P"], "Seedless Google": [300.006, "F"], "Seedless Telegram": [4.341, "P"], "Aggregated Balance": [300.377, "F"], "Cross-chain ETH→SOL": [300.311, "F"], "Asset View": [300.31, "F"], "Cold Start → Login": [6.05, "F"], "Swap ETH→LINK": [300.348, "F"], "Import SRP +50": [300.33, "F"], "Warm Start → Wallet": [300.274, "F"], "Perps add funds": [5.983, "P"], "Warm Start → Login": [300.27, "F"], "Predict Avail. Balance": [300.273, "F"], "Predict Market Details": [300.008, "F"], "Predict Deposit": [300.274, "F"], "Rewards tab": [300.273, "F"]}, "onboardingSec": 1264, "importedSec": 2223, "testPhaseSumSec": 3487}, "sauce_cloud": {"pass": 6, "qgFail": 16, "noMetrics": 1, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.272, "P"], "Fresh SRP wallet creation": [8.282, "P"], "Import SRP onboarding +50": [5.675, "P"], "Money Home · empty": [300.005, "F"], "Account creation": [300.266, "F"], "Money Home · funded": [300.006, "F"], "Perps open/close": [300.269, "F"], "Seedless Apple": [300.269, "F"], "Seedless Google": [300.261, "F"], "Seedless Telegram": [300.003, "F"], "Aggregated Balance": [8.515, "P"], "Cross-chain ETH→SOL": [4.615, "P"], "Asset View": [300.363, "F"], "Cold Start → Login": [300.275, "F"], "Swap ETH→LINK": [300.006, "F"], "Import SRP +50": [4.122, "P"], "Warm Start → Wallet": [300.009, "F"], "Perps add funds": [300.275, "F"], "Warm Start → Login": [300.274, "F"], "Predict Avail. Balance": [300.277, "F"], "Predict Market Details": [300.282, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [300.279, "F"]}, "onboardingSec": 1449, "importedSec": 2079, "testPhaseSumSec": 3528}}}, "32831428412": {"id": "32831428412", "createdAt": "2026-08-25T09:20:36Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831428412", "lanes": {"sauce_private": {"pass": 3, "qgFail": 17, "noMetrics": 3, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [4.573, "F"], "Fresh SRP wallet creation": [300.302, "F"], "Import SRP onboarding +50": [300.347, "F"], "Money Home · empty": [null, "N"], "Account creation": [300.275, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [300.275, "F"], "Seedless Apple": [300.271, "F"], "Seedless Google": [5.813, "P"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [300.315, "F"], "Cross-chain ETH→SOL": [300.336, "F"], "Asset View": [300.375, "F"], "Cold Start → Login": [300.331, "F"], "Swap ETH→LINK": [300.335, "F"], "Import SRP +50": [300.362, "F"], "Warm Start → Wallet": [300.318, "F"], "Perps add funds": [6.457, "P"], "Warm Start → Login": [300.377, "F"], "Predict Avail. Balance": [1.412, "P"], "Predict Market Details": [300.012, "F"], "Predict Deposit": [300.007, "F"], "Rewards tab": [null, "N"]}, "onboardingSec": 1592, "importedSec": 2026, "testPhaseSumSec": 3618}, "sauce_cloud": {"pass": 2, "qgFail": 19, "noMetrics": 2, "timeouts": 18, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.31, "F"], "Fresh SRP wallet creation": [300.373, "F"], "Import SRP onboarding +50": [300.348, "F"], "Money Home · empty": [300.277, "F"], "Account creation": [300.274, "F"], "Money Home · funded": [300.273, "F"], "Perps open/close": [300.308, "F"], "Seedless Apple": [300.278, "F"], "Seedless Google": [300.326, "F"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [300.338, "F"], "Cross-chain ETH→SOL": [5.039, "F"], "Asset View": [2.96, "P"], "Cold Start → Login": [300.275, "F"], "Swap ETH→LINK": [300.28, "F"], "Import SRP +50": [4.439, "P"], "Warm Start → Wallet": [300.275, "F"], "Perps add funds": [300.288, "F"], "Warm Start → Login": [300.009, "F"], "Predict Avail. Balance": [300.292, "F"], "Predict Market Details": [300.27, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1590, "importedSec": 2159, "testPhaseSumSec": 3749}}}, "32831453242": {"id": "32831453242", "createdAt": "2026-08-25T09:20:52Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831453242", "lanes": {"sauce_private": {"pass": 4, "qgFail": 18, "noMetrics": 1, "timeouts": 18, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.459, "P"], "Fresh SRP wallet creation": [7.746, "P"], "Import SRP onboarding +50": [3.672, "P"], "Money Home · empty": [300.006, "F"], "Account creation": [300.292, "F"], "Money Home · funded": [300.006, "F"], "Perps open/close": [300.29, "F"], "Seedless Apple": [300.292, "F"], "Seedless Google": [300.281, "F"], "Seedless Telegram": [null, "N"], "Aggregated Balance": [300.223, "F"], "Cross-chain ETH→SOL": [300.199, "F"], "Asset View": [300.213, "F"], "Cold Start → Login": [300.215, "F"], "Swap ETH→LINK": [300.191, "F"], "Import SRP +50": [300.24, "F"], "Warm Start → Wallet": [300.234, "F"], "Perps add funds": [300.004, "F"], "Warm Start → Login": [0.565, "P"], "Predict Avail. Balance": [300.177, "F"], "Predict Market Details": [300.174, "F"], "Predict Deposit": [300.172, "F"], "Rewards tab": [300.175, "F"]}, "onboardingSec": 1619, "importedSec": 2165, "testPhaseSumSec": 3784}, "sauce_cloud": {"pass": 5, "qgFail": 16, "noMetrics": 2, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.312, "F"], "Fresh SRP wallet creation": [300.308, "F"], "Import SRP onboarding +50": [300.336, "F"], "Money Home · empty": [300.284, "F"], "Account creation": [300.288, "F"], "Money Home · funded": [300.311, "F"], "Perps open/close": [300.312, "F"], "Seedless Apple": [300.28, "F"], "Seedless Google": [300.308, "F"], "Seedless Telegram": [300.002, "F"], "Aggregated Balance": [300.306, "F"], "Cross-chain ETH→SOL": [4.952, "P"], "Asset View": [300.309, "F"], "Cold Start → Login": [4.835, "P"], "Swap ETH→LINK": [300.315, "F"], "Import SRP +50": [300.012, "F"], "Warm Start → Wallet": [1.148, "P"], "Perps add funds": [4.976, "P"], "Warm Start → Login": [0.954, "P"], "Predict Avail. Balance": [300.009, "F"], "Predict Market Details": [300.284, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1603, "importedSec": 1842, "testPhaseSumSec": 3445}}}}, "order": ["32831401570", "32831428412", "32831453242"]};
+    const DATA = {"rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "labels": {"32853052997": "Run H", "32853083882": "Run I", "32853108350": "Run J"}, "runs": {"32853052997": {"id": "32853052997", "createdAt": "2026-08-25T13:23:37Z", "headSha": "94e421fd", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32853052997", "lanes": {"sauce_private": {"pass": 7, "qgFail": 0, "sessionFail": 13, "noMetrics": 3, "failTotal": 13, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.454, "P"], "Fresh SRP wallet creation": [7.383, "P"], "Import SRP onboarding +50": [4.429, "P"], "Money Home · empty": [null, "N"], "Account creation": [300.276, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [300.276, "F"], "Seedless Apple": [4.791, "P"], "Seedless Google": [null, "N"], "Seedless Telegram": [300.003, "F"], "Aggregated Balance": [8.888, "P"], "Cross-chain ETH→SOL": [300.005, "F"], "Asset View": [300.297, "F"], "Cold Start → Login": [300.006, "F"], "Swap ETH→LINK": [2.453, "P"], "Import SRP +50": [300.213, "F"], "Warm Start → Wallet": [300.21, "F"], "Perps add funds": [300.211, "F"], "Warm Start → Login": [300.209, "F"], "Predict Avail. Balance": [300.216, "F"], "Predict Market Details": [2.897, "P"], "Predict Deposit": [300.225, "F"], "Rewards tab": [300.217, "F"]}, "onboardingSec": 1367, "importedSec": 2151, "testPhaseSumSec": 3518, "timeouts": 13}, "sauce_cloud": {"pass": 9, "qgFail": 0, "sessionFail": 11, "noMetrics": 3, "failTotal": 11, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.006, "F"], "Fresh SRP wallet creation": [9.568, "P"], "Import SRP onboarding +50": [3.948, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.813, "P"], "Money Home · funded": [300.284, "F"], "Perps open/close": [300.007, "F"], "Seedless Apple": [300.283, "F"], "Seedless Google": [300.283, "F"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [12.724, "P"], "Cross-chain ETH→SOL": [5.129, "P"], "Asset View": [2.059, "P"], "Cold Start → Login": [300.279, "F"], "Swap ETH→LINK": [300.006, "F"], "Import SRP +50": [3.278, "P"], "Warm Start → Wallet": [300.007, "F"], "Perps add funds": [300.28, "F"], "Warm Start → Login": [0.916, "P"], "Predict Avail. Balance": [300.007, "F"], "Predict Market Details": [2.475, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1337, "importedSec": 1990, "testPhaseSumSec": 3327, "timeouts": 11}}}, "32853083882": {"id": "32853083882", "createdAt": "2026-08-25T13:23:56Z", "headSha": "94e421fd", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32853083882", "lanes": {"sauce_private": {"pass": 5, "qgFail": 1, "sessionFail": 13, "noMetrics": 4, "failTotal": 14, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.299, "F"], "Fresh SRP wallet creation": [300.31, "F"], "Import SRP onboarding +50": [300.319, "F"], "Money Home · empty": [300.272, "F"], "Account creation": [1.872, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.435, "P"], "Seedless Google": [5.636, "P"], "Seedless Telegram": [300.0, "F"], "Aggregated Balance": [9.234, "P"], "Cross-chain ETH→SOL": [300.007, "F"], "Asset View": [3.238, "P"], "Cold Start → Login": [6.058, "F"], "Swap ETH→LINK": [300.007, "F"], "Import SRP +50": [300.268, "F"], "Warm Start → Wallet": [300.273, "F"], "Perps add funds": [300.279, "F"], "Warm Start → Login": [300.272, "F"], "Predict Avail. Balance": [300.272, "F"], "Predict Market Details": [300.27, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1655, "importedSec": 2083, "testPhaseSumSec": 3738, "timeouts": 13}, "sauce_cloud": {"pass": 7, "qgFail": 2, "sessionFail": 13, "noMetrics": 1, "failTotal": 15, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.006, "F"], "Fresh SRP wallet creation": [8.044, "P"], "Import SRP onboarding +50": [4.706, "P"], "Money Home · empty": [300.009, "F"], "Account creation": [1.41, "P"], "Money Home · funded": [300.226, "F"], "Perps open/close": [300.008, "F"], "Seedless Apple": [4.982, "P"], "Seedless Google": [300.01, "F"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [8.997, "P"], "Cross-chain ETH→SOL": [5.232, "F"], "Asset View": [1.967, "P"], "Cold Start → Login": [5.647, "F"], "Swap ETH→LINK": [300.008, "F"], "Import SRP +50": [300.278, "F"], "Warm Start → Wallet": [300.279, "F"], "Perps add funds": [6.612, "P"], "Warm Start → Login": [300.292, "F"], "Predict Avail. Balance": [300.285, "F"], "Predict Market Details": [300.285, "F"], "Predict Deposit": [300.013, "F"], "Rewards tab": [null, "N"]}, "onboardingSec": 1385, "importedSec": 1949, "testPhaseSumSec": 3334, "timeouts": 13}}}, "32853108350": {"id": "32853108350", "createdAt": "2026-08-25T13:24:11Z", "headSha": "94e421fd", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32853108350", "lanes": {"sauce_private": {"pass": 1, "qgFail": 1, "sessionFail": 16, "noMetrics": 5, "failTotal": 17, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.277, "F"], "Fresh SRP wallet creation": [16.934, "F"], "Import SRP onboarding +50": [300.374, "F"], "Money Home · empty": [null, "N"], "Account creation": [300.271, "F"], "Money Home · funded": [300.279, "F"], "Perps open/close": [null, "N"], "Seedless Apple": [300.276, "F"], "Seedless Google": [300.274, "F"], "Seedless Telegram": [300.002, "F"], "Aggregated Balance": [300.293, "F"], "Cross-chain ETH→SOL": [4.249, "P"], "Asset View": [300.319, "F"], "Cold Start → Login": [null, "N"], "Swap ETH→LINK": [300.301, "F"], "Import SRP +50": [300.278, "F"], "Warm Start → Wallet": [300.274, "F"], "Perps add funds": [300.28, "F"], "Warm Start → Login": [300.273, "F"], "Predict Avail. Balance": [300.272, "F"], "Predict Market Details": [300.275, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1597, "importedSec": 2331, "testPhaseSumSec": 3928, "timeouts": 16}, "sauce_cloud": {"pass": 8, "qgFail": 1, "sessionFail": 12, "noMetrics": 2, "failTotal": 13, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.477, "P"], "Fresh SRP wallet creation": [300.327, "F"], "Import SRP onboarding +50": [3.19, "P"], "Money Home · empty": [300.005, "F"], "Account creation": [1.846, "P"], "Money Home · funded": [300.01, "F"], "Perps open/close": [null, "N"], "Seedless Apple": [300.275, "F"], "Seedless Google": [300.271, "F"], "Seedless Telegram": [3.222, "P"], "Aggregated Balance": [300.295, "F"], "Cross-chain ETH→SOL": [300.009, "F"], "Asset View": [2.473, "P"], "Cold Start → Login": [7.63, "F"], "Swap ETH→LINK": [300.254, "F"], "Import SRP +50": [300.252, "F"], "Warm Start → Wallet": [1.849, "P"], "Perps add funds": [300.007, "F"], "Warm Start → Login": [300.249, "F"], "Predict Avail. Balance": [1.237, "P"], "Predict Market Details": [3.342, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [300.254, "F"]}, "onboardingSec": 1684, "importedSec": 1999, "testPhaseSumSec": 3683, "timeouts": 12}}}}, "order": ["32853052997", "32853083882", "32853108350"]};
 
     function fmtMin(sec) {
       if (sec == null) return '—';
@@ -196,6 +199,14 @@
       if (time == null) return 'N/A';
       return Number(time).toFixed(2) + 's';
     }
+    function qgExclusive(lane) {
+      // batch2 stores exclusive qgFail; batch1 stored inclusive. Prefer exclusive field if sessionFail present.
+      if (lane.sessionFail != null) return lane.qgFail;
+      return Math.max(0, (lane.qgFail || 0) - (lane.timeouts || 0));
+    }
+    function sessionFails(lane) {
+      return lane.sessionFail != null ? lane.sessionFail : (lane.timeouts || 0);
+    }
 
     function render() {
       document.getElementById('links').innerHTML = DATA.order.map(id => {
@@ -214,7 +225,7 @@
             <div class="lane priv">
               <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Private</div>
               <div class="big">${priv.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
-              <div class="sub">QG fail ${priv.qgFail - priv.timeouts} · session fail ${priv.timeouts} · no metrics ${priv.noMetrics}</div>
+              <div class="sub">QG fail ${qgExclusive(priv)} · session fail ${sessionFails(priv)} · no metrics ${priv.noMetrics}</div>
               <div class="split"><span>Phase <strong>${fmtMin(priv.testPhaseSumSec)}</strong></span>
                 <span>Onb <strong>${fmtMin(priv.onboardingSec)}</strong></span>
                 <span>Imp <strong>${fmtMin(priv.importedSec)}</strong></span></div>
@@ -222,7 +233,7 @@
             <div class="lane cloud">
               <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Cloud</div>
               <div class="big">${cloud.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
-              <div class="sub">QG fail ${cloud.qgFail - cloud.timeouts} · session fail ${cloud.timeouts} · no metrics ${cloud.noMetrics}</div>
+              <div class="sub">QG fail ${qgExclusive(cloud)} · session fail ${sessionFails(cloud)} · no metrics ${cloud.noMetrics}</div>
               <div class="split"><span>Phase <strong>${fmtMin(cloud.testPhaseSumSec)}</strong></span>
                 <span>Onb <strong>${fmtMin(cloud.onboardingSec)}</strong></span>
                 <span>Imp <strong>${fmtMin(cloud.importedSec)}</strong></span></div>
@@ -231,7 +242,6 @@
         </article>`;
       }).join('');
 
-      // bars
       const barItems = [];
       DATA.order.forEach(id => {
         const r = DATA.runs[id];
@@ -248,7 +258,6 @@
           <div class="track"><div class="fill" style="width:${(b.min/maxMin)*100}%;background:${b.color}"></div></div>
           <div><strong>${b.min.toFixed(1)}m</strong></div></div>`).join('');
 
-      // table head
       let head = '<tr><th>Scenario</th>';
       DATA.order.forEach(id => {
         head += `<th colspan="2">${DATA.labels[id]}<br><small>${id}</small></th>`;
