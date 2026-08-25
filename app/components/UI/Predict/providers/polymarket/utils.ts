@@ -138,7 +138,6 @@ export const getPolymarketEndpoints = () => ({
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
   CRYPTO_PRICE_HISTORY_ENDPOINT:
     'https://polymarket.com/api/crypto/price-history',
-  CHAINLINK_CANDLES_ENDPOINT: 'https://polymarket.com/api/chainlink-candles',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:

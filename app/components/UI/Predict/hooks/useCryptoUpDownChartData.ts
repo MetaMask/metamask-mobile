@@ -377,15 +377,12 @@ export const useCryptoUpDownChartData = (
     : [wsSymbol, handleLiveUpdate];
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
-  const historyStartDate = twapWindowSeconds
-    ? eventStartTime
-    : (options.historicalWindow?.startDate ?? eventStartTime);
+  const historyStartDate =
+    options.historicalWindow?.startDate ?? eventStartTime;
   const liveHistoryEndDate = isLiveByEndDate ? undefined : market.endDate;
-  const historyEndDate = twapWindowSeconds
-    ? market.endDate
-    : options.historicalWindow
-      ? options.historicalWindow.endDate
-      : liveHistoryEndDate;
+  const historyEndDate = options.historicalWindow
+    ? options.historicalWindow.endDate
+    : liveHistoryEndDate;
 
   // Counts consecutive failed historical-poll cycles. React Query's
   // `fetchFailureCount` only counts retries *within a single fetch* and resets

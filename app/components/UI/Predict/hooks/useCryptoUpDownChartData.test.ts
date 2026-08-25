@@ -134,11 +134,13 @@ describe('useCryptoUpDownChartData', () => {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       }: {
         symbol: string;
         eventStartTime: string;
         variant: string;
         endDate?: string;
+        twapWindowSeconds?: number;
       }) => ({
         queryKey: [
           'predict',
@@ -147,6 +149,7 @@ describe('useCryptoUpDownChartData', () => {
           eventStartTime,
           variant,
           endDate ?? '',
+          twapWindowSeconds ?? '',
         ],
         queryFn: async () => historicalData,
       }),
@@ -828,7 +831,7 @@ describe('useCryptoUpDownChartData', () => {
       );
     });
 
-    it('fetches the current market history for TWAP sparklines', async () => {
+    it('fetches the requested trailing window for TWAP feed sparklines', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({ twapWindowSeconds: 60 });
 
@@ -848,9 +851,9 @@ describe('useCryptoUpDownChartData', () => {
       });
       expect(mockCryptoPriceHistoryOptions).toHaveBeenCalledWith({
         symbol: 'BTC',
-        eventStartTime: '2025-12-31T23:55:30.000Z',
+        eventStartTime: '2025-12-31T22:00:00.000Z',
         variant: 'fiveminute',
-        endDate: '2026-01-01T00:00:30.000Z',
+        endDate: undefined,
         twapWindowSeconds: 60,
       });
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
