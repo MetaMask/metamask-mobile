@@ -1,7 +1,7 @@
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   parsePredictEvent,
-  parsePredictEventsPage,
+  parsePredictFeed,
   parsePredictVenueStatus,
 } from './marketData';
 
@@ -20,7 +20,7 @@ const createMarket = (overrides = {}) => ({
   id: 'market-1',
   question: 'Will the team win?',
   outcomes: [createOutcome('yes'), createOutcome('no')],
-  status: 'open' as const,
+  status: 'active' as const,
   ...overrides,
 });
 
@@ -39,6 +39,106 @@ describe('Predict API canonical response parsers', () => {
     const result = parsePredictEvent(input);
 
     expect(result).toEqual(input);
+  });
+
+  it('parses market rules and removes raw venue rule fields', () => {
+    const input = createEvent({
+      settlementSources: [
+        { name: 'the Governing League', url: 'https://www.nfl.com/' },
+        { name: 'ESPN', url: 'https://www.espn.com/' },
+      ],
+      markets: [
+        createMarket({
+          rules: 'Primary rule.\n\nSecondary rule.',
+          rules_primary: 'Primary rule.',
+          rules_secondary: 'Secondary rule.',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.settlementSources).toEqual([
+      { name: 'the Governing League', url: 'https://www.nfl.com/' },
+      { name: 'ESPN', url: 'https://www.espn.com/' },
+    ]);
+    expect(result.markets[0].rules).toBe('Primary rule.\n\nSecondary rule.');
+    expect(result.markets[0]).not.toHaveProperty('rules_primary');
+    expect(result.markets[0]).not.toHaveProperty('rules_secondary');
+  });
+
+  it.each([
+    {
+      name: 'Event-only rules',
+      eventRules: 'Event rule.',
+      marketRules: undefined,
+    },
+    {
+      name: 'Market-only rules',
+      eventRules: undefined,
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'different Event and Market rules',
+      eventRules: 'Event rule.',
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'identical Event and Market rules',
+      eventRules: 'Shared rule.',
+      marketRules: 'Shared rule.',
+    },
+    {
+      name: 'absent rules',
+      eventRules: undefined,
+      marketRules: undefined,
+    },
+  ])(
+    'preserves $name in the canonical response',
+    ({ eventRules, marketRules }) => {
+      const input = createEvent({
+        rules: eventRules,
+        markets: [createMarket({ rules: marketRules })],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.rules).toBe(eventRules);
+      expect(result.markets[0].rules).toBe(marketRules);
+    },
+  );
+
+  it.each([
+    {
+      name: 'an empty source name',
+      source: { name: '', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'a whitespace-only source name',
+      source: { name: '   ', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'an insecure source URL',
+      source: { name: 'ESPN', url: 'http://www.espn.com/' },
+    },
+    {
+      name: 'a malformed source URL',
+      source: { name: 'ESPN', url: 'not-a-url' },
+    },
+  ])('rejects a settlement source with $name', ({ source }) => {
+    const input = createEvent({ settlementSources: [source] });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('parses a closed Market', () => {
+    const input = createEvent({
+      markets: [createMarket({ status: 'closed' })],
+    });
+
+    expect(parsePredictEvent(input).markets[0].status).toBe('closed');
   });
 
   it('parses an event containing an ask without a bid', () => {
@@ -160,12 +260,122 @@ describe('Predict API canonical response parsers', () => {
     }
   });
 
+  it('parses category, volume, 24-hour volume, and image URL on an event', () => {
+    const input = createEvent({
+      category: 'Senate',
+      volume: '1500000',
+      volume24h: '250000',
+      imageUrl: 'https://example.com/event.png',
+      markets: [
+        createMarket({
+          volume: '1000',
+          volume24h: '250',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.category).toBe('Senate');
+    expect(result.volume).toBe('1500000');
+    expect(result.volume24h).toBe('250000');
+    expect(result.markets[0].volume).toBe('1000');
+    expect(result.markets[0].volume24h).toBe('250');
+    expect(result.imageUrl).toBe('https://example.com/event.png');
+  });
+
+  it.each([
+    '/images/event.png',
+    'http://example.com/event.png',
+    'data:image/png;base64,encoded-image',
+    'https:example.com/event.png',
+  ])('rejects image URL %s', (imageUrl) => {
+    const input = createEvent({ imageUrl });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('parses an American-football Game Event', () => {
+    const input = createEvent({
+      startsAt: '2026-09-11T00:20:00Z',
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        competition: { id: 'nfl', label: 'NFL' },
+        game: {
+          status: 'in_progress',
+          awayTeam: {
+            name: 'Arizona Cardinals',
+            abbreviation: 'ARI',
+            logoUrl: 'https://example.com/ari.png',
+            primaryColor: `#${'97233F'}`,
+          },
+          homeTeam: { name: 'Carolina Panthers' },
+          score: { away: '17', home: '21' },
+          period: 'Q4',
+          clock: '12:22',
+          observedAt: '2026-09-11T02:30:00Z',
+        },
+      },
+      markets: [
+        createMarket({
+          status: 'active',
+          outcomes: [
+            createOutcome('yes', { gameSelection: 'away' }),
+            createOutcome('no', { gameSelection: 'draw' }),
+          ],
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result).toEqual(input);
+  });
+
+  it.each([
+    { field: 'status', value: 'playing' },
+    { field: 'observedAt', value: 'yesterday' },
+    { field: 'primaryColor', value: 'red' },
+    { field: 'logoUrl', value: 'http://example.com/ari.png' },
+  ])('rejects Game data with malformed $field', ({ field, value }) => {
+    const game = {
+      status: 'scheduled',
+      awayTeam: { name: 'Arizona Cardinals' },
+      homeTeam: { name: 'Carolina Panthers' },
+      observedAt: '2026-09-11T00:00:00Z',
+    };
+    const input = createEvent({
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        game:
+          field === 'primaryColor' || field === 'logoUrl'
+            ? {
+                ...game,
+                awayTeam: { ...game.awayTeam, [field]: value },
+              }
+            : { ...game, [field]: value },
+      },
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
-    const input = { items: [createEvent()], nextCursor: 'next-page' };
+    const input = {
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+      nextCursor: 'next-page',
+    };
 
-    const result = parsePredictEventsPage(input);
+    const result = parsePredictFeed(input);
 
-    expect(result.items).toHaveLength(1);
+    expect(result.events).toHaveLength(1);
     expect(result.nextCursor).toBe('next-page');
   });
 

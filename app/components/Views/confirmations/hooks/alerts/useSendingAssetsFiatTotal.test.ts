@@ -215,6 +215,40 @@ describe('useSendingAssetsFiatTotal', () => {
     expect(result.current).toBe('$10000000.00');
   });
 
+  it('returns null when any outgoing asset is missing a fiat conversion', () => {
+    mockBalanceChanges({
+      value: [
+        buildBalanceChange({ amount: -1, fiatAmount: 100, usdAmount: 100 }),
+        buildBalanceChange({
+          amount: -1,
+          fiatAmount: FIAT_UNAVAILABLE,
+          usdAmount: FIAT_UNAVAILABLE,
+        }),
+      ],
+    });
+
+    const { result } = renderHook(() => useSendingAssetsFiatTotal());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when any outgoing asset is missing a USD conversion', () => {
+    mockBalanceChanges({
+      value: [
+        buildBalanceChange({ amount: -1, fiatAmount: 100, usdAmount: 100 }),
+        buildBalanceChange({
+          amount: -1,
+          fiatAmount: 50,
+          usdAmount: FIAT_UNAVAILABLE,
+        }),
+      ],
+    });
+
+    const { result } = renderHook(() => useSendingAssetsFiatTotal());
+
+    expect(result.current).toBeNull();
+  });
+
   it('returns null when the USD conversion is unavailable, so the ceiling cannot be checked', () => {
     mockBalanceChanges({
       value: [

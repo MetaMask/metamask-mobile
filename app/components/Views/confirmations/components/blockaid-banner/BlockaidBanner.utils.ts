@@ -1,5 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
 import {
+  BLOCKAID_APPROVAL_REASONS,
   DEFAULT_DESCRIPTION_I18N_KEY,
   DEFAULT_TITLE_I18N_KEY,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -50,12 +51,33 @@ export function getBlockaidBannerDescription(
 }
 
 /**
+ * Amount injected into the confirm-anyway modal. Approval reasons use the
+ * spending-cap fiat total so a gas-only simulation cannot understate the
+ * allowance being granted. Other reasons use simulated outgoing assets.
+ *
+ * @param reason - The security alert reason reported by the provider.
+ * @param sendingFiatTotal - Formatted fiat total of outgoing simulated assets.
+ * @param approvedAmountFiat - Formatted fiat total of the spending cap.
+ */
+export function getBlockaidModalAmount(
+  reason: Reason,
+  sendingFiatTotal?: string | null,
+  approvedAmountFiat?: string | null,
+): string | null {
+  if (BLOCKAID_APPROVAL_REASONS.has(reason)) {
+    return approvedAmountFiat ?? null;
+  }
+
+  return sendingFiatTotal ?? null;
+}
+
+/**
  * Returns the localized confirm-anyway modal message for a security alert
  * reason. The reason selects a request-type noun ("approval", "transfer",
  * "signature", "request") that is composed into a single message.
  *
  * @param reason - The security alert reason reported by the provider.
- * @param amount - Formatted fiat total of outgoing assets, if available.
+ * @param amount - Formatted fiat amount at risk, if available.
  */
 export function getBlockaidConfirmModalMessage(
   reason: Reason,

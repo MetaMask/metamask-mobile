@@ -28,7 +28,6 @@ import {
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
-import { resolveWorldCupFeedEvents } from './sportsUtils';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -210,77 +209,6 @@ const ERC20_TRANSFER_INTERFACE = new Interface([
   'function transfer(address to, uint256 value)',
 ]);
 
-type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
-
-/**
- * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
- * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
- * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
- * configs below MUST stick to this allowlist or the sparkline goes blank.
- */
-type ChainlinkCandleLimit = 15 | 30 | 60;
-
-interface ChainlinkCandle {
-  time?: number;
-  close?: number;
-}
-
-interface ChainlinkCandlesResponse {
-  candles?: ChainlinkCandle[];
-}
-
-const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
-  interval: ChainlinkCandleInterval;
-  limit: ChainlinkCandleLimit;
-} = {
-  interval: '1m',
-  limit: 60,
-};
-
-const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
-  string,
-  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
-> = {
-  fiveminute: { interval: '1m', limit: 15 },
-  fifteen: { interval: '1m', limit: 30 },
-  hourly: { interval: '1m', limit: 60 },
-  fourhour: { interval: '5m', limit: 60 },
-  daily: { interval: '1h', limit: 30 },
-};
-
-const toUnixSeconds = (timestamp?: string): number | undefined => {
-  const trimmedTimestamp = timestamp?.trim();
-  if (!trimmedTimestamp) {
-    return undefined;
-  }
-
-  const numericTimestamp = Number(trimmedTimestamp);
-  if (Number.isFinite(numericTimestamp)) {
-    return numericTimestamp > 9999999999
-      ? Math.floor(numericTimestamp / 1000)
-      : Math.floor(numericTimestamp);
-  }
-
-  const timeMs = new Date(trimmedTimestamp).getTime();
-  if (!Number.isFinite(timeMs)) {
-    return undefined;
-  }
-
-  return Math.floor(timeMs / 1000);
-};
-
-const isWithinWindow = ({
-  timestamp,
-  startSeconds,
-  endSeconds,
-}: {
-  timestamp: number;
-  startSeconds?: number;
-  endSeconds?: number;
-}) =>
-  (startSeconds === undefined || timestamp >= startSeconds) &&
-  (endSeconds === undefined || timestamp <= endSeconds);
-
 /**
  * Whether an error from the crypto price history fetch is an expected,
  * transient availability issue (low-level network failure or a non-OK HTTP
@@ -433,11 +361,7 @@ export class PolymarketProvider implements PredictProvider {
 
     const neededTeams = extractNeededTeamsFromEvents(events, supportedLeagues);
 
-    await Promise.all(
-      [...neededTeams.entries()].map(([league, abbreviations]) =>
-        TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
-      ),
-    );
+    await TeamsCache.getInstance().ensureTeamsLoadedBatch(neededTeams);
   }
 
   async #parseEventsToMarkets({
@@ -481,13 +405,19 @@ export class PolymarketProvider implements PredictProvider {
   async #resolveSportMarketFromPolymarket({
     event,
     extendedSportsMarketsLeagues,
+    includeChildEvents,
   }: {
     event: PolymarketApiEvent;
     extendedSportsMarketsLeagues: string[];
+    includeChildEvents: boolean;
   }): Promise<{
     resolvedEvent: PolymarketApiEvent;
     childMarketIds?: string[];
   }> {
+    if (!includeChildEvents) {
+      return { resolvedEvent: event };
+    }
+
     const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
     if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
       return { resolvedEvent: event };
@@ -945,6 +875,7 @@ export class PolymarketProvider implements PredictProvider {
           await this.#resolveSportMarketFromPolymarket({
             event,
             extendedSportsMarketsLeagues,
+            includeChildEvents: true,
           });
         mergedEvent = resolvedSportMarket.resolvedEvent;
         childMarketIds = resolvedSportMarket.childMarketIds;
@@ -1062,12 +993,9 @@ export class PolymarketProvider implements PredictProvider {
     try {
       const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
-      const resolvedEvents = await resolveWorldCupFeedEvents(events, {
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
-      });
 
       const markets = await this.#parseEventsToMarkets({
-        events: resolvedEvents,
+        events,
         category,
       });
 
@@ -1376,7 +1304,8 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const { symbol, eventStartTime, variant, endDate } = params;
+    const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
+      params;
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1384,76 +1313,47 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('symbol parameter is required');
       }
 
-      const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
-      const { interval, limit } =
-        CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
-        DEFAULT_CHAINLINK_CANDLE_CONFIG;
-      const startSeconds = toUnixSeconds(eventStartTime);
-      const endSeconds = toUnixSeconds(endDate);
+      const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,
-        interval,
-        limit: String(limit),
+        eventStartTime,
+        variant,
       });
+      if (endDate) {
+        searchParams.set('endDate', endDate);
+      }
+      if (twapWindowSeconds !== undefined) {
+        searchParams.set('twapEnabled', 'true');
+        searchParams.set('twapLookbackSeconds', twapWindowSeconds.toString());
+      }
 
       const response = await fetchWithTimeout(
-        `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
+        `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
-
       if (!response.ok) {
         throw new Error('Failed to get crypto price history');
       }
 
-      const data = (await response.json()) as ChainlinkCandlesResponse;
-
-      if (!Array.isArray(data?.candles)) {
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) {
         return [];
       }
 
-      const validCandles = data.candles.filter(
-        (entry): entry is { time: number; close: number } =>
-          typeof entry?.time === 'number' &&
-          Number.isFinite(entry.time) &&
-          typeof entry?.close === 'number' &&
-          Number.isFinite(entry.close),
+      return data.filter(
+        (entry): entry is CryptoPriceHistoryPoint =>
+          typeof entry === 'object' &&
+          entry !== null &&
+          'timestamp' in entry &&
+          typeof entry.timestamp === 'number' &&
+          Number.isFinite(entry.timestamp) &&
+          'value' in entry &&
+          typeof entry.value === 'number' &&
+          Number.isFinite(entry.value),
       );
-
-      const candlesInWindow = validCandles.filter((entry) =>
-        isWithinWindow({
-          timestamp: entry.time,
-          startSeconds,
-          endSeconds,
-        }),
-      );
-
-      if (
-        validCandles.length > 0 &&
-        candlesInWindow.length === 0 &&
-        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
-      ) {
-        DevLogger.log(
-          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
-          {
-            symbol: normalizedSymbol,
-            variant,
-            interval,
-            limit,
-            startSeconds,
-            endSeconds,
-            firstCandleSeconds: validCandles[0]?.time,
-            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
-          },
-        );
-      }
-
-      return candlesInWindow.map((entry) => ({
-        timestamp: entry.time,
-        value: entry.close,
-      }));
     } catch (error) {
       DevLogger.log(
-        'Error getting crypto price history via Polymarket Chainlink candles API:',
+        'Error getting crypto price history via Polymarket price history API:',
         error,
       );
 
@@ -1464,6 +1364,7 @@ export class PolymarketProvider implements PredictProvider {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       } as Record<string, unknown>);
 
       // Transient network/availability failures are expected while polling and
@@ -1489,9 +1390,23 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
-      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+      const queryParams = new URLSearchParams({
+        symbol: params.symbol,
+        eventStartTime: params.eventStartTime,
+        variant: params.variant,
+        endDate: params.endDate,
+      });
+      if (params.twapWindowSeconds !== undefined) {
+        queryParams.set('twapEnabled', 'true');
+        queryParams.set(
+          'twapLookbackSeconds',
+          params.twapWindowSeconds.toString(),
+        );
+      }
 
-      const response = await fetchWithTimeout(url);
+      const response = await fetchWithTimeout(
+        `${CRYPTO_PRICE_ENDPOINT}?${queryParams.toString()}`,
+      );
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }

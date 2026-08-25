@@ -1,7 +1,9 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import type { AccountsApiActivity } from './moneyActivity';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
@@ -12,8 +14,7 @@ export interface MoneyPreferredPaymentToken {
   chainId: Hex;
 }
 
-export interface MoneyOnboardingParams {
-  entryPoint?: string;
+export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
     preferredPaymentToken?: MoneyPreferredPaymentToken;
@@ -26,7 +27,7 @@ export interface MoneyOnboardingParams {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
-  MoneyHome: { entryPoint?: string } | undefined;
+  MoneyHome: NavigationAnalyticsRouteParams | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
@@ -74,7 +75,13 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
     MoneyTransactionDetails: { transactionId: string };
-    MoneyCardTransactionDetails: { activity?: AccountsApiActivity } | undefined;
+    MoneyCardTransactionDetails:
+      | {
+          activity?: AccountsApiActivity;
+          enrichment?: CardTransaction;
+          cardTransaction?: CardTransaction;
+        }
+      | undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
     MoneyModals:
       | NavigatorScreenParams<MoneyModalsNavigationParamList>

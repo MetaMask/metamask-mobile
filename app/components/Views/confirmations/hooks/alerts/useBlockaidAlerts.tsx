@@ -12,9 +12,11 @@ import { ResultType as BlockaidResultType } from '../../constants/signatures';
 import {
   getBlockaidBannerTitle,
   getBlockaidConfirmModalMessage,
+  getBlockaidModalAmount,
 } from '../../components/blockaid-banner/BlockaidBanner.utils';
 import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
+import { useApprovedAmountFiat } from './useApprovedAmountFiat';
 import { useSendingAssetsFiatTotal } from './useSendingAssetsFiatTotal';
 
 const IGNORED_RESULT_TYPES = [
@@ -37,6 +39,7 @@ export default function useBlockaidAlerts(): Alert[] {
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackBlockaidAlertLinkClickedEvent } = useConfirmationMetricEvents();
   const sendingFiatTotal = useSendingAssetsFiatTotal();
+  const approvedAmountFiat = useApprovedAmountFiat();
 
   const isResultTypeIgnored =
     !securityAlertResponse?.result_type ||
@@ -50,6 +53,11 @@ export default function useBlockaidAlerts(): Alert[] {
     }
 
     const { result_type, reason, features } = securityAlertResponse;
+    const modalAmount = getBlockaidModalAmount(
+      reason as Reason,
+      sendingFiatTotal,
+      approvedAmountFiat,
+    );
 
     return [
       {
@@ -60,19 +68,18 @@ export default function useBlockaidAlerts(): Alert[] {
             securityAlertResponse={
               securityAlertResponse as SecurityAlertResponse
             }
+            sendingFiatTotal={sendingFiatTotal}
             onContactUsClicked={trackBlockaidAlertLinkClickedEvent}
           />
         ),
         // The blockaid message displays in the confirm alert modal when the only alert is a blockaid alert
-        message: getBlockaidConfirmModalMessage(
-          reason as Reason,
-          sendingFiatTotal,
-        ),
+        message: getBlockaidConfirmModalMessage(reason as Reason, modalAmount),
         title: getBlockaidBannerTitle(reason as Reason),
         severity: getBlockaidAlertSeverity(result_type as BlockaidResultType),
       },
     ] as Alert[];
   }, [
+    approvedAmountFiat,
     isResultTypeIgnored,
     securityAlertResponse,
     sendingFiatTotal,

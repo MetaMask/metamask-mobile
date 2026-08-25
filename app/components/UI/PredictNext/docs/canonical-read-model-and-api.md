@@ -1,7 +1,7 @@
 # Predict canonical read model and REST API
 
 - **Status:** Agreed working direction for team review; not yet implemented
-- **Scope:** Public, read-only Predict navigation and Event detail
+- **Scope:** Public, read-only Predict navigation and Event Screens
 - **Venues:** Kalshi first, with a future Polymarket backend mapping
 
 ## Recommendation
@@ -123,6 +123,11 @@ interface PredictSportsContext {
   game?: PredictGame;
 }
 
+interface PredictSettlementSource {
+  name: string;
+  url: PredictHttpsUrl;
+}
+
 type PredictMarketStatus =
   | 'initialized'
   | 'active'
@@ -147,6 +152,7 @@ interface PredictOutcome {
 interface PredictMarket {
   id: PredictEntityId;
   question: string;
+  rules?: string;
   status: PredictMarketStatus;
   outcomes: readonly [PredictOutcome, PredictOutcome];
 
@@ -168,11 +174,13 @@ interface PredictEvent {
   id: PredictEntityId;
   title: string;
   subtitle?: string;
+  rules?: string;
   description?: string;
 
   category?: PredictCategory;
   series?: PredictSeries;
   sports?: PredictSportsContext;
+  settlementSources?: readonly PredictSettlementSource[];
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -199,6 +207,9 @@ interface PredictFeed {
 - `volume` is total settlement currency traded for that Event or Market across all users.
 - `volume24h` is settlement currency traded during the trailing 24-hour window at the backend observation time.
 - Event and Market Volume are independent backend projections. Mobile must not sum Market Volume to invent Event Volume.
+- `rules` contains authoritative resolution criteria. Event rules apply to the Event, while Market rules refine one Market. Rules are not generated from descriptive copy.
+- If Event and Market rules are identical, the UI presents the content once. Missing rules are omitted.
+- `settlementSources` contains optional approved sources for outcome verification. Each source has a non-empty name and an absolute HTTPS URL.
 - Amounts and prices are decimal strings. Mobile must not use binary floating-point arithmetic for financial calculations.
 - `imageUrl` and `logoUrl` are optional backend-approved absolute HTTPS URLs. Mobile must not derive media from titles, tickers, or slugs.
 - `primaryColor` is a backend-approved six-digit hexadecimal RGB color such as `#E31837`; it is decorative and must not be the only way UI communicates meaning.
@@ -230,7 +241,7 @@ Series: btc-up-down-5m               Series: btc-up-down-5m
 Event:  btc-1200-1205       ->       Event:  btc-1205-1210
 ```
 
-For a rolling card or detail screen:
+For a rolling card or Event Screen:
 
 1. Render the Event returned by the Feed or current-Series endpoint.
 2. Revalidate at or shortly after the Event's `closesAt`.
@@ -330,7 +341,7 @@ GET /v1/venues/{venueId}/events/{eventId}
 
 Response: `PredictEvent`
 
-This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and fixed Event detail.
+This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and immutable Event Screens.
 
 ### Read the current Event in a rolling Series
 
@@ -472,4 +483,4 @@ Until that implementation lands, code and tests remain the executable contract.
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
 - continuous live updates and WebSockets;
-- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, charts, history, rules, and account-scoped data.
+- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, charts, history, and account-scoped data.

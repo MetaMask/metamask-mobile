@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import {
@@ -137,6 +138,7 @@ const PerpsProOrderBookConfigSheet = ({
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
 }: PerpsProOrderBookConfigSheetProps) => {
+  const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
   const [draftCurrency, setDraftCurrency] =
@@ -164,17 +166,58 @@ const PerpsProOrderBookConfigSheet = ({
     sheetRef.current?.onCloseBottomSheet(onClose);
   }, [onClose]);
 
+  const handleCurrencySelect = useCallback(
+    (next: OrderBookListCurrency) => {
+      if (draftCurrency === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftCurrency(next);
+    },
+    [draftCurrency, playSelection],
+  );
+
+  const handleMetricSelect = useCallback(
+    (next: OrderBookListMetric) => {
+      if (draftMetric === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftMetric(next);
+    },
+    [draftMetric, playSelection],
+  );
+
+  const handleGroupingSelect = useCallback(
+    (next: number) => {
+      if (draftGrouping === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftGrouping(next);
+    },
+    [draftGrouping, playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
     }
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onApply({
       currency: draftCurrency,
       metric: draftMetric,
       grouping: draftGrouping,
     });
     handleClose();
-  }, [draftCurrency, draftMetric, draftGrouping, onApply, handleClose]);
+  }, [
+    draftCurrency,
+    draftMetric,
+    draftGrouping,
+    onApply,
+    handleClose,
+    playImpact,
+  ]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -225,13 +268,13 @@ const PerpsProOrderBookConfigSheet = ({
                 <OptionChip
                   label={baseSymbol}
                   isSelected={draftCurrency === 'base'}
-                  onPress={() => setDraftCurrency('base')}
+                  onPress={() => handleCurrencySelect('base')}
                   testID={`${testID}-currency-base`}
                 />
                 <OptionChip
                   label="USD"
                   isSelected={draftCurrency === 'usd'}
-                  onPress={() => setDraftCurrency('usd')}
+                  onPress={() => handleCurrencySelect('usd')}
                   testID={`${testID}-currency-usd`}
                 />
               </Box>
@@ -243,13 +286,13 @@ const PerpsProOrderBookConfigSheet = ({
                 <OptionChip
                   label={strings('perps.order_book.size')}
                   isSelected={draftMetric === 'size'}
-                  onPress={() => setDraftMetric('size')}
+                  onPress={() => handleMetricSelect('size')}
                   testID={`${testID}-metric-size`}
                 />
                 <OptionChip
                   label={strings('perps.order_book.total')}
                   isSelected={draftMetric === 'total'}
-                  onPress={() => setDraftMetric('total')}
+                  onPress={() => handleMetricSelect('total')}
                   testID={`${testID}-metric-total`}
                 />
               </Box>
@@ -278,7 +321,7 @@ const PerpsProOrderBookConfigSheet = ({
                       key={value}
                       label={formatGroupingLabel(value)}
                       isSelected={draftGrouping === value}
-                      onPress={() => setDraftGrouping(value)}
+                      onPress={() => handleGroupingSelect(value)}
                       testID={`${testID}-grouping-${value}`}
                     />
                   ))}

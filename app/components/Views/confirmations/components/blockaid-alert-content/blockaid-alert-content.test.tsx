@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import BlockaidAlertContent from './blockaid-alert-content';
+import { BlockaidAlertContentTestIds } from './blockaid-alert-content.testIds';
 // TODO: Remove legacy import
 import {
   SecurityAlertResponse,
@@ -18,14 +19,6 @@ import { RootState } from '../../../../../reducers';
 jest.mock('react-native-gzip', () => ({
   deflate: jest.fn().mockResolvedValue('compressedData'),
 }));
-
-jest.mock('../../hooks/alerts/useSendingAssetsFiatTotal', () => ({
-  useSendingAssetsFiatTotal: jest.fn(() => null),
-}));
-
-const mockUseSendingAssetsFiatTotal = jest.requireMock(
-  '../../hooks/alerts/useSendingAssetsFiatTotal',
-).useSendingAssetsFiatTotal;
 
 const networkStateWith = (
   chainId: Hex,
@@ -47,7 +40,6 @@ const MAINNET_STATE = networkStateWith(MAINNET_CHAIN_ID, 'Ethereum');
 
 describe('BlockaidAlertContent', () => {
   const DETAILS_ACCORDION_TITLE = 'See details';
-  const REPORT_LINK_TEXT = 'Report an issue';
   const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
   const BLOCK_NUMBER_MOCK = 12345;
   const REQUEST_MOCK = {
@@ -68,7 +60,6 @@ describe('BlockaidAlertContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSendingAssetsFiatTotal.mockReturnValue(null);
   });
 
   it('renders correctly with given props', () => {
@@ -110,8 +101,6 @@ describe('BlockaidAlertContent', () => {
   });
 
   it('uses the amount description variant when a sending fiat total is available', () => {
-    mockUseSendingAssetsFiatTotal.mockReturnValue('$1,234.56');
-
     const { getByText } = renderWithProvider(
       <BlockaidAlertContent
         alertDetails={ALERT_DETAILS_MOCK}
@@ -119,6 +108,7 @@ describe('BlockaidAlertContent', () => {
           ...mockSecurityAlertResponse,
           reason: Reason.transferFarming,
         }}
+        sendingFiatTotal="$1,234.56"
         onContactUsClicked={mockOnContactUsClicked}
       />,
       { state: MAINNET_STATE },
@@ -182,7 +172,7 @@ describe('BlockaidAlertContent', () => {
   });
 
   it('calls onContactUsClicked when report link is clicked', async () => {
-    const { getByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <BlockaidAlertContent
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
@@ -196,9 +186,10 @@ describe('BlockaidAlertContent', () => {
       fireEvent.press(accordionTitle);
     });
 
-    const reportLink = getByText(REPORT_LINK_TEXT);
     await act(async () => {
-      fireEvent.press(reportLink);
+      fireEvent.press(
+        getByTestId(BlockaidAlertContentTestIds.REPORT_ISSUE_BUTTON),
+      );
     });
 
     expect(mockOnContactUsClicked).toHaveBeenCalled();

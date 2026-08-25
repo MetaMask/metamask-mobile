@@ -43,16 +43,22 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  useHaptics,
+} from '../../../../../util/haptics';
 
 interface AdjustMarginRouteParams {
   position: Position;
   mode: 'add' | 'remove';
+  enableHaptics?: boolean;
 }
 
 const floorUsd = (value: number) => Math.floor(value * 100) / 100;
@@ -62,7 +68,12 @@ const PerpsAdjustMarginView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: AdjustMarginRouteParams }, 'params'>>();
-  const { position: routePosition, mode } = route.params || {};
+  const {
+    position: routePosition,
+    mode,
+    enableHaptics = false,
+  } = route.params || {};
+  const { playImpact: playHapticImpact } = useHaptics();
 
   const [marginAmountString, setMarginAmountString] = useState('0');
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -231,17 +242,28 @@ const PerpsAdjustMarginView: React.FC = () => {
       if (liquidationPrice === 0) {
         return PERPS_CONSTANTS.FallbackDataDisplay;
       }
-      return `${distance.toFixed(0)}%`;
+      return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
     },
     [],
   );
 
   const handleConfirm = useCallback(async () => {
-    if (marginAmount <= 0 || !position) return;
+    if (
+      marginAmount <= 0 ||
+      !position ||
+      isAdjusting ||
+      validationErrors.length
+    ) {
+      return;
+    }
 
     // Prevent submission if amount exceeds max removable (extra safety for remove mode)
     if (!isAddMode && marginAmount > flooredMaxAmount) {
       return;
+    }
+
+    if (enableHaptics) {
+      playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
 
     // Capture estimates at submission - displayed during exit animation
@@ -258,12 +280,16 @@ const PerpsAdjustMarginView: React.FC = () => {
   }, [
     marginAmount,
     position,
+    enableHaptics,
     isAddMode,
+    isAdjusting,
+    validationErrors.length,
     flooredMaxAmount,
     newLiquidationPrice,
     newLiquidationDistance,
     handleAddMargin,
     handleRemoveMargin,
+    playHapticImpact,
   ]);
 
   const buttonLabel = isAddMode

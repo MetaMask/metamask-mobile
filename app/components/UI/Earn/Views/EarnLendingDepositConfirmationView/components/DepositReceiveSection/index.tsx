@@ -46,6 +46,7 @@ const DepositReceiveSection = ({
             {strings('earn.receive')}
           </Text>
           <ButtonIcon
+            style={styles.infoIcon}
             size={TooltipSizes.Xs}
             iconColor={IconColor.Alternative}
             iconName={IconName.Info}
