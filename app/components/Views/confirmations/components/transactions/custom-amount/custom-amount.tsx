@@ -22,6 +22,12 @@ export interface CustomAmountProps {
   hasAlert?: boolean;
   isLoading?: boolean;
   onPress?: () => void;
+  /**
+   * When true, a Max quote fetch does not replace a visible amount with a
+   * skeleton. Money-account stablecoin prefills set isMaxAmount, so hiding
+   * the amount while quotes load caused it to flash then reappear.
+   */
+  preserveAmountOnMaxQuoteLoad?: boolean;
   showCursor?: boolean;
 }
 
@@ -33,6 +39,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     hasAlert = false,
     isLoading,
     onPress,
+    preserveAmountOnMaxQuoteLoad = false,
     showCursor = true,
   } = props;
 
@@ -52,7 +59,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     disabled,
   });
 
-  const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+  const showLoader =
+    isLoading ||
+    (isMaxAmount && isQuotesLoading && !preserveAmountOnMaxQuoteLoad);
   const cursorVisible = showCursor && !disabled && !showLoader;
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 
