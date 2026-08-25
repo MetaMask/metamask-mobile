@@ -259,6 +259,60 @@ const expoBuildLinks = {
   },
 };
 
+// Listr trims each captured console.log chunk, so a trailing newline, space or
+// tab is removed and the next task's output butts against this one. A zero-width
+// space is not in JavaScript's whitespace set, so it survives the trim while
+// rendering as nothing — giving one blank line of separation.
+const TRAILING_BLANK_LINE = '\u200b';
+
+/**
+ * Report which agent skills are installed.
+ *
+ * Skills are installed by `postinstall`, whose output Yarn swallows into a build
+ * log — so without this the base set arrives silently and nobody learns that
+ * team skills are opt-in. This only reads what is already on disk; it never runs
+ * a sync, so `yarn setup` does not install twice.
+ */
+const reportAgentSkillsTask = {
+  title: 'Report agent skills',
+  task: async (_, task) => {
+    // Agent skills are developer tooling. `postinstall` already skips installing
+    // them in CI, so there would be nothing to report and the output is noise.
+    if (IS_CI || IS_NODE) {
+      return task.skip('Skipping agent skills report.');
+    }
+
+    const skillsDir = path.join(process.cwd(), '.claude', 'skills');
+
+    let installed = [];
+    try {
+      installed = fs
+        .readdirSync(skillsDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+    } catch {
+      return task.skip(
+        'No agent skills installed. Run `yarn skills` to install them.',
+      );
+    }
+
+    if (installed.length === 0) {
+      return task.skip(
+        'No agent skills installed. Run `yarn skills` to install them.',
+      );
+    }
+
+    console.log(`
+     You have ${installed.length} agent skill(s) available in Claude Code, Cursor and Codex.
+
+     The base set is installed for everyone. Everything else is opt-in:
+      🔎 See what else is available:  yarn skills --select
+      📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
+      🔄 Refresh after pulling main:  yarn skills
+${TRAILING_BLANK_LINE}`);
+  },
+};
+
 const updateGitSubmodulesTask = {
   title: 'Init git submodules',
   task: async (_, task) => {
@@ -351,6 +405,7 @@ const prepareDependenciesTask = {
         runLavamoatAllowScriptsTask,
         patchPackageTask,
         installFoundryTask,
+        reportAgentSkillsTask,
         expoBuildLinks,
         installHuskyTask,
       ],
