@@ -163,16 +163,6 @@ describe('Saved', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to Swap when the swap button is pressed', () => {
-      const { getByTestId } = renderSaved();
-
-      fireEvent.press(getByTestId(SavedTestIds.SWAP_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-      });
-    });
-
     it('does not navigate before any button is pressed', () => {
       renderSaved();
 

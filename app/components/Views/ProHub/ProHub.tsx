@@ -65,7 +65,15 @@ const StatCard = ({
     </>
   );
 
-  const card = <Card twClassName={'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0'}>{inner}</Card>;
+  const card = (
+    <Card
+      twClassName={
+        'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0'
+      }
+    >
+      {inner}
+    </Card>
+  );
 
   return (
     <Box twClassName="flex-1 min-w-0">
