@@ -397,8 +397,12 @@ jobs:
           path: tests/test-reports/playwright-json/playwright-report.json
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright JSON report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+      # Always upload to the GitHub Actions store as well (dual-upload on Namespace).
+      # The scheduled Playwright test health report and qa-stats collectors only see
+      # GitHub artifacts; Namespace-only uploads made those consumers go empty after
+      # Appium moved onto the runner-provider switch (#35002).
+      - name: Upload Playwright JSON report (GitHub)
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
