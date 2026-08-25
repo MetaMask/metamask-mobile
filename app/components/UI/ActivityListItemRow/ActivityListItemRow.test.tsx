@@ -2444,8 +2444,11 @@ describe('ActivityListItemRow — pending rows', () => {
     );
 
     const title = getByTestId(`activity-title-${item.hash}`);
-    const spinner = getByTestId(`activity-pending-spinner-${item.hash}`);
+    const spinnerContainer = getByTestId(
+      `activity-pending-spinner-container-${item.hash}`,
+    );
     const amount = getByTestId(`activity-primary-amount-${item.hash}`);
+    const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
 
     expect(title).toHaveTextContent('Unstaking Ethereum');
     expect(amount).toHaveTextContent('+0.0007901 ETH');
@@ -2460,12 +2463,12 @@ describe('ActivityListItemRow — pending rows', () => {
       minWidth: 0,
     });
     expect(
-      ReactNativeStyleSheet.flatten(spinner.parent?.props.style),
+      ReactNativeStyleSheet.flatten(spinnerContainer.props.style),
     ).toMatchObject({
       flexShrink: 0,
     });
     expect(
-      ReactNativeStyleSheet.flatten(amount.parent?.props.style),
+      ReactNativeStyleSheet.flatten(amountColumn.props.style),
     ).toMatchObject({
       flexShrink: 0,
     });
