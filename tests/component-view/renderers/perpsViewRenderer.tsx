@@ -47,6 +47,10 @@ import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/
 import PerpsTooltipView from '../../../app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsCrossMarginWarningBottomSheet from '../../../app/components/UI/Perps/components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
 import {
+  handlePerpsCufOrdersDelivered,
+  handlePerpsCufPositionsDelivered,
+} from '../../../app/components/UI/Perps/utils/perpsCufTrace';
+import {
   type AccountState,
   type PerpsMarketData,
   type Position,
@@ -364,8 +368,16 @@ function createTestStreamManager(
     stream: {
       emitAccount: account.emit,
       emitMarketData: marketData.emit,
-      emitOrders: orders.emit,
-      emitPositions: positions.emit,
+      // Mirror production stream channels: notify CUF matchers when test
+      // doubles deliver positions/orders so place/cancel waits resolve.
+      emitOrders: (nextOrders) => {
+        orders.emit(nextOrders);
+        handlePerpsCufOrdersDelivered(nextOrders ?? []);
+      },
+      emitPositions: (nextPositions) => {
+        positions.emit(nextPositions);
+        handlePerpsCufPositionsDelivered(nextPositions ?? []);
+      },
       emitPrices: prices.emit,
     },
   };
@@ -608,7 +620,6 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
-  szDecimals: 2,
 };
 
 const defaultProPrices: Record<string, PriceUpdate> = {

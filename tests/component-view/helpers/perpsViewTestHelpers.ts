@@ -2,7 +2,9 @@ import type { Store } from '@reduxjs/toolkit';
 import type { PerpsMode } from '@metamask/perps-controller';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../../app/core/Engine';
+import ReduxService from '../../../app/core/redux/ReduxService';
 import { updateBgState } from '../../../app/core/redux/slices/engine';
+import type { ReduxStore } from '../../../app/core/redux/types';
 
 /**
  * Shared helpers for Perps component/view tests.
@@ -32,6 +34,10 @@ type ProLayoutPreferencesPatch = Record<string, unknown>;
  * update Redux selectors in component view tests.
  */
 export function wirePerpsControllerForStore(store: Store): void {
+  // Haptics/toasts read gates via ReduxService.store; without this, place-order
+  // success notifications fail-open after Logger.error("store does not exist").
+  ReduxService.store = store as unknown as ReduxStore;
+
   const perpsController = Engine.context.PerpsController as unknown as {
     setProLayoutPreferences: (prefs: ProLayoutPreferencesPatch) => void;
     setPerpsMode: (mode: PerpsMode) => void;

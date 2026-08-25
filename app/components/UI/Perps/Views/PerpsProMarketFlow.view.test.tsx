@@ -37,6 +37,7 @@ import {
 } from '../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { wirePerpsControllerForStore } from '../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import { renderPerpsProMarketView } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -138,8 +139,26 @@ const applySideFilter = async (side: 'all' | 'long' | 'short') => {
   );
 };
 
+/**
+ * Join fire-and-forget toast/haptic work so mutations cannot finish after Jest
+ * tears down the environment (CI --forceExit otherwise hits Platform.OS after
+ * teardown via playNotification).
+ */
+const flushAsyncSideEffects = async (delayMs = 50) => {
+  await act(async () => {
+    await Promise.resolve();
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, delayMs);
+    });
+  });
+};
+
 describeForPlatforms('Perps Pro Market Flow', () => {
-  afterEach(() => {
+  afterEach(async () => {
+    // Wake CUF waiters / clear pending spans so stream timers do not outlive
+    // the Jest environment and race toast/haptic teardown.
+    clearPendingPerpsCufTraces();
+    await flushAsyncSideEffects();
     cleanup();
   });
 
@@ -253,6 +272,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+      await flushAsyncSideEffects();
 
       fireEvent.press(screen.getByTestId(panelIds.ORDERS_CANCEL_ALL));
 
@@ -263,11 +283,13 @@ describeForPlatforms('Perps Pro Market Flow', () => {
           { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
-      fireEvent.press(
-        screen.getByTestId(
-          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
-        ),
-      );
+      await act(async () => {
+        await fireEvent.press(
+          screen.getByTestId(
+            PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+          ),
+        );
+      });
 
       await waitFor(
         () => {
@@ -275,6 +297,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+      await flushAsyncSideEffects();
     },
   );
 
@@ -288,11 +311,31 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       placeOrder.mockClear();
       validateOrder.mockResolvedValue({ isValid: true });
 
-      renderProMarketScenario({
+      const { stream } = renderProMarketScenario({
         streamOverrides: {
           positions: [],
           orders: [],
         },
+      });
+
+      // CUF arms before placeOrder resolves, then awaits the positions stream.
+      // Deliver the fill on the next macrotask so the confirm race resolves
+      // instead of toasting after 1s and leaving a 30s late waiter.
+      const filledShort = createShortPositionForViews({
+        symbol: 'ETH',
+        size: '-0.04',
+        entryPrice: '2500',
+        liquidationPrice: '2750',
+        marginUsed: '100',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        positionValue: '100',
+      });
+      placeOrder.mockImplementation(async () => {
+        setTimeout(() => {
+          stream.emitPositions([filledShort]);
+        }, 0);
+        return { success: true, orderId: 'component-view-order' };
       });
 
       const sizeInput = await screen.findByTestId(
@@ -327,7 +370,10 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         },
         { timeout: TIMEOUT_MS },
       );
-      fireEvent.press(placeOrderButton);
+
+      await act(async () => {
+        await fireEvent.press(placeOrderButton);
+      });
 
       await waitFor(
         () => {
@@ -341,6 +387,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+      await flushAsyncSideEffects();
     },
   );
 

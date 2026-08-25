@@ -25,7 +25,6 @@ const defaultEthMarketForViews: PerpsMarketData = {
   openInterest: '$500M',
   marketType: 'crypto',
   fundingRate: 0.0001,
-  szDecimals: 2,
 };
 
 export const createEthMarketForViews = (
@@ -46,7 +45,6 @@ const defaultBtcMarketForViews: PerpsMarketData = {
   openInterest: '$800M',
   marketType: 'crypto',
   fundingRate: -0.0002,
-  szDecimals: 5,
 };
 
 export const createBtcMarketForViews = (
