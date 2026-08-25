@@ -207,7 +207,7 @@ export class PredictMarketDataService extends BaseDataService<
           {
             queryKey: descriptor.queryKey,
             staleTime: descriptor.staleTime,
-            initialPageParam: cursor as string | undefined,
+            initialPageParam: cursor as string | null,
             queryFn: async ({ pageParam, signal }) => {
               const page = await this.#marketData.fetchFeed(
                 feedId,
@@ -219,7 +219,7 @@ export class PredictMarketDataService extends BaseDataService<
                 nextCursor: page.nextCursor || undefined,
               } as Json & GetFeedResult;
             },
-            getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+            getNextPageParam: (lastPage) => lastPage.nextCursor || null,
           },
           cursor,
         ),

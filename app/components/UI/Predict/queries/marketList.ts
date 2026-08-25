@@ -91,7 +91,7 @@ export const predictMarketListOptions = (
     pageParam,
   }: QueryFunctionContext<
     PredictMarketListQueryKey,
-    string
+    string | undefined
   >): Promise<PredictMarketListResponse> =>
     Engine.context.PredictController.listMarkets({
       ...params,
