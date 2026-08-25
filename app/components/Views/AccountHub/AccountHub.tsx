@@ -40,8 +40,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
@@ -64,6 +68,7 @@ const AccountHub = () => {
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -73,6 +78,8 @@ const AccountHub = () => {
   );
   const { isAccountSyncingInProgress, loadingMessage } =
     useAccountsOperationsLoadingStates();
+
+  useSyncSRPs();
 
   const selectedAccountGroups = useMemo(
     () => (selectedAccountGroup ? [selectedAccountGroup] : []),
@@ -118,8 +125,6 @@ const AccountHub = () => {
     });
   }, [navigation, selectedAccountGroup]);
 
-  // `entryPoint` is intentionally omitted: the Activity event enum has no value
-  // for this surface yet and adding one is a Segment schema change.
   const handleActivityPress = useCallback(() => {
     trackEvent(createEventBuilder(MetaMetricsEvents.ACTIVITY_CLICKED).build());
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
@@ -132,9 +137,17 @@ const AccountHub = () => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Account Hub',
+            number_of_accounts: internalAccounts?.length,
+          })
+          .build(),
+      );
       navigation.goBack();
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder, internalAccounts?.length],
   );
 
   const handleAddWallet = useCallback(() => {

@@ -5,7 +5,12 @@ import AccountHub from './AccountHub';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
@@ -18,6 +23,12 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOpenQRScanner = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: jest.fn(() => ({ name: 'test-event' })),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -31,12 +42,13 @@ jest.mock('../../hooks/useQRScanner', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(() => ({ name: 'test-event' })),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../hooks/useSyncSRPs', () => ({
+  useSyncSRPs: jest.fn(() => ({ loading: false })),
 }));
 
 jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
@@ -71,6 +83,7 @@ jest.mock(
 
 const SELECTED_ACCOUNT = { address: '0xabc123' };
 const SELECTED_GROUP = { id: 'group-1', metadata: { name: 'DeFi Account' } };
+const INTERNAL_ACCOUNTS = [{ id: 'account-1' }, { id: 'account-2' }];
 
 const arrangeSelectors = ({
   accountGroup = SELECTED_GROUP,
@@ -78,6 +91,7 @@ const arrangeSelectors = ({
 }: { accountGroup?: unknown; unreadCount?: number } = {}) => {
   jest.mocked(useSelector).mockImplementation((selector: unknown) => {
     if (selector === selectSelectedInternalAccount) return SELECTED_ACCOUNT;
+    if (selector === selectInternalAccounts) return INTERNAL_ACCOUNTS;
     if (selector === selectSelectedAccountGroup) return accountGroup;
     if (selector === selectAvatarAccountType) return 'JazzIcon';
     if (selector === selectIsMetamaskNotificationsEnabled) return true;
@@ -237,7 +251,21 @@ describe('AccountHub', () => {
     expect(
       Engine.context.AccountTreeController.setSelectedAccountGroup,
     ).toHaveBeenCalledWith('group-2');
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.SWITCHED_ACCOUNT,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      source: 'Account Hub',
+      number_of_accounts: INTERNAL_ACCOUNTS.length,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('syncs SRPs while the hub is open', () => {
+    render(<AccountHub />);
+
+    expect(useSyncSRPs).toHaveBeenCalled();
   });
 
   it('scrolls the whole screen by handing the list its header and footer', () => {
