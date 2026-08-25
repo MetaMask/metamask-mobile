@@ -702,7 +702,7 @@ describe('perpsLoadingSession', () => {
         timestamp: undefined,
         data: {
           ...finishData,
-          required_live_streams_complete: false,
+          required_live_streams_complete: true,
         },
       });
       expect(getActivePerpsLoadingSessionContext()).toBeNull();
@@ -993,11 +993,12 @@ describe('perpsLoadingSession', () => {
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.PerpsLoadingSession,
         id: 'session-id-1',
+        timestamp: undefined,
         data: {
           success: false,
           content_state: 'error',
           content_variant: 'error',
-          required_live_streams_complete: true,
+          required_live_streams_complete: false,
         },
       });
     });
