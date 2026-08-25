@@ -5,10 +5,10 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../../../component-library/components/Avatars/Avatar';
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
 import styleSheet from './network.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 interface NetworkProps {
   chainId?: string;

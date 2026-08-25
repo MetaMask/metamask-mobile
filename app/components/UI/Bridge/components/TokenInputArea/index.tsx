@@ -48,7 +48,11 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipChainId,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
@@ -64,6 +68,8 @@ import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
+import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import Engine from '../../../../../core/Engine';
@@ -186,6 +192,20 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
+  /**
+   * When true, the token selector hides real-world asset tokens.
+   */
+  excludeRwaTokens?: boolean;
+  /**
+   * When true, no fiat value is shown for a token that has no fiat rate,
+   * rather than the "$0.00" such a token would otherwise be priced at.
+   */
+  hideFiatValueWhenUnpriced?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -219,6 +239,9 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
+      enabledChainIds,
+      excludeRwaTokens,
+      hideFiatValueWhenUnpriced = false,
     },
     ref,
   ) => {
@@ -278,6 +301,8 @@ export const TokenInputArea = forwardRef<
       trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Dest,
+        enabledChainIds,
+        excludeRwaTokens,
       });
     };
 
@@ -285,6 +310,8 @@ export const TokenInputArea = forwardRef<
       trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Source,
+        enabledChainIds,
+        excludeRwaTokens,
       });
     };
 
@@ -296,9 +323,16 @@ export const TokenInputArea = forwardRef<
     });
 
     const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
+    const tokenFiatRate = useTokenFiatRate(token);
+    // Without a rate the currency value is formatted as a bare "$0.00", which
+    // reads as the token being worthless rather than unpriced.
+    const shouldHideFiatValue =
+      hideFiatValueWhenUnpriced &&
+      hasMissingTokenFiatRate(token, tokenFiatRate);
     const shouldShowFiatAmountAsPrimary = Boolean(
       tokenType === TokenInputAreaType.Destination &&
         showFiatAmountAsPrimary &&
+        !shouldHideFiatValue &&
         token &&
         amount &&
         Number(amount) > 0,
@@ -310,7 +344,8 @@ export const TokenInputArea = forwardRef<
         )} ${token?.symbol}`
       : undefined;
     const defaultSecondaryAmountDisplayValue =
-      secondaryTokenAmountDisplayValue ?? defaultCurrencyValue;
+      secondaryTokenAmountDisplayValue ??
+      (shouldHideFiatValue ? undefined : defaultCurrencyValue);
     const secondaryAmountDisplayValue =
       secondaryValue === undefined
         ? defaultSecondaryAmountDisplayValue

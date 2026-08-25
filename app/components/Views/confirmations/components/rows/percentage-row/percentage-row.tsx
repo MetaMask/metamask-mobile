@@ -1,11 +1,13 @@
 import React from 'react';
-import { StyleSheet, Linking } from 'react-native';
-import InfoRow from '../../UI/info-row';
-import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-import Text, {
+import { Linking } from 'react-native';
+import {
+  Text,
+  TextButton,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import InfoRow from '../../UI/info-row';
+import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -19,14 +21,9 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
+import { PercentageRowTestIds } from './percentage-row.testIds';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-const styles = StyleSheet.create({
-  termsText: {
-    textDecorationLine: 'underline',
-  },
-});
 
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
@@ -66,13 +63,16 @@ export function PercentageRow() {
       tooltip={
         <Text>
           {strings('earn.claimable_bonus_tooltip')}{' '}
-          <Text style={styles.termsText} onPress={redirectToBonusFaq}>
+          <TextButton
+            testID={PercentageRowTestIds.TERMS_APPLY_BUTTON}
+            onPress={redirectToBonusFaq}
+          >
             {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
+          </TextButton>
         </Text>
       }
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
         {MUSD_CONVERSION_APY}%
       </Text>
     </InfoRow>

@@ -30,6 +30,7 @@ jest.mock('../../../utils/perpsModeSwitch', () => ({
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+jest.mock('../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
@@ -68,6 +69,9 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onLimitPriceChange: jest.fn(),
   onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
+  triggerPrice: '',
+  onTriggerPriceChange: jest.fn(),
+  onTriggerPriceBlur: jest.fn(),
   sizeInput: DEFAULT_SIZE_INPUT,
   sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',
@@ -143,13 +147,18 @@ jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
     default: ({
       isVisible,
       onConfirm,
+      enableConfirmHaptics,
     }: {
       isVisible: boolean;
       onConfirm: (leverage: number) => void;
+      enableConfirmHaptics?: boolean;
     }) =>
       isVisible
         ? ReactActual.createElement(P, {
             testID: 'mock-leverage-confirm',
+            accessibilityLabel: enableConfirmHaptics
+              ? 'confirm-haptics-enabled'
+              : 'confirm-haptics-off',
             onPress: () => onConfirm(10),
           })
         : null,
@@ -347,6 +356,10 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
+    expect(screen.getByTestId('mock-leverage-confirm')).toHaveProp(
+      'accessibilityLabel',
+      'confirm-haptics-enabled',
+    );
   });
 
   it('renders the leverage sheet inside the Android modal gesture root', () => {

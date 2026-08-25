@@ -6,17 +6,15 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import Text, {
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { NameType } from '../../../../../UI/Name/Name.types';
@@ -147,7 +145,7 @@ export function TransactionDetailsAccountRow() {
     ? strings('transaction_details.label.money_account')
     : (accountName ?? from);
 
-  const textColor = isWithdraw ? undefined : TextColor.Alternative;
+  const textColor = isWithdraw ? undefined : TextColor.TextAlternative;
 
   const avatarElement = isWithdraw ? (
     <View style={iconStyles.moneyIconWrapper}>
@@ -159,15 +157,15 @@ export function TransactionDetailsAccountRow() {
     </View>
   ) : (
     <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
         networkImage ? (
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImage}
+          <BadgeNetwork
+            src={networkImage}
             name={networkName}
+            testID="transaction-details-account-network-badge"
           />
-        ) : undefined
+        ) : null
       }
     >
       <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />
