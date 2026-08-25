@@ -6,11 +6,11 @@ import {
   BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
+  ButtonFilter,
   ButtonIcon,
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
-  Checkbox,
   FilterButton,
   FontWeight,
   HelpText,
@@ -228,37 +228,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
 const summaryRowClassName = 'h-5 px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
-
-interface SlippageValueProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
-  >
-    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.Edit}
-        size={IconSize.Sm}
-        color={IconColor.IconDefault}
-      />
-    </Box>
-  </Pressable>
-);
+const SLIPPAGE_EDIT_HIT_SLOP = 12;
 
 const OrderSummary = ({
   margin,
@@ -292,7 +262,19 @@ const OrderSummary = ({
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
+        value={slippage}
+        valueEndButtonIconProps={{
+          ...buttonIcon(
+            IconName.Edit,
+            ids.SUMMARY_SLIPPAGE_BUTTON,
+            onSlippagePress,
+          ),
+          accessibilityRole: 'button',
+          accessibilityLabel: strings('perps.slippage.config_title'),
+          // ButtonIconSize.Xs renders a 20pt box; 12pt of slop on each side
+          // brings the tap target back to the 44pt minimum.
+          hitSlop: SLIPPAGE_EDIT_HIT_SLOP,
+        }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
@@ -432,6 +414,10 @@ const PerpsProOrderForm = ({
     },
     [onReduceOnlyChange, playSelection],
   );
+
+  const handleReduceOnlyPress = useCallback(() => {
+    handleReduceOnlyChange(!reduceOnly);
+  }, [handleReduceOnlyChange, reduceOnly]);
 
   const handleExpandOrderBook = useCallback(() => {
     if (!onExpandOrderBook) {
@@ -597,19 +583,16 @@ const PerpsProOrderForm = ({
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />
-          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
-            <Checkbox
-              label={strings('perps.order.reduce_only')}
-              labelProps={{
-                variant: TextVariant.BodySm,
-                fontWeight: FontWeight.Medium,
-                style: { marginLeft: 0, flex: 1 },
-              }}
-              isSelected={reduceOnly}
-              onChange={handleReduceOnlyChange}
+          <Box testID={ids.REDUCE_ONLY_CONTAINER} twClassName="items-start">
+            <ButtonFilter
+              isActive={reduceOnly}
+              accessibilityState={{ selected: reduceOnly }}
+              onPress={handleReduceOnlyPress}
+              size={ButtonBaseSize.Sm}
               testID={ids.REDUCE_ONLY}
-              twClassName="w-full flex-row-reverse justify-between"
-            />
+            >
+              {strings('perps.order.reduce_only')}
+            </ButtonFilter>
           </Box>
           {showsTpSl ? (
             <TPSLRow
