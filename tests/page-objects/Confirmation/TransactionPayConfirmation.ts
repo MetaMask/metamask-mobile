@@ -325,7 +325,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('keypad-delete-button');
   }
 
