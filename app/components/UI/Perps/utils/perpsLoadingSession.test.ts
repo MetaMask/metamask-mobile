@@ -745,7 +745,7 @@ describe('perpsLoadingSession', () => {
       );
     });
 
-    it('waits for fresh markets when the empty account still renders markets', () => {
+    it('updates empty account content when fresh markets arrive', () => {
       startPerpsLoadingSession({ lifecycle: 'cold_no_cache' });
       recordFresh('positions', 0);
       recordFresh('orders', 0);
@@ -758,7 +758,9 @@ describe('perpsLoadingSession', () => {
       expect(endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            content_state: 'empty',
+            content_state: 'filled',
+            market_count: 5,
+            market_source: 'provider',
             required_live_streams_complete: true,
           }),
         }),
@@ -846,18 +848,44 @@ describe('perpsLoadingSession', () => {
       expect(resolvePerpsMarketSource(null)).toBe('unknown');
     });
 
-    it('finishes an empty cold surface without inventing market readiness', () => {
+    it('waits for a fresh empty market response before finishing an empty cold surface', () => {
       startPerpsLoadingSession({ lifecycle: 'cold_no_cache' });
       recordFresh('positions', 0);
       recordFresh('orders', 0);
       recordFresh('account', 1);
 
       finishPerpsLoadingSession({ ...finishData, market_count: 0 });
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 0);
 
       expect(endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             content_state: 'empty',
+            market_count: 0,
+            market_source: 'provider',
+            required_live_streams_complete: true,
+          }),
+        }),
+      );
+    });
+
+    it('replaces an intermediate empty result with the fresh market response', () => {
+      startPerpsLoadingSession({ lifecycle: 'network_switch' });
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
+
+      finishPerpsLoadingSession({ ...finishData, market_count: 0 });
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 280);
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_state: 'filled',
+            market_count: 280,
+            market_source: 'provider',
             required_live_streams_complete: true,
           }),
         }),

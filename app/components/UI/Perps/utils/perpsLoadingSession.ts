@@ -285,8 +285,11 @@ function isRecordedMilestone(
   itemCount: number,
 ): boolean {
   if (stream === 'markets') {
-    if (itemCount <= 0 || !recordedMilestones.has('markets_ready')) {
-      return itemCount <= 0;
+    if (itemCount < 0 || (!isFreshMarketSource(source) && itemCount === 0)) {
+      return true;
+    }
+    if (!recordedMilestones.has('markets_ready')) {
+      return false;
     }
     return !(
       isFreshMarketSource(source) &&
@@ -367,7 +370,10 @@ function recordValuesReady({
 
   let milestone: Milestone | null = null;
   if (stream === 'markets') {
-    milestone = itemCount > 0 ? 'markets_ready' : null;
+    milestone =
+      itemCount > 0 || (itemCount === 0 && isFreshMarketSource(source))
+        ? 'markets_ready'
+        : null;
   } else if (source === 'fresh_socket') {
     if (stream === 'positions' || stream === 'orders') {
       milestone = `${stream}_live`;
@@ -412,6 +418,15 @@ function recordValuesReady({
   }
   if (milestone === 'markets_ready') {
     marketsReadySource = source;
+    if (pendingFinishData && isFreshMarketSource(source)) {
+      pendingFinishData = {
+        ...pendingFinishData,
+        content_state: itemCount > 0 ? 'filled' : 'empty',
+        market_count: itemCount,
+        market_source:
+          source === 'terminal_global_snapshot_v2' ? 'terminal_v2' : 'provider',
+      };
+    }
   }
   if (milestone === 'account_cache_ready') {
     accountCacheSource = source;
@@ -646,7 +661,6 @@ function requiresFreshMarkets(
 ): boolean {
   return (
     data.success !== false &&
-    data.market_count !== 0 &&
     (data.content_variant === 'trending' || data.content_variant === 'pills') &&
     (activeLifecycle === 'cold_no_cache' ||
       activeLifecycle === 'background_reconnect' ||
