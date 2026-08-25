@@ -10,6 +10,7 @@ import {
   MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+import { getVersion } from 'react-native-device-info';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
@@ -25,6 +26,9 @@ jest.mock(
 describe('Money Account feature flag selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    // Re-establish implementations wiped by resetAllMocks.
+    jest.mocked(getVersion).mockReturnValue('99.0.0');
   });
 
   describe('selectMoneyAccountDepositEnabledFlag', () => {
