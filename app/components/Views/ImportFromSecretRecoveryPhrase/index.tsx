@@ -107,6 +107,7 @@ import {
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
@@ -133,7 +134,6 @@ interface HandleWalletImportFailureParams {
   track: TrackFn;
   navigation: NativeStackNavigationProp<ParamListBase>;
   isMetricsEnabled: () => boolean;
-  onboardingTraceCtx?: TraceContext;
 }
 
 function handleWalletImportFailure({
@@ -141,18 +141,21 @@ function handleWalletImportFailure({
   track,
   navigation,
   isMetricsEnabled,
-  onboardingTraceCtx,
 }: HandleWalletImportFailureParams) {
   track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
     wallet_setup_type: 'import',
     error_type: importError.toString(),
   });
 
-  if (onboardingTraceCtx) {
+  // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+  const journeyCtx = getTraceContext({
+    name: TraceName.OnboardingJourneyOverall,
+  });
+  if (journeyCtx) {
     trace({
       name: TraceName.OnboardingPasswordSetupError,
       op: TraceOperation.OnboardingUserJourney,
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
       tags: { errorMessage: importError.toString() },
     });
     endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -192,7 +195,6 @@ function handleWalletImportFailure({
 
 interface ImportFromSecretRecoveryPhraseRouteParams {
   qrSyncImport?: boolean;
-  onboardingTraceCtx?: TraceContext;
   oauthLoginSuccess?: boolean;
   previous_screen?: string;
 }
@@ -302,9 +304,9 @@ const ImportFromSecretRecoveryPhrase = () => {
   // Ownership marker: this screen is also reachable outside onboarding (e.g. the QR device-sync
   // flow in AddDeviceToWallet). Onboarding traces must only be ended by the flow that owns them,
   // so gate cleanup on the explicit PREVIOUS_SCREEN === ONBOARDING marker set by
-  // Onboarding.onPressImport. Do NOT infer ownership from route.params.onboardingTraceCtx:
-  // buffered tracing (consent not yet decided) legitimately returns undefined for a trace that is
-  // still owned by onboarding.
+  // Onboarding.onPressImport. Do NOT infer ownership from getTraceContext: buffered tracing
+  // (consent not yet decided) legitimately returns undefined for a trace that is still owned
+  // by onboarding.
   const isOnboardingFlow = route?.params?.[PREVIOUS_SCREEN] === ONBOARDING;
 
   // Fix 2: if the user leaves this screen without completing the import, close the spans this
@@ -506,13 +508,15 @@ const ImportFromSecretRecoveryPhrase = () => {
       return;
     }
     animateToStep(currentStep + 1);
-    // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-    if (onboardingTraceCtx) {
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
+    if (journeyCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
       });
     }
   };
@@ -577,7 +581,10 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
 
     setLoading(true);
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
 
     let authData: AuthData;
@@ -585,7 +592,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       trace({
         name: TraceName.OnboardingSRPAccountImportTime,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
         tags: {
           is_social_login: oauthLoginSuccess,
           account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
@@ -616,7 +623,6 @@ const ImportFromSecretRecoveryPhrase = () => {
         track,
         navigation,
         isMetricsEnabled,
-        onboardingTraceCtx,
       });
       return;
     }

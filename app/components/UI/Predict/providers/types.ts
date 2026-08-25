@@ -32,6 +32,7 @@ import {
   PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -66,6 +67,7 @@ export type {
   PredictFilterOptionsParams,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -208,6 +210,11 @@ export interface PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview>;
+  previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null>;
   placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult>;

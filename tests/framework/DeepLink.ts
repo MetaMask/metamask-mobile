@@ -3,7 +3,6 @@
  */
 import { createLogger } from './logger.ts';
 import { E2EDeeplinkSchemes } from './Constants.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { executeMobileDeepLink, getDriver } from './PlaywrightUtilities.ts';
 import { sleep } from './Utilities.ts';
@@ -34,35 +33,20 @@ export async function openE2EUrl(url: string): Promise<void> {
   logger.debug(`Opening E2E DeepLink: ${url}`);
   const mappedUrl = mapToMetamaskScheme(url);
 
-  if (FrameworkDetector.isAppium()) {
-    await executeMobileDeepLink(mappedUrl);
-    // Warm Android sessions often need a brief settle for RN Linking / onNewIntent.
-    if (PlatformDetector.isAndroid()) {
-      const drv = getDriver();
-      const capabilities = (drv?.capabilities ?? {}) as Record<string, unknown>;
-      const pkgCandidate =
-        capabilities['appium:appPackage'] ?? capabilities.appPackage;
-      const pkg = typeof pkgCandidate === 'string' ? pkgCandidate : undefined;
-      if (pkg) {
-        await drv.activateApp(pkg);
-      }
-      await sleep(1_500);
-    } else {
-      await sleep(500);
+  await executeMobileDeepLink(mappedUrl);
+  // Warm Android sessions often need a brief settle for RN Linking / onNewIntent.
+  if (PlatformDetector.isAndroid()) {
+    const drv = getDriver();
+    const capabilities = (drv?.capabilities ?? {}) as Record<string, unknown>;
+    const pkgCandidate =
+      capabilities['appium:appPackage'] ?? capabilities.appPackage;
+    const pkg = typeof pkgCandidate === 'string' ? pkgCandidate : undefined;
+    if (pkg) {
+      await drv.activateApp(pkg);
     }
-    return;
-  }
-
-  if (device.getPlatform() === 'ios' && device.openURL) {
-    await device.openURL({ url: mappedUrl });
-    return;
-  }
-  if (device.getPlatform() === 'android' && device.launchApp) {
-    if (device.openURL) {
-      await device.openURL({ url: mappedUrl });
-      return;
-    }
-    await device.launchApp({ newInstance: false, url: mappedUrl });
+    await sleep(1_500);
+  } else {
+    await sleep(500);
   }
 }
 

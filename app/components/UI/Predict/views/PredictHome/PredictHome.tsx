@@ -90,7 +90,13 @@ const PredictHome: React.FC = () => {
     useCallback(() => {
       Engine.context.PredictController.trackHomeViewed({ entryPoint });
       resetImpressions();
-    }, [entryPoint, resetImpressions]),
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation, resetImpressions]),
   );
 
   const {
@@ -180,7 +186,7 @@ const PredictHome: React.FC = () => {
               </Text>
             </Box>
 
-            <Box twClassName="gap-6">
+            <Box twClassName="gap-8">
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />
