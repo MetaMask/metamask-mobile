@@ -85,9 +85,11 @@ If the Homebrew installer stops because this shell cannot prompt for sudo, give 
 | ---------------- | ----------------------------------------------------------------------------------- |
 | iOS `appId`      | `io.metamask.MetaMask`                                                              |
 | Android `appId`  | `io.metamask`                                                                       |
-| Install / run    | `yarn setup:expo` → `yarn watch:clean` → `yarn start:ios` (or `yarn start:android`) |
+| Install / run    | If not already set up: `yarn setup:expo`. Then `yarn watch:clean` → `yarn start:ios` (or `yarn start:android`) |
 | Artifact dir     | `maestro/` (local; do not commit `runs/`, `before/`, or `after/` unless asked)      |
 | Screenshot width | **390px** (downscale after capture; do not upscale crops that are already narrower) |
+
+Never run yarn setup:expo on a machine that is already set up. `node_modules/` present means skip `yarn setup:expo` and only start Metro / the app.
 
 Same **device**, same **logged-in wallet**, same **language** for both legs. Prefer the already-booted simulator.
 
@@ -111,7 +113,7 @@ Present a **Yes / No checklist** with the AskQuestion tool. Do not ask this as f
 > - Written into YAML, git, the PR body, gist files, or screenshot names
 > - Echoed, logged, or repeated in later messages
 > - Captured on the login/unlock screen (those PNGs go to the gist)
-> - Passed at runtime only as ${WALLET_PASSWORD} — never hardcoded
+> - Hardcoded. It is only passed at runtime.
 
 | Option | Label |
 | ------ | ----- |
@@ -162,7 +164,8 @@ Optional: also copy [templates/assert.yaml](templates/assert.yaml) if the user w
 
 ```bash
 git checkout "${BASE_BRANCH}"
-# install/run the app on the chosen device; do not wipe the simulator
+# start Metro / the app on the chosen device; do not wipe the simulator
+# Never run yarn setup:expo on a machine that is already set up.
 
 mkdir -p maestro/before maestro/after maestro/runs
 # App locks on relaunch — unlock every time, then capture.
@@ -178,7 +181,8 @@ Those files are **Before** (`main`), at 390px width.
 
 ```bash
 git checkout "${CANDIDATE_BRANCH}"
-# install/run this branch on the same device; do not wipe the simulator
+# start Metro / this branch on the same device; do not wipe the simulator
+# Never run yarn setup:expo on a machine that is already set up.
 
 maestro test maestro/unlock.yaml --device "<device>" --test-output-dir "maestro/runs/unlock-${CANDIDATE_BRANCH}" -e WALLET_PASSWORD="${WALLET_PASSWORD}"
 maestro test maestro/<flow>-capture.yaml --device "<device>" --test-output-dir "maestro/runs/${CANDIDATE_BRANCH}" -e WALLET_PASSWORD="${WALLET_PASSWORD}"
@@ -230,3 +234,4 @@ If an optional `assertScreenshot` run failed, attach the diff path as well — s
 - Unlock the wallet without consent, or collect the password after they refuse.
 - Skip the unlock flow. The app locks on every skill run and after each branch relaunch.
 - Upload, commit, gist, log, echo, or screenshot the wallet password. It is local unlock only.
+- Never run yarn setup:expo on a machine that is already set up.
