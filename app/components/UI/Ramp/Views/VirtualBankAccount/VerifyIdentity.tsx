@@ -38,6 +38,7 @@ import {
   SUMSUB_TERMS_URL,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import LegalLink from './components/LegalLink';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -122,36 +123,6 @@ const AccordionRow = ({
     </Box>
   );
 };
-
-const LegalLinkRow = ({
-  onPress,
-  testID,
-  children,
-}: {
-  onPress: () => void;
-  testID: string;
-  children: string;
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-1 py-1"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="underline"
-      onPress={onPress}
-      testID={testID}
-    >
-      {children}
-    </Text>
-    <Icon
-      name={IconName.Export}
-      size={IconSize.Sm}
-      color={IconColor.IconDefault}
-    />
-  </Box>
-);
 
 const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -302,48 +273,48 @@ const VbaVerifyIdentity = () => {
         ) : null}
 
         <Box twClassName="mt-4 gap-1">
-          <LegalLinkRow
+          <LegalLink
             onPress={openMetaMaskPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.metamask_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openMetaMaskTerms}
             testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.metamask_terms')}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openIdosPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.idos_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openIdosTerms}
             testID={VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.idos_terms')}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openSumsubPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.sumsub_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openSumsubTerms}
             testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.sumsub_terms')}
-          </LegalLinkRow>
+          </LegalLink>
         </Box>
       </ScrollView>
 

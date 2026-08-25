@@ -29,6 +29,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import LegalLink from './components/LegalLink';
 
 // Pix's badge is bold italic white on brand teal regardless of app theme.
 const PIX_TAG_TEXT_STYLE = {
@@ -53,36 +54,6 @@ const BenefitRow = ({
       <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     </Box>
     <Box twClassName="flex-1">{children}</Box>
-  </Box>
-);
-
-const LegalLink = ({
-  onPress,
-  testID,
-  children,
-}: {
-  onPress: () => void;
-  testID: string;
-  children: string;
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-1 py-1"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="underline"
-      onPress={onPress}
-      testID={testID}
-    >
-      {children}
-    </Text>
-    <Icon
-      name={IconName.Export}
-      size={IconSize.Sm}
-      color={IconColor.IconDefault}
-    />
   </Box>
 );
 
