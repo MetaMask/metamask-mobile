@@ -7250,7 +7250,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0":
+"@ledgerhq/device-signer-kit-ethereum@npm:1.16.0":
   version: 1.16.0
   resolution: "@ledgerhq/device-signer-kit-ethereum@npm:1.16.0"
   dependencies:
@@ -7265,6 +7265,24 @@ __metadata:
     "@ledgerhq/context-module": ^2.0.0
     "@ledgerhq/device-management-kit": ^1.5.0
   checksum: 10/29869ce9a1a2284af4c89d8496fd347998aaa9462ffdf8ff5f805494e20e1ed76ddc667934111b6b17b24d5654307af51d5ba3567f4324bb3230d0abed0539e6
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/device-signer-kit-ethereum@patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch":
+  version: 1.16.0
+  resolution: "@ledgerhq/device-signer-kit-ethereum@patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch::version=1.16.0&hash=fdbda6"
+  dependencies:
+    "@ledgerhq/signer-utils": "npm:^1.2.0"
+    ethers: "npm:6.14.1"
+    inversify: "npm:7.5.1"
+    purify-ts: "npm:2.1.0"
+    reflect-metadata: "npm:0.2.2"
+    semver: "npm:7.7.2"
+    xstate: "npm:5.19.2"
+  peerDependencies:
+    "@ledgerhq/context-module": ^2.0.0
+    "@ledgerhq/device-management-kit": ^1.5.0
+  checksum: 10/a18279dfe49770ef1ea825e8bd163d21df90cfbb4ed3fa8ac6483f5896b6bfb10edd02e04851db34d99cf8f8c2bc403c19d56f56621176379a837baf0ecdd1c7
   languageName: node
   linkType: hard
 
@@ -35675,7 +35693,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/context-module": "npm:^2.3.1"
     "@ledgerhq/device-management-kit": "npm:^1.7.1"
-    "@ledgerhq/device-signer-kit-ethereum": "npm:^1.16.0"
+    "@ledgerhq/device-signer-kit-ethereum": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch"
     "@ledgerhq/device-transport-kit-react-native-ble": "npm:^1.3.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
