@@ -7,11 +7,7 @@ import {
   type TokenHolding,
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
-import {
-  loginToAppPlaywright,
-  waitForWalletHomePlaywright,
-} from '../../../flows/wallet.flow.js';
-import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
+import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import { Assertions } from '../../../framework/index.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -42,13 +38,6 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
   appiumTest(
     'deposits $50 with Mainnet USDC, verifies the MM Pay quote, confirms the transaction, and sees it in predict activity',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      // Skipped on Android: this test consistently fails in Appium CI while
-      // returning to wallet home after confirming the deposit.
-      appiumTest.skip(
-        currentDeviceDetails.platform === 'android',
-        'Flaky on Android Appium CI: wallet home readiness after Predict deposit',
-      );
-
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -90,7 +79,9 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PredictMarketList.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          await Assertions.expectElementToBeVisible(WalletView.activityButton, {
+            description: 'Wallet activity button after returning from Predict',
+          });
           await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();
