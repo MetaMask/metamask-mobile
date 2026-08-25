@@ -839,6 +839,12 @@ const Checkout = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          originWhitelist={[
+            'https://*',
+            'http://*',
+            'about:blank',
+            'about:srcdoc',
+          ]}
           onLoadStart={handleLoadStart}
           onLoadEnd={handleLoadEnd}
           onNavigationStateChange={

@@ -119,6 +119,7 @@ jest.mock('@metamask/react-native-webview', () => {
       onShouldStartLoadWithRequest,
       onLoadStart,
       onLoadEnd,
+      originWhitelist,
       testID,
     }: {
       onNavigationStateChange?: (state: {
@@ -131,11 +132,15 @@ jest.mock('@metamask/react-native-webview', () => {
       onShouldStartLoadWithRequest?: (req: { url: string }) => boolean;
       onLoadStart?: () => void;
       onLoadEnd?: (e: { nativeEvent: { url: string } }) => void;
+      originWhitelist?: string[];
       testID?: string;
     }) => {
       capturedOnNavigationStateChange = onNavigationStateChange;
       return (
-        <View testID={testID ?? 'checkout-webview'}>
+        <View
+          testID={testID ?? 'checkout-webview'}
+          originWhitelist={originWhitelist}
+        >
           <Button
             testID="trigger-load-start"
             title="TriggerLoadStart"
@@ -648,6 +653,24 @@ describe('Checkout', () => {
 
       expect(mockNavigation.getParent).toHaveBeenCalled();
       expect(mockParentPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('originWhitelist', () => {
+    it('allows http, https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      expect(getByTestId('checkout-webview').props.originWhitelist).toEqual([
+        'https://*',
+        'http://*',
+        'about:blank',
+        'about:srcdoc',
+      ]);
     });
   });
 
