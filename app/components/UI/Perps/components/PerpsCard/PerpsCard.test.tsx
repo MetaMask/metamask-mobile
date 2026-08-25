@@ -220,13 +220,17 @@ describe('PerpsCard', () => {
   describe('Rendering', () => {
     it('renders position card with correct content', () => {
       // Arrange & Act
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <PerpsCard position={mockPosition} testID="test-position-card" />,
       );
 
-      // Assert
-      expect(getByText('ETH 3x long')).toBeDefined();
-      expect(getByText('1.5 ETH')).toBeDefined();
+      // Assert — Pro-mode layout: symbol + badge, size/balance in subtitle, PnL split
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Long')).toBeOnTheScreen();
+      expect(getByText(/1\.5 ETH • \$4,350/)).toBeOnTheScreen();
+      expect(getByText('+$150.00')).toBeOnTheScreen();
+      expect(queryByText('ETH 3x long')).toBeNull();
+      expect(queryByText(/\+\$150\.00 \(/)).toBeNull();
     });
 
     it('renders order card with correct content', () => {
@@ -266,7 +270,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('+$100.50 (+5.0%)')).toBeDefined();
+      expect(getByText('+$100.50')).toBeOnTheScreen();
+      expect(getByText('+5.0%')).toBeOnTheScreen();
     });
 
     it('displays correct PnL color for negative position', () => {
@@ -283,7 +288,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('-$50.25 (-2.5%)')).toBeDefined();
+      expect(getByText('-$50.25')).toBeOnTheScreen();
+      expect(getByText('-2.5%')).toBeOnTheScreen();
     });
 
     it('displays short position correctly', () => {
@@ -299,8 +305,9 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH 3x short')).toBeDefined();
-      expect(getByText('1.5 ETH')).toBeDefined();
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Short')).toBeOnTheScreen();
+      expect(getByText(/1\.5 ETH/)).toBeOnTheScreen();
     });
 
     it('displays order side correctly', () => {
@@ -453,7 +460,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert - actual values visible, no hiding dots
-      expect(getByText('+$100.50 (+5.0%)')).toBeOnTheScreen();
+      expect(getByText('+$100.50')).toBeOnTheScreen();
+      expect(getByText('+5.0%')).toBeOnTheScreen();
       expect(queryByText(DOTS_SHORT)).toBeNull();
     });
 
@@ -482,9 +490,10 @@ describe('PerpsCard', () => {
         <PerpsCard position={mockPosition} testID="test-card" />,
       );
 
-      // Assert - title stays visible; size is treated as sensitive
-      expect(getByText('ETH 3x long')).toBeOnTheScreen();
-      expect(queryByText('1.5 ETH')).toBeNull();
+      // Assert - title and leverage badge stay visible; size/balance is treated as sensitive
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Long')).toBeOnTheScreen();
+      expect(queryByText(/1\.5 ETH/)).toBeNull();
     });
   });
 });

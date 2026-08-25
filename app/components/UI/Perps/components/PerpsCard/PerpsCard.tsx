@@ -9,6 +9,8 @@ import {
   ListItemVariant,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -45,6 +47,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 
 interface PositionListDisplay {
   title: string;
+  badgeText: string;
+  badgeSeverity: TagSeverity;
   description: string;
   valueText: string;
   subvalueText: string;
@@ -63,21 +67,25 @@ const getPositionListDisplay = (position: Position): PositionListDisplay => {
   const isLong = parseFloat(position.size) > 0;
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
   const absoluteSize = Math.abs(parseFloat(position.size));
-  const directionLower = isLong
-    ? strings('perps.market.long_lowercase')
-    : strings('perps.market.short_lowercase');
+  const directionLabel = isLong
+    ? strings('perps.market.long')
+    : strings('perps.market.short');
+  const positionValueDisplay = formatPerpsFiat(position.positionValue, {
+    ranges: PRICE_RANGES_MINIMAL_VIEW,
+  });
 
   const pnlValue = parseFloat(position.unrealizedPnl);
   const roeValue = parseFloat(position.returnOnEquity) * 100;
 
   return {
-    // Match main: leverage lives in the title string (e.g. "ETH 3x long")
-    title: `${displaySymbol} ${position.leverage.value}x ${directionLower}`,
-    description: `${formatPositionSize(absoluteSize.toString())} ${displaySymbol}`,
-    valueText: formatPerpsFiat(position.positionValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    }),
-    subvalueText: `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`,
+    title: displaySymbol,
+    badgeText: `${position.leverage.value}x ${directionLabel}`,
+    badgeSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
+    description: `${formatPositionSize(
+      absoluteSize.toString(),
+    )} ${displaySymbol} • ${positionValueDisplay}`,
+    valueText: formatPnl(pnlValue),
+    subvalueText: formatPercentage(roeValue, 1),
     subvalueColor:
       pnlValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
   };
@@ -180,6 +188,11 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   }
 
   const title = positionDisplay?.title ?? orderDisplay?.title ?? '';
+  const titleEndAccessory = positionDisplay ? (
+    <Tag severity={positionDisplay.badgeSeverity} twClassName="self-center">
+      {positionDisplay.badgeText}
+    </Tag>
+  ) : undefined;
   const descriptionNode = (
     <SensitiveText
       variant={TextVariant.BodySm}
@@ -191,11 +204,15 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       {positionDisplay?.description ?? orderDisplay?.description ?? ''}
     </SensitiveText>
   );
+  const valueColor =
+    privacyMode || !position
+      ? TextColor.TextDefault
+      : (positionDisplay?.subvalueColor ?? TextColor.TextDefault);
   const valueNode = (
     <SensitiveText
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
+      color={valueColor}
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
     >
@@ -236,6 +253,17 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
         symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
       }
       title={title}
+      titleProps={
+        titleEndAccessory
+          ? {
+              numberOfLines: 1,
+              // flexShrink lets the title yield space to the leverage badge.
+              // eslint-disable-next-line react-native/no-inline-styles
+              style: { flexShrink: 1 },
+            }
+          : undefined
+      }
+      titleEndAccessory={titleEndAccessory}
       description={descriptionNode}
       value={valueNode}
       subvalue={subvalueNode}
