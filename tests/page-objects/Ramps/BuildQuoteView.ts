@@ -217,7 +217,7 @@ class BuildQuoteView {
         typeof regex === 'string'
           ? Matchers.getElementByText(regex)
           : Matchers.getElementByText(regex as RegExp);
-      return Utilities.getElementText(elem);
+      return await Utilities.getElementText(elem);
     } catch (error) {
       // Purposefully returning undefined to use in an assertion
       return undefined;
