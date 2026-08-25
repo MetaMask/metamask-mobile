@@ -188,6 +188,9 @@ export function usePerpsAdvancedChartAdapter({
 
         const converted = convertCandlesToOHLCVBars(candleData.candles);
         setLatestBarSeriesKey(`${symbol}|${interval}`);
+        if (converted.length === 0) {
+          setOhlcvData([]);
+        }
 
         // Clear the skeleton on the first delivery for this subscription, even if the
         // frame is empty (matches usePerpsLiveCandles). Otherwise an empty initial frame

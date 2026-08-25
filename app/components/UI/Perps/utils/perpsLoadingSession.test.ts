@@ -523,7 +523,7 @@ describe('perpsLoadingSession', () => {
       expect(valuesReadyRecords()).toHaveLength(1);
     });
 
-    it('rejects fresh streams from another connection generation', () => {
+    it('restarts live milestones on a newer connection generation', () => {
       startSessionAt(400);
 
       recordFresh('positions', 1);
@@ -541,10 +541,33 @@ describe('perpsLoadingSession', () => {
           stream: 'positions',
           connection_generation: 7,
         }),
+        expect.objectContaining({
+          stream: 'orders',
+          connection_generation: 8,
+        }),
       ]);
+      expect(getActivePerpsLoadingSessionContext()?.connectionGeneration).toBe(
+        8,
+      );
+    });
+
+    it('does not advance generation for an ineligible empty account tick', () => {
+      startSessionAt(400);
+      recordFresh('positions', 1);
+
+      recordPerpsLoadingSessionValuesReady(
+        'account',
+        'fresh_socket',
+        0,
+        {},
+        undefined,
+        8,
+      );
+
       expect(getActivePerpsLoadingSessionContext()?.connectionGeneration).toBe(
         7,
       );
+      expect(valuesReadyRecords()).toHaveLength(1);
     });
 
     it('does not let a global price tick select the user-stream generation', () => {

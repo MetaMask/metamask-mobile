@@ -371,6 +371,9 @@ function recordValuesReady({
     !activeSessionId ||
     sessionStartedAtMs === null ||
     !matchesActiveSessionIdentity(stream, identity) ||
+    (source === 'fresh_socket' &&
+      (stream === 'account' || stream === 'prices') &&
+      itemCount <= 0) ||
     !prepareFreshSocketGeneration(source, connectionGeneration)
   ) {
     return;
