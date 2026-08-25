@@ -71,25 +71,27 @@ describe('VbaVerifyIdentity', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps the data and privacy sub-topics collapsed by default, and shows their titles once opened', () => {
-    const { getByText, queryByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
-    );
+  it('keeps the data and privacy sub-topics collapsed by default', () => {
+    const { queryByText } = renderWithProvider(<VbaVerifyIdentity />);
 
     expect(queryByText('What we collect')).not.toBeOnTheScreen();
     expect(queryByText('How we store data')).not.toBeOnTheScreen();
     expect(queryByText('How to delete')).not.toBeOnTheScreen();
+  });
+
+  it('shows sub-topic titles but keeps their body copy folded once data and privacy opens', () => {
+    const { getByText, queryByText, getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity />,
+    );
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
 
-    // Sub-topic titles are visible once "Data and privacy" opens, but each
-    // sub-topic's own body copy stays folded until it's individually
-    // expanded.
     expect(getByText('What we collect')).toBeOnTheScreen();
     expect(getByText('How we store data')).toBeOnTheScreen();
     expect(getByText('How to delete')).toBeOnTheScreen();
+    // Each sub-topic's body copy stays folded until individually expanded.
     expect(
       queryByText(
         'We collect personal information as part of identity verification, including legal full name, address, and more.',
