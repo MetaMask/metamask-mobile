@@ -309,6 +309,9 @@ describe('PredictHome', () => {
     expect(
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+    ).toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getEvent',
       'kalshi',
