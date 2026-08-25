@@ -232,6 +232,13 @@ const SocialAINotificationPreferencesContent = ({
   const separatorStyle = tw.style(
     `h-px bg-muted${withHorizontalPadding ? ' mx-4' : ''}`,
   );
+  const traderRowState = useMemo(
+    () => ({
+      mutedTraderProfileIds: preferences.mutedTraderProfileIds,
+      tradingSignalsChannelsDisabled,
+    }),
+    [preferences.mutedTraderProfileIds, tradingSignalsChannelsDisabled],
+  );
 
   const renderTrader: ListRenderItem<FollowedTrader> = useCallback(
     ({ item: trader }) => (
@@ -402,6 +409,7 @@ const SocialAINotificationPreferencesContent = ({
   return (
     <FlashList
       data={followedTraders}
+      extraData={traderRowState}
       renderItem={renderTrader}
       keyExtractor={getTraderKey}
       getItemType={getTraderItemType}

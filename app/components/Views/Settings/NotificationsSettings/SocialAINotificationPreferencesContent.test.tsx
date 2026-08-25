@@ -239,6 +239,28 @@ describe('SocialAINotificationPreferencesContent', () => {
     );
   });
 
+  it('passes external trader row state to FlashList extraData', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+    mockUseNotificationPreferences.mockReturnValue(
+      makeNotificationPreferencesResult({
+        preferences: makePreferences({
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+          mutedTraderProfileIds: ['trader-1'],
+        }),
+      }),
+    );
+
+    const { UNSAFE_getByType } = renderComponent();
+
+    expect(UNSAFE_getByType(FlashList).props.extraData).toEqual({
+      mutedTraderProfileIds: ['trader-1'],
+      tradingSignalsChannelsDisabled: true,
+    });
+  });
+
   it('renders the Maskicon fallback for traders without a profile image', () => {
     mockUseFollowedTraders.mockReturnValue(
       makeFollowedTradersResult({ traders: followedTraders }),

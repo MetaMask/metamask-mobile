@@ -78,7 +78,12 @@ jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
   }),
 }));
 
-jest.mock('./SocialAINotificationPreferencesContent', () => () => null);
+jest.mock(
+  './SocialAINotificationPreferencesContent',
+  () =>
+    ({ ListHeaderComponent }: { ListHeaderComponent?: React.ReactElement }) =>
+      ListHeaderComponent ?? null,
+);
 jest.mock('./AccountsList', () => ({
   AccountsList: ({
     ListHeaderComponent,
