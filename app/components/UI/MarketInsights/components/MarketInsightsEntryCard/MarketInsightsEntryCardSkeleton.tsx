@@ -2,17 +2,24 @@ import React from 'react';
 import { Box, Skeleton } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
+
+interface MarketInsightsEntryCardSkeletonProps {
+  source?: MarketInsightsEntryCardProps['source'];
+}
 
 /**
  * Loading skeleton for MarketInsightsEntryCard.
  * Mirrors the card's layout: title row, two body lines, footer line.
  */
-const MarketInsightsEntryCardSkeleton: React.FC = () => {
+const MarketInsightsEntryCardSkeleton: React.FC<
+  MarketInsightsEntryCardSkeletonProps
+> = ({ source }) => {
   const tw = useTailwind();
 
   return (
     <Box
-      twClassName="px-4 mt-2 mb-3"
+      twClassName={source === 'token_details' ? 'px-4 mt-2' : 'px-4 mt-2 mb-3'}
       testID={MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON}
     >
       <Box twClassName="bg-background-muted rounded-xl" padding={4} gap={1}>

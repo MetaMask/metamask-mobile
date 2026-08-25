@@ -251,7 +251,13 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       <Pressable
         onPress={onPress}
         style={({ pressed }) =>
-          tw.style('px-4 mt-2 mb-4', pressed && 'opacity-70')
+          tw.style(
+            'px-4 mt-2',
+            // Token details already has spacing from the following
+            // "Your balance" section; extra mb here stacks and pushes it down.
+            source !== 'token_details' && 'mb-4',
+            pressed && 'opacity-70',
+          )
         }
         testID={testID}
       >
