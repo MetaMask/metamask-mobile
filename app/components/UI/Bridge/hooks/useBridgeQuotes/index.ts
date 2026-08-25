@@ -7,7 +7,7 @@ import {
   isValidQuoteRequest,
   type FeatureId,
 } from '@metamask/bridge-controller';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
@@ -21,9 +21,10 @@ import {
   selectSlippage,
 } from '../../../../../core/redux/slices/bridge';
 import { calcTokenValue } from '../../../../../util/transactions';
-import { TraceName, endTrace, trace } from '../../../../../util/trace';
+import { TraceName } from '../../../../../util/trace';
 import { useLatestBalance } from '../useLatestBalance';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
+// eslint-disable-next-line import-x/no-restricted-paths
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
@@ -33,6 +34,7 @@ import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import I18n from '../../../../../../locales/i18n';
 import { useBlockaidError } from './useBlockaidError';
 import { useValidQuotes } from './useValidQuotes';
+import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 interface UseBridgeQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -55,6 +57,11 @@ export interface UseQuoteRequestParams extends UseBridgeQuotesParams {
 }
 
 export interface UseQuoteDataParams extends UseBridgeQuotesParams {}
+
+interface UpdateQuoteParamsOptions {
+  isRefresh?: boolean;
+  traceId?: string;
+}
 
 /**
  * Hook for handling bridge quote request updates
@@ -161,23 +168,23 @@ export const useQuoteRequest = ({
    * Updates quote parameters in the bridge controller
    */
   const updateQuoteParams = useCallback(
-    async (options?: { isRefresh?: boolean }, params?: GenericQuoteRequest) => {
+    async (
+      options?: UpdateQuoteParamsOptions,
+      params?: GenericQuoteRequest,
+    ) => {
       const paramsToUse = params ?? quoteRequestParams;
       if (!paramsToUse) {
         return;
       }
 
-      const shouldTrace = isValidQuoteRequest(paramsToUse) && traceName;
+      const shouldTrace =
+        isValidQuoteRequest(paramsToUse) && Boolean(traceName);
+
+      if (options?.traceId && !shouldTrace) {
+        swapQuoteFetchTrace.finish('cancelled', options.traceId);
+      }
 
       try {
-        if (shouldTrace) {
-          trace({
-            name: traceName,
-            data: { isRefresh: options?.isRefresh ?? false },
-            startTime: Date.now(),
-          });
-        }
-
         await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
           paramsToUse,
           context,
@@ -186,11 +193,7 @@ export const useQuoteRequest = ({
         );
       } catch (error) {
         if (shouldTrace) {
-          endTrace({
-            name: traceName,
-            timestamp: Date.now(),
-            data: { success: false },
-          });
+          swapQuoteFetchTrace.finish('error', options?.traceId);
         }
         throw error;
       }
@@ -204,10 +207,68 @@ export const useQuoteRequest = ({
     ],
   );
 
-  // Create a stable debounced function that persists across renders
-  const debouncedUpdateQuoteParams = useMemo(
-    () => debounce(updateQuoteParams, debounceWait),
-    [updateQuoteParams],
+  // Start the trace when the user commits a request, before the debounce timer.
+  const debouncedUpdateQuoteParams = useMemo(() => {
+    const debounced = debounce(updateQuoteParams, debounceWait);
+
+    const debouncedWithTrace = (
+      requestOptions: UpdateQuoteParamsOptions = {},
+      quoteRequestParams?: GenericQuoteRequest,
+    ) => {
+      if (
+        !srcToken ||
+        !destToken ||
+        srcAmount === undefined ||
+        !walletAddress
+      ) {
+        debounced.cancel();
+        swapQuoteFetchTrace.finish('cancelled');
+        return;
+      }
+
+      const traceId =
+        srcAmount && srcAmount !== '.'
+          ? swapQuoteFetchTrace.start({
+              sourceToken: srcToken,
+              destToken,
+              isRefresh: requestOptions.isRefresh ?? false,
+            })
+          : undefined;
+
+      if (!traceId) {
+        swapQuoteFetchTrace.finish('cancelled');
+      }
+
+      debounced(
+        {
+          ...requestOptions,
+          traceId,
+        },
+        quoteRequestParams,
+      );
+    };
+
+    debouncedWithTrace.cancel = () => {
+      debounced.cancel();
+      swapQuoteFetchTrace.finish('cancelled');
+    };
+    debouncedWithTrace.flush = () => debounced.flush();
+
+    return debouncedWithTrace;
+  }, [
+    destToken,
+    srcToken,
+    srcAmount,
+    updateQuoteParams,
+    walletAddress,
+    debounceWait,
+  ]);
+
+  useEffect(
+    () => () => {
+      debouncedUpdateQuoteParams.cancel();
+    },
+    [debouncedUpdateQuoteParams],
   );
 
   const refreshQuotes = useCallback(() => {

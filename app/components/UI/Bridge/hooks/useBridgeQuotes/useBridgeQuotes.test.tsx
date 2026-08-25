@@ -139,6 +139,7 @@ const Wrapper = ({
 };
 
 runQuoteRequestCases({
+  name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
