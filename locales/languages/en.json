@@ -1100,6 +1100,42 @@
       "see_more": "See more"
     }
   },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "Send funds directly to your Money account from any bank account.",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
+      "button": "Agree and continue"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
+      "step_upload_id": "Upload ID document",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm personal details",
+      "data_and_privacy_title": "Data and privacy",
+      "what_we_collect_title": "What we collect",
+      "what_we_collect_description": "We collect personal information as part of identity verification, including legal full name, address, and more.",
+      "how_we_store_data_title": "How we store data",
+      "how_we_store_data_description": "Verification info is securely stored on MetaMask-managed servers. It's encrypted with your Secret Recovery Phrase entropy and we can't access the data. Your consent will be required for future use with another provider.",
+      "how_to_delete_title": "How to delete",
+      "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask T&C",
+      "idos_privacy_policy": "idOS Privacy Policy",
+      "idos_terms": "idOS T&C",
+      "sumsub_privacy_policy": "Sumsub Privacy Policy",
+      "sumsub_terms": "Sumsub T&C",
+      "button": "Continue"
+    }
+  },
   "social_leaderboard": {
     "top_traders_view": {
       "notifications_banner": {
