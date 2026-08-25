@@ -15,19 +15,27 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { getEventGame } from '../../events/game';
 import { MarketList, MarketStandardCard } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
+import type { PredictMarket } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import {
   EventLoadingHeader,
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
+import RulesBottomSheet from './internal/RulesBottomSheet';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
+
+type RulesTarget =
+  | { type: 'event' }
+  | { type: 'market'; marketId: PredictMarket['id'] }
+  | null;
 
 const EventScreenLayout = ({
   children,
@@ -62,6 +70,7 @@ export const PredictEventScreen = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
+  const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
@@ -84,31 +93,65 @@ export const PredictEventScreen = () => {
         : navigation.navigate(PredictNextRoutes.HOME),
     [navigation],
   );
+  const handleEventRulesPress = useCallback(() => {
+    setRulesTarget({ type: 'event' });
+  }, []);
+  const handleMarketRulesPress = useCallback((market: PredictMarket) => {
+    setRulesTarget({ type: 'market', marketId: market.id });
+  }, []);
+  const handleRulesClose = useCallback(() => {
+    setRulesTarget(null);
+  }, []);
 
   if (query.data) {
+    const eventRules = query.data.rules?.trim();
+    const selectedMarket =
+      rulesTarget?.type === 'market'
+        ? query.data.markets.find(
+            (market) => market.id === rulesTarget.marketId,
+          )
+        : undefined;
+
     return (
-      <EventScreenLayout onBack={handleBack}>
-        {getEventGame(query.data) ? (
-          <GameEventHeader event={query.data} />
-        ) : (
-          <StandardEventHeader event={query.data} />
-        )}
-        <Box
-          testID={PredictEventScreenTestIds.PREDICT_SECTION}
-          twClassName="mt-8 gap-[14px]"
-        >
-          <Text variant={TextVariant.HeadingMd}>Predict</Text>
-          <MarketList>
-            {query.data.markets.map((market) => (
-              <MarketStandardCard
-                key={market.id}
-                market={market}
-                settlementSources={query.data.settlementSources}
-              />
-            ))}
-          </MarketList>
-        </Box>
-      </EventScreenLayout>
+      <>
+        <EventScreenLayout onBack={handleBack}>
+          {getEventGame(query.data) ? (
+            <GameEventHeader
+              event={query.data}
+              onRulesPress={eventRules ? handleEventRulesPress : undefined}
+            />
+          ) : (
+            <StandardEventHeader
+              event={query.data}
+              onRulesPress={eventRules ? handleEventRulesPress : undefined}
+            />
+          )}
+          <Box
+            testID={PredictEventScreenTestIds.PREDICT_SECTION}
+            twClassName="mt-8 gap-[14px]"
+          >
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('wallet.predict')}
+            </Text>
+            <MarketList>
+              {query.data.markets.map((market) => (
+                <MarketStandardCard
+                  key={market.id}
+                  market={market}
+                  onRulesPress={handleMarketRulesPress}
+                />
+              ))}
+            </MarketList>
+          </Box>
+        </EventScreenLayout>
+        <RulesBottomSheet
+          isVisible={rulesTarget !== null}
+          eventRules={eventRules}
+          market={selectedMarket}
+          settlementSources={query.data.settlementSources}
+          onClose={handleRulesClose}
+        />
+      </>
     );
   }
 
@@ -131,7 +174,7 @@ export const PredictEventScreen = () => {
               testID={PredictEventScreenTestIds.ERROR_MESSAGE}
               variant={TextVariant.BodyMd}
             >
-              Unable to load this event.
+              {strings('predict.event.unable_to_load')}
             </Text>
             <Button
               testID={PredictEventScreenTestIds.RETRY}
@@ -140,7 +183,7 @@ export const PredictEventScreen = () => {
               isLoading={query.isFetching}
               onPress={() => query.refetch()}
             >
-              Retry
+              {strings('predict.error.retry')}
             </Button>
           </Box>
         </Box>

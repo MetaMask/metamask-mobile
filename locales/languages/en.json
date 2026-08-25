@@ -2787,13 +2787,27 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
-    "market_rules": {
-      "title": "Market rules",
-      "accessibility_label": "View market rules",
+    "market": {
+      "volume": "{{value}} Vol."
+    },
+    "rules": {
+      "event_accessibility_label": "View event rules",
+      "market_accessibility_label": "View market rules",
+      "close_accessibility_label": "Close rules",
+      "event_title": "Event rules",
+      "market_title": "Market rules",
+      "title": "Rules",
       "settlement_sources": {
-        "prefix": "Outcome verified from",
-        "suffix": "."
+        "prefix": "Outcome verified from ",
+        "separator": ", ",
+        "last_separator": " and ",
+        "suffix": ".",
+        "open_hint": "Opens the source in your browser."
       }
+    },
+    "event": {
+      "loading_accessibility_label": "Loading event",
+      "unable_to_load": "Unable to load this event."
     },
     "loading": "Loading...",
     "buttons": {

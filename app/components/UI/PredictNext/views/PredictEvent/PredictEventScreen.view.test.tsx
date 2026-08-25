@@ -7,12 +7,14 @@ import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import type {
   PredictEntityId,
+  PredictHttpsUrl,
   PredictEvent,
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
+import { RulesBottomSheetTestIds } from './internal/RulesBottomSheet.testIds';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
@@ -186,17 +188,21 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
-  it('opens the rules sheet from a MarketCard', async () => {
+  it('opens the shared rules sheet with Event and selected Market rules', async () => {
     const event = createMultiMarketEvent();
     resolveEvent({
       ...event,
+      rules: 'Event rule.',
       settlementSources: [
-        { name: 'the Governing League', url: 'https://www.nfl.com/' },
-        { name: 'ESPN', url: 'https://www.espn.com/' },
+        {
+          name: 'the Governing League',
+          url: 'https://www.nfl.com/' as PredictHttpsUrl,
+        },
+        { name: 'ESPN', url: 'https://www.espn.com/' as PredictHttpsUrl },
       ],
       markets: event.markets.map((market) =>
         market.id === 'dodgers' || market.id === 'yankees'
-          ? { ...market, rules: 'Primary rule.\n\nSecondary rule.' }
+          ? { ...market, rules: 'Market rule for the selected market.' }
           : market,
       ),
     });
@@ -208,28 +214,103 @@ describe('PredictEventScreen', () => {
     );
 
     expect(
-      view.getByTestId(MarketStandardCardTestIds.rulesSheet('dodgers')),
+      await view.findByTestId(RulesBottomSheetTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(view.getByText('Event rule.')).toBeOnTheScreen();
+    expect(
+      view.getByText('Market rule for the selected market.'),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(MarketStandardCardTestIds.rulesText('dodgers')),
-    ).toHaveTextContent('Primary rule.\n\nSecondary rule.');
-    expect(
-      view.getByTestId(MarketStandardCardTestIds.rulesSources('dodgers')),
-    ).toHaveTextContent('Outcome verified from the Governing League and ESPN.');
-
-    fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesCloseButton('dodgers')),
+      view.getByTestId(RulesBottomSheetTestIds.MARKET_QUESTION),
+    ).toHaveTextContent('Will Dodgers win?');
+    expect(view.getByTestId(RulesBottomSheetTestIds.SOURCES)).toHaveTextContent(
+      'Outcome verified from the Governing League and ESPN.',
     );
+  });
+
+  it('opens the Event rules from the Event header', async () => {
+    resolveEvent(createEvent({ rules: 'Event-only rule.' }));
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('yankees')),
+      view.getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
     );
 
     expect(
-      view.getByTestId(MarketStandardCardTestIds.rulesSheet('yankees')),
+      await view.findByTestId(RulesBottomSheetTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(view.getByText('Event-only rule.')).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(RulesBottomSheetTestIds.MARKET_RULES),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits duplicate Market rules when Event and Market content matches', async () => {
+    const event = createMultiMarketEvent();
+    resolveEvent({
+      ...event,
+      rules: 'Shared rule.',
+      markets: event.markets.map((market) =>
+        market.id === 'dodgers'
+          ? { ...market, rules: ' Shared rule. ' }
+          : market,
+      ),
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+    );
+
+    expect(
+      await view.findByTestId(RulesBottomSheetTestIds.EVENT_RULES),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(MarketStandardCardTestIds.rulesText('yankees')),
-    ).toHaveTextContent('Primary rule.\n\nSecondary rule.');
+      view.queryByTestId(RulesBottomSheetTestIds.MARKET_RULES),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens Market-only rules without an Event rules section', async () => {
+    const event = createMultiMarketEvent();
+    resolveEvent({
+      ...event,
+      markets: event.markets.map((market) =>
+        market.id === 'dodgers'
+          ? { ...market, rules: 'Market-only rule.' }
+          : market,
+      ),
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+    );
+
+    await view.findByTestId(RulesBottomSheetTestIds.MARKET_RULES);
+    expect(view.getByText('Market-only rule.')).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(RulesBottomSheetTestIds.EVENT_RULES),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits rules controls when Event and Market rules are absent', async () => {
+    resolveEvent(createMultiMarketEvent());
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(RulesBottomSheetTestIds.SHEET),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps Outcome presses inside the Event Screen', async () => {

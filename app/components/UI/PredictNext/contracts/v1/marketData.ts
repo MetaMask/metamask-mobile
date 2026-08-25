@@ -56,6 +56,11 @@ const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
     return false;
   }
 });
+const settlementSourceName = refine(
+  string(),
+  'PredictSettlementSourceName',
+  (value) => value.trim().length > 0,
+);
 const status = enums([
   'initialized',
   'active',
@@ -108,7 +113,7 @@ const sportsContextSchema = object({
 });
 
 const settlementSourceSchema = object({
-  name: string(),
+  name: settlementSourceName,
   url: httpsUrl,
 });
 
@@ -153,6 +158,7 @@ const eventSchema = object({
   id: entityId,
   title: string(),
   subtitle: optional(string()),
+  rules: optional(string()),
   startsAt: optional(timestamp),
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),

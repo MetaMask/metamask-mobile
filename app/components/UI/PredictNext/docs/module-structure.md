@@ -23,7 +23,9 @@ PredictNext/
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
 
-  views/                       # Existing screens awaiting proven feature ownership
+  views/                       # Screen compositions and private view helpers
+    PredictEvent/
+      internal/                # Screen-owned detail helpers
   hooks/                       # Existing cross-screen React query integration
   navigation/
 

@@ -94,7 +94,7 @@ export interface PredictMarket {
 
 export interface PredictSettlementSource {
   name: string;
-  url: string;
+  url: PredictHttpsUrl;
 }
 
 export interface PredictEvent {
@@ -102,6 +102,7 @@ export interface PredictEvent {
   id: PredictEntityId;
   title: string;
   subtitle?: string;
+  rules?: string;
   startsAt?: PredictTimestamp;
   closesAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;

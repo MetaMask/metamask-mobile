@@ -5,13 +5,9 @@ import {
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import type {
-  PredictMarket,
-  PredictOutcome,
-  PredictSettlementSource,
-} from '../../types';
+import type { PredictMarket, PredictOutcome } from '../../types';
 import {
   formatAskPrice,
   formatVolume,
@@ -19,11 +15,10 @@ import {
 } from '../shared/formatting';
 import { MarketStandardCardTestIds } from './MarketStandardCard.testIds';
 import { MarketCard } from './internal/MarketCard';
-import MarketRulesBottomSheet from './internal/MarketRulesBottomSheet';
 
 export interface MarketStandardCardProps {
   market: PredictMarket;
-  settlementSources?: readonly PredictSettlementSource[];
+  onRulesPress: (market: PredictMarket) => void;
 }
 
 const findOutcome = (
@@ -34,16 +29,9 @@ const findOutcome = (
 
 export const MarketStandardCard = ({
   market,
-  settlementSources,
+  onRulesPress,
 }: MarketStandardCardProps) => {
-  const [isRulesSheetVisible, setIsRulesSheetVisible] = useState(false);
   const rules = market.rules?.trim();
-  const handleRulesPress = useCallback(() => {
-    setIsRulesSheetVisible(true);
-  }, []);
-  const handleRulesClose = useCallback(() => {
-    setIsRulesSheetVisible(false);
-  }, []);
   const yesOutcome = findOutcome(market, 'yes');
   const noOutcome = findOutcome(market, 'no');
 
@@ -57,80 +45,69 @@ export const MarketStandardCard = ({
   const noPrice = formatAskPrice(noOutcome.askPrice);
 
   return (
-    <>
-      <MarketCard.Root testID={MarketStandardCardTestIds.card(market.id)}>
-        <MarketCard.Header>
-          <MarketCard.Summary>
-            <Box twClassName="flex-row items-center gap-2.5 min-w-0">
-              <Box twClassName="min-w-0 shrink">
-                <MarketCard.Title
-                  testID={MarketStandardCardTestIds.title(market.id)}
-                >
-                  {yesOutcome.label}
-                </MarketCard.Title>
-              </Box>
-              {rules ? (
-                <ButtonIcon
-                  iconName={IconName.Question}
-                  size={ButtonIconSize.Sm}
-                  iconProps={{ color: IconColor.IconAlternative }}
-                  onPress={handleRulesPress}
-                  testID={MarketStandardCardTestIds.rulesButton(market.id)}
-                  accessibilityLabel={strings(
-                    'predict.market_rules.accessibility_label',
-                  )}
-                  accessibilityRole="button"
-                />
-              ) : null}
+    <MarketCard.Root testID={MarketStandardCardTestIds.card(market.id)}>
+      <MarketCard.Header>
+        <MarketCard.Summary>
+          <Box twClassName="flex-row items-center gap-2.5 min-w-0">
+            <Box twClassName="min-w-0 shrink">
+              <MarketCard.Title
+                testID={MarketStandardCardTestIds.title(market.id)}
+              >
+                {yesOutcome.label}
+              </MarketCard.Title>
             </Box>
-            {volume ? (
-              <MarketCard.Volume
-                value={volume}
-                testID={MarketStandardCardTestIds.volume(market.id)}
+            {rules ? (
+              <ButtonIcon
+                iconName={IconName.Question}
+                size={ButtonIconSize.Sm}
+                iconProps={{ color: IconColor.IconAlternative }}
+                onPress={() => onRulesPress(market)}
+                testID={MarketStandardCardTestIds.rulesButton(market.id)}
+                accessibilityLabel={strings(
+                  'predict.rules.market_accessibility_label',
+                )}
+                accessibilityRole="button"
               />
             ) : null}
-          </MarketCard.Summary>
-          {yesPercent !== undefined ? (
-            <MarketCard.Percentage
-              value={yesPercent}
-              testID={MarketStandardCardTestIds.percentage(market.id)}
+          </Box>
+          {volume ? (
+            <MarketCard.Volume
+              value={volume}
+              testID={MarketStandardCardTestIds.volume(market.id)}
             />
           ) : null}
-        </MarketCard.Header>
-
+        </MarketCard.Summary>
         {yesPercent !== undefined ? (
-          <MarketCard.SplitBar
-            yesPercent={yesPercent}
-            testID={MarketStandardCardTestIds.bar(market.id)}
-            yesTestID={MarketStandardCardTestIds.barYes(market.id)}
-            noTestID={MarketStandardCardTestIds.barNo(market.id)}
+          <MarketCard.Percentage
+            value={yesPercent}
+            testID={MarketStandardCardTestIds.percentage(market.id)}
           />
         ) : null}
+      </MarketCard.Header>
 
-        <MarketCard.Actions>
-          <MarketCard.OutcomeButton
-            label="Yes"
-            price={yesPrice}
-            side="yes"
-            testID={MarketStandardCardTestIds.yesButton(market.id)}
-          />
-          <MarketCard.OutcomeButton
-            label="No"
-            price={noPrice}
-            side="no"
-            testID={MarketStandardCardTestIds.noButton(market.id)}
-          />
-        </MarketCard.Actions>
-      </MarketCard.Root>
-      {rules ? (
-        <MarketRulesBottomSheet
-          isVisible={isRulesSheetVisible}
-          marketId={market.id}
-          rules={rules}
-          settlementSources={settlementSources}
-          onClose={handleRulesClose}
+      {yesPercent !== undefined ? (
+        <MarketCard.SplitBar
+          yesPercent={yesPercent}
+          testID={MarketStandardCardTestIds.bar(market.id)}
+          yesTestID={MarketStandardCardTestIds.barYes(market.id)}
+          noTestID={MarketStandardCardTestIds.barNo(market.id)}
         />
       ) : null}
-    </>
+
+      <MarketCard.Actions>
+        <MarketCard.OutcomeButton
+          label="Yes"
+          price={yesPrice}
+          side="yes"
+          testID={MarketStandardCardTestIds.yesButton(market.id)}
+        />
+        <MarketCard.OutcomeButton
+          label="No"
+          price={noPrice}
+          side="no"
+          testID={MarketStandardCardTestIds.noButton(market.id)}
+        />
+      </MarketCard.Actions>
+    </MarketCard.Root>
   );
 };

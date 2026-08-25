@@ -67,6 +67,72 @@ describe('Predict API canonical response parsers', () => {
     expect(result.markets[0]).not.toHaveProperty('rules_secondary');
   });
 
+  it.each([
+    {
+      name: 'Event-only rules',
+      eventRules: 'Event rule.',
+      marketRules: undefined,
+    },
+    {
+      name: 'Market-only rules',
+      eventRules: undefined,
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'different Event and Market rules',
+      eventRules: 'Event rule.',
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'identical Event and Market rules',
+      eventRules: 'Shared rule.',
+      marketRules: 'Shared rule.',
+    },
+    {
+      name: 'absent rules',
+      eventRules: undefined,
+      marketRules: undefined,
+    },
+  ])(
+    'preserves $name in the canonical response',
+    ({ eventRules, marketRules }) => {
+      const input = createEvent({
+        rules: eventRules,
+        markets: [createMarket({ rules: marketRules })],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.rules).toBe(eventRules);
+      expect(result.markets[0].rules).toBe(marketRules);
+    },
+  );
+
+  it.each([
+    {
+      name: 'an empty source name',
+      source: { name: '', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'a whitespace-only source name',
+      source: { name: '   ', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'an insecure source URL',
+      source: { name: 'ESPN', url: 'http://www.espn.com/' },
+    },
+    {
+      name: 'a malformed source URL',
+      source: { name: 'ESPN', url: 'not-a-url' },
+    },
+  ])('rejects a settlement source with $name', ({ source }) => {
+    const input = createEvent({ settlementSources: [source] });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a closed Market', () => {
     const input = createEvent({
       markets: [createMarket({ status: 'closed' })],
