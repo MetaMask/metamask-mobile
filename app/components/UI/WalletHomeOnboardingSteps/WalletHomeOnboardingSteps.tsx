@@ -7,13 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Easing, Image, View } from 'react-native';
 import {
   Alignment,
   Fit,
@@ -764,9 +758,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {!isAwaitingBalance &&
-          !hasTestOverrides &&
-          checklistRiveFile ? (
+          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
             <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               hybridRef={setChecklistHybridRef}
