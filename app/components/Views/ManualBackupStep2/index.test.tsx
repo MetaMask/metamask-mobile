@@ -239,9 +239,11 @@ describe('ManualBackupStep2', () => {
       Platform.OS = 'android';
       const { wrapper, mockNavigation } = setupTest();
 
-      const gridItem = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-0`,
-      );
+      // Filled cells use grid-item-N; empty confirmation slots use grid-item-empty-N.
+      // Which indexes are empty depends on shuffle, so pick any filled cell.
+      const gridItem = wrapper.getAllByTestId(
+        new RegExp(`^${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-\\d+$`),
+      )[0];
       fireEvent.press(gridItem);
 
       expect(gridItem).toHaveStyle({ backgroundColor: expect.any(String) });
