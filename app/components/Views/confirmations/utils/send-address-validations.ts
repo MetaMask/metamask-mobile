@@ -12,7 +12,10 @@ import {
   isTronAddress,
   isStellarAddress,
 } from '../../../../core/Multichain/utils';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../../../constants/address';
+import {
+  ZERO_ADDRESS,
+  DEAD_ADDRESS,
+} from '../../../../constants/address';
 
 export const validateBitcoinAddress = (
   toAddress: string,
@@ -37,9 +40,15 @@ export const validateHexAddress = async (
   error?: string;
   warning?: string;
 }> => {
-  if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
+  if (toAddress?.toLowerCase() === ZERO_ADDRESS.toLowerCase()) {
     return {
       error: strings('send.invalid_address'),
+    };
+  }
+
+  if (toAddress?.toLowerCase() === DEAD_ADDRESS.toLowerCase()) {
+    return {
+      warning: strings('send.invalid_address'),
     };
   }
 

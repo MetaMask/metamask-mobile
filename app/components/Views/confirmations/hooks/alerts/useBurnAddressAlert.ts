@@ -2,47 +2,71 @@ import { useMemo } from 'react';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../../../../constants/address';
+import {
+  ZERO_ADDRESS,
+  DEAD_ADDRESS,
+} from '../../../../../constants/address';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useNestedTransactionTransferRecipients,
   useTransferRecipient,
 } from '../transactions/useTransferRecipient';
 
+function isZeroAddress(address: string): boolean {
+  return address.toLowerCase() === ZERO_ADDRESS.toLowerCase();
+}
+
+function isDeadAddress(address: string): boolean {
+  return address.toLowerCase() === DEAD_ADDRESS.toLowerCase();
+}
+
 export function useBurnAddressAlert(): Alert[] {
   const transactionMetaRecipient = useTransferRecipient();
   const nestedTransactionRecipients = useNestedTransactionTransferRecipients();
 
-  const hasBurnAddressRecipient = useMemo(() => {
-    const hasBurnAddressInTransactionMetaRecipient =
-      LOWER_CASED_BURN_ADDRESSES.includes(
-        transactionMetaRecipient?.toLowerCase() ?? '',
-      );
-    const hasBurnAddressNestedTransactionRecipient =
-      nestedTransactionRecipients.some((recipient) =>
-        LOWER_CASED_BURN_ADDRESSES.includes(recipient.toLowerCase()),
-      );
+  const hasZeroAddressRecipient = useMemo(() => {
+    const recipientIsZero = transactionMetaRecipient
+      ? isZeroAddress(transactionMetaRecipient)
+      : false;
+    const nestedHasZero = nestedTransactionRecipients.some(isZeroAddress);
+    return recipientIsZero || nestedHasZero;
+  }, [transactionMetaRecipient, nestedTransactionRecipients]);
 
-    return (
-      hasBurnAddressInTransactionMetaRecipient ||
-      hasBurnAddressNestedTransactionRecipient
-    );
+  const hasDeadAddressRecipient = useMemo(() => {
+    const recipientIsDead = transactionMetaRecipient
+      ? isDeadAddress(transactionMetaRecipient)
+      : false;
+    const nestedHasDead = nestedTransactionRecipients.some(isDeadAddress);
+    return recipientIsDead || nestedHasDead;
   }, [transactionMetaRecipient, nestedTransactionRecipients]);
 
   return useMemo(() => {
-    if (!hasBurnAddressRecipient) {
-      return [];
+    if (hasZeroAddressRecipient) {
+      return [
+        {
+          key: AlertKeys.BurnAddress,
+          field: RowAlertKey.FromToAddress,
+          message: strings('alert_system.burn_address.message'),
+          title: strings('alert_system.burn_address.title'),
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ];
     }
 
-    return [
-      {
-        key: AlertKeys.BurnAddress,
-        field: RowAlertKey.FromToAddress,
-        message: strings('alert_system.burn_address.message'),
-        title: strings('alert_system.burn_address.title'),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ];
-  }, [hasBurnAddressRecipient]);
+    if (hasDeadAddressRecipient) {
+      return [
+        {
+          key: AlertKeys.BurnAddress,
+          field: RowAlertKey.FromToAddress,
+          message: strings('alert_system.burn_address.message'),
+          title: strings('alert_system.burn_address.title'),
+          severity: Severity.Danger,
+          isBlocking: false,
+        },
+      ];
+    }
+
+    return [];
+  }, [hasZeroAddressRecipient, hasDeadAddressRecipient]);
 }
