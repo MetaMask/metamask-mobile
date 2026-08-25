@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 import { useValidQuotes } from './useValidQuotes';
-import { useBlockaidError } from './useBlockaidError';
+import { useBlockaidError } from '../useBlockaidError';
 import { useFormattedQuoteData } from './useFormattedQuoteData';
 import type { UseBridgeQuotesParams } from './types';
 
