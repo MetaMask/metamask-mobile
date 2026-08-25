@@ -1139,6 +1139,7 @@ describe('RevealPrivateCredential', () => {
         expect(toast).toHaveBeenCalledWith({
           title: strings('reveal_credential.copied_to_clipboard'),
           hasNoTimeout: false,
+          showCloseButton: false,
         });
       });
     });

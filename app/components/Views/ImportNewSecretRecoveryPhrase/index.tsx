@@ -245,6 +245,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       } ${strings('import_new_secret_recovery_phrase.success_2')}`,
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
 
     fetchAccountsWithActivity();

@@ -245,6 +245,7 @@ const RevealPrivateCredential = ({
     toast({
       title: strings('reveal_credential.copied_to_clipboard'),
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, [trackEvent, createEventBuilder, clipboardPrivateCredential]);
 

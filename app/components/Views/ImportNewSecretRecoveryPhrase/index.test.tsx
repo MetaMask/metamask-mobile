@@ -462,6 +462,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       title: 'Wallet 2 imported',
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 

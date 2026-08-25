@@ -491,6 +491,7 @@ const ImportFromSecretRecoveryPhrase = () => {
         title: strings('import_from_seed.seed_phrase_length_error'),
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       return false;
     }
