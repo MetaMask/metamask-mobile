@@ -4,6 +4,8 @@ import Engine from '../../../../core/Engine';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
+  PERPS_ERROR_CODES,
+  isStrategyOrderType,
   type AccountState,
   type CancelOrderParams,
   type CancelOrderResult,
@@ -72,7 +74,19 @@ export function usePerpsTrading() {
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.placeOrder(params);
+      const { orderType } = params;
+      if (isStrategyOrderType(orderType)) {
+        const providerId = params.providerId;
+        if (!providerId) {
+          throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        }
+        return controller.placeOrder({
+          ...params,
+          orderType,
+          providerId,
+        });
+      }
+      return controller.placeOrder({ ...params, orderType });
     },
     [],
   );
@@ -333,7 +347,19 @@ export function usePerpsTrading() {
   const calculateFees = useCallback(
     async (params: FeeCalculationParams): Promise<FeeCalculationResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.calculateFees(params);
+      const { orderType } = params;
+      if (isStrategyOrderType(orderType)) {
+        const providerId = params.providerId;
+        if (!providerId) {
+          throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        }
+        return controller.calculateFees({
+          ...params,
+          orderType,
+          providerId,
+        });
+      }
+      return controller.calculateFees({ ...params, orderType });
     },
     [],
   );
@@ -343,7 +369,19 @@ export function usePerpsTrading() {
       params: OrderParams,
     ): Promise<{ isValid: boolean; error?: string }> => {
       const controller = Engine.context.PerpsController;
-      return controller.validateOrder(params);
+      const { orderType } = params;
+      if (isStrategyOrderType(orderType)) {
+        const providerId = params.providerId;
+        if (!providerId) {
+          throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        }
+        return controller.validateOrder({
+          ...params,
+          orderType,
+          providerId,
+        });
+      }
+      return controller.validateOrder({ ...params, orderType });
     },
     [],
   );

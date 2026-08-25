@@ -189,13 +189,14 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('usdAmount');
   });
 
-  it('builds a TWAP order with duration and randomization only', () => {
+  it('builds a routed TWAP order with strategy fields only', () => {
     // Arrange / Act
     const params = buildPerpsOrderParams({
       ...base,
       orderType: 'twap',
       twapDuration: 90,
       twapRandomize: true,
+      providerId: 'hyperliquid',
       limitPrice: '80000',
       triggerPrice: '81000',
       takeProfitPrice: '95000',
@@ -207,6 +208,7 @@ describe('buildPerpsOrderParams', () => {
       orderType: 'twap',
       twapDuration: 90,
       twapRandomize: true,
+      providerId: 'hyperliquid',
       currentPrice: 90000,
       priceAtCalculation: 90000,
     });

@@ -25,6 +25,17 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
+  totalFee: 5,
+  undiscountedTotalFee: 6,
+  protocolFee: 4,
+  metamaskFee: 1,
+  metamaskFeeRate: 0.01,
+  protocolFeeRate: 0.02,
+  originalMetamaskFeeRate: 0.01,
+  feeDiscountPercentage: 10,
+  estimatedPoints: 100,
+}));
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
@@ -160,17 +171,7 @@ jest.mock('../../../../hooks', () => ({
     mockExecutionOptions = opts;
     return { placeOrder: mockExecuteOrder, isPlacing: false };
   },
-  usePerpsOrderFees: () => ({
-    totalFee: 5,
-    undiscountedTotalFee: 6,
-    protocolFee: 4,
-    metamaskFee: 1,
-    metamaskFeeRate: 0.01,
-    protocolFeeRate: 0.02,
-    originalMetamaskFeeRate: 0.01,
-    feeDiscountPercentage: 10,
-    estimatedPoints: 100,
-  }),
+  usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
   usePerpsOrderValidation: () => mockValidation,
   usePerpsToasts: () => ({
     showToast: mockShowToast,
@@ -265,7 +266,11 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
-const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
+const market = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  providerId: 'hyperliquid',
+} as PerpsMarketData;
 
 const renderProForm = (isTriggeredOrdersEnabled = true, isTwapEnabled = true) =>
   renderHook(() =>
@@ -364,6 +369,13 @@ describe('usePerpsProOrderForm', () => {
 
       const { result } = renderProForm();
 
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          symbol: 'BTC',
+          providerId: 'hyperliquid',
+        }),
+      );
       expect(result.current.summary.fee).toBe(5);
       expect(result.current.summary.originalFee).toBe(6);
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
@@ -602,6 +614,7 @@ describe('usePerpsProOrderForm', () => {
           priceAtCalculation: 90000,
           twapDuration: 90,
           twapRandomize: true,
+          providerId: 'hyperliquid',
         }),
       );
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('price');

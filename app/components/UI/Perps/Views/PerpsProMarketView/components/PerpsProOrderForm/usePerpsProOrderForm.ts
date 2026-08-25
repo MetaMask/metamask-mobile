@@ -100,6 +100,7 @@ import {
   normalizeNumericTextInput,
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../../selectors/perpsController';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
@@ -340,6 +341,10 @@ export const usePerpsProOrderForm = ({
   isTwapEnabled,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
+  const activeProvider = useSelector(selectPerpsProvider);
+  const orderProviderId =
+    market.providerId ??
+    (activeProvider === 'aggregated' ? undefined : activeProvider);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -536,6 +541,7 @@ export const usePerpsProOrderForm = ({
     orderType: orderForm.type,
     amount: effectiveUsdAmount,
     symbol: orderForm.asset,
+    providerId: orderProviderId,
     isClosing: reduceOnly,
     limitPrice: normalizedLimitPrice,
     direction: orderForm.direction,
@@ -735,6 +741,7 @@ export const usePerpsProOrderForm = ({
     szDecimals,
     twapDuration: isTwapOrder ? twapDuration : undefined,
     twapRandomize: isTwapOrder ? twapRandomize : undefined,
+    providerId: orderProviderId,
     suppressedProtocolErrorCodes: isTwapOrder
       ? TWAP_OWNED_PROTOCOL_ERROR_CODES
       : undefined,
@@ -977,6 +984,7 @@ export const usePerpsProOrderForm = ({
         reduceOnly,
         twapDuration: isTwapOrder ? twapDuration : undefined,
         twapRandomize: isTwapOrder ? twapRandomize : undefined,
+        providerId: orderProviderId,
         isFullClose: reduceOnly
           ? reduceOnlyValidation.isFullClose || isExactFullClose
           : undefined,
@@ -1111,6 +1119,7 @@ export const usePerpsProOrderForm = ({
     isTwapOrder,
     twapDuration,
     twapRandomize,
+    orderProviderId,
     marginRequired,
     feeResults,
     assetData.price,

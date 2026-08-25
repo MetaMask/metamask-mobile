@@ -7,6 +7,7 @@ import {
   type Order,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
@@ -110,6 +111,8 @@ export interface BuildPerpsOrderParamsInput {
   reduceOnly?: boolean;
   twapDuration?: number;
   twapRandomize?: boolean;
+  /** Provider route required for strategy placement. */
+  providerId?: PerpsProviderType;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -144,6 +147,7 @@ export const buildPerpsOrderParams = ({
   reduceOnly,
   twapDuration,
   twapRandomize,
+  providerId,
   isFullClose,
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => {
@@ -181,6 +185,7 @@ export const buildPerpsOrderParams = ({
     ...(orderType === 'twap' && twapRandomize !== undefined
       ? { twapRandomize }
       : {}),
+    ...(providerId !== undefined ? { providerId } : {}),
     ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
     ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
     trackingData,

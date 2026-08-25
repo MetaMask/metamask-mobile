@@ -93,7 +93,7 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
-    it('passes TWAP duration and Randomize to protocol validation', async () => {
+    it('passes TWAP fields and provider route to protocol validation', async () => {
       const twapOrderForm: OrderFormState = {
         ...defaultOrderForm,
         type: 'twap',
@@ -105,6 +105,7 @@ describe('usePerpsOrderValidation', () => {
           orderForm: twapOrderForm,
           twapDuration: 90,
           twapRandomize: true,
+          providerId: 'hyperliquid',
         }),
       );
       await act(async () => {
@@ -119,6 +120,7 @@ describe('usePerpsOrderValidation', () => {
           orderType: 'twap',
           twapDuration: 90,
           twapRandomize: true,
+          providerId: 'hyperliquid',
         }),
       );
     });

@@ -12,6 +12,7 @@ import {
   isTriggerOrderType,
   type OrderParams,
   type OrderFormState,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
@@ -51,6 +52,8 @@ interface UsePerpsOrderValidationParams {
   twapDuration?: number;
   /** Whether the venue should randomize TWAP suborder sizes. */
   twapRandomize?: boolean;
+  /** Provider route required for strategy validation. */
+  providerId?: PerpsProviderType;
   /** Protocol error codes whose UI is owned by the calling form. */
   suppressedProtocolErrorCodes?: readonly string[];
 }
@@ -107,6 +110,7 @@ export function usePerpsOrderValidation(
     szDecimals,
     twapDuration,
     twapRandomize,
+    providerId,
     suppressedProtocolErrorCodes = EMPTY_ERRORS,
   } = params;
 
@@ -231,6 +235,7 @@ export function usePerpsOrderValidation(
           ...(isFullClose !== undefined ? { isFullClose } : {}),
           ...(twapDuration !== undefined ? { twapDuration } : {}),
           ...(twapRandomize !== undefined ? { twapRandomize } : {}),
+          ...(providerId !== undefined ? { providerId } : {}),
         };
 
         // Get protocol-specific validation
@@ -361,6 +366,7 @@ export function usePerpsOrderValidation(
       triggerPrice,
       twapDuration,
       twapRandomize,
+      providerId,
       suppressedProtocolErrors,
       validateOrder,
     ],

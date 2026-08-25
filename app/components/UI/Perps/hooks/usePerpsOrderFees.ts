@@ -18,7 +18,9 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
+  isStrategyOrderType,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -82,6 +84,8 @@ interface UsePerpsOrderFeesParams {
   amount: string;
   /** Symbol for the trade (e.g., 'BTC', 'ETH') */
   symbol?: string;
+  /** Provider route required for strategy fee quotes. */
+  providerId?: PerpsProviderType;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
   /** User's limit price */
@@ -115,6 +119,7 @@ export function usePerpsOrderFees({
   orderType,
   amount,
   symbol = 'ETH',
+  providerId,
   isClosing = false,
   limitPrice,
   direction,
@@ -555,11 +560,24 @@ export function usePerpsOrderFees({
         setError(null);
 
         // Step 1: Get core fees from provider
+        if (isStrategyOrderType(orderType) && !providerId) {
+          updateFeeState(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+          );
+          return;
+        }
+
         const coreFeesResult = await calculateFees({
           orderType,
           isMaker,
           amount,
           symbol,
+          ...(providerId !== undefined ? { providerId } : {}),
         });
 
         if (!isComponentMounted) return;
@@ -641,6 +659,7 @@ export function usePerpsOrderFees({
     };
   }, [
     orderType,
+    providerId,
     isMaker,
     amount,
     symbol,
