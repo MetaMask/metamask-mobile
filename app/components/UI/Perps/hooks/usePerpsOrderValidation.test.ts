@@ -230,6 +230,38 @@ describe('usePerpsOrderValidation', () => {
       );
       expect(result.current.hasInsufficientBalance).toBe(true);
     });
+
+    it('should clear the insufficient balance flag when the position size is cleared', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (positionSize: string) =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            positionSize,
+            spendableBalance: 0.00004,
+            marginRequired: '3.59',
+          }),
+        { initialProps: '0.002' },
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.hasInsufficientBalance).toBe(true);
+      });
+
+      rerender('0');
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.hasInsufficientBalance).toBe(false);
+    });
   });
 
   describe('leverage warnings', () => {

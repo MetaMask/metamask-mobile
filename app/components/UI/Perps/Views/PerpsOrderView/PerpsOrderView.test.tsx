@@ -73,7 +73,6 @@ import {
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
-import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -103,10 +102,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
-      'perps.order.validation.insufficient_funds_to_cover_trade':
-        'Insufficient funds to cover the trade',
-      'perps.order.validation.insufficient_balance':
-        'Insufficient balance. Required: {{required}}, Available: {{available}}',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -4265,48 +4260,6 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Insufficient funds handling', () => {
-    it('shows one consolidated insufficient-funds treatment', () => {
-      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-        isValid: false,
-        errors: [
-          strings('perps.order.validation.insufficient_balance', {
-            required: '$3.59',
-            available: '$0.00004',
-          }),
-        ],
-        isValidating: false,
-        hasInsufficientBalance: true,
-      });
-
-      const { getByTestId, queryByText, queryAllByText } = render(
-        <SafeAreaProvider initialMetrics={initialMetrics}>
-          <TestWrapper>
-            <PerpsOrderView />
-          </TestWrapper>
-        </SafeAreaProvider>,
-      );
-
-      expect(
-        getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryAllByText(
-          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
-        ),
-      ).toHaveLength(1);
-      expect(
-        queryByText(
-          strings('perps.order.validation.insufficient_balance', {
-            required: '$3.59',
-            available: '$0.00004',
-          }),
-        ),
-      ).toBeNull();
-      expect(
-        queryByText(strings('perps.order.validation.insufficient_funds')),
-      ).toBeNull();
-    });
-
     it('should not show balance warning when account is still loading', () => {
       // This test verifies our loading guard fix - balance warnings shouldn't
       // appear while account data is still loading

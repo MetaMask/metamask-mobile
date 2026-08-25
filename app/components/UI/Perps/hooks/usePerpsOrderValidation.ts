@@ -377,6 +377,10 @@ export function usePerpsOrderValidation(
         errors: EMPTY_ERRORS,
         isValidating: false,
         protocolValid: false,
+        // Cleared errors must clear the balance flag too, otherwise the order
+        // screen keeps showing the insufficient-funds banner after the user
+        // clears the amount.
+        hasInsufficientBalance: false,
       }));
       return;
     }

@@ -359,6 +359,44 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
+  it('shows a single insufficient-funds treatment when the balance cannot cover the margin', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The footer validation line renders the interpolated balance error; match
+    // the invariant prefix so the assertion cannot pass on a formatting change.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(
+      screen.queryByText(strings('perps.order.validation.insufficient_funds')),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
