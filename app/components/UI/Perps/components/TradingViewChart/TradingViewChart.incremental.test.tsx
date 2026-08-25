@@ -378,6 +378,64 @@ describe('TradingViewChart — incremental update routing', () => {
     );
   });
 
+  it('drops Limit prices from autoscale after add then clear', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const clearFnStart = template.indexOf(
+      'window.clearLimitOrderLines = function()',
+    );
+    const updateFnStart = template.indexOf(
+      'window.updateLimitOrderLines = function',
+    );
+    const collectFnStart = template.indexOf(
+      'window.collectLimitOverlayPrices = function()',
+    );
+    const collectFnEnd = template.indexOf(
+      'window.candlestickSeries = window.chart.addSeries',
+    );
+    const clearTpslStart = template.indexOf("case 'CLEAR_TPSL_LINES':");
+    const clearTpslEnd = template.indexOf("case 'UPDATE_INTERVAL':");
+
+    expect(clearFnStart).toBeGreaterThan(-1);
+    expect(updateFnStart).toBeGreaterThan(clearFnStart);
+    expect(collectFnStart).toBeGreaterThan(-1);
+    expect(clearTpslStart).toBeGreaterThan(-1);
+
+    const clearFn = template.slice(clearFnStart, updateFnStart);
+    const collectFn = template.slice(collectFnStart, collectFnEnd);
+    const clearTpslCase = template.slice(clearTpslStart, clearTpslEnd);
+    const updateFn = template.slice(
+      updateFnStart,
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
+
+    expect(collectFn).toContain(
+      '(window.lastLimitOrderPrices || []).forEach(pushPrice)',
+    );
+    expect(updateFn).toContain('window.clearLimitOrderLines();');
+    expect(updateFn).toContain(
+      'window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {',
+    );
+    expect(clearFn.match(/window\.lastLimitOrderPrices = \[\];/g)).toEqual([
+      'window.lastLimitOrderPrices = [];',
+      'window.lastLimitOrderPrices = [];',
+    ]);
+    expect(clearTpslCase).toContain('window.clearLimitOrderLines();');
+  });
+
+  it('reports Limit line remove, create, and autoscale failures', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+    expect(template).toContain(
+      "console.error('TradingView: Error removing limit order line:', error)",
+    );
+    expect(template).toContain(
+      "console.error('TradingView: Error creating limit order line:', error)",
+    );
+    expect(template).toContain(
+      "console.error('TradingView: Error applying limit order autoscale:', scaleError)",
+    );
+  });
+
   // -----------------------------------------------------------------------
   // True reload: interval change
   // -----------------------------------------------------------------------
