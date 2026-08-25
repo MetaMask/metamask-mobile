@@ -5,18 +5,20 @@ import type { TestInfo } from '@playwright/test';
 
 type BrowserStackPlatform = 'android' | 'ios';
 
-const BROWSERSTACK_SHAKE_COMMAND =
-  'browserstack_executor: {"action":"customGesture","arguments":{"deviceShake":"true"}}';
 const PROFILER_TIMEOUT_MS = 30_000;
 
 type BrowserStackFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
 };
 
+type ShakeDriver = WebdriverIO.Browser & {
+  shake: () => Promise<void>;
+};
+
 export async function shakeBrowserStackDevice(
   driver: WebdriverIO.Browser,
 ): Promise<void> {
-  await driver.execute(BROWSERSTACK_SHAKE_COMMAND);
+  await (driver as ShakeDriver).shake();
 }
 
 export async function startBrowserStackProfiler(
