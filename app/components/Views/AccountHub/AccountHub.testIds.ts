@@ -2,6 +2,7 @@ export const AccountHubSelectorsIDs = {
   CONTAINER: 'account-hub-container',
   BACK_BUTTON: 'account-hub-back-button',
   NOTIFICATIONS_BUTTON: 'account-hub-notifications-button',
+  NOTIFICATIONS_BADGE: 'account-hub-notifications-badge',
   MENU_BUTTON: 'account-hub-menu-button',
   ACCOUNT_AVATAR: 'account-hub-account-avatar',
   ACCOUNT_NAME: 'account-hub-account-name',

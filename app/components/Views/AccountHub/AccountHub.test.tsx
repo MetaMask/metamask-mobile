@@ -42,6 +42,10 @@ jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
   useAccountsOperationsLoadingStates: jest.fn(),
 }));
 
+jest.mock('../../../util/notifications', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     AccountTreeController: { setSelectedAccountGroup: jest.fn() },
@@ -111,6 +115,26 @@ describe('AccountHub', () => {
     fireEvent.press(getByTestId(AccountHubSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('shows the unread dot on the bell when there are unread notifications', () => {
+    arrangeSelectors({ unreadCount: 2 });
+
+    const { getByTestId } = render(<AccountHub />);
+
+    expect(
+      getByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the unread dot when there are no unread notifications', () => {
+    arrangeSelectors({ unreadCount: 0 });
+
+    const { queryByTestId } = render(<AccountHub />);
+
+    expect(
+      queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens notifications from the bell', () => {

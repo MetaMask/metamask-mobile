@@ -7,11 +7,18 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarAccount,
   AvatarAccountSize,
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -156,7 +163,6 @@ const AccountHub = () => {
         <Text
           variant={TextVariant.HeadingLg}
           numberOfLines={1}
-          // twClassName="text-center"
           testID={AccountHubSelectorsIDs.ACCOUNT_NAME}
         >
           {selectedAccountGroup?.metadata.name ?? ''}
@@ -165,7 +171,7 @@ const AccountHub = () => {
 
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="px-4 pb-4 gap-4 justify-between"
+        twClassName="px-4 pb-4 gap-3 justify-between"
       >
         <MainActionButton
           twClassName="flex-1"
@@ -229,18 +235,37 @@ const AccountHub = () => {
       <HeaderStandard
         onBack={handleBack}
         backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Menu,
-            onPress: handleMenuPress,
-            testID: AccountHubSelectorsIDs.MENU_BUTTON,
-          },
-          {
-            iconName: IconName.Notification,
-            onPress: handleNotificationsPress,
-            testID: AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON,
-          },
-        ]}
+        endAccessory={
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+            <BadgeWrapper
+              position={BadgeWrapperPosition.TopRight}
+              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+              badge={
+                isNotificationsFeatureEnabled() &&
+                isNotificationEnabled &&
+                unreadNotificationCount > 0 ? (
+                  <BadgeStatus
+                    status={BadgeStatusStatus.Attention}
+                    testID={AccountHubSelectorsIDs.NOTIFICATIONS_BADGE}
+                  />
+                ) : null
+              }
+            >
+              <ButtonIcon
+                iconName={IconName.Notification}
+                size={ButtonIconSize.Md}
+                onPress={handleNotificationsPress}
+                testID={AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON}
+              />
+            </BadgeWrapper>
+            <ButtonIcon
+              iconName={IconName.Menu}
+              size={ButtonIconSize.Md}
+              onPress={handleMenuPress}
+              testID={AccountHubSelectorsIDs.MENU_BUTTON}
+            />
+          </Box>
+        }
         includesTopInset
       />
 

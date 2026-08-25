@@ -21,7 +21,11 @@ import {
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
   View,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -40,7 +44,7 @@ import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/feat
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
-import WalletHeaderRefreshed from './components/WalletHeader/WalletHeaderRefreshed';
+import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   Text as CustomText,
@@ -223,7 +227,7 @@ const createStyles = ({ colors }: Theme) =>
       marginRight: 16,
       backgroundColor: 'transparent',
     },
-    refreshedHeaderAccountName: {
+    compactHeaderAccountName: {
       marginTop: 12,
       marginHorizontal: 16,
       marginBottom: -12,
@@ -766,8 +770,18 @@ const Wallet = ({
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const useRefreshedHeader = headerNavBarVariant.useRefreshedHeaderAndNavBar;
+  const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
   const avatarAccountType = useSelector(selectAvatarAccountType);
+
+  const homepageScrollY = useSharedValue(0);
+  const accountNameSectionBottom = useSharedValue(0);
+  const handleAccountNameLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      accountNameSectionBottom.value =
+        event.nativeEvent.layout.y + event.nativeEvent.layout.height;
+    },
+    [accountNameSectionBottom],
+  );
 
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =
@@ -804,13 +818,17 @@ const Wallet = ({
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
   // Notifies scroll subscribers directly (no React state update = no re-renders).
-  const handleHomepageScroll = useCallback(() => {
-    const now = Date.now();
-    if (now - lastScrollTickTimeRef.current >= 100) {
-      lastScrollTickTimeRef.current = now;
-      scrollSubscribersRef.current.forEach((cb) => cb());
-    }
-  }, []);
+  const handleHomepageScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      homepageScrollY.value = event.nativeEvent.contentOffset.y;
+      const now = Date.now();
+      if (now - lastScrollTickTimeRef.current >= 100) {
+        lastScrollTickTimeRef.current = now;
+        scrollSubscribersRef.current.forEach((cb) => cb());
+      }
+    },
+    [homepageScrollY],
+  );
 
   const touchAreaSlop = useMemo(
     () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
@@ -1091,11 +1109,12 @@ const Wallet = ({
   ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
-      {useRefreshedHeader && (
+      {isCompactHeader && (
         <CustomText
           variant={TextVariant.HeadingMd}
-          style={styles.refreshedHeaderAccountName}
+          style={styles.compactHeaderAccountName}
           numberOfLines={1}
+          onLayout={handleAccountNameLayout}
           testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
         >
           {displayName}
@@ -1142,8 +1161,8 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
-              {useRefreshedHeader ? (
-                <WalletHeaderRefreshed
+              {isCompactHeader ? (
+                <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
                   displayName={displayName}
@@ -1152,9 +1171,8 @@ const Wallet = ({
                   handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
                   touchAreaSlop={touchAreaSlop}
-                  headerActionButtonsContainerStyle={
-                    styles.headerActionButtonsContainer
-                  }
+                  scrollY={homepageScrollY}
+                  titleSectionHeight={accountNameSectionBottom}
                 />
               ) : (
                 <WalletHeader

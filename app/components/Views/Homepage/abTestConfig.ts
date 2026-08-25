@@ -371,15 +371,15 @@ export enum HeaderNavBarVariant {
 }
 
 interface HeaderNavBarVariantConfig {
-  useRefreshedHeaderAndNavBar: boolean;
+  isCompactHeaderEnabled: boolean;
 }
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: { useRefreshedHeaderAndNavBar: false },
-  [HeaderNavBarVariant.Treatment]: { useRefreshedHeaderAndNavBar: true },
+  [HeaderNavBarVariant.Control]: { isCompactHeaderEnabled: false },
+  [HeaderNavBarVariant.Treatment]: { isCompactHeaderEnabled: true },
 };
 
 export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {

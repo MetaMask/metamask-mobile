@@ -124,8 +124,7 @@ jest.mock('../../../hooks', () => ({
       return {
         variantName: mockHeaderNavBarVariantName,
         variant: {
-          useRefreshedHeaderAndNavBar:
-            mockHeaderNavBarVariantName === 'treatment',
+          isCompactHeaderEnabled: mockHeaderNavBarVariantName === 'treatment',
         },
         isActive: true,
       };
