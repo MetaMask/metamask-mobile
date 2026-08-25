@@ -9,7 +9,6 @@ const PRO_FLOW_ROUTE_NAMES = new Set<string>([
   Routes.PRO_HUB.ROOT,
   Routes.PRO_HUB.MEMBERSHIP,
   Routes.PRO_HUB.EARNED,
-  Routes.PRO_HUB.SAVED,
   Routes.PRO_HUB.CANCEL_MEMBERSHIP,
 ]);
 
@@ -23,9 +22,9 @@ const PRO_FLOW_ROUTE_NAMES = new Set<string>([
 export const buildPostCancellationResetState = (
   state: NavigationState,
 ): PartialState<NavigationState> => {
-  const preservedRoutes = state.routes.filter(
-    (route) => !PRO_FLOW_ROUTE_NAMES.has(route.name),
-  );
+  const preservedRoutes = state.routes
+    .filter((route) => !PRO_FLOW_ROUTE_NAMES.has(route.name))
+    .map(({ key, name }) => ({ key, name }));
 
   const routes = [
     ...preservedRoutes,
@@ -36,7 +35,6 @@ export const buildPostCancellationResetState = (
   ];
 
   return {
-    ...state,
     index: routes.length - 1,
     routes,
   };

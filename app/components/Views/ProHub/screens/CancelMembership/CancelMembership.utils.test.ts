@@ -79,7 +79,6 @@ describe('buildPostCancellationResetState', () => {
       'Home',
       Routes.PRO_HUB.ROOT,
       Routes.PRO_HUB.EARNED,
-      Routes.PRO_HUB.SAVED,
       Routes.PRO_HUB.CANCEL_MEMBERSHIP,
     ]);
 
@@ -89,7 +88,6 @@ describe('buildPostCancellationResetState', () => {
       nextState.routes?.some(
         (route) =>
           route.name === Routes.PRO_HUB.EARNED ||
-          route.name === Routes.PRO_HUB.SAVED ||
           route.name === Routes.PRO_HUB.CANCEL_MEMBERSHIP,
       ),
     ).toBe(false);
