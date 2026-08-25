@@ -13,8 +13,8 @@ export interface PriceRangeSheetProps {
   quoteRate?: number;
   currentCurrency: string;
   initialTokenSide?: PriceRangeTokenSide;
-  initialMinFiat?: string;
-  initialMaxFiat?: string;
+  initialMin?: string;
+  initialMax?: string;
   onClose: () => void;
   onConfirm: (priceRange: RecurringPriceRange) => void;
 }

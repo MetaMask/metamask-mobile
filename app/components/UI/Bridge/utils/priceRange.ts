@@ -1,6 +1,7 @@
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import { formatCurrency } from './currencyUtils';
+import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
 export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
 
@@ -8,8 +9,9 @@ export type PriceRangeTokenSide = (typeof PRICE_RANGE_TOKEN_SIDES)[number];
 
 export interface RecurringPriceRange {
   tokenSide: PriceRangeTokenSide;
-  minFiat: string;
-  maxFiat: string;
+  currency: string;
+  min: string;
+  max: string;
 }
 
 export const DEFAULT_PRICE_RANGE_TOKEN_SIDE: PriceRangeTokenSide = 'dest';
@@ -20,8 +22,6 @@ export const PRICE_RANGE_MAX_PERCENTS = [1, 5, 10, 25, 50] as const;
 
 export const PRICE_RANGE_MISSING_VALUE = '--';
 
-export const PRICE_RANGE_MAX_DECIMALS = 2;
-
 export function applyPercentToPrice(price: number, percent: number): string {
   const next = price * (1 + percent / 100);
 
@@ -29,7 +29,7 @@ export function applyPercentToPrice(price: number, percent: number): string {
     return '';
   }
 
-  return next.toFixed(PRICE_RANGE_MAX_DECIMALS);
+  return next.toFixed(FIAT_INPUT_DECIMALS);
 }
 
 export function parsePriceInput(value: string): number | undefined {
@@ -57,16 +57,29 @@ export function sanitizePriceInput(value: string): string {
   const fraction = digitsAndDots
     .slice(firstDot + 1)
     .replace(/\./gu, '')
-    .slice(0, PRICE_RANGE_MAX_DECIMALS);
+    .slice(0, FIAT_INPUT_DECIMALS);
 
   return digitsAndDots.slice(0, firstDot + 1) + fraction;
 }
 
-export function isValidPriceRange(minFiat: string, maxFiat: string): boolean {
-  const min = parsePriceInput(minFiat);
-  const max = parsePriceInput(maxFiat);
+export function isValidPriceRange(min: string, max: string): boolean {
+  const parsedMin = parsePriceInput(min);
+  const parsedMax = parsePriceInput(max);
 
-  return min !== undefined && max !== undefined && min < max;
+  return (
+    parsedMin !== undefined && parsedMax !== undefined && parsedMin < parsedMax
+  );
+}
+
+export function isPriceRangeInCurrentCurrency(
+  range: RecurringPriceRange | undefined,
+  currentCurrency: string,
+): range is RecurringPriceRange {
+  if (!range?.currency || !currentCurrency) {
+    return false;
+  }
+
+  return range.currency.toLowerCase() === currentCurrency.toLowerCase();
 }
 
 export function matchingPricePercent(
@@ -84,28 +97,25 @@ export function matchingPricePercent(
 }
 
 export function formatPriceRangeLabel(
-  minFiat: string,
-  maxFiat: string,
+  min: string,
+  max: string,
   currency: string,
 ): string {
-  return `${formatCurrency(minFiat, currency)} - ${formatCurrency(
-    maxFiat,
-    currency,
-  )}`;
+  return `${formatCurrency(min, currency)} - ${formatCurrency(max, currency)}`;
 }
 
-export function formatTokenFiatPrice(
+export function formatTokenPrice(
   symbol: string | undefined,
-  fiat: number | undefined,
+  price: number | undefined,
   currency: string,
 ): string {
-  if (!symbol || fiat === undefined || !Number.isFinite(fiat)) {
+  if (!symbol || price === undefined || !Number.isFinite(price)) {
     return PRICE_RANGE_MISSING_VALUE;
   }
 
-  return strings('bridge.recurring.price_range.token_fiat', {
+  return strings('bridge.recurring.price_range.token_price', {
     symbol,
-    fiat: formatCurrency(fiat, currency),
+    price: formatCurrency(price, currency),
   });
 }
 

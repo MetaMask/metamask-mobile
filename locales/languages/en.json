@@ -8553,7 +8553,7 @@
         "max_token_price": "Max {{symbol}} price",
         "min_placeholder": "Min price",
         "max_placeholder": "Max price",
-        "token_fiat": "1 {{symbol}} = {{fiat}}",
+        "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
       },
       "unit": {

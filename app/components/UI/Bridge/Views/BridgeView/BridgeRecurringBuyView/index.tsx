@@ -32,6 +32,7 @@ import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
 import {
   formatPriceRangeLabel,
+  isPriceRangeInCurrentCurrency,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -105,13 +106,16 @@ const BridgeRecurringBuyViewContent = ({
     return dest / source;
   }, [destTokenAmount, sourceAmount]);
 
+  const effectiveRange = isPriceRangeInCurrentCurrency(priceRange, currentCurrency)
+    ? priceRange
+    : undefined;
   const priceRangeToken =
-    priceRange?.tokenSide === 'source' ? sourceToken : destToken;
-  const priceRangeLabel = priceRange
+    effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
+  const priceRangeLabel = effectiveRange
     ? formatPriceRangeLabel(
-        priceRange.minFiat,
-        priceRange.maxFiat,
-        currentCurrency,
+        effectiveRange.min,
+        effectiveRange.max,
+        effectiveRange.currency,
       )
     : undefined;
 
@@ -195,7 +199,7 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <PriceRangeRow
-            token={priceRange ? priceRangeToken : undefined}
+            token={effectiveRange ? priceRangeToken : undefined}
             rangeLabel={priceRangeLabel}
             onPress={handlePriceRangePress}
           />
@@ -241,9 +245,9 @@ const BridgeRecurringBuyViewContent = ({
           destFiatRate={destFiatRate}
           quoteRate={quoteRate}
           currentCurrency={currentCurrency}
-          initialTokenSide={priceRange?.tokenSide}
-          initialMinFiat={priceRange?.minFiat}
-          initialMaxFiat={priceRange?.maxFiat}
+          initialTokenSide={effectiveRange?.tokenSide}
+          initialMin={effectiveRange?.min}
+          initialMax={effectiveRange?.max}
           onClose={handlePriceRangeSheetClosed}
           onConfirm={handlePriceRangeConfirm}
         />

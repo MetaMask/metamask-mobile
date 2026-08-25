@@ -1,9 +1,10 @@
 import '../../../../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
 import { renderBridgeView } from '../../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
+import { setRecurringPriceRange } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
@@ -14,6 +15,7 @@ import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuot
 import {
   applyPercentToPrice,
   formatPriceRangeLabel,
+  type RecurringPriceRange,
 } from '../../../utils/priceRange';
 
 const errorColor = lightTheme.colors.error.default;
@@ -21,8 +23,18 @@ const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const ETH_FIAT_RATE = 2000;
 const MUSD_ETH_PRICE = 0.0005;
 const MUSD_FIAT_RATE = ETH_FIAT_RATE * MUSD_ETH_PRICE;
+const STORED_USD_PRICE_RANGE: RecurringPriceRange = {
+  tokenSide: 'dest',
+  currency: 'usd',
+  min: '0.90',
+  max: '1.10',
+};
 
-function renderRecurringPriceRangeView() {
+function renderRecurringPriceRangeView({
+  currentCurrency = 'usd',
+}: {
+  currentCurrency?: string;
+} = {}) {
   return renderBridgeView({
     deterministicFiat: true,
     overrides: {
@@ -44,6 +56,9 @@ function renderRecurringPriceRangeView() {
               },
             },
           },
+          ...(currentCurrency
+            ? { CurrencyRateController: { currentCurrency } }
+            : {}),
         },
       },
     },
@@ -93,6 +108,18 @@ async function openAmountKeypad(
     expect(
       renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
     ).toBeOnTheScreen();
+  });
+}
+
+async function seedPriceRangeAfterTokens(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  priceRange: RecurringPriceRange,
+) {
+  await waitFor(() => {
+    expect(renderResult.store.getState().bridge.destToken?.symbol).toBe('mUSD');
+  });
+  act(() => {
+    renderResult.store.dispatch(setRecurringPriceRange(priceRange));
   });
 }
 
@@ -915,8 +942,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     it('writes the confirmed range onto the row', async () => {
       const renderResult = renderRecurringPriceRangeView();
-      const minFiat = applyPercentToPrice(MUSD_FIAT_RATE, -10);
-      const maxFiat = applyPercentToPrice(MUSD_FIAT_RATE, 10);
+      const min = applyPercentToPrice(MUSD_FIAT_RATE, -10);
+      const max = applyPercentToPrice(MUSD_FIAT_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -941,10 +968,78 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
-      ).toHaveTextContent(formatPriceRangeLabel(minFiat, maxFiat, 'USD'));
+      ).toHaveTextContent(formatPriceRangeLabel(min, max, 'usd'));
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
       ).toBeOnTheScreen();
+      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual({
+        tokenSide: 'dest',
+        currency: 'usd',
+        min,
+        max,
+      });
+    });
+
+    it('treats a stored range as unset when the settings currency differs', async () => {
+      const renderResult = renderRecurringPriceRangeView({
+        currentCurrency: 'eur',
+      });
+
+      await openRecurringTab(renderResult);
+      await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
+
+      expect(
+        renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+      ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
+      expect(
+        renderResult.queryByTestId(PriceRangeRowSelectorsIDs.AVATAR),
+      ).not.toBeOnTheScreen();
+      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
+        STORED_USD_PRICE_RANGE,
+      );
+
+      await openPriceRangeSheet(renderResult);
+
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+      ).toHaveDisplayValue('');
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue('');
+      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
+        STORED_USD_PRICE_RANGE,
+      );
+    });
+
+    it('shows the stored range when the settings currency matches', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+        ).toHaveTextContent(
+          formatPriceRangeLabel(
+            STORED_USD_PRICE_RANGE.min,
+            STORED_USD_PRICE_RANGE.max,
+            STORED_USD_PRICE_RANGE.currency,
+          ),
+        );
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
+      ).toBeOnTheScreen();
+
+      await openPriceRangeSheet(renderResult);
+
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+      ).toHaveDisplayValue(STORED_USD_PRICE_RANGE.min);
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue(STORED_USD_PRICE_RANGE.max);
     });
   });
 });

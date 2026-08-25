@@ -1598,8 +1598,9 @@ describe('bridge slice', () => {
     it('sets the price range', () => {
       const priceRange = {
         tokenSide: 'dest' as const,
-        minFiat: '1800',
-        maxFiat: '2200',
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
       };
 
       const newState = reducer(
@@ -1613,8 +1614,9 @@ describe('bridge slice', () => {
     it('selects the price range from state', () => {
       const priceRange = {
         tokenSide: 'source' as const,
-        minFiat: '0.9',
-        maxFiat: '1.1',
+        currency: 'usd',
+        min: '0.9',
+        max: '1.1',
       };
       const mockState = {
         ...mockRootState,
@@ -1641,8 +1643,9 @@ describe('bridge slice', () => {
             ...initialState.recurring,
             priceRange: {
               tokenSide: 'dest',
-              minFiat: '1800',
-              maxFiat: '2200',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
             },
           },
         },
@@ -1655,8 +1658,9 @@ describe('bridge slice', () => {
     it('keeps the price range when the source token identity is unchanged', () => {
       const priceRange = {
         tokenSide: 'dest' as const,
-        minFiat: '1800',
-        maxFiat: '2200',
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
       };
       const state = reducer(
         {
@@ -1682,8 +1686,9 @@ describe('bridge slice', () => {
             ...initialState.recurring,
             priceRange: {
               tokenSide: 'dest',
-              minFiat: '1800',
-              maxFiat: '2200',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
             },
           },
         },

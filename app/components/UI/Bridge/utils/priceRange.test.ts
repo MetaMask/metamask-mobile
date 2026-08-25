@@ -2,7 +2,8 @@ import {
   applyPercentToPrice,
   formatExchangeRate,
   formatPriceRangeLabel,
-  formatTokenFiatPrice,
+  formatTokenPrice,
+  isPriceRangeInCurrentCurrency,
   isValidPriceRange,
   matchingPricePercent,
   parsePriceInput,
@@ -133,6 +134,42 @@ describe('matchingPricePercent', () => {
   });
 });
 
+describe('isPriceRangeInCurrentCurrency', () => {
+  const range = {
+    tokenSide: 'dest' as const,
+    currency: 'usd',
+    min: '0.90',
+    max: '1.10',
+  };
+
+  it('returns true when currency codes match ignoring case', () => {
+    const result = isPriceRangeInCurrentCurrency(range, 'USD');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when currency codes differ', () => {
+    const result = isPriceRangeInCurrentCurrency(range, 'eur');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the range is undefined', () => {
+    const result = isPriceRangeInCurrentCurrency(undefined, 'USD');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the stored currency is missing', () => {
+    const result = isPriceRangeInCurrentCurrency(
+      { tokenSide: 'dest', currency: '', min: '1', max: '2' },
+      'USD',
+    );
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('formatPriceRangeLabel', () => {
   it('joins formatted min and max with a dash', () => {
     mockedFormatCurrency.mockImplementation(
@@ -145,17 +182,17 @@ describe('formatPriceRangeLabel', () => {
   });
 });
 
-describe('formatTokenFiatPrice', () => {
-  it('returns 1 symbol equals formatted fiat', () => {
+describe('formatTokenPrice', () => {
+  it('returns 1 symbol equals formatted price', () => {
     mockedFormatCurrency.mockReturnValue('$2,000.00');
 
-    const result = formatTokenFiatPrice('ETH', 2000, 'USD');
+    const result = formatTokenPrice('ETH', 2000, 'USD');
 
     expect(result).toBe('1 ETH = $2,000.00');
   });
 
-  it('returns a missing placeholder when fiat is undefined', () => {
-    const result = formatTokenFiatPrice('ETH', undefined, 'USD');
+  it('returns a missing placeholder when price is undefined', () => {
+    const result = formatTokenPrice('ETH', undefined, 'USD');
 
     expect(result).toBe(PRICE_RANGE_MISSING_VALUE);
   });

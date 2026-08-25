@@ -32,7 +32,7 @@ import {
   applyPercentToPrice,
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
-  formatTokenFiatPrice,
+  formatTokenPrice,
   isValidPriceRange,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
@@ -103,8 +103,8 @@ const PriceRangeSheet = ({
   quoteRate,
   currentCurrency,
   initialTokenSide,
-  initialMinFiat,
-  initialMaxFiat,
+  initialMin,
+  initialMax,
   onClose,
   onConfirm,
 }: PriceRangeSheetProps) => {
@@ -112,16 +112,16 @@ const PriceRangeSheet = ({
   const [pendingTokenSide, setPendingTokenSide] = useState<PriceRangeTokenSide>(
     initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   );
-  const [pendingMin, setPendingMin] = useState(initialMinFiat ?? '');
-  const [pendingMax, setPendingMax] = useState(initialMaxFiat ?? '');
+  const [pendingMin, setPendingMin] = useState(initialMin ?? '');
+  const [pendingMax, setPendingMax] = useState(initialMax ?? '');
 
   useEffect(() => {
     if (isVisible) {
       setPendingTokenSide(initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE);
-      setPendingMin(initialMinFiat ?? '');
-      setPendingMax(initialMaxFiat ?? '');
+      setPendingMin(initialMin ?? '');
+      setPendingMax(initialMax ?? '');
     }
-  }, [initialMaxFiat, initialMinFiat, initialTokenSide, isVisible]);
+  }, [initialMax, initialMin, initialTokenSide, isVisible]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
   const selectedFiatRate =
@@ -133,7 +133,7 @@ const PriceRangeSheet = ({
 
   const priceLabel = useMemo(
     () =>
-      formatTokenFiatPrice(
+      formatTokenPrice(
         selectedToken?.symbol,
         selectedFiatRate,
         currentCurrency,
@@ -194,13 +194,15 @@ const PriceRangeSheet = ({
     }
     onConfirm({
       tokenSide: pendingTokenSide,
-      minFiat: pendingMin,
-      maxFiat: pendingMax,
+      currency: currentCurrency,
+      min: pendingMin,
+      max: pendingMax,
     });
     closeSheet();
   }, [
     canConfirm,
     closeSheet,
+    currentCurrency,
     onConfirm,
     pendingMax,
     pendingMin,
