@@ -67,7 +67,7 @@ The final report combines:
 
 1. Homepage markets, HIP-3 coverage, prices, account resolution, visible content, and fresh-visible timing. Cache-to-visible remains excluded until the cache delivery source is attached to the frame evidence.
 2. Critical Perps CUFs already instrumented in the app: market list/detail, open position, limit order, close, and cancel.
-3. Executable lifecycle cohorts: cold no-cache, navigation return, short resume, reconnect, account switch, and network switch. Disk hydration is recorded as a cache source within a lifecycle, not as its own lifecycle.
+3. Executable lifecycle cohorts: cold no-cache, navigation return, health-validated short resume, reconnect, account switch, and network switch. A failed resume health check upgrades the active sample to reconnect. Disk hydration is recorded as a cache source within a lifecycle, not as its own lifecycle.
 
 `provider_switch` and `network_recovery` are deferred until the recipe exposes deterministic controls for them.
 

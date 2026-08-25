@@ -162,7 +162,9 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: Loading state is true and default values are shown
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.currentPrice).toBe(0);
+    expect(result.current.currentPrice).toBeUndefined();
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
   });
 
   it('displays default values when no market data is available', () => {
@@ -181,10 +183,9 @@ describe('usePerpsMarketStats', () => {
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
     // Assert: All values show appropriate defaults
-    expect(result.current.currentPrice).toBe(0);
-    // PRICE_RANGES_UNIVERSAL: trailing zeros removed, so $0.00 → $0
-    expect(result.current.high24h).toBe('$0');
-    expect(result.current.low24h).toBe('$0');
+    expect(result.current.currentPrice).toBeUndefined();
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     expect(result.current.volume24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     expect(result.current.openInterest).toBe(
       PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -380,6 +381,9 @@ describe('usePerpsMarketStats', () => {
 
     act(() => callbacks[1]([{ ...mockPriceData.BTC, volume24h: 1 }]));
     expect(result.current.volume24h).toBe('$1');
+
+    act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 2 }]));
+    expect(result.current.volume24h).toBe('$1');
   });
 
   it('formats negative funding rates with proper sign and decimals', () => {
@@ -512,6 +516,22 @@ describe('usePerpsMarketStats', () => {
 
     expect(result.current.hasError).toBe(true);
     consoleError.mockRestore();
+  });
+
+  it('exposes a terminal candle subscription error', () => {
+    mockSubscribeToPrices.mockReturnValue(jest.fn());
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: null,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: new Error('candle subscription failed'),
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    expect(result.current.hasError).toBe(true);
   });
 
   it('subscribes after the Perps connection initializes', () => {

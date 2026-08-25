@@ -170,6 +170,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const {
       markets,
       marketsLoading,
+      hasResolvedInitialData,
       allCarouselMarkets,
       watchlistSymbolSet,
       refreshMarkets,
@@ -229,11 +230,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       !showSkeleton &&
       !hasItems &&
       !shouldShowPillsEmptyState &&
-      marketsLoading;
+      (marketsLoading || !hasResolvedInitialData);
     const showTrending =
       !showSkeleton &&
       !hasItems &&
       !shouldShowPillsEmptyState &&
+      hasResolvedInitialData &&
       !marketsLoading;
     const sparklineMarkets = useMemo(
       () => (showTrending ? allCarouselMarkets : []),
@@ -310,10 +312,20 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
+    const contentVariant = resolveContentVariant(
+      displayPositions.length,
+      displayOrders.length,
+      shouldShowPillsEmptyState,
+    );
+    const isAccountBackedContent =
+      contentVariant === 'positions' ||
+      contentVariant === 'orders' ||
+      contentVariant === 'positions_and_orders';
     const isLoadingSection =
       hookLoading ||
       deferredLoading ||
       pendingTrending ||
+      (isAccountBackedContent && perpsAccountLoading) ||
       (shouldShowPillsEmptyState && isPerpsPillsLoading);
 
     const isEmpty = !hasItems;
@@ -341,17 +353,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
-    const contentVariant = resolveContentVariant(
-      displayPositions.length,
-      displayOrders.length,
-      shouldShowPillsEmptyState,
-    );
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const sessionId = sessionContext?.id;
     const marketCount =
-      allCarouselMarkets.length > 0
-        ? allCarouselMarkets.length
-        : markets.length;
+      contentVariant === 'pills' ? perpsPillsData.length : markets.length;
+    const hasSurfaceContent =
+      contentVariant === 'trending'
+        ? markets.length > 0
+        : contentVariant === 'pills'
+          ? perpsPillsData.length > 0
+          : hasItems;
     const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
     const accountSource = sessionContext?.accountSource ?? 'unknown';
     const cohortTags = useMemo(
@@ -425,7 +436,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           success: !connectionError,
           content_state: resolveContentState(
             Boolean(connectionError),
-            hasItems,
+            hasSurfaceContent,
           ),
           market_count: marketCount,
           ...cohortTags,
@@ -436,9 +447,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       cohortTags,
       connectionError,
       hasItems,
+      hasSurfaceContent,
       isLoadingSection,
       marketCount,
       pillsEmptyFeedHidden,
+      perpsPillsData.length,
       sessionId,
       sessionReady,
     ]);

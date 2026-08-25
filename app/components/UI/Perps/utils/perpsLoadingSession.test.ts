@@ -13,6 +13,7 @@ import {
   finishPerpsLoadingSession,
   createPerpsLoadingSessionIdentity,
   getActivePerpsLoadingSessionContext,
+  markPerpsLoadingSessionConnectionValidated,
   preparePerpsLoadingSession,
   recordPerpsControllerConstructedAt,
   resolvePerpsMarketSource,
@@ -170,6 +171,26 @@ describe('perpsLoadingSession', () => {
     expect(annotateTrace).toHaveBeenCalledWith(
       { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
       { lifecycle: 'background_reconnect' },
+    );
+  });
+
+  it('waits for the foreground connection decision before finishing a short resume', () => {
+    startPerpsLoadingSession({ lifecycle: 'background_short' });
+
+    finishPerpsLoadingSession({
+      success: true,
+      content_state: 'filled',
+      content_variant: 'trending',
+    });
+    expect(endTrace).not.toHaveBeenCalled();
+
+    markPerpsLoadingSessionConnectionValidated();
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          required_live_streams_complete: true,
+        }),
+      }),
     );
   });
 

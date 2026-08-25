@@ -116,6 +116,29 @@ describe('usePerpsLiveCandles', () => {
     });
   });
 
+  it('ignores callbacks from a replaced symbol subscription', () => {
+    const callbacks: ((data: CandleData) => void)[] = [];
+    mockCandleSubscribe.mockImplementation(({ callback }) => {
+      callbacks.push(callback);
+      return jest.fn();
+    });
+    const { result, rerender } = renderHook(
+      ({ symbol }) =>
+        usePerpsLiveCandles({
+          symbol,
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneDay,
+        }),
+      { initialProps: { symbol: 'BTC' } },
+    );
+
+    rerender({ symbol: 'ETH' });
+    act(() => callbacks[1]({ ...mockCandleData, symbol: 'ETH' }));
+    act(() => callbacks[0](mockCandleData));
+
+    expect(result.current.candleData?.symbol).toBe('ETH');
+  });
+
   it('resubscribes when interval changes', () => {
     const mockUnsubscribe = jest.fn();
     mockCandleSubscribe.mockReturnValue(mockUnsubscribe);

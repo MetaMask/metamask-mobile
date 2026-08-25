@@ -88,6 +88,7 @@ export function usePerpsLiveCandles(
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
+    let isActive = true;
     // Reset state immediately when symbol or interval changes to prevent stale data
     setCandleData(null);
     setIsLoading(true);
@@ -110,6 +111,7 @@ export function usePerpsLiveCandles(
         interval,
         duration,
         callback: (newCandleData) => {
+          if (!isActive) return;
           // null/undefined means no cached data yet, keep loading state
           if (newCandleData === null || newCandleData === undefined) {
             return;
@@ -142,6 +144,7 @@ export function usePerpsLiveCandles(
         },
         throttleMs,
         onError: (err: Error) => {
+          if (!isActive) return;
           const errorInstance = ensureError(err, 'usePerpsLiveCandles.onError');
 
           // Log to Sentry: async subscription initialization failure
@@ -166,6 +169,7 @@ export function usePerpsLiveCandles(
       });
 
       return () => {
+        isActive = false;
         unsubscribe();
       };
     } catch (err) {

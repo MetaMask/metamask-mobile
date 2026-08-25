@@ -7,6 +7,7 @@ import {
   getPreloadedData,
 } from './stream/hasCachedPerpsData';
 import { filterAndSortMarkets } from '../utils/filterAndSortMarkets';
+import { usePerpsMarketContext } from './usePerpsMarketContext';
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
@@ -84,6 +85,8 @@ export const usePerpsMarkets = (
   } = options;
 
   const streamManager = usePerpsStream();
+  const { key: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
   const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
@@ -117,6 +120,13 @@ export const usePerpsMarkets = (
       (initialChannelMarkets !== null && initialChannelMarkets !== undefined) ||
       hasPreloadedData('cachedMarketData'),
   );
+
+  useEffect(() => {
+    setMarkets([]);
+    setError(null);
+    setHasResolvedInitialData(skipInitialFetch);
+    setIsLoading(!skipInitialFetch);
+  }, [marketContextKey, skipInitialFetch]);
 
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
@@ -156,12 +166,19 @@ export const usePerpsMarkets = (
       setHasResolvedInitialData(true);
       return;
     }
+    if (!isMarketContextReady) {
+      setIsLoading(true);
+      setHasResolvedInitialData(false);
+      return;
+    }
 
+    let isActive = true;
     let isFirstUpdate = true;
     const subscriptionStartTime = Date.now();
 
     const unsubscribe = streamManager.marketData.subscribe({
       callback: (marketData) => {
+        if (!isActive) return;
         if (marketData !== null && marketData !== undefined) {
           setHasResolvedInitialData(
             marketData.length > 0 ||
@@ -205,9 +222,16 @@ export const usePerpsMarkets = (
     });
 
     return () => {
+      isActive = false;
       unsubscribe();
     };
-  }, [streamManager.marketData, sortMarketsByVolume, skipInitialFetch]);
+  }, [
+    isMarketContextReady,
+    marketContextKey,
+    streamManager.marketData,
+    sortMarketsByVolume,
+    skipInitialFetch,
+  ]);
 
   // Polling effect
   useEffect(() => {

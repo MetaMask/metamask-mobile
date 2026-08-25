@@ -82,6 +82,7 @@ const sessionListeners = new Set<(update: PerpsLoadingSessionUpdate) => void>();
 let marketsReadySource: PerpsLoadingSource | null = null;
 let accountCacheSource: PerpsLoadingSource | null = null;
 let pendingFinishData: Record<string, string | number | boolean> | null = null;
+let backgroundConnectionValidationPending = false;
 let sessionTimeout: ReturnType<typeof setTimeout> | null = null;
 let preSessionEvents: {
   stream: PerpsLoadingStream;
@@ -130,6 +131,8 @@ export function startPerpsLoadingSession(
   activeSessionId = sessionId;
   activeSessionIdentity = options.identity ?? null;
   activeLifecycle = options.lifecycle ?? 'cold_no_cache';
+  backgroundConnectionValidationPending =
+    activeLifecycle === 'background_short';
   contextGenerationCounter += 1;
   activeContextGeneration = contextGenerationCounter;
   activeConnectionGeneration = undefined;
@@ -421,8 +424,7 @@ function recordValuesReady({
     if (
       pendingFinishData &&
       isFreshMarketSource(source) &&
-      (pendingFinishData.content_variant === 'trending' ||
-        pendingFinishData.content_variant === 'pills')
+      pendingFinishData.content_variant === 'trending'
     ) {
       pendingFinishData = {
         ...pendingFinishData,
@@ -546,6 +548,9 @@ export function setPerpsLoadingSessionLifecycle(
     return;
   }
   activeLifecycle = lifecycle;
+  if (lifecycle !== 'background_short') {
+    backgroundConnectionValidationPending = false;
+  }
   annotateTraceByRequest(
     { name: TraceName.PerpsLoadingSession, id: activeSessionId },
     { lifecycle },
@@ -554,6 +559,13 @@ export function setPerpsLoadingSessionLifecycle(
   if (lifecycleContext) {
     notifySessionListeners({ type: 'lifecycle', context: lifecycleContext });
   }
+  tryFinishPendingSession();
+}
+
+export function markPerpsLoadingSessionConnectionValidated(): void {
+  if (!activeSessionId || !backgroundConnectionValidationPending) return;
+  backgroundConnectionValidationPending = false;
+  tryFinishPendingSession();
 }
 
 export function getActivePerpsLoadingSessionTraceData():
@@ -619,6 +631,7 @@ function resetActiveLoadingSession(): void {
   marketsReadySource = null;
   accountCacheSource = null;
   pendingFinishData = null;
+  backgroundConnectionValidationPending = false;
   preSessionEvents = [];
   preSessionBufferArmed = false;
 }
@@ -677,6 +690,7 @@ function hasRequiredLiveStreams(
   data: Record<string, string | number | boolean>,
 ): boolean {
   return (
+    !backgroundConnectionValidationPending &&
     (!requiresLiveAccount(data) ||
       (recordedMilestones.has('positions_live') &&
         recordedMilestones.has('orders_live') &&
@@ -732,6 +746,7 @@ export function resetPerpsLoadingSessionForTesting(): void {
   marketsReadySource = null;
   accountCacheSource = null;
   pendingFinishData = null;
+  backgroundConnectionValidationPending = false;
   if (sessionTimeout) {
     clearTimeout(sessionTimeout);
     sessionTimeout = null;

@@ -16,11 +16,13 @@ export function usePerpsTrendingCarouselData({
   const {
     markets,
     isLoading: marketsLoading,
+    hasResolvedInitialData,
     refresh: refreshMarkets,
   } = usePerpsMarkets({
     skipInitialFetch,
   });
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+  const marketsResolved = hasResolvedInitialData ?? !marketsLoading;
 
   const safeWatchlistSymbols = useMemo(
     () => watchlistSymbols ?? [],
@@ -64,6 +66,7 @@ export function usePerpsTrendingCarouselData({
     () => ({
       markets,
       marketsLoading,
+      hasResolvedInitialData: marketsResolved,
       allCarouselMarkets,
       watchlistSymbolSet,
       refreshMarkets,
@@ -71,6 +74,7 @@ export function usePerpsTrendingCarouselData({
     [
       markets,
       marketsLoading,
+      marketsResolved,
       allCarouselMarkets,
       watchlistSymbolSet,
       refreshMarkets,

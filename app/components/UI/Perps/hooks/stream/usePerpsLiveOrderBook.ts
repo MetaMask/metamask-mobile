@@ -178,6 +178,7 @@ export function usePerpsLiveOrderBook(
     );
 
     let unsubscribe: (() => void) | null = null;
+    let isActive = true;
 
     try {
       if (isAggregated) {
@@ -188,9 +189,11 @@ export function usePerpsLiveOrderBook(
           nSigFigs,
           mantissa,
           callback: (data: OrderBookData) => {
+            if (!isActive) return;
             applyUpdate(data, symbol);
           },
           onStatusChange: (status) => {
+            if (!isActive) return;
             setConnectionStatus(status);
             if (status === 'error') {
               setDataSymbol(symbol);
@@ -206,9 +209,11 @@ export function usePerpsLiveOrderBook(
           mantissa,
           fast,
           callback: (data: OrderBookData) => {
+            if (!isActive) return;
             applyUpdate(data, symbol);
           },
           onError: (err: Error) => {
+            if (!isActive) return;
             DevLogger.log('usePerpsLiveOrderBook: Subscription error', err);
             setDataSymbol(symbol);
             setError(err);
@@ -232,6 +237,7 @@ export function usePerpsLiveOrderBook(
     }
 
     return () => {
+      isActive = false;
       DevLogger.log(
         `usePerpsLiveOrderBook: Unsubscribing from ${symbol} (${channel})`,
       );

@@ -56,6 +56,7 @@ import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
 import {
   getActivePerpsLoadingSessionTraceData,
+  markPerpsLoadingSessionConnectionValidated,
   setPerpsLoadingSessionLifecycle,
 } from '../utils/perpsLoadingSession';
 import { getPerpsLifecycleContext } from '../utils/perpsLifecycleContext';
@@ -622,6 +623,7 @@ class PerpsConnectionManagerClass {
           this.clearError();
         }
         this.resubscribeActiveStreamChannels();
+        markPerpsLoadingSessionConnectionValidated();
         return;
       } catch {
         // First ping failed — JS thread may be sluggish right after foregrounding.
@@ -638,6 +640,7 @@ class PerpsConnectionManagerClass {
             this.clearError();
           }
           this.resubscribeActiveStreamChannels();
+          markPerpsLoadingSessionConnectionValidated();
           return;
         } catch {
           DevLogger.log(
@@ -649,6 +652,7 @@ class PerpsConnectionManagerClass {
 
     // Soft reconnect: preserve cached data so no loading skeletons appear.
     // The WebSocket was likely still alive — avoid a jarring skeleton flash.
+    setPerpsLoadingSessionLifecycle('background_reconnect');
     await this.ensureConnected({ source, suppressError, preserveCaches: true });
   }
 
