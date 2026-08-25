@@ -8,10 +8,26 @@ import {
 } from '@metamask/perps-controller';
 
 const mockSubscribe = jest.fn();
-const mockStream = { candles: { subscribe: mockSubscribe } };
+const mockPrewarmCandles = jest.fn().mockResolvedValue(undefined);
+let mockMarketContextKey = 'testnet:hyperliquid:0|1';
+const mockStream = {
+  candles: {
+    prewarmCandles: mockPrewarmCandles,
+    subscribe: mockSubscribe,
+  },
+};
 
 jest.mock('../../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => mockStream),
+}));
+
+jest.mock('../../../../../UI/Perps/hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: jest.fn(() => ({
+    key: mockMarketContextKey,
+    isReady: true,
+    isUserReady: true,
+    isConnectionInitialized: true,
+  })),
 }));
 
 function makeMarket(
@@ -51,6 +67,7 @@ function makeCandles(count: number, startPrice = 100): CandleData['candles'] {
 describe('useHomepageSparklines', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarketContextKey = 'testnet:hyperliquid:0|1';
     mockSubscribe.mockReturnValue(jest.fn());
   });
 
@@ -174,6 +191,115 @@ describe('useHomepageSparklines', () => {
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
+  it('drops fallback data and late callbacks after the market context changes', async () => {
+    const callbacks: ((candleData: CandleData) => void)[] = [];
+    mockSubscribe.mockImplementation(
+      (params: { callback: (candleData: CandleData) => void }) => {
+        callbacks.push(params.callback);
+        return jest.fn();
+      },
+    );
+    const markets = [makeMarket('BTC')];
+    const { result, rerender } = renderHook(
+      ({ value }) => useHomepageSparklines(value),
+      { initialProps: { value: markets } },
+    );
+
+    await act(async () => {
+      callbacks[0]?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 100),
+      });
+    });
+    expect(result.current.sparklines.BTC?.[0]).toBe(100);
+
+    mockMarketContextKey = 'mainnet:hyperliquid:0|2';
+    rerender({ value: markets });
+    expect(result.current.sparklines.BTC).toBeUndefined();
+
+    await act(async () => {
+      callbacks[0]?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+    expect(result.current.sparklines.BTC).toBeUndefined();
+
+    await act(async () => {
+      callbacks[1]?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 300),
+      });
+    });
+    expect(result.current.sparklines.BTC?.[0]).toBe(300);
+  });
+
+  it('force-refreshes only markets without trend data', async () => {
+    const { result } = renderHook(() =>
+      useHomepageSparklines([
+        makeMarket('BTC', makeTrend(10)),
+        makeMarket('ETH'),
+      ]),
+    );
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockPrewarmCandles).toHaveBeenCalledTimes(1);
+    expect(mockPrewarmCandles).toHaveBeenCalledWith(
+      'ETH',
+      CandlePeriod.FifteenMinutes,
+      TimeDuration.OneDay,
+      true,
+    );
+  });
+
+  it('accepts refresh data until overlapping refreshes both settle', async () => {
+    let candleCallback: ((candleData: CandleData) => void) | undefined;
+    let resolveFirst: (() => void) | undefined;
+    let resolveSecond: (() => void) | undefined;
+    mockSubscribe.mockImplementation(
+      (params: { callback: (candleData: CandleData) => void }) => {
+        candleCallback = params.callback;
+        return jest.fn();
+      },
+    );
+    mockPrewarmCandles
+      .mockImplementationOnce(
+        () => new Promise<void>((resolve) => (resolveFirst = resolve)),
+      )
+      .mockImplementationOnce(
+        () => new Promise<void>((resolve) => (resolveSecond = resolve)),
+      );
+    const { result } = renderHook(() =>
+      useHomepageSparklines([makeMarket('BTC')]),
+    );
+
+    const firstRefresh = result.current.refresh();
+    const secondRefresh = result.current.refresh();
+    await act(async () => {
+      resolveFirst?.();
+      await firstRefresh;
+    });
+    await act(async () => {
+      candleCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+
+    expect(result.current.sparklines.BTC?.[0]).toBe(200);
+
+    await act(async () => {
+      resolveSecond?.();
+      await secondRefresh;
+    });
+  });
   it('filters out unparseable trend price entries', () => {
     const markets = [
       makeMarket('BTC', [

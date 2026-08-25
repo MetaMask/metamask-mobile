@@ -9,6 +9,7 @@ import {
 import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
+  key: string;
   identityKey: string;
   isReady: boolean;
 }
@@ -58,6 +59,7 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     initializedKey === selectedContextKey &&
     initializedConnectionGeneration === connectionGeneration;
   return {
+    key: `${selectedContextKey}|${connectionGeneration}`,
     identityKey: selectedContextKey,
     isReady,
   };

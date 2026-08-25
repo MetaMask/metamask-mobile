@@ -242,7 +242,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       () => (showTrending ? allCarouselMarkets : []),
       [allCarouselMarkets, showTrending],
     );
-    const { sparklines } = useHomepageSparklines(sparklineMarkets);
+    const { refresh: refreshSparklines, sparklines } =
+      useHomepageSparklines(sparklineMarkets);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -272,7 +273,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             await refetchPerpsPills();
             return;
           }
-          await refreshMarkets();
+          await Promise.all([refreshMarkets(), refreshSparklines()]);
         },
       }),
       [
@@ -280,6 +281,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         refetchPerpsPills,
         reconnectWithNewContext,
         refreshMarkets,
+        refreshSparklines,
         shouldShowPillsEmptyState,
       ],
     );
