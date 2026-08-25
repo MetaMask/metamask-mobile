@@ -137,4 +137,22 @@ describe('buildPostCancellationResetState', () => {
       state: homeNavNestedState,
     });
   });
+
+  it('inserts HomeNav under Pro Hub when the stack has no non-Pro origin screen', () => {
+    const state = createStackState([
+      Routes.PRO_HUB.ROOT,
+      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
+    ]);
+
+    const nextState = buildPostCancellationResetState(state);
+
+    expect(nextState.index).toBe(1);
+    expect(nextState.routes).toEqual([
+      { name: Routes.ONBOARDING.HOME_NAV },
+      {
+        name: Routes.PRO_HUB.ROOT,
+        params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
+      },
+    ]);
+  });
 });
