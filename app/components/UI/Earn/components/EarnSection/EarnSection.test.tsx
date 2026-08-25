@@ -1,7 +1,13 @@
 import React, { createRef } from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -140,20 +146,24 @@ const navigate = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 
+const createSectionResult = (
+  overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
+): ReturnType<typeof useEarnSectionAssets> => ({
+  assetSlots: [assetSlot],
+  hasMoreAssets: false,
+  moneyApyPercent: 6.2,
+  moneyRateStatus: 'ready',
+  isLoading: false,
+  hasError: false,
+  errors: [],
+  refresh: jest.fn(),
+  ...overrides,
+});
+
 const mockSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
 ) => {
-  mockUseEarnSectionAssets.mockReturnValue({
-    assetSlots: [assetSlot],
-    hasMoreAssets: false,
-    moneyApyPercent: 6.2,
-    moneyRateStatus: 'ready',
-    isLoading: false,
-    hasError: false,
-    errors: [],
-    refresh: jest.fn(),
-    ...overrides,
-  });
+  mockUseEarnSectionAssets.mockReturnValue(createSectionResult(overrides));
 };
 
 const getSuccessArrowIcons = () =>
@@ -521,7 +531,9 @@ describe('EarnSection', () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
     mockSectionResult({ refresh });
 
-    renderEarnSection({ refreshTrigger: 0 });
+    renderEarnSection({
+      refresh: { trigger: 0, silentRefresh: true },
+    });
 
     expect(refresh).not.toHaveBeenCalled();
     expect(mockRefetchBalance).not.toHaveBeenCalled();
@@ -531,7 +543,9 @@ describe('EarnSection', () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
     mockSectionResult({ refresh });
 
-    renderEarnSection({ refreshTrigger: 1 });
+    renderEarnSection({
+      refresh: { trigger: 1, silentRefresh: true },
+    });
 
     await act(async () => {
       await Promise.resolve();
@@ -541,21 +555,54 @@ describe('EarnSection', () => {
     expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
   });
 
-  it('logs an Explore refresh failure', async () => {
-    const refreshError = new Error('Earn refresh failed');
-    const refresh = jest.fn().mockRejectedValue(refreshError);
+  it('logs when an Explore refresh fails', async () => {
+    const error = new Error('Explore refresh failed');
+    const refresh = jest.fn().mockRejectedValue(error);
     mockSectionResult({ refresh });
 
-    renderEarnSection({ refreshTrigger: 1 });
+    renderEarnSection({
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        error,
+        'EarnSection: Failed to refresh section data',
+      );
+    });
+  });
+
+  it('coalesces concurrent Explore refreshes across EarnSection instances', async () => {
+    const firstRefresh = jest.fn().mockResolvedValue(undefined);
+    const secondRefresh = jest.fn().mockResolvedValue(undefined);
+    mockUseEarnSectionAssets
+      .mockImplementationOnce(() =>
+        createSectionResult({ refresh: firstRefresh }),
+      )
+      .mockImplementationOnce(() =>
+        createSectionResult({ refresh: secondRefresh }),
+      );
+
+    render(
+      <>
+        <EarnSection
+          tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          refresh={{ trigger: 1, silentRefresh: true }}
+        />
+        <EarnSection
+          tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          refresh={{ trigger: 1, silentRefresh: true }}
+        />
+      </>,
+    );
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(mockLoggerError).toHaveBeenCalledWith(
-      refreshError,
-      'EarnSection: Failed to refresh Earn data',
-    );
+    expect(firstRefresh).toHaveBeenCalledTimes(1);
+    expect(secondRefresh).not.toHaveBeenCalled();
+    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes catalogue sources from the error action', async () => {

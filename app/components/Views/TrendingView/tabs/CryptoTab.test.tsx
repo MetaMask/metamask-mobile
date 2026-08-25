@@ -162,7 +162,7 @@ describe('CryptoTab — Earn section', () => {
 
     expect(screen.getByTestId('explore-section-earn')).toBeOnTheScreen();
     expect(mockEarnSection).toHaveBeenCalledWith({
-      refreshTrigger: 0,
+      refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });
@@ -187,7 +187,7 @@ describe('CryptoTab — Earn section', () => {
     );
 
     expect(mockEarnSection).toHaveBeenCalledWith({
-      refreshTrigger: 1,
+      refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });

@@ -132,7 +132,7 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => {
 const mockEarnSection = jest.fn(
   (props: {
     homeAnalytics?: unknown;
-    refreshTrigger?: number;
+    refresh?: { trigger: number; silentRefresh: boolean };
     showDividers?: boolean;
     tokenDetailsSource?: string;
   }) =>
@@ -146,7 +146,7 @@ jest.mock('../../../UI/Earn/components/EarnSection', () => ({
   __esModule: true,
   default: (props: {
     homeAnalytics?: unknown;
-    refreshTrigger?: number;
+    refresh?: { trigger: number; silentRefresh: boolean };
     showDividers?: boolean;
     tokenDetailsSource?: string;
   }) => mockEarnSection(props),
@@ -710,7 +710,7 @@ describe('NowTab — Earn section', () => {
 
     expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
     expect(mockEarnSection).toHaveBeenCalledWith({
-      refreshTrigger: 0,
+      refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });
@@ -727,7 +727,7 @@ describe('NowTab — Earn section', () => {
     });
 
     expect(mockEarnSection).toHaveBeenCalledWith({
-      refreshTrigger: 1,
+      refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });

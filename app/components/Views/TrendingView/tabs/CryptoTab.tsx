@@ -227,7 +227,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
         key: 'earn',
         content: (
           <EarnSection
-            refreshTrigger={refresh.trigger}
+            refresh={refresh}
             tokenDetailsSource={TokenDetailsSource.ExploreEarn}
           />
         ),

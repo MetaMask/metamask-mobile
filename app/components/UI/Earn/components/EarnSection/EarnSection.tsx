@@ -1,7 +1,6 @@
 import React, {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -62,6 +61,8 @@ import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
+import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -72,7 +73,7 @@ export interface EarnSectionProps {
   tokenDetailsSource: TokenDetailsSource;
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
-  refreshTrigger?: number;
+  refresh?: RefreshConfig;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -124,9 +125,17 @@ const renderUnavailableAssetCard = (key: string) => (
   />
 );
 
+// Module-level promise to prevent multiple concurrent refreshes.
+let refreshPromise: Promise<void> | undefined;
+
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   (
-    { tokenDetailsSource, homeAnalytics, showDividers = false, refreshTrigger },
+    {
+      tokenDetailsSource,
+      homeAnalytics,
+      showDividers = false,
+      refresh: exploreFeedRefreshConfig,
+    },
     ref,
   ) => {
     const tw = useTailwind();
@@ -166,32 +175,34 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       (!isLoading && hasMoreAssets ? 1 : 0);
 
     const refresh = useCallback(async () => {
-      await Promise.all([
+      refreshPromise ??= Promise.all([
         refetchMoneyAccountBalance(),
         refreshEarnSectionAssets(),
-      ]);
+      ])
+        .then(() => undefined)
+        .finally(() => {
+          refreshPromise = undefined;
+        });
+
+      return refreshPromise;
     }, [refetchMoneyAccountBalance, refreshEarnSectionAssets]);
+
+    const handleExploreFeedRefresh = useCallback(async () => {
+      try {
+        await refresh();
+      } catch (error: unknown) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'EarnSection: Failed to refresh section data',
+        );
+      }
+    }, [refresh]);
 
     /**
      * Refreshes Earn data when the parent requests a page refresh.
      * Currently used for Explore pull-to-refresh.
      */
-    useEffect(() => {
-      if (refreshTrigger === undefined || refreshTrigger <= 0) return;
-
-      const refreshEarnSection = async () => {
-        try {
-          await refresh();
-        } catch (error: unknown) {
-          Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            'EarnSection: Failed to refresh Earn data',
-          );
-        }
-      };
-
-      refreshEarnSection();
-    }, [refresh, refreshTrigger]);
+    useFeedRefresh(exploreFeedRefreshConfig, handleExploreFeedRefresh);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
