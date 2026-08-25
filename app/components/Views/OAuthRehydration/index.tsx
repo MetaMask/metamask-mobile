@@ -77,6 +77,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -165,6 +167,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
+
+  useOnboardingLoadingStallTracker({
+    isLoading: finalLoading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.REHYDRATION,
+    properties: {
+      account_type: accountType,
+    },
+    saveOnboardingEvent,
+  });
+
   const navigation = useNavigation<AppNavigationProp>();
 
   useNavigationPerformance({

@@ -110,6 +110,8 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import {
@@ -202,6 +204,25 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const stallOauthProvider = route.params?.provider;
+  const stallAccountType = stallOauthProvider
+    ? getSocialAccountType(stallOauthProvider, false)
+    : AccountType.Metamask;
+  const walletSetupType =
+    route.params?.[PREVIOUS_SCREEN] === ONBOARDING ? 'new' : 'import';
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.CREATE_PASSWORD,
+    properties: {
+      wallet_setup_type: walletSetupType,
+      account_type: stallAccountType,
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);

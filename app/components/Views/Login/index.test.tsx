@@ -29,6 +29,11 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
+  trackLoginUnlockAttempted,
+  trackLoginUnlockCompleted,
+  trackLoginUnlockFailed,
+} from './loginUnlockAnalytics';
+import {
   PASSCODE_NOT_SET_ERROR,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
@@ -250,6 +255,23 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
+jest.mock('./loginUnlockAnalytics', () => {
+  const actual = jest.requireActual('./loginUnlockAnalytics');
+  return {
+    ...actual,
+    trackLoginUnlockAttempted: jest.fn(),
+    trackLoginUnlockCompleted: jest.fn(),
+    trackLoginUnlockFailed: jest.fn(),
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
@@ -344,6 +366,9 @@ describe('Login', () => {
   const mockTrackOnboarding = jest.mocked(
     jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
   );
+  const mockTrackLoginUnlockAttempted = jest.mocked(trackLoginUnlockAttempted);
+  const mockTrackLoginUnlockCompleted = jest.mocked(trackLoginUnlockCompleted);
+  const mockTrackLoginUnlockFailed = jest.mocked(trackLoginUnlockFailed);
   const mockTrackErrorAsAnalytics =
     trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
   const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
@@ -996,6 +1021,58 @@ describe('Login', () => {
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
         expect.any(Function),
+      );
+    });
+
+    it('tracks Login Attempted on password unlock', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackLoginUnlockAttempted).toHaveBeenCalledWith(
+        expect.objectContaining({ loginMethod: 'password' }),
+      );
+    });
+
+    it('tracks Login Completed on password unlock', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackLoginUnlockCompleted).toHaveBeenCalledWith(
+        expect.objectContaining({ loginMethod: 'password' }),
+      );
+    });
+
+    it('tracks Login Failed on wrong password', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackLoginUnlockFailed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          loginMethod: 'password',
+          errorType: 'wrong_password',
+        }),
       );
     });
 

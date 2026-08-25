@@ -90,6 +90,8 @@ import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
@@ -260,6 +262,18 @@ const ImportFromSecretRecoveryPhrase = () => {
     null,
   );
   const [loading, setLoading] = useState(false);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.IMPORT_SRP,
+    properties: {
+      wallet_setup_type: 'import',
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
