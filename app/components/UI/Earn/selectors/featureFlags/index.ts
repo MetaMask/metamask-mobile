@@ -370,7 +370,7 @@ export const selectMusdBalanceChainIds = createSelector(
 );
 
 /**
- * Selects whether the static Earn section is shown on Wallet Home.
+ * Selects whether the Earn section is rendered on Wallet Home.
  */
 export const selectEarnHomeSectionEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -384,7 +384,7 @@ export const selectEarnHomeSectionEnabledFlag = createSelector(
 );
 
 /**
- * Selects whether the static Earn section is shown on Explore page.
+ * Selects whether the Earn section is rendered on Explore page.
  */
 export const selectExploreEarnSectionEnabledFlag = createSelector(
   selectRemoteFeatureFlags,

@@ -1,15 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
-import Logger from '../../../../util/Logger';
+import { renderHook } from '@testing-library/react-native';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
 import useEarnSectionAssets from './useEarnSectionAssets';
 
-jest.mock('../../../../util/Logger');
 jest.mock('./useEarnAssetCatalogue');
 
 const mockUseEarnAssetCatalogue = useEarnAssetCatalogue as jest.MockedFunction<
   typeof useEarnAssetCatalogue
 >;
-const mockLoggerError = jest.mocked(Logger.error);
 
 type EarnAssetCatalogueResult = ReturnType<typeof useEarnAssetCatalogue>;
 
@@ -33,50 +30,25 @@ describe('useEarnSectionAssets', () => {
     mockUseEarnAssetCatalogue.mockReturnValue(createCatalogueResult());
   });
 
-  it('does not refresh the catalogue for the initial trigger', () => {
+  it('does not refresh the catalogue when rendered', () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ refresh }),
     );
 
-    renderHook(() => useEarnSectionAssets({ refreshTrigger: 0 }));
+    renderHook(() => useEarnSectionAssets());
 
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it('refreshes the catalogue when the trigger increments', async () => {
+  it('returns the catalogue refresh function', () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ refresh }),
     );
 
-    const { rerender } = renderHook(
-      ({ refreshTrigger }: { refreshTrigger: number }) =>
-        useEarnSectionAssets({ refreshTrigger }),
-      { initialProps: { refreshTrigger: 0 } },
-    );
+    const { result } = renderHook(() => useEarnSectionAssets());
 
-    rerender({ refreshTrigger: 1 });
-
-    await waitFor(() => {
-      expect(refresh).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('logs a rejected catalogue refresh', async () => {
-    const refreshError = new Error('Catalogue refresh failed');
-    const refresh = jest.fn().mockRejectedValue(refreshError);
-    mockUseEarnAssetCatalogue.mockReturnValue(
-      createCatalogueResult({ refresh }),
-    );
-
-    renderHook(() => useEarnSectionAssets({ refreshTrigger: 1 }));
-
-    await waitFor(() => {
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        refreshError,
-        'EarnSection: Failed to refresh Earn data',
-      );
-    });
+    expect(result.current.refresh).toBe(refresh);
   });
 });

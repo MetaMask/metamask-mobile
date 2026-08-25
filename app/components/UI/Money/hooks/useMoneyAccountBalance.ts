@@ -45,7 +45,7 @@ interface UseMoneyAccountBalanceResult {
   /** Whether the last successful balance used the secondary source. */
   usedFallback: boolean;
   lastKnownTotalFiatFormatted: string | undefined;
-  refetchBalance: () => void;
+  refetchBalance: () => Promise<void>;
   tokenTotal: BigNumber | undefined;
   totalFiatFormatted: string | undefined;
   totalFiatRaw: string | undefined;

@@ -33,8 +33,8 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import { HomepageEarnSection } from '../../UI/Earn/components/EarnSection';
 import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { HomepageEarnSection } from './Sections/EarnSection';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.

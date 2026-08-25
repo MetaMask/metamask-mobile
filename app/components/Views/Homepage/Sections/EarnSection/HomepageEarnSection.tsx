@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import EarnSection from './EarnSection';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import EarnSection from '../../../../UI/Earn/components/EarnSection';
 
 interface HomepageEarnSectionProps {
   sectionIndex: number;
