@@ -73,6 +73,7 @@ export interface ImmersveProgramConfig {
    * funding sources keep using the top-level fields above.
    */
   monadConfig?: ImmersveMonadConfig;
+  reportTransactionUrl?: string;
 }
 
 // -- Generic per-provider shapes --

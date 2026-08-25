@@ -9573,6 +9573,12 @@
       }
     },
     "transactions": {
+      "title": "Transactions",
+      "empty": "No transactions yet",
+      "load_error": "Can't load transactions",
+      "load_error_more": "Couldn't load more",
+      "retry": "Try again",
+      "end_of_list": "You're all caught up",
       "pending": "Pending",
       "completed": "Completed",
       "reversed": "Reversed",
@@ -9597,7 +9603,15 @@
         "misc": "Other"
       },
       "view_on_explorer": "View on block explorer",
-      "report_cta": "Report Transaction"
+      "report_cta": "Report an issue",
+      "report_title": "Have you contacted the merchant?",
+      "report_body_merchant": "Most transaction issues get resolved faster when you reach out to the merchant directly.",
+      "report_body_continue": "If you've already tried that, we're here to help.",
+      "report_file": "File a report",
+      "report_open_error": "Couldn't open your mail app",
+      "report_back": "Cancel",
+      "manage_entry_title": "Transaction history",
+      "manage_entry_description": "Card purchases and activity"
     },
     "card_spending_limit": {
       "title_change_token": "Change token and network",

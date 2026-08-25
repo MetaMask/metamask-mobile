@@ -171,6 +171,8 @@ export const DEFAULT_IMMERSVE_CONFIG: ImmersveProgramConfig = {
   fundingChannelId: '',
   spenderAddress: '',
   secureApiBaseUrl: '',
+  reportTransactionUrl:
+    'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745',
 };
 
 /** Fallback for the `cardImmersveCountries` flag. */
