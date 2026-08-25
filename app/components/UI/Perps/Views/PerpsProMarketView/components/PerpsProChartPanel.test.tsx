@@ -18,10 +18,7 @@ import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedC
 import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import type { OhlcData } from '../../../components/TradingViewChart';
-import {
-  PerpsProMarketViewSelectorsIDs,
-  TradingViewChartSelectorsIDs,
-} from '../../../Perps.testIds';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
 
@@ -251,7 +248,7 @@ describe('PerpsProChartPanel', () => {
     });
   });
 
-  it('renders the Limit overlay host when a resting BTC limit is live', () => {
+  it('passes resting BTC limit orders to the Advanced Chart', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [
         {
@@ -275,20 +272,19 @@ describe('PerpsProChartPanel', () => {
 
     renderChartPanel();
 
-    expect(
-      screen.getByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
-    ).toHaveProp('pointerEvents', 'none');
+    expect(mockPerpsAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tpslLines: expect.objectContaining({
+          limitOrders: [{ id: 'btc-limit', price: '50000', side: 'buy' }],
+        }),
+      }),
+    );
   });
 
-  it('hides the Limit overlay host when live orders are empty', () => {
+  it('omits limitOrders on the Advanced Chart when live orders are empty', () => {
     renderChartPanel();
 
-    expect(
-      screen.queryByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
-    ).toBeNull();
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBeUndefined();
   });
 
   it('renders the Advanced Chart path when its feature flag is enabled', () => {

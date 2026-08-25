@@ -57,19 +57,17 @@ describe('getChartLimitOrderLines', () => {
     ]);
   });
 
-  it('includes limits identified only by detailedOrderType', () => {
+  it('includes scale and chase orders that rest as limits', () => {
     const orders = [
-      makeOrder({
-        orderId: 'detailed-limit',
-        orderType: 'market',
-        detailedOrderType: 'Limit',
-      }),
+      makeOrder({ orderId: 'scale-1', orderType: 'scale' }),
+      makeOrder({ orderId: 'chase-1', orderType: 'chase' }),
     ];
 
     const result = getChartLimitOrderLines(orders);
 
     expect(result).toEqual([
-      { id: 'detailed-limit', price: '50000', side: 'buy' },
+      { id: 'scale-1', price: '50000', side: 'buy' },
+      { id: 'chase-1', price: '50000', side: 'buy' },
     ]);
   });
 

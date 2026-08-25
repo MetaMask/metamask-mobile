@@ -668,6 +668,24 @@ describe('mapTpslToPositionLines', () => {
       limitOrders: [{ price: 41000, side: 'long' }],
     });
   });
+
+  it('omits TP/SL/liquidation when entryPrice is non-finite but limits remain', () => {
+    const result = mapTpslToPositionLines(
+      {
+        entryPrice: 'NaN',
+        takeProfitPrice: '45000',
+        stopLossPrice: '40000',
+        liquidationPrice: '38000',
+        limitOrders: [{ id: 'limit-buy', price: '41000', side: 'buy' }],
+      },
+      '1.0',
+    );
+
+    expect(result).toEqual({
+      side: 'long',
+      limitOrders: [{ price: 41000, side: 'long' }],
+    });
+  });
 });
 
 describe('getPerpsPositionLineColors', () => {

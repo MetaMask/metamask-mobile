@@ -34,7 +34,6 @@ import TradingViewChart, {
   type OhlcData,
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
-import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import { getPerpsVolumeColors } from '../../utils/chartColors';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import performance from 'react-native-performance';
@@ -89,8 +88,11 @@ export function mapTpslToPositionLines(
       Boolean(order),
     );
 
-  const hasEntry = Boolean(tpslLines?.entryPrice);
-  if (!hasEntry && limitOrders.length === 0) {
+  const entry = tpslLines?.entryPrice
+    ? Number.parseFloat(tpslLines.entryPrice)
+    : undefined;
+  const hasFiniteEntry = Number.isFinite(entry);
+  if (!hasFiniteEntry && limitOrders.length === 0) {
     return undefined;
   }
 
@@ -103,44 +105,33 @@ export function mapTpslToPositionLines(
     side,
   };
 
-  if (tpslLines?.entryPrice) {
-    const entry = Number.parseFloat(tpslLines.entryPrice);
-    if (!Number.isFinite(entry)) {
-      if (limitOrders.length === 0) {
-        return undefined;
-      }
-    } else {
-      result.entryPrice = entry;
+  if (hasFiniteEntry && entry !== undefined) {
+    result.entryPrice = entry;
+
+    const takeProfitPrice = tpslLines?.takeProfitPrice
+      ? Number.parseFloat(tpslLines.takeProfitPrice)
+      : undefined;
+    if (Number.isFinite(takeProfitPrice)) {
+      result.takeProfitPrice = takeProfitPrice;
     }
-  }
 
-  const takeProfitPrice = tpslLines?.takeProfitPrice
-    ? Number.parseFloat(tpslLines.takeProfitPrice)
-    : undefined;
-  if (Number.isFinite(takeProfitPrice)) {
-    result.takeProfitPrice = takeProfitPrice;
-  }
+    const stopLossPrice = tpslLines?.stopLossPrice
+      ? Number.parseFloat(tpslLines.stopLossPrice)
+      : undefined;
+    if (Number.isFinite(stopLossPrice)) {
+      result.stopLossPrice = stopLossPrice;
+    }
 
-  const stopLossPrice = tpslLines?.stopLossPrice
-    ? Number.parseFloat(tpslLines.stopLossPrice)
-    : undefined;
-  if (Number.isFinite(stopLossPrice)) {
-    result.stopLossPrice = stopLossPrice;
-  }
-
-  const liquidationPrice = tpslLines?.liquidationPrice
-    ? Number.parseFloat(tpslLines.liquidationPrice)
-    : undefined;
-  if (Number.isFinite(liquidationPrice)) {
-    result.liquidationPrice = liquidationPrice;
+    const liquidationPrice = tpslLines?.liquidationPrice
+      ? Number.parseFloat(tpslLines.liquidationPrice)
+      : undefined;
+    if (Number.isFinite(liquidationPrice)) {
+      result.liquidationPrice = liquidationPrice;
+    }
   }
 
   if (limitOrders.length > 0) {
     result.limitOrders = limitOrders;
-  }
-
-  if (result.entryPrice === undefined && limitOrders.length === 0) {
-    return undefined;
   }
 
   return result;
@@ -476,7 +467,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
         coloredVolume
-        testID={TradingViewChartSelectorsIDs.CONTAINER}
       />
     );
   }

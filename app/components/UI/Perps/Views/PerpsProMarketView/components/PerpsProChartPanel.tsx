@@ -28,10 +28,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
-import {
-  PerpsProMarketViewSelectorsIDs,
-  TradingViewChartSelectorsIDs,
-} from '../../../Perps.testIds';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
@@ -329,16 +326,6 @@ const PerpsProChartPanel = ({
                     </Box>
                   ) : null}
                   {chartContent}
-                  {tpslLines?.limitOrders &&
-                  tpslLines.limitOrders.length > 0 ? (
-                    <Box
-                      testID={TradingViewChartSelectorsIDs.LIMIT_OVERLAY}
-                      accessible
-                      accessibilityLabel={strings('perps.order.limit')}
-                      pointerEvents="none"
-                      twClassName="absolute inset-0"
-                    />
-                  ) : null}
                 </Box>
               </ComponentErrorBoundary>
             </Box>

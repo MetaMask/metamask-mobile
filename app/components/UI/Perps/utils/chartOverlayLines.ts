@@ -1,4 +1,9 @@
-import type { Order, Position } from '@metamask/perps-controller';
+import {
+  getTriggerExecution,
+  isLimitExecutionOrderType,
+  type Order,
+  type Position,
+} from '@metamask/perps-controller';
 import type {
   ChartLimitOrderLine,
   TPSLLines,
@@ -27,10 +32,10 @@ export function getChartLimitOrderLines(
       continue;
     }
 
-    const detailedType = (order.detailedOrderType ?? '').toLowerCase();
-    const isLimit =
-      order.orderType === 'limit' || detailedType.includes('limit');
-    if (!isLimit) {
+    const isRestingLimit =
+      isLimitExecutionOrderType(order.orderType) ||
+      getTriggerExecution(order.orderType) === 'limit';
+    if (!isRestingLimit) {
       continue;
     }
 

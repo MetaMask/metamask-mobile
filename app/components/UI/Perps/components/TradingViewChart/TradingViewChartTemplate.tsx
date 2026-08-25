@@ -1,4 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { hexToRgba } from '../../utils/chartColors';
 
 export const createTradingViewChartTemplate = (
@@ -684,23 +685,18 @@ export const createTradingViewChartTemplate = (
             }
             // Create new candlestick series in pane 0 (top pane)
             window.collectLimitOverlayPrices = function() {
+                var seen = {};
                 var prices = [];
                 function pushPrice(value) {
                     var price = parseFloat(value);
-                    if (!isNaN(price) && isFinite(price)) {
+                    if (!isNaN(price) && isFinite(price) && !seen[price]) {
+                        seen[price] = true;
                         prices.push(price);
                     }
                 }
                 (window.lastLimitOrderPrices || []).forEach(pushPrice);
                 if (window.priceLines && window.priceLines.limitOrders) {
                     window.priceLines.limitOrders.forEach(function(item) {
-                        if (item) {
-                            pushPrice(item.price);
-                        }
-                    });
-                }
-                if (window.originalPriceLineData && window.originalPriceLineData.limitOrders) {
-                    window.originalPriceLineData.limitOrders.forEach(function(item) {
                         if (item) {
                             pushPrice(item.price);
                         }
@@ -740,7 +736,7 @@ export const createTradingViewChartTemplate = (
                         minValue = Math.min(minValue, price);
                         maxValue = Math.max(maxValue, price);
                     });
-                    var padding = (maxValue - minValue) * 0.04;
+                    var padding = (maxValue - minValue) * ${PERPS_CHART_CONFIG.LIMIT_AUTOSCALE_PADDING_FRACTION};
                     return {
                         priceRange: {
                             minValue: minValue - padding,
@@ -1127,44 +1123,6 @@ export const createTradingViewChartTemplate = (
             limitOrders: []
         };
 
-        window.syncLimitScaleSeries = function() {
-            var prices = window.collectLimitOverlayPrices ? window.collectLimitOverlayPrices() : [];
-            var LineSeries = window.LightweightCharts && window.LightweightCharts.LineSeries;
-            if (!window.chart || !LineSeries) {
-                return;
-            }
-            if (!prices.length || !window.allCandleData || window.allCandleData.length === 0) {
-                if (window.limitScaleSeries) {
-                    try {
-                        window.chart.removeSeries(window.limitScaleSeries);
-                    } catch (error) {
-                        // Silent error handling
-                    }
-                    window.limitScaleSeries = null;
-                }
-                return;
-            }
-            var firstTime = window.allCandleData[0].time;
-            var lastTime = window.allCandleData[window.allCandleData.length - 1].time;
-            var minPrice = Math.min.apply(null, prices);
-            var maxPrice = Math.max.apply(null, prices);
-            var data = [
-                { time: firstTime, value: minPrice },
-                { time: lastTime, value: maxPrice },
-            ];
-            if (!window.limitScaleSeries) {
-                window.limitScaleSeries = window.chart.addSeries(LineSeries, {
-                    color: 'transparent',
-                    lineWidth: 1,
-                    lastValueVisible: false,
-                    priceLineVisible: false,
-                    crosshairMarkerVisible: false,
-                    priceScaleId: 'right',
-                }, 0);
-            }
-            window.limitScaleSeries.setData(data);
-        };
-
         window.clearLimitOrderLines = function() {
             if (!window.candlestickSeries || !window.priceLines.limitOrders) {
                 if (window.priceLines) {
@@ -1190,9 +1148,6 @@ export const createTradingViewChartTemplate = (
             });
             window.clearLimitOrderLines();
             if (!window.candlestickSeries || !limitOrders || !limitOrders.length) {
-                if (window.syncLimitScaleSeries) {
-                    window.syncLimitScaleSeries();
-                }
                 return;
             }
             limitOrders.forEach(function(order) {
@@ -1226,7 +1181,6 @@ export const createTradingViewChartTemplate = (
             } catch (scaleError) {
                 // Silent error handling
             }
-            window.syncLimitScaleSeries();
         };
         
         // Store original price line data for restoration
@@ -1259,6 +1213,7 @@ export const createTradingViewChartTemplate = (
                 }
             });
             window.clearLimitOrderLines();
+            window.lastLimitOrderPrices = [];
         };
         
         window.showAllPriceLines = function() {
@@ -1582,9 +1537,6 @@ export const createTradingViewChartTemplate = (
 
                                 // Update visible price range for dynamic formatting
                                 window.updateVisiblePriceRange();
-                                if (window.syncLimitScaleSeries) {
-                                    window.syncLimitScaleSeries();
-                                }
 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
