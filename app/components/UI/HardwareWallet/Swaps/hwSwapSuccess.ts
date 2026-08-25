@@ -5,7 +5,13 @@ import { resetHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge'
 
 export interface CompleteHwSwapSuccessParams {
   dispatch: (action: ReturnType<typeof resetHardwareWalletsSwaps>) => void;
-  navigation: { navigate: (route: string) => void };
+  navigation: {
+    navigate: (
+      route: string,
+      params?: object,
+      options?: { pop?: boolean },
+    ) => void;
+  };
 }
 
 /**
@@ -26,5 +32,5 @@ export function completeHwSwapSuccess({
     hasNoTimeout: false,
   });
   dispatch(resetHardwareWalletsSwaps());
-  navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
 }

@@ -121,7 +121,7 @@ describe('isSettledCardTransaction', () => {
   it('returns false when funding sources have no txHash', () => {
     const tx = createTx({
       status: CardTransactionStatus.Failed,
-      fundingSources: [{ address: '0xaddr' }],
+      fundingSources: [{ walletAddress: '0xaddr' }],
     });
 
     expect(isSettledCardTransaction(tx)).toBe(false);
@@ -147,7 +147,7 @@ describe('settlementHashesForCardTransaction', () => {
     const tx = createTx({
       fundingSources: [
         { txHash: '0xAbCd' },
-        { address: '0xnohash' },
+        { walletAddress: '0xnohash' },
         { txHash: '0xEF' },
       ],
     });

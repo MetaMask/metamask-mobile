@@ -46,6 +46,10 @@ describe('completeHwSwapSuccess', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetHardwareWalletsSwaps',
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 });

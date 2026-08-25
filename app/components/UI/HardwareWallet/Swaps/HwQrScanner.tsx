@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   overlayCenter: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -365,7 +365,7 @@ export function HwQrScanner() {
     return (
       <>
         <Camera
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           device={cameraDevice}
           isActive={isFocused && hasPermission}
           codeScanner={codeScanner}

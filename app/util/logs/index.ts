@@ -93,6 +93,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   // Strip cardHomeData to avoid leaking user PII (wallet addresses, holder names)
   delete fullState.engine.backgroundState.CardController?.cardHomeData;
+  delete fullState.engine.backgroundState.CardController?.cardHomeDataAddress;
 
   // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;
