@@ -1,6 +1,6 @@
 # Runs Appium smoke tests for one smoke tag on Android or iOS.
 # Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag/split).
-# Specs for each fixed split are selected via e2e-appium-select-shard-specs.mjs
+# Specs for each fixed split are selected via e2e-split-tags-shards.mjs
 # (timing bin-pack when e2e-timings are available; else equal-count).
 
 name: Run Appium E2E
@@ -325,7 +325,7 @@ jobs:
 
       - name: Select specs for this shard (timing bin-pack)
         id: select-specs
-        run: node .github/scripts/e2e-appium-select-shard-specs.mjs
+        run: node .github/scripts/e2e-split-tags-shards.mjs
         env:
           PLATFORM: ${{ inputs.platform }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
