@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import { DEFAULT_PRO_POSITION_SIDE_FILTER } from '../utils/proPositionSideFilter';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+import { playSelection } from '../../../../../../util/haptics';
 
 jest.mock('./ProPositionSideFilterIcon', () => 'ProPositionSideFilterIcon');
 
@@ -18,6 +19,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     return translations[key] || key;
   }),
 }));
+
+jest.mock('../../../../../../util/haptics');
 
 describe('PerpsProPositionsSideFilterSheet', () => {
   const mockOnClose = jest.fn();
@@ -89,5 +92,26 @@ describe('PerpsProPositionsSideFilterSheet', () => {
 
     expect(mockOnApply).toHaveBeenCalledWith('long');
     expect(mockOnClose).toHaveBeenCalled();
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes without haptic or apply when the current filter is re-selected', () => {
+    render(
+      <PerpsProPositionsSideFilterSheet
+        isVisible
+        sideFilter="long"
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+        testID="positions-side-filter-sheet"
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId('positions-side-filter-sheet-option-long'),
+    );
+
+    expect(mockOnApply).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 });
