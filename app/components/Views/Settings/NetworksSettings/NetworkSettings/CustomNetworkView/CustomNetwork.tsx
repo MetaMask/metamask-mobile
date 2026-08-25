@@ -163,9 +163,9 @@ const CustomNetwork = ({
           allowNetworkSwitch={allowNetworkSwitch}
         />
       )}
-      {filteredPopularList.map((networkConfiguration, index) => (
+      {filteredPopularList.map((networkConfiguration) => (
         <TouchableOpacity
-          key={index}
+          key={networkConfiguration.chainId}
           style={networkSettingsStyles.popularNetwork}
           onPress={() => handleNetworkPress(networkConfiguration)}
         >
