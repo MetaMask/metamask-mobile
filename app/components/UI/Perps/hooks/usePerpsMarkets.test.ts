@@ -13,6 +13,15 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('./usePerpsMarketContext', () => ({
+  usePerpsMarketContext: jest.fn(() => ({
+    key: 'testnet|hyperliquid|0|0',
+    identityKey: 'testnet|hyperliquid|0',
+    isReady: true,
+    isUserReady: true,
+    isConnectionInitialized: true,
+  })),
+}));
 
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
