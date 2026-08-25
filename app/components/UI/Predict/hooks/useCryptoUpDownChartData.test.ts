@@ -65,7 +65,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        cacheTime: 0,
+        gcTime: 0,
         retry: false,
       },
     },
