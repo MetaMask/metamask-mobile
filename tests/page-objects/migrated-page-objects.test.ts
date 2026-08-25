@@ -17,7 +17,7 @@ jest.mock('../framework/Matchers.ts', () => ({
   },
 }));
 
-jest.mock('../framework/PlaywrightMatchers.ts', () => ({
+jest.mock('../framework/AppiumMatchers.ts', () => ({
   __esModule: true,
   default: {
     getElementById: jest.fn().mockResolvedValue({}),

@@ -8,6 +8,7 @@ import Assertions from '../../framework/Assertions';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import type { ScrollContainer } from '../../framework/types';
 import Utilities from '../../framework/Utilities';
 
 const MONEY_HOME_LOAD_TIMEOUT_MS = 60_000;
@@ -110,8 +111,8 @@ class MoneyHomeView {
     });
   }
 
-  get scrollView(): EncapsulatedElementType {
-    return Matchers.getElementByID(MoneyHomeViewTestIds.SCROLL_VIEW);
+  get scrollView(): ScrollContainer {
+    return Matchers.scrollContainer(MoneyHomeViewTestIds.SCROLL_VIEW);
   }
 
   get activityList(): EncapsulatedElementType {
