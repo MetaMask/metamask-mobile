@@ -616,6 +616,8 @@ const Routes = {
     ROOT: 'ProHub',
     /** Membership details screen — plan info, payment details, and manage actions. */
     MEMBERSHIP: 'ProHubMembership',
+    /** Lifetime Pro earnings breakdown — interest, card cashback, and add-money CTA. */
+    EARNED: 'ProHubEarned',
     /** Cancel membership screen — cancellation survey and confirmation. */
     CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },

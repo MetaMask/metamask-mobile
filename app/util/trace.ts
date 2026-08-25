@@ -321,6 +321,9 @@ export enum TraceOperation {
   OnboardingScreenPerformance = 'onboarding.screen.performance',
   OnboardingRivePerformance = 'onboarding.rive.performance',
   OnboardingNavigationPerformance = 'onboarding.navigation.performance',
+  // Swap/Bridge
+  BridgeScreenPerformance = 'bridge.screen.performance',
+  BridgeDataFetch = 'bridge.data_fetch',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',
