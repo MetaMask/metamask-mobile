@@ -62,15 +62,14 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('enables agree and continue once disclaimers load, without navigating yet', () => {
+  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
-    // The Verify identity screen lands in a follow-up PR.
     fireEvent.press(button);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
