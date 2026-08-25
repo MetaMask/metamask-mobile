@@ -109,8 +109,10 @@
       </p>
       <div class="banner">
         <strong>Sauce Labs remains under evaluation.</strong>
-        These runs show a sharp regression vs Aug 24 (~16–18/23): most scenarios fail with ~300s timeouts.
-        Treat results as provisional — not for final vendor selection.
+        The repeated <code>~300s</code> values are <strong>not performance timings</strong> and not milliseconds —
+        they are the Playwright wall-clock (~5 min) after Sauce failed to create a WebDriver session
+        (<code>POST .../wd/hub/session</code> aborted; matches <code>connectionRetryTimeout: 300_000</code>).
+        No step metrics were collected for those cases.
       </div>
       <nav class="links" id="links"></nav>
     </header>
@@ -137,7 +139,7 @@
     <section class="section">
       <h2>Scenario matrix</h2>
       <p style="color:var(--muted);margin-bottom:12px;font-size:13px">
-        Green = QG passed · Red = failed · Amber = no metrics · Dark red = ~300s timeout fail.
+        Green = QG passed · Red = real QG fail · Amber = no metrics · Dark red = session-create failure (wall ~5 min, not a perf timer).
         Gold outline = fastest valid (passed) timing in the row.
       </p>
       <div class="table-wrap">
@@ -151,11 +153,15 @@
     <section class="section">
       <h2>Analysis</h2>
       <ul>
-        <li><strong>All three runs are degraded</strong> vs Aug 24 Sauce baselines (Private 16–17/23, Cloud 16–18/23).</li>
-        <li>Best lane in this batch: <strong>Run E Cloud / Private at 6/23</strong> — still far below prior post-parity scores.</li>
-        <li>Dominant failure mode is <strong>~300s timeouts</strong> (suite job still “succeeds” at workflow level, but scenarios do not produce usable QG timings).</li>
-        <li>Job speed is also worse: test phase ~57–63 min vs ~30–41 min on Aug 24.</li>
-        <li><strong>Sauce Labs stays under evaluation</strong> — do not use this batch for ranking against TestMu HE / BrowserStack.</li>
+        <li><strong>Root cause of the “~300s” cluster:</strong> Sauce session allocation failures.
+          Logs show <code>WebDriverError: The operation was aborted due to timeout</code> on
+          <code>POST https://ondemand.eu-central-1.saucelabs.com/wd/hub/session</code> after ~5 minutes
+          (<code>connectionRetryTimeout: 300_000</code> in <code>SauceLabsConfigBuilder</code>).</li>
+        <li>The PerformanceReporter then stores <code>total = result.duration / 1000</code> for failed tests
+          with <em>no steps / no quality gates</em> — so ~300.2s is wall-clock waiting for a session, not an app timer.</li>
+        <li>Only a handful of scenarios actually produced real timers (pass or QG fail). The rest are session failures.</li>
+        <li>That also explains the inflated job phase (~57–63 min): many tests burned 5 min each failing to start.</li>
+        <li><strong>Sauce Labs stays under evaluation</strong> — this batch is infrastructure/session capacity noise, not a fair app-performance signal.</li>
       </ul>
     </section>
     <p class="foot">Branch MMQA-TestMu-PoC-HyperExecute · commit 725f4d37 · Generated 2026-08-25 · Values in seconds / minutes.</p>
@@ -167,19 +173,27 @@
       if (sec == null) return '—';
       return (sec/60).toFixed(1) + 'm';
     }
+    function isSessionFail(time, status) {
+      return status === 'F' && time != null && time >= 290;
+    }
     function cellClass(time, status) {
       if (status === 'P') return 'P';
       if (status === 'N') return 'N';
-      if (status === 'F' && time != null && time >= 290) return 'T';
+      if (isSessionFail(time, status)) return 'T';
       if (status === 'F') return 'F';
       return 'N';
     }
     function cellLabel(time, status) {
       if (status === 'P') return 'PASS';
       if (status === 'N') return 'NO METRICS';
-      if (status === 'F' && time != null && time >= 290) return 'TIMEOUT';
-      if (status === 'F') return 'FAIL';
+      if (isSessionFail(time, status)) return 'SESSION FAIL';
+      if (status === 'F') return 'QG FAIL';
       return '—';
+    }
+    function cellText(time, status) {
+      if (isSessionFail(time, status)) return 'no session';
+      if (time == null) return 'N/A';
+      return Number(time).toFixed(2) + 's';
     }
 
     function render() {
@@ -199,7 +213,7 @@
             <div class="lane priv">
               <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Private</div>
               <div class="big">${priv.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
-              <div class="sub">fail ${priv.qgFail} · timeouts ${priv.timeouts} · no metrics ${priv.noMetrics}</div>
+              <div class="sub">QG fail ${priv.qgFail - priv.timeouts} · session fail ${priv.timeouts} · no metrics ${priv.noMetrics}</div>
               <div class="split"><span>Phase <strong>${fmtMin(priv.testPhaseSumSec)}</strong></span>
                 <span>Onb <strong>${fmtMin(priv.onboardingSec)}</strong></span>
                 <span>Imp <strong>${fmtMin(priv.importedSec)}</strong></span></div>
@@ -207,7 +221,7 @@
             <div class="lane cloud">
               <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Cloud</div>
               <div class="big">${cloud.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
-              <div class="sub">fail ${cloud.qgFail} · timeouts ${cloud.timeouts} · no metrics ${cloud.noMetrics}</div>
+              <div class="sub">QG fail ${cloud.qgFail - cloud.timeouts} · session fail ${cloud.timeouts} · no metrics ${cloud.noMetrics}</div>
               <div class="split"><span>Phase <strong>${fmtMin(cloud.testPhaseSumSec)}</strong></span>
                 <span>Onb <strong>${fmtMin(cloud.onboardingSec)}</strong></span>
                 <span>Imp <strong>${fmtMin(cloud.importedSec)}</strong></span></div>
@@ -257,7 +271,7 @@
         vals.forEach(([time, st]) => {
           const cls = cellClass(time, st);
           const win = (st==='P' && fastest!=null && time===fastest) ? ' win' : '';
-          const txt = time==null ? 'N/A' : (time >= 290 ? '~300s' : Number(time).toFixed(2)+'s');
+          const txt = cellText(time, st);
           html += `<td><span class="cell ${cls}${win}">${txt}<div style="font-size:9px;opacity:.9">${cellLabel(time,st)}</div></span></td>`;
         });
         html += '</tr>';

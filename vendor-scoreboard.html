@@ -271,8 +271,7 @@
       </p>
       <div class="same" id="sauce-aug25"></div>
       <div class="banner" style="margin-top:12px">
-        Sharp regression vs Aug 24 (~16–18/23): these runs are dominated by ~300s timeouts
-        and ~57–63 min test phases. Sauce Labs remains under evaluation.
+        Not app timers: most failures are Sauce <strong>session-create timeouts</strong> (~5 min / <code>connectionRetryTimeout: 300_000</code>), which inflate job duration to ~57–63 min. Sauce Labs remains under evaluation.
       </div>
     </section>
 
@@ -324,12 +323,12 @@
             <div>
               <div style="color:var(--muted);font-size:11px">PRIVATE</div>
               <div class="big" style="font-size:24px">${r.private.pass}/23</div>
-              <div class="sub">timeouts ${r.private.timeouts} · ${r.private.testMin}m</div>
+              <div class="sub">session fail ${r.private.timeouts} · ${r.private.testMin}m</div>
             </div>
             <div>
               <div style="color:var(--muted);font-size:11px">CLOUD</div>
               <div class="big" style="font-size:24px">${r.cloud.pass}/23</div>
-              <div class="sub">timeouts ${r.cloud.timeouts} · ${r.cloud.testMin}m</div>
+              <div class="sub">session fail ${r.cloud.timeouts} · ${r.cloud.testMin}m</div>
             </div>
           </div>
         </article>`).join('');
