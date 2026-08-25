@@ -1977,6 +1977,17 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the account name when the balance breakdown treatment is also active', () => {
+    mockHeaderNavBarVariantName = 'treatment';
+    mockBalanceBreakdownVariantName = 'icons';
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).toBeOnTheScreen();
+  });
+
   it('renders only the avatar and rewards entry points in treatment', () => {
     mockHeaderNavBarVariantName = 'treatment';
 

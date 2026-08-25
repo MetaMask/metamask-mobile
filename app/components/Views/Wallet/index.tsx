@@ -233,6 +233,13 @@ const createStyles = ({ colors }: Theme) =>
       marginBottom: -12,
       maxWidth: '50%',
     },
+    // Standalone variant for the balance-breakdown arm: no cluster gap to cancel
+    compactHeaderAccountNameStandalone: {
+      marginTop: 12,
+      marginHorizontal: 16,
+      marginBottom: 4,
+      maxWidth: '50%',
+    },
   });
 
 interface WalletProps {
@@ -1097,29 +1104,38 @@ const Wallet = ({
     </>
   ) : null;
 
+  const compactHeaderAccountName = isCompactHeader ? (
+    <CustomText
+      variant={TextVariant.HeadingMd}
+      style={
+        balanceBreakdownLayout
+          ? styles.compactHeaderAccountNameStandalone
+          : styles.compactHeaderAccountName
+      }
+      numberOfLines={1}
+      onLayout={handleAccountNameLayout}
+      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+    >
+      {displayName}
+    </CustomText>
+  ) : null;
+
   const portfolioHeader = balanceBreakdownLayout ? (
-    hasBannerContent ? (
-      <View
-        style={styles.treatmentBannerContainer}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}
-      >
-        {bannerContent}
-      </View>
-    ) : null
+    <>
+      {hasBannerContent ? (
+        <View
+          style={styles.treatmentBannerContainer}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}
+        >
+          {bannerContent}
+        </View>
+      ) : null}
+      {compactHeaderAccountName}
+    </>
   ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
-      {isCompactHeader && (
-        <CustomText
-          variant={TextVariant.HeadingMd}
-          style={styles.compactHeaderAccountName}
-          numberOfLines={1}
-          onLayout={handleAccountNameLayout}
-          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
-        >
-          {displayName}
-        </CustomText>
-      )}
+      {compactHeaderAccountName}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {growthBanner}
