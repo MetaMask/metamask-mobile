@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   InputAccessoryView,
   Keyboard,
@@ -93,10 +93,14 @@ const PerpsProCompactInput = ({
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const isInlineActive = isFocused || value.length > 0;
+  const isInputVisible = variant !== 'inline' || isInlineActive;
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
   useEffect(() => {
     if (isHidden) {
+      setIsFocused(false);
       inputRef.current?.blur();
     }
   }, [isHidden]);
@@ -109,9 +113,21 @@ const PerpsProCompactInput = ({
         style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
       } as const)
     : undefined;
+  const handleFocus = () => {
+    setIsFocused(true);
+    onFocus?.();
+  };
+  const handleBlur = () => {
+    setIsFocused(false);
+    onBlur?.();
+  };
+  const handleFieldPress = () => {
+    setIsFocused(true);
+    onFieldPress?.();
+  };
   const focusInput = () => {
     inputRef.current?.focus();
-    onFieldPress?.();
+    handleFieldPress();
   };
 
   const input = (
@@ -120,17 +136,21 @@ const PerpsProCompactInput = ({
       value={value}
       onChangeText={onChangeText}
       keyboardType={keyboardType}
-      onFocus={onFocus}
-      onBlur={onBlur}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       // A tap landing here is consumed by the input, so neither the inline
       // variant's wrapping pressable nor the stacked variant's label fires.
-      onPressIn={onFieldPress}
+      onPressIn={handleFieldPress}
       inputAccessoryViewID={inputAccessoryViewID}
-      placeholder={placeholder}
+      placeholder={isInputVisible ? placeholder : ''}
       placeholderTextColor={tw.color(`text-${placeholderColor}`)}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0"
+      twClassName={
+        isInputVisible
+          ? 'flex-1 border-0 bg-transparent p-0'
+          : 'absolute h-1 w-1 opacity-0'
+      }
       testID={testID}
       accessibilityLabel={label}
     />
@@ -142,25 +162,36 @@ const PerpsProCompactInput = ({
         twClassName={
           isHidden
             ? undefined
-            : 'h-12 flex-row items-center border-t border-muted px-3'
+            : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
         }
         testID={`${testID}-container`}
         {...hiddenProps}
       >
-        {/* The input's text occupies only ~20px of this 48px row, so most of
-            the row is dead space. Without a pressable filling it, taps there
-            reach the enclosing ScrollView instead, and its
-            `keyboardShouldPersistTaps="handled"` treats an unhandled tap as a
-            request to dismiss the keyboard. `endAccessory` stays outside so the
-            mid-price button keeps its own press. */}
+        {/* Keep the input area separate from the Mid action so the whole field
+            can focus without making the Mid action focus the input. */}
         <Pressable
           onPress={focusInput}
           accessible={false}
-          style={tw`h-full min-w-0 flex-1 flex-row items-center`}
+          style={tw`h-full min-w-0 flex-1 justify-center`}
           testID={`${testID}-field`}
         >
-          {startAccessory}
-          {input}
+          <Text
+            variant={isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${testID}-label`}
+          >
+            {label}
+          </Text>
+          <Box
+            twClassName={
+              isInlineActive
+                ? 'w-full flex-row items-center'
+                : 'absolute h-0 w-0'
+            }
+          >
+            {isInlineActive ? startAccessory : null}
+            {input}
+          </Box>
         </Pressable>
         {endAccessory}
       </Box>

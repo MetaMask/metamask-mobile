@@ -11,6 +11,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
+import { strings } from '../../../../../../../../locales/i18n';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
@@ -186,8 +187,10 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
     });
 
-    it('renders the dollar prefix for limit prices', () => {
+    it('reveals the dollar prefix after activating a limit price field', () => {
       renderForm({ orderType: 'limit' });
+
+      fireEvent.press(screen.getByTestId(`${ids.LIMIT_PRICE_INPUT}-field`));
 
       expect(screen.getByTestId(ids.LIMIT_PRICE_PREFIX)).toHaveTextContent('$');
     });
@@ -196,6 +199,80 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { orderType: 'market' as const, labels: [] },
+      {
+        orderType: 'limit' as const,
+        labels: [
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+    ])('assigns the $orderType price labels', ({ orderType, labels }) => {
+      renderForm({ orderType });
+
+      const expectedLabels = new Map(
+        labels.map(({ inputID, label }) => [inputID, label]),
+      );
+      for (const inputID of [ids.TRIGGER_PRICE_INPUT, ids.LIMIT_PRICE_INPUT]) {
+        const labelTestID = `${inputID}-label`;
+        const expectedLabel = expectedLabels.get(inputID);
+        if (expectedLabel) {
+          expect(screen.getByTestId(labelTestID)).toHaveTextContent(
+            expectedLabel,
+          );
+        } else {
+          expect(screen.queryByTestId(labelTestID)).not.toBeOnTheScreen();
+        }
+      }
     });
 
     it.each([

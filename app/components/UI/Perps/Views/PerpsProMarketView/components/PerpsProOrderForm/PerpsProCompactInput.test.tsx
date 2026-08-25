@@ -108,6 +108,61 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
+    it('shrinks the label and reveals the input when the row is pressed', () => {
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          variant="inline"
+          placeholder="0.00"
+        />,
+      );
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const input = screen.getByTestId(defaultProps.testID);
+      const inactiveLabelStyle = label.props.style;
+
+      expect(input).toHaveProp('placeholder', '');
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+      expect(label.props.style).not.toEqual(inactiveLabelStyle);
+      expect(input).toHaveProp('placeholder', '0.00');
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('restores the full label after an empty inline field blurs', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const inactiveLabelStyle = label.props.style;
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+      expect(label.props.style).toEqual(inactiveLabelStyle);
+      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+        'placeholder',
+        '',
+      );
+    });
+
+    it('keeps the compact label after a populated inline field blurs', () => {
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          value="123.45"
+          variant="inline"
+        />,
+      );
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const compactLabelStyle = label.props.style;
+
+      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+      expect(label.props.style).toEqual(compactLabelStyle);
+    });
+
     it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
       const onFieldPress = jest.fn();
       render(
