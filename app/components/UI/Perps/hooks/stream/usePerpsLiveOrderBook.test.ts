@@ -187,6 +187,25 @@ describe('usePerpsLiveOrderBook', () => {
       );
     });
 
+    it('ignores callbacks from a replaced subscription', () => {
+      const callbacks: ((data: OrderBookData) => void)[] = [];
+      mockSubscribeToOrderBook.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      const { result, rerender } = renderHook(
+        ({ symbol }) => usePerpsLiveOrderBook({ symbol, throttleMs: 0 }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      rerender({ symbol: 'ETH' });
+      act(() => callbacks[1]({ ...mockOrderBookData, spread: '200' }));
+      act(() => callbacks[0]({ ...mockOrderBookData, spread: 'stale' }));
+
+      expect(result.current.dataSymbol).toBe('ETH');
+      expect(result.current.orderBook?.spread).toBe('200');
+    });
+
     it('returns initial loading state', () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToOrderBook.mockReturnValue(mockUnsubscribe);

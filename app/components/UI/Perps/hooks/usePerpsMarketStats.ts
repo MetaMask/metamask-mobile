@@ -61,7 +61,7 @@ export const usePerpsMarketStats = (
   const [marketDataErrorContextKey, setMarketDataErrorContextKey] =
     useState<string>();
   const [initialPrice, setInitialPrice] = useState<{
-    contextKey: string;
+    identity: string;
     value: number;
   }>();
   // The ref prevents a synchronous first tick from retriggering the
@@ -89,7 +89,7 @@ export const usePerpsMarketStats = (
   }, [marketStatsIdentity]);
 
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
-  const { candleData } = usePerpsLiveCandles({
+  const { candleData, error: candleError } = usePerpsLiveCandles({
     symbol,
     interval: CandlePeriod.OneHour, // Use 1h candles for 24h calculation
     duration: TimeDuration.OneDay,
@@ -105,10 +105,12 @@ export const usePerpsMarketStats = (
     if (!symbol || !isMarketContextReady || !isConnectionInitialized) return;
 
     let unsubscribe: (() => void) | undefined;
+    let isActive = true;
     const findSymbol = (update: PriceUpdate) => update.symbol === symbol;
 
     const callback = (updates: PriceUpdate[]) => {
       if (
+        !isActive ||
         !isMarketContextReadyRef.current ||
         !isConnectionInitializedRef.current ||
         currentMarketContextRef.current !== marketContextKey
@@ -140,12 +142,12 @@ export const usePerpsMarketStats = (
 
         // Store initial price only once for high/low calculation fallback
         if (
-          initialPriceContextRef.current !== marketContextKey &&
+          initialPriceContextRef.current !== marketStatsIdentity &&
           update.price
         ) {
-          initialPriceContextRef.current = marketContextKey;
+          initialPriceContextRef.current = marketStatsIdentity;
           setInitialPrice({
-            contextKey: marketContextKey,
+            identity: marketStatsIdentity,
             value: Number.parseFloat(update.price),
           });
         }
@@ -161,6 +163,7 @@ export const usePerpsMarketStats = (
           callback,
         });
       } catch (error) {
+        if (!isActive) return;
         setMarketDataErrorContextKey(marketContextKey);
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
@@ -178,35 +181,49 @@ export const usePerpsMarketStats = (
     subscribeToMarketData();
 
     return () => {
+      isActive = false;
       if (unsubscribe) {
         unsubscribe();
       }
     };
-  }, [isConnectionInitialized, isMarketContextReady, marketContextKey, symbol]);
+  }, [
+    isConnectionInitialized,
+    isMarketContextReady,
+    marketContextKey,
+    marketStatsIdentity,
+    symbol,
+  ]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
-    const currentCandleData = isMarketContextReady ? candleData : null;
+    const hasCurrentIdentity =
+      marketStatsIdentityRef.current === marketStatsIdentity;
+    const currentCandleData =
+      isMarketContextReady && hasCurrentIdentity ? candleData : null;
     const { high, low } = calculate24hHighLow(currentCandleData);
     const hasCurrentMarketData = marketDataContextKey === marketContextKey;
     const currentMarketData = hasCurrentMarketData ? marketData : {};
     const fallbackPrice =
-      initialPrice?.contextKey === marketContextKey ? initialPrice.value : 0;
+      initialPrice?.identity === marketStatsIdentity
+        ? initialPrice.value
+        : undefined;
+    const displayFallbackPrice =
+      fallbackPrice !== undefined && fallbackPrice > 0
+        ? formatPerpsFiat(fallbackPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
+        : PERPS_CONSTANTS.FallbackPriceDisplay;
 
     return {
       // 24h high/low from candlestick data, with fallback estimates (4 sig figs)
       high24h:
         high > 0
           ? formatPerpsFiat(high, { ranges: PRICE_RANGES_UNIVERSAL })
-          : formatPerpsFiat(fallbackPrice, {
-              ranges: PRICE_RANGES_UNIVERSAL,
-            }),
+          : displayFallbackPrice,
       low24h:
         low > 0
           ? formatPerpsFiat(low, { ranges: PRICE_RANGES_UNIVERSAL })
-          : formatPerpsFiat(fallbackPrice, {
-              ranges: PRICE_RANGES_UNIVERSAL,
-            }),
+          : displayFallbackPrice,
       volume24h:
         currentMarketData.volume24h !== undefined
           ? `$${formatLargeNumber(currentMarketData.volume24h, {
@@ -234,16 +251,21 @@ export const usePerpsMarketStats = (
         hasCurrentMarketData &&
         (currentMarketData.volume24h !== undefined ||
           currentMarketData.openInterest !== undefined),
-      hasError: marketDataErrorContextKey === marketContextKey,
+      hasError:
+        hasCurrentIdentity &&
+        (marketDataErrorContextKey === marketContextKey ||
+          candleError !== null),
     };
   }, [
     candleData,
+    candleError,
     initialPrice,
     marketData,
     marketDataContextKey,
     marketDataErrorContextKey,
     marketDataSymbol,
     marketContextKey,
+    marketStatsIdentity,
     isMarketContextReady,
     symbol,
   ]);

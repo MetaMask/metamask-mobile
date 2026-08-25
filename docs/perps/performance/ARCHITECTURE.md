@@ -84,6 +84,11 @@ flowchart LR
 
 Resident return, cold disk hydration, short background continuity, and reconnect are distinct cohorts. Market and account cache sources are attributes within those cohorts, not separate lifecycle names.
 
+A foregrounded `background_short` generation cannot finish until the shared
+connection health check resolves. A healthy connection keeps the short-resume
+cohort and rebinds its subscriptions. A failed health check upgrades the same
+session to `background_reconnect` before cached content can finish it.
+
 ## Canonical stage vocabulary
 
 These names are shared by Mobile emitters, the harness parser, recipe requirements, evidence, runbook, and report:
@@ -159,13 +164,16 @@ HIP-3 configuration generation. A market/mode/context change starts a new
 generation. Backgrounding or unmounting the screen cancels the active generation,
 so suspended time and stale-market callbacks cannot enter latency percentiles.
 Foreground resume starts a new `lifecycle_context=background_resume` cohort.
-Already-resolved resident sections may correctly record near zero in that
-cohort; dashboards must never pool it with `cold_process` or `warm` navigation.
+Already-resolved market metadata may correctly record near zero in that cohort.
+Price, chart, account, positions, and orders wait for the active delivery
+generation when the lifecycle requires freshness. Dashboards must never pool
+the cohort with `cold_process` or `warm` navigation.
 `generation_trigger` further separates `initial`, `background_resume`,
 `market_switch`, `mode_switch`, `account_switch`, `network_switch`, and
-`configuration_change`. Resident global/account sections may correctly resolve
-near zero after a context switch; navigation widgets filter to `initial`, while
-the other triggers have their own continuity/recovery cohorts.
+`configuration_change`. Route market metadata may correctly resolve near zero
+after a context switch; account-owned sections wait for the current user
+generation. Navigation widgets filter to `initial`, while the other triggers
+have their own continuity/recovery cohorts.
 
 | Section          | Lite         | Pro               | Resolved boundary                                                              |
 | ---------------- | ------------ | ----------------- | ------------------------------------------------------------------------------ |
@@ -209,7 +217,7 @@ Advanced falls back to Lightweight without restarting the detail generation.
 immediate route-metadata row from deep-link or activity entries that wait for
 market enrichment, so the market offset is not interpreted as fetch latency.
 
-Stats `error` means market-data subscription setup failed. A connected
+Stats `error` means the market-data or candle subscription failed. A connected
 subscription that never delivers a current-symbol tick remains `loading` and
 ends through the bounded session timeout; it is not relabelled as an error.
 `Perps Market Detail Live` ends immediately with `reason=stats_error` for the
@@ -219,6 +227,10 @@ Existing `perps.chart.first_candle` spans keep the chart-mount anchor and remain
 authoritative for chart-internal work. Existing `Perps WebSocket First *` spans
 keep their connection/subscription anchors. Their durations are not copied into
 the detail session.
+
+Every detail subscription callback belongs to one active effect generation.
+Cleanup retires that generation before unsubscribe. A late callback, status, or
+error from an older A -> B -> A symbol sequence cannot update the new A screen.
 
 ## Derived metrics
 
@@ -263,14 +275,14 @@ All loading-session offsets are non-negative and bootstrap-relative.
 
 ## Executable lifecycle v1
 
-| Lifecycle              | Start condition                                   | Required proof                                                     |
-| ---------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
-| `cold_no_cache`        | New process, Perps caches cleared                 | Resolved surface plus bounded required-stream completion           |
-| `navigate_return`      | Surface remounted in same process                 | Resident frame; fresh tick optional                                |
-| `background_short`     | Background below documented grace period          | Resident frame and connection continuity; fresh tick optional      |
-| `background_reconnect` | Background beyond grace period                    | Cached/LKG frame allowed, then fresh takeover                      |
-| `account_switch`       | Selected account changes                          | No prior-account frame; new identity accepted                      |
-| `network_switch`       | Provider, Perps network, or HIP-3 context changes | No prior-context frame; new provider/network/DEX identity accepted |
+| Lifecycle              | Start condition                                       | Required proof                                                     |
+| ---------------------- | ----------------------------------------------------- | ------------------------------------------------------------------ |
+| `cold_no_cache`        | New process, Perps caches cleared                     | Resolved surface plus bounded required-stream completion           |
+| `navigate_return`      | Surface remounted in same process                     | Resident frame; fresh tick optional                                |
+| `background_short`     | Foreground health check keeps the resident connection | Resident frame after health validation; process continuity         |
+| `background_reconnect` | Foreground health check requires reconnection         | Cached/LKG frame allowed, then fresh takeover                      |
+| `account_switch`       | Selected account changes                              | No prior-account frame; new identity accepted                      |
+| `network_switch`       | Provider, Perps network, or HIP-3 context changes     | No prior-context frame; new provider/network/DEX identity accepted |
 
 A dedicated `provider_switch` cohort and `network_recovery` are deferred until the recipe has explicit target-provider/offline controls. Provider and HIP-3 changes currently use the broader `network_switch` context-generation cohort.
 
