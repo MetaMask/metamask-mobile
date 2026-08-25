@@ -532,7 +532,7 @@ export const usePerpsProOrderForm = ({
   });
 
   const isTwapOrder = orderForm.type === 'twap';
-  const rawFeeResults = usePerpsOrderFees({
+  const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: effectiveUsdAmount,
     symbol: orderForm.asset,
@@ -546,24 +546,6 @@ export const usePerpsProOrderForm = ({
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
-  const feeResults = useMemo(
-    () =>
-      isTwapOrder
-        ? {
-            ...rawFeeResults,
-            // Hyperliquid's TWAP strategy action has no builder-fee field.
-            // Preserve the venue protocol fee until Core exposes strategy-aware
-            // fee normalization through calculateFees.
-            totalFee: rawFeeResults.protocolFee,
-            undiscountedTotalFee: rawFeeResults.protocolFee,
-            metamaskFee: 0,
-            metamaskFeeRate: 0,
-            originalMetamaskFeeRate: 0,
-            feeDiscountPercentage: undefined,
-          }
-        : rawFeeResults,
-    [isTwapOrder, rawFeeResults],
-  );
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 

@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import type {
+  GetOrderCapabilitiesParams,
   PerpsActiveProviderMode,
   SwitchProviderResult,
 } from '@metamask/perps-controller';
@@ -16,7 +17,9 @@ import type {
  * - Available providers based on feature flags
  * - Method to switch between providers
  */
-export function usePerpsProvider() {
+export function usePerpsProvider(
+  orderCapabilitiesParams: GetOrderCapabilitiesParams = {},
+) {
   const activeProvider = useSelector(selectPerpsProvider);
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
 
@@ -72,9 +75,11 @@ export function usePerpsProvider() {
     [activeProvider],
   );
 
-  // Normalized capability consumed by UI surfaces. This remains provider-mode
-  // based until Core publishes a routed per-market capability contract.
-  const supportsTwapOrders = isHyperLiquidProvider;
+  const supportsTwapOrders =
+    Engine.context.PerpsController.getOrderCapabilities({
+      symbol: orderCapabilitiesParams.symbol,
+      providerId: orderCapabilitiesParams.providerId,
+    }).supportedStrategies.includes('twap');
 
   /**
    * Check if multi-provider mode is enabled (more than one provider available)

@@ -34,7 +34,7 @@ jest.mock('../../../utils/perpsModeSwitch', () => ({
 }));
 
 jest.mock('../../../hooks/usePerpsProvider', () => ({
-  usePerpsProvider: () => mockUsePerpsProvider(),
+  usePerpsProvider: (params: unknown) => mockUsePerpsProvider(params),
 }));
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
@@ -249,6 +249,20 @@ describe('PerpsProOrderFormPanel', () => {
     expect(
       screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('requests order capabilities for the market route', () => {
+    const routedMarket: PerpsMarketData = {
+      ...market,
+      providerId: 'hyperliquid',
+    };
+
+    renderPanel({ market: routedMarket });
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
   });
 
   it('uses top inset on the form panel without a book separator border', () => {

@@ -51,7 +51,10 @@ const PerpsProOrderFormPanel = ({
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
-  const { supportsTwapOrders } = usePerpsProvider();
+  const { supportsTwapOrders } = usePerpsProvider({
+    symbol: market.symbol,
+    providerId: market.providerId,
+  });
   const isTwapEnabled =
     isProModeActive && isTwapFlagEnabled && supportsTwapOrders;
   const {

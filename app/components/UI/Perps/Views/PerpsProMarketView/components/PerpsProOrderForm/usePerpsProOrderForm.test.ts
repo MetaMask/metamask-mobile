@@ -359,15 +359,15 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).toBe('--');
     });
 
-    it('shows only the protocol fee for a TWAP order', () => {
+    it('uses the controller fee result unchanged for a TWAP order', () => {
       mockOrderForm.type = 'twap';
 
       const { result } = renderProForm();
 
-      expect(result.current.summary.fee).toBe(4);
-      expect(result.current.summary.originalFee).toBe(4);
-      expect(result.current.summary.feeDiscountPercentage).toBeUndefined();
-      expect(result.current.feeMetamaskFeeRate).toBe(0);
+      expect(result.current.summary.fee).toBe(5);
+      expect(result.current.summary.originalFee).toBe(6);
+      expect(result.current.summary.feeDiscountPercentage).toBe(10);
+      expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
     });
   });

@@ -10,15 +10,20 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
+      getOrderCapabilities: jest.fn(),
       switchProvider: jest.fn(),
     },
   },
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
+const mockGetOrderCapabilities = jest.mocked(
+  Engine.context.PerpsController.getOrderCapabilities,
+);
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockGetOrderCapabilities.mockReturnValue({ supportedStrategies: [] });
   // Default: hyperliquid active, MYX flag off
   mockUseSelector.mockImplementation((selector: unknown) => {
     const fn = selector as (s: unknown) => unknown;
@@ -141,7 +146,26 @@ describe('usePerpsProvider', () => {
 
       expect(result.current.isHyperLiquidProvider).toBe(true);
       expect(result.current.isMYXProvider).toBe(false);
+      expect(result.current.supportsTwapOrders).toBe(false);
+    });
+
+    it('returns TWAP support from the controller capability for a market route', () => {
+      mockUseSelector
+        .mockReturnValueOnce('aggregated')
+        .mockReturnValueOnce(true);
+      mockGetOrderCapabilities.mockReturnValue({
+        supportedStrategies: ['twap'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+
       expect(result.current.supportsTwapOrders).toBe(true);
+      expect(mockGetOrderCapabilities).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
     });
 
     it('isMultiProviderEnabled is false when only one provider available', () => {
