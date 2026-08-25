@@ -10,7 +10,6 @@ export interface PriceRangeSheetProps {
   destToken?: BridgeToken;
   sourceFiatRate?: number;
   destFiatRate?: number;
-  quoteRate?: number;
   currentCurrency: string;
   initialTokenSide?: PriceRangeTokenSide;
   initialMin?: string;

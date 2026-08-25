@@ -9,6 +9,7 @@ import {
   parsePriceInput,
   PRICE_RANGE_MISSING_VALUE,
   sanitizePriceInput,
+  tokenPairRateFromFiatRates,
 } from './priceRange';
 import { formatCurrency } from './currencyUtils';
 
@@ -195,6 +196,19 @@ describe('formatTokenPrice', () => {
     const result = formatTokenPrice('ETH', undefined, 'USD');
 
     expect(result).toBe(PRICE_RANGE_MISSING_VALUE);
+  });
+});
+
+describe('tokenPairRateFromFiatRates', () => {
+  it('returns dest per source from the two fiat rates', () => {
+    const result = tokenPairRateFromFiatRates(2000, 1);
+
+    expect(result).toBe(2000);
+  });
+
+  it('returns undefined when a rate is missing or not positive', () => {
+    expect(tokenPairRateFromFiatRates(2000, undefined)).toBeUndefined();
+    expect(tokenPairRateFromFiatRates(2000, 0)).toBeUndefined();
   });
 });
 

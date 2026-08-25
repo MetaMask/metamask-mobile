@@ -37,6 +37,7 @@ import {
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   sanitizePriceInput,
+  tokenPairRateFromFiatRates,
   type PriceRangeTokenSide,
 } from '../../utils/priceRange';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
@@ -100,7 +101,6 @@ const PriceRangeSheet = ({
   destToken,
   sourceFiatRate,
   destFiatRate,
-  quoteRate,
   currentCurrency,
   initialTokenSide,
   initialMin,
@@ -146,9 +146,15 @@ const PriceRangeSheet = ({
         selected: pendingTokenSide,
         sourceSymbol: sourceToken?.symbol,
         destSymbol: destToken?.symbol,
-        quoteRate,
+        quoteRate: tokenPairRateFromFiatRates(sourceFiatRate, destFiatRate),
       }),
-    [destToken?.symbol, pendingTokenSide, quoteRate, sourceToken?.symbol],
+    [
+      destFiatRate,
+      destToken?.symbol,
+      pendingTokenSide,
+      sourceFiatRate,
+      sourceToken?.symbol,
+    ],
   );
 
   const closeSheet = useCallback(() => {

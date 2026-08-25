@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -91,20 +91,6 @@ const BridgeRecurringBuyViewContent = ({
     inputRef.current?.blur();
     closeKeypad();
   }, [closeKeypad]);
-
-  const quoteRate = useMemo(() => {
-    const source = Number(sourceAmount);
-    const dest = Number(destTokenAmount);
-    if (
-      !Number.isFinite(source) ||
-      source === 0 ||
-      !Number.isFinite(dest) ||
-      dest <= 0
-    ) {
-      return undefined;
-    }
-    return dest / source;
-  }, [destTokenAmount, sourceAmount]);
 
   const effectiveRange = isPriceRangeInCurrentCurrency(priceRange, currentCurrency)
     ? priceRange
@@ -243,7 +229,6 @@ const BridgeRecurringBuyViewContent = ({
           destToken={destToken}
           sourceFiatRate={sourceFiatRate}
           destFiatRate={destFiatRate}
-          quoteRate={quoteRate}
           currentCurrency={currentCurrency}
           initialTokenSide={effectiveRange?.tokenSide}
           initialMin={effectiveRange?.min}

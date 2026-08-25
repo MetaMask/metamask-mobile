@@ -129,6 +129,24 @@ function formatExchangeRateAmount(rate: number): string {
   return formatter.format(rate);
 }
 
+export function tokenPairRateFromFiatRates(
+  sourceFiatRate: number | undefined,
+  destFiatRate: number | undefined,
+): number | undefined {
+  if (
+    sourceFiatRate === undefined ||
+    destFiatRate === undefined ||
+    !Number.isFinite(sourceFiatRate) ||
+    !Number.isFinite(destFiatRate) ||
+    sourceFiatRate <= 0 ||
+    destFiatRate <= 0
+  ) {
+    return undefined;
+  }
+
+  return sourceFiatRate / destFiatRate;
+}
+
 export function formatExchangeRate({
   selected,
   sourceSymbol,

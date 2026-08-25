@@ -14,6 +14,7 @@ import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import {
   applyPercentToPrice,
+  formatExchangeRate,
   formatPriceRangeLabel,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
@@ -824,6 +825,16 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(
         renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
       ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.EXCHANGE_RATE),
+      ).toHaveTextContent(
+        formatExchangeRate({
+          selected: 'dest',
+          sourceSymbol: 'ETH',
+          destSymbol: 'mUSD',
+          quoteRate: ETH_FIAT_RATE / MUSD_FIAT_RATE,
+        }),
+      );
     });
 
     it('discards pending min and max when the sheet is closed', async () => {
