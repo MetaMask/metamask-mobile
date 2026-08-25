@@ -14,7 +14,6 @@ import {
 } from '../../types/trustSignals';
 import { useApproveTransactionData } from '../useApproveTransactionData';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
-import { useSendingAssetsFiatTotal } from './useSendingAssetsFiatTotal';
 import {
   isRecognizedPermit,
   isPermitRevoke,
@@ -31,7 +30,6 @@ export function useAddressTrustSignalAlerts(): Alert[] {
   const { isRevoke: isTransactionRevoke, isLoading: isRevokeLoading } =
     useApproveTransactionData();
   const signatureRequest = useSignatureRequest();
-  const sendingFiatTotal = useSendingAssetsFiatTotal();
 
   const isSignatureRevoke = useMemo(() => {
     if (!signatureRequest || !isRecognizedPermit(signatureRequest)) {
@@ -163,23 +161,9 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
       const alertKey = `${baseKey}_${addressesToScan[index].alertField}`;
 
-      let message;
-
-      if (isDanger) {
-        message = sendingFiatTotal
-          ? strings(
-              'alert_system.address_trust_signal.malicious.message_with_amount',
-              { amount: sendingFiatTotal },
-            )
-          : strings('alert_system.address_trust_signal.malicious.message');
-      } else {
-        message = sendingFiatTotal
-          ? strings(
-              'alert_system.address_trust_signal.warning.message_with_amount',
-              { amount: sendingFiatTotal },
-            )
-          : strings('alert_system.address_trust_signal.warning.message');
-      }
+      const message = isDanger
+        ? strings('alert_system.address_trust_signal.malicious.message')
+        : strings('alert_system.address_trust_signal.warning.message');
 
       const title = isDanger
         ? strings('alert_system.address_trust_signal.malicious.title')
@@ -196,10 +180,5 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     });
 
     return alerts;
-  }, [
-    addressesToScan,
-    sendingFiatTotal,
-    shouldSuppressForRevoke,
-    trustSignalResults,
-  ]);
+  }, [addressesToScan, shouldSuppressForRevoke, trustSignalResults]);
 }
