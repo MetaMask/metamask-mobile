@@ -6,13 +6,17 @@ import type {
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import React from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
-import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import {
+  usePerpsProPositionsPanelActions,
+  type UsePerpsProPositionsPanelActionsReturn,
+} from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   getPerpsProOrderRowSelector,
@@ -180,6 +184,7 @@ describe('PerpsProPositionsPanel', () => {
   const handleSharePosition = jest.fn();
   const handleCancelOrder = jest.fn();
   const handleCloseAllPress = jest.fn();
+  const handleCancelAllPress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -201,6 +206,7 @@ describe('PerpsProPositionsPanel', () => {
       handleEditOrderPrice: jest.fn(),
       handleEditOrderSize: jest.fn(),
       handleCloseAllPress,
+      handleCancelAllPress,
       cancelingOrderId: null,
       editingOrderId: null,
       isOrderCancelable: () => true,
@@ -659,6 +665,7 @@ describe('PerpsProPositionsPanel', () => {
       handleEditOrderPrice: jest.fn(),
       handleEditOrderSize: jest.fn(),
       handleCloseAllPress,
+      handleCancelAllPress,
       cancelingOrderId: 'btc-1',
       editingOrderId: null,
       isOrderCancelable: () => true,
@@ -921,5 +928,183 @@ describe('PerpsProPositionsPanel', () => {
 
     expect(screen.getByText('No long positions.')).toBeOnTheScreen();
     expect(screen.queryByText('No open SOL positions.')).toBeNull();
+  });
+
+  it('wires the bulk cancel handler on the orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDERS_CANCEL_ALL),
+    );
+
+    expect(handleCancelAllPress).toHaveBeenCalled();
+  });
+
+  it('labels the bulk cancel for the whole book when no order filter is applied', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expect(
+      screen.getByText(strings('perps.pro_positions_panel.cancel_all')),
+    ).toBeOnTheScreen();
+  });
+
+  it('narrows the summary count when ticker-only is enabled', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.open_orders', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.pro_positions_panel.open_orders', { count: 2 }),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('passes the ticker-filtered orders to the action sheets', () => {
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    const lastCall =
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
+    expect(lastCall[2]).toEqual([
+      expect.objectContaining({ orderId: 'sol-1', symbol: 'SOL' }),
+    ]);
+  });
+
+  it('flags the orders as filtered for the action sheets', () => {
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    const lastCall =
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
+    expect(lastCall[3]).toBe(true);
   });
 });

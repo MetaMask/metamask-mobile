@@ -3478,10 +3478,18 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).not.toHaveBeenCalled();
 
-      // Resume channel
+      // Resume channel — the update suppressed while paused is flushed now, so
+      // subscribers never keep rendering data the venue has already replaced.
       act(() => {
         testStreamManager.orders.resume();
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([
+          expect.objectContaining({ orderId: '2', symbol: 'ETH' }),
+        ]);
+      });
+      callback.mockClear();
 
       // Send another update (should be received)
       act(() => {
@@ -3601,10 +3609,18 @@ describe('PerpsStreamManager', () => {
       });
       expect(callback).not.toHaveBeenCalled();
 
-      // Caller B releases — count drops to 0, emission resumes
+      // Caller B releases — count drops to 0, emission resumes and the last
+      // update suppressed during the pause is flushed to subscribers.
       act(() => {
         testStreamManager.orders.resume();
       }); // caller B: controller
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ orderId: '3' })]),
+        );
+      });
+      callback.mockClear();
+
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: '4' }]);
       });
@@ -3670,6 +3686,128 @@ describe('PerpsStreamManager', () => {
           ]),
         );
       });
+
+      unsubscribe();
+    });
+
+    it('flushes the cancelled-order snapshot that arrived while paused', async () => {
+      // Regression: a bulk cancel pauses the orders channel, the venue pushes the
+      // now-empty book while paused, and resume() used to only decrement the
+      // counter. Subscribers kept rendering cancelled orders until an unrelated
+      // later tick or a reload — stale state a trader could act on.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // Controller pauses the channel for the duration of the bulk cancel.
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+
+      // The venue confirms every order is gone while emission is paused.
+      act(() => {
+        orderCallback?.([]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Controller's finally block releases the pause.
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // The empty book must reach subscribers without another venue tick.
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith([]);
+      });
+
+      unsubscribe();
+    });
+
+    it('flushes the cancelled-order snapshot to a throttled subscriber without waiting out the throttle', async () => {
+      // Regression: the Pro orders panel subscribes with throttleMs: 1000. A
+      // resume flush delivered as a normal 'fresh' update would sit in
+      // pendingUpdate behind that timer, leaving cancelled orders on screen for
+      // up to a second after the venue already reported an empty book.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 1000,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      // First fresh update is delivered immediately, then throttling applies.
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+      act(() => {
+        orderCallback?.([]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // Delivered synchronously by resume, NOT parked behind the 1000ms throttle
+      // timer. Asserted without waitFor on purpose: waitFor polls on real timers
+      // and would simply outlast the throttle window, passing either way.
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+
+      unsubscribe();
+    });
+
+    it('does not re-deliver on resume when nothing was suppressed', async () => {
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // A pause window with no venue update in it leaves nothing to flush.
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
 
       unsubscribe();
     });

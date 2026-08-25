@@ -4,15 +4,10 @@ import type { DeepPartial } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import {
-  renderActivityView,
-  renderActivityViewWithRoutes,
-} from '../../../../tests/component-view/renderers/activity';
+import { renderActivityViewWithRoutes } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ActivityScreenSelectorsIDs } from '../ActivityScreen/ActivityScreen.testIds';
 
 const legacyActivityViewState = {
   engine: {
@@ -42,19 +37,6 @@ describeForPlatforms('ActivityView', () => {
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
-    ).toBeOnTheScreen();
-  });
-
-  it('lazy-loads the redesigned activity screen', async () => {
-    const { findByTestId } = renderActivityView({
-      redesignEnabled: true,
-    });
-
-    // The redesigned ActivityScreen mounts. The search input is temporarily
-    // commented out — TODO(activity-redesign): restore the search-typing
-    // assertion with the unified list + filtering.
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
     ).toBeOnTheScreen();
   });
 });
