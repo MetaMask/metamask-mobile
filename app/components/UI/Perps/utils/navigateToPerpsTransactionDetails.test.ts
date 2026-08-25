@@ -48,7 +48,7 @@ const depositTransaction: PerpsTransaction = {
 };
 
 describe('navigateToPerpsTransactionDetails', () => {
-  it('opens Activity details for a mapped historic fill', () => {
+  it('opens Activity details for a mapped historic fill when redesign is enabled', () => {
     const navigation = createNavigation();
 
     navigateToPerpsTransactionDetails(navigation, tradeTransaction, false);

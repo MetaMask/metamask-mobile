@@ -206,7 +206,7 @@ describe('usePerpsToasts', () => {
         expect(typeof config.closeButtonOptions?.onPress).toBe('function');
       });
 
-      it('tracks to ActivityDetails when deposit metadata includes chainId', () => {
+      it('tracks to the redesigned details screen when the redesign is enabled', () => {
         mockDepositMeta = { chainId: '0xa4b1' };
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -229,7 +229,7 @@ describe('usePerpsToasts', () => {
         );
       });
 
-      it('tracks to TRANSACTION_DETAILS when deposit metadata has no chainId', () => {
+      it('tracks to the legacy details screen when the deposit metadata has no chainId', () => {
         mockDepositMeta = undefined;
         const { result } = renderHook(() => usePerpsToasts());
         const config =

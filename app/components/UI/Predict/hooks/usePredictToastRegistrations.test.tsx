@@ -194,7 +194,7 @@ describe('usePredictToastRegistrations', () => {
       });
     });
 
-    it('tracks to ActivityDetails when deposit metadata includes chainId', () => {
+    it('tracks to the redesigned details screen when deposit metadata includes chainId', () => {
       jest
         .mocked(selectTransactionMetadataById)
         .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<

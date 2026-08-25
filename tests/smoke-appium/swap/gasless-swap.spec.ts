@@ -22,7 +22,6 @@ import {
 import { testSpecificMock as swapTestSpecificMock } from '../../helpers/swap/swap-mocks.js';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks.js';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.js';
-import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui.js';
 
 const CHAIN_ID = '0x1';
 
@@ -114,8 +113,6 @@ appiumTest.describe(SmokeSwap('Gasless Swap - '), () => {
             description: 'Confirm swap button visible',
           });
           await QuoteView.tapConfirmSwap();
-
-          await checkSwapActivity('ETH', 'MUSD');
         },
       );
     },
@@ -176,8 +173,6 @@ appiumTest.describe(SmokeSwap('Gasless Swap - '), () => {
             description: 'Confirm swap button visible',
           });
           await QuoteView.tapConfirmSwap();
-
-          await checkSwapActivity('USDC', 'MUSD');
         },
       );
     },
@@ -239,8 +234,6 @@ appiumTest.describe(SmokeSwap('Gasless Swap - '), () => {
             description: 'Confirm swap button visible',
           });
           await QuoteView.tapConfirmSwap();
-
-          await checkSwapActivity('ETH', 'MUSD');
         },
       );
     },

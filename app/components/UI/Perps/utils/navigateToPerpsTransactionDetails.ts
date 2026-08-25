@@ -25,11 +25,12 @@ function getPerpsActivityMappingIds(isTestnet: boolean): {
 }
 
 /**
- * Opens Activity details for a mapped Perps history row. Callers pass the active
- * Perps network (`usePerpsNetwork`) so this module stays store-free. Settlement
- * chain and collateral follow HyperLiquid mainnet vs testnet. Falls back to the
- * legacy Perps transaction screens when the row cannot be mapped (open orders,
- * unrecognized trades).
+ * Opens Activity details for a mapped Perps history row when
+ * `selectIsTransactionsRedesignEnabled` is true. Callers pass that selector
+ * result and the active Perps network (`usePerpsNetwork`) so this module stays
+ * store-free. Settlement chain and collateral follow HyperLiquid mainnet vs
+ * testnet. Falls back to the legacy Perps transaction screens when the flag is
+ * off or the row cannot be mapped (open orders, unrecognized trades).
  */
 export function navigateToPerpsTransactionDetails(
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,

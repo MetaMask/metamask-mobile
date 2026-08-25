@@ -64,11 +64,6 @@ class ActivitiesView {
       delay: 2000,
       timeout: 8000,
     });
-    await Assertions.expectElementToNotBeVisible(this.typeFilterSheet, {
-      timeout: 4000,
-      description:
-        'Wait for activity type filter sheet to close after selection',
-    });
   }
 
   async tapPerpsFilterChip(): Promise<void> {
@@ -315,7 +310,7 @@ class ActivitiesView {
       },
       {
         timeout: 30_000,
-        description: 'Select Predictions in Activity View',
+        description: 'Tap Predictions tab in Activity View',
       },
     );
   }

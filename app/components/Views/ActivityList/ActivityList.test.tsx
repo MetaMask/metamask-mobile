@@ -1262,7 +1262,7 @@ describe('ActivityList', () => {
     );
   });
 
-  it('routes Ramp rows to ActivityDetails', () => {
+  it('routes Ramp rows to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
 
     render(<ActivityList header={<></>} />);

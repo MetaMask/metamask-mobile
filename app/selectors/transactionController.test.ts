@@ -330,7 +330,7 @@ describe('TransactionController Selectors', () => {
   });
 
   describe('selectExcludedActivityTransactionHashes', () => {
-    it('unions required child hashes and gas_payment hashes', () => {
+    it('unions required child hashes and gas_payment hashes when redesign is on', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -480,7 +480,7 @@ describe('TransactionController Selectors', () => {
       ]);
     });
 
-    it('filters gas_payment fee legs', () => {
+    it('filters gas_payment fee legs when activity redesign is on', () => {
       const state = buildLocalTxState({
         transactions: [
           {

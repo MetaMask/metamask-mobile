@@ -190,7 +190,8 @@ export const selectGasPaymentTransactionHashes = createSelector(
 
 /**
  * Hashes that Activity API feeds should drop: MetaMask Pay / required children,
- * plus gas-token fee legs (hidden as separate rows in redesigned Activity).
+ * plus gas-token fee legs when redesigned Activity is enabled (legacy keeps
+ * fee legs visible — it has no compensating gasToken fee UI).
  */
 export const selectExcludedActivityTransactionHashes = createSelector(
   [selectRequiredTransactionHashes, selectGasPaymentTransactionHashes],

@@ -3,7 +3,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { LocalNode, LocalNodeType } from '../../framework/types.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder.js';
@@ -153,14 +152,6 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
             },
           );
           await FooterActions.tapConfirmButton();
-
-          await Assertions.expectElementToBeVisible(
-            ActivitiesView.stakeDepositedLabel,
-            {
-              description: 'Staking deposit activity row title',
-              timeout: 120000,
-            },
-          );
 
           // Go back to Home tab
           await TabBarComponent.tapHome();

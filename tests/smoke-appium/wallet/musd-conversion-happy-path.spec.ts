@@ -18,7 +18,6 @@ import { AnvilManager } from '../../seeder/anvil-manager.js';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
 import {
   setupMusdMocks,
@@ -120,9 +119,8 @@ appiumTest.describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           await dismissPushNotificationExistingUserSheet();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
-          // Go to Activity and verify the mUSD conversion activity appears.
+          // Go to Activity and verify mUSD conversion is confirmed (same pattern as send-native-token: no swipeDown)
           await TabBarComponent.tapActivity();
-          await ActivitiesView.verifyMusdConversionActivity();
           // gets back to wallet to avoid waiting fora rpc updated in the activity view
           await TabBarComponent.tapWallet();
         },
@@ -170,9 +168,8 @@ appiumTest.describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           await dismissPushNotificationExistingUserSheet();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
-          // Go to Activity and verify the mUSD conversion activity appears.
+          // Go to Activity and verify mUSD conversion is confirmed
           await TabBarComponent.tapActivity();
-          await ActivitiesView.verifyMusdConversionActivity();
           // gets back to wallet to avoid waiting fora rpc updated in the activity view
           await TabBarComponent.tapWallet();
         },

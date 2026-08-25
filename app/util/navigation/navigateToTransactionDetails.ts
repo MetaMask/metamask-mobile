@@ -17,7 +17,7 @@ interface NavigateToTransactionDetailsOptions {
   initialTypeFilter?: ActivityTypeFilter;
   initialPerpsFilter?: PerpsActivityFilter;
   /**
-   * CAIP-2 chain id of `transactionId`. Required by ActivityDetails, which
+   * CAIP-2 chain id of `transactionId`. Required by the redesigned screen, which
    * re-resolves the row per chain. Without it the legacy screen is used, since
    * an unfiltered lookup could resolve a hash that collides across chains.
    */
@@ -29,11 +29,11 @@ interface NavigateToTransactionDetailsOptions {
  * row), landing on the (optionally filtered) activity list first so "back"
  * returns there rather than to the caller.
  *
- * With a `chainId` to resolve the row on, this opens `ACTIVITY_DETAILS`,
- * matching where the activity list sends the same row; it otherwise falls back
- * to the confirmations team's `TRANSACTION_DETAILS`. ActivityDetails resolves
- * local rows by `TransactionMeta.id`, which is what callers here hold, so it
- * needs no out-of-band row hand-off.
+ * With the redesign enabled (and a `chainId` to resolve the row on) this opens
+ * `ACTIVITY_DETAILS`, matching where the activity list sends the same row; it
+ * otherwise falls back to the confirmations team's `TRANSACTION_DETAILS`. The
+ * redesigned screen resolves local rows by `TransactionMeta.id`, which is what
+ * callers here hold, so it needs no out-of-band row hand-off.
  *
  * All of `TRANSACTIONS_VIEW`, `ACTIVITY_DETAILS` and `TRANSACTION_DETAILS` are
  * reachable from the root navigator, so the two navigations resolve immediately

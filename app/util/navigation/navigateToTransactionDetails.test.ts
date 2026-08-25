@@ -67,7 +67,7 @@ describe('navigateToTransactionDetails', () => {
     );
   });
 
-  it('opens ActivityDetails when chainId is provided', () => {
+  it('opens the redesigned details screen when the redesign is enabled', () => {
     const navigation = createNavigation();
 
     navigateToTransactionDetails(navigation, {
@@ -84,7 +84,7 @@ describe('navigateToTransactionDetails', () => {
     expect(navigation.navigate).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back to the legacy details screen without a chainId', () => {
+  it('falls back to the legacy details screen when the redesign is enabled without a chainId', () => {
     const navigation = createNavigation();
 
     navigateToTransactionDetails(navigation, {

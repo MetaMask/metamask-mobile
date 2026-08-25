@@ -203,7 +203,7 @@ export const useTokenTransactions = (
   // Get all transactions (EVM or non-EVM)
   const allTransactions = useMemo(() => {
     // Redesign Activity hides gas_payment siblings and shows the fee on the
-    // primary row; keep token-details lists in sync.
+    // primary row; keep token-details lists in sync when that flag is on.
     let transactions = evmTransactions.filter(
       (tx: Transaction) => tx.type !== TransactionType.gasPayment,
     );

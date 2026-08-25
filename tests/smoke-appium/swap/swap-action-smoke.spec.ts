@@ -6,8 +6,8 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { SmokeSwap } from '../../tags.js';
 import {
-  submitSwapUnifiedUI,
   checkSwapActivity,
+  submitSwapUnifiedUI,
 } from '../../helpers/swap/swap-unified-ui.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.js';

@@ -1324,7 +1324,7 @@ export const buildActivityCvRampSellEthOrder = (): FiatOrder =>
     data: {},
   }) as FiatOrder;
 
-/** Activity state with fiatOrders for Ramp Details CV. */
+/** Activity state with redesign + legacy fiatOrders for Ramp Details CV. */
 export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
   initialStateActivity().withOverrides({
     fiatOrders: {

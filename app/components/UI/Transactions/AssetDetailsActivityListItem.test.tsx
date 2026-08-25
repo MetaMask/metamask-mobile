@@ -246,7 +246,7 @@ describe('AssetDetailsActivityListItem', () => {
     expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
   });
 
-  it('routes to the ActivityDetails screen', () => {
+  it('routes to the ActivityDetails screen when the redesign is enabled', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectBridgeHistoryForAccount) {
         return bridgeHistory;

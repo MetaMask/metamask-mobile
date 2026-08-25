@@ -348,7 +348,7 @@ describe('useTokenTransactions', () => {
   });
 
   describe('gas_payment fee legs', () => {
-    it('hides gas_payment transactions', async () => {
+    it('hides gas_payment transactions when activity redesign is on', async () => {
       const send = createMockTransaction({
         id: 'send',
         type: TransactionType.simpleSend,
