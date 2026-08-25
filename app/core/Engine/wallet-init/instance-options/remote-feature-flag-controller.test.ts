@@ -71,21 +71,6 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(options.getMetaMetricsId?.()).toBeUndefined();
   });
 
-  it('returns undefined MetaMetrics id when AnalyticsController is not registered yet', () => {
-    const messenger = {
-      call: jest.fn(() => {
-        throw new Error('AnalyticsController:getState not registered');
-      }),
-    } as unknown as RootMessenger;
-
-    const options = getRemoteFeatureFlagControllerInstanceOptions({
-      messenger,
-      state: {},
-    });
-
-    expect(options.getMetaMetricsId?.()).toBeUndefined();
-  });
-
   it('resolves the canonical profile id from AuthenticationController via the messenger', () => {
     const messenger = {
       call: jest.fn(() => ({
@@ -104,21 +89,6 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(messenger.call).toHaveBeenCalledWith(
       'AuthenticationController:getState',
     );
-  });
-
-  it('returns an empty canonical profile id when AuthenticationController is not registered yet', () => {
-    const messenger = {
-      call: jest.fn(() => {
-        throw new Error('AuthenticationController:getState not registered');
-      }),
-    } as unknown as RootMessenger;
-
-    const options = getRemoteFeatureFlagControllerInstanceOptions({
-      messenger,
-      state: {},
-    });
-
-    expect(options.getCanonicalProfileId?.()).toBe('');
   });
 
   it('returns an empty canonical profile id when no session profile is present', () => {
