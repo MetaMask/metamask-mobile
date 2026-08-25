@@ -1,0 +1,1200 @@
+React Compiler Report
+========================================
+Files scanned:      12607
+Files with results: 3467
+Compiled (success): 3830
+Failed:             1191
+
+Failures:
+----------------------------------------
+  util/theme/index.ts:99 - (anonymous): Expected the first argument to be an inline function expression
+  util/test/testSetup.js:832 - (anonymous): Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+  util/social/socialServiceTelemetry.ts:340 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  util/notifications/hooks/usePushPrePromptVariant.ts:210 - (anonymous): Cannot access refs during render
+  util/notifications/hooks/usePushPrePromptVariant.ts:210 - (anonymous): Cannot access refs during render
+  util/notifications/hooks/usePushPrePromptVariant.ts:210 - (anonymous): Cannot access refs during render
+  util/notifications/hooks/usePushPrePromptVariant.ts:210 - (anonymous): Cannot access refs during render
+  util/notifications/hooks/useStartupNotificationsEffect.ts:88 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  util/notifications/hooks/useStartupNotificationsEffect.ts:136 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  util/notifications/hooks/useSwitchNotifications.ts:71 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  util/notifications/hooks/useSwitchNotifications.ts:115 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  util/bridge/hooks/useValidateBridgeTx.ts:13 - (anonymous): Existing memoization could not be preserved
+  store/storage-wrapper-hooks.ts:49 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  messengers/route-with-messenger.tsx:46 - (anonymous): Cannot access refs during render
+  messengers/route-with-messenger.tsx:70 - (anonymous): Cannot access refs during render
+  core/HardwareWallet/HardwareWalletProvider.memoization.test.tsx:132 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  core/HardwareWallet/HardwareWalletProvider.memoization.test.tsx:134 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  core/HardwareWallet/HardwareWalletProvider.tsx:213 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  core/HardwareWallet/hooks/useAdapterLifecycle.ts:88 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  core/HardwareWallet/hooks/useAdapterLifecycle.ts:123 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  core/HardwareWallet/hooks/useDeviceConnectionFlow.ts:173 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  core/HardwareWallet/hooks/useDeviceConnectionFlow.ts:176 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  core/HardwareWallet/hooks/useDeviceConnectionFlow.ts:275 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  core/HardwareWallet/hooks/useDeviceConnectionFlow.ts:304 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  core/HardwareWallet/hooks/useDeviceEventHandlers.ts:74 - (anonymous): This value cannot be modified
+  core/HardwareWallet/hooks/useDeviceEventHandlers.ts:94 - (anonymous): This value cannot be modified
+  core/HardwareWallet/hooks/useQrConfirm.ts:91 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  core/HardwareWallet/hooks/useTransportMonitoring.ts:56 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  core/HardwareWallet/hooks/useTransportMonitoring.ts:112 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  core/HardwareWallet/components/HardwareWalletBottomSheet/HardwareWalletBottomSheet.test.tsx:75 - (anonymous): This value cannot be modified
+  core/HardwareWallet/components/HardwareWalletBottomSheet/contents/AwaitingConfirmationContent.tsx:180 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  core/HardwareWallet/components/HardwareWalletBottomSheet/contents/ErrorContent.tsx:135 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  core/Braze/hooks/useBrazeIdentity/useBrazeIdentity.ts:28 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  core/Authentication/hooks/useAuthCapabilities.ts:27 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/product-safety/scam-questionnaire/security-check-header.tsx:33 - (anonymous): Cannot access refs during render
+  components/product-safety/scam-questionnaire/security-check-header.tsx:33 - (anonymous): Cannot access refs during render
+  components/product-safety/scam-questionnaire/security-check-header.tsx:43 - (anonymous): Cannot access refs during render
+  components/product-safety/scam-questionnaire/security-check-header.tsx:43 - (anonymous): Cannot access refs during render
+  components/hooks/useBluetoothPermissions.ts:105 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/useFollowToggle.ts:115 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/hooks/useNftDetection.ts:81 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/hooks/usePolling.ts:41 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/usePolling.ts:53 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/usePrevious.ts:17 - (anonymous): Cannot access refs during render
+  components/hooks/useSyncSRPs.ts:17 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/hooks/useTokenBalance.tsx:41 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/useTokenDescriptions.ts:63 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/hooks/useTokenHistoricalPrices.ts:93 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/hooks/useNetworkSelection/useNetworkSelection.ts:167 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/hooks/useNetworkEnablement/useNetworkEnablement.ts:95 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/useNetworkConnectionBanner/useNetworkConnectionBanner.ts:157 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys.ts:85 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys.ts:98 - (anonymous): (BuildHIR::lowerExpression) Handle ??= operators in AssignmentExpression
+  components/hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol.ts:38 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/hooks/useEnsNameByAddress/index.ts:27 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/hooks/useAddressBalance/useAddressBalance.ts:101 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/transactions/SmartTransactionStatus/useRemainingTime.ts:75 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/confirmations/legacy/components/WatchAssetRequest/index.js:186 - (anonymous): (BuildHIR::lowerExpression) Handle ThisExpression expressions
+  components/Views/confirmations/hooks/useConfirmActions.ts:50 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/useConfirmActions.ts:74 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/useDeepMemo.ts:14 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/useDeepMemo.ts:15 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/useDeepMemo.ts:16 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/useDeepMemo.ts:19 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/useGetTokenStandardAndDetails.ts:59 - (anonymous): This value cannot be modified
+  components/Views/confirmations/hooks/useLedgerConfirm.ts:57 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/confirmations/hooks/useTokenAmount.ts:142 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/useTokenAmount.ts:164 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/useTokenAmount.ts:148 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/ui/useMMPayNavigation.ts:34 - (anonymous): This value cannot be modified
+  components/Views/confirmations/hooks/transactions/useTransactionCustomAmount.ts:499 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/confirmations/hooks/tokens/useEnsurePayToken.ts:84 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/hooks/send/useAccountTokens.ts:122 - (anonymous): (BuildHIR::lowerExpression) Handle UpdateExpression to variables captured within lambdas.
+  components/Views/confirmations/hooks/send/useAmountValidation.ts:104 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/send/useAmountValidation.ts:108 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/send/useSendActions.ts:68 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/hooks/send/useSendType.ts:38 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/send/useSendType.ts:45 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/send/useSendType.ts:52 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/pay/useAssetFiatFormatter.ts:49 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/hooks/pay/useAutomaticTransactionPayToken.ts:247 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useFiatConfirm.ts:54 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:46 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:51 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:51 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:51 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:50 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:54 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts:54 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:15 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:15 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:15 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:15 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:25 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:26 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:26 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:27 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:32 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:32 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:34 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useSectionTracking.ts:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:93 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:93 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:126 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:128 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:140 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:140 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:140 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:140 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:149 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:148 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:149 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:164 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:166 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:166 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:166 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:166 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:254 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:254 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:254 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:257 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:257 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:257 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:261 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:279 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:281 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:284 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayMetrics.ts:285 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/hooks/pay/useTransactionPayPostQuote.ts:65 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/hooks/pay/useTransactionPaySelectedFiatPaymentMethod.ts:13 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/metrics/useConfirmationLocation.ts:108 - (anonymous): Calling setState from useMemo may trigger an infinite loop
+  components/Views/confirmations/hooks/gas/useGasFeeEstimateLevelOptions.ts:74 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/Views/confirmations/hooks/alerts/useAddressTrustSignalAlerts.ts:72 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/hooks/alerts/useDomainMismatchAlerts.ts:29 - (anonymous): Unexpected terminal in optional
+  components/Views/confirmations/hooks/alerts/useTokenContractAlert.ts:53 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/send/amount/animated-cursor.tsx:31 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:81 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:95 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:95 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:95 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:95 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/rows/pay-with-row/pay-with-row.tsx:95 - (anonymous): Cannot access refs during render
+  components/Views/confirmations/components/recipient-input/recipient-input.tsx:73 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx:200 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/confirmations/components/info/custom-amount-info/custom-amount-info.tsx:242 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/confirmations/components/gas/gas-fee-token-modal/gas-fee-token-modal.tsx:55 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/components/gas/gas-fee-token-modal/gas-fee-token-modal.tsx:46 - (anonymous): Existing memoization could not be preserved
+  components/Views/confirmations/components/custom-amount/custom-amount-buy/custom-amount-buy.tsx:38 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/Views/confirmations/components/UI/info-section-accordion/info-section-accordion.tsx:95 - (anonymous): This value cannot be modified
+  components/Views/confirmations/components/UI/animated-pulse/animated-pulse.tsx:83 - (anonymous): Cannot access variable before it is declared
+  components/Views/WhatsHappeningDetailView/WhatsHappeningDetailView.tsx:131 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices.ts:66 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/Wallet/index.test.tsx:242 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/Wallet/index.tsx:865 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/TrendingView/tabs/SportsTab.tsx:139 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/search/SearchFeedRow.tsx:55 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/search/SearchFeedRow.tsx:57 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/search/analytics.ts:247 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/search/analytics.ts:250 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/feeds/tokens/useTokensFeed.ts:122 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/TrendingView/feeds/perps/usePerpsLiveMovers.ts:198 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/TrendingView/feeds/perps/usePerpsLiveMovers.ts:324 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.tsx:208 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.tsx:210 - (anonymous): Cannot access refs during render
+  components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.tsx:216 - (anonymous): Cannot access refs during render
+  components/Views/TradeWalletActions/TradeWalletActions.tsx:144 - (anonymous): This value cannot be modified
+  components/Views/TradeWalletActions/TradeWalletActions.tsx:148 - (anonymous): This value cannot be modified
+  components/Views/ThemeSettings/index.tsx:75 - (anonymous): Existing memoization could not be preserved
+  components/Views/SocialLeaderboard/hooks/useOpenTradingSignalsSetup.ts:66 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/components/PositionTokenAvatar.tsx:95 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/SocialLeaderboard/components/TraderMuteChip.tsx:127 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/components/TraderMuteChip.tsx:131 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.tsx:46 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderProfileView/TraderProfileView.tsx:223 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/Views/SocialLeaderboard/TraderPositionView/TraderPositionView.tsx:300 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/SocialLeaderboard/TraderPositionView/usePerpsTraderPositionPrices.ts:211 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/useSpotTraderPositionPrices.ts:82 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx:48 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx:48 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx:48 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx:48 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx:48 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TraderPriceChart.tsx:163 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TraderPriceChart.tsx:354 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TraderPositionView/components/TraderTradesSection.tsx:137 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/TopTradersView/TopTradersView.tsx:493 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:92 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:97 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:110 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:157 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:155 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/SocialTradersTabsView/SocialTradersTabsView.tsx:292 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:416 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:777 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:778 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:815 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:466 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:466 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:466 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:467 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:467 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:778 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:778 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:778 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:777 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:777 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:777 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx:467 - (anonymous): Cannot access refs during render
+  components/Views/SocialLeaderboard/FeedView/FeedView.tsx:225 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/SocialLeaderboard/FeedView/components/FeedAudienceToggle.tsx:107 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/FeedView/components/FeedAudienceToggle.tsx:137 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/FeedView/components/FeedAudienceToggle.tsx:203 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/FeedView/components/FeedAudienceToggle.tsx:204 - (anonymous): This value cannot be modified
+  components/Views/SocialLeaderboard/FeedView/components/FeedAudienceToggle.tsx:242 - (anonymous): This value cannot be modified
+  components/Views/Snaps/SnapSettings/SnapSettings.tsx:137 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/SitesFullView/SitesFullView.tsx:100 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Settings/SecuritySettings/Sections/TopTradersSection.tsx:52 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/Settings/NotificationsSettings/AccountsList.tsx:63 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet.tsx:119 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Settings/NotificationsSettings/hooks/useOptimisticToggleValue.ts:31 - (anonymous): Cannot access refs during render
+  components/Views/Settings/NotificationsSettings/hooks/useOptimisticToggleValue.ts:33 - (anonymous): Cannot access refs during render
+  components/Views/SDK/SDKDisconnectModal/SDKDisconnectModal.tsx:85 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Root/index.tsx:51 - (anonymous): Cannot access refs during render
+  components/Views/Root/index.tsx:55 - (anonymous): Cannot access refs during render
+  components/Views/QRTabSwitcher/QRTabSwitcher.tsx:101 - (anonymous): Cannot access refs during render
+  components/Views/QRTabSwitcher/QRTabSwitcher.tsx:103 - (anonymous): Cannot access refs during render
+  components/Views/QRTabSwitcher/QRTabSwitcher.tsx:106 - (anonymous): Cannot access refs during render
+  components/Views/QRTabSwitcher/QRTabSwitcher.tsx:153 - (anonymous): Cannot access refs during render
+  components/Views/QRScanner/useQrScannerCameraPermission.ts:22 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/OAuthRehydration/index.tsx:473 - (anonymous): Existing memoization could not be preserved
+  components/Views/OAuthRehydration/index.tsx:562 - (anonymous): Existing memoization could not be preserved
+  components/Views/Notifications/PushNotificationOnboarding/index.tsx:181 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/Views/NftDetails/NftDetails.tsx:107 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/NetworksManagement/hooks/useExpandableFormAnimation.ts:41 - (anonymous): This value cannot be modified
+  components/Views/NetworksManagement/hooks/useExpandableFormAnimation.ts:42 - (anonymous): This value cannot be modified
+  components/Views/NetworksManagement/hooks/useExpandableFormAnimation.ts:48 - (anonymous): This value cannot be modified
+  components/Views/NetworksManagement/hooks/useExpandableFormAnimation.ts:49 - (anonymous): This value cannot be modified
+  components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.tsx:129 - (anonymous): Cannot access refs during render
+  components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkForm.ts:318 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkForm.ts:328 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkOperations.ts:327 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts:240 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/NetworksManagement/NetworkDetailsView/components/BlockExplorerSection.tsx:189 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/NetworksManagement/NetworkDetailsView/components/RpcEndpointSection.tsx:310 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions.tsx:176 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions.tsx:236 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect.tsx:701 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal.tsx:52 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal.tsx:97 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/MultichainAccounts/AccountGroupDetails/components/SecretRecoveryPhrase.tsx:55 - (anonymous): Existing memoization could not be preserved
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:193 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:194 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:197 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:198 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:201 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:204 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:192 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:196 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:201 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:204 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:361 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:624 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:625 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/AndroidMediaPlayer.js:626 - (anonymous): Cannot access refs during render
+  components/Views/MediaPlayer/index.js:95 - (anonymous): This value cannot be modified
+  components/Views/LedgerSelectAccount/index.tsx:188 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/LedgerSelectAccount/index.tsx:225 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/ImportPrivateKey/index.tsx:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/ImportFromSecretRecoveryPhrase/index.tsx:601 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/Homepage/hooks/usePillViewedEvent.ts:22 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/hooks/usePillViewedEvent.ts:25 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/hooks/usePillViewedEvent.ts:28 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/components/HomepageBalanceBreakdown/useHomepageBalanceBreakdownHero.ts:104 - (anonymous): This value cannot be modified
+  components/Views/Homepage/Sections/TopTraders/TopTradersSection.tsx:220 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/TopTraders/hooks/usePrefetchTraderProfiles.ts:26 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/TopTraders/hooks/usePrefetchTraderProfiles.ts:31 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Tokens/hooks/usePopularTokens.ts:162 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines.ts:102 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/Homepage/Sections/Perpetuals/components/SparklineChart/SparklineChart.tsx:34 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/SparklineChart/SparklineChart.tsx:34 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/SparklineChart/SparklineChart.tsx:89 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/SparklineChart/SparklineChart.tsx:89 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard/PerpsMarketTileCard.tsx:63 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard/PerpsMarketTileCard.tsx:63 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard/PerpsMarketTileCard.tsx:182 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard/PerpsMarketTileCard.tsx:182 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/NFTs/NFTsSection.tsx:69 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/NFTs/NFTsSection.tsx:88 - (anonymous): Cannot access refs during render
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:65 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:66 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:67 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:71 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:72 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:134 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/DiscoveryTab/DiscoveryTab.test.tsx:135 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/Views/ConnectQRHardware/index.tsx:130 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/Views/ConnectQRHardware/index.tsx:268 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/ConnectHardware/SearchingForDevice/index.tsx:48 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/ConnectHardware/HardwareWalletDiscoveryFlow/screens/errors/DiscoveryErrorScreenLayout.tsx:46 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/CashTokensFullView/CashTokensFullView.tsx:168 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/CashTokensFullView/useCashTokensRefresh.ts:18 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/BrowserTab/BrowserTab.tsx:1017 - (anonymous): This value cannot be modified
+  components/Views/BrowserTab/BrowserTab.tsx:1140 - (anonymous): This value cannot be modified
+  components/Views/AddAsset/components/SearchTokenAutoComplete/SearchTokenAutocomplete.tsx:210 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/AddAsset/components/AddCustomToken/AddCustomToken.tsx:135 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx:78 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx:233 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/Views/ActivityScreen/ActivityScreen.tsx:74 - (anonymous): This value cannot be modified
+  components/Views/ActivityScreen/hooks/useActivityScreenViewed.ts:62 - (anonymous): Cannot access refs during render
+  components/Views/ActivityList/ActivityList.tsx:848 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/Views/ActivityList/useTransactionAutoScroll.ts:125 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/ActivityList/useUnifiedTxActions.ts:298 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/ActivityList/useUnifiedTxActions.ts:301 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/ActivityList/useUnifiedTxActions.ts:365 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/ActivityList/useUnifiedTxActions.ts:368 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/Views/ActivityDetails/ActivityDetails.tsx:62 - (anonymous): Cannot access refs during render
+  components/Views/ActivityDetails/ActivityDetails.tsx:63 - (anonymous): Cannot access refs during render
+  components/Views/ActivityDetails/ActivityDetails.tsx:70 - (anonymous): Cannot access refs during render
+  components/Views/AccountStatus/index.tsx:121 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountStatus/index.tsx:121 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountStatus/index.tsx:204 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountStatus/index.tsx:196 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountStatus/index.tsx:218 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountStatus/index.tsx:213 - (anonymous): Existing memoization could not be preserved
+  components/Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet.test.tsx:20 - (anonymous): Cannot access refs during render
+  components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.tsx:61 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/WhatsNewModal/WhatsNewModal.tsx:418 - (anonymous): Cannot access refs during render
+  components/UI/WhatsHappening/hooks/useWhatsHappening.ts:200 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate.ts:54 - (anonymous): Cannot access refs during render
+  components/UI/Trending/hooks/useTrendingSearch/useTrendingSearch.ts:162 - (anonymous): Cannot access refs during render
+  components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest.ts:238 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/hooks/useSearchRequest/useSearchRequest.ts:97 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/hooks/useSearchRequest/useSearchRequest.ts:137 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/hooks/useRwaTokens/useRwaTokens.ts:114 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/hooks/useRwaTokens/useRwaTokens.ts:150 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard.ts:16 - (anonymous): Cannot access refs during render
+  components/UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard.ts:19 - (anonymous): Cannot access refs during render
+  components/UI/Trending/hooks/useNetworkName/useNetworkName.ts:40 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet.test.tsx:61 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenPriceChangeBottomSheet.test.tsx:34 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet.test.tsx:34 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView.tsx:278 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Trending/Views/RWATokensFullView/RWATokensFullView.tsx:52 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Transactions/index.js:383 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Transactions/index.js:400 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Tokens/index.tsx:208 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Tokens/TokenList/TokenList.test.tsx:154 - (anonymous): Cannot access refs during render
+  components/UI/Tokens/TokenList/TokenList.tsx:119 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/UI/TokenDetails/hooks/useAssetActivation.ts:98 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useAssetActivation.ts:153 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useTokenPrice.ts:188 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/TokenDetails/hooks/useTokenSecurityData.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useTokenTransactions.ts:291 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/UI/TokenDetails/hooks/useTokenTransactions.ts:293 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/UI/TokenDetails/components/AssetOverviewContent.tsx:446 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/AssetOverviewContent.tsx:448 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:265 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:277 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:289 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:301 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:312 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/ShareTokenBottomSheet.tsx:247 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:206 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:214 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:225 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:234 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:245 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:256 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:266 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:276 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/useAssetVisibility.ts:101 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/components/useAssetVisibility.ts:111 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/Views/TokenDetails.tsx:210 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/TokenDetails/Views/TokenDetails.tsx:687 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/Views/TokenDetails.tsx:775 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/Views/TokenDetails.tsx:776 - (anonymous): Cannot access refs during render
+  components/UI/Stake/sdk/stakeSdkProvider.test.tsx:28 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  components/UI/Stake/hooks/usePooledStakes.ts:28 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Stake/hooks/useStakingEligibility.ts:28 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Stake/hooks/useVaultApyAverages.tsx:19 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Stake/hooks/useVaultApys.tsx:18 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Stake/hooks/useVaultMetadata.ts:27 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Stake/hooks/usePoolStakedDeposit/index.ts:106 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Stake/components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.tsx:156 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx:72 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Stake/components/GasImpactModal/index.tsx:97 - (anonymous): Existing memoization could not be preserved
+  components/UI/SlippageSlider/index.js:144 - (anonymous): Cannot access refs during render
+  components/UI/SlippageSlider/index.js:144 - (anonymous): Cannot access refs during render
+  components/UI/SlippageSlider/index.js:142 - (anonymous): Cannot access refs during render
+  components/UI/SlippageSlider/index.js:163 - (anonymous): Cannot access refs during render
+  components/UI/SlippageSlider/index.js:163 - (anonymous): Cannot access refs during render
+  components/UI/SlippageSlider/index.js:179 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:139 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:139 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:158 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:158 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:162 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:162 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:207 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:207 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:207 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:207 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:203 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:120 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:120 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:290 - (anonymous): Cannot access refs during render
+  components/UI/SliderButton/index.js:290 - (anonymous): Cannot access refs during render
+  components/UI/Sites/hooks/useSiteData/useSitesData.ts:141 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Sites/hooks/useSiteData/useSitesData.ts:156 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/SimulationDetails/useSimulationMetrics.ts:112 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/RiveOnboardingStepper/RiveOnboardingStepper.tsx:113 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/RiveOnboardingStepper/useStepperProgress.ts:41 - (anonymous): This value cannot be modified
+  components/UI/RiveOnboardingStepper/useStepperProgress.ts:81 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useApplyBonusCode.ts:56 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useApplyReferralCode.ts:56 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useBenefits.ts:41 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useCampaignOutcomeToast.ts:69 - (anonymous): Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+  components/UI/Rewards/hooks/useCampaignParticipantOutcome.ts:42 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useClaimReward.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useCursorPaginatedList.ts:225 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Rewards/hooks/useFirstPredictOnUsOrder.ts:40 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGeoRewardsMetadata.ts:43 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetCampaignParticipantStatus.ts:43 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetOndoCampaignDeposits.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetOndoLeaderboard.ts:95 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetOndoLeaderboardPosition.ts:57 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetOndoPortfolioPosition.ts:54 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPerpsTradingCampaignLeaderboard.ts:54 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPerpsTradingCampaignLeaderboardPosition.ts:47 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPerpsTradingCampaignVolume.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPredictThePitchLeaderboard.ts:54 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPredictThePitchLeaderboardPosition.ts:47 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPredictThePitchOutcomeToast.ts:9 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  components/UI/Rewards/hooks/useGetPredictThePitchPositions.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useGetPredictThePitchPrizePool.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useLineaSeasonOneTokenReward.ts:48 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useLinkAccountAddress.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useLinkAccountGroup.ts:60 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useLinkedOffDeviceAccounts.ts:49 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Rewards/hooks/useOndoOutcomeToast.ts:9 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  components/UI/Rewards/hooks/useOptIn.ts:172 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Rewards/hooks/useOptInToCampaign.ts:38 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useOptout.ts:48 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/usePerpsTradingCampaignEndedOutcomeToast.ts:9 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  components/UI/Rewards/hooks/useReferralDetails.ts:36 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useRewardCampaigns.ts:69 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useRewardDashboardModals.tsx:165 - (anonymous): Existing memoization could not be preserved
+  components/UI/Rewards/hooks/useRewardDashboardModals.tsx:223 - (anonymous): Existing memoization could not be preserved
+  components/UI/Rewards/hooks/useRewardOptinSummary.ts:256 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:140 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:144 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:165 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:171 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:197 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:206 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:236 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:240 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:265 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsAnimation.ts:273 - (anonymous): This value cannot be modified
+  components/UI/Rewards/hooks/useRewardsNotificationsNudge.ts:96 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useRewardsNotificationsNudge.ts:116 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useRewardsToast.tsx:88 - (anonymous): Existing memoization could not be preserved
+  components/UI/Rewards/hooks/useRewardsVersionGuard.ts:38 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useSeasonStatus.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useSeasonStatus.ts:73 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Rewards/hooks/useUnlockedRewards.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useValidateBonusCode.ts:79 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useValidateReferralCode.ts:186 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Rewards/hooks/useVipDashboard.ts:57 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useVipEquityMultiplier.ts:113 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/hooks/useVipRefereeDashboard.ts:55 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/components/RewardsBottomSheetModal.tsx:106 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Rewards/components/Tabs/MusdCalculatorTab/MusdCalculatorTab.tsx:159 - (anonymous): This value cannot be modified
+  components/UI/Rewards/components/Tabs/MusdCalculatorTab/MusdCalculatorTab.tsx:173 - (anonymous): This value cannot be modified
+  components/UI/Rewards/components/Tabs/MusdCalculatorTab/MusdCalculatorTab.tsx:182 - (anonymous): This value cannot be modified
+  components/UI/Rewards/components/Tabs/MusdCalculatorTab/MusdCalculatorTab.tsx:189 - (anonymous): This value cannot be modified
+  components/UI/Rewards/components/Tabs/MusdCalculatorTab/MusdCalculatorTab.tsx:231 - (anonymous): This value cannot be modified
+  components/UI/Rewards/components/Settings/ReferredByCodeSection.tsx:83 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Rewards/components/Onboarding/OnboardingStep.tsx:119 - (anonymous): Cannot access refs during render
+  components/UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet.tsx:375 - (anonymous): (BuildHIR::lowerExpression) Handle BigIntLiteral expressions
+  components/UI/Rewards/components/Campaigns/CampaignOptInSheet.tsx:50 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Rewards/Views/BenefitsFullView.tsx:38 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/ReusableModal/index.tsx:142 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Ramp/hooks/useBlinkingCursor.ts:14 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/hooks/useBlinkingCursor.ts:14 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/hooks/useBlinkingCursor.ts:14 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/hooks/useContinueWithQuote.ts:206 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useContinueWithQuote.ts:367 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Ramp/hooks/useRampTokens.ts:79 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/hooks/useRampsButtonClickData.ts:32 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/hooks/useTransakController.ts:133 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/hooks/useTransakIdProofPolling.ts:47 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/hooks/useTransakRouting.ts:312 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:326 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:340 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:557 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:794 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:1012 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:980 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:924 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:926 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:801 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:813 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:901 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/hooks/useTransakRouting.ts:913 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/headless/useHeadlessSessionDismissal.ts:47 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/headless/useHeadlessSessionFocusDismissal.ts:27 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/headless/useHeadlessSessionFocusDismissal.ts:30 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/headless/useHeadlessSessionFocusDismissal.ts:33 - (anonymous): Cannot access refs during render
+  components/UI/Ramp/Views/OrderDetails/OrderDetails.tsx:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/OrderDetails/OrderDetails.tsx:239 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/BankDetails.tsx:116 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/BankDetails.tsx:239 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/BankDetails.tsx:305 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/BasicInfo.tsx:204 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/EnterAddress.tsx:218 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/EnterEmail.tsx:109 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/EnterEmail.tsx:117 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Views/NativeFlow/KycProcessing.tsx:162 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/OtpCode.tsx:217 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Views/NativeFlow/OtpCode.tsx:252 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Views/NativeFlow/OtpCode.tsx:257 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Views/NativeFlow/OtpCode.tsx:267 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Views/Modals/SettingsModal/SettingsModal.tsx:79 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/Views/Checkout/Checkout.tsx:508 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx:621 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/hooks/useApplePay.ts:59 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/hooks/useApplePay.ts:70 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/hooks/useApplePay.ts:72 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/hooks/useFetchRampNetworks.ts:22 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/hooks/useInAppBrowser.ts:70 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts:31 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/hooks/useRampNetworksDetail.ts:12 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/hooks/useSDKMethod.ts:124 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/Aggregator/containers/ApplePayButton.tsx:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/components/TokenSelectModal/TokenSelectModal.tsx:94 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/Aggregator/components/OrderListItem/OrderListItem.tsx:105 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Ramp/Aggregator/components/LoadingAnimation/index.tsx:113 - (anonymous): This value cannot be modified
+  components/UI/Ramp/Aggregator/components/LoadingAnimation/index.tsx:124 - (anonymous): This value cannot be modified
+  components/UI/Ramp/Aggregator/Views/SendTransaction/SendTransaction.tsx:152 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/Views/Quotes/Quotes.tsx:324 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/Views/Quotes/Quotes.tsx:392 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/Views/Quotes/Quotes.tsx:423 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/Views/Quotes/Quotes.tsx:506 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/Views/OrderDetails/OrderDetails.tsx:152 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Ramp/Aggregator/Views/Checkout/Checkout.tsx:165 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx:470 - (anonymous): Existing memoization could not be preserved
+  components/UI/QuickBuy/QuickBuyContext.test.tsx:147 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/QuickBuyPriceImpactConfirmScreen.tsx:41 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/QuickBuy/hooks/useQuickBuyAnalytics.ts:88 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyController.ts:1538 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/QuickBuy/hooks/useQuickBuyQuickAmountPreferences.ts:118 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:487 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:689 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:689 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:689 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:688 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuyQuotes.ts:688 - (anonymous): Cannot access refs during render
+  components/UI/QuickBuy/hooks/useQuickBuySetup.ts:142 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:117 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:118 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:119 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:133 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:140 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/CollapsibleReveal.tsx:141 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/QuickBuyQuoteCountdown.tsx:51 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/QuickBuy/components/QuickBuyTradeModeToggle.tsx:129 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/QuickBuyTradeModeToggle.tsx:130 - (anonymous): This value cannot be modified
+  components/UI/QuickBuy/components/QuickBuyTradeModeToggle.tsx:159 - (anonymous): This value cannot be modified
+  components/UI/QRHardware/AnimatedQRScanner.tsx:248 - (anonymous): Cannot access refs during render
+  components/UI/QRHardware/QRSigningTransactionModal.tsx:111 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/PredictNext/components/EventCard/EventCard.tsx:53 - (anonymous): (BuildHIR::node.lowerReorderableExpression) Expression type `MemberExpression` cannot be safely reordered
+  components/UI/Predict/views/PredictSellPreview/PredictSellPreview.tsx:178 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:99 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:100 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:100 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:101 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:101 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:134 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictMarketDetails/hooks/useOpenOutcomes.ts:135 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictFeed/PredictFeed.tsx:360 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyActions.ts:110 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyConditions.ts:141 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyConditions.ts:141 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyError.ts:80 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyError.ts:80 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyError.ts:231 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyInfo.ts:51 - (anonymous): Existing memoization could not be preserved
+  components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyInputState.ts:16 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictBuyAmountSection/PredictBuyAmountSection.tsx:45 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictBuyAmountSection/PredictBuyAmountSection.tsx:45 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictBuyAmountSection/PredictBuyAmountSection.tsx:45 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictBuyAmountSection/PredictBuyAmountSection.tsx:45 - (anonymous): Cannot access refs during render
+  components/UI/Predict/views/PredictBuyPreview/PredictBuyPreview.tsx:132 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/views/PredictBuyPreview/PredictBuyPreview.tsx:267 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/views/PredictAddFundsModal/PredictAddFundsModal.tsx:65 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:196 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:197 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:198 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:199 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:204 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:205 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:213 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:214 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:218 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:219 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:220 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:222 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:223 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:224 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:225 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:476 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:536 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:536 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useCryptoUpDownChartData.ts:448 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/useFeedScrollManager.ts:120 - (anonymous): This value cannot be modified
+  components/UI/Predict/hooks/useFeedScrollManager.ts:131 - (anonymous): This value cannot be modified
+  components/UI/Predict/hooks/useFeedScrollManager.ts:219 - (anonymous): This value cannot be modified
+  components/UI/Predict/hooks/useLiveCryptoPrices.ts:18 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictCashOut.ts:41 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictClaim.ts:129 - (anonymous): Cannot access variable before it is declared
+  components/UI/Predict/hooks/usePredictDeposit.ts:73 - (anonymous): Cannot access variable before it is declared
+  components/UI/Predict/hooks/usePredictEligibility.ts:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictFeedConfig.ts:179 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictFeedConfig.ts:185 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictMarketData.tsx:82 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Predict/hooks/usePredictMarketData.tsx:169 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictMarketData.tsx:114 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictMarketData.tsx:119 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictOrderRetry.ts:64 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Predict/hooks/usePredictOrderRetry.ts:81 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictPlaceOrder.ts:247 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Predict/hooks/usePredictPriceHistory.tsx:64 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/hooks/usePredictPriceHistory.tsx:76 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/hooks/usePredictPriceHistory.tsx:123 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/hooks/usePredictPrices.tsx:143 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Predict/hooks/usePredictRewards.ts:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Predict/hooks/usePredictSectionImpressions.ts:54 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictSectionImpressions.ts:55 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictShare.ts:54 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Predict/hooks/usePredictStackedHeader.ts:46 - (anonymous): This value cannot be modified
+  components/UI/Predict/hooks/usePredictTabs.ts:89 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictTabs.ts:138 - (anonymous): Cannot access refs during render
+  components/UI/Predict/hooks/usePredictTabs.ts:138 - (anonymous): Cannot access refs during render
+  components/UI/Predict/contexts/PredictPreviewSheetContext.tsx:267 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:38 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:37 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:63 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:37 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:37 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:38 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:37 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:68 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PulsingLiveDot/PulsingLiveDot.tsx:90 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictSportLineSelector/PredictSportLineSelector.tsx:66 - (anonymous): This value cannot be modified
+  components/UI/Predict/components/PredictSportLineSelector/PredictSportLineSelector.tsx:67 - (anonymous): This value cannot be modified
+  components/UI/Predict/components/PredictSportLineSelector/PredictSportLineSelector.tsx:75 - (anonymous): This value cannot be modified
+  components/UI/Predict/components/PredictMarketMultiple/PredictMarketMultiple.tsx:98 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Predict/components/PredictGameDetailsContent/usePricedOutcomeGroup.ts:193 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameDetailsContent/usePricedOutcomeGroup.ts:194 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:291 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:291 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:291 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:291 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:305 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChart.tsx:305 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChartContent.tsx:101 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChartContent.tsx:110 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChartContent.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictGameChart/PredictGameChartContent.tsx:364 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictDetailsChart/PredictDetailsChart.tsx:370 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:154 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:209 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:432 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictCryptoUpDownDetails/PredictCryptoUpDownDetails.tsx:207 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictAmountDisplay/PredictAmountDisplay.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictAmountDisplay/PredictAmountDisplay.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictAmountDisplay/PredictAmountDisplay.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictAmountDisplay/PredictAmountDisplay.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Predict/components/PredictAmountDisplay/PredictAmountDisplay.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useColorPulseAnimation.ts:50 - (anonymous): (BuildHIR::node.lowerReorderableExpression) Expression type `ObjectExpression` cannot be safely reordered
+  components/UI/Perps/hooks/useDepositRequests.ts:122 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/useDepositRequests.ts:137 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/useDepositRequests.ts:148 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/useHasExistingPosition.ts:131 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/useIsPriceDeviatedAboveThreshold.ts:54 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/hooks/useIsPriceDeviatedAboveThreshold.ts:54 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/hooks/usePerpsAdvancedChartAdapter.ts:265 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/usePerpsBlockExplorerUrl.ts:36 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsCancelAllOrders.ts:76 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsCancelAllOrders.ts:103 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/usePerpsCloseAllCalculations.ts:494 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsCloseAllPositions.ts:94 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsCloseAllPositions.ts:124 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/usePerpsClosePosition.ts:128 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsClosePosition.ts:271 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/usePerpsClosePositionValidation.ts:141 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsDataMonitor.ts:224 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsFlipPosition.ts:43 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsFunding.ts:82 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsHomeActions.ts:136 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsHomeActions.ts:205 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsHomeData.ts:127 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsLiquidationPrice.ts:45 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsMarginAdjustment.ts:39 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsMarketData.ts:93 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsMarketFills.ts:200 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/hooks/usePerpsMarketForAsset.ts:158 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsMarkets.ts:126 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsMaxSlippage.ts:48 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsNetworkManagement.ts:64 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsOrderExecution.ts:181 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsOrderFees.ts:553 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsOrderFills.ts:82 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsOrderForm.ts:264 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsOrderValidation.ts:146 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsOrders.ts:66 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsPaymentTokens.ts:130 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/usePerpsPaymentTokens.ts:134 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/usePerpsPaymentTokens.ts:138 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/usePerpsPositionForAsset.ts:168 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsProOrderEdit.tsx:217 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsProPositionsPanelActions.tsx:291 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsRewardAccountOptedIn.ts:80 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsTPSLForm.ts:243 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsTPSLForm.ts:308 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/usePerpsTPSLUpdate.ts:70 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsToasts.tsx:384 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/hooks/usePerpsTrading.ts:98 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/hooks/usePerpsTransactionHistory.ts:177 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsTransactionHistory.ts:183 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/usePerpsTransactionHistory.ts:316 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/usePerpsWithdrawConfirmation.ts:126 - (anonymous): Unsupported declaration type for hoisting
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:12 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:11 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:13 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:13 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useStableArray.ts:17 - (anonymous): Cannot access refs during render
+  components/UI/Perps/hooks/useUserHistory.ts:36 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/useUserHistory.ts:42 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/hooks/useWithdrawalRequests.ts:204 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/hooks/useWithdrawalRequests.ts:223 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/hooks/stream/usePerpsLiveCandles.ts:196 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/hooks/stream/usePerpsLivePositions.ts:216 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/hooks/stream/usePerpsLivePrices.ts:53 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/components/TradingViewChart/TradingViewChart.tsx:314 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/components/PerpsWebSocketHealthToast/PerpsWebSocketHealthToast.tsx:200 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.tsx:62 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.tsx:62 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.tsx:62 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.tsx:62 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.tsx:62 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsProgressBar/PerpsProgressBar.tsx:163 - (anonymous): This value cannot be modified
+  components/UI/Perps/components/PerpsProgressBar/PerpsProgressBar.tsx:322 - (anonymous): This value cannot be modified
+  components/UI/Perps/components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView.tsx:119 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/components/PerpsOrderBookTable/PerpsOrderBookTable.tsx:188 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/components/PerpsOrderBookTable/PerpsOrderBookTable.tsx:194 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/components/PerpsNotificationBottomSheet/PerpsNotificationBottomSheet.tsx:46 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/components/PerpsModeToggle/PerpsModeSwitchPill.tsx:151 - (anonymous): This value cannot be modified
+  components/UI/Perps/components/PerpsModeToggle/PerpsModeSwitchPill.tsx:152 - (anonymous): This value cannot be modified
+  components/UI/Perps/components/PerpsMarginModeBottomSheet/PerpsMarginModeBottomSheet.tsx:31 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/components/PerpsLeverageBottomSheet/PerpsLeverageBottomSheet.tsx:274 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsLeverageBottomSheet/PerpsLeverageBottomSheet.tsx:274 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsDeveloperOptionsSection/PerpsProviderToggle.tsx:52 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/components/PerpsAmountDisplay/PerpsAmountDisplay.tsx:55 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsAmountDisplay/PerpsAmountDisplay.tsx:55 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsAmountDisplay/PerpsAmountDisplay.tsx:55 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsAmountDisplay/PerpsAmountDisplay.tsx:55 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsAmountDisplay/PerpsAmountDisplay.tsx:55 - (anonymous): Cannot access refs during render
+  components/UI/Perps/components/PerpsActionSheet/PerpsActionSheet.tsx:31 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/components/LivePriceDisplay/LivePriceHeader.tsx:183 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx:266 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.tsx:59 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/Views/PerpsTransactionsView/PerpsTransactionsView.tsx:202 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsTransactionsView/PerpsTransactionsView.tsx:245 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsTPSLView/PerpsTPSLView.tsx:501 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/Views/PerpsSelectOrderTypeView/PerpsSelectOrderTypeView.tsx:31 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/Views/PerpsSelectOrderTypeView/PerpsSelectOrderTypeView.tsx:41 - (anonymous): Existing memoization could not be preserved
+  components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionsOptionSheet.tsx:104 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProOrderForm.ts:671 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx:258 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx:1257 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/Views/PerpsOrderView/useInitPerpsPaymentToken.ts:25 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsOrderView/useInitPerpsPaymentToken.ts:26 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsOrderView/useInitPerpsPaymentToken.ts:27 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.tsx:216 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:116 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:116 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:443 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:506 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:543 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.tsx:935 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx:838 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx:1189 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.tsx:295 - (anonymous): This value cannot be modified
+  components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView.tsx:397 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView.tsx:735 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:297 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:299 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:301 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:301 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:302 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:364 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:383 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx:384 - (anonymous): Cannot access refs during render
+  components/UI/Perps/Debug/HIP3DebugView.tsx:256 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:314 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:347 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:354 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:362 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:414 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Perps/Debug/HIP3DebugView.tsx:464 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Notification/NotificationMenuItem/Icon.tsx:33 - (anonymous): Existing memoization could not be preserved
+  components/UI/NftGrid/NftGridItemBottomSheet.test.tsx:55 - (anonymous): Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+  components/UI/NftGrid/useNftRefresh.ts:38 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/NetworkManager/index.tsx:362 - (anonymous): Cannot access refs during render
+  components/UI/NetworkManager/index.tsx:362 - (anonymous): Cannot access refs during render
+  components/UI/NetworkConnectionBanner/NetworkConnectionBanner.tsx:60 - (anonymous): (BuildHIR::lowerExpression) Handle tagged template with interpolations
+  components/UI/Money/hooks/useMoneyHomePerformance.ts:87 - (anonymous): Expected branch block to end in an instruction that sets the test value
+  components/UI/Money/hooks/useMoneyToasts.tsx:232 - (anonymous): Existing memoization could not be preserved
+  components/UI/Money/hooks/useMountEffect.ts:14 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Money/components/MoneySheetEntrance/MoneySheetEntrance.tsx:72 - (anonymous): This value cannot be modified
+  components/UI/Money/components/MoneySheetEntrance/MoneySheetEntrance.tsx:73 - (anonymous): This value cannot be modified
+  components/UI/Money/components/MoneyMoreSheet/MoneyMoreSheet.tsx:135 - (anonymous): Cannot access refs during render
+  components/UI/Money/components/MoneyMoreSheet/MoneyMoreSheet.tsx:135 - (anonymous): Cannot access refs during render
+  components/UI/Money/components/MoneyEarnBanner/MoneyEarnBanner.tsx:265 - (anonymous): Existing memoization could not be preserved
+  components/UI/Money/components/MoneyEarnBanner/MoneyEarnBanner.tsx:242 - (anonymous): Existing memoization could not be preserved
+  components/UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins.tsx:165 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Money/components/MoneyCardFlipAnimation/MoneyCardFlipAnimation.tsx:96 - (anonymous): This value cannot be modified
+  components/UI/Money/components/MoneyCardFlipAnimation/MoneyCardFlipAnimation.tsx:97 - (anonymous): This value cannot be modified
+  components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.tsx:143 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Money/Views/MoneyHomeView/MoneyHomeView.tsx:178 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/MarketInsights/hooks/useMarketInsights.ts:58 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx:217 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCard.tsx:189 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/MarketInsights/components/MarketInsightsEntryCard/SlidingTextCarousel.tsx:134 - (anonymous): This value cannot be modified
+  components/UI/MarketInsights/components/MarketInsightsEntryCard/SlidingTextCarousel.tsx:134 - (anonymous): This value cannot be modified
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:116 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:117 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:145 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:117 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:117 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:116 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:117 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:148 - (anonymous): Cannot access refs during render
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:284 - (anonymous): Existing memoization could not be preserved
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:536 - (anonymous): Existing memoization could not be preserved
+  components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView.tsx:558 - (anonymous): Existing memoization could not be preserved
+  components/UI/LedgerModals/LedgerConfirmationModal.tsx:97 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/LedgerModals/LedgerTransactionModal.tsx:76 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/HardwareWallet/Swaps/HwQrScanner.tsx:275 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/HardwareWallet/Swaps/useHardwareWalletSubmit.ts:227 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/HardwareWallet/Swaps/useHwBatchSignTracker.ts:286 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/HardwareWallet/Swaps/useHwBatchSignTracker.ts:300 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/HardwareWallet/Swaps/useHwBatchSignTracker.ts:384 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/HardwareWallet/Swaps/useHwSwapLifecycle.ts:408 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/HardwareWallet/AccountSelector/hooks.tsx:44 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/FundActionMenu/FundActionMenu.tsx:83 - (anonymous): Existing memoization could not be preserved
+  components/UI/FoxLoader/FoxLoader.tsx:44 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:73 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:75 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:121 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:75 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:75 - (anonymous): Cannot access refs during render
+  components/UI/FoxLoader/FoxLoader.tsx:75 - (anonymous): Cannot access refs during render
+  components/UI/FoxAnimation/FoxAnimation.tsx:90 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Fox/index.tsx:46 - (anonymous): This value cannot be modified
+  components/UI/FadeAnimationView/index.js:16 - (anonymous): Cannot access refs during render
+  components/UI/FadeAnimationView/index.js:16 - (anonymous): Cannot access refs during render
+  components/UI/Earn/modals/LendingMaxWithdrawalModal/LendingMaxWithdrawalModal.test.tsx:17 - (anonymous): Cannot access refs during render
+  components/UI/Earn/hooks/useEarnGasFee.ts:115 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Earn/hooks/useEarnInput.ts:154 - (anonymous): Cannot access refs during render
+  components/UI/Earn/hooks/useEarnInput.ts:161 - (anonymous): Cannot access refs during render
+  components/UI/Earn/hooks/useEarnInput.ts:161 - (anonymous): Cannot access refs during render
+  components/UI/Earn/hooks/useEarnInput.ts:161 - (anonymous): Cannot access refs during render
+  components/UI/Earn/hooks/useEarnToasts.tsx:175 - (anonymous): Existing memoization could not be preserved
+  components/UI/Earn/hooks/useEarnWithdrawInput.ts:84 - (anonymous): Existing memoization could not be preserved
+  components/UI/Earn/hooks/useEarningsHistory.ts:49 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Earn/hooks/useEarningsHistory.ts:67 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Earn/hooks/useLendingMarketApys.ts:31 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Earn/hooks/useMultichainInputHandlers.ts:57 - (anonymous): Existing memoization could not be preserved
+  components/UI/Earn/hooks/useMusdConversion.ts:218 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/hooks/useMusdConversion.ts:222 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/hooks/useMusdConversion.ts:227 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/hooks/useMusdConversion.ts:361 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Earn/hooks/useMusdConversion.ts:464 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/hooks/useMusdConversion.ts:468 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/hooks/useMusdConversion.ts:545 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Earn/hooks/useMusdConversionStatus.ts:64 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Earn/hooks/useTronClaimUnstakedTrx.ts:35 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Earn/hooks/useTronStake.ts:111 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Earn/hooks/useTronStakeApy.ts:74 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Earn/hooks/useTronUnstake.ts:157 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner.tsx:35 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:94 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:93 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:111 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:93 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:93 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:93 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:94 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:94 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/StakePreview/TronStakePreview.tsx:94 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/ResourceToggle/ResourceToggle.tsx:39 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/ResourceToggle/ResourceToggle.tsx:39 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/ResourceToggle/ResourceToggle.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Tron/ResourceToggle/ResourceToggle.tsx:51 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Musd/MusdConversionAssetOverviewCta/index.tsx:83 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Earn/components/InputDisplay/index.tsx:147 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/InputDisplay/index.tsx:147 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/InputDisplay/index.tsx:147 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/InputDisplay/index.tsx:147 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/InputDisplay/index.tsx:147 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/FadeInView/index.tsx:14 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/FadeInView/index.tsx:14 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/FadeInView/index.tsx:14 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/FadeInView/index.tsx:14 - (anonymous): Cannot access refs during render
+  components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistory.tsx:174 - (anonymous): (BuildHIR::lowerExpression) Handle UpdateExpression to variables captured within lambdas.
+  components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistory.tsx:212 - (anonymous): (BuildHIR::lowerExpression) Handle UpdateExpression to variables captured within lambdas.
+  components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistoryChart/EarningsHistoryChart.tsx:54 - (anonymous): (BuildHIR::node.lowerReorderableExpression) Expression type `ArrowFunctionExpression` cannot be safely reordered
+  components/UI/Earn/components/EarnLendingBalance/index.tsx:127 - (anonymous): Existing memoization could not be preserved
+  components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.tsx:243 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.tsx:295 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Earn/Views/EarnMusdConversionEducationView/index.tsx:325 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/index.tsx:242 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx:232 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Earn/Views/EarnInputView/EarnInputView.tsx:240 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/DesignerMode/DesignerModeRN.tsx:259 - (anonymous): Cannot access refs during render
+  components/UI/DesignerMode/DesignerModeRN.tsx:259 - (anonymous): Cannot access refs during render
+  components/UI/DesignerMode/DesignerModeRN.tsx:259 - (anonymous): Cannot access refs during render
+  components/UI/DesignerMode/DesignerModeRN.tsx:259 - (anonymous): Cannot access refs during render
+  components/UI/DesignerMode/DesignerModeRN.tsx:259 - (anonymous): Cannot access refs during render
+  components/UI/DesignerMode/DesignerModeRN.tsx:599 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/DeFiPositions/DeFiPositionsList.tsx:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Confetti/index.js:20 - (anonymous): This value cannot be modified
+  components/UI/Compliance/hooks/useComplianceGate.ts:89 - (anonymous): Cannot access refs during render
+  components/UI/Compliance/hooks/useComplianceGate.ts:94 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CliLoginPushNudge/useCliLoginPushNudge.ts:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/CliLoginPushNudge/useCliLoginPushNudge.ts:188 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Charts/LivelineChart/LivelineChart.tsx:64 - (anonymous): Cannot access refs during render
+  components/UI/Charts/LivelineChart/__demos__/LivelineDemo.tsx:246 - (anonymous): Cannot access refs during render
+  components/UI/Charts/LivelineChart/__demos__/LivelineDemo.tsx:283 - (anonymous): Cannot access refs during render
+  components/UI/Charts/AdvancedChart/AdvancedChart.tsx:226 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Charts/AdvancedChart/useOHLCVChart.ts:132 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Carousel/index.tsx:245 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Card/sdk/index.tsx:132 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Card/routes/OnboardingNavigator.tsx:79 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Card/pushProvisioning/hooks/usePushProvisioning.ts:79 - (anonymous): Cannot access refs during render
+  components/UI/Card/hooks/useAssetBalances.tsx:704 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/UI/Card/hooks/useCardCapabilities.ts:18 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Card/hooks/useCardDelegation.ts:181 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useCardDelegation.ts:246 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useCardDelegation.ts:353 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useCardDelegation.ts:376 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useCardDelegation.ts:421 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useCardDetailsToken.ts:63 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useEmailVerificationSend.ts:45 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useEmailVerificationVerify.ts:74 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useGetDelegationSettings.ts:19 - (anonymous): Cannot access refs during render
+  components/UI/Card/hooks/useImmersveFunding.ts:93 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useImmersveResumeOnboarding.ts:66 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/hooks/useImmersveSiweAuth.ts:56 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useImmersveSiweAuth.ts:69 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useMoneyAccountCardLinkage.tsx:508 - (anonymous): Existing memoization could not be preserved
+  components/UI/Card/hooks/useNeedsGasFaucet.ts:127 - (anonymous): (BuildHIR::lowerExpression) Handle BigIntLiteral expressions
+  components/UI/Card/hooks/useNeedsGasFaucet.ts:202 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/usePhoneVerificationSend.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/usePhoneVerificationVerify.ts:47 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useRedeemableWallet.ts:167 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/hooks/useRegisterPersonalDetails.ts:47 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useRegisterPhysicalAddress.ts:50 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/hooks/useRegisterUserConsent.ts:178 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Card/hooks/useSpendingLimit.ts:631 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Card/hooks/useUpdateFundingPriority.ts:58 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/WaitlistFormModal/WaitlistFormModal.tsx:86 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/PasswordBottomSheet/PasswordBottomSheet.tsx:60 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/components/Onboarding/Complete.tsx:83 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/components/Onboarding/ConfirmEmail.tsx:148 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/Onboarding/ConfirmPhoneNumber.tsx:163 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:178 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:178 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:178 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:178 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:265 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/ImmersveKYCProcessing.tsx:266 - (anonymous): Cannot access refs during render
+  components/UI/Card/components/Onboarding/PersonalDetails.tsx:250 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/Onboarding/PhysicalAddress.tsx:474 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/Onboarding/SignUp.tsx:315 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/components/Onboarding/VerifyIdentity.tsx:93 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/components/ForgotPasswordModal/ForgotPasswordModal.tsx:247 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/DaimoPayModal/DaimoPayModal.tsx:314 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Card/components/CardDeveloperOptionsSection/CardDeveloperOptionsSection.tsx:36 - (anonymous): Existing memoization could not be preserved
+  components/UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet.tsx:98 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/UI/Card/Views/SetCardPin/ConfirmCardPin.tsx:144 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/Views/SetCardPin/hooks/usePinEntry.ts:20 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:70 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:73 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:76 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:122 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:122 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:123 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:126 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:126 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:126 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:126 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:123 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:123 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:137 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:123 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:123 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:154 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:154 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:157 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:164 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/SetCardPin/components/PinDots.tsx:60 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ReviewOrder/ReviewOrder.tsx:142 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/Views/RedeemWallet/RedeemWallet.tsx:331 - (anonymous): Existing memoization could not be preserved
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/ChooseYourCard/ChooseYourCard.tsx:80 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/CardHome/CardHome.tsx:241 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Card/Views/CardHome/hooks/useCardArrivalAnimation.ts:143 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/CardHome/hooks/useCardArrivalAnimation.ts:143 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/CardHome/hooks/useCardArrivalAnimation.ts:143 - (anonymous): Cannot access refs during render
+  components/UI/Card/Views/CardHome/hooks/useCardHomeActions.ts:268 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/Views/CardHome/hooks/useCardHomeActions.ts:367 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/Views/CardHome/hooks/useCardProvisioning.ts:24 - (anonymous): Existing memoization could not be preserved
+  components/UI/Card/Views/CardHome/hooks/useCardProvisioning.ts:34 - (anonymous): Existing memoization could not be preserved
+  components/UI/Card/Views/CardHome/hooks/useImmersveCardProvisioning.ts:99 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Card/Views/CardAuthentication/CardAuthentication.tsx:402 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/ButtonReveal/index.tsx:116 - (anonymous): This value cannot be modified
+  components/UI/ButtonReveal/index.tsx:170 - (anonymous): This value cannot be modified
+  components/UI/ButtonReveal/index.tsx:173 - (anonymous): This value cannot be modified
+  components/UI/ButtonReveal/index.tsx:184 - (anonymous): This value cannot be modified
+  components/UI/ButtonReveal/index.tsx:187 - (anonymous): This value cannot be modified
+  components/UI/Bridge/hooks/useFetchPopularTokens.ts:75 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Bridge/hooks/useInitialBridgeTokens.ts:79 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Bridge/hooks/useRecipientInitialization.ts:95 - (anonymous): This value cannot be modified
+  components/UI/Bridge/hooks/useSearchTokens.ts:111 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Bridge/hooks/useSearchTokens.ts:155 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Bridge/hooks/useTokenSelection.ts:80 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Bridge/hooks/useTokensWithBalance/index.ts:260 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Bridge/hooks/useTokenSearch/index.ts:31 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/hooks/useTokenSearch/index.ts:31 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/hooks/useTokenBalanceInUsd/index.ts:109 - (anonymous): (BuildHIR::lowerExpression) Expected Identifier, got CallExpression key in ObjectExpression
+  components/UI/Bridge/hooks/useTokenBalanceInUsd/index.ts:118 - (anonymous): (BuildHIR::lowerExpression) Expected Identifier, got TSAsExpression key in ObjectExpression
+  components/UI/Bridge/hooks/useRewards/useRewards.ts:142 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts:53 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts:58 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Bridge/hooks/useLatestBalance/index.ts:130 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Bridge/hooks/useInsufficientBalance/index.ts:87 - (anonymous): Unexpected terminal kind `optional` for optional fallthrough block
+  components/UI/Bridge/hooks/useHasSufficientGasEvenIfGasIncludedOrSponsored/index.ts:49 - (anonymous): Unexpected terminal kind `optional` for optional fallthrough block
+  components/UI/Bridge/hooks/useHasSufficientGas/index.ts:54 - (anonymous): Unexpected terminal kind `optional` for optional fallthrough block
+  components/UI/Bridge/hooks/useFormattedBalanceWithThreshold/index.ts:11 - (anonymous): Existing memoization could not be preserved
+  components/UI/Bridge/hooks/useBridgeQuoteEvents/index.ts:102 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Bridge/hooks/useBridgeQuoteData/index.ts:334 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Bridge/hooks/useBridgeConfirm/index.ts:61 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Bridge/hooks/useBridgeConfirm/index.ts:98 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Bridge/hooks/useBatchSellQuoteData/index.ts:250 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/hooks/useBatchSellQuoteData/index.ts:251 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/hooks/useBatchSellQuoteData/index.ts:250 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/SwapsTokenSecurityBadge.tsx:17 - (anonymous): Existing memoization could not be preserved
+  components/UI/Bridge/components/SwapsConfirmButton/index.tsx:182 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/SwapsConfirmButton/index.tsx:198 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/QuoteSelectorView/index.tsx:87 - (anonymous): Unexpected terminal kind `optional` for optional fallthrough block
+  components/UI/Bridge/components/PostTradeBottomSheet/PostTradeTokenSuggestions.tsx:111 - (anonymous): Existing memoization could not be preserved
+  components/UI/Bridge/components/FlipQuoteButton/index.tsx:81 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/FlipQuoteButton/index.tsx:81 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector.tsx:294 - (anonymous): Cannot access refs during render
+  components/UI/Bridge/components/BridgeTokenSelector/NetworkPills.tsx:138 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Bridge/components/BatchSellFinalReviewModal/index.tsx:406 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Assets/components/Balance/AccountGroupBalance.tsx:85 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Assets/components/AssetLogo/AssetLogo.hook.tsx:16 - (anonymous): Cannot access refs during render
+  components/UI/Assets/components/AssetLogo/AssetLogo.hook.tsx:17 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/hooks/useAlertSaveFlow.ts:143 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:206 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:207 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:209 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:284 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:285 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:289 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/DeFiPositions/hooks/useDeFiPositionsV2.ts:176 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Assets/DeFiPositions/components/DeFiPositionsListV2.tsx:95 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/AssetOverview/TokenDetails/TokenDetails.tsx:141 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/AssetOverview/PriceChart/PriceChart.tsx:149 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/AssetOverview/Price/Price.advanced.tsx:1050 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  components/Snaps/SnapInterfaceContext.tsx:121 - (anonymous): (BuildHIR::node.lowerReorderableExpression) Expression type `ConditionalExpression` cannot be safely reordered
+  components/Snaps/SnapUIRenderer/SnapUIRenderer.tsx:30 - (anonymous): Cannot access refs during render
+  components/Snaps/SnapUIRenderer/SnapUIRenderer.tsx:30 - (anonymous): Cannot access refs during render
+  components/Snaps/SnapUIRenderer/SnapUIRenderer.tsx:32 - (anonymous): Cannot access refs during render
+  components/Snaps/SnapUIAssetSelector/useSnapAssetDisplay.tsx:162 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Base/RemoteImage/index.tsx:89 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Base/Keypad/index.tsx:68 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Approvals/InstallSnapApproval/InstallSnapApproval.tsx:112 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  component-library/providers/ThemeProvider/ThemeProvider.test.tsx:58 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  component-library/hooks/useAnimatedPressable.ts:52 - (anonymous): Cannot access refs during render
+  component-library/hooks/useAnimatedPressable.ts:80 - (anonymous): Cannot access refs during render
+  component-library/components-temp/Tabs/TabsBar/TabsBar.tsx:127 - (anonymous): This value cannot be modified
+  component-library/components-temp/Tabs/TabsBar/TabsBar.tsx:128 - (anonymous): This value cannot be modified
+  component-library/components-temp/StepperCard/StepperCard.tsx:35 - (anonymous): Cannot access refs during render
+  component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListFooter/AccountListFooter.tsx:139 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  component-library/components-temp/BaseNotification/index.tsx:485 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  component-library/components/Toast/Toast.tsx:531 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  component-library/components/Skeleton/Skeleton.tsx:31 - (anonymous): Cannot access refs during render
+  component-library/components/Skeleton/Skeleton.tsx:31 - (anonymous): Cannot access refs during render
+  component-library/components/Skeleton/Skeleton.tsx:31 - (anonymous): Cannot access refs during render
+  component-library/components/Overlay/Overlay.tsx:36 - (anonymous): This value cannot be modified
+  component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog.tsx:173 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.tsx:50 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.tsx:78 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  __mocks__/rive-react-native.tsx:81 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled

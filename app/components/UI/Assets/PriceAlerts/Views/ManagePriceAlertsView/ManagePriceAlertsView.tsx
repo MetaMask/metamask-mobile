@@ -36,6 +36,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
+import type { ToastOptions } from '../../../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
@@ -76,6 +77,11 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
+// Extracted because React Compiler (BuildHIR) cannot lower a `throw` written inside a try/catch.
+function failRequest(message: string): never {
+  throw new Error(message);
+}
+
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
@@ -93,6 +99,13 @@ const ManagePriceAlertsView: React.FC = () => {
     route.params;
   const displayTicker = ticker || symbol;
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const showToast = useCallback(
+    (options: ToastOptions) => {
+      toastRef?.current?.showToast(options);
+    },
+    [toastRef],
+  );
 
   const hasResolvedInitialFetch = useRef(false);
   const {
@@ -130,7 +143,7 @@ const ManagePriceAlertsView: React.FC = () => {
     }
     hasResolvedInitialFetch.current = true;
     if (isError) {
-      toastRef?.current?.showToast({
+      showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
         iconColor: colors.error.default,
@@ -157,7 +170,7 @@ const ManagePriceAlertsView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
-    toastRef,
+    showToast,
     colors,
   ]);
 
@@ -204,9 +217,9 @@ const ManagePriceAlertsView: React.FC = () => {
       const target = previous.find((a) => a.id === id);
 
       try {
-        if (!target) throw new Error('Alert not found');
+        if (!target) failRequest('Alert not found');
         const response = await deleteAlertByType(target);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
@@ -224,7 +237,7 @@ const ManagePriceAlertsView: React.FC = () => {
 
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
-        toastRef?.current?.showToast({
+        showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Trash,
           iconColor: colors.text.default,
@@ -235,7 +248,7 @@ const ManagePriceAlertsView: React.FC = () => {
           navigation.goBack();
         }
       } catch {
-        toastRef?.current?.showToast({
+        showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Danger,
           iconColor: colors.error.default,
@@ -249,15 +262,15 @@ const ManagePriceAlertsView: React.FC = () => {
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
-      } finally {
-        finishDelete(id);
       }
+
+      finishDelete(id);
     },
     [
       navigation,
       assetId,
       queryClient,
-      toastRef,
+      showToast,
       colors,
       displayTicker,
       trackEvent,
@@ -282,11 +295,11 @@ const ManagePriceAlertsView: React.FC = () => {
       );
 
       try {
-        if (!toggled) throw new Error('Alert not found');
+        if (!toggled) failRequest('Alert not found');
         const response = await updateAlertByType(toggled, {
           active: newValue,
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
@@ -305,7 +318,7 @@ const ManagePriceAlertsView: React.FC = () => {
             .build(),
         );
       } catch {
-        toastRef?.current?.showToast({
+        showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Danger,
           iconColor: colors.error.default,
@@ -316,14 +329,14 @@ const ManagePriceAlertsView: React.FC = () => {
           queryKey,
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
-      } finally {
-        finishToggle(id);
       }
+
+      finishToggle(id);
     },
     [
       assetId,
       queryClient,
-      toastRef,
+      showToast,
       colors,
       displayTicker,
       trackEvent,

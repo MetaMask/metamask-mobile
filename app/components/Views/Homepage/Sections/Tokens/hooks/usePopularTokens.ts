@@ -196,13 +196,13 @@ export const usePopularTokens = () => {
           priceChange1d: undefined,
         })),
       );
-    } finally {
-      // Only update loading states if this is still the latest fetch
-      if (fetchId === fetchIdRef.current) {
-        setIsInitialLoading(false);
-        setIsRefreshing(false);
-        hasFetchedOnceRef.current = true;
-      }
+    }
+
+    // Only update loading states if this is still the latest fetch
+    if (fetchId === fetchIdRef.current) {
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
+      hasFetchedOnceRef.current = true;
     }
   }, [currentCurrency]);
 

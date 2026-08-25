@@ -79,6 +79,12 @@ const resolveAssetId = (
   return toAssetId(address, caipChainId);
 };
 
+const isNonEvmAssetIgnored = (
+  allIgnoredAssets: Record<string, CaipAssetType[] | undefined>,
+  accountId: string,
+  assetId: CaipAssetType,
+) => allIgnoredAssets[accountId]?.includes(assetId) ?? false;
+
 const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   // Globally selected account — always EVM, used as fallback when no asset
   // chainId is available.
@@ -98,21 +104,24 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   // Resolve the account ID scoped to the asset's chain.
   // Non-EVM assets (Solana, BTC, …) are stored under their own account ID —
   // using the global EVM account would miss all non-EVM balance/custom entries.
+  const assetChainId = asset?.chainId;
+  const assetAddress = asset?.address;
+
   const accountId = useMemo(() => {
-    if (!asset?.chainId) return globalAccountId;
-    const caipChainId: CaipChainId | undefined = isCaipChainId(asset.chainId)
-      ? (asset.chainId as CaipChainId)
-      : toEvmCaipChainId(asset.chainId as Hex);
+    if (!assetChainId) return globalAccountId;
+    const caipChainId: CaipChainId | undefined = isCaipChainId(assetChainId)
+      ? (assetChainId as CaipChainId)
+      : toEvmCaipChainId(assetChainId as Hex);
     if (!caipChainId) return globalAccountId;
     return internalAccountByScope(caipChainId)?.id ?? globalAccountId;
-  }, [asset?.chainId, internalAccountByScope, globalAccountId]);
+  }, [assetChainId, internalAccountByScope, globalAccountId]);
 
   const assetId = useMemo(
     () =>
-      asset?.address && asset?.chainId
-        ? resolveAssetId(asset.address, asset.chainId)
+      assetAddress && assetChainId
+        ? resolveAssetId(assetAddress, assetChainId)
         : undefined,
-    [asset?.address, asset?.chainId],
+    [assetAddress, assetChainId],
   );
 
   const isCustomAsset = useMemo(() => {
@@ -166,7 +175,7 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         AssetsController.unhideAsset(assetId);
         // For non-EVM tokens the hidden state also lives in
         // MultichainAssetsController.allIgnoredAssets; addAssets restores it.
-        if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
+        if (isNonEvmAssetIgnored(allIgnoredNonEvmAssets, accountId, assetId)) {
           MultichainAssetsController.addAssets([assetId], accountId);
         }
       } else {

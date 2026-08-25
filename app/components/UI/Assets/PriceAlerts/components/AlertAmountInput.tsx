@@ -1,5 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text as RNText } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+  Animated,
+  StyleSheet,
+  Text as RNText,
+  useAnimatedValue,
+} from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -39,7 +44,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useAnimatedValue(1);
 
   useEffect(() => {
     const animation = Animated.loop(
