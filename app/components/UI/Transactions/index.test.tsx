@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { UnconnectedTransactions } from '.';
+import { UnconnectedTransactions, mapStateToProps } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import Engine from '../../../core/Engine';
@@ -16,6 +16,12 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { speedUpTransaction } from '../../../util/transaction-controller';
+import {
+  selectChainId,
+  selectNetworkClientId,
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
@@ -327,15 +333,8 @@ const createDefaultTestProps = () => ({
   transactions: [],
 });
 
-const renderTransactions = (props = {}) => {
-  const result = render(
-    <UnconnectedTransactions {...createDefaultTestProps()} {...props} />,
-  );
-  act(() => {
-    jest.advanceTimersByTime(100);
-  });
-  return result;
-};
+const renderTransactions = (props = {}) =>
+  render(<UnconnectedTransactions {...createDefaultTestProps()} {...props} />);
 
 const asComponentType = (name: string) =>
   name as unknown as React.ComponentType;
@@ -835,6 +834,69 @@ describe('UnconnectedTransactions', () => {
         'QRSigningTransactionModal',
         expect.any(Object),
       );
+    });
+  });
+});
+
+describe('mapStateToProps', () => {
+  const mockState = {} as never;
+
+  beforeEach(() => {
+    (selectChainId as jest.Mock).mockReturnValue('0x1');
+    (selectProviderConfig as jest.Mock).mockReturnValue({ type: 'mainnet' });
+    (selectNetworkClientId as jest.Mock).mockReturnValue('mainnet-client');
+    (selectProviderType as jest.Mock).mockReturnValue('mainnet');
+  });
+
+  describe('when used for Token Details (tokenChainId is provided)', () => {
+    const ownProps = { tokenChainId: '0x89' };
+
+    it('derives chainId from tokenChainId instead of the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.chainId).toBe('0x89');
+      expect(selectChainId).not.toHaveBeenCalled();
+    });
+
+    it('does not read the globally selected network client or type', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.networkClientId).toBeUndefined();
+      expect(result.networkType).toBeUndefined();
+      expect(selectNetworkClientId).not.toHaveBeenCalled();
+      expect(selectProviderType).not.toHaveBeenCalled();
+    });
+
+    it('returns a referentially stable providerConfig across separate calls', () => {
+      // Regression test: mapStateToProps runs on every store update, so a
+      // fresh `{}` literal here would break shallow-equality checks in
+      // `connect()` and force this component to re-render on every Redux
+      // dispatch, even when nothing relevant to it changed.
+      const first = mapStateToProps(mockState, ownProps);
+      const second = mapStateToProps(mockState, ownProps);
+
+      expect(first.providerConfig).toBe(second.providerConfig);
+      expect(selectProviderConfig).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when used for the Activity tab (no tokenChainId)', () => {
+    const ownProps = {};
+
+    it('derives chainId and providerConfig from the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(selectChainId).toHaveBeenCalledWith(mockState);
+      expect(result.chainId).toBe('0x1');
+      expect(selectProviderConfig).toHaveBeenCalledWith(mockState);
+      expect(result.providerConfig).toEqual({ type: 'mainnet' });
+    });
+
+    it('reads networkClientId and networkType from the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.networkClientId).toBe('mainnet-client');
+      expect(result.networkType).toBe('mainnet');
     });
   });
 });
