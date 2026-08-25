@@ -1576,6 +1576,15 @@ export interface MoneyAccountSweepstakesStatsMeDto {
   qualifyingThresholdUsd: number;
   todayStatus: MoneyAccountSweepstakesTodayStatus;
   daysRemaining: number;
+  /**
+   * ISO timestamp of when the backend's on-chain ingest last ran — how fresh
+   * the deposit/balance figures above are, NOT when the response was built.
+   *
+   * Optional because older backend builds omit it entirely, and null when that
+   * environment's ingest has never run. Either way there is no freshness to
+   * report, so callers must hide the label rather than render a fallback date.
+   */
+  dataAsOf?: string | null;
 }
 
 export interface MoneyAccountSweepstakesPrizePoolDto {
@@ -1656,6 +1665,7 @@ export type MoneyAccountSweepstakesStatsMeState = {
   qualifyingThresholdUsd: number;
   todayStatus: MoneyAccountSweepstakesTodayStatus;
   daysRemaining: number;
+  dataAsOf?: string | null;
   lastFetched: number;
 };
 

@@ -78,6 +78,10 @@ class TransactionDetailsModal {
     });
   }
 
+  async verifyConfirmedStatus(): Promise<void> {
+    await this.verifyStatus('Confirmed');
+  }
+
   async verifyTotal(total: string): Promise<void> {
     await Assertions.expectElementToHaveText(this.total, total, {
       description: 'Total should be correct',
