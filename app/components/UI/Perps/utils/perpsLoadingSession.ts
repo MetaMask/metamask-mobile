@@ -418,7 +418,12 @@ function recordValuesReady({
   }
   if (milestone === 'markets_ready') {
     marketsReadySource = source;
-    if (pendingFinishData && isFreshMarketSource(source)) {
+    if (
+      pendingFinishData &&
+      isFreshMarketSource(source) &&
+      (pendingFinishData.content_variant === 'trending' ||
+        pendingFinishData.content_variant === 'pills')
+    ) {
       pendingFinishData = {
         ...pendingFinishData,
         content_state: itemCount > 0 ? 'filled' : 'empty',

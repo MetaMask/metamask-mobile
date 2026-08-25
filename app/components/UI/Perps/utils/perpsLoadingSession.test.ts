@@ -892,6 +892,31 @@ describe('perpsLoadingSession', () => {
       );
     });
 
+    it('does not rewrite account-owned content from market cardinality', () => {
+      startPerpsLoadingSession({ lifecycle: 'cold_no_cache' });
+      finishPerpsLoadingSession({
+        ...finishData,
+        content_state: 'empty',
+        content_variant: 'positions',
+        market_count: 0,
+      });
+
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 280);
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_state: 'empty',
+            content_variant: 'positions',
+            market_count: 0,
+          }),
+        }),
+      );
+    });
+
     it('exposes the coherent account cache source and recorded market source', () => {
       startPerpsLoadingSession();
       recordPerpsLoadingSessionValuesReady(
