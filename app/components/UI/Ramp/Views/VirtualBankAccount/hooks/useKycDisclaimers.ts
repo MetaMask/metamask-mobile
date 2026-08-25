@@ -15,35 +15,22 @@ interface UseKycDisclaimersResult {
   retry: () => void;
 }
 
-// Bounds how long we'll wait on the KYC API before treating the request as
-// failed, so a hung request can't leave the screen stuck on the loading
-// state (and the CTA disabled) forever.
+// Bounds the KYC API wait so a hung request can't leave the CTA disabled forever.
 const FETCH_TIMEOUT_MS = 10_000;
 
 /**
- * Fetches the vendor-provided legal disclaimers (Privacy Policy / T&Cs) for
- * the VBA KYC flow from the KYC API, so the client doesn't hardcode partner
- * legal copy that the KYC/Iron team can change server-side.
+ * Fetches the vendor's legal disclaimers (Privacy Policy / T&Cs) for the VBA
+ * KYC flow, so the client doesn't hardcode partner legal copy that can
+ * change server-side. Stand-in for `@metamask/kyc-controller`, which isn't
+ * published or wired into Engine yet.
  *
- * This is a thin, standalone fetch that gets a bearer token the same way
- * `useFetchPopularTokens` does, rather than going through
- * `@metamask/kyc-controller` — that package exists in `core` but isn't
- * published or wired into Engine yet. Swap this hook for the real
- * controller action once it lands.
+ * Skips the fetch and returns an empty list when {@link KYC_API_BASE_URL}
+ * isn't configured (e.g. production). There's intentionally no static
+ * fallback copy: callers should keep the flow's continue action disabled
+ * until the disclaimers have loaded.
  *
- * When {@link KYC_API_BASE_URL} isn't configured (e.g. production, which
- * isn't deployed yet), this skips the fetch entirely and returns an empty
- * list. There's intentionally no static fallback copy — this MVP only
- * ships once the real KYC API is reachable in every environment it runs in.
- *
- * Callers should treat a non-empty `error`, or an empty `disclaimers` list
- * once `isLoading` is `false`, as "the user hasn't seen the terms" and keep
- * the flow's continue action disabled until a `retry()` succeeds.
- *
- * @param country - The ISO 3166-1 alpha-3 country code to scope the
- * disclaimers to (e.g. `'BRA'` for Brazil).
- * @returns The disclaimers, loading state, any error encountered, and a
- * `retry` function to re-run the fetch.
+ * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
+ * @returns The disclaimers, loading state, error, and a `retry` function.
  */
 export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[]>([]);

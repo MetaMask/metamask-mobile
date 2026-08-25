@@ -157,8 +157,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.VBA_GET_PIX_KEY,
     });
 
-    // Standalone screen, not part of the crypto deposit flow, so it pushes
-    // directly onto the stack instead of going through startDeposit.
+    // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.RAMP.GET_PIX_KEY);
     });

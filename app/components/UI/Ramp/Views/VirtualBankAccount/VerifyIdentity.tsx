@@ -53,17 +53,13 @@ const StepRow = ({
     alignItems={BoxAlignItems.Center}
     twClassName="gap-3"
   >
-    {/* Plain icon, no background chip — matches the benefit rows on the
-    Get Pix Key screen for a consistent look across both VBA KYC screens. */}
     <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     <Text variant={TextVariant.BodyMd}>{children}</Text>
   </Box>
 );
 
-// A single collapsible row used for the "Data and privacy" sub-topics
-// (What we collect / How we store data / How to delete). Manages its own
-// expand state and chevron animation since none of them affect each other
-// or anything outside the accordion.
+// Collapsible row for the "Data and privacy" sub-topics; each manages its
+// own expand state since rows don't affect each other.
 const AccordionRow = ({
   title,
   defaultExpanded = false,
@@ -305,8 +301,6 @@ const VbaVerifyIdentity = () => {
           </Box>
         ) : null}
 
-        {/* Legal links are their own always-visible section, not gated
-        behind the "Data and privacy" toggle above. */}
         <Box twClassName="mt-4 gap-1">
           <LegalLinkRow
             onPress={openMetaMaskPrivacyPolicy}

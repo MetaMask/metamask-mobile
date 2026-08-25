@@ -30,9 +30,7 @@ import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
-// Pix's badge always renders bold italic white text on its brand teal,
-// regardless of app theme, so this is a plain style object rather than a
-// twClassName.
+// Pix's badge is bold italic white on brand teal regardless of app theme.
 const PIX_TAG_TEXT_STYLE = {
   color: brandColor.white,
   fontStyle: 'italic' as const,
@@ -94,8 +92,7 @@ const GetPixKey = () => {
   const { disclaimers, isLoading, error, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
-  // The user must be able to see the disclaimers before agreeing to them, so
-  // the CTA stays disabled until they've successfully loaded.
+  // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue = !isLoading && !error && disclaimers.length > 0;
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -142,8 +139,6 @@ const GetPixKey = () => {
                   'virtual_bank_account.get_pix_key.benefit_deposit_pix',
                 )}
               </Text>
-              {/* Pix has no design-system token — this is its brand teal,
-              matched to the vendor's own badge styling. */}
               <TagBase
                 shape={TagShape.Rectangle}
                 style={{ backgroundColor: PIX_BRAND_COLOR }}
