@@ -21,9 +21,15 @@ export async function shakeBrowserStackDevice(
 
 export async function startBrowserStackProfiler(
   driver: WebdriverIO.Browser,
+  platform: BrowserStackPlatform,
 ): Promise<void> {
-  await shakeBrowserStackDevice(driver);
-  const startButton = await driver.$('~profiler-start-button');
+  const shouldUseShake = platform === 'ios';
+  if (shouldUseShake) {
+    await shakeBrowserStackDevice(driver);
+  }
+  const startButton = await driver.$(
+    shouldUseShake ? '~profiler-start-button' : '~e2e-profiler-start',
+  );
   await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
   await startButton.click();
 }
@@ -32,8 +38,13 @@ export async function stopBrowserStackProfiler(
   driver: WebdriverIO.Browser,
   platform: BrowserStackPlatform,
 ): Promise<string> {
-  await shakeBrowserStackDevice(driver);
-  const stopButton = await driver.$('~profiler-stop-button');
+  const shouldUseShake = platform === 'ios';
+  if (shouldUseShake) {
+    await shakeBrowserStackDevice(driver);
+  }
+  const stopButton = await driver.$(
+    shouldUseShake ? '~profiler-stop-button' : '~e2e-profiler-stop',
+  );
   await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
   await stopButton.click();
 

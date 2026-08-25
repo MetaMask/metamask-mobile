@@ -98,13 +98,21 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     }
 
     try {
-      const path = await stopProfiling(
-        Platform.OS === 'android' && process.env.METAMASK_ENVIRONMENT !== 'e2e',
-      );
+      const path = await stopProfiling(Platform.OS === 'android');
       // Nested ifs (rather than a single `&&` expression) avoid a "value block
       // inside try/catch", which the React Compiler cannot yet optimize.
       if (typeof path === 'string') {
         if (path.length > 0) {
+          if (
+            Platform.OS === 'ios' &&
+            process.env.METAMASK_ENVIRONMENT === 'e2e'
+          ) {
+            const fileName = path.split('/').pop() || 'profile.cpuprofile';
+            await RNFS.copyFile(
+              path,
+              `${RNFS.DocumentDirectoryPath}/${fileName}`,
+            );
+          }
           setLastProfilePath(path);
         }
       }
@@ -195,7 +203,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
           {lastProfilePath && (
             <Pressable
               testID="e2e-profiler-result-ready"
-              accessibilityLabel="e2e-profiler-result-ready"
+              accessibilityLabel={`e2e-profiler-result-ready:${lastProfilePath}`}
               accessible
               importantForAccessibility="yes"
               onPress={() => undefined}
