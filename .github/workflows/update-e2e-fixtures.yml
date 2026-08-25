@@ -273,7 +273,7 @@ jobs:
           # gh run download uses the ListArtifacts API, which includes artifacts from all
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
           if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "${APP_PATH}"; then
-            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration on an Android-only PR, add the 'run-appium-ios-tests' label (opts into the iOS build), re-run CI, and retry this command. Ignorable-only PRs (docs-only, etc.) must include iOS-impacting app changes — the label alone cannot produce an artifact.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
             exit 1
           fi
           echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
@@ -515,7 +515,7 @@ jobs:
         run: |
           passed="${{ needs.check-status.outputs.PASSED }}"
           if [[ $passed != "true" ]]; then
-            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
+            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — on Android-only PRs add \`run-appium-ios-tests\` (opts into the iOS build) and re-run CI; ignorable-only PRs need iOS-impacting app changes\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
             gh pr comment "${PR_NUMBER}" --body "$body"
           fi
         env:

@@ -184,6 +184,17 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+              // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+              if (moduleName === 'react-native-safe-area-context') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'app/shims/react-native-safe-area-context.tsx',
+                  ),
+                };
+              }
               // reflect-metadata's only job is to add metadata APIs
               // (Reflect.defineMetadata etc.) to the global Reflect object.
               // getPolyfills above already runs it once at bundle startup,
