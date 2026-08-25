@@ -104,6 +104,16 @@ describe('ProHub', () => {
       expect(savedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.saved));
     });
 
+    it('renders stat cards as pressable buttons', () => {
+      const { getByTestId } = renderProHub();
+
+      const earnedCard = getByTestId(ProHubTestIds.EARNED_CARD);
+      const savedCard = getByTestId(ProHubTestIds.SAVED_CARD);
+
+      expect(earnedCard.props.accessibilityRole).toBe('button');
+      expect(savedCard.props.accessibilityRole).toBe('button');
+    });
+
     it('renders the physical card placeholder, title, and description', () => {
       const { getByTestId } = renderProHub();
 
@@ -221,14 +231,6 @@ describe('ProHub', () => {
         fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
           nativeEvent: { locationX: 40, locationY: 40 },
         });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-
-      it('does not navigate when the saved card is pressed', () => {
-        const { getByTestId } = renderProHub();
-
-        fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
 
         expect(mockNavigate).not.toHaveBeenCalled();
       });

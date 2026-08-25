@@ -17,7 +17,6 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MOCK_SAVED_DATA } from './Saved.constants';
@@ -35,10 +34,8 @@ const Saved = () => {
   }, [navigation]);
 
   const handleSwap = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-    });
-  }, [navigation]);
+    /* TODO: Implement swap */
+  }, []);
 
   return (
     <SafeAreaView

@@ -35,11 +35,8 @@ interface StatCardProps {
   label: string;
   value: string;
   testID: string;
-  onPress?: () => void;
+  onPress: () => void;
 }
-
-const STAT_CARD_TW_CLASS_NAME =
-  'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0';
 
 const StatCard = ({
   iconName,
@@ -68,23 +65,19 @@ const StatCard = ({
     </>
   );
 
-  const card = <Card twClassName={STAT_CARD_TW_CLASS_NAME}>{inner}</Card>;
+  const card = <Card twClassName={'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0'}>{inner}</Card>;
 
   return (
     <Box twClassName="flex-1 min-w-0">
-      {onPress ? (
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          testID={testID}
-          style={tw.style('w-full')}
-        >
-          {card}
-        </Pressable>
-      ) : (
-        <Box testID={testID}>{card}</Box>
-      )}
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={testID}
+        style={tw.style('w-full')}
+      >
+        {card}
+      </Pressable>
     </Box>
   );
 };
