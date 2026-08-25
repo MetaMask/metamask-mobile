@@ -27,6 +27,7 @@ jest.mock('@react-navigation/native', () => ({
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders the title, steps, and continue button', () => {
