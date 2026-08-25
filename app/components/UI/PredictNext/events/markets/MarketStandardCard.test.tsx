@@ -35,11 +35,20 @@ const createMarket = (
   ...overrides,
 });
 
+const renderMarketCard = (
+  market: PredictMarket,
+  onRulesPress: (market: PredictMarket) => void = jest.fn(),
+) => render(<MarketStandardCard market={market} onRulesPress={onRulesPress} />);
+
 describe('MarketStandardCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the Yes Outcome label, Volume, percentage, and Ask Prices', () => {
     const market = createMarket();
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(
       screen.getByTestId(MarketStandardCardTestIds.title(market.id)),
@@ -57,7 +66,7 @@ describe('MarketStandardCard', () => {
   it('uses the Yes percentage for complementary split bar segments', () => {
     const market = createMarket();
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(
       screen.getByTestId(MarketStandardCardTestIds.barYes(market.id)),
@@ -76,7 +85,7 @@ describe('MarketStandardCard', () => {
   it('uses semantic text colors for both Outcome controls', () => {
     const market = createMarket();
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(screen.getByText('Yes · 38¢')).toHaveStyle({
       color: lightTheme.colors.success.default,
@@ -94,7 +103,7 @@ describe('MarketStandardCard', () => {
       ],
     });
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(screen.getByText('Yes · 0¢')).toBeOnTheScreen();
     expect(
@@ -111,7 +120,7 @@ describe('MarketStandardCard', () => {
       ],
     });
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(
       screen.queryByTestId(MarketStandardCardTestIds.volume(market.id)),
@@ -135,7 +144,7 @@ describe('MarketStandardCard', () => {
       ],
     });
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
 
     expect(screen.getByText('Dodgers')).toBeOnTheScreen();
     expect(screen.getByText('Yes · 35¢')).toBeOnTheScreen();
@@ -145,7 +154,7 @@ describe('MarketStandardCard', () => {
   it('keeps both Outcome controls enabled and inert', () => {
     const market = createMarket();
 
-    render(<MarketStandardCard market={market} />);
+    renderMarketCard(market);
     const yesButton = screen.getByTestId(
       MarketStandardCardTestIds.yesButton(market.id),
     );
@@ -160,5 +169,27 @@ describe('MarketStandardCard', () => {
     expect(
       screen.getByTestId(MarketStandardCardTestIds.card(market.id)),
     ).toBeOnTheScreen();
+  });
+
+  it('emits the market rules intent when the rules button is pressed', () => {
+    const market = createMarket({ rules: 'Primary rule.' });
+    const onRulesPress = jest.fn();
+
+    renderMarketCard(market, onRulesPress);
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    );
+
+    expect(onRulesPress).toHaveBeenCalledWith(market);
+  });
+
+  it('hides the rules control when rules are absent', () => {
+    const market = createMarket({ rules: undefined });
+
+    renderMarketCard(market);
+
+    expect(
+      screen.queryByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    ).not.toBeOnTheScreen();
   });
 });
