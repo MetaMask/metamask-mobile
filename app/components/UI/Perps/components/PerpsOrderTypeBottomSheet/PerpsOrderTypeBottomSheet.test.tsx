@@ -83,8 +83,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.take_profit_market.description':
         'Place a market order if trigger price is reached',
       'perps.order.type.twap.title': 'TWAP',
-      'perps.order.type.twap.description':
-        'Execute gradually over a selected running time',
     };
     return translations[key] || key;
   }),

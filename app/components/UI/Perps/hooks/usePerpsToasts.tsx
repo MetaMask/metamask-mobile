@@ -48,6 +48,7 @@ import {
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
+import { PERPS_TWAP_UI_CONFIG } from '../constants/perpsConfig';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: HapticNotificationMoment;
@@ -270,9 +271,13 @@ const getPerpsToastLabels = (
 
 const formatTwapDuration = (durationMinutes: number): string => {
   const wholeMinutes = Math.max(0, Math.floor(durationMinutes));
-  const days = Math.floor(wholeMinutes / (24 * 60));
-  const hours = Math.floor((wholeMinutes % (24 * 60)) / 60);
-  const minutes = wholeMinutes % 60;
+  const minutesPerDay =
+    PERPS_TWAP_UI_CONFIG.HoursPerDay * PERPS_TWAP_UI_CONFIG.MinutesPerHour;
+  const days = Math.floor(wholeMinutes / minutesPerDay);
+  const hours = Math.floor(
+    (wholeMinutes % minutesPerDay) / PERPS_TWAP_UI_CONFIG.MinutesPerHour,
+  );
+  const minutes = wholeMinutes % PERPS_TWAP_UI_CONFIG.MinutesPerHour;
 
   return [
     days > 0

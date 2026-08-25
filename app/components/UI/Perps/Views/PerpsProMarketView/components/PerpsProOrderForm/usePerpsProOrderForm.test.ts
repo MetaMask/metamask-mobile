@@ -163,6 +163,7 @@ jest.mock('../../../../hooks', () => ({
   usePerpsOrderFees: () => ({
     totalFee: 5,
     undiscountedTotalFee: 6,
+    protocolFee: 4,
     metamaskFee: 1,
     metamaskFeeRate: 0.01,
     protocolFeeRate: 0.02,
@@ -356,6 +357,18 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('shows only the protocol fee for a TWAP order', () => {
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.fee).toBe(4);
+      expect(result.current.summary.originalFee).toBe(4);
+      expect(result.current.summary.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.feeMetamaskFeeRate).toBe(0);
+      expect(result.current.feeProtocolFeeRate).toBe(0.02);
     });
   });
 
@@ -595,10 +608,12 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
         'maxSlippageBps',
       );
-      expect(mockExecuteOrder.mock.calls[0][0].trackingData).toMatchObject({
-        twapDuration: 90,
-        twapRandomize: true,
-      });
+      expect(mockExecuteOrder.mock.calls[0][0].trackingData).not.toHaveProperty(
+        'twapDuration',
+      );
+      expect(mockExecuteOrder.mock.calls[0][0].trackingData).not.toHaveProperty(
+        'twapRandomize',
+      );
       expect(twapSubmitted).toHaveBeenCalledWith(
         'long',
         expect.any(String),

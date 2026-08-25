@@ -258,19 +258,6 @@ describe('buildPerpsOrderTrackingData', () => {
     expect(result.mmPayNetworkSelected).toBe('42161');
   });
 
-  it('includes TWAP duration and randomization when provided', () => {
-    const result = buildPerpsOrderTrackingData({
-      ...base,
-      twapDuration: 90,
-      twapRandomize: true,
-    });
-
-    expect(result).toMatchObject({
-      twapDuration: 90,
-      twapRandomize: true,
-    });
-  });
-
   it('includes hlFeeRate only when the protocol fee rate is defined', () => {
     // Arrange / Act
     const withRate = buildPerpsOrderTrackingData({

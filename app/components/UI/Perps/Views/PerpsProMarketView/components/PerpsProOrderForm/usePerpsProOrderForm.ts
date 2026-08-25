@@ -1009,8 +1009,6 @@ export const usePerpsProOrderForm = ({
           direction: orderForm.direction,
           chartLibrary,
           vipTier,
-          twapDuration: isTwapOrder ? twapDuration : undefined,
-          twapRandomize: isTwapOrder ? twapRandomize : undefined,
         }),
       });
 

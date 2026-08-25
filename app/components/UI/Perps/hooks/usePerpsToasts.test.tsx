@@ -14,6 +14,7 @@ import {
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import { mockTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -583,7 +584,16 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Long 0.5 ETH over 1 hour 30 minutes',
+          label: strings('perps.order.twap_placement_subtitle', {
+            direction: 'Long',
+            amount: '0.5',
+            assetSymbol: 'ETH',
+            duration: `${strings('perps.order.twap_duration_hour', {
+              count: 1,
+            })} ${strings('perps.order.twap_duration_minutes', {
+              count: 30,
+            })}`,
+          }),
           isBold: false,
         });
       });
@@ -600,11 +610,18 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'TWAP started',
+          label: strings('perps.order.twap_started'),
           isBold: true,
         });
         expect(config.labelOptions).toContainEqual({
-          label: 'Short 1.0 BTC over 45 minutes',
+          label: strings('perps.order.twap_placement_subtitle', {
+            direction: 'Short',
+            amount: '1.0',
+            assetSymbol: 'BTC',
+            duration: strings('perps.order.twap_duration_minutes', {
+              count: 45,
+            }),
+          }),
           isBold: false,
         });
       });
