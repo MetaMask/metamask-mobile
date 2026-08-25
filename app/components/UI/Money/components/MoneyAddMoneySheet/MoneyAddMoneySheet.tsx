@@ -231,7 +231,10 @@ const MoneyAddMoneySheet: React.FC = () => {
       };
 
   const baseOptions: MoneySheetOption[] = [
-    bankAccountOption,
+    // Flag on: the enabled Bank account row is promoted to the top of the
+    // sheet. Flag off: the coming-soon row keeps its pre-flag position
+    // further down so ordering is unchanged for existing users.
+    ...(isVirtualBankAccountEnabled ? [bankAccountOption] : []),
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -266,6 +269,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
+    ...(isVirtualBankAccountEnabled ? [] : [bankAccountOption]),
     {
       label: strings('money.add_money_sheet.receive_external'),
       icon: IconName.QrCode,
