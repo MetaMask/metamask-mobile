@@ -126,7 +126,8 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
-    '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
+    '^@rive-app/react-native$':
+      '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
   },

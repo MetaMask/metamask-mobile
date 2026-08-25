@@ -5,9 +5,9 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-} from '../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -41,8 +41,8 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: () => mockIsFocused,
 }));
 
-jest.mock('rive-react-native', () =>
-  jest.requireActual('../../../../__mocks__/rive-react-native'),
+jest.mock('@rive-app/react-native', () =>
+  jest.requireActual('../../../../__mocks__/rive-app-react-native'),
 );
 
 jest.mock(
@@ -410,7 +410,7 @@ function renderSendScreen(state: Partial<HardwareWalletsSwapsState>) {
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
+    __resetRiveMocks();
     mockHardwareWalletState.walletType = null;
     mockHardwareWalletState.pendingScanRequest = null;
     mockIsFocused = true;
@@ -602,8 +602,7 @@ describe('HardwareWalletsSwaps', () => {
       (progressState) => {
         renderScreen(progressState);
 
-        expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
-          'wallet_states',
+        expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
           progressState.expectedTrigger,
         );
       },
