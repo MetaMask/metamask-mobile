@@ -57,6 +57,20 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
+// daemon-artifact blockList entries below only match paths anchored at the
+// worktree root, not the same substring appearing anywhere in node_modules.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+// Anchoring prevents an unrelated dependency whose path merely *contains*
+// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
+const mmDaemonArtifactBlockList = [
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+];
+
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
 // Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
@@ -112,9 +126,33 @@ module.exports = function (baseConfig) {
             ),
           );
 
+      // Isolate Metro transform cache between with-SRP and without-SRP dual
+      // repacks. Expo export:embed forces resetCache=false in CI, so babel
+      // inlines of PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first pack
+      // would otherwise be reused from /tmp/metro-cache by the second pack.
+      // Prefer an explicit METRO_TRANSFORM_PROFILE; fall back to presence-only
+      // detection (never put secret values into cacheVersion).
+      const metroTransformProfile =
+        process.env.METRO_TRANSFORM_PROFILE ||
+        (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
+          ? 'with-srp'
+          : 'without-srp');
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
+            // Exclude mm CLI daemon artifacts from the file watcher so that
+            // log writes, state updates and test-artifact captures don't
+            // trigger unnecessary Fast Refresh cycles during visual testing.
+            blockList: [
+              ...(Array.isArray(defaultConfig.resolver.blockList)
+                ? defaultConfig.resolver.blockList
+                : defaultConfig.resolver.blockList
+                  ? [defaultConfig.resolver.blockList]
+                  : []),
+              ...mmDaemonArtifactBlockList,
+            ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
             sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
@@ -146,6 +184,36 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+              // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+              if (moduleName === 'react-native-safe-area-context') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'app/shims/react-native-safe-area-context.tsx',
+                  ),
+                };
+              }
+              // reflect-metadata's only job is to add metadata APIs
+              // (Reflect.defineMetadata etc.) to the global Reflect object.
+              // getPolyfills above already runs it once at bundle startup,
+              // before lavamoat lockdown freezes Reflect — so the job is done.
+              //
+              // But Metro can't tell that polyfill and a require() from app
+              // code (Ledger DMK, inversify, on-ramp-sdk) are the same file,
+              // so it bundles it a second time. Running that second copy
+              // would re-define properties on the now-frozen Reflect object
+              // and crash with "TypeError: property is not configurable".
+              //
+              // Returning an empty module prevents the second run. Safe here
+              // because no importer uses the module's exports — the DMK
+              // closure only reads the global Reflect, patched at startup.
+              if (moduleName === 'reflect-metadata') {
+                return {
+                  type: 'empty',
+                };
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro

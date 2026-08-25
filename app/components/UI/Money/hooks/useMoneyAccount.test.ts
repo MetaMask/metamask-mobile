@@ -28,6 +28,7 @@ import {
 } from './useMoneyAccount';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
@@ -83,15 +84,18 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
-  selectPrefilledAmountConfig: jest.fn().mockReturnValue({ enabled: false }),
-}));
-
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn().mockReturnValue({
     navigateToConfirmation: jest.fn(),
   }),
 }));
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled',
+  () => ({
+    useMoneyAccountDepositPrefillEnabled: jest.fn(),
+  }),
+);
 
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
@@ -134,6 +138,26 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
 >;
+const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
+  useMoneyAccountDepositPrefillEnabled,
+);
+const mockIsDepositPrefillEnabled = jest.fn(
+  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+);
+
+function mockDepositPrefillEnabled(
+  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+) {
+  mockIsDepositPrefillEnabled.mockImplementation(
+    typeof isEnabled === 'function'
+      ? isEnabled
+      : (intent?: 'convert' | 'addMusd' | 'card') =>
+          intent === 'addMusd' ? true : isEnabled,
+  );
+  mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
+    mockIsDepositPrefillEnabled,
+  );
+}
 
 const MOCK_VAULT_CONFIG = {
   chainId: '0xa4b1',
@@ -187,6 +211,7 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDepositPrefillEnabled(false);
     mockContainsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
@@ -369,11 +394,8 @@ describe('useMoneyAccountDeposit', () => {
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
-  it('uses PrefillCustomAmount loader when prefill feature flag is enabled', async () => {
-    const { selectPrefilledAmountConfig } = jest.requireMock(
-      '../../../../selectors/featureFlagController/confirmations',
-    );
-    selectPrefilledAmountConfig.mockReturnValue({ enabled: true });
+  it('uses PrefillCustomAmount loader when deposit prefill is enabled', async () => {
+    mockDepositPrefillEnabled(true);
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -386,15 +408,26 @@ describe('useMoneyAccountDeposit', () => {
         loader: ConfirmationLoader.PrefillCustomAmount,
       }),
     );
+  });
 
-    selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
+  it('uses AdvancedCustomAmount loader when deposit prefill is disabled', async () => {
+    mockDepositPrefillEnabled(false);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
+    );
   });
 
   it('uses AdvancedCustomAmount loader for card intent even when prefill is enabled', async () => {
-    const { selectPrefilledAmountConfig } = jest.requireMock(
-      '../../../../selectors/featureFlagController/confirmations',
-    );
-    selectPrefilledAmountConfig.mockReturnValue({ enabled: true });
+    mockDepositPrefillEnabled((intent) => intent !== 'card');
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -410,8 +443,6 @@ describe('useMoneyAccountDeposit', () => {
         loader: ConfirmationLoader.AdvancedCustomAmount,
       }),
     );
-
-    selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
   });
 
   it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {

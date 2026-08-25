@@ -52,8 +52,9 @@ import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featu
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
-import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
-import { useTraderMute } from '../hooks/useTraderMute';
+import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -67,7 +68,7 @@ import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import { useTraderPositions, useTraderProfile } from './hooks';
-import { resolveQuickBuyOriginalEntryPointFromProfile } from '../TraderPositionView/components/QuickBuy/analytics';
+import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -201,9 +202,12 @@ const TraderProfileView = () => {
     });
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
-  const { isChipMuted, isMuted, showMuteChip, toggleMute } =
-    useTraderMute(traderId);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
+  const { followWithSetup } = useFollowWithNotificationSetup();
+  const handleMutePress = useCallback(
+    () => onMutePress(traderId),
+    [onMutePress, traderId],
+  );
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
@@ -226,39 +230,20 @@ const TraderProfileView = () => {
     }
   }, [refresh, refetchPositions]);
 
-  const handleFollowPress = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const performFollow = () =>
-      toggleFollow({
-        source: 'trader_profile',
-        traderAddress: traderAddress || profile?.profile.address || '',
-        traderUsername: profile?.profile.name,
-        traderAvatarUri: profile?.profile.imageUrl,
-        // Rank only meaningful when arriving from a ranked surface; omit on
-        // trader_profile to keep schema clean.
-      });
-    if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-      return;
-    }
-    await performFollow();
-  }, [toggleFollow, traderAddress, profile, isFollowing, openSetupIfNeeded]);
-
-  const handleMutePress = useCallback(() => {
-    // Tapping a bell that only looks disabled because notifications are off
-    // means "enable"; forward an idempotent unmute rather than a toggle.
-    const ensureUnmuted = () => {
-      if (isMuted) {
-        // Symmetric with the Follow button: same Light impact on any real toggle.
-        playImpact(ImpactMoment.FollowToggle);
-        toggleMute();
-      }
-    };
-    if (openSetupIfNeeded(ensureUnmuted)) {
-      return;
-    }
-    playImpact(ImpactMoment.FollowToggle);
-    toggleMute();
-  }, [openSetupIfNeeded, toggleMute, isMuted]);
+  const handleFollowPress = useCallback(
+    async () =>
+      followWithSetup(isFollowing, () =>
+        toggleFollow({
+          source: 'trader_profile',
+          traderAddress: traderAddress || profile?.profile.address || '',
+          traderUsername: profile?.profile.name,
+          traderAvatarUri: profile?.profile.imageUrl,
+          // Rank only meaningful when arriving from a ranked surface; omit on
+          // trader_profile to keep schema clean.
+        }),
+      ),
+    [toggleFollow, traderAddress, profile, isFollowing, followWithSetup],
+  );
 
   const handleTabChange = useCallback(
     (tab: 'open' | 'closed') => {
@@ -355,12 +340,16 @@ const TraderProfileView = () => {
   const headerTitle = profile?.profile.name;
 
   return (
+    // Top and bottom edges are deliberately off — see
+    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
+    // `includesTopInset` (JS `marginTop` off the already resolved provider).
     <SafeAreaView
-      edges={['top']}
+      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
+        includesTopInset
         scrollY={scrollYShared}
         titleSectionHeight={titleSectionHeightSv}
         title={
@@ -465,7 +454,7 @@ const TraderProfileView = () => {
                     </Box>
                     {showMuteChip && (
                       <TraderMuteChip
-                        isMuted={isChipMuted}
+                        isMuted={isChipMuted(traderId)}
                         visible={isFollowing}
                         onPress={handleMutePress}
                         traderName={profile?.profile.name}

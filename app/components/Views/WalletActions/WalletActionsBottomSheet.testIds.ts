@@ -14,6 +14,7 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   BRIDGE_BUTTON: 'wallet-bridge-button',
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
+  PERPS_MODE_BADGE: 'wallet-perps-mode-badge',
   PREDICT_BUTTON: 'wallet-predict-action',
 };
 

@@ -17,7 +17,10 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
@@ -25,29 +28,32 @@ import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
+import { CardProviderIds, type CardProviderId } from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
 /** The provider ID used when no other provider has been selected. */
-export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
+export const DEFAULT_CARD_PROVIDER_ID = CardProviderIds.Baanx;
+
+export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
 
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
+
+export interface FetchCardHomeDataOptions {
+  force?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
   selectedCountry: string | null;
-  /**
-   * Temporary internal-testing override for Immersve cardProgramId.
-   * Selected on SignUp when cardFeature.immersve.cardProgramIds has multiple options.
-   * Easy to remove once multi-program testing is no longer needed.
-   */
-  selectedCardProgramId: string | null;
   /** Active provider ID, derived from selectedCountry. */
-  activeProviderId: string | null;
+  activeProviderId: CardProviderId | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId: string | null;
   /** Last reason the active provider session became unauthenticated. */
   lastUnauthenticatedReason: CardUnauthenticatedReason | null;
   /** CAIP-10 account IDs that are card holders. */
@@ -56,16 +62,19 @@ export type CardControllerState = {
    * Per-provider persistent data keyed by provider ID.
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
    */
-  providerData: Record<string, Record<string, Json>>;
+  providerData: Partial<Record<CardProviderId, Record<string, Json>>>;
   /**
-   * Cached card home data fetched from the active provider.
-   * Not persisted to disk — re-fetched after each session validation.
-   * Typed as Record<string, Json> to satisfy StateConstraint; cast to
-   * CardHomeData when accessed in the controller.
+   * Cached card home data. Persisted so a cold start renders the card from disk
+   * while a background revalidation runs. Typed as Record<string, Json> to
+   * satisfy StateConstraint; cast to CardHomeData in the controller.
    */
   cardHomeData: Record<string, Json> | null;
-  /** Fetch status for cardHomeData. Not persisted. */
+  /** Account `cardHomeData` was fetched for; a mismatch discards the cache. */
+  cardHomeDataAddress: string | null;
+  /** Persisted with the data: without it the card restores stuck in 'loading'. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** Never persisted, so `false` after a cold start signals data off disk. */
+  cardHomeDataFetchedThisSession: boolean;
   /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
   moneyAccountCardLinkInProgress: boolean;
 };
@@ -86,6 +95,7 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction;

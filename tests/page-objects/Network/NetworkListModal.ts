@@ -5,54 +5,55 @@ import {
 import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class NetworkListModal {
-  get networkScroll(): EncapsulatedElementType {
+  get networkScroll(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
   }
 
-  get closeIcon(): EncapsulatedElementType {
+  get closeIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
   }
 
-  get deleteNetworkButton(): EncapsulatedElementType {
+  get deleteNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.DELETE_NETWORK,
     );
   }
 
-  get addPopularNetworkButton(): EncapsulatedElementType {
+  get addPopularNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
     );
   }
 
-  get networkSearchInput(): EncapsulatedElementType {
+  get networkSearchInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
     );
   }
 
-  get selectNetwork(): EncapsulatedElementType {
+  get selectNetwork(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.SELECT_NETWORK,
     );
   }
 
-  get testNetToggle(): EncapsulatedElementType {
+  get testNetToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
     );
   }
 
-  get deleteButton(): EncapsulatedElementType {
+  get deleteButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  get popularNetworksContainer(): EncapsulatedElementType {
+  get popularNetworksContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
     );
@@ -61,8 +62,8 @@ class NetworkListModal {
   async getCustomNetwork(
     network: string,
     custom = false,
-  ): Promise<EncapsulatedElementType> {
-    if ((await PlatformDetector.isAndroid()) || !custom) {
+  ): Promise<AppiumElement> {
+    if (PlatformDetector.isAndroid() || !custom) {
       return Matchers.getElementByText(network);
     }
 
@@ -75,6 +76,17 @@ class NetworkListModal {
     await Gestures.waitAndTap(this.deleteNetworkButton);
   }
 
+  async confirmDeleteNetwork(): Promise<void> {
+    // Exact match — contains("Delete") can hit titles like "Delete network".
+    const deleteLabel = NetworkListModalSelectorsText.DELETE_NETWORK;
+    const exactDelete = new RegExp(
+      `^${deleteLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+    );
+    await Gestures.waitAndTap(Matchers.getElementByText(exactDelete), {
+      elemDescription: 'Confirm delete network',
+    });
+  }
+
   async scrollToTopOfNetworkList(): Promise<void> {
     await Gestures.swipe(this.networkScroll, 'down', {
       speed: 'fast',
@@ -83,23 +95,24 @@ class NetworkListModal {
 
   async changeNetworkTo(networkName: string, custom = false): Promise<void> {
     const elem = await this.getCustomNetwork(networkName, custom);
-    await Gestures.waitAndTap(elem as unknown as EncapsulatedElementType);
+    await Gestures.waitAndTap(elem);
   }
 
   /**
    * Select a network inside the Custom networks tab.
-   * Uses withAncestor to avoid matching background text elements
-   * that may be partially obscured behind the modal.
+   * Scopes the lookup under CUSTOM_NETWORKS_CONTAINER so background text
+   * behind the modal is not matched.
    */
   async selectNetworkInCustomTab(networkName: string): Promise<void> {
-    const elem = element(
-      by
-        .text(networkName)
-        .withAncestor(
-          by.id(NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER),
-        ),
-    ) as unknown as DetoxElement;
-    await Gestures.waitAndTap(elem);
+    const escapedName = networkName.replace(/'/g, "\\'");
+    const containerId =
+      NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER;
+    const elem = Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${containerId}' or @name='${containerId}' or @label='${containerId}']//*[@text='${escapedName}' or @label='${escapedName}' or @name='${escapedName}' or @content-desc='${escapedName}']`,
+    );
+    await Gestures.waitAndTap(elem, {
+      elemDescription: `Custom network ${networkName}`,
+    });
   }
 
   async scrollToBottomOfNetworkList(): Promise<void> {
@@ -158,6 +171,33 @@ class NetworkListModal {
       elemDescription: `Network ${networkName}`,
       checkVisibility: false,
       checkEnabled: false,
+    });
+  }
+
+  async tapNetworkRowMenuButton(networkName: string): Promise<void> {
+    const escapedName = networkName.replace(/'/g, "\\'");
+    const menuId = 'button-menu-select-test-id';
+    const menuButton = Matchers.getElementByNativeXPath(
+      `(//*[contains(@text,'${escapedName}') or contains(@content-desc,'${escapedName}') or contains(@name,'${escapedName}') or contains(@label,'${escapedName}')]/ancestor::*[contains(@resource-id,'network-list-item-') or contains(@name,'network-list-item-') or contains(@label,'network-list-item-')][1])//*[@resource-id='${menuId}' or @content-desc='${menuId}' or @name='${menuId}']`,
+    );
+    await Gestures.waitAndTap(menuButton, {
+      elemDescription: `Network row menu button for ${networkName}`,
+    });
+  }
+
+  async closeNetworkManager(): Promise<void> {
+    // After delete the sheet may already be gone — don't tap a stray button-icon.
+    try {
+      await Assertions.expectElementToBeVisible(this.popularNetworksContainer, {
+        timeout: 3_000,
+        description: 'Network manager sheet still open',
+      });
+    } catch {
+      return;
+    }
+
+    await Gestures.waitAndTap(Matchers.getElementByID('button-icon'), {
+      elemDescription: 'Close NetworkManager bottom sheet',
     });
   }
 

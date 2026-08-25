@@ -28,7 +28,10 @@ export function getDeFiPositionsControllerV2Messenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AccountTreeController:getAccountsFromSelectedAccountGroup'],
+    actions: [
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'RemoteFeatureFlagController:getState',
+    ],
     messenger,
   });
   return messenger;

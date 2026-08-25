@@ -269,7 +269,7 @@ describe('useLocalActivityItems', () => {
 
   it('enriches a swap from the bridge quote when the TransactionMeta has no legacy swap fields', () => {
     // Unified swaps keep token metadata in the quote, not on the TransactionMeta,
-    // so on-device fields are absent — the row would otherwise be swapIncomplete.
+    // so on-device fields are absent — destination metadata would otherwise be missing.
     selectorState.bridgeHistory = {
       'swap-id': {
         quote: {
@@ -302,7 +302,7 @@ describe('useLocalActivityItems', () => {
 
     const { result } = renderHook(() => useLocalActivityItems());
 
-    // Resolves to a full swap (not swapIncomplete) with tokens + amounts from the quote.
+    // Resolves to a full swap with tokens + amounts from the quote.
     expect(result.current[0]).toMatchObject({
       type: 'swap',
       data: {
@@ -499,5 +499,35 @@ describe('useLocalActivityItems', () => {
 
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({ hash: '0xsend' });
+  });
+
+  it('keeps an in-flight perps deposit and maps it to perpsAddFunds', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'perps-deposit-id',
+        hash: '0xperpsdeposit',
+        chainId: '0x2105',
+        status: TransactionStatus.submitted,
+        type: TransactionType.perpsDeposit,
+        txParams: {
+          from,
+          nonce: '0x1',
+          to: usdc,
+          // transfer(address,uint256) of 0.1 USDC to the bridge
+          data: `0xa9059cbb${recipient
+            .slice(2)
+            .padStart(64, '0')}${(100000).toString(16).padStart(64, '0')}`,
+        },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'perpsAddFunds',
+      hash: '0xperpsdeposit',
+      raw: { type: 'localTransaction' },
+    });
   });
 });

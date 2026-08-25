@@ -89,6 +89,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../UI/CliLoginPushNudge', () => ({
+  CliLoginPushNudgeListener: () =>
+    mockReact.createElement('CliLoginPushNudgeListenerMock'),
+}));
+
 jest.mock('../../UI/ReviewModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ReviewModalMock'),

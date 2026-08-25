@@ -1,5 +1,15 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
+import {
+  selectCardHomeData,
+  selectCardHomeDataStatus,
+  selectCardPrimaryToken,
+  selectCardAvailableTokens,
+  selectCardFundingTokens,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  selectCardHomeDataFetchedThisSession,
+} from '../../../../selectors/cardController';
 import { useCardHomeData } from './useCardHomeData';
 import { useAssetBalances } from './useAssetBalances';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
@@ -74,37 +84,46 @@ const mockBalanceEntry = {
   rawTokenBalance: 500,
 };
 
-// useCardHomeData calls useSelector 5 times:
-// 1. selectCardHomeData (raw CardHomeData)
-// 2. selectCardHomeDataStatus
-// 3. selectCardPrimaryToken
-// 4. selectCardAvailableTokens
-// 5. selectCardFundingTokens
+interface CardOwnership {
+  isCardholder: boolean;
+  isCardAuthenticated: boolean;
+}
+
+const CARDHOLDER: CardOwnership = {
+  isCardholder: true,
+  isCardAuthenticated: false,
+};
+
+// Dispatch on selector identity, not call order: a positional mapping fails
+// silently (every value shifts by one) when the next selector is added.
 function setupSelectors(
   data: unknown,
   status: 'idle' | 'loading' | 'success' | 'error',
   primaryToken: CardFundingToken | null = null,
   availableTokens: CardFundingToken[] = [],
   fundingTokens: CardFundingToken[] = [],
+  ownership: CardOwnership = CARDHOLDER,
+  // Defaults to already-fetched so only opt-in tests hit the revalidation path.
+  fetchedThisSession: boolean = true,
 ) {
-  let callCount = 0;
-  mockUseSelector.mockImplementation(() => {
-    callCount++;
-    const callIndex = ((callCount - 1) % 5) + 1;
-    switch (callIndex) {
-      case 1:
-        return data;
-      case 2:
-        return status;
-      case 3:
-        return primaryToken;
-      case 4:
-        return availableTokens;
-      case 5:
-        return fundingTokens;
-      default:
-        return undefined;
+  const valuesBySelector = new Map<unknown, unknown>([
+    [selectCardHomeData, data],
+    [selectCardHomeDataStatus, status],
+    [selectCardPrimaryToken, primaryToken],
+    [selectCardAvailableTokens, availableTokens],
+    [selectCardFundingTokens, fundingTokens],
+    [selectIsCardholder, ownership.isCardholder],
+    [selectIsCardAuthenticated, ownership.isCardAuthenticated],
+    [selectCardHomeDataFetchedThisSession, fetchedThisSession],
+  ]);
+
+  mockUseSelector.mockImplementation((selector) => {
+    if (!valuesBySelector.has(selector)) {
+      throw new Error(
+        'useCardHomeData read an unmapped selector — add it to setupSelectors',
+      );
     }
+    return valuesBySelector.get(selector);
   });
 }
 
@@ -118,7 +137,7 @@ describe('useCardHomeData', () => {
     mockGetAssetBalanceKey.mockReturnValue('mock-key');
   });
 
-  describe('useEffect safety-net fetch on mount', () => {
+  describe('useEffect status-driven fetch', () => {
     it("triggers fetchCardHomeData when status is 'idle'", () => {
       setupSelectors(null, 'idle');
       renderHook(() => useCardHomeData());
@@ -137,10 +156,85 @@ describe('useCardHomeData', () => {
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
     });
 
-    it("does NOT trigger fetchCardHomeData when status is 'error'", () => {
+    it("triggers fetchCardHomeData when status is 'error'", () => {
       setupSelectors(null, 'error');
       renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it("triggers fetchCardHomeData when status transitions back to 'idle'", () => {
+      setupSelectors({ primaryFundingAsset: null }, 'success');
+      const { rerender } = renderHook(() => useCardHomeData());
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+
+      setupSelectors(null, 'idle');
+      rerender();
+
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT trigger fetchCardHomeData when the user has no card', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: false,
+      });
+      renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it('triggers fetchCardHomeData for an authenticated user who is not yet a listed cardholder', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: true,
+      });
+      renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it('revalidates persisted data that has not been fetched yet this session', () => {
+      setupSelectors(null, 'success', null, [], [], CARDHOLDER, false);
+
+      renderHook(() => useCardHomeData());
+
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not revalidate again once the session has fetched', () => {
+      setupSelectors(null, 'success', null, [], [], CARDHOLDER, true);
+
+      renderHook(() => useCardHomeData());
+
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it('does not revalidate persisted data for a user with no card', () => {
+      setupSelectors(
+        null,
+        'success',
+        null,
+        [],
+        [],
+        { isCardholder: false, isCardAuthenticated: false },
+        false,
+      );
+
+      renderHook(() => useCardHomeData());
+
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it('triggers fetchCardHomeData once the user becomes a cardholder', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: false,
+      });
+      const { rerender } = renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+
+      setupSelectors(null, 'idle');
+      rerender();
+
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -236,13 +330,14 @@ describe('useCardHomeData', () => {
   });
 
   describe('refetch', () => {
-    it('calls Engine.context.CardController.fetchCardHomeData', () => {
+    it('calls Engine.context.CardController.fetchCardHomeData with force', () => {
       setupSelectors(null, 'success');
       const { result } = renderHook(() => useCardHomeData());
 
       result.current.refetch();
 
       expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
     });
   });
 

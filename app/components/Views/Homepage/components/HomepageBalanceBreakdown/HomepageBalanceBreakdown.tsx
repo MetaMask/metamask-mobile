@@ -11,11 +11,14 @@ import HomepageBalanceBreakdownHero from './HomepageBalanceBreakdownHero';
 import HomepageBalanceBreakdownRow from './HomepageBalanceBreakdownRow';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useHomepageBalanceBreakdownNavigation } from './useHomepageBalanceBreakdownNavigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export interface HomepageBalanceBreakdownProps {
   hideRows?: boolean;
   accountGroupBalanceProps?: React.ComponentProps<typeof AccountGroupBalance>;
   layout: HomepageBalanceBreakdownLayout;
+  showRowArrows?: boolean;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   children?: React.ReactNode;
 }
 
@@ -23,10 +26,14 @@ const HomepageBalanceBreakdown = ({
   hideRows = false,
   accountGroupBalanceProps,
   layout,
+  showRowArrows = false,
+  transactionActiveAbTests,
   children,
 }: HomepageBalanceBreakdownProps) => {
   const { hero, slices } = useBalanceBreakdown();
-  const { openSlice } = useHomepageBalanceBreakdownNavigation();
+  const { openSlice } = useHomepageBalanceBreakdownNavigation({
+    transactionActiveAbTests,
+  });
   const isWalletHomeOnboardingActive = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -43,7 +50,7 @@ const HomepageBalanceBreakdown = ({
       {!hideRows ? (
         <Box
           testID={HomepageBalanceBreakdownTestIds.ROWS}
-          twClassName="mt-3 px-4 pt-2"
+          twClassName="mt-3 pt-2"
         >
           {layout === 'allocation' ? (
             <HomepageBalanceBreakdownAllocationBar slices={slices} />
@@ -52,7 +59,8 @@ const HomepageBalanceBreakdown = ({
             <HomepageBalanceBreakdownRow
               key={key}
               layout={layout}
-              onPress={() => openSlice(key)}
+              onPress={() => openSlice(key, SLICE_ORDER.indexOf(key))}
+              showArrow={showRowArrows}
               slice={slices[key]}
               userCurrency={hero.userCurrency}
             />

@@ -12,8 +12,11 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -23,6 +26,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
   selectNetworkConfigurationByChainId,
@@ -162,6 +166,25 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   );
 };
 
+interface ShareTokenBottomSheetControllerRef {
+  open: () => void;
+}
+
+const ShareTokenBottomSheetController = forwardRef<
+  ShareTokenBottomSheetControllerRef,
+  Omit<React.ComponentProps<typeof ShareTokenBottomSheet>, 'onClose'>
+>((props, ref) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useImperativeHandle(ref, () => ({ open: () => setIsVisible(true) }), []);
+
+  return isVisible ? (
+    <ShareTokenBottomSheet {...props} onClose={() => setIsVisible(false)} />
+  ) : null;
+});
+
+ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
+
 /**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
@@ -187,12 +210,13 @@ const TokenDetails: React.FC<{
   onCtaClicked,
   onPerpsMarketResolved,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
+  const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -250,7 +274,7 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    setIsShareSheetVisible(true);
+    shareSheetRef.current?.open();
   }, [
     shareUrl,
     createEventBuilder,
@@ -338,6 +362,7 @@ const TokenDetails: React.FC<{
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const isNativeToken = Boolean(token.isETH || token.isNative);
   const privacyMode = useSelector(selectPrivacyMode);
   const moneyAssetOverviewCtas = useMoneyAssetOverviewCtas({
     asset: token,
@@ -426,6 +451,47 @@ const TokenDetails: React.FC<{
     });
   }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleCopyAddress = useCallback(() => {
+    trackActionTapped(TokenDetailsAction.CopyTokenAddress);
+  }, [trackActionTapped]);
+
+  const handleMarketInsightsDisclaimerPress = useCallback(() => {
+    setIsInsightsDisclaimerVisible(true);
+  }, []);
+
+  const starButton = useMemo(
+    () => (
+      <WatchlistStarButton
+        assetId={caip19AssetId}
+        assetType={isNativeToken ? 'native' : 'erc20'}
+        hasBalance={hasBalanceValue}
+        source="token_details"
+      />
+    ),
+    [caip19AssetId, isNativeToken, hasBalanceValue],
+  );
+
+  const moneyEarnCta = useMemo(
+    () =>
+      isMoneyFooterCtaActive
+        ? {
+            isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
+            label: moneyAssetOverviewCtas.footerLabelLocalized,
+            onPress: moneyAssetOverviewCtas.onFooterPress,
+          }
+        : undefined,
+    [
+      isMoneyFooterCtaActive,
+      moneyAssetOverviewCtas.isFooterCtaLoading,
+      moneyAssetOverviewCtas.footerLabelLocalized,
+      moneyAssetOverviewCtas.onFooterPress,
+    ],
+  );
+
   const {
     transactions,
     submittedTxs,
@@ -436,6 +502,7 @@ const TokenDetails: React.FC<{
     conversionRate,
     currentCurrency: txCurrentCurrency,
     isNonEvmAsset: txIsNonEvmAsset,
+    bridgeArrivalTxs,
   } = useTokenTransactions(token);
 
   const hasTransactions =
@@ -479,9 +546,7 @@ const TokenDetails: React.FC<{
         onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={() =>
-          setIsInsightsDisclaimerVisible(true)
-        }
+        onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -507,8 +572,6 @@ const TokenDetails: React.FC<{
     </>
   );
 
-  const isNativeToken = Boolean(token.isETH || token.isNative);
-
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -519,16 +582,9 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
-        onBackPress={() => navigation.goBack()}
+        onBackPress={handleBackPress}
         onSharePress={handleShare}
-        starButton={
-          <WatchlistStarButton
-            assetId={caip19AssetId}
-            assetType={isNativeToken ? 'native' : 'erc20'}
-            hasBalance={hasBalanceValue}
-            source="token_details"
-          />
-        }
+        starButton={starButton}
         onPriceAlertPress={
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
@@ -536,9 +592,7 @@ const TokenDetails: React.FC<{
             ? handlePriceAlertPress
             : undefined
         }
-        onCopyAddress={() =>
-          trackActionTapped(TokenDetailsAction.CopyTokenAddress)
-        }
+        onCopyAddress={handleCopyAddress}
       />
 
       {txLoading ? (
@@ -550,6 +604,7 @@ const TokenDetails: React.FC<{
           navigation={navigation}
           selectedAddress={selectedAddress}
           chainId={token.chainId as SupportedCaipChainId}
+          bridgeArrivalTransactions={bridgeArrivalTxs}
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
@@ -582,15 +637,7 @@ const TokenDetails: React.FC<{
           networkName={networkName}
           currentTokenBalance={balance}
           hasTokenBalance={hasBalanceValue}
-          moneyEarnCta={
-            isMoneyFooterCtaActive
-              ? {
-                  isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
-                  label: moneyAssetOverviewCtas.footerLabelLocalized,
-                  onPress: moneyAssetOverviewCtas.onFooterPress,
-                }
-              : undefined
-          }
+          moneyEarnCta={moneyEarnCta}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
           useAmbientColor={useAmbientColor}
@@ -605,8 +652,9 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {isShareSheetVisible && shareUrl && (
-        <ShareTokenBottomSheet
+      {shareUrl && (
+        <ShareTokenBottomSheetController
+          ref={shareSheetRef}
           shareUrl={shareUrl}
           token={token}
           currentPrice={currentPrice}
@@ -615,10 +663,9 @@ const TokenDetails: React.FC<{
           currentCurrency={currentCurrency}
           securityData={securityData}
           networkName={networkName}
-          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
-      {!isMoneyFooterCtaActive && quickBuySheet}
+      {quickBuySheet}
     </View>
   );
 };
@@ -659,22 +706,24 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const firedRef = useRef(false);
 
   const fireClosedRef = useRef<() => void>(() => undefined);
-  fireClosedRef.current = () => {
-    if (firedRef.current) return;
-    firedRef.current = true;
+  useLayoutEffect(() => {
+    fireClosedRef.current = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
-        .addProperties({
-          chain_id: token.chainId,
-          token_symbol: token.symbol,
-          token_address: token.address,
-          exit_action: closeSourceRef.current ?? 'back_navigation',
-          time_on_screen_ms: Date.now() - openedAtRef.current,
-        })
-        .build(),
-    );
-  };
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
+          .addProperties({
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+            token_address: token.address,
+            exit_action: closeSourceRef.current ?? 'back_navigation',
+            time_on_screen_ms: Date.now() - openedAtRef.current,
+          })
+          .build(),
+      );
+    };
+  });
 
   useEffect(() => {
     // On iOS, `inactive` is transient (Control Center, notifications, Face ID, etc.)

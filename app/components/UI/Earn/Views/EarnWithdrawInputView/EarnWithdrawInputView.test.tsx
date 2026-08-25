@@ -33,21 +33,9 @@ import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
+import useEarnTokens from '../../hooks/useEarnTokens';
 
 jest.mock('../../../../../selectors/multichain', () => ({
-  selectAccountTokensAcrossChains: jest.fn(() => ({
-    '0x1': [
-      {
-        address: '0x0',
-        symbol: 'ETH',
-        decimals: 18,
-        balance: '1.5',
-        balanceFiat: '$3000',
-        isNative: true,
-        isETH: true,
-      },
-    ],
-  })),
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
@@ -196,7 +184,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
-  default: () => ({
+  default: jest.fn(() => ({
     getEarnToken: jest.fn().mockImplementation((token) => {
       if (token.address === MOCK_ETH_MAINNET_ASSET.address) {
         return {
@@ -397,7 +385,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
       estimatedAnnualRewardsTokenMinimalUnit: '50000000',
       estimatedAnnualRewardsTokenFormatted: '50',
     }),
-  }),
+  })),
 }));
 
 jest.mock('../../utils/tempLending', () => ({
@@ -433,6 +421,9 @@ jest.mock('react-native-fade-in-image', () => {
 describe('EarnWithdrawInputView', () => {
   const mockTrackEvent = jest.fn();
   const mockTrace = jest.mocked(trace);
+  const mockUseEarnTokens = useEarnTokens as jest.MockedFunction<
+    typeof useEarnTokens
+  >;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -1012,6 +1003,90 @@ describe('EarnWithdrawInputView', () => {
         expect(queryByText('Max')).not.toBeOnTheScreen();
         expect(getByText('Done')).toBeOnTheScreen();
       });
+    });
+
+    it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(false);
+
+      const trxEarnToken = {
+        name: 'Staked TRX',
+        symbol: 'sTRX',
+        ticker: 'sTRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        isNative: false,
+        isETH: false,
+        decimals: 6,
+        balance: '1000',
+        balanceFormatted: '1000 sTRX',
+        balanceMinimalUnit: '1000000000',
+        balanceFiat: '$100',
+        balanceFiatNumber: 100,
+        experience: {
+          type: EARN_EXPERIENCES.TRX_STAKING,
+          apr: '0',
+        },
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.TRX_STAKING,
+            apr: '0',
+          },
+        ],
+      } as unknown as EarnTokenDetails;
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '1000',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      mockUseEarnTokens.mockImplementationOnce(() => ({
+        getEarnToken: jest.fn(() => trxEarnToken),
+        getOutputToken: jest.fn(() => trxEarnToken),
+        getPairedEarnTokens: jest.fn(() => ({
+          earnToken: trxEarnToken,
+          outputToken: trxEarnToken,
+        })),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+        earnTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokens: [],
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
+      }));
+
+      render(EarnWithdrawInputView, tronToken);
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('50%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Input Quick Amount Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+            amount: 0.5,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.TRX_STAKING,
+          }),
+        }),
+      );
     });
   });
 

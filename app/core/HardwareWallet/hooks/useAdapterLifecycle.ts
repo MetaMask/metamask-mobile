@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
@@ -9,6 +15,9 @@ import {
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { isDmkEnabled } from '../../Ledger/dmk';
+import { useSelector } from 'react-redux';
+import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
@@ -29,13 +38,17 @@ interface UseAdapterLifecycleResult {
 
 /**
  * Manages the hardware wallet adapter lifecycle: creates the appropriate adapter
- * when the effective wallet type changes, subscribes to transport state changes,
+ * when the wallet type changes, subscribes to transport state changes,
  * and cleans up on unmount.
  *
  * The provider always keeps an adapter instance — for non-hardware accounts,
  * a NonHardwareAdapter (null-object pattern) is created so consumers never
  * need to null-check. NonHardwareAdapter methods are no-ops or return "ready"
  * immediately.
+ *
+ * Parent callbacks are wrapped in `useEffectEvent` so adapter subscriptions
+ * always invoke the latest handlers without making `createAdapterWithCallbacks`
+ * identity change (and thus without tearing down an in-flight adapter).
  */
 export const useAdapterLifecycle = ({
   walletType,
@@ -48,85 +61,123 @@ export const useAdapterLifecycle = ({
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
 
+  // DMK flag, read live from feature-flag state. Held in a ref so the adapter
+  // callbacks stay stable (no spurious re-creation on flag change); the value
+  // is read fresh at adapter-creation time.
+  const dmkFlags = useSelector(selectRemoteFeatureFlags);
+  const dmkFlagsRef = useRef(dmkFlags);
+  dmkFlagsRef.current = dmkFlags;
+
+  const onDeviceEvent = useEffectEvent(handleDeviceEvent);
+  const onError = useEffectEvent(handleError);
+  const onUpdateConnectionState = useEffectEvent(updateConnectionState);
+
   const createAdapterWithCallbacks = useCallback(
-    (targetType: HardwareWalletType) =>
-      createAdapter(targetType, {
-        onDisconnect: (error) => {
-          if (error) {
-            handleError(error);
-          } else {
-            updateConnectionState({ status: ConnectionStatus.Disconnected });
-          }
+    (targetType: HardwareWalletType) => {
+      const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+      return createAdapter(
+        targetType,
+        {
+          onDisconnect: (error) => {
+            if (error) {
+              onError(error);
+            } else {
+              onUpdateConnectionState({
+                status: ConnectionStatus.Disconnected,
+              });
+            }
+          },
+          onDeviceEvent,
         },
-        onDeviceEvent: handleDeviceEvent,
-      }),
-    [handleDeviceEvent, handleError, updateConnectionState],
+        enableDmk,
+      );
+    },
+    // Effect Events are intentionally non-reactive / identity-stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   const initializeAdapter = useCallback(
-    (adapter: ReturnType<typeof createAdapter>): void => {
+    (adapter: HardwareWalletAdapter): void => {
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
 
       adapterRef.current = adapter;
 
-      if (adapter.onTransportStateChange) {
-        transportCleanupRef.current = adapter.onTransportStateChange(
-          (isAvailable) => {
-            DevLogger.log(
-              '[HardwareWallet] Transport state changed:',
-              isAvailable,
-            );
-            setIsTransportAvailable(isAvailable);
-          },
-        );
-      } else {
-        setIsTransportAvailable(true);
-      }
+      transportCleanupRef.current = adapter.onTransportStateChange(
+        (isAvailable) => {
+          DevLogger.log(
+            '[HardwareWallet] Transport state changed:',
+            isAvailable,
+          );
+          setIsTransportAvailable(isAvailable);
+        },
+      );
     },
     // Stable ref (adapterRef) — not needed as a dep
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
+  // Adapter create/recreate. Cleanup is a no-op: React runs the previous
+  // effect's cleanup BEFORE the next body, so a destroying cleanup would
+  // always tear down the adapter on walletType change. Unmount destruction
+  // is the effect below.
+  //
+  // The provider pins `walletType` to the in-flight operation while
+  // setPendingOperationAddress is held, so this effect only replaces the
+  // adapter when the type actually changes (ledger → qr, hardware → software).
   useEffect(() => {
-    if (adapterRef.current) {
-      adapterRef.current.disconnect().catch(() => {
-        // Ignore disconnect errors during cleanup
-      });
+    const current = adapterRef.current;
+    if (current && current.walletType === walletType) {
+      // eslint-disable-next-line no-empty-function
+      return () => {};
+    }
+
+    if (current) {
+      current.destroy();
       adapterRef.current = null;
     }
 
     previousTransportAvailableRef.current = null;
 
+    const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)
-      : createAdapter(null, {
-          // eslint-disable-next-line no-empty-function
-          onDisconnect: () => {},
-          onDeviceEvent: handleDeviceEvent,
-        });
+      : createAdapter(
+          null,
+          {
+            // eslint-disable-next-line no-empty-function
+            onDisconnect: () => {},
+            onDeviceEvent,
+          },
+          enableDmk,
+        );
 
     initializeAdapter(adapter);
 
-    return () => {
+    // eslint-disable-next-line no-empty-function
+    return () => {};
+    // createAdapterWithCallbacks + initializeAdapter are identity-stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletType, createAdapterWithCallbacks, initializeAdapter]);
+
+  // Destroy the adapter + transport subscription only on real unmount (not on
+  // walletType dep-changes, which are handled by the keep/recreate effect above).
+  useEffect(
+    () => () => {
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
       if (adapterRef.current) {
-        adapterRef.current.disconnect().catch(() => {
-          // Ignore cleanup errors
-        });
+        adapterRef.current.destroy();
         adapterRef.current = null;
       }
-    };
-    // Stable ref (adapterRef) — not needed as a dep
+    },
+    // adapterRef / transportCleanupRef are stable refs; unmount-only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    walletType,
-    handleDeviceEvent,
-    createAdapterWithCallbacks,
-    initializeAdapter,
-  ]);
+    [],
+  );
 
   return {
     isTransportAvailable,

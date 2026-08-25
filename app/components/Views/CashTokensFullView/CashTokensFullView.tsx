@@ -43,13 +43,13 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import MoneyConvertStablecoins from '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyMusdEmptyBalanceRow from '../../UI/Money/components/MoneyMusdEmptyBalanceRow';
-import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -139,11 +139,7 @@ const CashTokensFullView = () => {
     isScreenReady,
   ]);
 
-  const merklRefetchRef = useRef<(() => void) | null>(null);
-  const handleRefetchReady = useCallback((refetch: () => void) => {
-    merklRefetchRef.current = refetch;
-  }, []);
-  const { refreshing, onRefresh } = useCashTokensRefresh(merklRefetchRef);
+  const { refreshing, onRefresh } = useCashTokensRefresh();
 
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
@@ -215,9 +211,12 @@ const CashTokensFullView = () => {
         .build(),
     );
 
-    goToBuy({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-    });
+    goToBuy(
+      {
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      },
+      { surface: RAMPS_BUY_CUF_SURFACE.CASH },
+    );
   }, [createEventBuilder, goToBuy, trackEvent]);
 
   const balanceHeading = useMemo(
@@ -235,18 +234,11 @@ const CashTokensFullView = () => {
     [],
   );
 
-  const bonusAndConvertSections = useMemo(
+  const convertSection = useMemo(
     () => (
-      <>
-        <AssetOverviewClaimBonus
-          asset={MUSD_MAINNET_ASSET_FOR_DETAILS}
-          onRefetchReady={handleRefetchReady}
-          location={MONEY_EVENT_LOCATIONS.MONEY_HUB}
-        />
-        <MoneyConvertStablecoins location={MONEY_EVENT_LOCATIONS.MONEY_HUB} />
-      </>
+      <MoneyConvertStablecoins location={MONEY_EVENT_LOCATIONS.MONEY_HUB} />
     ),
-    [handleRefetchReady],
+    [],
   );
 
   return (
@@ -277,9 +269,7 @@ const CashTokensFullView = () => {
             // entry under the new "Your balance" heading.
             hideSecondaryPriceRow={isMoneyHubEnabled}
             listHeaderComponent={isMoneyHubEnabled ? balanceHeading : undefined}
-            listFooterComponent={
-              isMoneyHubEnabled ? bonusAndConvertSections : undefined
-            }
+            listFooterComponent={isMoneyHubEnabled ? convertSection : undefined}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -314,7 +304,7 @@ const CashTokensFullView = () => {
               <CashGetMusdEmptyState isFullView />
             </SectionRow>
           )}
-          {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
+          {isMoneyHubEnabled ? convertSection : undefined}
         </ScrollView>
       )}
       {isMoneyHubEnabled &&

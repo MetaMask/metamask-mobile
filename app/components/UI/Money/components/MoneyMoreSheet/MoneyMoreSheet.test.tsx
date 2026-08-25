@@ -17,7 +17,10 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
-const mockOpenSupportWithConsent = jest.fn();
+const mockOpenSupportWithConsent: jest.Mock<
+  void,
+  [(url: string) => void, string]
+> = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -173,12 +176,39 @@ describe('MoneyMoreSheet', () => {
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(Linking.openURL).not.toHaveBeenCalled();
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
       METAMASK_SUPPORT_URL,
     );
+  });
+
+  it('keeps the sheet open while the support consent sheet is shown', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('closes the sheet before opening the consented support URL in the in-app browser', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+    const [openSupportUrl] = mockOpenSupportWithConsent.mock.calls[0];
+    const consentedUrl = `${METAMASK_SUPPORT_URL}&metamask_version=1.0.0`;
+
+    openSupportUrl(consentedUrl);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: consentedUrl,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
   describe('analytics', () => {

@@ -428,6 +428,7 @@ describe('useTransactionConfirm', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: {},
       });
     });
 
@@ -447,10 +448,14 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('money home if predict deposit with MoneyAccount payWithOption', async () => {
@@ -469,10 +474,14 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('goes back if predict deposit without MoneyAccount payWithOption', async () => {
@@ -503,10 +512,14 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -526,10 +539,14 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 

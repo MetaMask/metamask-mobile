@@ -27,4 +27,19 @@ describe('getAuthenticationControllerMessenger', () => {
 
     expect(authenticationControllerMessenger).toBeInstanceOf(Messenger);
   });
+
+  it('delegates SeedlessOnboardingController:getState for social identifier_type', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAuthenticationControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'SeedlessOnboardingController:getState',
+        ]),
+      }),
+    );
+  });
 });

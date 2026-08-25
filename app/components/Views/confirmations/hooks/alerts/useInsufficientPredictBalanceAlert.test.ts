@@ -128,7 +128,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert when amount + fees exceed predict balance', () => {
+  it('returns alert when fees consume the entire withdraw amount', () => {
     usePredictBalanceMock.mockReturnValue({ data: 0.04 } as never);
     useTokenAmountMock.mockReturnValue({
       amountPrecise: '0.04',
@@ -151,6 +151,30 @@ describe('useInsufficientPredictBalanceAlert', () => {
 
     expect(result.current).toHaveLength(1);
     expect(result.current[0].key).toBe(AlertKeys.InsufficientPredictBalance);
+  });
+
+  it('does not alert when amount + fees exceed balance but fees are below amount', () => {
+    usePredictBalanceMock.mockReturnValue({ data: 40 } as never);
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '1' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
   });
 
   it('does not trigger fee check during pending input', () => {

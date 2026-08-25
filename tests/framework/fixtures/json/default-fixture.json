@@ -163,8 +163,7 @@
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
-          "selectedCountry": null,
-          "selectedCardProgramId": null
+          "selectedCountry": null
         },
         "ClientController": {
           "isUiOpen": false
@@ -473,7 +472,13 @@
             "chartExpanded": false,
             "orderBookExpanded": false,
             "orderBookPosition": "left",
-            "orderFormPosition": "right"
+            "orderFormPosition": "right",
+            "ordersSideFilter": "all",
+            "ordersSortDirection": "desc",
+            "ordersSortField": "time",
+            "positionsSideFilter": "all",
+            "positionsSortDirection": "desc",
+            "positionsSortField": "positionValue"
           },
           "recentlyViewedMarkets": {
             "mainnet": [],

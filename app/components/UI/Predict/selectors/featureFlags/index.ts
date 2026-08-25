@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  selectLocalOverrides,
   selectRawFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
@@ -46,19 +45,6 @@ export const selectPredictEnabledFlag = createSelector(
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
-  },
-);
-
-export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -131,9 +117,7 @@ export const selectPredictHotTabFlag = createSelector(
 
 export const selectPredictFeatureFlags = createSelector(
   selectRawFeatureFlags,
-  selectLocalOverrides,
-  (remoteFeatureFlags, localOverrides) =>
-    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+  (remoteFeatureFlags) => resolvePredictFeatureFlags({ remoteFeatureFlags }),
 );
 
 export const selectExtendedSportsMarketsLeagues = createSelector(
@@ -166,11 +150,6 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
-export const selectPredictWorldCupConfig = createSelector(
-  selectPredictFeatureFlags,
-  (flags) => flags.predictWorldCup,
-);
-
 export const selectPredictSportsFeedConfig = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictSportsFeed,
@@ -179,43 +158,6 @@ export const selectPredictSportsFeedConfig = createSelector(
 export const selectPredictWimbledonTabFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWimbledonTab,
-);
-
-export const selectPredictWorldCupEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled,
-);
-
-export const selectPredictWorldCupMainFeedBannerEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedBanner,
-);
-
-export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedTab,
-);
-
-export const selectPredictWorldCupScreenEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showWorldCupScreen,
-);
-
-export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
-);
-
-// The banner is only mounted inside the V2 hub (`PredictWorldCupHub`), so it
-// must also require `showHubV2`. Without this, enabling `showHubBanner` while
-// `showHubV2` is off would silently render nothing (the V1 hub has no banner).
-export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) =>
-    config.enabled &&
-    config.showWorldCupScreen &&
-    config.showHubV2 &&
-    config.showHubBanner,
 );
 
 export const selectPredictPortfolioEnabledFlag = createSelector(

@@ -266,6 +266,7 @@ describe('useAlertSaveFlow', () => {
         .addProperties,
     ).toHaveBeenCalledWith({
       source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
+      asset_id: 'eip155:1/slip44:60',
       asset_type: 'native',
     });
   });

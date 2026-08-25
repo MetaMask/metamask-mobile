@@ -9,6 +9,7 @@
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
+    prBaseRef = '',
     isFork,
     shouldSkipE2E,
     allChangesCount,
@@ -40,8 +41,14 @@ function computeE2EPlatformFlags(input) {
     e2eTestFilesCount > 0 &&
     e2eWorkflowsCount === 0;
 
-  if (githubEventName === 'schedule' || githubEventName === 'push') {
-    message = 'E2E for both platforms (scheduled or push to main)';
+  const isStableTarget =
+    githubEventName === 'pull_request' && prBaseRef === 'stable';
+
+  if (isStableTarget) {
+    message = 'Skipping E2E (stable branch synchronization PR)';
+  } else if (githubEventName === 'schedule' || githubEventName === 'push') {
+    message =
+      'E2E for both platforms (scheduled or push to main/release/*)';
     android = true;
     ios = true;
   } else if (githubEventName === 'merge_group') {
@@ -103,6 +110,119 @@ function computeE2EPlatformFlags(input) {
   };
 }
 
+/**
+ * Apply PR label overrides on top of path-filter platform flags.
+ * Labels must not bypass ignorable-only or hard E2E skip signals.
+ *
+ * @param {object} flags
+ * @param {object} input
+ * @returns {object}
+ */
+function applyE2ELabelOverrides(flags, input) {
+  const {
+    runAppiumIosLabel = false,
+    githubEventName,
+    prBaseRef = '',
+    isFork,
+    shouldSkipE2E,
+    ignorableOnly,
+    testOnlyChanges,
+  } = input;
+
+  const isEligiblePullRequest =
+    githubEventName === 'pull_request' &&
+    prBaseRef !== 'stable' &&
+    !isFork &&
+    !shouldSkipE2E &&
+    !ignorableOnly;
+
+  if (!isEligiblePullRequest || !runAppiumIosLabel || flags.ios) {
+    return flags;
+  }
+
+  const ios = true;
+  const e2eNeeded = flags.android || ios;
+
+  return {
+    ...flags,
+    ios,
+    e2eNeeded,
+    nativeBuildNeeded: e2eNeeded && !testOnlyChanges,
+    message: `${flags.message} + iOS build (run-appium-ios-tests label)`,
+  };
+}
+
+/**
+ * Resolve whether Appium iOS smoke should run on a PR after path filters and
+ * label overrides have determined platform flags.
+ *
+ * @param {object} flags
+ * @param {object} input
+ * @returns {boolean}
+ */
+function resolveRunAppiumIos(flags, input) {
+  const {
+    skipSmartSelection = false,
+    runAppiumIosLabel = false,
+    e2eSmokeInfraCount = 0,
+    githubEventName,
+    prBaseRef = '',
+    isFork,
+  } = input;
+
+  if (
+    githubEventName !== 'pull_request' ||
+    prBaseRef === 'stable' ||
+    isFork
+  ) {
+    return false;
+  }
+
+  if (runAppiumIosLabel) {
+    return true;
+  }
+
+  if (skipSmartSelection && flags.ios) {
+    return true;
+  }
+
+  return e2eSmokeInfraCount > 0;
+}
+
+/**
+ * Resolve final E2E platform flags and Appium iOS smoke eligibility for CI.
+ *
+ * @param {object} input
+ * @returns {object}
+ */
+function resolveE2EPlatformRequirements(input) {
+  const {
+    pathFilterInput,
+    labelOverrideInput,
+    skipSmartSelection = false,
+    e2eSmokeInfraCount = 0,
+  } = input;
+
+  const baseFlags = computeE2EPlatformFlags(pathFilterInput);
+  const flags = applyE2ELabelOverrides(baseFlags, labelOverrideInput);
+  const runAppiumIos = resolveRunAppiumIos(flags, {
+    skipSmartSelection,
+    runAppiumIosLabel: labelOverrideInput.runAppiumIosLabel,
+    e2eSmokeInfraCount,
+    githubEventName: labelOverrideInput.githubEventName,
+    prBaseRef: labelOverrideInput.prBaseRef,
+    isFork: labelOverrideInput.isFork,
+  });
+
+  return {
+    ...flags,
+    runAppiumIos,
+  };
+}
+
 module.exports = {
   computeE2EPlatformFlags,
+  applyE2ELabelOverrides,
+  resolveRunAppiumIos,
+  resolveE2EPlatformRequirements,
 };

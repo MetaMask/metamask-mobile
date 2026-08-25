@@ -7,6 +7,7 @@ import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
@@ -49,6 +50,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -97,6 +102,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
 const mockSelectHasWalletFundingPrimaryCta = jest.mocked(
@@ -125,13 +131,6 @@ const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
     isBalanceLoading: false,
     isBalanceFetchError: false,
     refetchBalance: jest.fn(),
-    apyDecimal: 0.04,
-    apyPercent: 4,
-    apyPercentFormatted: '4%',
-    vaultApyQuery: {
-      data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
-      isLoading: false,
-    },
     ...overrides,
     moneyBalanceQuery: {
       data: {
@@ -144,6 +143,20 @@ const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
       ...overrides.moneyBalanceQuery,
     },
   }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const createApyMock = (
+  overrides: Partial<ReturnType<typeof useMoneyVaultApy>> = {},
+) =>
+  ({
+    apyDecimal: 0.04,
+    apyPercent: 4,
+    apyPercentFormatted: '4%',
+    vaultApyQuery: {
+      data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
+      isLoading: false,
+    },
+    ...overrides,
+  }) as ReturnType<typeof useMoneyVaultApy>;
 
 const createInfoMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
@@ -160,6 +173,7 @@ describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
+    mockUseMoneyVaultApy.mockReturnValue(createApyMock());
     mockUseMoneyAccountInfo.mockReturnValue(createInfoMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
     mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
@@ -596,12 +610,12 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders APY skeleton when APY is loading', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({
           vaultApyQuery: {
             data: undefined,
             isLoading: true,
-          } as ReturnType<typeof useMoneyAccountBalance>['vaultApyQuery'],
+          } as ReturnType<typeof useMoneyVaultApy>['vaultApyQuery'],
         }),
       );
 
@@ -633,8 +647,8 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders the APY tag with 0 when apyPercent is undefined', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ apyPercent: undefined }),
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({ apyPercent: undefined }),
       );
 
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);

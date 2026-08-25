@@ -1,13 +1,18 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
-import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers';
-import { getDriver } from './PlaywrightUtilities';
-import PlaywrightGestures from './PlaywrightGestures';
+import AndroidWebViewCdpHelpers, {
+  isAndroidWebViewCdpEnabled,
+} from './AndroidWebViewCdpHelpers';
+import Gestures from './Gestures';
+import Matchers from './Matchers';
+import { wrapElement, type AppiumElement } from './AppiumElement';
+import AppiumContextHelpers from './AppiumContextHelpers';
+import { getDriver } from './AppiumUtilities';
+import AppiumGestures from './AppiumGestures';
 import Utilities, { sleep } from './Utilities';
-import { createPlaywrightLogger } from './playwrightLogger';
+import { createAppiumLogger } from './appiumLogger';
 
-const logger = createPlaywrightLogger('AndroidWebViewNative');
+const logger = createAppiumLogger('AndroidWebViewNative');
 
 const SCROLL_ATTEMPTS = 24;
 const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 30_000;
@@ -16,6 +21,11 @@ const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 export interface AndroidWebViewScrollOptions {
   /** Optional visible text labels used when resource-id nodes are virtualized off-screen. */
   scrollLabels?: Record<string, string>;
+  /**
+   * Page URL for CDP scroll target selection (Android Appium).
+   * When set and CDP is enabled, scroll tries DOM scrollIntoView before UiScrollable.
+   */
+  pageUrl?: string;
 }
 
 export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
@@ -31,9 +41,7 @@ function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-async function findNativeWebIdElement(
-  webId: string,
-): Promise<PlaywrightElement> {
+async function findNativeWebIdElement(webId: string): Promise<AppiumElement> {
   const escapedWebId = escapeUiAutomatorString(webId);
   return wrapElement(
     getDriver().$(`android=new UiSelector().resourceId("${escapedWebId}")`),
@@ -43,7 +51,7 @@ async function findNativeWebIdElement(
 async function tryFindNativeWebIdElement(
   webId: string,
   timeout = 500,
-): Promise<PlaywrightElement | null> {
+): Promise<AppiumElement | null> {
   try {
     const elem = await findNativeWebIdElement(webId);
     await elem.unwrap().waitForExist({ timeout });
@@ -86,7 +94,7 @@ function buildUiScrollableSelectors(
 async function scrollNativeWebIdIntoViewViaUiScrollable(
   webId: string,
   scrollLabels: Record<string, string> = {},
-): Promise<PlaywrightElement | null> {
+): Promise<AppiumElement | null> {
   for (const selector of buildUiScrollableSelectors(webId, scrollLabels)) {
     try {
       const elem = wrapElement(getDriver().$(`android=${selector}`));
@@ -105,7 +113,7 @@ async function scrollNativeWebIdIntoViewViaUiScrollable(
   return null;
 }
 
-async function getBrowserWebViewContainer(): Promise<PlaywrightElement> {
+async function getBrowserWebViewContainer(): Promise<AppiumElement> {
   const browserWebViewId = BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
   const webView = wrapElement(
     getDriver().$(`android=new UiSelector().resourceId("${browserWebViewId}")`),
@@ -149,7 +157,7 @@ async function scrollBrowserWebViewUp(): Promise<void> {
 
 async function scrollNativeWebIdIntoViewViaScrollGesture(
   webId: string,
-): Promise<PlaywrightElement> {
+): Promise<AppiumElement> {
   for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
     const elem = await tryFindNativeWebIdElement(webId);
     if (elem) {
@@ -172,8 +180,8 @@ async function scrollNativeWebIdIntoViewViaScrollGesture(
 export async function scrollAndroidWebIdIntoView(
   webId: string,
   options: AndroidWebViewScrollOptions = {},
-): Promise<PlaywrightElement> {
-  await PlaywrightContextHelpers.switchToNativeContext();
+): Promise<AppiumElement> {
+  await AppiumContextHelpers.switchToNativeContext();
 
   // Generous in-place wait: nodes often appear in the current viewport, and a
   // UiScrollable sweep from the top is far costlier than waiting a few seconds.
@@ -185,12 +193,43 @@ export async function scrollAndroidWebIdIntoView(
     return alreadyVisible;
   }
 
+  // Prefer CDP DOM scroll when pageUrl is known — avoids slow UiScrollable sweeps.
+  // Never uses Chromedriver; failures fall through to native scroll.
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpScrolled =
+      await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(webId, {
+        pageUrl: options.pageUrl,
+      });
+    if (cdpScrolled) {
+      const afterCdp = await tryFindNativeWebIdElement(
+        webId,
+        IN_PLACE_FIND_TIMEOUT_MS,
+      );
+      if (afterCdp) {
+        return afterCdp;
+      }
+      logger.debug(
+        `CDP scrolled #${webId} but resource-id still missing; falling back to UiScrollable`,
+      );
+    }
+  }
+
   const viaUiScrollable = await scrollNativeWebIdIntoViewViaUiScrollable(
     webId,
     options.scrollLabels,
   );
   if (viaUiScrollable) {
-    return viaUiScrollable;
+    // Text-label fallback may match a nearby unique anchor (not the target
+    // resource-id). Re-resolve by id now that the section should be materialized.
+    // If id is still missing, fall through to gesture scroll instead of
+    // returning the anchor (which would tap/fill the wrong control).
+    const byId = await tryFindNativeWebIdElement(
+      webId,
+      IN_PLACE_FIND_TIMEOUT_MS,
+    );
+    if (byId) {
+      return byId;
+    }
   }
 
   return scrollNativeWebIdIntoViewViaScrollGesture(webId);
@@ -202,8 +241,17 @@ export async function tapAndroidWebId(
 ): Promise<void> {
   logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
 
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpTapped = await AndroidWebViewCdpHelpers.tapElementById(webId, {
+      pageUrl: options.pageUrl,
+    });
+    if (cdpTapped) {
+      return;
+    }
+  }
+
   // Re-find until enabled so we don't hold a stale disabled node across React re-renders.
-  let elem!: PlaywrightElement;
+  let elem!: AppiumElement;
   await Utilities.waitUntil(
     async () => {
       elem = await scrollAndroidWebIdIntoView(webId, options);
@@ -212,7 +260,7 @@ export async function tapAndroidWebId(
     { timeout: options.timeout ?? 30_000, interval: 250 },
   );
 
-  await PlaywrightGestures.waitAndTap(elem);
+  await AppiumGestures.waitAndTap(elem);
 }
 
 /** Type into focused field one character at a time, clearing leftover text first. */
@@ -236,6 +284,18 @@ export async function fillAndroidWebId(
   value: string,
   options: AndroidWebViewFillOptions = {},
 ): Promise<void> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpFilled = await AndroidWebViewCdpHelpers.fillElementById(
+      webId,
+      value,
+      { pageUrl: options.pageUrl },
+    );
+    if (cdpFilled) {
+      await AppiumGestures.hideKeyboard().catch(() => undefined);
+      return;
+    }
+  }
+
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   await elem.click();
   await elem.clear().catch((error) => {
@@ -245,13 +305,56 @@ export async function fillAndroidWebId(
   });
   const residualText = await elem.getText().catch(() => '');
   await typeAndroidKeysSequentially(value, residualText);
-  await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+  await AppiumGestures.hideKeyboard().catch(() => undefined);
 }
 
 export async function readAndroidWebIdText(
   webId: string,
   options: AndroidWebViewReadOptions = {},
 ): Promise<string> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpText = await AndroidWebViewCdpHelpers.readElementTextById(webId, {
+      pageUrl: options.pageUrl,
+    });
+    if (cdpText !== undefined) {
+      return cdpText;
+    }
+  }
+
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   return elem.getText();
+}
+
+export async function selectAndroidWebId(
+  webId: string,
+  optionText: string,
+  options: AndroidWebViewTapOptions = {},
+): Promise<void> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpSelected = await AndroidWebViewCdpHelpers.selectOptionById(
+      webId,
+      optionText,
+      { pageUrl: options.pageUrl },
+    );
+    if (cdpSelected) {
+      return;
+    }
+  }
+
+  await tapAndroidWebId(webId, {
+    ...options,
+    timeout: options.timeout ?? 60_000,
+    description: options.description ?? `WebView select open "${webId}"`,
+  });
+  await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
+    elemDescription: `WebView select option "${optionText}"`,
+    timeout: 30_000,
+  });
+}
+
+export async function blurAndroidWebView(pageUrl: string): Promise<void> {
+  if (pageUrl && isAndroidWebViewCdpEnabled()) {
+    await AndroidWebViewCdpHelpers.blurActiveElement(pageUrl);
+  }
+  await AppiumGestures.hideKeyboard().catch(() => undefined);
 }

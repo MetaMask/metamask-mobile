@@ -3,11 +3,12 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, toQuoteResponseV2 } from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
 } from '../../../../../core/redux/slices/bridge';
+import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -22,6 +23,16 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../utils/swapQuoteFetchTrace', () => ({
+  swapQuoteFetchTrace: {
+    finish: jest.fn(),
+  },
+}));
+
+const mockFinishQuoteTrace = swapQuoteFetchTrace.finish as jest.MockedFunction<
+  typeof swapQuoteFetchTrace.finish
+>;
+
 describe('useBridgeQuoteEvents', () => {
   const expectedQuotesReceivedProperties = {
     best_quote_provider: 'lifi_jupiter',
@@ -35,6 +46,7 @@ describe('useBridgeQuoteEvents', () => {
     quoted_time_minutes: 0.08333333333333333,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
+    usd_amount_source: 0,
     usd_balance_source: 0,
     usd_quoted_gas: 0,
     usd_quoted_return: 0,
@@ -58,7 +70,7 @@ describe('useBridgeQuoteEvents', () => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
         quoteFetchError: null,
-        quotes: [mockQuoteWithMetadata],
+        quotes: [toQuoteResponseV2(mockQuoteWithMetadata)],
         quotesRefreshCount: 1,
         ...stateOverrides,
       };
@@ -84,6 +96,37 @@ describe('useBridgeQuoteEvents', () => {
       ).not.toHaveBeenCalled();
     },
   );
+
+  it('ends the quote trace when the first quote arrives during streaming', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 0,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).not.toHaveBeenCalled();
+  });
 
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
@@ -138,6 +181,63 @@ describe('useBridgeQuoteEvents', () => {
         ...expectedQuotesReceivedProperties,
         warnings,
       });
+      expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
     },
   );
+
+  it('ends the quote trace when a completed request has no quotes', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: true,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('no_quotes');
+  });
+
+  it('ends the quote trace when quote fetching fails', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: 'Error fetching quotes',
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('error');
+  });
 });

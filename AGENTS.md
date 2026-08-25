@@ -31,10 +31,10 @@ yarn jest <filename>                    # Run specific test file
 yarn jest <filename> -t "<pattern>"     # Run specific test case
 
 # E2E tests
-yarn test:e2e:ios:debug:build           # Build iOS E2E app
-yarn test:e2e:ios:debug:run             # Run iOS E2E tests
-yarn test:e2e:android:debug:build       # Build Android E2E app
-yarn test:e2e:android:debug:run         # Run Android E2E tests
+yarn appium-smoke:ios                    # Run Appium smoke on iOS
+yarn appium-smoke:android                # Run Appium smoke on Android
+yarn build:ios:main:e2e                  # Build iOS main-e2e app (Appium)
+yarn build:android:main:e2e              # Build Android main-e2e app (Appium)
 ```
 
 ### Code Quality
@@ -91,8 +91,8 @@ app/
 ├── hooks/                # Custom React hooks
 └── styles/               # Global styles
 
-tests/smoke               # Detox Smoke E2E tests
 tests/smoke-appium        # Appium Smoke E2E tests
+tests/helpers             # Shared E2E helpers
 docs/                     # Documentation
 scripts/                  # Build and automation scripts
 ```
@@ -104,7 +104,7 @@ scripts/                  # Build and automation scripts
 | Guide                                                                                      | Scope                                                                        |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke — Page Objects, gestures                                         |
+| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Appium smoke — Page Objects, gestures                                        |
 | [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
@@ -117,6 +117,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Components**: Design system first → `component-library` second → custom last
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
@@ -204,6 +205,7 @@ If the user asks to implement a ticket directly from Jira:
 | Documentation             | Path                                         |
 | ------------------------- | -------------------------------------------- |
 | Architecture              | `/docs/readme/architecture.md`               |
+| Animations                | `/docs/readme/animations.md`                 |
 | Environment Setup         | `/docs/readme/environment.md`                |
 | E2E Testing               | `/docs/readme/e2e-testing.md`                |
 | Debugging                 | `/docs/readme/debugging.md`                  |
@@ -219,7 +221,7 @@ Three test types coexist in this repo:
 
 - **Unit tests** (`*.test.tsx`)
 - **Component view tests** (`*.view.test.tsx`)
-- **E2E tests** (`tests/smoke/`, `tests/smoke-appium/`)
+- **E2E tests** (`tests/smoke-appium/`)
 
 For conventions and skill references for each type, read `tests/AGENTS.md`.
 

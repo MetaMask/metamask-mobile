@@ -31,6 +31,7 @@ interface ManageCardOptionsProps {
   cardDetailsVisible: boolean;
   onViewCardDetails: () => void;
   onViewPin: () => void;
+  onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
   showUnlinkMoneyAccount: boolean;
@@ -60,6 +61,7 @@ const ManageCardOptions = ({
   cardDetailsVisible,
   onViewCardDetails,
   onViewPin,
+  onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
   showUnlinkMoneyAccount,
@@ -91,6 +93,9 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
+  // Providers set hasPin on CardDetails; absent means treat as true.
+  const cardHasPin = card?.hasPin !== false;
+
   // Providers without funding limits (e.g. Immersve) expose manage options as
   // soon as a card exists; balance-gating only applies to funding-limit
   // providers (Baanx), which hide them until the user has a spendable balance.
@@ -120,6 +125,7 @@ const ManageCardOptions = ({
           />
         )}
         {capabilities?.supportsFundingLimits &&
+          !showUnlinkMoneyAccount &&
           ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.change_asset')}
@@ -166,6 +172,7 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
@@ -176,6 +183,23 @@ const ManageCardOptions = ({
             onPress={onViewPin}
             isLoading={isPinLoading}
             testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          />
+        )}
+        {((isAuthenticated &&
+          !isLoading &&
+          card &&
+          card.status === CardStatus.ACTIVE &&
+          capabilities?.supportsPinSet &&
+          cardHasPin &&
+          !hideManageOptions) ||
+          (showTeaserOptions && capabilities?.supportsPinSet)) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.set_pin')}
+            description={strings(
+              'card.card_home.manage_card_options.set_pin_description',
+            )}
+            onPress={onSetPin}
+            testID={CardHomeSelectors.SET_PIN_BUTTON}
           />
         )}
         {((isAuthenticated &&

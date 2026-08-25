@@ -189,8 +189,8 @@ export const mapTextToTemplate = (
         props: {
           variant: params.textVariant,
           color: params.textColor,
+          fontWeight: params.textFontWeight,
           style: {
-            fontWeight: params.textFontWeight,
             textAlign: params.textAlignment,
           },
         },

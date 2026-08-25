@@ -43,6 +43,17 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
   },
 );
 
+export const selectMoneyEnableCardActivityEnrichmentFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableCardActivityEnrichment as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 /**
  * Selects whether the tilt-driven parallax animation is shown on the Money
  * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature
@@ -242,6 +253,20 @@ export const selectMoneyCardFlipAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardFlipAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Kill-switch for the tilt-driven Rive card thumbnail animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

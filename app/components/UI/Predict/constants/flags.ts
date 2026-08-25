@@ -3,6 +3,7 @@ import type {
   PredictFeedBannerConfig,
   PredictFeedCarouselConfig,
   PredictFeeCollection,
+  PredictHiddenMarketsFlag,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
@@ -10,7 +11,6 @@ import type {
   PredictSportsFeedConfig,
   PredictSportsFeedTabConfig,
   PredictWimbledonTabFlag,
-  PredictWorldCupConfig,
 } from '../types/flags';
 import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
 import {
@@ -35,7 +35,7 @@ export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
   id: '',
   title: '',
   description: '',
-  position: PredictFeedBannerPosition.AfterWorldCupBanner,
+  position: PredictFeedBannerPosition.AfterFeaturedCarousel,
   severity: PredictFeedBannerSeverity.Info,
   dismissible: false,
 };
@@ -79,6 +79,12 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     enabledSportsMarketTypes: [],
   };
 
+export const DEFAULT_HIDDEN_MARKETS_FLAG: PredictHiddenMarketsFlag = {
+  enabled: false,
+  minimumVersion: '',
+  hidden: [],
+};
+
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,
   highlights: [],
@@ -107,22 +113,6 @@ export const DEFAULT_WIMBLEDON_TAB_FLAG = {
   queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
   minimumVersion: '',
 } satisfies PredictWimbledonTabFlag;
-
-export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
-
-export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
-  enabled: false,
-  minimumVersion: '',
-  showMainFeedBanner: false,
-  showMainFeedTab: false,
-  showWorldCupScreen: false,
-  showHubV2: false,
-  showHubBanner: false,
-  tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-  gamesTagId: PREDICT_POLYMARKET_GAMES_TAG_ID,
-  winnerEventId: '',
-  stages: [],
-};
 
 const createSportsFeedChip = (
   id: string,

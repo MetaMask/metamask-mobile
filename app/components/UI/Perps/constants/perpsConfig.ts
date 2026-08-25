@@ -102,6 +102,13 @@ export const LEVERAGE_SLIDER_CONFIG = {
 export const MAX_PERPS_INPUT_DIGITS = 9;
 
 /**
+ * Decimal places used when displaying how far a position's current price sits
+ * from its liquidation price, as a percentage. Whole-number rounding hid
+ * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
+ */
+export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -158,6 +165,22 @@ export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Retry policy for per-asset market-data fetches (TAT-3645).
+ *
+ * `getMarkets` throws while the Perps connection is still initialising (e.g.
+ * `CLIENT_NOT_INITIALIZED` right after unlocking, or during a reconnect). That
+ * is transient, not a verdict about the asset, so the fetch is retried across
+ * the initialisation window instead of being surfaced as a failure. The total
+ * budget comfortably covers a provider re-initialisation, which is ~1.5s.
+ */
+export const MARKET_DATA_FETCH_RETRY_CONFIG = {
+  /** Extra attempts after the first, when the fetch throws. */
+  MaxRetries: 3,
+  /** Delay between attempts. */
+  RetryDelayMs: 1000,
+} as const;
 
 /**
  * Development-only configuration for testing and debugging

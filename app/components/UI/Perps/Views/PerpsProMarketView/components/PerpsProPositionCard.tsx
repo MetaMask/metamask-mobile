@@ -44,6 +44,8 @@ interface PerpsProPositionCardProps {
   position: Position;
   /** Test ID for the card container. */
   testID?: string;
+  /** Switches the Pro screen to this position's market. */
+  onPress?: (position: Position) => void;
   onClose?: (position: Position) => void;
   onReverse?: (position: Position) => void;
   onShare?: (position: Position) => void;
@@ -148,6 +150,7 @@ const KeyValueItem = ({
 const PerpsProPositionCard = ({
   position,
   testID,
+  onPress,
   onClose,
   onReverse,
   onShare,
@@ -164,7 +167,6 @@ const PerpsProPositionCard = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
   const roe = (parseFloat(position.returnOnEquity) || 0) * 100;
-  const pnlSeverity = pnlNum >= 0 ? TagSeverity.Success : TagSeverity.Danger;
 
   const directionLabel = isLong
     ? strings('perps.market.long')
@@ -236,174 +238,221 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
+  const handlePress = onPress ? () => onPress(position) : undefined;
+
   return (
-    <Box
-      twClassName="gap-3 py-3"
+    // The card owns nested buttons and inline-editable values, so this wrapper
+    // stays out of the accessibility tree to avoid collapsing them into a
+    // single element. The header below repeats the handler as the labelled,
+    // screen-reader-reachable entry point for the same action.
+    <Pressable
+      onPress={handlePress}
+      disabled={!handlePress}
+      accessible={false}
       testID={testID ?? PerpsProMarketViewSelectorsIDs.POSITION_ROW}
     >
-      {/* Header: asset, direction, size, unrealized PnL */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4 px-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 gap-4"
+      <Box twClassName="gap-3 py-3">
+        {/* Header: asset, direction, size, unrealized PnL */}
+        <Pressable
+          onPress={handlePress}
+          disabled={!handlePress}
+          accessibilityRole={handlePress ? 'button' : undefined}
+          accessibilityLabel={
+            handlePress
+              ? strings('perps.pro_positions_panel.view_market_accessibility', {
+                  symbol: displaySymbol,
+                })
+              : undefined
+          }
         >
-          <PerpsTokenLogo symbol={position.symbol} size={40} />
-          <Box twClassName="flex-1">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-4 px-4 py-2"
+          >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
+              twClassName="flex-1 gap-4"
             >
-              <Text
+              <PerpsTokenLogo symbol={position.symbol} size={40} />
+              <Box twClassName="flex-1">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {displaySymbol}
+                  </Text>
+                  <Tag
+                    severity={directionSeverity}
+                  >{`${position.leverage.value}x ${directionLabel}`}</Tag>
+                </Box>
+                <SensitiveText
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                >
+                  {`${formatPositionSize(
+                    absoluteSize.toString(),
+                  )} ${displaySymbol} • ${positionValueDisplay}`}
+                </SensitiveText>
+              </Box>
+            </Box>
+            <Box twClassName="items-end gap-0">
+              <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID="pnl-text"
               >
-                {displaySymbol}
-              </Text>
-              <Tag
-                severity={directionSeverity}
-              >{`${position.leverage.value}x ${directionLabel}`}</Tag>
+                {formatPnl(pnlNum)}
+              </SensitiveText>
+              <SensitiveText
+                variant={TextVariant.BodySm}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {formatPercentage(roe, 1)}
+              </SensitiveText>
             </Box>
-            <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {`${formatPositionSize(
-                absoluteSize.toString(),
-              )} ${displaySymbol} • ${positionValueDisplay}`}
-            </SensitiveText>
+          </Box>
+        </Pressable>
+
+        {/* Summary: key figures in three columns */}
+        <Box twClassName="px-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
+          >
+            <Box twClassName="flex-1 gap-6">
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.entry_price')}
+                value={entryPriceDisplay}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.margin')}
+                value={marginDisplay}
+                isHidden={privacyMode}
+                labelAccessory={
+                  <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
+                }
+                onValuePress={
+                  canEditMargin ? () => onEditMargin?.(position) : undefined
+                }
+                isValuePressDisabled={isEditMarginDisabled}
+                valuePressTestID={
+                  PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN
+                }
+                valuePressAccessibilityLabel={strings(
+                  'perps.adjust_margin.title',
+                )}
+                showEditIcon={canEditMargin}
+              />
+            </Box>
+            <Box twClassName="min-w-[128px] gap-6">
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.mark_price')}
+                value={markPriceDisplay}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.tp_sl')}
+                value={tpSlDisplay}
+                isHidden={privacyMode}
+                onValuePress={
+                  onEditTpSl ? () => onEditTpSl(position) : undefined
+                }
+                isValuePressDisabled={isEditTpSlDisabled}
+                valuePressTestID={
+                  PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL
+                }
+                valuePressAccessibilityLabel={strings(
+                  'perps.position.card.edit_tpsl',
+                )}
+                showEditIcon={Boolean(onEditTpSl)}
+              />
+            </Box>
+            <Box twClassName="gap-6">
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.liq_price')}
+                value={liqPriceDisplay}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.funding')}
+                value={fundingDisplay}
+                valueColor={fundingColor}
+                isHidden={privacyMode}
+              />
+            </Box>
           </Box>
         </Box>
-        <Tag severity={privacyMode ? TagSeverity.Neutral : pnlSeverity}>
-          <SensitiveText
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
-          </SensitiveText>
-        </Tag>
-      </Box>
 
-      {/* Summary: key figures in three columns */}
-      <Box twClassName="px-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-4 rounded-xl border border-muted px-4 py-2"
+          twClassName="gap-2 px-4"
         >
-          <Box twClassName="flex-1 gap-6">
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.entry_price')}
-              value={entryPriceDisplay}
-              isHidden={privacyMode}
-            />
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.margin')}
-              value={marginDisplay}
-              isHidden={privacyMode}
-              labelAccessory={
-                <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
-              }
-              onValuePress={
-                canEditMargin ? () => onEditMargin?.(position) : undefined
-              }
-              isValuePressDisabled={isEditMarginDisabled}
-              valuePressTestID={
-                PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN
-              }
-              valuePressAccessibilityLabel={strings(
-                'perps.adjust_margin.title',
-              )}
-              showEditIcon={canEditMargin}
-            />
-          </Box>
-          <Box twClassName="min-w-[128px] gap-6">
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.mark_price')}
-              value={markPriceDisplay}
-              isHidden={privacyMode}
-            />
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.tp_sl')}
-              value={tpSlDisplay}
-              isHidden={privacyMode}
-              onValuePress={onEditTpSl ? () => onEditTpSl(position) : undefined}
-              isValuePressDisabled={isEditTpSlDisabled}
-              valuePressTestID={
-                PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL
-              }
-              valuePressAccessibilityLabel={strings(
-                'perps.position.card.edit_tpsl',
-              )}
-              showEditIcon={Boolean(onEditTpSl)}
-            />
-          </Box>
-          <Box twClassName="gap-6">
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.liq_price')}
-              value={liqPriceDisplay}
-              isHidden={privacyMode}
-            />
-            <KeyValueItem
-              label={strings('perps.pro_positions_panel.card.funding')}
-              value={fundingDisplay}
-              valueColor={fundingColor}
-              isHidden={privacyMode}
-            />
-          </Box>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            isDanger
+            startIconName={IconName.Close}
+            twClassName={ACTION_BUTTON_CLASS_NAME}
+            onPress={() => onClose?.(position)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
+          >
+            {strings('perps.pro_positions_panel.card.close')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            startIconName={IconName.Refresh}
+            twClassName={ACTION_BUTTON_CLASS_NAME}
+            onPress={() => onReverse?.(position)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
+          >
+            {strings('perps.pro_positions_panel.card.reverse')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            startIconName={IconName.Share}
+            twClassName={ACTION_BUTTON_CLASS_NAME}
+            onPress={() => onShare?.(position)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
+          >
+            {strings('perps.pro_positions_panel.card.share')}
+          </Button>
         </Box>
       </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-2"
-      >
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          isDanger
-          startIconName={IconName.Close}
-          twClassName={ACTION_BUTTON_CLASS_NAME}
-          onPress={() => onClose?.(position)}
-          testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
-        >
-          {strings('perps.pro_positions_panel.card.close')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          startIconName={IconName.Refresh}
-          twClassName={ACTION_BUTTON_CLASS_NAME}
-          onPress={() => onReverse?.(position)}
-          testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
-        >
-          {strings('perps.pro_positions_panel.card.reverse')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          startIconName={IconName.Share}
-          twClassName={ACTION_BUTTON_CLASS_NAME}
-          onPress={() => onShare?.(position)}
-          testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
-        >
-          {strings('perps.pro_positions_panel.card.share')}
-        </Button>
-      </Box>
-    </Box>
+    </Pressable>
   );
 };
 

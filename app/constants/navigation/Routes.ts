@@ -120,7 +120,6 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
-  REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -144,6 +143,10 @@ const Routes = {
     'RewardsPredictThePitchCampaignPortfolioView',
   REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
     'RewardsPredictThePitchCampaignStats',
+  REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW:
+    'RewardsMoneyAccountSweepstakesCampaignDetails',
+  REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW:
+    'RewardsMoneyAccountSweepstakesCampaignWinning',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -178,6 +181,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
+    REWARDS_INFO_SHEET_MODAL: 'RewardsInfoSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -249,6 +253,7 @@ const Routes = {
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
+    FEATURE_NOTIFICATIONS_GATE: 'FeatureNotificationsGate',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
@@ -398,6 +403,7 @@ const Routes = {
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
+      MODE_SELECTION: 'PerpsModeSelection',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -421,7 +427,6 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
-    WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
@@ -429,7 +434,6 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
-      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -545,6 +549,8 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    SET_PIN: 'CardSetPin',
+    CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -600,6 +606,20 @@ const Routes = {
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  PRO_SUBSCRIPTION: {
+    /** Root screen for the MetaMask Pro subscription flow. */
+    ROOT: 'ProSubscription',
+  },
+  PRO_HUB: {
+    /** Root screen for the MetaMask Pro hub — reachable from anywhere in the app. */
+    ROOT: 'ProHub',
+    /** Membership details screen — plan info, payment details, and manage actions. */
+    MEMBERSHIP: 'ProHubMembership',
+    /** Lifetime Pro earnings breakdown — interest, card cashback, and add-money CTA. */
+    EARNED: 'ProHubEarned',
+    /** Cancel membership screen — cancellation survey and confirmation. */
+    CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },
 } as const;
 

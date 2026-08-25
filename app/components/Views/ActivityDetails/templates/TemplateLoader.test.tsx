@@ -33,6 +33,11 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({ earnTokensByChainIdAndAddress: {} }),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
@@ -53,10 +58,10 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: () => ({
     totalFee: 0,
-    protocolFee: 0,
-    metamaskFee: 0,
+    isLoading: false,
+    hasError: false,
   }),
 }));
 
@@ -161,8 +166,8 @@ const bridgeItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
-const swapIncompleteItem: ActivityListItem = {
-  type: 'swapIncomplete',
+const swapWithoutDestinationItem: ActivityListItem = {
+  type: 'swap',
   chainId: 'eip155:1',
   status: 'success',
   timestamp: 1,
@@ -460,9 +465,9 @@ describe('TemplateLoader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('routes a swapIncomplete tx to SwapDetails (source header + Swap again), not the generic fallback', () => {
+  it('routes a swap without destination to SwapDetails (source header + Swap again), not the generic fallback', () => {
     const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={swapIncompleteItem} />,
+      <TemplateLoader item={swapWithoutDestinationItem} />,
     );
 
     // The sent leg still renders even though the destination could not be resolved.

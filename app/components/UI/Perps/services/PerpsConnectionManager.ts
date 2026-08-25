@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import {
   addEventListener as netInfoAddEventListener,
   type NetInfoState,
@@ -186,16 +187,21 @@ class PerpsConnectionManagerClass {
           !hasPerpsNetworkChanged &&
           !hasHip3Changed;
 
-        // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
+        // User-scoped data must reset on every account switch.
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
-        streamManager.prices.clearCache();
-        streamManager.marketData.clearCache(accountOnly);
-        streamManager.oiCaps.clearCache();
         streamManager.fills.clearCache();
-        streamManager.topOfBook.clearCache();
-        streamManager.candles.clearCache();
+
+        // Global market state is account-independent. Preserve it for an
+        // account-only switch; provider/network/DEX changes invalidate it.
+        if (!accountOnly) {
+          streamManager.prices.clearCache();
+          streamManager.marketData.clearCache();
+          streamManager.oiCaps.clearCache();
+          streamManager.topOfBook.clearCache();
+          streamManager.candles.clearCache();
+        }
 
         // Reset throttle so the next data arrival persists immediately
         streamManager.resetDiskCacheThrottles();
@@ -567,8 +573,52 @@ class PerpsConnectionManagerClass {
 
     if (Device.isIos()) {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
+      //
+      // `BackgroundTimer.stop()` below ends the background task as soon as the
+      // timer is armed, so iOS suspends the JS thread for the rest of the
+      // background period. A grace period armed *because the app left the
+      // foreground* therefore cannot run its callback on schedule — it can only
+      // run once the app resumes, and it does so ahead of the AppState `active`
+      // event. Disconnecting there tears down a connection the user has just
+      // come back to, and every Perps read taken during the re-initialisation
+      // that follows fails with CLIENT_NOT_INITIALIZED — surfaced to the user as
+      // "<asset> is not a tradable asset" (TAT-3645).
+      //
+      // Checking whether the app is active *at fire time* does not work:
+      // `AppState.currentState` still reads `background` at that instant. So
+      // capture the state at ARM time instead. Armed while backgrounded means
+      // the callback is by definition running on a resume, whatever the lock
+      // lasted, and `resumeFromForeground` owns the connection from here — it
+      // pings and soft-reconnects only if the socket really did die. A grace
+      // period armed while the app is still active (an in-app reference-count
+      // drop) is unaffected: it runs on schedule and disconnects normally.
+      //
+      // Net effect on iOS: a grace period armed by backgrounding never
+      // disconnects. That is not a behaviour regression — the timer never ran
+      // during the background window before this change either, it only ran
+      // late, on resume, which is the bug. Teardown while backgrounded is the
+      // OS's job (it suspends the process and the socket with it), and
+      // `resumeFromForeground` re-validates on the way back.
+      //
+      // Known consequence: iOS also reports `inactive` for transient states
+      // where JS keeps running (control centre, app switcher, an incoming
+      // call). A grace period armed in one of those windows is inert too, so
+      // the socket outlives it. That is a resource nicety rather than a
+      // correctness issue — `resumeFromForeground` still re-validates — and it
+      // is deliberate: distinguishing it would need an elapsed-time threshold,
+      // which is exactly what left a 20-25s blind band in an earlier revision.
+      const armedWhileBackgrounded = AppState.currentState !== 'active';
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
+        if (armedWhileBackgrounded) {
+          DevLogger.log(
+            'PerpsConnectionManager: Ignoring stale grace period timer (armed on background, fired after resume)',
+          );
+          this.gracePeriodTimer = null;
+          this.isInGracePeriod = false;
+          return;
+        }
+
         this.performActualDisconnection().catch((error) => {
           Logger.error(
             ensureError(
@@ -1089,15 +1139,17 @@ class PerpsConnectionManagerClass {
       const skipMarketNotify = this.pendingSkipMarketNotify;
       this.pendingSkipMarketNotify = false;
 
-      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
-      streamManager.marketData.clearCache(skipMarketNotify);
-      streamManager.oiCaps.clearCache();
       streamManager.fills.clearCache();
-      streamManager.topOfBook.clearCache();
-      streamManager.candles.clearCache();
+      if (!skipMarketNotify) {
+        streamManager.prices.clearCache();
+        streamManager.marketData.clearCache();
+        streamManager.oiCaps.clearCache();
+        streamManager.topOfBook.clearCache();
+        streamManager.candles.clearCache();
+      }
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
@@ -1201,6 +1253,10 @@ class PerpsConnectionManagerClass {
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
+
+      // Candle subscriptions are screen-driven and are not part of the global
+      // preload. Restore mounted consumers only after the new context is ready.
+      streamManager.candles.reconnect();
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();

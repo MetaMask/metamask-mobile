@@ -80,11 +80,11 @@ describe('PerpsActivityFilterSheet', () => {
     render(<PerpsActivityFilterSheet />);
 
     const props = lastProps();
-    expect(props.getLabel(PerpsActivityFilter.Order)).toBe(
-      strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[PerpsActivityFilter.Order]),
+    expect(props.getLabel(PerpsActivityFilter.Orders)).toBe(
+      strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[PerpsActivityFilter.Orders]),
     );
-    expect(props.getOptionTestID(PerpsActivityFilter.Order)).toBe(
-      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${PerpsActivityFilter.Order}`,
+    expect(props.getOptionTestID(PerpsActivityFilter.Orders)).toBe(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${PerpsActivityFilter.Orders}`,
     );
   });
 
@@ -113,5 +113,16 @@ describe('PerpsActivityFilterSheet', () => {
         /^activity_view\.perps_filter\./,
       );
     }
+  });
+
+  it.each([
+    [PerpsActivityFilter.Trades, 'Trades'],
+    [PerpsActivityFilter.Orders, 'Orders'],
+    [PerpsActivityFilter.Fundings, 'Funding payments'],
+    [PerpsActivityFilter.Deposits, 'Deposits'],
+  ])('labels %s as "%s"', (filter, expected) => {
+    render(<PerpsActivityFilterSheet />);
+
+    expect(lastProps().getLabel(filter)).toBe(expected);
   });
 });

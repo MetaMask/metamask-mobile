@@ -18,13 +18,16 @@ type FiatFormatter = (fiatAmount: BigNumber) => string;
  */
 const useFiatFormatter = ({
   currency,
+  fractionDigits,
 }: {
   currency?: string;
+  fractionDigits?: number;
 } = {}): FiatFormatter => {
   const currencyCurrency = useSelector(selectCurrentCurrency);
   const fiatCurrency = currency ?? currencyCurrency;
 
-  return (fiatAmount: BigNumber) => formatFiat(fiatAmount, fiatCurrency);
+  return (fiatAmount: BigNumber) =>
+    formatFiat(fiatAmount, fiatCurrency, fractionDigits);
 };
 
 export default useFiatFormatter;

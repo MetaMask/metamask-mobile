@@ -6,12 +6,15 @@ import {
   BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
+  ButtonFilter,
   ButtonIcon,
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
   FilterButton,
   FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Icon,
   IconColor,
   IconName,
@@ -22,7 +25,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import {
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
+} from '@metamask/perps-controller';
+import React, { useCallback } from 'react';
 import {
   InputAccessoryView,
   Keyboard,
@@ -30,15 +37,16 @@ import {
   Pressable,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../../util/haptics';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
-import PerpsSlider from '../../../../components/PerpsSlider';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
 } from './PerpsProCompactInput';
+import PerpsProSizeInput from './PerpsProSizeInput';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
@@ -67,63 +75,13 @@ const summaryValueTextProps = {
   fontWeight: FontWeight.Medium,
 };
 
-interface SelectionIndicatorProps {
-  isSelected: boolean;
+interface TPSLRowProps {
+  label: string;
+  onPress?: () => void;
   testID: string;
 }
 
-const SelectionIndicator = ({ isSelected, testID }: SelectionIndicatorProps) =>
-  isSelected ? (
-    <Box
-      twClassName="size-5 items-center justify-center rounded-full bg-icon-default"
-      testID={`${testID}-indicator`}
-    >
-      <Icon
-        name={IconName.CheckBold}
-        size={IconSize.Xs}
-        color={IconColor.PrimaryInverse}
-      />
-    </Box>
-  ) : (
-    <Box
-      twClassName="size-5 rounded-full border-2 border-muted"
-      testID={`${testID}-indicator`}
-    />
-  );
-
-interface ReduceOnlyRowProps extends SelectionIndicatorProps {
-  label: string;
-  onChange: (value: boolean) => void;
-}
-
-const ReduceOnlyRow = ({
-  label,
-  isSelected,
-  onChange,
-  testID,
-}: ReduceOnlyRowProps) => (
-  <Pressable
-    accessibilityRole="checkbox"
-    accessibilityState={{ checked: isSelected }}
-    accessibilityLabel={label}
-    onPress={() => onChange(!isSelected)}
-    testID={testID}
-  >
-    <Box twClassName="h-12 flex-row items-center justify-between rounded-xl bg-muted px-3">
-      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-        {label}
-      </Text>
-      <SelectionIndicator isSelected={isSelected} testID={testID} />
-    </Box>
-  </Pressable>
-);
-
-interface TPSLRowProps extends SelectionIndicatorProps {
-  label: string;
-  onPress?: () => void;
-}
-
-const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
+const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
   const isDisabled = !onPress;
 
   return (
@@ -143,7 +101,12 @@ const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           {label}
         </Text>
-        <SelectionIndicator isSelected={isSelected} testID={testID} />
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Sm}
+          color={IconColor.IconDefault}
+          testID={`${testID}-arrow`}
+        />
       </Box>
     </Pressable>
   );
@@ -166,6 +129,75 @@ const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
   </InputAccessoryView>
 );
 
+interface PriceFieldProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onFieldPress?: () => void;
+  onUseMidPress?: () => void;
+  testID: string;
+  prefixTestID: string;
+  midButtonTestID?: string;
+  isHidden?: boolean;
+}
+
+const PriceField = ({
+  label,
+  value,
+  onChangeText,
+  onFocus,
+  onBlur,
+  onFieldPress,
+  onUseMidPress,
+  testID,
+  prefixTestID,
+  midButtonTestID,
+  isHidden,
+}: PriceFieldProps) => (
+  <PerpsProCompactInput
+    label={label}
+    value={value}
+    onChangeText={onChangeText}
+    onFocus={onFocus}
+    onBlur={onBlur}
+    onFieldPress={onFieldPress}
+    testID={testID}
+    variant="inline"
+    isHidden={isHidden}
+    placeholder="0.00"
+    startAccessory={
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName="mr-1"
+        testID={prefixTestID}
+      >
+        $
+      </Text>
+    }
+    endAccessory={
+      onUseMidPress ? (
+        <Box twClassName="h-full shrink-0 justify-center">
+          <ButtonBase
+            size={ButtonBaseSize.Sm}
+            onPress={onUseMidPress}
+            twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+            contentWrapperProps={{ twClassName: 'justify-end' }}
+            textProps={{
+              variant: TextVariant.BodySm,
+              fontWeight: FontWeight.Medium,
+            }}
+            testID={midButtonTestID}
+          >
+            {strings('perps.order.limit_price_modal.mid_price')}
+          </ButtonBase>
+        </Box>
+      ) : undefined
+    }
+  />
+);
+
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   notices.length > 0 ? (
     <Box twClassName="gap-2">
@@ -173,6 +205,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
         notice.variant === 'banner' ? (
           <BannerAlert
             key={notice.id}
+            alignItems={BoxAlignItems.Center}
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
@@ -193,70 +226,9 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
-
-interface SlippageValueProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
-  >
-    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.Edit}
-        size={IconSize.Sm}
-        color={IconColor.IconDefault}
-      />
-    </Box>
-  </Pressable>
-);
-
-interface AvailableBalanceRowProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const AvailableBalanceRow = ({ value, onPress }: AvailableBalanceRowProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    accessibilityLabel={value}
-    accessibilityHint={onPress ? strings('perps.add_funds') : undefined}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.ADD_FUNDS_BUTTON}
-  >
-    <Box twClassName="flex-row items-center gap-1">
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={ids.AVAILABLE_BALANCE}
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.AddCircle}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </Pressable>
-);
+const SLIPPAGE_EDIT_HIT_SLOP = 12;
 
 const OrderSummary = ({
   margin,
@@ -268,7 +240,7 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="w-full gap-1 overflow-hidden" testID={ids.SUMMARY}>
+  <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
@@ -290,7 +262,19 @@ const OrderSummary = ({
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
+        value={slippage}
+        valueEndButtonIconProps={{
+          ...buttonIcon(
+            IconName.Edit,
+            ids.SUMMARY_SLIPPAGE_BUTTON,
+            onSlippagePress,
+          ),
+          accessibilityRole: 'button',
+          accessibilityLabel: strings('perps.slippage.config_title'),
+          // ButtonIconSize.Xs renders a 20pt box; 12pt of slop on each side
+          // brings the tap target back to the 44pt minimum.
+          hitSlop: SLIPPAGE_EDIT_HIT_SLOP,
+        }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
@@ -307,6 +291,8 @@ const OrderSummary = ({
           feeDiscountPercentage={feeDiscountPercentage}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -316,7 +302,7 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      twClassName={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
@@ -329,23 +315,32 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  onMarginModePress,
   leverageLabel,
   onLeveragePress,
   orderType,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
+  onLimitPriceFocus,
+  onLimitPriceBlur,
+  orderTypeCardRef,
+  onLimitPriceFieldPress,
   onUseMidPricePress,
-  size,
-  onSizeChange,
-  onSizeUnitPress,
-  balancePercentage,
-  onBalancePercentageChange,
+  triggerPrice = '',
+  onTriggerPriceChange = () => undefined,
+  onTriggerPriceFocus,
+  onTriggerPriceBlur,
+  onTriggerPriceFieldPress,
+  priceCardMessage,
+  sizeInput,
+  sizeSlider,
+  sizeCardRef,
+  onSizeFieldPress,
   availableBalance,
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
-  isTPSLConfigured,
   onTPSLPress,
   notices,
   summary,
@@ -355,7 +350,82 @@ const PerpsProOrderForm = ({
   isPlaceOrderLoading = false,
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
+  const { playSelection } = useHaptics();
   const isLong = direction === 'long';
+  const showsTriggerPrice = isTriggerOrderType(orderType);
+  const showsLimitPrice = isLimitExecutionOrderType(orderType);
+  const showsTpSl = !reduceOnly && !showsTriggerPrice;
+  const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
+  const summaryOnSlippagePress = summary.onSlippagePress;
+
+  const handleDirectionChange = useCallback(
+    (value: string) => {
+      const nextDirection = value as PerpsProOrderDirection;
+      if (nextDirection === direction) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onDirectionChange(nextDirection);
+    },
+    [direction, onDirectionChange, playSelection],
+  );
+
+  const handleMarginModePress = useCallback(() => {
+    if (!onMarginModePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onMarginModePress();
+  }, [onMarginModePress, playSelection]);
+
+  const handleLeveragePress = useCallback(() => {
+    if (!onLeveragePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onLeveragePress();
+  }, [onLeveragePress, playSelection]);
+
+  const handleSlippagePress = useCallback(() => {
+    if (!summaryOnSlippagePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    summaryOnSlippagePress();
+  }, [playSelection, summaryOnSlippagePress]);
+
+  const handleOrderTypeButtonPress = useCallback(() => {
+    playSelection().catch(() => undefined);
+    onOrderTypeButtonPress();
+  }, [onOrderTypeButtonPress, playSelection]);
+
+  const handleUseMidPricePress = useCallback(() => {
+    if (!onUseMidPricePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onUseMidPricePress();
+  }, [onUseMidPricePress, playSelection]);
+
+  const handleReduceOnlyChange = useCallback(
+    (value: boolean) => {
+      playSelection().catch(() => undefined);
+      onReduceOnlyChange(value);
+    },
+    [onReduceOnlyChange, playSelection],
+  );
+
+  const handleReduceOnlyPress = useCallback(() => {
+    handleReduceOnlyChange(!reduceOnly);
+  }, [handleReduceOnlyChange, reduceOnly]);
+
+  const handleExpandOrderBook = useCallback(() => {
+    if (!onExpandOrderBook) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onExpandOrderBook();
+  }, [onExpandOrderBook, playSelection]);
 
   return (
     <>
@@ -372,9 +442,7 @@ const PerpsProOrderForm = ({
           >
             <SegmentedControl
               value={direction}
-              onChange={(value) =>
-                onDirectionChange(value as PerpsProOrderDirection)
-              }
+              onChange={handleDirectionChange}
               isFullWidth
               twClassName="flex-1"
               size={ButtonBaseSize.Sm}
@@ -418,20 +486,27 @@ const PerpsProOrderForm = ({
                 iconName={IconName.Book}
                 accessibilityLabel={strings('perps.order_book.expand')}
                 size={ButtonIconSize.Md}
-                onPress={onExpandOrderBook}
+                onPress={handleExpandOrderBook}
                 testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
               />
             ) : null}
           </Box>
-          <Box twClassName="flex-row items-center justify-between">
-            <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {marginModeLabel}
-              </Text>
-            </Box>
+          <Box
+            twClassName="flex-row items-center gap-2"
+            testID={ids.MARGIN_SETTINGS_ROW}
+          >
             <ButtonBase
               size={ButtonBaseSize.Sm}
-              onPress={onLeveragePress}
+              onPress={handleMarginModePress}
+              isDisabled={!onMarginModePress}
+              twClassName="h-8 rounded-lg bg-muted px-2"
+              testID={ids.MARGIN_MODE_BUTTON}
+            >
+              {marginModeLabel}
+            </ButtonBase>
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              onPress={handleLeveragePress}
               isDisabled={!onLeveragePress}
               twClassName="rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
@@ -439,98 +514,93 @@ const PerpsProOrderForm = ({
               {leverageLabel}
             </ButtonBase>
           </Box>
-          <Box twClassName="overflow-hidden rounded-xl bg-muted">
+          <Box
+            ref={orderTypeCardRef}
+            twClassName="overflow-hidden rounded-xl border border-muted bg-muted"
+          >
             <ButtonBase
-              onPress={onOrderTypeButtonPress}
+              onPress={handleOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
-              endIconName={IconName.ArrowRight}
+              endIconName={IconName.ArrowDown}
               endIconProps={{
                 size: IconSize.Sm,
                 testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
               }}
               testID={ids.ORDER_TYPE_BUTTON}
             >
-              {orderType === 'market'
-                ? strings('perps.order.type.market.title')
-                : strings('perps.order.type.limit.title')}
+              {orderTypeTitle}
             </ButtonBase>
-            {orderType === 'limit' ? (
-              <PerpsProCompactInput
-                label={strings('perps.order.limit_price_modal.title')}
-                value={limitPrice}
-                onChangeText={onLimitPriceChange}
-                testID={ids.LIMIT_PRICE_INPUT}
-                variant="inline"
-                placeholder={strings('perps.order.limit_price_modal.title')}
-                endAccessory={
-                  <ButtonBase
-                    size={ButtonBaseSize.Sm}
-                    onPress={onUseMidPricePress}
-                    isDisabled={!onUseMidPricePress}
-                    twClassName="h-12 bg-transparent px-0"
-                    testID={ids.MID_PRICE_BUTTON}
-                  >
-                    {strings('perps.order.limit_price_modal.mid_price')}
-                  </ButtonBase>
-                }
-              />
-            ) : null}
-          </Box>
-          <Box twClassName="gap-2">
-            <PerpsProCompactInput
-              label={strings('perps.pro_order_form.size_usd')}
-              value={size}
-              onChangeText={onSizeChange}
-              testID={ids.SIZE_INPUT}
-              placeholder="0.00"
-              placeholderColor="default"
-              endAccessory={
-                <ButtonIcon
-                  iconName={IconName.SwapHorizontal}
-                  size={ButtonIconSize.Xs}
-                  isDisabled={!onSizeUnitPress}
-                  onPress={onSizeUnitPress}
-                  testID={ids.SIZE_UNIT_BUTTON}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.toggle_size_unit',
-                  )}
-                />
-              }
-              footer={
-                <PerpsSlider
-                  value={balancePercentage}
-                  onValueChange={onBalancePercentageChange}
-                  minimumValue={0}
-                  maximumValue={100}
-                  showPercentageLabels={false}
-                  showPercentageMarkers
-                  variant="compact"
-                  testID={ids.SIZE_SLIDER}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.size_percentage',
-                  )}
-                />
-              }
+            <PriceField
+              label={strings('perps.order.trigger_price')}
+              value={triggerPrice}
+              onChangeText={onTriggerPriceChange}
+              onFocus={onTriggerPriceFocus}
+              onBlur={onTriggerPriceBlur}
+              onFieldPress={onTriggerPriceFieldPress}
+              testID={ids.TRIGGER_PRICE_INPUT}
+              prefixTestID={ids.TRIGGER_PRICE_PREFIX}
+              isHidden={!showsTriggerPrice}
             />
-            <AvailableBalanceRow
-              value={availableBalance}
-              onPress={onAddFundsPress}
+            <PriceField
+              label={strings('perps.order.limit_price')}
+              value={limitPrice}
+              onChangeText={onLimitPriceChange}
+              onFocus={onLimitPriceFocus}
+              onBlur={onLimitPriceBlur}
+              onFieldPress={onLimitPriceFieldPress}
+              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              testID={ids.LIMIT_PRICE_INPUT}
+              prefixTestID={ids.LIMIT_PRICE_PREFIX}
+              midButtonTestID={ids.MID_PRICE_BUTTON}
+              isHidden={!showsLimitPrice}
             />
           </Box>
-          <ReduceOnlyRow
-            label={strings('perps.order.reduce_only')}
-            isSelected={reduceOnly}
-            onChange={onReduceOnlyChange}
-            testID={ids.REDUCE_ONLY}
+          {priceCardMessage ? (
+            <HelpText
+              severity={
+                priceCardMessage.severity === 'error'
+                  ? HelpTextSeverity.Danger
+                  : HelpTextSeverity.Warning
+              }
+              testID={ids.PRICE_CARD_MESSAGE}
+            >
+              {priceCardMessage.message}
+            </HelpText>
+          ) : null}
+          <PerpsProSizeInput
+            containerRef={sizeCardRef}
+            onFieldPress={onSizeFieldPress}
+            value={sizeInput.value}
+            onChangeText={sizeInput.onChange}
+            denomination={sizeInput.denomination}
+            canToggleDenomination={sizeInput.canToggleDenomination}
+            onFocus={sizeInput.onFocus}
+            onBlur={sizeInput.onBlur}
+            onToggleDenomination={sizeInput.onToggleDenomination}
+            sizeSlider={sizeSlider}
+            availableBalance={availableBalance}
+            onAddFundsPress={onAddFundsPress}
           />
-          <TPSLRow
-            label={strings('perps.pro_order_form.tpsl')}
-            isSelected={isTPSLConfigured}
-            onPress={onTPSLPress}
-            testID={ids.TPSL}
-          />
+          <Box testID={ids.REDUCE_ONLY_CONTAINER} twClassName="items-start">
+            <ButtonFilter
+              isActive={reduceOnly}
+              accessibilityState={{ selected: reduceOnly }}
+              onPress={handleReduceOnlyPress}
+              size={ButtonBaseSize.Sm}
+              testID={ids.REDUCE_ONLY}
+            >
+              {strings('perps.order.reduce_only')}
+            </ButtonFilter>
+          </Box>
+          {showsTpSl ? (
+            <TPSLRow
+              label={strings('perps.pro_order_form.tpsl')}
+              onPress={onTPSLPress}
+              testID={ids.TPSL}
+            />
+          ) : null}
           <Notices notices={notices} />
           <ButtonSemantic
             severity={
@@ -548,14 +618,18 @@ const PerpsProOrderForm = ({
             {placeOrderLabel}
           </ButtonSemantic>
         </Box>
-        <OrderSummary {...summary} />
+        <OrderSummary
+          {...summary}
+          onSlippagePress={
+            summaryOnSlippagePress ? handleSlippagePress : undefined
+          }
+        />
       </Box>
       {Platform.OS === 'ios' ? (
         <>
           <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
-          {orderType === 'limit' ? (
-            <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-          ) : null}
+          <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
+          <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
         </>
       ) : null}
     </>

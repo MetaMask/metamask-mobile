@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { Text } from '@metamask/design-system-react-native';
+import { Icon, IconName, Text } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PerpsMarketIdentity from './PerpsMarketIdentity';
@@ -60,6 +60,41 @@ describe('PerpsMarketIdentity', () => {
     fireEvent.press(getByTestId('identity-pressable'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a down arrow when onPress is provided', () => {
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PerpsMarketIdentity
+        symbol="BTC"
+        name="Bitcoin"
+        onPress={jest.fn()}
+        testIDs={{ marketListButton: 'identity-pressable' }}
+      />,
+      { state: initialState },
+    );
+
+    const icons = UNSAFE_getAllByType(Icon);
+    const downArrow = icons.find(
+      (icon) => icon.props.name === IconName.ArrowDown,
+    );
+
+    expect(downArrow).toBeDefined();
+    expect(icons.some((icon) => icon.props.name === IconName.ArrowRight)).toBe(
+      false,
+    );
+  });
+
+  it('does not render a market-list arrow when onPress is omitted', () => {
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <PerpsMarketIdentity
+        symbol="BTC"
+        name="Bitcoin"
+        testIDs={{ assetName: 'identity-name' }}
+      />,
+      { state: initialState },
+    );
+
+    expect(UNSAFE_queryAllByType(Icon)).toHaveLength(0);
   });
 
   it('renders a non-interactive identity when onPress is omitted', () => {

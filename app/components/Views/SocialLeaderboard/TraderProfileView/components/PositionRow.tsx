@@ -15,6 +15,7 @@ import type { Position } from '@metamask/social-controllers';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
+  EM_DASH,
   formatPercent,
   formatSignedUsd,
   formatTokenAmount,
@@ -101,7 +102,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       twClassName={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
-      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : '—'}
+      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : EM_DASH}
     </Text>
   ) : (
     <Text

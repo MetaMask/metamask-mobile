@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -49,15 +49,26 @@ export interface PerpsNavigationHandlers {
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
+  navigateToMarketListFromHeader: (
+    params?: PerpsNavigationParamList['PerpsMarketListView'],
+  ) => void;
   navigateToOrder: (params: PerpsNavigationParamList['PerpsOrder']) => void;
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
-  navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
+  navigateToAdjustMargin: (
+    position: Position,
+    mode: 'add' | 'remove',
+    options?: { enableHaptics?: boolean },
+  ) => void;
   navigateToClosePosition: (
     position: Position,
     source?: string,
-    entry?: { buttonClicked?: string; buttonLocation?: string },
+    entry?: {
+      buttonClicked?: string;
+      buttonLocation?: string;
+      enableHaptics?: boolean;
+    },
   ) => void;
   navigateToOrderDetails: (order: Order) => void;
 
@@ -159,13 +170,45 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
-      // Navigate via the Perps root so this works from both contexts:
-      // 1. When PerpsHomeView is embedded as a tab in the main navigator (wallet home)
-      // 2. When PerpsHomeView is a stack screen inside PerpsScreenStack
+      // Inside the Perps stack, push rather than navigate. `navigate()` reuses
+      // an existing market-list entry and pops everything above it, so opening
+      // the list from a market screen the user reached *through* the list
+      // animates backwards — the market → list → market loop reported in
+      // TAT-3649.
+      if (
+        navigation.getState()?.routeNames?.includes(Routes.PERPS.MARKET_LIST)
+      ) {
+        navigation.dispatch(
+          StackActions.push(Routes.PERPS.MARKET_LIST, params),
+        );
+        return;
+      }
+
+      // Outside the Perps stack (e.g. PerpsHomeView embedded as a tab in the
+      // main navigator) the list is only reachable through the Perps root.
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params,
       });
+    },
+    [navigation],
+  );
+
+  const navigateToMarketListFromHeader = useCallback(
+    (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
+      // Push a new MARKET_LIST over MARKET_DETAILS so the common
+      // MARKET_LIST → MARKET_DETAILS stack keeps details beneath the slide-up
+      // picker. navigate() would jump back to the existing list entry and pop
+      // details, breaking Back-to-dismiss behavior.
+      navigation.dispatch(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+          // Selecting a market should replace the details beneath this picker
+          // rather than pushing another MARKET_DETAILS on top of the stack.
+          replaceOnSelect: true,
+        }),
+      );
     },
     [navigation],
   );
@@ -227,8 +270,16 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToAdjustMargin = useCallback(
-    (position: Position, mode: 'add' | 'remove') => {
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, { position, mode });
+    (
+      position: Position,
+      mode: 'add' | 'remove',
+      options?: { enableHaptics?: boolean },
+    ) => {
+      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode,
+        enableHaptics: options?.enableHaptics,
+      });
     },
     [navigation],
   );
@@ -237,13 +288,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       source?: string,
-      entry?: { buttonClicked?: string; buttonLocation?: string },
+      entry?: {
+        buttonClicked?: string;
+        buttonLocation?: string;
+        enableHaptics?: boolean;
+      },
     ) => {
       navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
         position,
         source,
         buttonClicked: entry?.buttonClicked,
         buttonLocation: entry?.buttonLocation,
+        enableHaptics: entry?.enableHaptics,
       });
     },
     [navigation],
@@ -277,6 +333,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketDetails,
     navigateToHome,
     navigateToMarketList,
+    navigateToMarketListFromHeader,
     navigateToOrder,
     navigateToTutorial,
     navigateToAdjustMargin,
