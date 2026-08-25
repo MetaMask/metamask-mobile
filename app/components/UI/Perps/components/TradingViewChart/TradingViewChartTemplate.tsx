@@ -1075,7 +1075,58 @@ export const createTradingViewChartTemplate = (
             liquidationPrice: null, 
             takeProfitPrice: null,
             stopLossPrice: null,
-            currentPrice: null
+            currentPrice: null,
+            limitOrders: []
+        };
+
+        window.clearLimitOrderLines = function() {
+            if (!window.candlestickSeries || !window.priceLines.limitOrders) {
+                if (window.priceLines) {
+                    window.priceLines.limitOrders = [];
+                }
+                return;
+            }
+            window.priceLines.limitOrders.forEach(function(item) {
+                try {
+                    window.candlestickSeries.removePriceLine(item.line || item);
+                } catch (error) {
+                    // Silent error handling
+                }
+            });
+            window.priceLines.limitOrders = [];
+        };
+
+        window.updateLimitOrderLines = function(limitOrders) {
+            window.clearLimitOrderLines();
+            if (!window.candlestickSeries || !limitOrders || !limitOrders.length) {
+                return;
+            }
+            limitOrders.forEach(function(order) {
+                var price = parseFloat(order.price);
+                if (isNaN(price)) {
+                    return;
+                }
+                try {
+                    var color = order.side === 'sell'
+                        ? '${theme.colors.error.default}'
+                        : '${theme.colors.success.default}';
+                    var priceLine = window.candlestickSeries.createPriceLine({
+                        price: price,
+                        color: color,
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'Limit'
+                    });
+                    window.priceLines.limitOrders.push({
+                        line: priceLine,
+                        price: price,
+                        side: order.side
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            });
         };
         
         // Store original price line data for restoration
@@ -1090,7 +1141,10 @@ export const createTradingViewChartTemplate = (
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                limitOrders: (window.priceLines.limitOrders || []).map(function(item) {
+                    return { price: item.price, side: item.side };
+                })
             };
 
             // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
@@ -1104,6 +1158,7 @@ export const createTradingViewChartTemplate = (
                     }
                 }
             });
+            window.clearLimitOrderLines();
         };
         
         window.showAllPriceLines = function() {
@@ -1165,6 +1220,10 @@ export const createTradingViewChartTemplate = (
                 } catch (error) {
                     // Silent error handling
                 }
+            }
+
+            if (window.originalPriceLineData.limitOrders && window.originalPriceLineData.limitOrders.length) {
+                window.updateLimitOrderLines(window.originalPriceLineData.limitOrders);
             }
 
             // Clear stored data
@@ -1334,6 +1393,7 @@ export const createTradingViewChartTemplate = (
                     console.error('TradingView: Error creating liquidation line:', error);
                 }
             }
+            window.updateLimitOrderLines(lines.limitOrders || []);
         };
         // Message handling from React Native
         window.addEventListener('message', function(event) {
@@ -1573,6 +1633,8 @@ export const createTradingViewChartTemplate = (
                                     console.error('TradingView: Error removing liquidation line:', error);
                                 }
                             }
+
+                            window.clearLimitOrderLines();
 
                             // Note: currentPrice line is intentionally preserved
                         }

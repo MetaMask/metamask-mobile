@@ -34,6 +34,7 @@ import TradingViewChart, {
   type OhlcData,
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
+import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import { getPerpsVolumeColors } from '../../utils/chartColors';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import performance from 'react-native-performance';
@@ -71,39 +72,75 @@ export function mapTpslToPositionLines(
   tpslLines: TPSLLines | undefined,
   positionSize: string | undefined,
 ): PositionLines | undefined {
-  if (!tpslLines?.entryPrice) return undefined;
+  const limitOrders = (tpslLines?.limitOrders ?? [])
+    .map((order) => {
+      const price = Number.parseFloat(order.price);
+      if (!Number.isFinite(price)) {
+        return undefined;
+      }
+      return {
+        price,
+        side: (order.side === 'sell'
+          ? 'short'
+          : 'long') as PositionLines['side'],
+      };
+    })
+    .filter((order): order is { price: number; side: PositionLines['side'] } =>
+      Boolean(order),
+    );
+
+  const hasEntry = Boolean(tpslLines?.entryPrice);
+  if (!hasEntry && limitOrders.length === 0) {
+    return undefined;
+  }
+
   let side: PositionLines['side'] = 'long';
   if (positionSize !== undefined && Number.parseFloat(positionSize) < 0) {
     side = 'short';
   }
 
-  const entry = Number.parseFloat(tpslLines.entryPrice);
-  if (!Number.isFinite(entry)) return undefined;
-
   const result: PositionLines = {
     side,
-    entryPrice: entry,
   };
 
-  const takeProfitPrice = tpslLines.takeProfitPrice
+  if (tpslLines?.entryPrice) {
+    const entry = Number.parseFloat(tpslLines.entryPrice);
+    if (!Number.isFinite(entry)) {
+      if (limitOrders.length === 0) {
+        return undefined;
+      }
+    } else {
+      result.entryPrice = entry;
+    }
+  }
+
+  const takeProfitPrice = tpslLines?.takeProfitPrice
     ? Number.parseFloat(tpslLines.takeProfitPrice)
     : undefined;
   if (Number.isFinite(takeProfitPrice)) {
     result.takeProfitPrice = takeProfitPrice;
   }
 
-  const stopLossPrice = tpslLines.stopLossPrice
+  const stopLossPrice = tpslLines?.stopLossPrice
     ? Number.parseFloat(tpslLines.stopLossPrice)
     : undefined;
   if (Number.isFinite(stopLossPrice)) {
     result.stopLossPrice = stopLossPrice;
   }
 
-  const liquidationPrice = tpslLines.liquidationPrice
+  const liquidationPrice = tpslLines?.liquidationPrice
     ? Number.parseFloat(tpslLines.liquidationPrice)
     : undefined;
   if (Number.isFinite(liquidationPrice)) {
     result.liquidationPrice = liquidationPrice;
+  }
+
+  if (limitOrders.length > 0) {
+    result.limitOrders = limitOrders;
+  }
+
+  if (result.entryPrice === undefined && limitOrders.length === 0) {
+    return undefined;
   }
 
   return result;
@@ -121,6 +158,8 @@ export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
     takeProfit: colors.success.default,
     stopLoss: colors.warning.default,
     liquidation: colors.error.default,
+    limitBuy: colors.success.default,
+    limitSell: colors.error.default,
   };
 }
 
@@ -214,6 +253,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const tpslTakeProfitPrice = tpslLines?.takeProfitPrice;
   const tpslStopLossPrice = tpslLines?.stopLossPrice;
   const tpslLiquidationPrice = tpslLines?.liquidationPrice;
+  const tpslLimitOrders = tpslLines?.limitOrders;
 
   const positionLines = useMemo(
     () =>
@@ -223,6 +263,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
           takeProfitPrice: tpslTakeProfitPrice,
           stopLossPrice: tpslStopLossPrice,
           liquidationPrice: tpslLiquidationPrice,
+          limitOrders: tpslLimitOrders,
         },
         positionSize,
       ),
@@ -231,6 +272,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       tpslTakeProfitPrice,
       tpslStopLossPrice,
       tpslLiquidationPrice,
+      tpslLimitOrders,
       positionSize,
     ],
   );
@@ -434,6 +476,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
         coloredVolume
+        testID={TradingViewChartSelectorsIDs.CONTAINER}
       />
     );
   }

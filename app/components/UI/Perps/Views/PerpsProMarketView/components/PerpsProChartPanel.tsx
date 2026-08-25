@@ -28,7 +28,10 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  TradingViewChartSelectorsIDs,
+} from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
@@ -36,7 +39,12 @@ import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsLiveCandles } from '../../../hooks/stream/usePerpsLiveCandles';
+import { usePerpsLiveOrders } from '../../../hooks/stream/usePerpsLiveOrders';
 import { getPerpsChartAnalyticsProperties } from '../../../utils/chartAnalytics';
+import {
+  buildChartOverlayLines,
+  getChartLimitOrderLines,
+} from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector, {
   type PerpsCandlePeriodOption,
@@ -136,6 +144,7 @@ const PerpsProChartPanel = ({
     asset: symbol,
     loadOnMount: true,
   });
+  const { orders: liveOrders } = usePerpsLiveOrders({ hideTpSl: true });
   const { marketData } = usePerpsMarketData({ asset: symbol });
   const {
     isDeviatedAboveThreshold: isTradingHalted,
@@ -145,19 +154,14 @@ const PerpsProChartPanel = ({
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       currentPrice > 0 ? currentPrice.toString() : undefined;
+    const marketOrders = liveOrders.filter((order) => order.symbol === symbol);
 
-    if (!existingPosition) {
-      return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-    }
-
-    return {
-      entryPrice: existingPosition.entryPrice,
-      takeProfitPrice: existingPosition.takeProfitPrice,
-      stopLossPrice: existingPosition.stopLossPrice,
-      liquidationPrice: existingPosition.liquidationPrice || undefined,
+    return buildChartOverlayLines({
       currentPrice: chartPriceStr,
-    };
-  }, [currentPrice, existingPosition]);
+      existingPosition,
+      limitOrders: getChartLimitOrderLines(marketOrders),
+    });
+  }, [currentPrice, existingPosition, liveOrders, symbol]);
 
   useEffect(() => {
     const hasIntervalChanged =
@@ -325,6 +329,15 @@ const PerpsProChartPanel = ({
                     </Box>
                   ) : null}
                   {chartContent}
+                  {tpslLines?.limitOrders &&
+                  tpslLines.limitOrders.length > 0 ? (
+                    <Box
+                      testID={TradingViewChartSelectorsIDs.LIMIT_OVERLAY}
+                      accessible
+                      accessibilityLabel={strings('perps.order.limit')}
+                      twClassName="absolute inset-0"
+                    />
+                  ) : null}
                 </Box>
               </ComponentErrorBoundary>
             </Box>

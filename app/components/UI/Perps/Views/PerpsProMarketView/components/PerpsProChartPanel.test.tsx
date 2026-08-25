@@ -18,7 +18,10 @@ import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedC
 import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import type { OhlcData } from '../../../components/TradingViewChart';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  TradingViewChartSelectorsIDs,
+} from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
 
@@ -107,6 +110,7 @@ const mockPerpsServiceInterruptionBanner = ({
   testID?: string;
 }) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
+const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
@@ -123,6 +127,10 @@ jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
+}));
+
+jest.mock('../../../hooks/stream/usePerpsLiveOrders', () => ({
+  usePerpsLiveOrders: (params: unknown) => mockUsePerpsLiveOrders(params),
 }));
 
 jest.mock('../../../hooks/useHasExistingPosition', () => ({
@@ -223,6 +231,10 @@ describe('PerpsProChartPanel', () => {
       hasHistoricalData: true,
       fetchMoreHistory: mockFetchMoreHistory,
     });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
     mockUseHasExistingPosition.mockReturnValue({
       existingPosition: null,
     });
@@ -237,6 +249,43 @@ describe('PerpsProChartPanel', () => {
       isChartExpanded: true,
       setChartExpanded: mockSetChartExpanded,
     });
+  });
+
+  it('renders the Limit overlay host when a resting BTC limit is live', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    renderChartPanel();
+
+    expect(
+      screen.getByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the Limit overlay host when live orders are empty', () => {
+    renderChartPanel();
+
+    expect(
+      screen.queryByTestId(TradingViewChartSelectorsIDs.LIMIT_OVERLAY),
+    ).toBeNull();
   });
 
   it('renders the Advanced Chart path when its feature flag is enabled', () => {

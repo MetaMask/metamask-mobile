@@ -139,6 +139,10 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
+import {
+  buildChartOverlayLines,
+  getChartLimitOrderLines,
+} from '../../utils/chartOverlayLines';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -617,27 +621,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [sortedOrders, existingPosition],
   );
 
-  // Compute TP/SL lines for the chart based on existing position
-  // Use the active chart candle close so the header and current price line stay in sync.
+  // Position TP/SL/liq plus resting limit orders for the chart overlay.
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       syncedChartCurrentPrice > 0
         ? syncedChartCurrentPrice.toString()
         : undefined;
 
-    if (existingPosition) {
-      return {
-        entryPrice: existingPosition.entryPrice,
-        takeProfitPrice: existingPosition.takeProfitPrice,
-        stopLossPrice: existingPosition.stopLossPrice,
-        liquidationPrice: existingPosition.liquidationPrice || undefined,
-        currentPrice: chartPriceStr,
-      };
-    }
-
-    // Even without position, show current price line on chart
-    return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-  }, [existingPosition, syncedChartCurrentPrice]);
+    return buildChartOverlayLines({
+      currentPrice: chartPriceStr,
+      existingPosition,
+      limitOrders: getChartLimitOrderLines(openOrders),
+    });
+  }, [existingPosition, syncedChartCurrentPrice, openOrders]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
