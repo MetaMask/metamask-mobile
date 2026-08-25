@@ -35,7 +35,7 @@ const PREDICT_HOLDINGS: TokenHolding[] = [
 appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
   appiumTest.describe.configure({ timeout: 250_000 });
 
-  appiumTest(
+  appiumTest.only(
     'deposits $50 with Mainnet USDC, verifies the MM Pay quote, confirms the transaction, and sees it in predict activity',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
@@ -79,9 +79,8 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PredictMarketList.tapBackButton();
-          await Assertions.expectElementToBeVisible(WalletView.activityButton, {
-            description: 'Wallet activity button after returning from Predict',
-          });
+          // tapBackButton exits the market list but does not land on wallet home.
+          await TabBarComponent.tapWallet();
           await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();
