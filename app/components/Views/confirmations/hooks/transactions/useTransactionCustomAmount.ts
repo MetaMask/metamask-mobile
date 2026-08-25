@@ -10,10 +10,7 @@ import {
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import {
-  getTokenAddress,
-  setMoneyAccountDepositMaxAtomic,
-} from '../../utils/transaction-pay';
+import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
@@ -291,11 +288,11 @@ export function useTransactionCustomAmount({
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isMaxAmount = value;
-      });
 
-      if (isMoneyAccountDeposit) {
-        setMoneyAccountDepositMaxAtomic(transactionId, value);
-      }
+        if (isMoneyAccountDeposit) {
+          config.atomic = value ? false : undefined;
+        }
+      });
     },
     [isMoneyAccountDeposit, transactionId],
   );
