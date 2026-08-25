@@ -575,6 +575,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
   REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',
