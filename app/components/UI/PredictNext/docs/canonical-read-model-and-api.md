@@ -22,7 +22,10 @@ Feed
 
 Feed and detail responses use the same complete `PredictEvent` model. Do not introduce separate summary/detail types until payload size or presentation requirements prove the need.
 
-A canonical Event maps to exactly one Venue Event. A Feed may combine Events discovered through several Venue Series or metadata queries, but the backend must never merge Markets from multiple Venue Events into one canonical Event.
+A canonical Feed Event normally maps to one Venue Event. A Game detail read may
+compose Markets from authoritative sibling Venue Events while retaining the
+requested Game Event as the parent. Mobile receives one canonical Event and
+never performs this join.
 
 ## Ubiquitous language
 
@@ -378,7 +381,11 @@ GET /v1/venues/{venueId}/events/{eventId}
 
 Response: `PredictEvent`
 
-This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and immutable Event Screens.
+This route always returns the requested Event. It must never rotate to a newer
+Event in the same Series. For a football Game Event, the backend may append
+Markets from its related Total and Spread Events. The response still keeps the
+requested Game Event as its identity and parent metadata. Use this route for
+ordinary cards, deep links, history, Positions, and immutable Event Screens.
 
 ### Read the current Event in a rolling Series
 
@@ -418,8 +425,8 @@ No Game-specific endpoint is required initially. Feed and immutable Event reads 
 
 The MetaMask Predict backend must:
 
-- map every canonical Event to exactly one Venue Event;
-- never merge Markets from multiple Venue Events into one Event;
+- map every Feed Event to one Venue Event;
+- compose related Markets only when a product-owned detail read requires it;
 - build product-owned Feeds from one or more Venue discovery queries;
 - assign at most one primary MetaMask Category to an Event;
 - select at most one useful Series and classify it as `collection` or `rolling`;
@@ -437,6 +444,9 @@ The MetaMask Predict backend must:
 
 - Discover Events through explicit Series, sport catalog, category, tag, and product metadata relationships.
 - Join Event metadata and authoritative milestone/live-data sources when constructing Sports and Game snapshots.
+- For a football Game detail read, use the `football_game` milestone to discover
+  related Total and Spread Events. Keep the Game Event as the parent and append
+  only validated sibling Markets.
 - Use `series_ticker`, `event_ticker`, and Market ticker fields explicitly; do not parse ticker structure or display text to recover Team or Game identity.
 - Map Kalshi Market statuses directly to the canonical lifecycle.
 - Treat NFL Games-like Series as `collection` and interval contracts such as five-minute up/down as `rolling` when product configuration establishes that behavior.
@@ -463,8 +473,11 @@ Feed: nfl-games
       Sport: American football
       Competition: NFL
       Game: in progress, BUF home 17, KC away 21, Q3 08:42
-    Markets: winner, spread, total
+    Markets: winner
       Winner Outcomes: BUF (home), KC (away)
+Detail for the same Event:
+    Markets: winner, spread, total
+      Spread and Total Markets come from authoritative sibling Venue Events.
 ```
 
 The same Venue Event may later appear in a Props Feed when its own Markets support that treatment. Feed-specific featured-Market presentation is deferred until a concrete UI requires it.
@@ -523,7 +536,6 @@ Until that implementation lands, code and tests remain the executable contract.
 - dynamic Feed-filter discovery;
 - separate Event summary/detail DTOs;
 - Feed-item or Current-Event wrapper resources;
-- cross-Venue-Event composition;
 - multi-Venue aggregated Feeds;
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;

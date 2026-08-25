@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import {
+  makePredictNextCompositeGameEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
@@ -625,6 +626,51 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
+  it('renders moneyline, total, and spread cards in one Game Event', async () => {
+    resolveEvent(makePredictNextCompositeGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+
+    expect(
+      view.getByTestId(
+        MarketStandardCardTestIds.card('nfl-composite-away-market'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        MarketStandardCardTestIds.card('nfl-composite-home-market'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketGroupCardTestIds.card('nfl-spread-seattle')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+      ),
+    );
+
+    await waitFor(() =>
+      expect(
+        within(
+          view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
+        ).getByTestId(
+          MarketGroupCardTestIds.outcomeButton(
+            'nfl-total-points',
+            'nfl-total-220-5',
+            'yes',
+          ),
+        ),
+      ).toHaveTextContent('7¢'),
+    );
+  });
+
   it('renders a Total group and updates prices when the selected line changes', async () => {
     const event = makePredictNextTotalsEvent();
     resolveEvent({ ...event, venueId, id: eventId });
@@ -640,6 +686,11 @@ describe('PredictEventScreen', () => {
     expect(selectedOption).toHaveProp('accessibilityState', {
       selected: true,
     });
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.selectionMarker('nfl-total-points'),
+      ),
+    ).toBeOnTheScreen();
     expect(
       within(card).getByTestId(
         MarketGroupCardTestIds.outcomeButton(
@@ -684,6 +735,16 @@ describe('PredictEventScreen', () => {
           ),
         ),
       ).toHaveTextContent('93¢');
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-218-5'),
+        ),
+      ).toHaveProp('accessibilityState', { selected: false });
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+        ),
+      ).toHaveProp('accessibilityState', { selected: true });
     });
     expect(
       within(card).queryByTestId(

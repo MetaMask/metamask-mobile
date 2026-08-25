@@ -170,12 +170,14 @@ export const MarketGroupCard = ({
         />
       </Box>
       {markets.length > 1 ? (
-        <MarketGroupOptionSelector
-          groupKey={groupKey}
-          markets={markets}
-          selectedMarketId={selectedMarket.id}
-          onSelect={onSelectMarket}
-        />
+        <MarketCard.Footer>
+          <MarketGroupOptionSelector
+            groupKey={groupKey}
+            markets={markets}
+            selectedMarketId={selectedMarket.id}
+            onSelect={onSelectMarket}
+          />
+        </MarketCard.Footer>
       ) : null}
     </MarketCard.Root>
   );

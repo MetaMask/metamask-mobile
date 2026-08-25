@@ -3,6 +3,8 @@ export const MarketGroupCardTestIds = {
   title: (groupKey: string) => `predict-next-market-group-${groupKey}-title`,
   selector: (groupKey: string) =>
     `predict-next-market-group-${groupKey}-selector`,
+  selectionMarker: (groupKey: string) =>
+    `predict-next-market-group-${groupKey}-selection-marker`,
   option: (groupKey: string, marketId: string) =>
     `predict-next-market-group-${groupKey}-option-${marketId}`,
   row: (groupKey: string, marketId: string, side: 'yes' | 'no') =>

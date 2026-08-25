@@ -276,6 +276,24 @@ export const makePredictNextGameEvent = (
   };
 };
 
+export const makePredictNextCompositeGameEvent = (): PredictEvent => {
+  const game = makePredictNextGameEvent(
+    'nfl-composite',
+    'New England',
+    'Seattle',
+    'NFL',
+  );
+
+  return {
+    ...game,
+    markets: [
+      ...game.markets,
+      ...makePredictNextTotalsEvent().markets,
+      ...makePredictNextSpreadsEvent().markets,
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },

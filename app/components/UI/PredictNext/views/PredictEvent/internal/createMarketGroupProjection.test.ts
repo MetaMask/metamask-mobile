@@ -27,6 +27,18 @@ const totalGroup = (
   displayOrder,
 });
 
+const spreadGroup = (
+  key: string,
+  option: number,
+  displayOrder?: number,
+): PredictMarket['group'] => ({
+  key,
+  groupType: 'marketSelector',
+  marketType: 'spread',
+  option: { type: 'number', value: option },
+  displayOrder,
+});
+
 describe('createMarketGroupProjection', () => {
   it('groups related Markets, orders options, and keeps the group position', () => {
     const markets = [
@@ -48,6 +60,34 @@ describe('createMarketGroupProjection', () => {
         firstIndex: 1,
       },
       { type: 'standard', market: markets[3], firstIndex: 3 },
+    ]);
+  });
+
+  it('keeps moneyline Markets beside total and spread groups', () => {
+    const markets = [
+      createMarket('moneyline'),
+      createMarket('spread-high', spreadGroup('spreads', 2.5, 1)),
+      createMarket('total-high', totalGroup('totals', 220.5, 1)),
+      createMarket('spread-low', spreadGroup('spreads', 1.5, 0)),
+      createMarket('total-low', totalGroup('totals', 218.5, 0)),
+    ];
+
+    expect(createMarketGroupProjection(markets)).toEqual([
+      { type: 'standard', market: markets[0], firstIndex: 0 },
+      {
+        type: 'group',
+        key: 'spreads',
+        marketType: 'spread',
+        markets: [markets[3], markets[1]],
+        firstIndex: 1,
+      },
+      {
+        type: 'group',
+        key: 'totals',
+        marketType: 'total',
+        markets: [markets[4], markets[2]],
+        firstIndex: 2,
+      },
     ]);
   });
 
