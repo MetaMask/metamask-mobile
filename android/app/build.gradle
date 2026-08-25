@@ -50,11 +50,6 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
     //
-    // TEMPORARY (REVERT): diagnostic hermesc wrapper for CI SIGSEGV investigation.
-    // Logs CPU/ulimit info, raises stack limit, preserves the input bundle on crash,
-    // and retries without -O. See scripts/hermesc-diag.sh.
-    hermesCommand = "$rootDir/../scripts/hermesc-diag.sh"
-    //
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
