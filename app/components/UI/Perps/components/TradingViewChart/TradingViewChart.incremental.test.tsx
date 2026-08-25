@@ -411,9 +411,18 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(collectFn).toContain(
       '(window.lastLimitOrderPrices || []).forEach(pushPrice)',
     );
-    expect(updateFn).toContain('window.clearLimitOrderLines();');
-    expect(updateFn).toContain(
-      'window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {',
+    const clearLimitOrderLinesCall = 'window.clearLimitOrderLines();';
+    const lastLimitOrderPricesAssign =
+      'window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {';
+    const clearLimitOrderLinesIndex = updateFn.indexOf(
+      clearLimitOrderLinesCall,
+    );
+    const lastLimitOrderPricesAssignIndex = updateFn.indexOf(
+      lastLimitOrderPricesAssign,
+    );
+    expect(clearLimitOrderLinesIndex).toBeGreaterThan(-1);
+    expect(lastLimitOrderPricesAssignIndex).toBeGreaterThan(
+      clearLimitOrderLinesIndex,
     );
     expect(clearFn.match(/window\.lastLimitOrderPrices = \[\];/g)).toEqual([
       'window.lastLimitOrderPrices = [];',
