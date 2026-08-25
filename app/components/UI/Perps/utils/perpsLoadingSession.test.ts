@@ -699,9 +699,10 @@ describe('perpsLoadingSession', () => {
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.PerpsLoadingSession,
         id: 'session-id-1',
+        timestamp: undefined,
         data: {
           ...finishData,
-          required_live_streams_complete: true,
+          required_live_streams_complete: false,
         },
       });
       expect(getActivePerpsLoadingSessionContext()).toBeNull();

@@ -68,6 +68,7 @@ describe('usePerpsMarketContext', () => {
 
     expect(result.current).toEqual({
       key: 'testnet|hyperliquid|1|0',
+      identityKey: 'testnet|hyperliquid|1',
       isReady: true,
       isUserReady: true,
       isConnectionInitialized: true,
