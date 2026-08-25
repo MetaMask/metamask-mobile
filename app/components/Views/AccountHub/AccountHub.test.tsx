@@ -13,6 +13,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -88,6 +89,7 @@ const arrangeSelectors = ({
 describe('AccountHub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
     jest.mocked(useAccountsOperationsLoadingStates).mockReturnValue({
       isAccountSyncingInProgress: false,
       loadingMessage: undefined,
@@ -132,6 +134,19 @@ describe('AccountHub', () => {
 
     const { queryByTestId } = render(<AccountHub />);
 
+    expect(
+      queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the bell entirely when the notifications feature is disabled', () => {
+    jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(false);
+
+    const { queryByTestId } = render(<AccountHub />);
+
+    expect(
+      queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
     ).not.toBeOnTheScreen();

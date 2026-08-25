@@ -237,27 +237,27 @@ const AccountHub = () => {
         backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
         endAccessory={
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
-            <BadgeWrapper
-              position={BadgeWrapperPosition.TopRight}
-              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-              badge={
-                isNotificationsFeatureEnabled() &&
-                isNotificationEnabled &&
-                unreadNotificationCount > 0 ? (
-                  <BadgeStatus
-                    status={BadgeStatusStatus.Attention}
-                    testID={AccountHubSelectorsIDs.NOTIFICATIONS_BADGE}
-                  />
-                ) : null
-              }
-            >
-              <ButtonIcon
-                iconName={IconName.Notification}
-                size={ButtonIconSize.Md}
-                onPress={handleNotificationsPress}
-                testID={AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON}
-              />
-            </BadgeWrapper>
+            {isNotificationsFeatureEnabled() && (
+              <BadgeWrapper
+                position={BadgeWrapperPosition.TopRight}
+                positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+                badge={
+                  isNotificationEnabled && unreadNotificationCount > 0 ? (
+                    <BadgeStatus
+                      status={BadgeStatusStatus.Attention}
+                      testID={AccountHubSelectorsIDs.NOTIFICATIONS_BADGE}
+                    />
+                  ) : null
+                }
+              >
+                <ButtonIcon
+                  iconName={IconName.Notification}
+                  size={ButtonIconSize.Md}
+                  onPress={handleNotificationsPress}
+                  testID={AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON}
+                />
+              </BadgeWrapper>
+            )}
             <ButtonIcon
               iconName={IconName.Menu}
               size={ButtonIconSize.Md}
