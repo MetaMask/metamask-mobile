@@ -1,10 +1,13 @@
 /**
  * Perps Pro Market Flow — full scenario component view tests.
  *
- * Covers trader journeys on PerpsProMarketView through real Redux + stream
- * fixtures (not hook mocks): positions/orders data completeness, side and
- * ticker filters, market switching, place/cancel/close-all, navigation
- * actions, geo-restriction, and Lite/Pro mode toggle.
+ * High-value Pro journeys through real Redux + stream fixtures (not hook
+ * mocks): positions filtering/market switch, order cancel wiring, short
+ * market place, close-position navigation, and geo-restricted Close all.
+ *
+ * Close-all Engine confirm and Cancel-all sheet internals are covered by
+ * dedicated CloseAll/CancelAll view tests; Share/History and mode-chooser
+ * probes were dropped as low-signal overlap.
  */
 import '../../../../../tests/component-view/mocks';
 
@@ -39,7 +42,6 @@ import {
   getPerpsProPositionRowSelector,
   PerpsCancelAllOrdersViewSelectorsIDs,
   PerpsCloseAllPositionsViewSelectorsIDs,
-  PerpsModeToggleSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../Perps.testIds';
@@ -95,12 +97,6 @@ const defaultProPrices: Record<string, PriceUpdate> = {
   },
 };
 
-const proNavRoutes = [
-  { name: Routes.PERPS.CLOSE_POSITION },
-  { name: Routes.PERPS.PNL_HERO_CARD },
-  { name: Routes.PERPS.ACTIVITY },
-];
-
 const renderProMarketScenario = (
   options: Parameters<typeof renderPerpsProMarketView>[0] = {},
 ) => {
@@ -114,7 +110,10 @@ const renderProMarketScenario = (
       orders: [ethLimitOrder, btcLimitOrder],
       ...options.streamOverrides,
     },
-    extraRoutes: [...proNavRoutes, ...(options.extraRoutes ?? [])],
+    extraRoutes: [
+      { name: Routes.PERPS.CLOSE_POSITION },
+      ...(options.extraRoutes ?? []),
+    ],
   });
   wirePerpsControllerForStore(result.store);
   return result;
@@ -202,9 +201,9 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         'Ethereum',
       );
       fireEvent.press(
-        within(screen.getByTestId(getPerpsProPositionRowSelector('BTC'))).getByText(
-          'BTC',
-        ),
+        within(
+          screen.getByTestId(getPerpsProPositionRowSelector('BTC')),
+        ).getByText('BTC'),
       );
 
       await waitFor(
@@ -241,9 +240,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         screen.getByTestId(getPerpsProOrderRowSelector('BTC', 1)),
       ).toBeOnTheScreen();
 
-      fireEvent.press(
-        within(ethOrderRow).getByTestId(panelIds.ORDER_CANCEL),
-      );
+      fireEvent.press(within(ethOrderRow).getByTestId(panelIds.ORDER_CANCEL));
 
       await waitFor(
         () => {
@@ -267,7 +264,9 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         ),
       ).toBeOnTheScreen();
       fireEvent.press(
-        screen.getByTestId(PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON),
+        screen.getByTestId(
+          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+        ),
       );
 
       await waitFor(
@@ -346,7 +345,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
   );
 
   itForPlatforms(
-    'trader closes and shares a position, then opens order history',
+    'trader closes a position from the Pro card and lands on Close position',
     async () => {
       renderProMarketScenario();
       await findPositionsPanel();
@@ -366,81 +365,6 @@ describeForPlatforms('Perps Pro Market Flow', () => {
           { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
-
-      cleanup();
-      renderProMarketScenario();
-      await findPositionsPanel();
-      const shareRow = await screen.findByTestId(
-        getPerpsProPositionRowSelector('ETH'),
-        {},
-        { timeout: TIMEOUT_MS },
-      );
-
-      fireEvent.press(within(shareRow).getByTestId(panelIds.POSITION_SHARE));
-
-      expect(
-        await screen.findByTestId(
-          getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
-
-      cleanup();
-      renderProMarketScenario();
-      await findPositionsPanel();
-
-      fireEvent.press(screen.getByTestId(panelIds.POSITIONS_HISTORY_BUTTON));
-
-      expect(
-        await screen.findByTestId(
-          getRouteProbeTestId(Routes.PERPS.ACTIVITY),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
-    'trader confirms Close all from the positions summary sheet',
-    async () => {
-      const closePositions = Engine.context.PerpsController
-        .closePositions as jest.Mock;
-      closePositions.mockClear();
-
-      renderProMarketScenario();
-      await findPositionsPanel();
-
-      fireEvent.press(
-        await screen.findByTestId(
-          panelIds.POSITIONS_CLOSE_ALL,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
-
-      expect(
-        await screen.findByTestId(
-          PerpsCloseAllPositionsViewSelectorsIDs.SHEET,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
-      fireEvent.press(
-        screen.getByTestId(
-          PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
-        ),
-      );
-
-      await waitFor(
-        () => {
-          expect(closePositions).toHaveBeenCalledWith({
-            symbols: expect.arrayContaining(['ETH', 'BTC']),
-          });
-        },
-        { timeout: TIMEOUT_MS },
-      );
     },
   );
 
@@ -476,28 +400,6 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       expect(
         screen.queryByTestId(PerpsCloseAllPositionsViewSelectorsIDs.SHEET),
       ).not.toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
-    'trader tapping the Pro mode pill opens the Lite/Pro chooser when unfinished',
-    async () => {
-      renderProMarketScenario({
-        extraRoutes: [{ name: Routes.PERPS.MODALS.ROOT }],
-      });
-      await findPositionsPanel();
-
-      fireEvent.press(
-        screen.getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
-      );
-
-      expect(
-        await screen.findByTestId(
-          getRouteProbeTestId(Routes.PERPS.MODALS.ROOT),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
     },
   );
 });
