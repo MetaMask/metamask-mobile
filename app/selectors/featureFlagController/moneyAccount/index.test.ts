@@ -23,6 +23,10 @@ jest.mock(
 );
 
 describe('Money Account feature flag selectors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('selectMoneyAccountDepositEnabledFlag', () => {
     it('returns true when moneyAccountDepositEnabled is true', () => {
       const result = selectMoneyAccountDepositEnabledFlag.resultFunc({
