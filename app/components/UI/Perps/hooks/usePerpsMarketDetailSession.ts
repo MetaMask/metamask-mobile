@@ -145,6 +145,7 @@ export function usePerpsMarketDetailSession({
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const foregroundDeliveryBaselineRef =
     useRef<ForegroundDeliveryBaseline | null>(null);
+  const backgroundConnectionGenerationRef = useRef<number | null>(null);
   const [foregroundGeneration, setForegroundGeneration] = useState(0);
   const [sessionRevision, setSessionRevision] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -203,6 +204,7 @@ export function usePerpsMarketDetailSession({
         provider ?? '',
         network,
         hip3ConfigVersion,
+        configurationKey,
         foregroundGeneration,
         configuredChartLibrary,
         entrySource ?? '',
@@ -210,6 +212,7 @@ export function usePerpsMarketDetailSession({
     [
       address,
       configuredChartLibrary,
+      configurationKey,
       entrySource,
       foregroundGeneration,
       hip3ConfigVersion,
@@ -280,15 +283,23 @@ export function usePerpsMarketDetailSession({
       appStateRef.current = nextState;
 
       if (nextState !== 'active') {
+        if (previousState === 'active') {
+          backgroundConnectionGenerationRef.current =
+            PerpsConnectionManager.getConnectionGeneration();
+        }
         endActiveSession({ success: false, reason: 'app_backgrounded' });
         return;
       }
       if (previousState !== 'active') {
+        const connectionGenerationAtForeground =
+          PerpsConnectionManager.getConnectionGeneration();
         foregroundDeliveryBaselineRef.current = {
           deliveryBaselines: getStreamDeliveryRevisions(),
           connectionGenerationBaseline:
-            PerpsConnectionManager.getConnectionGeneration(),
+            backgroundConnectionGenerationRef.current ??
+            connectionGenerationAtForeground,
         };
+        backgroundConnectionGenerationRef.current = null;
         setForegroundGeneration((generation) => generation + 1);
       }
     });
