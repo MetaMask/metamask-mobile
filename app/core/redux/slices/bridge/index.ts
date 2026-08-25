@@ -65,6 +65,7 @@ import {
   initialRecurringState,
   validateRecurringSchedule,
   type RecurringIntervalUnit,
+  type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
@@ -239,6 +240,12 @@ const slice = createSlice({
       state.recurring.everyUnit = action.payload;
       state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -273,6 +280,7 @@ const slice = createSlice({
       const sourceToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.sourceToken, sourceToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       state.sourceToken = sourceToken;
     },
@@ -280,6 +288,7 @@ const slice = createSlice({
       const destToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.destToken, destToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       // Update selectedDestChainId to match the destination token's chain ID
       state.destToken = destToken;
@@ -485,6 +494,11 @@ export const selectRecurringEveryUnit = createSelector(
 export const selectRecurringRepeatCount = createSelector(
   selectRecurring,
   (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
 );
 
 export const selectRecurringScheduleValidation = createSelector(
@@ -1139,6 +1153,7 @@ export const {
   setRecurringEveryValue,
   setRecurringRepeatCount,
   setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,

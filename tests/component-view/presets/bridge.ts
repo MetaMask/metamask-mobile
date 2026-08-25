@@ -52,7 +52,10 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
       // resolves the LaunchDarkly `{ versions: {...} }` config into this plain
       // `{ enabled }` shape before it ever reaches Redux state.
       swapsLimitOrder: { enabled: true },
-      swapsRecurringBuy: { enabled: true },
+      swapsRecurringBuy: {
+        enabled: true,
+        enabledChainIds: ['eip155:1'],
+      },
     });
 
   if (options?.deterministicFiat) {

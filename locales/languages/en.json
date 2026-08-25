@@ -8543,6 +8543,19 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "price_range": {
+        "label": "Price range",
+        "not_set": "Not set",
+        "token": "Token",
+        "price": "Price",
+        "exchange_rate": "Exchange rate",
+        "min_token_price": "Min {{symbol}} price",
+        "max_token_price": "Max {{symbol}} price",
+        "min_placeholder": "Min price",
+        "max_placeholder": "Max price",
+        "token_fiat": "1 {{symbol}} = {{fiat}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
       "unit": {
         "minute": "minute",
         "hour": "hour",
