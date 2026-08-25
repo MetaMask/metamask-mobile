@@ -704,6 +704,18 @@ describe('PerpsProOrderForm', () => {
       ).toBeOnTheScreen();
     });
 
+    it('names the slippage edit affordance and keeps it reachable at the minimum tap size', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toHaveProp('accessibilityRole', 'button');
+      expect(editButton).toHaveProp('accessibilityLabel', 'Set slippage');
+      expect(editButton).toHaveProp('hitSlop', 12);
+    });
+
     it('applies a pressed background to the slippage edit affordance while held', () => {
       renderForm({
         summary: { ...slippageSummary, onSlippagePress: jest.fn() },

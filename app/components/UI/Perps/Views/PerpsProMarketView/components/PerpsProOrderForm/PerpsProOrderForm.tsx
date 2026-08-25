@@ -228,6 +228,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
 const summaryRowClassName = 'h-5 px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
+const SLIPPAGE_EDIT_HIT_SLOP = 12;
 
 const OrderSummary = ({
   margin,
@@ -262,11 +263,18 @@ const OrderSummary = ({
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}
-        valueEndButtonIconProps={buttonIcon(
-          IconName.Edit,
-          ids.SUMMARY_SLIPPAGE_BUTTON,
-          onSlippagePress,
-        )}
+        valueEndButtonIconProps={{
+          ...buttonIcon(
+            IconName.Edit,
+            ids.SUMMARY_SLIPPAGE_BUTTON,
+            onSlippagePress,
+          ),
+          accessibilityRole: 'button',
+          accessibilityLabel: strings('perps.slippage.config_title'),
+          // ButtonIconSize.Xs renders a 20pt box; 12pt of slop on each side
+          // brings the tap target back to the 44pt minimum.
+          hitSlop: SLIPPAGE_EDIT_HIT_SLOP,
+        }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
