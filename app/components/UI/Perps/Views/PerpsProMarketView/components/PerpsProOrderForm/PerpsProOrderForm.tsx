@@ -38,6 +38,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
+import DevLogger from '../../../../../../../core/SDKConnect/utils/DevLogger';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -405,6 +406,10 @@ const PerpsProOrderForm = ({
   }, [onLeveragePress, playSelection]);
 
   const handleSlippagePress = useCallback(() => {
+    DevLogger.log(
+      '[TAT-3779] BUG_MARKER: slippage edit affordance received a press; handler present=' +
+        String(Boolean(summaryOnSlippagePress)),
+    );
     if (!summaryOnSlippagePress) {
       return;
     }
