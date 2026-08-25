@@ -32,6 +32,7 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { TEST_NETWORK_IDS } from '../../constants/network';
+import { createDeepEqualSelector } from '../util';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -470,8 +471,8 @@ export const selectBalanceByWallet = (walletId: string) =>
 
 export const selectBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
+) => {
+  const selectRawBalance = createSelector(
     [selectSelectedAccountGroupId, selectBalanceForAllWallets(popularChainIds)],
     (selectedGroupId, allBalances) => {
       if (!selectedGroupId) {
@@ -492,6 +493,11 @@ export const selectBalanceBySelectedAccountGroup = (
     },
   );
 
+  // Deep-equal on the small result, not the wide inputs, so unrelated
+  // controller churn (e.g. post-unlock) doesn't change the reference.
+  return createDeepEqualSelector([selectRawBalance], (balance) => balance);
+};
+
 /**
  * Aggregated fiat balance for the selected account group from unified
  * AssetsController state. Callers should only consume this when
@@ -501,8 +507,8 @@ export const selectBalanceBySelectedAccountGroup = (
  */
 export const selectUnifiedBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
+) => {
+  const selectRawUnifiedBalance = createSelector(
     [
       selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
@@ -528,11 +534,18 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
     },
   );
 
+  // Same as selectBalanceBySelectedAccountGroup above (assets-unify-state variant).
+  return createDeepEqualSelector(
+    [selectRawUnifiedBalance],
+    (balance) => balance,
+  );
+};
+
 /**
  * Returns the selected account group's balance
  * across mainnet networks for balance empty state display
  */
-export const selectAccountGroupBalanceForEmptyState = createSelector(
+const selectRawAccountGroupBalanceForEmptyState = createSelector(
   [
     selectIsAssetsUnifyStateEnabled,
     selectAssetsControllerStateForBalances,
@@ -661,6 +674,17 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
   },
 );
 
+/**
+ * Returns the selected account group's balance across mainnet networks for
+ * balance empty state display. Deep-equal memoized on the result (see
+ * selectBalanceBySelectedAccountGroup above) to avoid re-renders from
+ * unrelated controller churn.
+ */
+export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
+  [selectRawAccountGroupBalanceForEmptyState],
+  (balance) => balance,
+);
+
 // Balance change selectors (period: '1d' | '7d' | '30d')
 export const selectBalanceChangeForAllWallets = (
   period: BalanceChangePeriod,
@@ -782,8 +806,8 @@ export const selectBalancePercentChangeByAccountGroup = (
 export const selectBalanceChangeBySelectedAccountGroup = (
   period: BalanceChangePeriod,
   popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
+) => {
+  const selectRawBalanceChange = createSelector(
     [
       selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
@@ -844,3 +868,7 @@ export const selectBalanceChangeBySelectedAccountGroup = (
       );
     },
   );
+
+  // Same pattern as selectBalanceBySelectedAccountGroup above.
+  return createDeepEqualSelector([selectRawBalanceChange], (change) => change);
+};

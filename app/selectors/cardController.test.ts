@@ -11,6 +11,7 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardHomeDataFetchedThisSession,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -518,6 +519,27 @@ describe('selectCardHomeDataStatus', () => {
   });
 });
 
+describe('selectCardHomeDataFetchedThisSession', () => {
+  it('returns false by default, so restored data is revalidated', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+
+  it('returns true once a fetch has run in this session', () => {
+    const state = createMockRootState({
+      cardHomeDataFetchedThisSession: true,
+    });
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(true);
+  });
+
+  it('returns false when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+});
+
 describe('selectIsCardStateResolved', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -572,6 +594,28 @@ describe('selectIsCardStateResolved', () => {
       isAuthenticated: true,
     });
     expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true while refreshing existing data for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true when a background refresh fails with existing data', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
   it('returns false while idle for a cardholder', () => {

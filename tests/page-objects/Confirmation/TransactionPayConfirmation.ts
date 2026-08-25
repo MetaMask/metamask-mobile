@@ -1,5 +1,6 @@
 import {
   ConfirmationRowComponentIDs,
+  PayWithBottomSheetIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -27,6 +28,43 @@ export function getKeypadKeyTestId(key: string): string {
 class TransactionPayConfirmation {
   get bridgeTime(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME);
+  }
+
+  get keypad(): EncapsulatedElementType {
+    return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
+  }
+
+  async expectKeyboardLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard exists',
+      timeout: 30000,
+    });
+  }
+
+  async expectPayWithRowLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.payWithRow, {
+      description: 'Pay with row should finish loading',
+      timeout: 15000,
+    });
+  }
+
+  async focusAmountInput(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible before typing amount',
+    });
+    await Gestures.waitAndTap(this.keypad, {
+      elemDescription: 'Focus amount via deposit keyboard container',
+      checkEnabled: false,
+      checkVisibility: false,
+    });
+  }
+
+  async typeAmount(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
+  }
+
+  async tapContinue(): Promise<void> {
+    await this.tapKeyboardContinueButton();
   }
 
   get keyboardContainer(): EncapsulatedElementType {
@@ -158,6 +196,48 @@ class TransactionPayConfirmation {
     });
   }
 
+  getPercentageButton(pct: 10 | 25 | 50 | 90): EncapsulatedElementType {
+    return Matchers.getElementByText(`${pct}%`);
+  }
+
+  async tapPercentage(pct: 10 | 25 | 50 | 90): Promise<void> {
+    await Gestures.waitAndTap(this.getPercentageButton(pct), {
+      elemDescription: `Keyboard ${pct}% button`,
+      timeout: 15000,
+    });
+  }
+
+  get maxButton(): EncapsulatedElementType {
+    return Matchers.getElementByText('Max');
+  }
+
+  async tapMax(): Promise<void> {
+    await Gestures.waitAndTap(this.maxButton, {
+      elemDescription: 'Keyboard Max button',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPercentageApplied(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 15000,
+      description:
+        'Percentage tap should populate an amount and reveal the Done button',
+    });
+  }
+
+  get preferredPayTokenRow(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
+    );
+  }
+
+  async tapPreferredPayToken(): Promise<void> {
+    await Gestures.waitAndTap(this.preferredPayTokenRow, {
+      elemDescription: 'Preferred pay token row',
+    });
+  }
+
   async searchToken(tokenName: string): Promise<void> {
     await Assertions.expectElementToBeVisible(this.tokenSearchInput, {
       timeout: 15000,
@@ -248,6 +328,18 @@ class TransactionPayConfirmation {
     });
   }
 
+  get keypadDeleteButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('keypad-delete-button');
+  }
+
+  async clearAmount(): Promise<void> {
+    await Gestures.longPress(this.keypadDeleteButton, {
+      duration: 600,
+      elemDescription: 'Keypad delete button (long-press clears amount)',
+      timeout: 15000,
+    });
+  }
+
   async tapKeyboardAmount(amount: string): Promise<void> {
     const waitForKeypad = async (): Promise<void> => {
       await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
@@ -319,6 +411,12 @@ class TransactionPayConfirmation {
     await Assertions.expectElementToBeVisible(this.transactionFee, {
       description: 'Transaction fee row should be visible',
       timeout: 15000,
+    });
+  }
+
+  async verifyCustomAmount(amount: string, description: string): Promise<void> {
+    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+      description,
     });
   }
 

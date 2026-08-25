@@ -57,6 +57,7 @@ import {
 } from '../../../../Views/confirmations/constants/perps';
 import {
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
@@ -87,7 +88,6 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
-  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -97,6 +97,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -149,7 +150,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { willFlipPosition } from '../../utils/orderUtils';
+import {
+  getOrderManagementToastKey,
+  willFlipPosition,
+} from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
@@ -622,6 +626,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const isPayAmountStale = useIsTransactionPayAmountStale();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -641,7 +646,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? undiscountedEstimatedFees + depositFeeUsd
     : undiscountedEstimatedFees;
 
-  const isPayStateNotReady = isPayTotalsLoading || isPayAmountStale;
+  // Mirror the publish guard: while the deposit transaction exists but has no
+  // executable quote and no validated direct or fiat route, a tap would be
+  // rejected at publish with "Cannot submit without quote". The loading and
+  // stale-amount checks alone miss states where the quote fetch failed, never
+  // started, or the payment token is still unset.
+  const isPayStateNotReady =
+    isPayTotalsLoading ||
+    isPayAmountStale ||
+    (Boolean(activeTransactionMeta) && !isPaySubmitReady);
 
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
@@ -1005,7 +1018,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
@@ -1014,7 +1027,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].creationFailed(error),
         );
       },
@@ -1321,6 +1334,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      if (orderValidation.isValidating) {
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1511,7 +1528,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 
@@ -1571,6 +1588,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       commitAmount,
       liveDragAmount,
       orderValidation.isValid,
+      orderValidation.isValidating,
       orderValidation.errors,
       track,
       orderForm.asset,
@@ -2164,7 +2182,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2184,7 +2202,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2227,7 +2245,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? PERPS_EVENT_VALUE.DIRECTION.LONG
                 : PERPS_EVENT_VALUE.DIRECTION.SHORT,
             [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-            previousLeverage: orderForm.leverage,
+            [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
           };
 
           // Add input method if provided

@@ -1,8 +1,13 @@
-import type { PredictEntityId, PredictVenueId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictFeedId,
+  PredictVenueId,
+} from '../../types';
 import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event/one' as PredictEntityId;
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
 const createResponse = ({
   status = 200,
@@ -52,10 +57,10 @@ describe('PredictApiReadClient', () => {
   it('encodes event-list query parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
 
-    await client.fetchEvents(venueId, { cursor: 'next page', limit: 20 });
+    await client.fetchFeed(venueId, feedId, { cursor: 'next page', limit: 20 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/events?cursor=next+page&limit=20',
+      'https://predict.example/api/v1/venues/kalshi/feeds/sports-football-nfl-games?cursor=next+page&limit=20',
       expect.any(Object),
     );
   });
@@ -75,7 +80,7 @@ describe('PredictApiReadClient', () => {
     fetchMock.mockResolvedValue(createResponse());
     const signal = new AbortController().signal;
 
-    await client.fetchEvents(venueId, {}, { signal });
+    await client.fetchFeed(venueId, feedId, {}, { signal });
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
@@ -88,7 +93,7 @@ describe('PredictApiReadClient', () => {
       createResponse({ status: 429, json: { secret: 'discard' } }),
     );
 
-    await expect(client.fetchEvents(venueId, {})).rejects.toEqual(
+    await expect(client.fetchFeed(venueId, feedId, {})).rejects.toEqual(
       expect.objectContaining({ status: 429 }),
     );
   });
@@ -98,7 +103,7 @@ describe('PredictApiReadClient', () => {
     jest.mocked(response.json).mockRejectedValue(new SyntaxError('payload'));
     fetchMock.mockResolvedValue(response);
 
-    await expect(client.fetchEvents(venueId, {})).rejects.toEqual(
+    await expect(client.fetchFeed(venueId, feedId, {})).rejects.toEqual(
       expect.objectContaining({ status: 200 }),
     );
   });
@@ -110,13 +115,15 @@ describe('PredictApiReadClient', () => {
     jest.mocked(response.json).mockRejectedValue(abortError);
     fetchMock.mockResolvedValue(response);
 
-    await expect(client.fetchEvents(venueId, {})).rejects.toBe(abortError);
+    await expect(client.fetchFeed(venueId, feedId, {})).rejects.toBe(
+      abortError,
+    );
   });
 
   it('performs one request when a request fails', async () => {
     fetchMock.mockResolvedValue(createResponse({ status: 503 }));
 
-    await expect(client.fetchEvents(venueId, {})).rejects.toBeInstanceOf(
+    await expect(client.fetchFeed(venueId, feedId, {})).rejects.toBeInstanceOf(
       PredictHttpError,
     );
 

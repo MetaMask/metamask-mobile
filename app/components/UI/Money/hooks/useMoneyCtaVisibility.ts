@@ -1,15 +1,22 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { TokenI } from '../../Tokens/types';
 import { isEvmTokenAddress } from '../utils/erc20TokenAddressList';
+import {
+  getBlockedTokensForTransactionType,
+  isTokenBlocked,
+} from '../../../Views/confirmations/utils/transaction-pay';
 import {
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
   selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
+  selectMoneyDepositMinBalance,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
@@ -20,9 +27,11 @@ const getTokenKey = (address: string, chainId: string) =>
   `${safeFormatChainIdToHex(chainId).toLowerCase()}-${address.toLowerCase()}`;
 
 /**
- * Source of truth for Money account CTAs displayed in shared token-list rows.
+ * Feature flags, geo, vault readiness, and CTA allowlist. Does not subscribe
+ * to the full account token list, so Token Details can use it without
+ * re-rendering on AssetsController updates for unrelated tokens.
  */
-export const useMoneyCtaVisibility = () => {
+export const useMoneyCtaAllowlistState = () => {
   const isTokenListItemCtaEnabled = useSelector(
     selectIsMoneyTokenListItemCtaEnabledFlag,
   );
@@ -40,7 +49,17 @@ export const useMoneyCtaVisibility = () => {
   const earnBannerDismissedTokens = useSelector(
     selectMoneyEarnBannerDismissedTokens,
   );
-  const { tokens: depositTokens } = useMoneyDepositTokens();
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
+  const minDepositBalanceUsd = useSelector(selectMoneyDepositMinBalance);
+
+  const depositBlockedConfig = useMemo(
+    () =>
+      getBlockedTokensForTransactionType(
+        payTokensFlags.blockedTokens,
+        TransactionType.moneyAccountDeposit,
+      ),
+    [payTokensFlags.blockedTokens],
+  );
 
   const configuredCtaTokenKeys = useMemo(
     () =>
@@ -51,6 +70,99 @@ export const useMoneyCtaVisibility = () => {
       ),
     [ctaTokenAddresses],
   );
+
+  const isMoneyAccountReady = Boolean(
+    vaultConfig && primaryMoneyAccount?.address,
+  );
+
+  return {
+    configuredCtaTokenKeys,
+    depositBlockedConfig,
+    earnBannerDismissedTokens,
+    isAssetOverviewBalanceCtaEnabled,
+    isAssetOverviewFooterCtaEnabled,
+    isEarnBannerEnabled,
+    isGeoEligible,
+    isMoneyAccountReady,
+    isTokenListItemCtaEnabled,
+    minDepositBalanceUsd,
+  };
+};
+
+const isConfiguredCtaAsset = (
+  asset: TokenI | undefined,
+  configuredCtaTokenKeys: Set<string>,
+) =>
+  Boolean(
+    asset?.address &&
+      asset.chainId &&
+      configuredCtaTokenKeys.has(getTokenKey(asset.address, asset.chainId)),
+  );
+
+/**
+ * Asset Overview (Token Details) CTA eligibility for a single token. Takes
+ * `hasBalance` directly instead of scanning every held asset via
+ * useAccountTokens.
+ *
+ * The Balance CTA applies the same deposit-eligibility checks as
+ * `useMoneyDepositTokens` (MM Pay deposit blocklist, minimum fiat balance),
+ * just evaluated for this one asset instead of the user's full token list.
+ */
+export const useMoneyAssetOverviewCtaVisibility = (
+  asset: TokenI,
+  hasBalance: boolean,
+  balanceFiatUsd?: number,
+) => {
+  const {
+    configuredCtaTokenKeys,
+    depositBlockedConfig,
+    isAssetOverviewBalanceCtaEnabled,
+    isAssetOverviewFooterCtaEnabled,
+    isGeoEligible,
+    isMoneyAccountReady,
+    minDepositBalanceUsd,
+  } = useMoneyCtaAllowlistState();
+
+  const isAllowlistedEvmToken =
+    isConfiguredCtaAsset(asset, configuredCtaTokenKeys) &&
+    isEvmTokenAddress(asset.address);
+
+  const isBaseEligible =
+    isGeoEligible && isMoneyAccountReady && isAllowlistedEvmToken;
+
+  const isDepositEligibleForBalance =
+    hasBalance &&
+    Number.isFinite(balanceFiatUsd) &&
+    (balanceFiatUsd as number) >= minDepositBalanceUsd &&
+    !isTokenBlocked(
+      { address: asset.address, chainId: asset.chainId },
+      depositBlockedConfig,
+    );
+
+  return {
+    isBalanceCtaEligible:
+      isAssetOverviewBalanceCtaEnabled &&
+      isBaseEligible &&
+      isDepositEligibleForBalance,
+    isFooterCtaEligible: isAssetOverviewFooterCtaEnabled && isBaseEligible,
+  };
+};
+
+/**
+ * Source of truth for Money account CTAs displayed in shared token-list rows.
+ */
+export const useMoneyCtaVisibility = () => {
+  const {
+    configuredCtaTokenKeys,
+    earnBannerDismissedTokens,
+    isAssetOverviewBalanceCtaEnabled,
+    isAssetOverviewFooterCtaEnabled,
+    isEarnBannerEnabled,
+    isGeoEligible,
+    isMoneyAccountReady,
+    isTokenListItemCtaEnabled,
+  } = useMoneyCtaAllowlistState();
+  const { tokens: depositTokens } = useMoneyDepositTokens();
 
   const ctaDepositTokenKeys = useMemo(
     () =>
@@ -70,10 +182,6 @@ export const useMoneyCtaVisibility = () => {
         }),
       ),
     [configuredCtaTokenKeys, depositTokens],
-  );
-
-  const isMoneyAccountReady = Boolean(
-    vaultConfig && primaryMoneyAccount?.address,
   );
 
   const shouldShowMoneyTokenListItemCta = useCallback(

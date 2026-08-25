@@ -6,7 +6,10 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismissPushNotificationExistingUserSheet } from '../../flows/wallet.flow';
+import {
+  closePredictModal,
+  dismissPushNotificationExistingUserSheet,
+} from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -67,8 +70,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     'Seedless Onboarding: Telegram Login New User',
     { tag: '@metamask-onboarding-team' },
     // Request `driver` so the Playwright/Appium fixture boots before page-object
-    // actions run. Without it, FrameworkDetector falls back to Detox and
-    // Matchers throw ReferenceError: element is not defined.
+    // actions run.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
       // Conservative initial guardrails — calibrate against BrowserStack
       // baselines once this coverage has 10+ clean RC/release-profile runs
@@ -162,10 +164,10 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             asPlaywrightElement(OnboardingSuccessView.doneButton),
           );
         });
-
+        await OnboardingSuccessView.tapDone();
+        await dismissPushNotificationExistingUserSheet();
+        await closePredictModal();
         await timer5.measure(async () => {
-          await OnboardingSuccessView.tapDone();
-          await dismissPushNotificationExistingUserSheet();
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {

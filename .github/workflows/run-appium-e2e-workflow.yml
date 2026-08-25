@@ -47,7 +47,7 @@ on:
         description: 'Runner provider (namespace or current)'
         required: false
         type: string
-        default: 'current'
+        default: 'namespace'
       android-tag:
         description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
         required: false
@@ -180,7 +180,32 @@ jobs:
 
       - name: Download iOS build artifacts (Namespace)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
+        id: download-ios-app-namespace
+        continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+      # actions/download-artifact merges into its target directory rather than
+      # replacing it (same caveat as in build-ios-e2e.yml) — clear any residue from
+      # the failed Namespace attempt so the fallback starts from an empty bundle dir.
+      - name: Clear any partial iOS app before the fallback download
+        if: >-
+          ${{
+            inputs.platform == 'ios' &&
+            inputs.runner_provider == 'namespace' &&
+            steps.download-ios-app-namespace.outcome != 'success'
+          }}
+        shell: bash
+        run: rm -rf "artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+      - name: Download iOS build artifacts (GitHub — build may be on Cirrus)
+        if: >-
+          ${{
+            inputs.platform == 'ios' &&
+            inputs.runner_provider == 'namespace' &&
+            steps.download-ios-app-namespace.outcome != 'success'
+          }}
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app

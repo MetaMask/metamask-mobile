@@ -201,7 +201,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "8.8.0"
+        versionName "8.9.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         // Still needed so E2E CI can assemble*AndroidTest (artifact cache/reuse).

@@ -1,39 +1,24 @@
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { sleep, type EncapsulatedElementType } from '../../framework';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { PlaywrightAssertions, sleep } from '../../framework';
 
 class SignModal {
   get confirmButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-        ),
-    });
+    return Matchers.getElementByID(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
   }
 
   get cancelButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
-        ),
-    });
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
   getNetworkText(network: string): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `(//android.widget.TextView[@text="${network}"])[1]`,
-        ),
-    });
+    return Matchers.getElementByNativeXPath(
+      `(//android.widget.TextView[@text="${network}"])[1]`,
+    );
   }
 
   async tapConfirmButton({
@@ -43,17 +28,9 @@ class SignModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.confirmButton);
-          await element.waitForDisplayed({
-            timeout: 5000,
-            timeoutMsg: 'SignModal: confirm button not visible',
-          });
-          await element.click();
-        });
-      },
+    await Gestures.waitAndTap(this.confirmButton, {
+      timeout: 5000,
+      elemDescription: 'SignModal confirm button',
     });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
@@ -67,17 +44,9 @@ class SignModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.cancelButton);
-          await element.waitForDisplayed({
-            timeout: 5000,
-            timeoutMsg: 'SignModal: cancel button not visible',
-          });
-          await element.click();
-        });
-      },
+    await Gestures.waitAndTap(this.cancelButton, {
+      timeout: 5000,
+      elemDescription: 'SignModal cancel button',
     });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
@@ -85,24 +54,9 @@ class SignModal {
   }
 
   async assertNetworkText(network: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const element = await asPlaywrightElement(
-              this.getNetworkText(network),
-            );
-            await element.waitForDisplayed({
-              timeout: 10000,
-              timeoutMsg: `SignModal: network text "${network}" not visible`,
-            });
-          },
-          {
-            maxRetries: 5,
-            interval: 1000,
-          },
-        );
-      },
+    await Assertions.expectElementToBeVisible(this.getNetworkText(network), {
+      timeout: 10000,
+      description: `SignModal: network text "${network}" not visible`,
     });
   }
 }

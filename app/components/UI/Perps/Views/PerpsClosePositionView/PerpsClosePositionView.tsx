@@ -33,7 +33,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  useHaptics,
+} from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -41,8 +45,9 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
+  isStrategyOrderType,
   type InputMethod,
-  type OrderType,
+  type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -96,12 +101,15 @@ const PerpsClosePositionView: React.FC = () => {
     source: routeSource,
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
+    enableHaptics = false,
   } = route.params as {
     position: Position;
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
+  const { playImpact: playHapticImpact } = useHaptics();
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -128,7 +136,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   // State for order type and bottom sheets
-  const [orderType, setOrderType] = useState<OrderType>('market');
+  const [orderType, setOrderType] = useState<OrdinaryOrderType>('market');
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -159,7 +167,7 @@ const PerpsClosePositionView: React.FC = () => {
   // resetting state in an effect) guarantees that a disabled — or mid-session
   // flipped-off — flag can never drive limit UI, calculations, validation, or
   // submission, with no one-render window before an effect would run.
-  const effectiveOrderType: OrderType = isClosePositionLimitOrderEnabled
+  const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
   // Subscribe to real-time price with 1s debounce for position closing
@@ -563,6 +571,10 @@ const PerpsClosePositionView: React.FC = () => {
   }, [effectiveOrderType, limitPrice]);
 
   const handleConfirm = useCallback(async () => {
+    if (isClosing) {
+      return;
+    }
+
     // Guard against submitting a stale committed `closePercentage` while
     // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
     // that never reached commitClosePercentage (see handleSliderDragCancel
@@ -582,6 +594,9 @@ const PerpsClosePositionView: React.FC = () => {
     // For limit orders, validate price
     if (effectiveOrderType === 'limit' && !limitPrice) {
       return;
+    }
+    if (enableHaptics) {
+      playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
@@ -628,6 +643,8 @@ const PerpsClosePositionView: React.FC = () => {
     closePercentage,
     closeAmount,
     effectiveOrderType,
+    enableHaptics,
+    isClosing,
     limitPrice,
     navigation,
     handleClosePosition,
@@ -647,6 +664,7 @@ const PerpsClosePositionView: React.FC = () => {
     position.symbol,
     closingValueString,
     effectivePrice,
+    playHapticImpact,
     isDraggingSlider,
     commitClosePercentage,
     liveDragClosePercentage,
@@ -1037,6 +1055,9 @@ const PerpsClosePositionView: React.FC = () => {
           isVisible={isOrderTypeVisible}
           onClose={() => setIsOrderTypeVisible(false)}
           onSelect={(type) => {
+            if (isStrategyOrderType(type)) {
+              return;
+            }
             setOrderType(type);
             // Clear limit price when switching back to market order
             if (type === 'market') {

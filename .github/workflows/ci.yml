@@ -1,8 +1,5 @@
 name: ci
 
-run-name: >-
-  ${{ inputs.pr_number && format('ci [shadow PR #{0} @ {1}]', inputs.pr_number, inputs.head_sha) || '' }}
-
 on:
   push:
     branches: [main, 'release/*']
@@ -21,9 +18,12 @@ on:
   workflow_call:
     inputs:
       runner_provider:
+        description: >-
+          Runner provider. Leave empty to defer to the repo NAMESPACE_RUNNER_*
+          Actions variables (see .github/CONTRIBUTING.md).
         type: string
         required: false
-        default: current
+        default: ''
       pr_number:
         description: 'PR number (shadow correlation, optional)'
         type: string
@@ -35,14 +35,15 @@ on:
   workflow_dispatch:
     inputs:
       runner_provider:
-        description: Runner provider for this manual trial run
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: true
         type: choice
         options:
+          - inherit
           - current
           - namespace
           - bitrise
-        default: current
+        default: inherit
       pr_number:
         description: 'PR number (shadow correlation, optional)'
         required: false
@@ -53,7 +54,14 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  # Scheduled runs must not share the main-branch SHA group. A schedule that
+  # takes longer than the hourly cadence would otherwise replace the previous
+  # pending run when the next schedule is created.
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event_name == 'schedule' && github.run_id ||
+      (github.ref == 'refs/heads/main' && github.sha || github.ref)
+    }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
@@ -63,25 +71,42 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
-    # NAMESPACE-SHADOW: macOS job — runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true (iOS pipeline)
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
+    # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
+    # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
+    # macos/ios-build concurrency.
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-      - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
-        with:
-          ruby-version: '3.2.9'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -91,13 +116,14 @@ jobs:
           command: yarn install --immutable
       - name: Restore .metamask folder
         id: restore-metamask
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.restore-metamask.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -162,7 +188,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -172,18 +198,28 @@ jobs:
 
   dedupe:
     name: Dedupe
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -194,7 +230,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -221,18 +257,28 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -243,7 +289,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -263,9 +309,19 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     strategy:
@@ -281,15 +337,15 @@ jobs:
           - constraints
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 2
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 2
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -300,7 +356,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -323,9 +379,19 @@ jobs:
 
   js-bundle-size-check:
     name: JS bundle size check
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     permissions:
@@ -333,11 +399,11 @@ jobs:
       statuses: write
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 2
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 2
       - name: Pin bundle size baseline SHA
@@ -356,7 +422,7 @@ jobs:
           fi
           echo "BUNDLE_SIZE_BASE_REF=${BASE_REF}" >> "$GITHUB_ENV"
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -367,7 +433,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -381,7 +447,9 @@ jobs:
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
         env:
-          NODE_OPTIONS: --max_old_space_size=12288
+          # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
+          # into gen-bundle:ios, an inline value silently shadows it.
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
@@ -489,10 +557,11 @@ jobs:
             exit 0
           fi
 
-          DELTA_MB="$(echo "${CURRENT_MB} - ${BASELINE_MB}" | bc -l)"
+          # awk, not bc: Namespace linux images do not ship bc (GitHub-hosted ubuntu does).
+          DELTA_MB="$(awk -v c="${CURRENT_MB}" -v b="${BASELINE_MB}" 'BEGIN { print c - b }')"
           echo "Delta (current - baseline): ${DELTA_MB} MB"
           echo "::notice::iOS JS bundle delta vs baseline: ${DELTA_MB} MB (current ${CURRENT_MB} MB, baseline ${BASELINE_MB} MB)"
-          if (( $(echo "${DELTA_MB} > 1" | bc -l) )); then
+          if awk -v d="${DELTA_MB}" 'BEGIN { exit !(d > 1) }'; then
             echo "::error::JS bundle exceeds baseline by more than 1 MiB (delta ${DELTA_MB} MiB; current ${CURRENT_MB} MiB, baseline ${BASELINE_MB} MiB)."
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
@@ -527,7 +596,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -558,14 +627,14 @@ jobs:
             -d "$BODY"
 
       - name: Upload iOS bundle (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ios-bundle
           path: ios/main.jsbundle
           retention-days: 7
       - name: Upload iOS bundle (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ios-bundle
@@ -574,11 +643,22 @@ jobs:
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     needs: [js-bundle-size-check]
-    # Skip on shadow runs (Namespace/Bitrise): cron against main would otherwise
-    # push duplicate entries to the external mobile_bundlesize_stats repo.
-    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+    # Skip on Bitrise trial runs: cron against main would otherwise push duplicate
+    # entries to the external mobile_bundlesize_stats repo.
+    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
     permissions:
       id-token: write
       contents: read
@@ -593,18 +673,18 @@ jobs:
           permissions: |
             contents: write
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
 
       - name: Download iOS bundle (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: ios-bundle
           path: ios
       - name: Download iOS bundle (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           name: ios-bundle
@@ -636,16 +716,26 @@ jobs:
 
   check-workflows:
     name: Check workflows
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - name: Download actionlint
         id: download-actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
@@ -658,23 +748,33 @@ jobs:
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-ci-js-deps
         with:
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Pack CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload CI JS deps artifact
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ci-js-deps
@@ -685,9 +785,19 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -696,31 +806,31 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ inputs.runner_provider == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
       - name: Rename coverage report and extract test count for this shard
@@ -731,7 +841,7 @@ jobs:
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - name: Upload coverage unit shard (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: coverage-unit-${{ matrix.shard }}
@@ -739,7 +849,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage unit shard (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.shard }}
@@ -759,7 +869,18 @@ jobs:
   # We need to merge unit, component view, and integration tests into a
   # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     needs:
       - prepare-ci-js-deps
       - unit-tests
@@ -767,37 +888,36 @@ jobs:
       - integration-tests
     # Wait for integration shards so coverage can merge into Sonar, but still run
     # when integration fails — missing integration artifacts are tolerated below.
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Download coverage shards (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           pattern: coverage-*
           path: tests/coverage/
       - name: Download coverage shards (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -873,7 +993,7 @@ jobs:
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
       - name: Upload lcov.info (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: lcov.info
@@ -881,7 +1001,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload lcov.info (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: lcov.info
@@ -889,7 +1009,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload cv-test-stats (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-stats
@@ -897,7 +1017,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload cv-test-stats (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
@@ -905,7 +1025,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload integration-test-stats (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: integration-test-stats
@@ -913,7 +1033,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload integration-test-stats (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-stats
@@ -921,7 +1041,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload unit-test-stats (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: unit-test-stats
@@ -929,7 +1049,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload unit-test-stats (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
@@ -939,7 +1059,7 @@ jobs:
       - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - name: Upload cv-test-coverage-html (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-coverage-html
@@ -947,7 +1067,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload cv-test-coverage-html (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-html
@@ -955,7 +1075,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload cv-test-coverage-summary (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-coverage-summary
@@ -963,7 +1083,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload cv-test-coverage-summary (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
@@ -974,7 +1094,7 @@ jobs:
         if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-integration-merged --report-dir ./tests/coverage-integration-lcov --reporter html --reporter json-summary
       - name: Upload integration-test-coverage-html (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: integration-test-coverage-html
@@ -982,7 +1102,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload integration-test-coverage-html (current)
-        if: ${{ inputs.runner_provider != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-coverage-html
@@ -990,7 +1110,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload integration-test-coverage-summary (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: integration-test-coverage-summary
@@ -998,7 +1118,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload integration-test-coverage-summary (current)
-        if: ${{ inputs.runner_provider != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-coverage-summary
@@ -1008,7 +1128,7 @@ jobs:
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - name: Upload unit-test-coverage-summary (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: unit-test-coverage-summary
@@ -1016,7 +1136,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload unit-test-coverage-summary (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
@@ -1035,9 +1155,19 @@ jobs:
 
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1046,25 +1176,25 @@ jobs:
         shard: [1, 2, 3]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
@@ -1073,7 +1203,7 @@ jobs:
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -1082,7 +1212,7 @@ jobs:
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - name: Upload coverage CV shard (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: coverage-cv-${{ matrix.shard }}
@@ -1090,7 +1220,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage CV shard (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-cv-${{ matrix.shard }}
@@ -1102,9 +1232,19 @@ jobs:
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
     name: Integration tests
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1113,25 +1253,25 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
@@ -1140,7 +1280,7 @@ jobs:
             --json \
             --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -1149,7 +1289,7 @@ jobs:
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - name: Upload coverage integration shard (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: coverage-integration-${{ matrix.shard }}
@@ -1157,7 +1297,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage integration shard (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-integration-${{ matrix.shard }}
@@ -1167,7 +1307,18 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
       - get_requirements
@@ -1183,7 +1334,7 @@ jobs:
       ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
@@ -1192,7 +1343,7 @@ jobs:
 
       - name: Checkout for action definition
         uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
@@ -1209,7 +1360,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+          post-comment: ${{ inputs.runner_provider != 'bitrise' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   run-performance-tests-pr:
@@ -1221,11 +1372,9 @@ jobs:
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        inputs.runner_provider != 'namespace' &&
         github.event_name == 'pull_request' &&
         !cancelled() &&
         (
@@ -1260,11 +1409,9 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1281,7 +1428,11 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
-      runner_provider: ${{ inputs.runner_provider }}
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
@@ -1341,12 +1492,9 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # NAMESPACE-SHADOW: iOS pipeline runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true
-    # (downstream iOS jobs cascade-skip via needs when this is skipped)
     if: >-
       ${{
         !cancelled() &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -1360,13 +1508,17 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
-      runner_provider: ${{ inputs.runner_provider }}
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -1378,13 +1530,8 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE/NAMESPACE-SHADOW: always skipped on shadow runs. Appium Android is pinned to
-    # runner_provider=current (Cirrus) below until Namespace parity is ready, and it cannot
-    # download namespace-built APKs (they live in Namespace's artifact store, not GitHub's).
     if: >-
       ${{
-        inputs.runner_provider != 'bitrise' &&
-        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success'
       }}
@@ -1397,8 +1544,13 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
-      runner_provider: current
+      # Mirrors build-android-apks' resolution chain so this consumer always matches
+      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
@@ -1444,7 +1596,13 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      runner_provider: current
+      # Mirrors build-ios-apps' resolution chain so this consumer always matches
+      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
@@ -1456,7 +1614,11 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
+    if: >-
+      ${{
+        needs.ios-tests-ready.result == 'success' &&
+        github.event_name == 'pull_request'
+      }}
     permissions:
       contents: read
       checks: write
@@ -1472,33 +1634,43 @@ jobs:
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.
-      runner_provider: current
+      # Mirrors build-ios-apps' resolution chain so this consumer always matches
+      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     secrets: inherit
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
 
-      - name: Download fixture validation results (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: fixture-validation-results-validate-e2e-fixtures
-          path: fixture-results/
-      - name: Download fixture validation results (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+      # run-appium-e2e-workflow uploads fixture validation results unconditionally via
+      # actions/upload-artifact (no Namespace-store arm), so results always land in the
+      # GitHub Actions artifact store — download via actions/* regardless of provider.
+      - name: Download fixture validation results
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -1506,7 +1678,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+        if: ${{ inputs.runner_provider != 'bitrise' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
@@ -1518,22 +1690,32 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     needs: merge-unit-and-component-view-tests
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     # Run when merged coverage is ready even if optional integration shards failed upstream.
-    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -1545,13 +1727,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Download lcov.info (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: lcov.info
           path: coverage/
       - name: Download lcov.info (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           name: lcov.info
@@ -1587,22 +1769,38 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     needs: sonar-cloud
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - name: Checkout code
         uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           # Skip step if event is not a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
@@ -1610,51 +1808,61 @@ jobs:
             exit 0
           fi
 
-          # Bypass step if skip-sonar-cloud label is found
-          LABEL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
-          jq -r '.[] | select(.name=="skip-sonar-cloud") | .name')
-
-          if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
-            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
-          else
-            PROJECT_KEY="MetaMask_metamask-mobile"
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
-
-            if [ -z "$PR_NUMBER" ]; then
-              echo "No pull request number found. Failing the check."
-              exit 1
-            fi
-
-            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
-            # retrying on NONE/empty which means ingestion is still in progress.
-            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
-            MAX_ATTEMPTS=12
-            SLEEP_INTERVAL=15
-            for i in $(seq 1 $MAX_ATTEMPTS); do
-              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
-              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
-
-              if [[ "$STATUS" == "OK" ]]; then
-                echo "Quality Gate passed."
-                exit 0
-              elif [[ "$STATUS" == "ERROR" ]]; then
-                echo "Quality Gate failed."
-                exit 1
-              fi
-
-              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
-              if [[ $i -lt $MAX_ATTEMPTS ]]; then
-                sleep "$SLEEP_INTERVAL"
-              fi
-            done
-
-            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
             exit 1
           fi
+
+          # Bypass step if skip-sonar-cloud label is found. The `type == "array"`
+          # guard keeps a GitHub error payload (rate limit, 403) from aborting the
+          # job: an unreadable label list must not decide the quality gate.
+          LABELS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
+            jq -r 'if type == "array" then .[].name else empty end' 2>/dev/null || true)
+
+          if grep -qx 'skip-sonar-cloud' <<< "$LABELS"; then
+            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
+            exit 0
+          fi
+
+          PROJECT_KEY="MetaMask_metamask-mobile"
+
+          # Poll until SonarCloud has finished ingesting the analysis. OK is final,
+          # but ERROR is only trusted once it survives several polls: right after the
+          # scan the API still serves the previous analysis for this PR number, so an
+          # immediate ERROR is frequently stale and flips to OK within ~2 minutes.
+          MAX_ATTEMPTS=20
+          SLEEP_INTERVAL=15
+          ERROR_STREAK=0
+          ERROR_STREAK_TO_FAIL=8
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+            echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
+
+            if [[ "$STATUS" == "OK" ]]; then
+              echo "Quality Gate passed."
+              exit 0
+            elif [[ "$STATUS" == "ERROR" ]]; then
+              ERROR_STREAK=$((ERROR_STREAK + 1))
+              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                exit 1
+              fi
+              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+            else
+              ERROR_STREAK=0
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+            fi
+
+            if [[ $i -lt $MAX_ATTEMPTS ]]; then
+              sleep "$SLEEP_INTERVAL"
+            fi
+          done
+
+          echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+          exit 1
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
   # does not sit in GitHub artifact storage for the full retention-days: 1
@@ -1665,8 +1873,7 @@ jobs:
   cleanup-ci-js-deps:
     name: Delete CI JS deps artifact
     runs-on: ubuntu-latest
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ always() && inputs.runner_provider != 'bitrise' }}
     needs:
       - unit-tests
       - component-view-tests
@@ -1700,9 +1907,19 @@ jobs:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     needs:
       - get_requirements
       - check-diff
@@ -1721,14 +1938,14 @@ jobs:
       - appium-smoke-tests-ios
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           sparse-checkout: |
             .github/actions/ci-status-gate
 
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -1745,10 +1962,20 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
     # Only run this job if the merge group event fails, skip on forks
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name == 'merge_group' && failure() }}
+    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:
