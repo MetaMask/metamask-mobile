@@ -137,6 +137,13 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           );
         case 'lost_today':
           return localizedText.lostTodayDescription;
+        // No day-close verdict exists off the scored set, so there is nothing
+        // truthful to promise or warn about. Deliberately silent rather than
+        // reusing the shortfall copy: `qualifyingDepositsUsd` may already
+        // cover the threshold, which rendered as "Add $0 today to earn
+        // today's entry". The figure and entry count above still show.
+        case 'not_scored':
+          return null;
         default:
           return null;
       }
