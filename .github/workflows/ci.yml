@@ -1542,7 +1542,7 @@ jobs:
       id-token: write
       # Required to download e2e-timings-${{ github.run_id }} for timing-balanced shards.
       actions: read
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings]
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1560,6 +1560,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   appium-smoke-tests-ios:
@@ -1615,6 +1616,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema

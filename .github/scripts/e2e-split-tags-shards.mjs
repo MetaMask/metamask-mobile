@@ -5,22 +5,28 @@
  * 1) Find smoke-appium specs matching TEST_SUITE_TAG
  * 2) Split across TOTAL_SPLITS via LPT bin-pack when e2e_test_times exist,
  *    otherwise equal-count alphabetical slicing
- * 3) Write SPEC_FILES (space-separated) to GITHUB_OUTPUT for Playwright
+ * 3) On workflow re-runs, skip passed specs (Playwright JSON / shard-status)
+ * 4) On PRs, duplicate changed specs (*-retry-1.spec.*) for flakiness detection
+ * 5) Write SPEC_FILES to GITHUB_OUTPUT for Playwright
  *
- * Shard *count* stays in the smoke workflow matrix (split / total_splits).
- * Playwright execution stays in run-appium-e2e-workflow.yml.
+ * Also: `node e2e-split-tags-shards.mjs --write-shard-status [prevDir] [report] [out]`
+ * merges pass/fail across re-runs into shard-status.json.
  *
- * Env:
- *   PLATFORM, TEST_SUITE_TAG, SPLIT_NUMBER, TOTAL_SPLITS
- *   BASE_DIR (default: tests/smoke-appium)
- *   E2E_TIMINGS_PATH (frozen timings preferred)
- *   GITHUB_TOKEN / REPOSITORY (live qa-stats fallback)
+ * Env (select mode):
+ *   PLATFORM, TEST_SUITE_TAG, SPLIT_NUMBER, TOTAL_SPLITS, BASE_DIR
+ *   E2E_TIMINGS_PATH, GITHUB_TOKEN, REPOSITORY
+ *   PR_NUMBER, CHANGED_SPEC_FILES, RUN_ATTEMPT, PREVIOUS_RESULTS_PATH
  */
 
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import {
+  computeShardingSplit,
+  binPackShards,
+  planShards,
+} from './shared/e2e-timing-shards.mjs';
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
@@ -28,8 +34,12 @@ const env = {
   PLATFORM: (process.env.PLATFORM || 'android').toLowerCase(),
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
   TOTAL_SPLITS: Number(process.env.TOTAL_SPLITS || '1'),
+  PR_NUMBER: process.env.PR_NUMBER || '',
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
+  CHANGED_SPEC_FILES: process.env.CHANGED_SPEC_FILES || '',
+  RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
+  PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
   E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || './e2e-timings.json',
 };
 
@@ -37,20 +47,287 @@ const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
 const QA_STATS_ARTIFACT_NAME = 'qa-stats';
 const QA_STATS_JSON_FILENAME = 'qa-stats.json';
 
-function timingLookupKey(filePath) {
-  return filePath.split(path.sep).join('/');
+/** Playwright JSON paths are relative to tests/smoke-appium; normalize to repo-relative. */
+function normalizeAppiumSpecPath(filePath) {
+  const normalized = String(filePath || '').replace(/\\/g, '/').replace(/^\.\//, '');
+  const marker = 'tests/smoke-appium/';
+  const idx = normalized.indexOf(marker);
+  if (idx !== -1) return normalized.slice(idx);
+  if (normalized.endsWith('.spec.ts') || normalized.endsWith('.spec.js')) {
+    return `${marker}${normalized}`;
+  }
+  return normalized;
+}
+
+function extractFromPlaywrightJson(report) {
+  const byFile = new Map();
+  const visit = (suites) => {
+    for (const suite of suites || []) {
+      for (const spec of suite.specs || []) {
+        const raw = spec.file || suite.file;
+        if (!raw || !String(raw).includes('.spec.')) continue;
+        const filePath = normalizeAppiumSpecPath(raw);
+        if (!byFile.has(filePath)) byFile.set(filePath, { failed: false });
+        for (const test of spec.tests || []) {
+          if (test.status === 'unexpected') byFile.get(filePath).failed = true;
+        }
+      }
+      visit(suite.suites);
+    }
+  };
+  visit(report?.suites);
+
+  const executed = [...byFile.keys()];
+  const failed = executed.filter((f) => byFile.get(f).failed);
+  const passed = executed.filter((f) => !byFile.get(f).failed);
+  return { passed, failed, executed };
+}
+
+/** Load shard-status.json or playwright-report.json from a file or directory. */
+function loadShardResults(resultsPath) {
+  const empty = { passed: [], failed: [], executed: [] };
+  if (!resultsPath || !fs.existsSync(resultsPath)) return empty;
+
+  const loadFile = (filePath) => {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    if (Array.isArray(parsed?.passed) && Array.isArray(parsed?.failed) && Array.isArray(parsed?.executed)) {
+      return {
+        passed: parsed.passed.map(normalizeAppiumSpecPath),
+        failed: parsed.failed.map(normalizeAppiumSpecPath),
+        executed: parsed.executed.map(normalizeAppiumSpecPath),
+      };
+    }
+    if (parsed?.suites) return extractFromPlaywrightJson(parsed);
+    return null;
+  };
+
+  try {
+    if (fs.statSync(resultsPath).isFile()) return loadFile(resultsPath) || empty;
+    for (const name of ['shard-status.json', 'playwright-report.json']) {
+      const candidate = path.join(resultsPath, name);
+      if (fs.existsSync(candidate)) {
+        const loaded = loadFile(candidate);
+        if (loaded) return loaded;
+      }
+    }
+  } catch (e) {
+    console.warn(`Failed to load shard results from ${resultsPath}: ${e?.message || e}`);
+  }
+  return empty;
+}
+
+function mergeShardStatus(previous, current) {
+  const passed = new Set((previous?.passed || []).map(normalizeAppiumSpecPath));
+  const failed = new Set((previous?.failed || []).map(normalizeAppiumSpecPath));
+  const executed = new Set((previous?.executed || []).map(normalizeAppiumSpecPath));
+
+  for (const filePath of current?.executed || []) {
+    const n = normalizeAppiumSpecPath(filePath);
+    executed.add(n);
+    passed.delete(n);
+    failed.delete(n);
+  }
+  for (const filePath of current?.passed || []) passed.add(normalizeAppiumSpecPath(filePath));
+  for (const filePath of current?.failed || []) failed.add(normalizeAppiumSpecPath(filePath));
+
+  return {
+    passed: [...passed].sort(),
+    failed: [...failed].sort(),
+    executed: [...executed].sort(),
+  };
+}
+
+function writeShardStatus(previousPath, currentReportPath, outputPath) {
+  const current = loadShardResults(currentReportPath);
+  const merged =
+    previousPath && fs.existsSync(previousPath)
+      ? mergeShardStatus(loadShardResults(previousPath), current)
+      : current;
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(
+    outputPath,
+    `${JSON.stringify({ ...merged, updatedAt: new Date().toISOString() }, null, 2)}\n`,
+  );
+  console.log(
+    `shard-status: ${merged.executed.length} executed, ${merged.failed.length} failed, ${merged.passed.length} passed`,
+  );
 }
 
 /**
- * Appium smoke specs under tests/smoke-appium (excludes quarantine).
+ * Appium smoke specs under tests/smoke-appium (excludes quarantine + runtime retry copies).
  * @param {string} filePath
  */
 function isSpecFile(filePath) {
   const segments = filePath.split(path.sep);
+  const base = path.basename(filePath);
   return (
     (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
-    !segments.includes('quarantine')
+    !segments.includes('quarantine') &&
+    !/-retry-\d+\.spec\.(ts|js)$/.test(base)
   );
+}
+
+async function githubGraphql(query, variables = {}) {
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'metamask-mobile-ci',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => 'Unable to read response');
+    throw new Error(
+      `GraphQL request failed: ${res.status} ${res.statusText}\nResponse: ${errorText}`,
+    );
+  }
+
+  const data = await res.json();
+  if (data.errors) {
+    const msg = Array.isArray(data.errors)
+      ? data.errors.map((e) => e.message).join('; ')
+      : String(data.errors);
+    throw new Error(`GraphQL errors: ${msg}`);
+  }
+  return data.data;
+}
+
+/**
+ * Skip PR flakiness detection when unlabeled / non-PR / API failure / skip label.
+ * @returns {Promise<boolean>}
+ */
+async function shouldSkipFlakinessDetection() {
+  if (!env.PR_NUMBER) {
+    return true;
+  }
+
+  const [owner, repo] = env.REPOSITORY.split('/');
+  const prNumber = Number(env.PR_NUMBER);
+
+  try {
+    const data = await githubGraphql(
+      `query($owner:String!, $repo:String!, $number:Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $number) {
+            labels(first: 100) { nodes { name } }
+          }
+        }
+      }`,
+      { owner, repo, number: prNumber },
+    );
+
+    const labels = data?.repository?.pullRequest?.labels?.nodes || [];
+    const labelFound = labels.some(
+      (l) => String(l?.name).toLowerCase() === 'skip-e2e-flakiness-detection',
+    );
+    if (labelFound) {
+      console.log(
+        '⏭️  Found "skip-e2e-flakiness-detection" label → SKIPPING flakiness detection',
+      );
+    }
+    return labelFound;
+  } catch (e) {
+    console.error(`❌ GitHub API call failed: ${e?.message || String(e)}`);
+    return true;
+  }
+}
+
+function computeRetryFilePath(originalPath, retryIndex) {
+  const match = originalPath.match(/^(.*)\.spec\.(ts|js)$/);
+  if (!match) return null;
+  return `${match[1]}-retry-${retryIndex}.spec.${match[2]}`;
+}
+
+function duplicateSpecFile(originalPath) {
+  try {
+    const srcPath = path.resolve(originalPath);
+    if (!fs.existsSync(srcPath)) return;
+    const content = fs.readFileSync(srcPath);
+    const retryRel = computeRetryFilePath(originalPath, 1);
+    if (!retryRel) return;
+    const retryAbs = path.resolve(retryRel);
+    fs.mkdirSync(path.dirname(retryAbs), { recursive: true });
+    if (!fs.existsSync(retryAbs)) {
+      fs.writeFileSync(retryAbs, content);
+      console.log(`🧪 Duplicated for flakiness check: ${retryRel}`);
+    }
+  } catch (e) {
+    console.warn(`⚠️ Failed duplicating ${originalPath}: ${e?.message || e}`);
+  }
+}
+
+function normalizePathForCompare(p) {
+  return path.normalize(
+    path.isAbsolute(p) ? path.relative(process.cwd(), p) : p,
+  );
+}
+
+function getChangedSpecFiles() {
+  const raw = (env.CHANGED_SPEC_FILES || '').trim();
+  if (!raw) return new Set();
+
+  let cleaned = raw;
+  const eqIdx = raw.indexOf('=');
+  if (eqIdx > -1 && /changed_spec_files/i.test(raw.slice(0, eqIdx))) {
+    cleaned = raw.slice(eqIdx + 1).trim();
+  }
+
+  const specFiles = new Set();
+  for (const part of cleaned.split(/\s+/g).map((p) => p.trim()).filter(Boolean)) {
+    if (part.endsWith('.spec.ts') || part.endsWith('.spec.js')) {
+      specFiles.add(path.normalize(part));
+    }
+  }
+  return specFiles;
+}
+
+/**
+ * Duplicate changed Appium specs assigned to this shard so Playwright runs them twice.
+ * @param {string[]} splitFiles
+ * @returns {string[]}
+ */
+function applyFlakinessDetection(splitFiles) {
+  const changedSpecs = getChangedSpecFiles();
+  if (changedSpecs.size === 0) {
+    return splitFiles;
+  }
+
+  const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
+  const duplicatedSet = new Set();
+  for (const changed of changedSpecs) {
+    const normalized = normalizePathForCompare(changed);
+    if (selectedSet.has(normalized)) {
+      duplicateSpecFile(normalized);
+      duplicatedSet.add(normalized);
+    }
+  }
+
+  if (duplicatedSet.size === 0) {
+    console.log(
+      'ℹ️  No changed spec files found for this shard split -> No test retries.',
+    );
+    return splitFiles;
+  }
+
+  const expanded = [];
+  for (const file of splitFiles) {
+    const normalized = normalizePathForCompare(file);
+    expanded.push(file);
+    if (duplicatedSet.has(normalized)) {
+      const retry1 = computeRetryFilePath(normalized, 1);
+      if (retry1) expanded.push(retry1);
+    }
+  }
+
+  console.log(
+    `ℹ️  Duplicated ${duplicatedSet.size} changed file(s) for flakiness detection.`,
+  );
+  return expanded;
 }
 
 function* walk(dir) {
@@ -84,17 +361,6 @@ function findMatchingFiles(baseDir, tag) {
 
   results.sort((a, b) => a.localeCompare(b));
   return Array.from(new Set(results));
-}
-
-function ceilDiv(a, b) {
-  return Math.floor((a + b - 1) / b);
-}
-
-function computeShardingSplit(files, splitNumber, totalSplits) {
-  const filesPerSplit = ceilDiv(files.length, totalSplits);
-  const startIndex = (splitNumber - 1) * filesPerSplit;
-  const endIndex = Math.min(startIndex + filesPerSplit, files.length);
-  return files.slice(startIndex, endIndex);
 }
 
 async function githubRest(url) {
@@ -234,81 +500,24 @@ async function fetchE2ETestTimes() {
   }
 }
 
-function computeMedian(values, fallback = 60) {
-  if (values.length === 0) return fallback;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
-}
-
-function binPackShards(files, timings, platform, splitNumber, totalSplits) {
-  const platformKey = platform === 'ios' ? 'ios' : 'android';
-
-  const getValidDuration = (file) => {
-    const value = timings[timingLookupKey(file)]?.[platformKey];
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-      ? value
-      : undefined;
-  };
-
-  const knownDurations = files
-    .map(getValidDuration)
-    .filter((t) => t !== undefined);
-
-  const medianDuration = computeMedian(knownDurations, 60);
-  const unknownFiles = files.filter((f) => getValidDuration(f) === undefined);
-
-  if (unknownFiles.length > 0) {
-    console.log(
-      `ℹ️  ${unknownFiles.length} file(s) without recorded timing — median fallback ${medianDuration.toFixed(1)}s:`,
-    );
-    unknownFiles.forEach((f) => console.log(`     - ${f}`));
-  }
-
-  const filesWithDuration = files.map((f) => ({
-    file: f,
-    duration: getValidDuration(f) ?? medianDuration,
-  }));
-
-  filesWithDuration.sort((a, b) => b.duration - a.duration);
-
-  const shards = Array.from({ length: totalSplits }, (_, i) => ({
-    index: i + 1,
-    files: [],
-    totalDuration: 0,
-  }));
-
-  for (const { file, duration } of filesWithDuration) {
-    const lightest = shards.reduce(
-      (min, s) => (s.totalDuration < min.totalDuration ? s : min),
-      shards[0],
-    );
-    lightest.files.push(file);
-    lightest.totalDuration += duration;
-  }
-
-  console.log(`\n📊 Estimated shard durations (${platformKey}, ${totalSplits} shards):`);
-  for (const shard of shards) {
-    const totalSec = Math.round(shard.totalDuration);
-    const mins = Math.floor(totalSec / 60);
-    const secs = totalSec % 60;
-    const marker = shard.index === splitNumber ? ' ← this runner' : '';
-    console.log(
-      `   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`,
-    );
-  }
-
-  const thisShard = shards.find((s) => s.index === splitNumber);
-  return thisShard ? thisShard.files : [];
-}
-
 async function selectShardFiles(files, splitNumber, totalSplits, platform) {
   const timings = await fetchE2ETestTimes();
 
   if (timings && Object.keys(timings).length > 0) {
     console.log('⏱️  Time-based sharding (from qa-stats / frozen timings)');
+    const shards = planShards(files, timings, platform, totalSplits);
+    console.log(
+      `\n📊 Estimated shard durations (${platform === 'ios' ? 'ios' : 'android'}, ${totalSplits} shards):`,
+    );
+    for (const shard of shards) {
+      const totalSec = Math.round(shard.totalDuration);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      const marker = shard.index === splitNumber ? ' ← this runner' : '';
+      console.log(
+        `   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`,
+      );
+    }
     return binPackShards(files, timings, platform, splitNumber, totalSplits);
   }
 
@@ -342,11 +551,16 @@ async function main() {
   console.log(
     `Selecting Appium specs for ${env.TEST_SUITE_TAG} shard ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (${env.PLATFORM})`,
   );
+  console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
   const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
   console.log(
     `Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`,
   );
+
+  if (allMatches.length === 0) {
+    throw new Error(`❌ No Appium specs found containing tag: ${env.TEST_SUITE_TAG}`);
+  }
 
   const splitFiles = await selectShardFiles(
     allMatches,
@@ -354,21 +568,98 @@ async function main() {
     env.TOTAL_SPLITS,
     env.PLATFORM,
   );
+  let runFiles = [...splitFiles];
+
+  if (runFiles.length === 0) {
+    console.log(
+      `⚠️  No specs for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} file(s), ${env.TOTAL_SPLITS} runners).`,
+    );
+    appendGithubOutput('spec_files', '');
+    appendGithubOutput('spec_count', '0');
+    return;
+  }
+
+  // Re-runs: skip files that fully passed previously (Playwright JSON / shard-status).
+  if (env.RUN_ATTEMPT > 1 && env.PREVIOUS_RESULTS_PATH) {
+    console.log(
+      `\n🔄 Re-run detected (attempt ${env.RUN_ATTEMPT}), filtering to failed/not-executed specs...`,
+    );
+
+    const { passed, failed, executed } = loadShardResults(env.PREVIOUS_RESULTS_PATH);
+
+    if (executed.length === 0) {
+      console.log(
+        '⚠️  No previous Appium results found — running all specs in this shard.',
+      );
+    } else {
+      const passedSet = new Set(passed.map(normalizeAppiumSpecPath));
+      const testsToRerun = splitFiles.filter(
+        (testPath) => !passedSet.has(normalizeAppiumSpecPath(testPath)),
+      );
+
+      const failedSet = new Set(failed.map(normalizeAppiumSpecPath));
+      const failedInChunk = testsToRerun.filter((t) =>
+        failedSet.has(normalizeAppiumSpecPath(t)),
+      ).length;
+      const notExecutedInChunk = testsToRerun.length - failedInChunk;
+
+      console.log(
+        `Previous run: ${passed.length} passed, ${failed.length} failed`,
+      );
+      console.log(
+        `This chunk: ${failedInChunk} failed, ${notExecutedInChunk} not executed`,
+      );
+
+      if (testsToRerun.length > 0) {
+        console.log(
+          `\n🔁 Re-running ${testsToRerun.length} specs (${failedInChunk} failed, ${notExecutedInChunk} not executed):`,
+        );
+        testsToRerun.forEach((t) => console.log(`  - ${t}`));
+        runFiles = testsToRerun;
+      } else {
+        console.log('✅ All specs in this shard passed previously — skipping.');
+        appendGithubOutput('spec_files', '');
+        appendGithubOutput('spec_count', '0');
+        return;
+      }
+    }
+  }
+
+  // PR flakiness: run changed specs twice via *-retry-1.spec.* copies (attempt 1 only).
+  if (env.RUN_ATTEMPT === 1) {
+    const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
+    if (!shouldSkipFlakinessGate) {
+      runFiles = applyFlakinessDetection(runFiles);
+    }
+  }
 
   console.log(
-    `\n🧪 ${splitFiles.length} spec file(s) for this shard (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`,
+    `\n🧪 ${runFiles.length} spec file(s) for this shard (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`,
   );
-  for (const file of splitFiles) {
+  for (const file of runFiles) {
     console.log(`  - ${file}`);
   }
 
-  appendGithubOutput('spec_files', splitFiles.join(' '));
-  appendGithubOutput('spec_count', String(splitFiles.length));
+  appendGithubOutput('spec_files', runFiles.join(' '));
+  appendGithubOutput('spec_count', String(runFiles.length));
 }
 
 if (process.argv[1]?.endsWith('e2e-split-tags-shards.mjs')) {
-  main().catch((error) => {
-    console.error('\n❌ Unexpected error:', error);
-    process.exit(1);
-  });
+  if (process.argv[2] === '--write-shard-status') {
+    try {
+      writeShardStatus(
+        process.argv[3] || '',
+        process.argv[4] || 'tests/test-reports/playwright-json/playwright-report.json',
+        process.argv[5] || 'tests/test-reports/playwright-json/shard-status.json',
+      );
+    } catch (error) {
+      console.error('\n❌ Failed to write shard status:', error);
+      process.exit(1);
+    }
+  } else {
+    main().catch((error) => {
+      console.error('\n❌ Unexpected error:', error);
+      process.exit(1);
+    });
+  }
 }
