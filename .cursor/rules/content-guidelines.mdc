@@ -1,0 +1,305 @@
+---
+description: MetaMask content design rules for user-facing strings — capitalization, punctuation, tone, terminology, and per-component patterns
+globs: locales/**/*.json,app/**/*.{tsx,ts},app/component-library/**/*.{stories.tsx,constants.ts}
+alwaysApply: false
+---
+
+# Content guidelines
+
+> Source of truth: MetaMask Content Design Style Guide (internal). This rule encodes the decisions from that guide for AI-assisted development.
+
+---
+
+## Capitalization
+
+**Default: sentence case.** Capitalize only the first word of a string and any words that qualify as exceptions below.
+
+### ✅ Title case is correct for
+
+| Category | Examples |
+|----------|---------|
+| Special terms | Secret Recovery Phrase, Private Key |
+| MetaMask product names | MetaMask, MetaMask Card, Metal Card, Virtual Card, Snaps, Perps, Predictions, Rewards (the product) |
+| Other proper nouns | Ethereum, OpenSea, Ledger, Apple, Google, Consensys |
+| Network names | Ethereum Mainnet, Polygon Mainnet, Arbitrum One |
+| Abbreviations | NFT, API, DAO, DeFi, ETH, BTC, SOL |
+
+### ❌ Title case is wrong for
+
+Everything else — including titles, subtitles, button labels, menu items, settings labels, section headers, screen headers, tags, and feature names that are not trademarked.
+
+```
+❌ "Turn on Device Authentication"
+✅ "Turn on device authentication"
+
+❌ "Enable NFT Autodetection"
+✅ "Turn on NFT autodetection"   ← NFT stays caps; "autodetection" does not
+
+❌ "Sample Banner Alert Title"
+✅ "Sample banner alert title"
+
+❌ "Start Trading"
+✅ "Start trading"
+```
+
+---
+
+## Punctuation
+
+### Periods
+
+Use a period when the string is a **complete sentence**. Do not use a period on labels, headings, button text, tags, tab labels, or any string that is not a complete sentence.
+
+```
+✅ "Your transaction couldn't be completed, so it was canceled."  ← body copy, complete sentence
+✅ "Network fee"                                                   ← label, no period
+✅ "Turn on notifications"                                         ← button, no period
+❌ "Network fee."
+❌ "Turn on notifications."
+❌ "Incorrect password. Try again"  ← second sentence needs a period too
+✅ "Incorrect password. Try again."
+```
+
+**Never** use a period after "Learn more" as a link label.
+
+### Exclamation points
+
+Use sparingly — only for genuinely exciting moments (new feature announcements). Never in errors, alerts, or confirmations.
+
+```
+❌ "Done!"   ❌ "Complete!"   ❌ "Error!"
+✅ "The Ethereum Merge is here!"  ← rare, high-impact
+```
+
+### Ellipsis
+
+Only in address abbreviations (`0x0000...0000`) and loading/in-progress states. Do not use to trail off a sentence.
+
+```
+✅ "Turning on notifications..."   ← loading state
+✅ "0x0000...0000"                 ← address format
+❌ "Are you sure you want to proceed…"
+```
+
+### Ampersands
+
+Never use `&` when "and" works. Never use `+` in place of either.
+
+```
+❌ "Security & privacy"
+✅ "Security and privacy"
+```
+
+### Commas
+
+Use the serial (Oxford) comma in lists of three or more.
+
+```
+✅ "Tokens, NFTs, and DeFi"
+❌ "Tokens, NFTs and DeFi"
+```
+
+### Colons
+
+Do not use colons in labels or headings. Use sparingly in body copy.
+
+---
+
+## Per-component rules
+
+### Buttons
+- Sentence case, 1–3 words, imperative verb first
+- No punctuation
+- `loadingText` uses ellipsis: `"Turning on..."`
+
+```
+✅ "Turn on"  ✅ "Save"  ✅ "Turn on notifications"
+❌ "Turn On Notifications"  ❌ "Submit."  ❌ "Click to continue"
+```
+
+### Form labels (`Label`)
+- Sentence case
+- No colon, no period
+
+### Placeholders (`TextField`, `TextFieldSearch`)
+- Sentence case
+- Imperative verb starters: "Enter", "Search"
+- Ellipsis only for genuinely open-ended input; prefer specificity
+
+```
+✅ "Search tokens, sites, URLs"
+✅ "Enter amount"
+❌ "Enter Amount..."
+```
+
+### Help text / error text (`HelpText`)
+- Sentence case
+- Full sentences end with a period; short phrases do not
+- Errors: say what happened, then what to do. No "Error:" prefix.
+
+```
+✅ "Incorrect password. Try again."
+❌ "Error: You entered an invalid password."
+```
+
+### Banners (`BannerAlert`, `BannerTip`)
+- `title`: sentence case, no period
+- `description`: sentence case, period if complete sentence
+- `actionButtonProps.label`: sentence case, no period
+
+### Toast
+- Sentence case throughout
+- Label segments combine into one sentence ending with a period: `"Added"` + bold `"Mainnet"` + `" network."`
+- `description`: full sentence, period
+- Link button label: sentence case, no period, no exclamation point
+
+### Modals (`ModalConfirmation`, `ModalMandatory`)
+- `title`: sentence case, no period
+- `description` / body: sentence case, period
+- Button labels (`cancelLabel`, `confirmLabel`, `buttonText`): sentence case, no period
+- `checkboxText`: sentence case, no period
+
+### Bottom sheets / sheet headers
+- `title`: sentence case, no period
+- Footer button labels: sentence case, no period
+
+### Screen headers (`HeaderBase`, `HeaderRoot`, `HeaderCompactStandard`)
+- Sentence case — confirmed; this includes multi-word screen titles
+- No period
+
+```
+✅ "Account settings"
+❌ "Account Settings"
+```
+
+### Section headers (`SectionHeader`)
+- Sentence case
+- No period
+
+```
+✅ "Your positions"  ✅ "Tokens"
+❌ "Your Positions"
+```
+
+### Tab bar items (`TabBarItem`)
+- Sentence case for regular words; abbreviations follow their own casing
+- No period
+
+```
+✅ "Tokens"  ✅ "NFTs"  ✅ "DeFi"  ✅ "Portfolio"
+```
+
+### Tags (`Tag`, `TagColored`)
+- Sentence case at source — `TagColored` applies `textTransform: uppercase` via CSS, so the source string does not need to be uppercase
+- No period
+
+### Cells (`CellDisplay`, `CellSelect`, `CellMultiSelect`)
+- `tertiaryText`: sentence case, no period (`"Updated 1 sec ago"`)
+- `tagLabel`: sentence case
+
+### List items (`ActionListItem`)
+- `label`: sentence case, no period
+- `description`: sentence case, no period
+
+### Key-value rows (`KeyValueRow`)
+- `field.label.text`: sentence case, no period
+- Tooltip `title`: sentence case, no period
+- Tooltip `content`: full sentence, period
+
+### Accordions
+- `title`: sentence case, no period
+
+### Checkboxes / radio buttons
+- `label`: sentence case, no period
+
+### Empty states (`TabEmptyState`)
+- `description`: sentence case, `"No X found"` pattern, no period
+- `actionButtonText`: sentence case, verb phrase, no period
+
+```
+✅ description: "No perpetual positions found"
+✅ actionButtonText: "Start trading"
+❌ actionButtonText: "Start Trading"
+```
+
+---
+
+## Voice and tone
+
+### Active voice
+
+```
+✅ "We're investigating the problem."
+❌ "The problem is being investigated."
+```
+
+### Point of view
+
+- User's things: **your** (never "my")
+- MetaMask: **we / our**
+- Never first-person singular (I, me, my) for MetaMask
+
+```
+✅ "Connect your accounts"   ✅ "We're here to help"
+❌ "Connect my accounts"     ❌ "I need help"
+```
+
+### Contractions
+
+Use them. They feel more human.
+
+```
+✅ "We're here to help"   ✅ "Don't worry, you can edit this later"
+❌ "We are here to help"  ❌ "Do not worry"
+```
+
+### Words to avoid
+
+| Avoid | Reason | Instead |
+|-------|--------|---------|
+| "successfully" | The success state is the success | "File uploaded" |
+| "please" | UI isn't asking a favor | "Enter a name" |
+| "click here" / "tap to…" | Directional, not descriptive | Name the destination |
+| "!" in errors or system copy | Reads as alarm | Remove it |
+| "fiat" | Confusing to general users | "local currency" |
+| "gas fee" / "gas fees" | Deprecated term | "network fee" / "network fees" |
+| "dapp" | Jargon | "site" (unless technical context) |
+| "native currency" | Technical | "network currency" |
+| "token allowance" | Technical | "spending cap" |
+| "cryptocurrency" | Unnecessary | "crypto" |
+| "coins" | Imprecise | "tokens" |
+| "delete wallet" | Alarming | "reset wallet" |
+
+---
+
+## Terminology reference
+
+| Use | Not |
+|-----|-----|
+| Secret Recovery Phrase | seed phrase, SRP (never abbreviate in product) |
+| network fee | gas fee, gas fees |
+| network currency | native currency |
+| spending cap | token allowance |
+| site | dapp (unless writing for technical audience) |
+| crypto | cryptocurrency |
+| tokens | coins |
+| reset wallet | delete wallet, erase wallet |
+| local currency | fiat |
+| smart account | smart contract account |
+| back up (verb) / backup (noun) | — |
+| MetaMask Card | MetaMask card |
+| card (lowercase) | Card (when referring to the physical/virtual card, not the product name) |
+| Snaps | snaps, SNAPS, dApps (when referring to the MetaMask Snaps platform) |
+| Perps (product) / perps (generic) | — |
+| Predictions (product) / predictions (generic) | — |
+| Rewards (product) / rewards (generic) | — |
+
+### Date and number formatting
+
+- Dates: `Jun 16 at 5:55 p.m.` — never ordinals (no "16th"), never 24-hour time
+- Day abbreviations: Mon, Tue, Wed, Thu, Fri, Sat, Sun
+- Month abbreviations: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
+- Large amounts: `$500K`, `$20M`, `$100B` — always uppercase letter
+- Number ranges: `1-20` (hyphen, no spaces)
+- Addresses: `0x0000...0000`
+- Decimals: comma as separator (`100,000`) — localization handles regional variants
