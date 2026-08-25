@@ -228,6 +228,30 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
+  it('accepts fresh resume deliveries when the generation advanced in the background', () => {
+    const { rerender } = renderSession();
+    jest.clearAllMocks();
+
+    act(() => {
+      appState = 'background';
+      appStateListener('background');
+      mockConnectionGeneration += 1;
+      appState = 'active';
+      appStateListener('active');
+    });
+
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockDeliveryRevisions.focusedPrice += 1;
+    mockDeliveryRevisions.candles += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
+  });
+
   it('does not fabricate a numeric offset for a non-applicable section', () => {
     renderSession({
       ...resolvedSections,
@@ -351,7 +375,7 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
-  it('restarts only the section session for a configuration change', () => {
+  it('restarts Live and Session for a configuration change', () => {
     const { result, rerender } = renderSession();
     const initialLiveResetKey = result.current.liveResetKey;
     jest.clearAllMocks();
@@ -362,7 +386,7 @@ describe('usePerpsMarketDetailSession', () => {
       configurationKey: 'insights-on',
     });
 
-    expect(result.current.liveResetKey).toBe(initialLiveResetKey);
+    expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
     expect(result.current.generationTrigger).toBe('configuration_change');
     expect(trace).toHaveBeenCalledWith(
       expect.objectContaining({
