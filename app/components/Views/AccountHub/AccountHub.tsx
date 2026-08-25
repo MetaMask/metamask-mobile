@@ -138,8 +138,6 @@ const AccountHub = () => {
     ? loadingMessage
     : strings('multichain_accounts.add_wallet');
 
-  // Rendered inside the account list so the avatar, name, and actions scroll
-  // with it rather than staying pinned above a separately scrolling list.
   const listHeader = (
     <>
       <Box

@@ -48,10 +48,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-// The account list pulls a large selector graph that is orthogonal to this
-// screen's wiring; the screen only needs to pass it the right props. The stub
-// renders the header/footer slots because this screen puts its own content
-// there so the whole screen scrolls as one.
 jest.mock(
   '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList',
   () => {
@@ -71,8 +67,6 @@ jest.mock(
 const SELECTED_ACCOUNT = { address: '0xabc123' };
 const SELECTED_GROUP = { id: 'group-1', metadata: { name: 'DeFi Account' } };
 
-// `accountGroup` takes `null` for the no-selection case — passing `undefined`
-// would fall back to the destructuring default.
 const arrangeSelectors = ({
   accountGroup = SELECTED_GROUP,
   unreadCount = 0,
