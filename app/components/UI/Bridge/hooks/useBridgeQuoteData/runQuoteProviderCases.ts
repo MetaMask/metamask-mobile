@@ -14,9 +14,6 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 const mockUseIsInsufficientBalance =
   useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
 
-// const mockValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
-//   typeof useValidateBridgeTx
-// >;
 const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
   typeof useValidateBridgeTx
 >;
@@ -44,9 +41,6 @@ export const runQuoteProviderCases = ({
         .spyOn(quoteUtils, 'shouldRefreshQuote')
         .mockImplementation(jest.fn());
       mockUseIsInsufficientBalance.mockReturnValue(false);
-      // mockValidateBridgeTx.mockImplementation(() => ({
-      //   validateBridgeTx: jest.fn().mockResolvedValue({ status: 'SUCCESS' }),
-      // }));
       mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,

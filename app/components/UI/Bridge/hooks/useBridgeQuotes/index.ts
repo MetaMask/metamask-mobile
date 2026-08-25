@@ -168,17 +168,13 @@ export const useQuoteRequest = ({
    * Updates quote parameters in the bridge controller
    */
   const updateQuoteParams = useCallback(
-    async (
-      options?: UpdateQuoteParamsOptions,
-      params?: GenericQuoteRequest,
-    ) => {
-      const paramsToUse = params ?? quoteRequestParams;
-      if (!paramsToUse) {
+    async (options?: UpdateQuoteParamsOptions) => {
+      if (!quoteRequestParams) {
         return;
       }
 
       const shouldTrace =
-        isValidQuoteRequest(paramsToUse) && Boolean(traceName);
+        isValidQuoteRequest(quoteRequestParams) && Boolean(traceName);
 
       if (options?.traceId && !shouldTrace) {
         swapQuoteFetchTrace.finish('cancelled', options.traceId);
@@ -186,7 +182,7 @@ export const useQuoteRequest = ({
 
       try {
         await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-          paramsToUse,
+          quoteRequestParams,
           context,
           quoteRequestIndex,
           quoteRequestCount,
@@ -213,7 +209,6 @@ export const useQuoteRequest = ({
 
     const debouncedWithTrace = (
       requestOptions: UpdateQuoteParamsOptions = {},
-      quoteRequestParams?: GenericQuoteRequest,
     ) => {
       if (
         !srcToken ||
@@ -239,13 +234,10 @@ export const useQuoteRequest = ({
         swapQuoteFetchTrace.finish('cancelled');
       }
 
-      debounced(
-        {
-          ...requestOptions,
-          traceId,
-        },
-        quoteRequestParams,
-      );
+      debounced({
+        ...requestOptions,
+        traceId,
+      });
     };
 
     debouncedWithTrace.cancel = () => {
@@ -272,8 +264,8 @@ export const useQuoteRequest = ({
   );
 
   const refreshQuotes = useCallback(() => {
-    debouncedUpdateQuoteParams({ isRefresh: true }, quoteRequestParams);
-  }, [debouncedUpdateQuoteParams, quoteRequestParams]);
+    debouncedUpdateQuoteParams({ isRefresh: true });
+  }, [debouncedUpdateQuoteParams]);
 
   return useMemo(
     () => ({

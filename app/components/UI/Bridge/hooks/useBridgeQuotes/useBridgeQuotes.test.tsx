@@ -1,3 +1,4 @@
+import React from 'react';
 import { useBridgeQuotes, BridgeQuotesProvider } from './BridgeQuotesContext';
 import {
   mockContext,
@@ -127,9 +128,9 @@ const Wrapper = ({
       quoteParams={{
         srcAmount: sourceAmount,
         srcToken: sourceToken,
-        destToken: destToken,
-        slippage: slippage,
-        walletAddress: walletAddress,
+        destToken,
+        slippage,
+        walletAddress,
         destWalletAddress: destAddress,
       }}
     >
@@ -143,15 +144,11 @@ runQuoteRequestCases({
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
-      wrapper: ({ children }) => {
-        return (
-          <Wrapper
-            latestSourceAtomicBalance={options?.latestSourceAtomicBalance}
-          >
-            {children}
-          </Wrapper>
-        );
-      },
+      wrapper: ({ children }) => (
+        <Wrapper latestSourceAtomicBalance={options?.latestSourceAtomicBalance}>
+          {children}
+        </Wrapper>
+      ),
     }),
 });
 
@@ -160,14 +157,10 @@ runQuoteDataCases({
   mockDispatch,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes(), {
-      wrapper: ({ children }) => {
-        return (
-          <Wrapper
-            latestSourceAtomicBalance={options?.latestSourceAtomicBalance}
-          >
-            {children}
-          </Wrapper>
-        );
-      },
+      wrapper: ({ children }) => (
+        <Wrapper latestSourceAtomicBalance={options?.latestSourceAtomicBalance}>
+          {children}
+        </Wrapper>
+      ),
     }),
 });

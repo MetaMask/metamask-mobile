@@ -71,6 +71,6 @@ export const useUnifiedSwapBridgeContext = (
       usd_amount_source: usdAmountSource,
       feature_id: featureId ?? FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
-    [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
+    [smartTransactionsEnabled, fromToken, toToken, usdAmountSource, featureId],
   );
 };
