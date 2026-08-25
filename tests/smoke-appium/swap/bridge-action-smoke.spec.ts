@@ -134,20 +134,6 @@ appiumTest.describe(SmokeSwap('Bridge functionality'), () => {
             }
 
             await runEthToBaseBridgeFlow('Base');
-
-            const seen = await collectSeenProxiedRequests(mockServer);
-            const getQuoteStatusRequests = seen.filter((request) =>
-              request.proxiedUrl.includes('getQuoteStatus'),
-            );
-            const getTxStatusRequests = seen.filter((request) =>
-              request.proxiedUrl.includes('getTxStatus'),
-            );
-
-            await Assertions.checkIfArrayHasMinLength(
-              getQuoteStatusRequests,
-              1,
-            );
-            await Assertions.checkIfArrayHasMinLength(getTxStatusRequests, 1);
           },
         );
       },

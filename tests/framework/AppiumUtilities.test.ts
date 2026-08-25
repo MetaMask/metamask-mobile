@@ -1,10 +1,8 @@
-import PlaywrightUtilities, {
-  executeMobileDeepLink,
-} from './PlaywrightUtilities';
+import AppiumUtilities, { executeMobileDeepLink } from './AppiumUtilities';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { setDeviceInfo } from './DeviceInfoCache.ts';
 
-describe('PlaywrightUtilities.launchApp', () => {
+describe('AppiumUtilities.launchApp', () => {
   const executeMock = jest.fn();
   const terminateAppMock = jest.fn();
   // babel's transform-inline-environment-variables bakes process.env reads in at
@@ -55,7 +53,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   });
 
   it('launches Android apps with Appium mobile startActivity intent parameters', async () => {
-    const launchPromise = PlaywrightUtilities.launchApp(androidDevice, {
+    const launchPromise = AppiumUtilities.launchApp(androidDevice, {
       launchArgs: {
         fixtureServerPort: '1234',
       },
@@ -97,7 +95,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   });
 
   it('does not pass Appium stop/wait control flags as Android intent extras', async () => {
-    const launchPromise = PlaywrightUtilities.launchApp(androidDevice, {
+    const launchPromise = AppiumUtilities.launchApp(androidDevice, {
       launchArgs: {
         fixtureServerPort: '1234',
         stop: false,
@@ -132,7 +130,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   });
 
   it('does not pass Appium stop/wait control flags as iOS process arguments', async () => {
-    const launchPromise = PlaywrightUtilities.launchApp(iosDevice, {
+    const launchPromise = AppiumUtilities.launchApp(iosDevice, {
       launchArgs: {
         fixtureServerPort: '5678',
         stop: false,
@@ -195,7 +193,7 @@ describe('PlaywrightUtilities.launchApp', () => {
     globalThis.fetch = fetchMock as unknown as typeof fetch;
 
     try {
-      await PlaywrightUtilities.launchApp(androidDevice);
+      await AppiumUtilities.launchApp(androidDevice);
 
       expect(execSyncMock).toHaveBeenCalledWith(
         'adb -s emulator-5554 reverse tcp:8081 tcp:8081',

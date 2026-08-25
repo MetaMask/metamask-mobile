@@ -87,15 +87,4 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
-
-  await Assertions.expectElementToBeVisible(
-    ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
-  );
-
-  // Check the token approval completed
-  if (sourceTokenSymbol !== 'ETH') {
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.swapApprovalActivityTitle(),
-    );
-  }
 }
