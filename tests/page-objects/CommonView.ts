@@ -4,22 +4,22 @@ import {
   CommonSelectorsIDs,
   CommonSelectorsText,
 } from '../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../framework';
+import { type AppiumElement } from '../framework';
 
 class CommonView {
-  get okAlertByText(): EncapsulatedElementType {
+  get okAlertByText(): Promise<AppiumElement> {
     return Matchers.getElementByText('OK');
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get errorMessage(): EncapsulatedElementType {
+  get errorMessage(): Promise<AppiumElement> {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
 
-  get okAlertButton(): EncapsulatedElementType {
+  get okAlertButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
   }
 
