@@ -92,4 +92,52 @@ describe('buildPostCancellationResetState', () => {
       ),
     ).toBe(false);
   });
+
+  it('keeps nested HomeNav tab state so back from Pro Hub returns to Money', () => {
+    const homeNavNestedState = {
+      index: 0,
+      routes: [
+        {
+          name: Routes.MAIN_FLOW,
+          state: {
+            index: 1,
+            routes: [
+              { name: Routes.WALLET.HOME },
+              { name: Routes.MONEY.HOME },
+            ],
+          },
+        },
+      ],
+    };
+    const homeNavParams = { screen: Routes.MONEY.HOME };
+    const state: NavigationState = {
+      ...createStackState([
+        Routes.ONBOARDING.HOME_NAV,
+        Routes.PRO_HUB.ROOT,
+        Routes.PRO_HUB.CANCEL_MEMBERSHIP,
+      ]),
+      routes: [
+        {
+          key: `${Routes.ONBOARDING.HOME_NAV}-0`,
+          name: Routes.ONBOARDING.HOME_NAV,
+          params: homeNavParams,
+          state: homeNavNestedState,
+        },
+        { key: 'ProHub-1', name: Routes.PRO_HUB.ROOT },
+        {
+          key: 'ProHubCancelMembership-2',
+          name: Routes.PRO_HUB.CANCEL_MEMBERSHIP,
+        },
+      ],
+    };
+
+    const nextState = buildPostCancellationResetState(state);
+
+    expect(nextState.routes?.[0]).toEqual({
+      key: `${Routes.ONBOARDING.HOME_NAV}-0`,
+      name: Routes.ONBOARDING.HOME_NAV,
+      params: homeNavParams,
+      state: homeNavNestedState,
+    });
+  });
 });
