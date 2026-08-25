@@ -50,6 +50,10 @@ import type {
   EarnAssetId,
   EarnExperienceType,
 } from '../../types/earnAssets';
+import { useMoneyOnboardingNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
+import Logger from '../../../../../util/Logger';
+import useEarnToasts from '../../hooks/useEarnToasts';
 
 export interface EarnStrategySelectionViewRouteParams {
   assetId: EarnAssetId;
@@ -105,6 +109,8 @@ const FAQ_URL_BY_EXPERIENCE: Record<EarnExperienceType, string> = {
 };
 
 const EarnStrategySelectionView = () => {
+  const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
+  const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionRoute>();
@@ -118,6 +124,7 @@ const EarnStrategySelectionView = () => {
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { isStakingSupportedChain } = useStakingChain();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const token = useMemo(
     () => (earnAsset ? earnAssetToToken(earnAsset) : undefined),
     [earnAsset],
@@ -145,41 +152,80 @@ const EarnStrategySelectionView = () => {
     tokenMetadata?.ticker ?? tokenMetadata?.symbol ?? tokenMetadata?.name ?? '';
 
   const handleGetStartedPress = useCallback(async () => {
-    if (!selectedStrategy || !earnAsset) return;
+    try {
+      setIsNavigatingToDeposit(true);
 
-    const experienceType = selectedStrategy.experience.type;
+      if (!selectedStrategy || !earnAsset) return;
 
-    if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
-      await initiateDeposit({
-        preferredPaymentToken: getMoneyDepositPaymentToken(earnAsset),
-        intent: 'convert',
-      });
-      return;
-    }
+      const experienceType = selectedStrategy.experience.type;
 
-    if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-      await handleLendingRedirect();
-      return;
-    }
+      if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
+        const preferredPaymentToken = getMoneyDepositPaymentToken(earnAsset);
 
-    if (
-      experienceType === EARN_EXPERIENCES.POOLED_STAKING &&
-      !isStakingSupportedChain
-    ) {
-      await Engine.context.MultichainNetworkController.setActiveNetwork(
-        'mainnet',
+        const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+          postOnboardingRedirect: {
+            type: MoneyPostOnboardingRedirectType.DEPOSIT,
+            preferredPaymentToken,
+          },
+        });
+
+        if (redirectedToOnboarding) {
+          return;
+        }
+
+        try {
+          await initiateDeposit({
+            preferredPaymentToken,
+            intent: 'convert',
+          });
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            '[Money Account] Failed to initiate deposit from token Earn strategy selection view',
+          );
+        }
+      }
+
+      if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+        await handleLendingRedirect();
+        return;
+      }
+
+      if (
+        experienceType === EARN_EXPERIENCES.POOLED_STAKING &&
+        !isStakingSupportedChain
+      ) {
+        await Engine.context.MultichainNetworkController.setActiveNetwork(
+          'mainnet',
+        );
+      }
+
+      if (
+        experienceType === EARN_EXPERIENCES.POOLED_STAKING ||
+        experienceType === EARN_EXPERIENCES.TRX_STAKING
+      ) {
+        navigation.navigate('StakeScreens', {
+          screen: Routes.STAKING.STAKE,
+          params: {
+            token: requireEarnStrategyToken(token),
+          },
+        });
+      }
+    } catch (error) {
+      showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
+      Logger.error(
+        error as Error,
+        '[Earn Strategy Selection View] Failed to navigate to deposit screen for earn asset',
       );
+    } finally {
+      setIsNavigatingToDeposit(false);
     }
-
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: requireEarnStrategyToken(token),
-      },
-    });
   }, [
     earnAsset,
     handleLendingRedirect,
+    redirectToOnboardingIfNeeded,
+    showToast,
+    EarnToastOptions,
     initiateDeposit,
     isStakingSupportedChain,
     navigation,
@@ -337,7 +383,8 @@ const EarnStrategySelectionView = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={!selectedStrategy}
+          isDisabled={!selectedStrategy || isNavigatingToDeposit || isLoading}
+          isLoading={isNavigatingToDeposit}
           onPress={handleGetStartedPress}
           testID="earn-strategy-selection-get-started-button"
         >

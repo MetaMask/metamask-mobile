@@ -19,18 +19,24 @@ import useEarnAssetStrategies, {
 import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRedirect';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
+import { useMoneyOnboardingNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import type {
   EarnAsset,
   EarnAssetId,
   EarnExperienceType,
 } from '../../types/earnAssets';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import {
   LENDING_FAQ_URL,
   MONEY_LANDING_URL,
   POOLED_STAKING_FAQ_URL,
   TRON_STAKING_FAQ_URL,
 } from '../../../../../constants/urls';
+import useEarnToasts, {
+  type EarnToastOptions,
+} from '../../hooks/useEarnToasts';
 import EarnStrategySelectionView, {
   getMoneyDepositPaymentToken,
   requireEarnStrategyToken,
@@ -42,6 +48,8 @@ jest.mock('../../hooks/useEarnAssetStrategies');
 jest.mock('../../hooks/useStablecoinLendingRedirect');
 jest.mock('../../../Stake/hooks/useStakingChain');
 jest.mock('../../../Money/hooks/useMoneyAccount');
+jest.mock('../../../Money/hooks/useMoneyNavigation');
+jest.mock('../../hooks/useEarnToasts');
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -51,6 +59,10 @@ jest.mock('../../../../../core/Engine', () => ({
       },
     },
   },
+}));
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -69,6 +81,10 @@ const mockUseStakingChain = useStakingChain as jest.MockedFunction<
 >;
 const mockUseMoneyAccountDeposit =
   useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
+const mockUseMoneyOnboardingNavigation = jest.mocked(
+  useMoneyOnboardingNavigation,
+);
+const mockUseEarnToasts = jest.mocked(useEarnToasts);
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
@@ -76,6 +92,11 @@ const goBack = jest.fn();
 const navigate = jest.fn();
 const initiateDeposit = jest.fn();
 const lendingRedirect = jest.fn();
+const redirectToOnboardingIfNeeded = jest.fn();
+const showToast = jest.fn<void, [EarnToastOptions]>();
+const navigationToDepositToast = {} as EarnToastOptions;
+const setActiveNetwork =
+  Engine.context.MultichainNetworkController.setActiveNetwork;
 
 const createStrategy = (
   type: EarnExperienceType,
@@ -156,6 +177,9 @@ const createHookResult = (): ReturnType<typeof useEarnAssetStrategies> => ({
 describe('EarnStrategySelectionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    initiateDeposit.mockResolvedValue(undefined);
+    lendingRedirect.mockResolvedValue(undefined);
+    redirectToOnboardingIfNeeded.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({
       goBack,
       navigate,
@@ -174,6 +198,18 @@ describe('EarnStrategySelectionView', () => {
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit,
     });
+    mockUseMoneyOnboardingNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
+      redirectToOnboardingIfNeeded,
+    });
+    mockUseEarnToasts.mockReturnValue({
+      showToast,
+      EarnToastOptions: {
+        earnStrategySelection: {
+          navigationToDeposit: navigationToDepositToast,
+        },
+      },
+    } as unknown as ReturnType<typeof useEarnToasts>);
   });
 
   it('renders every strategy returned for the selected asset', () => {
@@ -269,6 +305,67 @@ describe('EarnStrategySelectionView', () => {
     expect(
       screen.getByTestId('earn-strategy-selection-loading'),
     ).toBeOnTheScreen();
+  });
+
+  it('disables get started while catalogue data resolves', () => {
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      isLoading: true,
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    expect(
+      screen.getByTestId('earn-strategy-selection-get-started-button').props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('shows loading state and disables get started while deposit navigation is pending', async () => {
+    const hookResult = createHookResult();
+    let resolveDeposit: () => void = () => undefined;
+    const depositPromise = new Promise<void>((resolve) => {
+      resolveDeposit = resolve;
+    });
+    initiateDeposit.mockReturnValue(depositPromise);
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...hookResult,
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-strategy:MONEY_ACCOUNT_DEPOSIT')
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+      await Promise.resolve();
+    });
+
+    const button = screen.getByTestId(
+      'earn-strategy-selection-get-started-button',
+    );
+    expect(button.props.accessibilityState?.disabled).toBe(true);
+    expect(button.props.accessibilityState?.busy).toBe(true);
+
+    resolveDeposit();
+    await act(async () => {
+      await depositPromise;
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-selection-get-started-button').props
+          .accessibilityState?.busy,
+      ).not.toBe(true);
+    });
   });
 
   it('returns to the previous screen from the back button', () => {
@@ -379,6 +476,48 @@ describe('EarnStrategySelectionView', () => {
     });
   });
 
+  it('redirects first-time Money users to onboarding instead of initiating deposit', async () => {
+    const hookResult = createHookResult();
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...hookResult,
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+    redirectToOnboardingIfNeeded.mockReturnValue(true);
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-strategy:MONEY_ACCOUNT_DEPOSIT')
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(redirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        preferredPaymentToken: {
+          address:
+            hookResult.asset?.kind === 'held' &&
+            'address' in hookResult.asset.asset
+              ? hookResult.asset.asset.address
+              : undefined,
+          chainId:
+            hookResult.asset?.kind === 'held'
+              ? hookResult.asset.asset.chainId
+              : undefined,
+        },
+      },
+    });
+    expect(initiateDeposit).not.toHaveBeenCalled();
+  });
+
   it('starts lending deposit with the selected asset', async () => {
     mockUseEarnAssetStrategies.mockReturnValue({
       ...createHookResult(),
@@ -403,6 +542,62 @@ describe('EarnStrategySelectionView', () => {
     });
 
     expect(lendingRedirect).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a toast when deposit navigation fails', async () => {
+    const error = new Error('lending redirect failed');
+    lendingRedirect.mockRejectedValueOnce(error);
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      strategies: [
+        createStrategy(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
+      ],
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-lending:usdc').props
+          .accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
+  });
+
+  it('switches pooled staking to mainnet when current chain is unsupported', async () => {
+    mockUseStakingChain.mockReturnValue({
+      isStakingSupportedChain: false,
+    });
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      strategies: [createStrategy(EARN_EXPERIENCES.POOLED_STAKING)],
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          `earn-strategy-card-strategy:${EARN_EXPERIENCES.POOLED_STAKING}`,
+        ).props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(setActiveNetwork).toHaveBeenCalledWith('mainnet');
   });
 
   it.each([EARN_EXPERIENCES.POOLED_STAKING, EARN_EXPERIENCES.TRX_STAKING])(

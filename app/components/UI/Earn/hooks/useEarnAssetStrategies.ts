@@ -3,7 +3,11 @@ import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnStrategyRiskLevel } from '../components/EarnStrategyCard';
-import type { EarnAssetId, EarnExperience } from '../types/earnAssets';
+import type {
+  EarnAssetId,
+  EarnExperience,
+  EarnExperienceType,
+} from '../types/earnAssets';
 import { truncateNumber } from '../utils';
 import { getEarnAssetMetadata } from '../utils/earnAssets';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
@@ -24,36 +28,36 @@ export interface EarnAssetStrategy {
   infoRows: EarnStrategyInfo[];
 }
 
-type StrategyKind = 'money' | 'lending' | 'pooled_staking' | 'trx_staking';
+interface StrategyPresentation {
+  strategyKey: string;
+  infoRowsKey: string;
+  risk: EarnStrategyRiskLevel;
+}
 
-const infoRowsKeyByStrategyKind: Record<StrategyKind, string> = {
-  money: 'money_account',
-  lending: 'lending',
-  pooled_staking: 'pooled_staking',
-  trx_staking: 'trx_staking',
-};
-
-/**
- * Maps an Earn experience type to the strategy content category used by the
- * strategy-selection UI.
- *
- * @param experience - Earn experience to categorize.
- * @returns Strategy content category.
- */
-const getStrategyKind = (experience: EarnExperience): StrategyKind => {
-  if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') return 'money';
-  if (experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-    return 'lending';
-  }
-  if (experience.type === EARN_EXPERIENCES.TRX_STAKING) return 'trx_staking';
-  return 'pooled_staking';
-};
-
-const riskByStrategyKind: Record<StrategyKind, EarnStrategyRiskLevel> = {
-  money: EarnStrategyRiskLevel.Recommended,
-  lending: EarnStrategyRiskLevel.Medium,
-  pooled_staking: EarnStrategyRiskLevel.Low,
-  trx_staking: EarnStrategyRiskLevel.Low,
+const strategyPresentationByExperienceType: Record<
+  EarnExperienceType,
+  StrategyPresentation
+> = {
+  MONEY_ACCOUNT_DEPOSIT: {
+    strategyKey: 'money',
+    infoRowsKey: 'money_account',
+    risk: EarnStrategyRiskLevel.Recommended,
+  },
+  [EARN_EXPERIENCES.STABLECOIN_LENDING]: {
+    strategyKey: 'lending',
+    infoRowsKey: 'lending',
+    risk: EarnStrategyRiskLevel.Medium,
+  },
+  [EARN_EXPERIENCES.POOLED_STAKING]: {
+    strategyKey: 'pooled_staking',
+    infoRowsKey: 'pooled_staking',
+    risk: EarnStrategyRiskLevel.Low,
+  },
+  [EARN_EXPERIENCES.TRX_STAKING]: {
+    strategyKey: 'trx_staking',
+    infoRowsKey: 'trx_staking',
+    risk: EarnStrategyRiskLevel.Low,
+  },
 };
 
 const infoIcons = [IconName.Chart, IconName.Lock, IconName.SecurityTick];
@@ -69,8 +73,8 @@ const getStrategy = (
   experience: EarnExperience,
   assetLabel: string,
 ): EarnAssetStrategy => {
-  const strategyKind = getStrategyKind(experience);
-  const infoRowsKey = infoRowsKeyByStrategyKind[strategyKind];
+  const { strategyKey, infoRowsKey, risk } =
+    strategyPresentationByExperienceType[experience.type];
   const percentage = experience.rate.percentage;
   let title: string;
   if (percentage === undefined) {
@@ -88,28 +92,32 @@ const getStrategy = (
   return {
     id: experience.id,
     experience,
-    risk: riskByStrategyKind[strategyKind],
+    risk,
     title,
     subtitle: strings(
-      `earn.strategy_selection.strategies.${strategyKind}.subtitle`,
+      `earn.strategy_selection.strategies.${strategyKey}.subtitle`,
       { asset: assetLabel },
     ),
     tertiaryText: strings(
-      `earn.strategy_selection.strategies.${strategyKind}.tertiary_text`,
+      `earn.strategy_selection.strategies.${strategyKey}.tertiary_text`,
     ),
     infoRows: infoIcons.flatMap((icon, index) => {
       const rowNumber = index + 1;
       const rowKey = `earn.strategy_selection.info_rows.${infoRowsKey}.row_${rowNumber}`;
+      const isMoneyAccountFirstRow =
+        infoRowsKey === 'money_account' && rowNumber === 1;
+      const textKey =
+        percentage === undefined && isMoneyAccountFirstRow
+          ? `${rowKey}_unavailable`
+          : rowKey;
       return [
         {
           id: `${experience.id}:${rowNumber}`,
           icon,
-          text: strings(
-            rowKey,
+          text:
             percentage === undefined
-              ? undefined
-              : { percentage: truncateNumber(percentage) },
-          ),
+              ? strings(textKey)
+              : strings(textKey, { percentage: truncateNumber(percentage) }),
         },
       ];
     }),
