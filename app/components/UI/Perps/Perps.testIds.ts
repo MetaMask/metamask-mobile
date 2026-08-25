@@ -313,6 +313,14 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
 } as const;
 
+export const PerpsCancelAllOrdersViewSelectorsIDs = {
+  SHEET: 'perps-cancel-all-orders-sheet',
+  TITLE: 'perps-cancel-all-orders-title',
+  DESCRIPTION: 'perps-cancel-all-orders-description',
+  KEEP_BUTTON: 'perps-cancel-all-orders-keep-button',
+  CANCEL_ALL_BUTTON: 'perps-cancel-all-orders-cancel-all-button',
+} as const;
+
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
   TRADINGVIEW_CHART: 'tradingview-chart',
@@ -523,6 +531,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
+  ORDERS_CANCEL_ALL: 'perps-pro-market-orders-cancel-all',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_EDIT: 'perps-pro-market-order-edit',
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
