@@ -75,17 +75,18 @@ const getStrategy = (
 ): EarnAssetStrategy => {
   const { strategyKey, infoRowsKey, risk } =
     strategyPresentationByExperienceType[experience.type];
-  const percentage = experience.rate.percentage;
+  const { rate } = experience;
+  const percentage = rate.status === 'ready' ? rate.percentage : undefined;
   let title: string;
-  if (percentage === undefined) {
+  if (rate.status !== 'ready') {
     title = strings('earn_module.rate_unavailable');
-  } else if (experience.rate.type === 'APY') {
+  } else if (rate.type === 'APY') {
     title = strings('earn_module.rate_apy', {
-      percentage: truncateNumber(percentage),
+      percentage: truncateNumber(rate.percentage),
     });
   } else {
     title = strings('earn_module.rate_apr', {
-      percentage: truncateNumber(percentage),
+      percentage: truncateNumber(rate.percentage),
     });
   }
 

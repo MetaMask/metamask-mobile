@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { EarnStrategyRiskLevel } from '../components/EarnStrategyCard';
 import { EARN_EXPERIENCES } from '../constants/experiences';
-import type { EarnAsset, EarnAssetId } from '../types/earnAssets';
+import type { EarnAsset, EarnAssetId, EarnRate } from '../types/earnAssets';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
 import useEarnAssetStrategies from './useEarnAssetStrategies';
 
@@ -12,6 +12,14 @@ const mockUseEarnAssetCatalogue = useEarnAssetCatalogue as jest.MockedFunction<
 >;
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
+
+const getReadyRatePercentage = (rate: EarnRate): number => {
+  if (rate.status !== 'ready') {
+    throw new Error('Rate is not ready');
+  }
+
+  return rate.percentage;
+};
 
 const createCatalogueResult = (): ReturnType<typeof useEarnAssetCatalogue> => {
   const asset: EarnAsset = {
@@ -93,6 +101,12 @@ describe('useEarnAssetStrategies', () => {
       EarnStrategyRiskLevel.Recommended,
       EarnStrategyRiskLevel.Medium,
     ]);
+  });
+
+  it('narrows ready rates to a numeric percentage', () => {
+    const rate = createCatalogueResult().assets[0].experiences[0].rate;
+
+    expect(getReadyRatePercentage(rate)).toBe(6.2);
   });
 
   it('uses the Money experience rate for the APY info row', () => {

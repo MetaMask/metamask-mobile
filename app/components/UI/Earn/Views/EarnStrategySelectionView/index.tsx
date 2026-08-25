@@ -173,17 +173,10 @@ const EarnStrategySelectionView = () => {
           return;
         }
 
-        try {
-          await initiateDeposit({
-            preferredPaymentToken,
-            intent: 'convert',
-          });
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            '[Money Account] Failed to initiate deposit from token Earn strategy selection view',
-          );
-        }
+        await initiateDeposit({
+          preferredPaymentToken,
+          intent: 'convert',
+        });
       }
 
       if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
