@@ -20,7 +20,7 @@ import {
   renderComponentViewScreen,
   renderScreenWithRoutes,
 } from '../render';
-import { initialStateActivity } from '../presets/activity';
+import { initialStateActivityWithRedesignEnabled } from '../presets/activity';
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import type { ActivityListItem } from '../../../app/util/activity-adapters';
 import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
@@ -146,7 +146,7 @@ function buildActivityState(options: {
     return options.state;
   }
 
-  const builder = initialStateActivity();
+  const builder = initialStateActivityWithRedesignEnabled();
   if (options.overrides) {
     builder.withOverrides(options.overrides);
   }

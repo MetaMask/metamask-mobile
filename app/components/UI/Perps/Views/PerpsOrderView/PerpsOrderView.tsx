@@ -22,6 +22,9 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
   Button as DSButton,
+  ButtonBaseSize,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   TextVariant,
@@ -38,9 +41,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -63,6 +63,7 @@ import {
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { usePayTokenAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -288,6 +289,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
@@ -780,9 +782,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return false;
     }
     const requiredUsd = Number(marginRequired);
-    const balanceUsd = Number(payToken.balanceUsd);
-    return requiredUsd > balanceUsd;
-  }, [hasCustomTokenSelected, marginRequired, payToken]);
+    return requiredUsd > Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, marginRequired, payToken, payTokenBalanceUsd]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -2172,7 +2173,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }
               onPress={() => handlePlaceOrder()}
               isFullWidth
-              size={ButtonSizeRNDesignSystem.Lg}
+              size={ButtonBaseSize.Lg}
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
@@ -2385,6 +2386,7 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { payToken } = useTransactionPayToken();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
   // Get navigation params to pass to context provider
@@ -2399,11 +2401,17 @@ const PerpsOrderView: React.FC = () => {
     defaultMaxLeverage,
   } = route.params || {};
 
+  // `payToken.balanceUsd` is a one-time controller snapshot taken when the
+  // token is selected, so it reads 0 until the next quote refresh whenever the
+  // token's balance was not yet tracked. Because 0 is treated as a real cap
+  // (not "unknown"), that snapshot would zero out the sizing slider. Read the
+  // live wallet balance instead, matching the pay-with row and the blocking
+  // insufficient-balance alert.
   const effectiveAvailableBalance = useMemo(() => {
-    if (!hasCustomTokenSelected) return undefined;
-    const amount = payToken?.balanceUsd;
-    return amount !== undefined ? Number(amount) : undefined;
-  }, [hasCustomTokenSelected, payToken?.balanceUsd]);
+    if (!hasCustomTokenSelected || !payToken) return undefined;
+    const amount = Number(payTokenBalanceUsd);
+    return Number.isFinite(amount) ? amount : undefined;
+  }, [hasCustomTokenSelected, payToken, payTokenBalanceUsd]);
 
   return (
     <PerpsOrderProvider

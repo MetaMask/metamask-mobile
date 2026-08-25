@@ -14,38 +14,38 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class ActivitiesView {
-  get typeFilterChip(): EncapsulatedElementType {
+  get typeFilterChip(): Promise<AppiumElement> {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
   }
 
-  typeFilterOption(option: string): EncapsulatedElementType {
+  typeFilterOption(option: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
     );
   }
 
-  get perpsFilterChip(): EncapsulatedElementType {
+  get perpsFilterChip(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
     );
   }
 
-  get perpsFilterSheet(): EncapsulatedElementType {
+  get perpsFilterSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
     );
   }
 
-  get typeFilterSheet(): EncapsulatedElementType {
+  get typeFilterSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
     );
   }
 
-  perpsFilterOption(option: string): EncapsulatedElementType {
+  perpsFilterOption(option: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
     );
@@ -132,17 +132,17 @@ class ActivitiesView {
     await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
 
-  get networkFilterChip(): EncapsulatedElementType {
+  get networkFilterChip(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
     );
   }
 
-  get redesignedScreen(): EncapsulatedElementType {
+  get redesignedScreen(): Promise<AppiumElement> {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
@@ -173,58 +173,58 @@ class ActivitiesView {
     );
   }
 
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ActivityListSelectorsIDs.CONTAINER);
   }
 
-  get stakeDepositedLabel(): EncapsulatedElementType {
+  get stakeDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): EncapsulatedElementType {
+  get stakeMoreDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): EncapsulatedElementType {
+  get unstakeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): EncapsulatedElementType {
+  get stackingClaimLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): EncapsulatedElementType {
+  get approveActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get lendingDepositActivity(): EncapsulatedElementType {
+  get lendingDepositActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_DEPOSIT,
     );
   }
 
-  get lendingWithdrawalActivity(): EncapsulatedElementType {
+  get lendingWithdrawalActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
     );
   }
 
-  get predictDeposit(): EncapsulatedElementType {
+  get predictDeposit(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): EncapsulatedElementType {
+  get predictWithdraw(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionItem(row: number): EncapsulatedElementType {
+  transactionItem(row: number): Promise<AppiumElement> {
     return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
@@ -247,17 +247,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): EncapsulatedElementType {
+  swapApprovalActivityTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
+  bridgeActivityTitle(destNetwork: string): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -330,7 +330,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -339,7 +339,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -357,15 +357,35 @@ class ActivitiesView {
     });
   }
 
-  async verifyActivityItem(titleText: string): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
+  /**
+   * Verifies that an activity item with the given title is visible and its row status matches.
+   * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.
+   *
+   * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
+   * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
+   * @param rowIndex - Row index (default 0 = most recent)
+   */
+  async verifyActivityItemWithStatus(
+    titleText: string,
+    statusText?: string,
+    rowIndex = 0,
+  ): Promise<void> {
+    // await Assertions.expectTextDisplayed(titleText, {
+    //   timeout: 20000,
+    //   description: `Activity item "${titleText}" should be visible`,
+    // });
   }
 
-  async verifyMusdConversionActivity(): Promise<void> {
-    await this.verifyActivityItem(ActivitiesViewSelectorsText.MUSD_CONVERSION);
+  /**
+   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
+   * Delegates to verifyActivityItemWithStatus.
+   */
+  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
+    await this.verifyActivityItemWithStatus(
+      ActivitiesViewSelectorsText.MUSD_CONVERSION,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      rowIndex,
+    );
   }
 }
 

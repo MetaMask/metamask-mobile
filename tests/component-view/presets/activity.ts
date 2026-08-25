@@ -1262,6 +1262,9 @@ export const initialStateActivityWithLocalTransactions = (
     },
   } as unknown as DeepPartial<RootState>);
 
+export const initialStateActivityWithRedesignEnabled = () =>
+  initialStateActivity();
+
 /** State for ActivityList tests that load EVM history from the accounts API. */
 export const initialStateActivityWithAccountsApi = () =>
   initialStateActivity().withOverrides({

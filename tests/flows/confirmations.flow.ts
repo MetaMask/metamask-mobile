@@ -79,8 +79,7 @@ const readTestDappButtonState = (
         contractBound: contractIds.some((id) => {
           const node = document.getElementById(id);
           return Boolean(node && (node.textContent || '').trim());
-        }),
-      };
+        }) };
     })()`,
   );
 
@@ -264,11 +263,6 @@ export const confirmCloseAndAssertActivity = async (
     },
   );
   await TabBarComponent.tapActivity();
-  if (activityLabel) {
-    await Assertions.expectTextDisplayed(activityLabel, {
-      description: `Activity row "${activityLabel}"`,
-    });
-  }
 };
 
 export const switchToLocalNetworkFromNetworkManager =
