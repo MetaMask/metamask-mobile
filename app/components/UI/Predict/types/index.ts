@@ -492,13 +492,15 @@ export interface GetCryptoPriceHistoryParams {
   variant: string;
   /** Optional end date as ISO 8601 string (omit for live/current data) */
   endDate?: string;
+  /** Chainlink TWAP lookback window when requesting TWAP history */
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
  * A single point from the crypto price history source.
  */
 export interface CryptoPriceHistoryPoint {
-  /** Unix timestamp in seconds */
+  /** Unix timestamp in seconds or milliseconds */
   timestamp: number;
   /** Price value */
   value: number;
@@ -850,6 +852,13 @@ export interface PreviewOrderParams {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+}
+
+export interface PreviewMaxBuyOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  availableBalance: number;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

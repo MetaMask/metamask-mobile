@@ -23,6 +23,9 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsProOrdersPreferences } from './usePerpsProOrdersPreferences';
+export { usePerpsProPositionsPreferences } from './usePerpsProPositionsPreferences';
+export { usePerpsSyncedChartPrice } from './usePerpsSyncedChartPrice';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
@@ -90,6 +93,7 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
+export { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';

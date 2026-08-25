@@ -1508,6 +1508,13 @@ class FixtureBuilder {
     return this;
   }
 
+  withCompletedOnboardingStepper(stepperId: string, totalSteps: number) {
+    merge(this.fixture.state.user, {
+      onboardingStepperProgress: { [stepperId]: totalSteps },
+    });
+    return this;
+  }
+
   /**
    * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState
    * and enables the AnalyticsController.
