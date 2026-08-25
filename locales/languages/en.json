@@ -2491,7 +2491,8 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply",
-      "clear": "Clear"
+      "clear": "Clear",
+      "reset": "Reset"
     },
     "provider_selector": {
       "title": "Select Provider"
