@@ -133,6 +133,7 @@ const ManagePriceAlertsView: React.FC = () => {
         title: strings('price_alerts.fetch_error'),
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
@@ -223,6 +224,7 @@ const ManagePriceAlertsView: React.FC = () => {
           title: strings('price_alerts.delete_success'),
           startAccessory: <Icon name={IconName.Trash} size={IconSize.Lg} />,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
         if (next.length === 0) {
           navigation.goBack();
@@ -232,6 +234,7 @@ const ManagePriceAlertsView: React.FC = () => {
           title: strings('price_alerts.delete_error'),
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
@@ -298,6 +301,7 @@ const ManagePriceAlertsView: React.FC = () => {
           title: strings('price_alerts.toggle_error'),
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
         queryClient.setQueryData(
           queryKey,

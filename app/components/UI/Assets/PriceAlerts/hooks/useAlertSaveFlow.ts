@@ -73,6 +73,7 @@ const useAlertSaveFlow = ({
       }),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, [displayTicker]);
 
@@ -81,6 +82,7 @@ const useAlertSaveFlow = ({
       title: strings('price_alerts.save_error'),
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, []);
 

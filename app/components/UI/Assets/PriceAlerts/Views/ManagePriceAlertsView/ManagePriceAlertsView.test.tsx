@@ -559,6 +559,7 @@ describe('ManagePriceAlertsView', () => {
           expect.objectContaining({
             title: 'Price alert deleted.',
             hasNoTimeout: false,
+            showCloseButton: false,
           }),
         );
       });
@@ -875,6 +876,7 @@ describe('ManagePriceAlertsView', () => {
           title: 'Failed to load price alerts. Please try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });
@@ -897,6 +899,7 @@ describe('ManagePriceAlertsView', () => {
           title: 'Failed to load price alerts. Please try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });
@@ -935,6 +938,7 @@ describe('ManagePriceAlertsView', () => {
           title: 'Failed to delete price alert. Please try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });
@@ -957,6 +961,7 @@ describe('ManagePriceAlertsView', () => {
           title: 'Failed to update price alert. Please try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });

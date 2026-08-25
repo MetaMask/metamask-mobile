@@ -116,6 +116,7 @@ describe('useAlertSaveFlow', () => {
       title: expect.stringContaining('ETH'),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 
@@ -171,6 +172,7 @@ describe('useAlertSaveFlow', () => {
       title: 'Failed to save price alert. Please try again.',
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 
