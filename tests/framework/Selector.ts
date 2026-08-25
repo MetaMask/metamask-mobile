@@ -1,8 +1,6 @@
-import {
-  encapsulated,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
-import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import { encapsulated } from './EncapsulatedElement.ts';
+import type { AppiumElement } from './AppiumElement.ts';
+import AppiumMatchers from './AppiumMatchers.ts';
 
 export type Selector =
   | { testID: string; index?: number }
@@ -24,95 +22,73 @@ export type Selector =
   | { testID: string; iosAppiumTestID: string; index?: number };
 
 /**
- * Moves `encapsulated()` to a single location so page-objects can use declarative Selectors without importing encapsulated() or LocatorConfig.
- * This can also be used in the original Matchers, Assertions, and Gestures methods that currently return DetoxElements to make them cross-framework compatible without page-object changes.
+ * Resolve a declarative Selector to the Appium Element API.
  */
-export function resolve(selector: Selector): EncapsulatedElementType {
+export function resolve(selector: Selector): Promise<AppiumElement> {
   if ('iosAppiumXPath' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
+          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
             exact: true,
           }),
-        ios: () =>
-          PlaywrightMatchers.getElementByXPath(selector.iosAppiumXPath),
+        ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
       },
     });
   }
 
   if ('androidAppiumTestID' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
+          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
             exact: true,
           }),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            selector.iosAppiumTestID,
-          ),
+          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
       },
     });
   }
 
   if ('detoxTestID' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(selector.appiumTestID, {
+          AppiumMatchers.getElementById(selector.appiumTestID, {
             exact: true,
           }),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(selector.appiumTestID),
+          AppiumMatchers.getElementByAccessibilityId(selector.appiumTestID),
       },
     });
   }
 
   if ('iosAppiumTestID' in selector) {
-    const detoxEl = () => {
-      const el = element(by.id(selector.testID));
-      return (selector.index !== undefined
-        ? el.atIndex(selector.index)
-        : el) as unknown as DetoxElement;
-    };
     return encapsulated({
-      detox: detoxEl,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(selector.testID, {
+          AppiumMatchers.getElementById(selector.testID, {
             exact: true,
             index: selector.index,
           }),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            selector.iosAppiumTestID,
-            { index: selector.index },
-          ),
+          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
+            index: selector.index,
+          }),
       },
     });
   }
 
   if ('label' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.label(selector.label)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
+          AppiumMatchers.getElementByAndroidUIAutomator(
             `.description("${selector.label}")`,
             { index: selector.index ?? 0 },
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(selector.label, {
+          AppiumMatchers.getElementByCatchAll(selector.label, {
             index: selector.index ?? 0,
           }),
       },
@@ -121,12 +97,8 @@ export function resolve(selector: Selector): EncapsulatedElementType {
 
   if ('text' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.text(selector.text)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
       appium: () =>
-        PlaywrightMatchers.getElementByText(selector.text, false, {
+        AppiumMatchers.getElementByText(selector.text, false, {
           index: selector.index ?? 0,
         }),
     });
@@ -134,50 +106,31 @@ export function resolve(selector: Selector): EncapsulatedElementType {
 
   if ('textPattern' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.text(selector.textPattern)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
       appium: () =>
-        PlaywrightMatchers.getElementByText(selector.textPattern, false, {
+        AppiumMatchers.getElementByText(selector.textPattern, false, {
           index: selector.index ?? 0,
         }),
     });
   }
 
   if ('testIDPattern' in selector) {
-    const detoxEl = () => {
-      const el = element(by.id(selector.testIDPattern));
-      return (selector.index !== undefined
-        ? el.atIndex(selector.index)
-        : el) as unknown as DetoxElement;
-    };
     return encapsulated({
-      detox: detoxEl,
       appium: () =>
-        PlaywrightMatchers.getElementById(selector.testIDPattern, {
+        AppiumMatchers.getElementById(selector.testIDPattern, {
           index: selector.index,
         }),
     });
   }
 
-  // { testID } — the most common case
-  const detoxEl = () => {
-    const el = element(by.id(selector.testID));
-    return (selector.index !== undefined
-      ? el.atIndex(selector.index)
-      : el) as unknown as DetoxElement;
-  };
   return encapsulated({
-    detox: detoxEl,
     appium: {
       android: () =>
-        PlaywrightMatchers.getElementById(selector.testID, {
+        AppiumMatchers.getElementById(selector.testID, {
           exact: true,
           index: selector.index,
         }),
       ios: () =>
-        PlaywrightMatchers.getElementByAccessibilityId(selector.testID, {
+        AppiumMatchers.getElementByAccessibilityId(selector.testID, {
           index: selector.index,
         }),
     },
@@ -185,10 +138,7 @@ export function resolve(selector: Selector): EncapsulatedElementType {
 }
 
 /**
- * Type guard — returns true when value is a declarative Selector object
- * rather than an EncapsulatedElementType (DetoxElement or Promise<PlaywrightElement>).
- *
- * Used by UnifiedGestures to accept either Selector or EncapsulatedElementType.
+ * Type guard — true when value is a declarative Selector object.
  */
 export function isSelector(value: unknown): value is Selector {
   if (value === null || typeof value !== 'object') return false;

@@ -52,8 +52,6 @@ interface TokensProps {
    * Whether this is the full view (with header and safe area) or tab view
    */
   isFullView?: boolean;
-  /** Source used to attribute full-view analytics events. */
-  analyticsSource?: string;
   /**
    * When true, show only mUSD token positions (for Cash full view).
    * Hides add-token bar and uses cash-specific empty state when empty.
@@ -90,7 +88,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   (
     {
       isFullView = false,
-      analyticsSource,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listHeaderComponent,
@@ -179,7 +176,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             location: 'homepage',
             is_empty: tokenKeysForList.length === 0,
             screen_type: showOnlyMusd ? 'cash' : 'tokens',
-            ...(analyticsSource ? { source: analyticsSource } : {}),
           })
           .build(),
       );
@@ -188,7 +184,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       hasInitialLoad,
       tokenKeysForList.length,
       showOnlyMusd,
-      analyticsSource,
       trackEvent,
       createEventBuilder,
     ]);
