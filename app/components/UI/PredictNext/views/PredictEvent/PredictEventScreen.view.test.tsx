@@ -949,15 +949,14 @@ describe('PredictEventScreen', () => {
       ([action]) => action === 'PredictMarketDataService:getEvent',
     );
     expect(eventCalls).toEqual([
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
     ]);
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
       'ALL',
-      undefined,
     );
   });
 
