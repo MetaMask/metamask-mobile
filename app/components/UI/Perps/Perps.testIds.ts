@@ -371,7 +371,6 @@ export const TradingViewChartSelectorsIDs = {
   WEBVIEW: 'tradingview-chart-webview',
   ERROR_CONTAINER: 'tradingview-chart-error',
   LOADING: 'tradingview-chart-loading',
-  LIMIT_OVERLAY: 'perps-chart-limit-overlay',
 };
 
 // Helper functions for dynamic view selectors
