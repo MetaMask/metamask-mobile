@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
 import {
@@ -410,15 +410,9 @@ export const useCryptoUpDownChartData = (
       ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
     }),
     enabled: enabled && !!symbol && !!historyStartDate,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    onError: () => {
-      consecutivePollFailuresRef.current += 1;
-    },
-    onSuccess: () => {
-      consecutivePollFailuresRef.current = 0;
-    },
     // Only poll while streaming live AND the live stream is not currently
     // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
     // the historical baseline once; while the socket streams real-time ticks the
@@ -431,6 +425,18 @@ export const useCryptoUpDownChartData = (
         ? getHistoricalPollInterval(consecutivePollFailuresRef.current)
         : false,
   });
+
+  useEffect(() => {
+    if (historicalQuery.error) {
+      consecutivePollFailuresRef.current += 1;
+    }
+  }, [historicalQuery.error]);
+
+  useEffect(() => {
+    if (historicalQuery.data) {
+      consecutivePollFailuresRef.current = 0;
+    }
+  }, [historicalQuery.data]);
 
   const historicalData = !hasPriceSourceChanged
     ? (historicalQuery.data ?? EMPTY_DATA)
