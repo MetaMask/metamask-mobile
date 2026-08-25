@@ -440,7 +440,7 @@
     "@sentry/react-native": "patch:@sentry/react-native@npm%3A7.11.0#~/.yarn/patches/@sentry-react-native-npm-7.11.0-a49fbd89e3.patch",
     "@shopify/flash-list": "2.0.2",
     "@solana/addresses": "2.0.0",
-    "@tanstack/react-query": "^4.43.0",
+    "@tanstack/react-query": "^5.101.0",
     "@tommasini/react-native-scrollable-tab-view": "patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
@@ -893,5 +893,27 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/base-data-service": {
+      "type": "non-breaking",
+      "previewVersion": "0.1.3-preview-7cfd8be"
+    },
+    "@metamask/react-data-query": {
+      "type": "non-breaking",
+      "previewVersion": "0.2.2-preview-95f5bf775"
+    },
+    "@metamask/money-account-api-data-service": {
+      "type": "non-breaking",
+      "previewVersion": "0.4.0-preview-7cfd8be"
+    },
+    "@metamask/shield-controller": {
+      "type": "non-breaking",
+      "previewVersion": "6.0.0-preview-7cfd8be"
+    },
+    "@metamask/subscription-controller": {
+      "type": "non-breaking",
+      "previewVersion": "8.0.0-preview-7cfd8be"
+    }
   }
 }
