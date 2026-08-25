@@ -8,6 +8,7 @@ import {
   selectBridgeFeatureFlags,
   selectSlippage,
 } from '../../../../../core/redux/slices/bridge';
+// eslint-disable-next-line import-x/no-restricted-paths
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
