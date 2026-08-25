@@ -1,6 +1,6 @@
 import { type FullConfig } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
-import { createServiceProvider } from '../services';
+import { createServiceProvider } from '../services/providers/factory.ts';
 import { createLogger, LogLevel } from '../logger';
 
 const logger = createLogger({
@@ -18,6 +18,13 @@ function parseProjectNames(): string[] {
   args.forEach((arg, index) => {
     if (arg === '--project') {
       const projectName = args[index + 1];
+      if (projectName) {
+        projects.push(projectName);
+      } else {
+        throw new Error('Project name is required with --project flag');
+      }
+    } else if (arg.startsWith('--project=')) {
+      const projectName = arg.slice('--project='.length);
       if (projectName) {
         projects.push(projectName);
       } else {

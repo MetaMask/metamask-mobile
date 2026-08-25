@@ -167,6 +167,74 @@ test('findMatchingArtifact matches by test name and device', () => {
   assert.equal(match?.data.testName, 'Cold Start Login');
 });
 
+test('findMatchingArtifact keeps providers separate for the same test and device', () => {
+  const artifacts = [
+    {
+      path: '/tmp/standard.json',
+      data: {
+        testName: 'Cold Start Login',
+        cloudProvider: 'testmu-standard',
+        device: { name: 'Pixel 8', osVersion: '14.0' },
+      },
+    },
+    {
+      path: '/tmp/hyperexecute.json',
+      data: {
+        testName: 'Cold Start Login',
+        provider: 'testmu-hyperexecute',
+        device: { name: 'Pixel 8', osVersion: '14.0' },
+      },
+    },
+    {
+      path: '/tmp/browserstack.json',
+      data: {
+        testName: 'Cold Start Login',
+        device: {
+          name: 'Pixel 8',
+          osVersion: '14.0',
+          provider: 'browserstack',
+        },
+      },
+    },
+  ];
+
+  assert.equal(
+    findMatchingArtifact(artifacts, {
+      testName: 'Cold Start Login',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+      cloudProvider: 'testmu-hyperexecute',
+    })?.path,
+    '/tmp/hyperexecute.json',
+  );
+  assert.equal(
+    findMatchingArtifact(artifacts, {
+      testName: 'Cold Start Login',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+      provider: 'browserstack',
+    })?.path,
+    '/tmp/browserstack.json',
+  );
+});
+
+test('findMatchingArtifact falls back to provider-less legacy artifacts', () => {
+  const legacyArtifact = {
+    path: '/tmp/legacy.json',
+    data: {
+      testName: 'Cold Start Login',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+    },
+  };
+
+  assert.equal(
+    findMatchingArtifact([legacyArtifact], {
+      testName: 'Cold Start Login',
+      device: { name: 'Pixel 8', osVersion: '14.0' },
+      cloudProvider: 'testmu-standard',
+    }),
+    legacyArtifact,
+  );
+});
+
 test('buildScenarioComment includes marker and delta table when baseline exists', () => {
   const md = buildScenarioComment({
     testName: 'Cold Start Login',

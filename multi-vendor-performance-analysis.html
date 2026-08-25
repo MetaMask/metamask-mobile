@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Performance E2E · Multi-vendor analysis</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --ink: #172033;
+        --muted: #667085;
+        --line: #e7ebf2;
+        --blue: #2563eb;
+        --green: #15803d;
+        --red: #b42318;
+        --orange: #b54708;
+        --purple: #7c3aed;
+        --teal: #0f766e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+      .wrap { max-width: 1480px; margin: 0 auto; padding: 36px 22px 64px; }
+      .hero {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8 55%, #0f766e);
+        border-radius: 24px;
+        color: #fff;
+        padding: 34px;
+        box-shadow: 0 18px 45px #0f172a33;
+      }
+      .eyebrow {
+        color: #bfdbfe;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-size: 12px;
+      }
+      h1 { font-size: clamp(28px, 4vw, 46px); line-height: 1.08; margin: 10px 0 12px; }
+      h2 { margin: 0 0 14px; font-size: 22px; }
+      h3 { margin: 0 0 8px; font-size: 16px; }
+      .hero p { max-width: 980px; color: #dbeafe; margin: 0; }
+      .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+      .links a {
+        color: #fff;
+        border: 1px solid #ffffff55;
+        border-radius: 999px;
+        padding: 7px 12px;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin: 22px 0;
+      }
+      .card, .section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 5px 18px #1018280a;
+      }
+      .section { margin-top: 18px; overflow: hidden; }
+      .metric { color: var(--muted); font-size: 13px; }
+      .metric strong {
+        display: block;
+        color: var(--ink);
+        font-size: 28px;
+        line-height: 1.15;
+        margin-top: 5px;
+      }
+      .provider { border-top: 4px solid var(--blue); }
+      .provider.sauce { border-color: var(--orange); }
+      .provider.cloud { border-color: var(--teal); }
+      .provider.std { border-color: var(--green); }
+      .provider.he { border-color: var(--purple); }
+      .provider h3 { margin: 0 0 4px; }
+      .provider small { color: var(--muted); }
+      .note {
+        background: #fffaeb;
+        border: 1px solid #fedf89;
+        color: #7a4b00;
+        border-radius: 12px;
+        padding: 13px 15px;
+        margin: 0 0 16px;
+      }
+      .callout {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e3a8a;
+        border-radius: 12px;
+        padding: 13px 15px;
+        margin: 0 0 16px;
+      }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; min-width: 980px; }
+      th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 11px 10px;
+        text-align: left;
+        vertical-align: middle;
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        background: #f8fafc;
+      }
+      tr:last-child td { border-bottom: 0; }
+      td:first-child { min-width: 240px; font-weight: 600; }
+      .pass { color: var(--green); font-weight: 700; }
+      .fail { color: var(--red); font-weight: 700; }
+      .missing { color: var(--orange); font-weight: 700; }
+      .time { display: block; font-variant-numeric: tabular-nums; }
+      .status { display: inline-block; font-size: 11px; margin-top: 2px; }
+      .winner { background: #ecfdf3; }
+      .two { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+      ul { margin: 0; padding-left: 18px; }
+      li { margin: 8px 0; }
+      .bars { display: grid; gap: 10px; }
+      .bar-row { display: grid; grid-template-columns: 150px 1fr 64px; gap: 10px; align-items: center; }
+      .bar-track { height: 12px; background: #eef2f7; border-radius: 999px; overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 999px; }
+      .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
+      @media (max-width: 1100px) {
+        .grid { grid-template-columns: repeat(3, 1fr); }
+        .two { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 700px) {
+        .grid { grid-template-columns: 1fr 1fr; }
+        .wrap { padding: 18px 12px 40px; }
+        .hero { padding: 24px; border-radius: 18px; }
+        .bar-row { grid-template-columns: 1fr; gap: 4px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
+        <h1>Multi-vendor analysis</h1>
+        <p>
+          Cross-provider read of BrowserStack + Sauce Labs Private / Cloud from the same run
+          (<a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" style="color:#fff">32736700431</a>)
+          against TestMu Standard / HyperExecute baselines.
+          First run with <code>enable_browserstack=true</code> alongside both Sauce lanes.
+        </p>
+        <nav class="links">
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" target="_blank">BS + Sauce Private + Cloud</a>
+          <a href="./bs-sauce-run-comparison.html">BS vs Sauce run history</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440" target="_blank">TestMu HE</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32381218479" target="_blank">TestMu Standard</a>
+          <a href="./all-vendors-comparison.html">Vendor timings table</a>
+        </nav>
+      </header>
+
+      <section class="grid">
+        <div class="card"><div class="metric">BrowserStack · passed<strong>20 / 23</strong></div></div>
+        <div class="card"><div class="metric">TestMu HE · passed<strong>18 / 23</strong></div></div>
+        <div class="card"><div class="metric">Sauce Private · passed<strong>17 / 23</strong></div></div>
+        <div class="card"><div class="metric">TestMu Standard · passed<strong>17 / 23</strong></div></div>
+        <div class="card"><div class="metric">Sauce Cloud · passed<strong>16 / 23</strong></div></div>
+      </section>
+
+      <section class="grid">
+        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro+13.0 · 32736700431 · 20/23</small></article>
+        <article class="card provider sauce"><h3>Sauce Private</h3><small>Google_Pixel_7_POC(49|05) · 32736700431 · 17/23</small></article>
+        <article class="card provider cloud"><h3>Sauce Cloud</h3><small>Google Pixel.* · public · 32736700431 · 16/23</small></article>
+        <article class="card provider std"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14 · prior</small></article>
+        <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14 · prior</small></article>
+      </section>
+
+      <section class="section">
+        <h2>1. Reliability ranking</h2>
+        <div class="note">
+          Pass = quality gate passed. QG fail = measured but over threshold.
+          No metrics = scenario failed without usable timers (do not treat as app slowness).
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Passed</th>
+                <th>QG fail</th>
+                <th>No metrics</th>
+                <th>Takeaway</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BrowserStack</td>
+                <td class="pass">20 / 23</td>
+                <td>0</td>
+                <td>3</td>
+                <td>Best same-run pass rate (32736700431)</td>
+              </tr>
+              <tr>
+                <td>TestMu HE</td>
+                <td class="pass">18 / 23</td>
+                <td>1 (Fresh SRP)</td>
+                <td>4</td>
+                <td>Best prior-baseline pass rate</td>
+              </tr>
+              <tr>
+                <td>Sauce Private</td>
+                <td class="pass">17 / 23</td>
+                <td>1 (Cold → Login)</td>
+                <td>5</td>
+                <td>Clears Fresh SRP; stabler than Cloud</td>
+              </tr>
+              <tr>
+                <td>TestMu Standard</td>
+                <td class="pass">17 / 23</td>
+                <td>1 (Fresh SRP)</td>
+                <td>5</td>
+                <td>Close to HE on prior baseline</td>
+              </tr>
+              <tr>
+                <td>Sauce Cloud</td>
+                <td class="pass">16 / 23</td>
+                <td>2</td>
+                <td>5</td>
+                <td>Seedless Google + Cold → Login QG fails</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>2. Speed on shared passing scenarios</h2>
+        <div class="callout">
+          Mean total time across the <strong>11 scenarios that pass with timings on all five providers</strong>.
+          Lower is better.
+        </div>
+        <div class="bars" id="mean-bars"></div>
+        <div class="two" style="margin-top:18px">
+          <div>
+            <h3>Sauce Private pairwise</h3>
+            <ul>
+              <li>vs BrowserStack: Private faster <strong>10–7</strong>, avg Δ <strong>−0.26s</strong></li>
+              <li>vs Sauce Cloud: Cloud faster <strong>10–6</strong>, avg Δ ~<strong>0.00s</strong></li>
+              <li>vs TestMu Standard: Private faster <strong>9–3</strong>, avg Δ <strong>−0.78s</strong></li>
+              <li>vs TestMu HE: HE faster <strong>9–7</strong>, avg Δ <strong>+0.39s</strong> (Private slower)</li>
+            </ul>
+          </div>
+          <div>
+            <h3>BrowserStack / Sauce Cloud</h3>
+            <ul>
+              <li>BS vs Cloud: tied <strong>8–8</strong>, avg Δ <strong>−0.21s</strong> (Cloud slightly faster)</li>
+              <li>Cloud vs TestMu Standard: Cloud faster <strong>7–4</strong>, avg Δ <strong>−0.54s</strong></li>
+              <li>Cloud vs TestMu HE: Cloud faster <strong>9–6</strong>, avg Δ <strong>−0.24s</strong></li>
+              <li>BS vs HE: HE faster <strong>11–7</strong>, avg Δ <strong>−0.15s</strong></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>3. Key scenarios</h2>
+        <div class="note">Green cell = fastest valid timing in the row. F = quality-gate fail · N = no metrics.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>BrowserStack</th>
+                <th>Sauce Private</th>
+                <th>Sauce Cloud</th>
+                <th>TestMu Std</th>
+                <th>TestMu HE</th>
+              </tr>
+            </thead>
+            <tbody id="key-results"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>4. Full scenario matrix</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>BrowserStack</th>
+                <th>Sauce Private</th>
+                <th>Sauce Cloud</th>
+                <th>TestMu Std</th>
+                <th>TestMu HE</th>
+              </tr>
+            </thead>
+            <tbody id="all-results"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>5. Failure patterns</h2>
+        <div class="two">
+          <div>
+            <h3>Shared no-metrics (likely app/flow)</h3>
+            <ul>
+              <li>Money Home · empty wallet</li>
+              <li>Money Home · imported wallet</li>
+              <li>Rewards tab</li>
+            </ul>
+            <p class="foot" style="margin:8px 0 0">These fail across vendors — treat as product/test issues, not provider ranking signal. Perps open/close and Predict Deposit now pass on BrowserStack in run 32736700431 but remain no-metrics on Sauce.</p>
+          </div>
+          <div>
+            <h3>Provider-specific QG / coverage</h3>
+            <ul>
+              <li><strong>Fresh SRP:</strong> passes on BS (7.03s) + both Sauce; still fails on both TestMu baselines</li>
+              <li><strong>Cold → Login:</strong> BS passes (3.71s); both Sauce lanes fail (~5.7–5.8s); HE passes</li>
+              <li><strong>Seedless Google:</strong> Sauce Cloud only QG fail (5.88s)</li>
+              <li><strong>Perps open/close + Predict Deposit:</strong> BS-only timed pass in this run</li>
+              <li><strong>Predict Deposit:</strong> BS 10.83s P; TestMu HE still fastest historically at 9.3s</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>6. Conclusions</h2>
+        <ul>
+          <li><strong>BrowserStack</strong> leads same-run reliability (20/23) and is the only lane measuring Perps open/close + Predict Deposit in 32736700431.</li>
+          <li><strong>TestMu HyperExecute</strong> remains strongest among prior baselines (18/23) and still leads Warm → Login / Asset View historically, but Fresh SRP stays a QG fail.</li>
+          <li><strong>Sauce Private</strong> (17/23) edges Cloud (16/23). Both clear Fresh SRP; Private is the stabler Sauce lane (Cloud adds Seedless Google + Cold → Login fails).</li>
+          <li>On the 11-scenario shared timed-pass set, <strong>Sauce Private has the best mean (3.61s)</strong>, then Cloud (3.89s), BS (4.08s), HE (4.26s), Standard (4.43s).</li>
+          <li>For fair vendor comparison: prefer same-run data (BS + Sauce from 32736700431) and ignore Money Home / Rewards until they stop returning no metrics everywhere.</li>
+        </ul>
+      </section>
+
+      <p class="foot">
+        BrowserStack + Sauce Private + Cloud from run 32736700431 · TestMu HE from 32373754440 · TestMu Standard from prior baseline ·
+        Branch MMQA-TestMu-PoC-HyperExecute · Values in seconds.
+      </p>
+    </main>
+
+    <script>
+      const labels = ["BrowserStack", "Sauce Private", "Sauce Cloud", "TestMu Std", "TestMu HE"];
+      const means = [
+        ["Sauce Private", 3.607, "#b54708"],
+        ["Sauce Cloud", 3.890, "#0f766e"],
+        ["BrowserStack", 4.077, "#2563eb"],
+        ["TestMu HE", 4.262, "#7c3aed"],
+        ["TestMu Standard", 4.430, "#15803d"]
+      ];
+      const maxMean = Math.max(...means.map((m) => m[1]));
+      const bars = document.getElementById("mean-bars");
+      means.forEach(([name, value, color]) => {
+        const pct = (value / maxMean) * 100;
+        bars.insertAdjacentHTML(
+          "beforeend",
+          `<div class="bar-row">
+            <div>${name}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div><strong>${value.toFixed(2)}s</strong></div>
+          </div>`
+        );
+      });
+
+      const keyRows = [
+        ["Fresh SRP wallet creation", [7.03, "P"], [9.111, "P"], [5.902, "P"], [12.985, "F"], [10.272, "F"]],
+        ["Cold Start → Onboarding", [3.133, "P"], [0.549, "P"], [4.16, "P"], [2.266, "P"], [1.699, "P"]],
+        ["Cold Start → Login", [3.713, "P"], [5.835, "F"], [5.707, "F"], [null, "P"], [2.787, "P"]],
+        ["Warm Start → Wallet", [1.387, "P"], [1.372, "P"], [2.329, "P"], [null, "N"], [3.115, "P"]],
+        ["Warm Start → Login", [0.65, "P"], [0.46, "P"], [0.471, "P"], [0.539, "P"], [0.424, "P"]],
+        ["Import SRP +50 accounts", [2.827, "P"], [4.047, "P"], [3.262, "P"], [null, "P"], [3.15, "P"]],
+        ["Aggregated Balance Loading", [8.308, "P"], [9.089, "P"], [8.77, "P"], [8.933, "P"], [8.914, "P"]],
+        ["Asset View", [3.293, "P"], [2.451, "P"], [2.356, "P"], [2.581, "P"], [2.55, "P"]],
+        ["Swap ETH → LINK", [1.408, "P"], [2.121, "P"], [2.477, "P"], [1.919, "P"], [1.905, "P"]],
+        ["Cross-chain swap ETH → SOL", [5.385, "P"], [5.483, "P"], [5.377, "P"], [8.268, "P"], [5.812, "P"]],
+        ["Perps add funds", [6.672, "P"], [5.517, "P"], [5.081, "P"], [8.374, "P"], [7.751, "P"]],
+        ["Perps open position and close it", [13.663, "P"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
+        ["Account creation", [3.202, "P"], [1.697, "P"], [1.66, "P"], [2.723, "P"], [2.826, "P"]],
+        ["Seedless Apple", [4.781, "P"], [5.274, "P"], [4.801, "P"], [4.754, "P"], [8.368, "P"]],
+        ["Seedless Google", [5.776, "P"], [4.806, "P"], [5.877, "F"], [5.156, "P"], [4.292, "P"]],
+        ["Predict Deposit", [10.833, "P"], [null, "N"], [null, "N"], [19.625, "P"], [9.312, "P"]]
+      ];
+
+      const allRows = [
+        ["Cold Start → Onboarding", [3.133, "P"], [0.549, "P"], [4.16, "P"], [2.266, "P"], [1.699, "P"]],
+        ["Fresh SRP wallet creation", [7.03, "P"], [9.111, "P"], [5.902, "P"], [12.985, "F"], [10.272, "F"]],
+        ["Import SRP onboarding +50 accounts", [4.985, "P"], [4.209, "P"], [3.408, "P"], [4.448, "P"], [3.805, "P"]],
+        ["Money Home · empty wallet", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
+        ["Account creation", [3.202, "P"], [1.697, "P"], [1.66, "P"], [2.723, "P"], [2.826, "P"]],
+        ["Money Home · imported wallet", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
+        ["Perps open position and close it", [13.663, "P"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
+        ["Seedless Apple", [4.781, "P"], [5.274, "P"], [4.801, "P"], [4.754, "P"], [8.368, "P"]],
+        ["Seedless Google", [5.776, "P"], [4.806, "P"], [5.877, "F"], [5.156, "P"], [4.292, "P"]],
+        ["Seedless Telegram", [5.765, "P"], [3.73, "P"], [2.101, "P"], [null, "P"], [3.113, "P"]],
+        ["Aggregated Balance Loading", [8.308, "P"], [9.089, "P"], [8.77, "P"], [8.933, "P"], [8.914, "P"]],
+        ["Cross-chain swap ETH → SOL", [5.385, "P"], [5.483, "P"], [5.377, "P"], [8.268, "P"], [5.812, "P"]],
+        ["Asset View", [3.293, "P"], [2.451, "P"], [2.356, "P"], [2.581, "P"], [2.55, "P"]],
+        ["Cold Start → Login", [3.713, "P"], [5.835, "F"], [5.707, "F"], [null, "P"], [2.787, "P"]],
+        ["Swap ETH → LINK", [1.408, "P"], [2.121, "P"], [2.477, "P"], [1.919, "P"], [1.905, "P"]],
+        ["Import SRP +50 accounts", [2.827, "P"], [4.047, "P"], [3.262, "P"], [null, "P"], [3.15, "P"]],
+        ["Warm Start → Wallet", [1.387, "P"], [1.372, "P"], [2.329, "P"], [null, "N"], [3.115, "P"]],
+        ["Perps add funds", [6.672, "P"], [5.517, "P"], [5.081, "P"], [8.374, "P"], [7.751, "P"]],
+        ["Warm Start → Login", [0.65, "P"], [0.46, "P"], [0.471, "P"], [0.539, "P"], [0.424, "P"]],
+        ["Predict Available Balance", [1.067, "P"], [1.59, "P"], [3.149, "P"], [null, "P"], [0.932, "P"]],
+        ["Predict Market Details", [3.027, "P"], [2.827, "P"], [4.226, "P"], [3.928, "P"], [2.826, "P"]],
+        ["Predict Deposit", [10.833, "P"], [null, "N"], [null, "N"], [19.625, "P"], [9.312, "P"]],
+        ["Rewards tab", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]]
+      ];
+
+      function render(tbodyId, rows) {
+        const tbody = document.getElementById(tbodyId);
+        rows.forEach(([name, ...values]) => {
+          const valid = values.map((v) => v[0]).filter((v) => typeof v === "number");
+          const fastest = valid.length ? Math.min(...valid) : null;
+          const cells = values
+            .map(([time, status]) => {
+              const cls = status === "P" ? "pass" : status === "F" ? "fail" : "missing";
+              const text = time === null ? "N/A" : `${Number(time).toFixed(3)} s`;
+              const mark =
+                status === "P"
+                  ? "Quality gate passed"
+                  : status === "F"
+                    ? "Quality gate failed"
+                    : "No metrics";
+              return `<td class="${time === fastest && fastest !== null ? "winner" : ""}"><span class="time ${cls}">${text}</span><span class="status ${cls}">${mark}</span></td>`;
+            })
+            .join("");
+          tbody.insertAdjacentHTML("beforeend", `<tr><td>${name}</td>${cells}</tr>`);
+        });
+      }
+
+      render("key-results", keyRows);
+      render("all-results", allRows);
+    </script>
+  </body>
+</html>

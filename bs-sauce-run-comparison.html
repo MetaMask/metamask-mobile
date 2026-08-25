@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BrowserStack vs Sauce Labs · Run comparison</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #fff;
+        --ink: #172033;
+        --muted: #667085;
+        --line: #e7ebf2;
+        --blue: #2563eb;
+        --orange: #b54708;
+        --teal: #0f766e;
+        --green: #15803d;
+        --red: #b42318;
+        --gray: #98a2b3;
+        --purple: #7c3aed;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+      .wrap { max-width: 100%; margin: 0 auto; padding: 36px 22px 64px; }
+      .hero {
+        background: linear-gradient(135deg, #172554, #2563eb 50%, #b54708);
+        border-radius: 24px;
+        color: #fff;
+        padding: 34px;
+        box-shadow: 0 18px 45px #17255433;
+      }
+      .eyebrow {
+        color: #bfdbfe;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-size: 12px;
+      }
+      h1 { font-size: clamp(26px, 4vw, 44px); line-height: 1.08; margin: 10px 0 12px; }
+      h2 { margin: 0 0 14px; font-size: 21px; }
+      .hero p { max-width: 980px; color: #dbeafe; margin: 0; }
+      .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+      .links a {
+        color: #fff;
+        border: 1px solid #ffffff55;
+        border-radius: 999px;
+        padding: 7px 12px;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .run-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        margin: 22px 0;
+      }
+      .run-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 5px 18px #1018280a;
+      }
+      .run-card h3 { margin: 0 0 6px; font-size: 18px; }
+      .run-meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+      .run-meta a { color: var(--blue); }
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: #f8fafc;
+      }
+      .stat.bs { border-top: 3px solid var(--blue); }
+      .stat.priv { border-top: 3px solid var(--orange); }
+      .stat.cloud { border-top: 3px solid var(--teal); }
+      .stat label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+      .stat strong { display: block; font-size: 22px; margin-top: 4px; }
+      .stat small { color: var(--muted); font-size: 11px; line-height: 1.35; }
+      .section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 22px;
+        margin-top: 18px;
+        overflow: hidden;
+      }
+      .note {
+        background: #fffaeb;
+        border: 1px solid #fedf89;
+        color: #7a4b00;
+        border-radius: 12px;
+        padding: 13px 15px;
+        margin: 0 0 16px;
+      }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; min-width: 900px; }
+      th, td {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: middle;
+      }
+      th {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        background: #f8fafc;
+      }
+      th.group-0 { background: #eff6ff; }
+      th.group-1 { background: #ecfdf3; }
+      th.group-2 { background: #faf5ff; }
+      th.group-3 { background: #fff7ed; }
+      th.delta { background: #fef3f2; }
+      tr:last-child td { border-bottom: 0; }
+      td:first-child { min-width: 220px; font-weight: 600; position: sticky; left: 0; background: var(--card); z-index: 1; }
+      .pass { color: var(--green); font-weight: 700; }
+      .fail { color: var(--red); font-weight: 700; }
+      .missing { color: var(--orange); font-weight: 700; }
+      .skip { color: var(--gray); font-weight: 700; }
+      .time { display: block; font-variant-numeric: tabular-nums; font-size: 13px; }
+      .status { display: block; font-size: 10px; margin-top: 2px; }
+      .delta-pos { color: var(--red); font-weight: 700; font-size: 13px; }
+      .delta-neg { color: var(--green); font-weight: 700; font-size: 13px; }
+      .delta-na { color: var(--gray); font-size: 13px; }
+      .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
+      code { font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
+        <h1>BrowserStack vs Sauce Labs · Run comparison</h1>
+        <p>
+          Track <strong>BrowserStack</strong> and <strong>Sauce Labs</strong> (Private + Cloud) across
+          workflow runs. Edit <code>RUN_ORDER</code>, <code>RUNS</code>, and <code>rows</code> at the
+          bottom of this file to add future executions.
+        </p>
+        <nav class="links" id="run-links"></nav>
+      </header>
+
+      <section class="run-grid" id="run-cards"></section>
+
+      <section class="section">
+        <h2>Scenario matrix</h2>
+        <div class="note" id="bs-note"></div>
+        <div class="table-wrap">
+          <table>
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Run-over-run analysis</h2>
+        <div id="analysis"></div>
+      </section>
+
+      <p class="foot" id="footer"></p>
+    </main>
+
+    <script>
+      /** Order of runs left → right in the table */
+      const RUN_ORDER = ["a", "b", "c", "d"];
+
+      const RUNS = {
+        a: {
+          id: "32707596917",
+          label: "Run A",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917",
+          date: "2026-08-24 08:41 UTC",
+          commit: "e9bc7c6d",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
+          saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 16, qgFail: 1, noMetrics: 6, device: "Google Pixel.*" }
+        },
+        b: {
+          id: "32722078830",
+          label: "Run B",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830",
+          date: "2026-08-24 11:29 UTC",
+          commit: "b43fcdab",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
+          saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 18, qgFail: 0, noMetrics: 5, device: "Google Pixel.*" }
+        },
+        c: {
+          id: "32730868375",
+          label: "Run C",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375",
+          date: "2026-08-24 13:07 UTC",
+          commit: "b43fcdab",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
+          saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 18, qgFail: 0, noMetrics: 5, device: "Google Pixel.*" }
+        },
+        d: {
+          id: "32736700431",
+          label: "Run D (latest · BS enabled)",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431",
+          date: "2026-08-24 14:06 UTC",
+          commit: "d4f96816",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: true, pass: 20, qgFail: 0, noMetrics: 3, device: "Google Pixel 7 Pro+13.0", note: "First run with enable_browserstack=true" },
+          saucePrivate: { pass: 17, qgFail: 1, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google Pixel.*" }
+        }
+      };
+
+      /**
+       * Per scenario: name + per-run triple [browserstack, saucePrivate, sauceCloud]
+       * Each cell: [seconds|null, status P|F|N|—]
+       */
+      const rows = [
+        { name: "Cold Start → Onboarding", a: [[null,"—"],[0.389,"P"],[4.04,"P"]], b: [[null,"—"],[0.63,"P"],[1.714,"P"]], c: [[null,"—"],[2.789,"P"],[0.511,"P"]], d: [[3.133,"P"],[0.549,"P"],[4.16,"P"]] },
+        { name: "Fresh SRP wallet creation", a: [[null,"—"],[8.797,"P"],[8.073,"P"]], b: [[null,"—"],[10.62,"P"],[8.54,"P"]], c: [[null,"—"],[9.238,"P"],[8.945,"P"]], d: [[7.03,"P"],[9.111,"P"],[5.902,"P"]] },
+        { name: "Import SRP onboarding +50", a: [[null,"—"],[4.032,"P"],[3.746,"P"]], b: [[null,"—"],[4.045,"P"],[3.766,"P"]], c: [[null,"—"],[4.142,"P"],[3.612,"P"]], d: [[4.985,"P"],[4.209,"P"],[3.408,"P"]] },
+        { name: "Money Home · empty", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] },
+        { name: "Account creation", a: [[null,"—"],[4.097,"F"],[1.4,"P"]], b: [[null,"—"],[1.883,"P"],[1.278,"P"]], c: [[null,"—"],[1.325,"P"],[1.465,"P"]], d: [[3.202,"P"],[1.697,"P"],[1.66,"P"]] },
+        { name: "Money Home · funded", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] },
+        { name: "Perps open/close", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[13.663,"P"],[null,"N"],[null,"N"]] },
+        { name: "Seedless Apple", a: [[null,"—"],[4.415,"P"],[4.719,"P"]], b: [[null,"—"],[4.45,"P"],[5.279,"P"]], c: [[null,"—"],[4.398,"P"],[5.412,"P"]], d: [[4.781,"P"],[5.274,"P"],[4.801,"P"]] },
+        { name: "Seedless Google", a: [[null,"—"],[5.541,"P"],[2.572,"P"]], b: [[null,"—"],[4.055,"P"],[5.753,"P"]], c: [[null,"—"],[5.594,"P"],[3.76,"P"]], d: [[5.776,"P"],[4.806,"P"],[5.877,"F"]] },
+        { name: "Seedless Telegram", a: [[null,"—"],[5.341,"P"],[5.668,"P"]], b: [[null,"—"],[7.938,"F"],[4.213,"P"]], c: [[null,"—"],[4.795,"P"],[5.132,"P"]], d: [[5.765,"P"],[3.73,"P"],[2.101,"P"]] },
+        { name: "Aggregated Balance", a: [[null,"—"],[8.674,"P"],[9.163,"P"]], b: [[null,"—"],[8.706,"P"],[8.603,"P"]], c: [[null,"—"],[8.665,"P"],[8.86,"P"]], d: [[8.308,"P"],[9.089,"P"],[8.77,"P"]] },
+        { name: "Cross-chain ETH→SOL", a: [[null,"—"],[4.958,"P"],[null,"N"]], b: [[null,"—"],[3.652,"P"],[4.334,"P"]], c: [[null,"—"],[6.311,"P"],[3.1,"P"]], d: [[5.385,"P"],[5.483,"P"],[5.377,"P"]] },
+        { name: "Asset View", a: [[null,"—"],[3.857,"P"],[4.388,"P"]], b: [[null,"—"],[3.769,"P"],[2.272,"P"]], c: [[null,"—"],[4.576,"P"],[2.643,"P"]], d: [[3.293,"P"],[2.451,"P"],[2.356,"P"]] },
+        { name: "Cold Start → Login", a: [[null,"—"],[6.207,"F"],[4.999,"P"]], b: [[null,"—"],[5.929,"F"],[4.696,"P"]], c: [[null,"—"],[5.979,"F"],[4.361,"P"]], d: [[3.713,"P"],[5.835,"F"],[5.707,"F"]] },
+        { name: "Swap ETH→LINK", a: [[null,"—"],[1.846,"P"],[2.228,"P"]], b: [[null,"—"],[1.902,"P"],[1.6,"P"]], c: [[null,"—"],[2.07,"P"],[2.241,"P"]], d: [[1.408,"P"],[2.121,"P"],[2.477,"P"]] },
+        { name: "Import SRP +50", a: [[null,"—"],[3.051,"P"],[15.77,"F"]], b: [[null,"—"],[3.461,"P"],[4.463,"P"]], c: [[null,"—"],[3.9,"P"],[2.912,"P"]], d: [[2.827,"P"],[4.047,"P"],[3.262,"P"]] },
+        { name: "Warm Start → Wallet", a: [[null,"—"],[1.237,"P"],[2.512,"P"]], b: [[null,"—"],[1.186,"P"],[1.088,"P"]], c: [[null,"—"],[3.332,"F"],[1.06,"P"]], d: [[1.387,"P"],[1.372,"P"],[2.329,"P"]] },
+        { name: "Perps add funds", a: [[null,"—"],[5.35,"P"],[5.188,"P"]], b: [[null,"—"],[5.796,"P"],[6.038,"P"]], c: [[null,"—"],[6.022,"P"],[4.968,"P"]], d: [[6.672,"P"],[5.517,"P"],[5.081,"P"]] },
+        { name: "Warm Start → Login", a: [[null,"—"],[0.477,"P"],[1.26,"P"]], b: [[null,"—"],[0.963,"P"],[0.41,"P"]], c: [[null,"—"],[0.928,"P"],[1.026,"P"]], d: [[0.65,"P"],[0.46,"P"],[0.471,"P"]] },
+        { name: "Predict Avail. Balance", a: [[null,"—"],[1.753,"P"],[3.519,"P"]], b: [[null,"—"],[0.885,"P"],[0.926,"P"]], c: [[null,"—"],[0.967,"P"],[1.344,"P"]], d: [[1.067,"P"],[1.59,"P"],[3.149,"P"]] },
+        { name: "Predict Market Details", a: [[null,"—"],[1.768,"P"],[2.554,"P"]], b: [[null,"—"],[1.936,"P"],[1.916,"P"]], c: [[null,"—"],[2.047,"P"],[2.623,"P"]], d: [[3.027,"P"],[2.827,"P"],[4.226,"P"]] },
+        { name: "Predict Deposit", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[10.833,"P"],[null,"N"],[null,"N"]] },
+        { name: "Rewards tab", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] }
+      ];
+
+      function statusClass(s) {
+        if (s === "P") return "pass";
+        if (s === "F") return "fail";
+        if (s === "N") return "missing";
+        return "skip";
+      }
+
+      function statusLabel(s) {
+        if (s === "P") return "QG passed";
+        if (s === "F") return "QG failed";
+        if (s === "N") return "No metrics";
+        return "Not executed";
+      }
+
+      function cellHtml(time, status) {
+        const cls = statusClass(status);
+        const text = time === null ? "N/A" : `${Number(time).toFixed(3)} s`;
+        return `<span class="time ${cls}">${text}</span><span class="status ${cls}">${statusLabel(status)}</span>`;
+      }
+
+      function deltaHtml(a, b) {
+        if (typeof a !== "number" || typeof b !== "number") {
+          return `<span class="delta-na">—</span>`;
+        }
+        const d = b - a;
+        const cls = d > 0 ? "delta-pos" : d < 0 ? "delta-neg" : "delta-na";
+        const sign = d > 0 ? "+" : "";
+        const pct = a ? ` (${sign}${((d / a) * 100).toFixed(1)}%)` : "";
+        return `<span class="${cls}">${sign}${d.toFixed(3)} s${pct}</span>`;
+      }
+
+      function renderLinks() {
+        document.getElementById("run-links").innerHTML = RUN_ORDER
+          .map((k) => {
+            const r = RUNS[k];
+            return `<a href="${r.url}" target="_blank">${r.label} · ${r.id}</a>`;
+          })
+          .join("");
+      }
+
+      function renderRunCards() {
+        const container = document.getElementById("run-cards");
+        RUN_ORDER.forEach((key) => {
+          const run = RUNS[key];
+          const bsText = run.browserstack.executed ? `${run.browserstack.pass} / 23` : "Skipped";
+          const bsDetail = run.browserstack.executed
+            ? `QG fail ${run.browserstack.qgFail} · no metrics ${run.browserstack.noMetrics}`
+            : (run.browserstack.note || "");
+          container.insertAdjacentHTML(
+            "beforeend",
+            `<article class="run-card">
+              <h3>${run.label}</h3>
+              <p class="run-meta">
+                <a href="${run.url}" target="_blank">${run.id}</a> · ${run.date} ·
+                <code>${run.commit}</code>
+              </p>
+              <div class="stats">
+                <div class="stat bs">
+                  <label>BrowserStack</label>
+                  <strong>${bsText}</strong>
+                  <small>${bsDetail}</small>
+                </div>
+                <div class="stat priv">
+                  <label>Sauce Private</label>
+                  <strong>${run.saucePrivate.pass} / 23</strong>
+                  <small>QG fail ${run.saucePrivate.qgFail} · no metrics ${run.saucePrivate.noMetrics}</small>
+                </div>
+                <div class="stat cloud">
+                  <label>Sauce Cloud</label>
+                  <strong>${run.sauceCloud.pass} / 23</strong>
+                  <small>QG fail ${run.sauceCloud.qgFail} · no metrics ${run.sauceCloud.noMetrics}</small>
+                </div>
+              </div>
+            </article>`
+          );
+        });
+      }
+
+      function renderTable() {
+        const anyBs = RUN_ORDER.some((k) => RUNS[k].browserstack.executed);
+        document.getElementById("bs-note").innerHTML = anyBs
+          ? "<strong>BrowserStack</strong> columns populated where the lane was enabled."
+          : "<strong>BrowserStack was not executed</strong> in these runs (<code>enable_browserstack=false</code>). Only Sauce Labs Private + Cloud ran.";
+
+        const deltaPairs = [];
+        for (let i = 1; i < RUN_ORDER.length; i++) {
+          deltaPairs.push({ from: RUN_ORDER[i - 1], to: RUN_ORDER[i] });
+        }
+
+        let headRow1 = `<tr><th rowspan="2">Scenario</th>`;
+        RUN_ORDER.forEach((key, idx) => {
+          headRow1 += `<th colspan="3" class="group-${idx}">${RUNS[key].label}<br><small>${RUNS[key].id}</small></th>`;
+        });
+        deltaPairs.forEach(({ from, to }) => {
+          headRow1 += `<th colspan="2" class="delta">Δ ${RUNS[to].label} − ${RUNS[from].label}</th>`;
+        });
+        headRow1 += `</tr>`;
+
+        let headRow2 = `<tr>`;
+        RUN_ORDER.forEach(() => {
+          headRow2 += `<th class="group-0">BrowserStack</th><th class="group-0">Sauce Private</th><th class="group-0">Sauce Cloud</th>`;
+        });
+        deltaPairs.forEach(() => {
+          headRow2 += `<th class="delta">Private</th><th class="delta">Cloud</th>`;
+        });
+        headRow2 += `</tr>`;
+
+        document.getElementById("table-head").innerHTML = headRow1 + headRow2;
+
+        const tbody = document.getElementById("table-body");
+        rows.forEach((row) => {
+          let html = `<tr><td>${row.name}</td>`;
+          RUN_ORDER.forEach((key) => {
+            const [bs, priv, cloud] = row[key];
+            html += `<td>${cellHtml(bs[0], bs[1])}</td>`;
+            html += `<td>${cellHtml(priv[0], priv[1])}</td>`;
+            html += `<td>${cellHtml(cloud[0], cloud[1])}</td>`;
+          });
+          deltaPairs.forEach(({ from, to }) => {
+            html += `<td>${deltaHtml(row[from][1][0], row[to][1][0])}</td>`;
+            html += `<td>${deltaHtml(row[from][2][0], row[to][2][0])}</td>`;
+          });
+          html += `</tr>`;
+          tbody.insertAdjacentHTML("beforeend", html);
+        });
+      }
+
+      function renderAnalysis() {
+        const bullets = [];
+        const rA = RUNS.a;
+        const rB = RUNS.b;
+        const rC = RUNS.c;
+        const rD = RUNS.d;
+
+        if (rB.sauceCloud.pass > rA.sauceCloud.pass) {
+          bullets.push(`<strong>Sauce Cloud</strong> improved from Run A (${rA.sauceCloud.pass}/23) to Run B/C (${rB.sauceCloud.pass}/23), clearing QG failures including <em>Import SRP +50</em>.`);
+        }
+        bullets.push(`<strong>Run C vs B — Sauce Cloud</strong> stays at 18/23; notable timers: Cold → Onboarding faster (1.71 → 0.51s), Import SRP +50 faster (4.46 → 2.91s), Warm → Wallet faster (1.09 → 1.06s).`);
+        bullets.push(`<strong>Run C vs B — Sauce Private</strong> still 16/23; <em>Seedless Telegram</em> recovered (7.94s F → 4.80s P), but new QG fail on <em>Warm Start → Wallet</em> (3.33s). <em>Cold Start → Login</em> still fails on Private.`);
+
+        if (rD) {
+          bullets.push(`<strong>Run D — first BrowserStack run</strong> (<code>enable_browserstack=true</code>): BS <strong>20/23</strong> on Pixel 7 Pro+13.0. Sauce Private <strong>17/23</strong> (+1 vs C), Sauce Cloud <strong>16/23</strong> (−2 vs C).`);
+          bullets.push(`<strong>Run D — BS-only coverage:</strong> <em>Perps open/close</em> (13.66s P) and <em>Predict Deposit</em> (10.83s P) pass on BrowserStack but remain no-metrics on both Sauce lanes.`);
+          bullets.push(`<strong>Run D — Cold Start → Login:</strong> BS passes at 3.71s; both Sauce lanes still fail (~5.7–5.8s). Largest cross-vendor gap in this run.`);
+          bullets.push(`<strong>Run D vs C — Sauce Private:</strong> score improves 16 → 17/23; <em>Warm Start → Wallet</em> recovers (3.33s F → 1.37s P). Still blocked on <em>Cold Start → Login</em>.`);
+          bullets.push(`<strong>Run D vs C — Sauce Cloud:</strong> drops 18 → 16/23; new QG fail on <em>Seedless Google</em> (5.88s). <em>Cold Start → Login</em> now fails on Cloud too (5.71s).`);
+          bullets.push(`<strong>Run D — shared blockers:</strong> Money Home ×2 and Rewards tab — no metrics on all three providers.`);
+        }
+
+        bullets.push(`<strong>Fresh SRP</strong> passes on all executed lanes in every run (~5–10s depending on vendor/run).`);
+
+        document.getElementById("analysis").innerHTML = `<ul>${bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`;
+        const latest = RUN_ORDER[RUN_ORDER.length - 1];
+        document.getElementById("footer").textContent =
+          `Runs: ${RUN_ORDER.map((k) => RUNS[k].id).join(" · ")} · Branch ${RUNS[latest].branch} · Values in seconds.`;
+      }
+
+      renderLinks();
+      renderRunCards();
+      renderTable();
+      renderAnalysis();
+    </script>
+  </body>
+</html>

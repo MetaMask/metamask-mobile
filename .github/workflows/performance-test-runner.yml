@@ -211,6 +211,7 @@ jobs:
             echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
             echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
+            echo "DISABLE_NETWORK_LOGS=true"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests

@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Performance E2E · Week review · MMQA-TestMu-PoC-HyperExecute</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #fff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #e7ebf2;
+      --blue: #2563eb;
+      --green: #15803d;
+      --red: #b42318;
+      --orange: #b54708;
+      --purple: #7c3aed;
+      --teal: #0f766e;
+      --amber: #b54708;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 32px 20px 72px; }
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a 55%, #5b21b6);
+      color: #fff;
+      border-radius: 22px;
+      padding: 32px;
+      box-shadow: 0 18px 40px #0f172a33;
+    }
+    .eyebrow {
+      color: #c4b5fd;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 10px 0 12px; font-size: clamp(26px, 4vw, 42px); line-height: 1.1; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    h3 { margin: 0 0 10px; font-size: 16px; }
+    .hero p { margin: 0; max-width: 920px; color: #dbeafe; }
+    .banner {
+      margin-top: 18px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .banner strong { color: #7c2d12; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin: 20px 0;
+      align-items: end;
+    }
+    .control {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      min-width: 240px;
+      box-shadow: 0 4px 14px #10182808;
+    }
+    .control label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #f8fafc;
+      color: var(--ink);
+    }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      margin-top: 16px;
+      box-shadow: 0 5px 18px #10182808;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+    .stat label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .stat strong { display: block; margin-top: 4px; font-size: 22px; }
+    .run-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .pill {
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .pill.active { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; font-weight: 700; }
+    .pill.eval { border-color: #fdba74; background: #fff7ed; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      background: #f8fafc;
+    }
+    td:first-child { font-weight: 600; min-width: 200px; }
+    .pass { color: var(--green); font-weight: 700; }
+    .fail { color: var(--red); font-weight: 700; }
+    .missing { color: var(--orange); font-weight: 700; }
+    .skip { color: #98a2b3; font-weight: 700; }
+    .time { display: block; font-variant-numeric: tabular-nums; font-size: 13px; }
+    .status { display: block; font-size: 10px; margin-top: 2px; }
+    .note {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 0 0 14px;
+      font-size: 14px;
+    }
+    .warn {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 0 0 14px;
+      font-size: 14px;
+    }
+    .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+    .vendor-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #f8fafc;
+    }
+    .vendor-card h3 { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-left: 6px;
+    }
+    .badge.ok { background: #dcfce7; color: #166534; }
+    .badge.eval { background: #ffedd5; color: #9a3412; }
+    .badge.base { background: #dbeafe; color: #1d4ed8; }
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    li { margin: 6px 0; }
+    a { color: var(--blue); }
+    .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
+    .spark {
+      display: flex; align-items: flex-end; gap: 4px; height: 48px; margin-top: 10px;
+    }
+    .spark span {
+      flex: 1;
+      background: #c7d2fe;
+      border-radius: 4px 4px 0 0;
+      min-width: 10px;
+      position: relative;
+    }
+    .spark span[title]::after { content: ''; }
+
+    .timing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    .timing-stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+    .timing-stat label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .timing-stat strong { display: block; margin-top: 4px; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .timing-stat small { color: var(--muted); font-size: 11px; }
+    .bar-compare { margin-top: 8px; }
+    .bar-compare .row {
+      display: grid;
+      grid-template-columns: 160px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .bar-compare .track {
+      background: #eef2f7;
+      border-radius: 999px;
+      height: 12px;
+      overflow: hidden;
+    }
+    .bar-compare .fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+    @media (max-width: 700px) {
+      .timing-grid { grid-template-columns: 1fr; }
+      .bar-compare .row { grid-template-columns: 1fr; gap: 4px; }
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
+      <h1>Week review · vendor runs</h1>
+      <p>
+        Manual performance runs on <code>MMQA-TestMu-PoC-HyperExecute</code>
+        from <strong id="window-label"></strong>. Pick a vendor to inspect run-over-run
+        results, then read the cross-vendor comparison and TestMu analysis below.
+        For an at-a-glance view see
+        <a href="./vendor-scoreboard.html" style="color:#fff;text-decoration:underline">vendor-scoreboard.html</a>.
+      </p>
+      <div class="banner">
+        <strong>Sauce Labs is still under evaluation.</strong>
+        Private and Cloud lanes are included for visibility only — scores and timings
+        should not be treated as a finalized vendor decision yet. Early Sauce PoC runs
+        (pre Appium-parity) are intentionally omitted from the scenario tables.
+      </div>
+    </header>
+
+    <div class="controls">
+      <div class="control" style="flex:1.2">
+        <label for="vendor-select">Vendor</label>
+        <select id="vendor-select"></select>
+      </div>
+      <div class="control" style="flex:1.4">
+        <label for="run-select">Run</label>
+        <select id="run-select"></select>
+      </div>
+    </div>
+
+    <section class="section" id="vendor-panel">
+      <div id="vendor-header"></div>
+      <div class="stats" id="vendor-stats"></div>
+      <div class="timing-grid" id="vendor-timing"></div>
+      <div class="run-pills" id="run-pills"></div>
+      <div id="run-note"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Time</th>
+              <th>Quality gate</th>
+            </tr>
+          </thead>
+          <tbody id="scenario-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>General comparison</h2>
+      <div class="note">
+        Latest / best representative scores per vendor inside the review window.
+        Same-run fair compare: <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" target="_blank">32736700431</a>
+        (BrowserStack + Sauce Private + Cloud). TestMu figures come from dedicated HE/Std baselines.
+      </div>
+      <div class="grid2" id="compare-grid"></div>
+      <div class="table-wrap" style="margin-top:18px">
+        <table>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Best pass rate</th>
+              <th>Latest pass rate</th>
+              <th>Runs in view</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="compare-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Job execution speed</h2>
+      <div class="note">
+        Durations come from GitHub Actions job <code>started_at → completed_at</code>.
+        <strong>Test phase</strong> = Onboarding job + Imported Wallet job (the two suite jobs that run the 23 scenarios).
+        Workflow wall-clock can be higher when multiple vendors run in the same workflow.
+      </div>
+      <div class="bar-compare" id="speed-bars"></div>
+      <div class="table-wrap" style="margin-top:18px">
+        <table>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Avg onboarding</th>
+              <th>Avg imported</th>
+              <th>Avg test phase</th>
+              <th>Fastest test phase</th>
+              <th>Slowest test phase</th>
+            </tr>
+          </thead>
+          <tbody id="speed-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap" style="margin-top:18px">
+        <h3>Per-run test phase times</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Run</th>
+              <th>Onboarding</th>
+              <th>Imported</th>
+              <th>Test phase</th>
+              <th>Pass rate</th>
+            </tr>
+          </thead>
+          <tbody id="speed-runs-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>TestMu analysis</h2>
+      <div id="testmu-analysis"></div>
+    </section>
+
+    <section class="section">
+      <h2>Sauce Labs note (under evaluation)</h2>
+      <div class="warn">
+        Sauce Labs Private and Cloud remain <strong>under evaluation</strong>. Appium capability
+        parity with TestMu HE improved Fresh SRP (now often passing ~6–10s), but Cold → Login
+        QG fails and recurring no-metrics on Money Home / Rewards / Perps open-close / Predict Deposit
+        mean Sauce is not yet a stable ranking peer. Prefer TestMu HE + BrowserStack for decisions
+        until Sauce evaluation closes.
+      </div>
+      <ul>
+        <li>Post-parity window (Aug 24): Private 16–17/23 · Cloud 16–18/23.</li>
+        <li>Pre-parity window (Aug 18–19): often &lt;14/23 — not used in scenario tables.</li>
+        <li>Artifact naming collision (private/cloud share names) still requires per-job parsing.</li>
+      </ul>
+    </section>
+
+    <p class="foot" id="footer"></p>
+  </main>
+
+  <script>
+    const DATA = {"rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "generatedAt": "2026-08-25", "branch": "MMQA-TestMu-PoC-HyperExecute", "window": "2026-08-18 → 2026-08-25", "vendors": {"testmu_he": {"name": "TestMu HyperExecute", "status": "evaluated", "color": "#7c3aed", "runs": [{"id": "32373754440", "label": "2026-08-20 13:20 · primary HE baseline", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [1.699, "P"], "Fresh SRP wallet creation": [10.272, "F"], "Import SRP onboarding +50": [3.805, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.826, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [8.368, "P"], "Seedless Google": [4.292, "P"], "Seedless Telegram": [3.113, "P"], "Aggregated Balance": [8.914, "P"], "Cross-chain ETH→SOL": [5.812, "P"], "Asset View": [2.55, "P"], "Cold Start → Login": [2.787, "P"], "Swap ETH→LINK": [1.905, "P"], "Import SRP +50": [3.15, "P"], "Warm Start → Wallet": [3.115, "P"], "Perps add funds": [7.751, "P"], "Warm Start → Login": [0.424, "P"], "Predict Avail. Balance": [0.932, "P"], "Predict Market Details": [2.826, "P"], "Predict Deposit": [9.312, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1013, "importedSec": 1153, "testPhaseSumSec": 2166, "workflowWallSec": 2499}}, {"id": "32366480495", "label": "2026-08-20 11:58", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.152, "P"], "Fresh SRP wallet creation": [9.837, "P"], "Import SRP onboarding +50": [4.062, "P"], "Money Home · empty": [null, "N"], "Account creation": [3.363, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.343, "P"], "Seedless Google": [3.169, "P"], "Seedless Telegram": [3.202, "P"], "Aggregated Balance": [8.527, "P"], "Cross-chain ETH→SOL": [6.906, "P"], "Asset View": [4.273, "P"], "Cold Start → Login": [0.349, "P"], "Swap ETH→LINK": [1.716, "P"], "Import SRP +50": [3.739, "P"], "Warm Start → Wallet": [1.114, "P"], "Perps add funds": [7.53, "P"], "Warm Start → Login": [0.477, "P"], "Predict Avail. Balance": [0.789, "P"], "Predict Market Details": [2.453, "P"], "Predict Deposit": [6.171, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 891, "importedSec": 953, "testPhaseSumSec": 1844, "workflowWallSec": 2152}}, {"id": "32248728966", "label": "2026-08-19 11:40 · HE + Std dual", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.143, "P"], "Fresh SRP wallet creation": [11.209, "F"], "Import SRP onboarding +50": [4.077, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.362, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.624, "P"], "Seedless Google": [3.302, "P"], "Seedless Telegram": [6.526, "P"], "Aggregated Balance": [9.463, "P"], "Cross-chain ETH→SOL": [5.726, "P"], "Asset View": [3.355, "P"], "Cold Start → Login": [0.926, "P"], "Swap ETH→LINK": [1.914, "P"], "Import SRP +50": [3.299, "P"], "Warm Start → Wallet": [0.986, "P"], "Perps add funds": [6.915, "P"], "Warm Start → Login": [0.977, "P"], "Predict Avail. Balance": [1.431, "P"], "Predict Market Details": [3.904, "P"], "Predict Deposit": [8.193, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 956, "importedSec": 1101, "testPhaseSumSec": 2057, "workflowWallSec": 2387}}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.643, "P"], "Fresh SRP wallet creation": [11.591, "F"], "Import SRP onboarding +50": [5.904, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.591, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.358, "P"], "Seedless Google": [3.451, "P"], "Seedless Telegram": [5.758, "P"], "Aggregated Balance": [8.724, "P"], "Cross-chain ETH→SOL": [5.917, "P"], "Asset View": [3.984, "P"], "Cold Start → Login": [0.387, "P"], "Swap ETH→LINK": [1.627, "P"], "Import SRP +50": [2.222, "P"], "Warm Start → Wallet": [0.926, "P"], "Perps add funds": [9.095, "P"], "Warm Start → Login": [0.463, "P"], "Predict Avail. Balance": [1.424, "P"], "Predict Market Details": [2.082, "P"], "Predict Deposit": [7.586, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1025, "importedSec": 1008, "testPhaseSumSec": 2033, "workflowWallSec": 3316}}, {"id": "32249651829", "label": "2026-08-19 11:51", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32249651829", "pass": 16, "qgFail": 2, "noMetrics": 5, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [0.682, "P"], "Fresh SRP wallet creation": [11.801, "F"], "Import SRP onboarding +50": [3.842, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.064, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.622, "P"], "Seedless Google": [3.097, "P"], "Seedless Telegram": [3.255, "P"], "Aggregated Balance": [8.91, "P"], "Cross-chain ETH→SOL": [7.953, "F"], "Asset View": [2.403, "P"], "Cold Start → Login": [0.452, "P"], "Swap ETH→LINK": [1.627, "P"], "Import SRP +50": [3.088, "P"], "Warm Start → Wallet": [null, "N"], "Perps add funds": [7.96, "P"], "Warm Start → Login": [0.443, "P"], "Predict Avail. Balance": [0.85, "P"], "Predict Market Details": [2.47, "P"], "Predict Deposit": [12.154, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1067, "importedSec": 1147, "testPhaseSumSec": 2214, "workflowWallSec": 3318}}, {"id": "32234715969", "label": "2026-08-19 08:52", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32234715969", "pass": 17, "qgFail": 2, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.744, "P"], "Fresh SRP wallet creation": [11.625, "F"], "Import SRP onboarding +50": [5.441, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.998, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [2.965, "P"], "Seedless Google": [3.944, "P"], "Seedless Telegram": [6.27, "P"], "Aggregated Balance": [8.948, "P"], "Cross-chain ETH→SOL": [6.09, "F"], "Asset View": [3.535, "P"], "Cold Start → Login": [0.39, "P"], "Swap ETH→LINK": [2.075, "P"], "Import SRP +50": [3.054, "P"], "Warm Start → Wallet": [1.024, "P"], "Perps add funds": [7.512, "P"], "Warm Start → Login": [0.336, "P"], "Predict Avail. Balance": [1.528, "P"], "Predict Market Details": [2.86, "P"], "Predict Deposit": [10.254, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 985, "importedSec": 1003, "testPhaseSumSec": 1988, "workflowWallSec": 2364}}, {"id": "32229322597", "label": "2026-08-19 07:45", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32229322597", "pass": 17, "qgFail": 2, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.719, "P"], "Fresh SRP wallet creation": [12.34, "F"], "Import SRP onboarding +50": [3.749, "P"], "Money Home · empty": [null, "N"], "Account creation": [3.035, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.298, "P"], "Seedless Google": [6.932, "P"], "Seedless Telegram": [4.842, "P"], "Aggregated Balance": [8.888, "P"], "Cross-chain ETH→SOL": [4.533, "P"], "Asset View": [2.443, "P"], "Cold Start → Login": [0.345, "P"], "Swap ETH→LINK": [1.754, "P"], "Import SRP +50": [3.03, "P"], "Warm Start → Wallet": [2.705, "P"], "Perps add funds": [6.24, "P"], "Warm Start → Login": [0.888, "P"], "Predict Avail. Balance": [1.019, "P"], "Predict Market Details": [2.589, "P"], "Predict Deposit": [18.52, "F"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1060, "importedSec": 1061, "testPhaseSumSec": 2121, "workflowWallSec": 2310}}]}, "testmu_std": {"name": "TestMu Standard", "status": "evaluated", "color": "#15803d", "runs": [{"id": "32381218479", "label": "2026-08-20 14:37 · primary Std baseline", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32381218479", "pass": 17, "qgFail": 2, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [4.18, "P"], "Fresh SRP wallet creation": [14.475, "F"], "Import SRP onboarding +50": [3.704, "P"], "Money Home · empty": [null, "N"], "Account creation": [null, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [6.445, "P"], "Seedless Google": [null, "P"], "Seedless Telegram": [4.974, "P"], "Aggregated Balance": [9.304, "P"], "Cross-chain ETH→SOL": [4.224, "P"], "Asset View": [1.743, "P"], "Cold Start → Login": [null, "P"], "Swap ETH→LINK": [1.173, "P"], "Import SRP +50": [null, "P"], "Warm Start → Wallet": [3.754, "F"], "Perps add funds": [7.23, "P"], "Warm Start → Login": [null, "P"], "Predict Avail. Balance": [0.999, "P"], "Predict Market Details": [null, "P"], "Predict Deposit": [8.194, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 800, "importedSec": 963, "testPhaseSumSec": 1763, "workflowWallSec": 1929}}, {"id": "32234049300", "label": "2026-08-19 08:44", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32234049300", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.044, "P"], "Fresh SRP wallet creation": [14.62, "F"], "Import SRP onboarding +50": [5.381, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.226, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [6.241, "P"], "Seedless Google": [5.251, "P"], "Seedless Telegram": [null, "P"], "Aggregated Balance": [8.749, "P"], "Cross-chain ETH→SOL": [8.706, "P"], "Asset View": [2.933, "P"], "Cold Start → Login": [null, "P"], "Swap ETH→LINK": [1.79, "P"], "Import SRP +50": [null, "P"], "Warm Start → Wallet": [null, "P"], "Perps add funds": [8.411, "P"], "Warm Start → Login": [0.563, "P"], "Predict Avail. Balance": [1.675, "P"], "Predict Market Details": [4.887, "P"], "Predict Deposit": [null, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1045, "importedSec": 1038, "testPhaseSumSec": 2083, "workflowWallSec": 2396}}, {"id": "32243037559", "label": "2026-08-19 10:30 · with Sauce", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32243037559", "pass": 18, "qgFail": 1, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [1.864, "P"], "Fresh SRP wallet creation": [11.939, "F"], "Import SRP onboarding +50": [4.235, "P"], "Money Home · empty": [null, "N"], "Account creation": [3.249, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [6.082, "P"], "Seedless Google": [6.703, "P"], "Seedless Telegram": [null, "P"], "Aggregated Balance": [9.0, "P"], "Cross-chain ETH→SOL": [5.568, "P"], "Asset View": [2.617, "P"], "Cold Start → Login": [null, "P"], "Swap ETH→LINK": [null, "P"], "Import SRP +50": [2.015, "P"], "Warm Start → Wallet": [2.482, "P"], "Perps add funds": [10.185, "P"], "Warm Start → Login": [null, "P"], "Predict Avail. Balance": [1.808, "P"], "Predict Market Details": [null, "P"], "Predict Deposit": [null, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1012, "importedSec": 1078, "testPhaseSumSec": 2090, "workflowWallSec": 3147}}, {"id": "32248728966", "label": "2026-08-19 11:40 · HE + Std dual", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "pass": 16, "qgFail": 3, "noMetrics": 4, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [1.775, "P"], "Fresh SRP wallet creation": [11.707, "F"], "Import SRP onboarding +50": [3.801, "P"], "Money Home · empty": [null, "N"], "Account creation": [null, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.594, "P"], "Seedless Google": [null, "P"], "Seedless Telegram": [6.765, "P"], "Aggregated Balance": [9.477, "P"], "Cross-chain ETH→SOL": [6.28, "P"], "Asset View": [3.07, "P"], "Cold Start → Login": [1.686, "P"], "Swap ETH→LINK": [4.392, "F"], "Import SRP +50": [null, "P"], "Warm Start → Wallet": [null, "P"], "Perps add funds": [14.521, "F"], "Warm Start → Login": [1.297, "P"], "Predict Avail. Balance": [1.223, "P"], "Predict Market Details": [2.106, "P"], "Predict Deposit": [10.289, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 780, "importedSec": 951, "testPhaseSumSec": 1731, "workflowWallSec": 2387}}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "pass": 17, "qgFail": 1, "noMetrics": 5, "total": 23, "device": "Pixel 8 Pro · Android 14", "note": "", "scenarios": {"Cold Start → Onboarding": [2.266, "P"], "Fresh SRP wallet creation": [12.985, "F"], "Import SRP onboarding +50": [4.448, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.723, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.754, "P"], "Seedless Google": [5.156, "P"], "Seedless Telegram": [null, "P"], "Aggregated Balance": [8.933, "P"], "Cross-chain ETH→SOL": [8.268, "P"], "Asset View": [2.581, "P"], "Cold Start → Login": [null, "P"], "Swap ETH→LINK": [1.919, "P"], "Import SRP +50": [null, "P"], "Warm Start → Wallet": [null, "N"], "Perps add funds": [8.374, "P"], "Warm Start → Login": [0.539, "P"], "Predict Avail. Balance": [null, "P"], "Predict Market Details": [3.928, "P"], "Predict Deposit": [19.625, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1059, "importedSec": 1027, "testPhaseSumSec": 2086, "workflowWallSec": 3316}}]}, "browserstack": {"name": "BrowserStack", "status": "baseline", "color": "#2563eb", "runs": [{"id": "32736700431", "label": "2026-08-24 14:06 · with Sauce", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "pass": 20, "qgFail": 0, "noMetrics": 3, "total": 23, "device": "Pixel 7 Pro+13.0", "note": "", "scenarios": {"Cold Start → Onboarding": [3.133, "P"], "Fresh SRP wallet creation": [7.03, "P"], "Import SRP onboarding +50": [4.985, "P"], "Money Home · empty": [null, "N"], "Account creation": [3.202, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [13.663, "P"], "Seedless Apple": [4.781, "P"], "Seedless Google": [5.776, "P"], "Seedless Telegram": [5.765, "P"], "Aggregated Balance": [8.308, "P"], "Cross-chain ETH→SOL": [5.385, "P"], "Asset View": [3.293, "P"], "Cold Start → Login": [3.713, "P"], "Swap ETH→LINK": [1.408, "P"], "Import SRP +50": [2.827, "P"], "Warm Start → Wallet": [1.387, "P"], "Perps add funds": [6.672, "P"], "Warm Start → Login": [0.65, "P"], "Predict Avail. Balance": [1.067, "P"], "Predict Market Details": [3.027, "P"], "Predict Deposit": [10.833, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 911, "importedSec": 1027, "testPhaseSumSec": 1938, "workflowWallSec": 2686}}, {"id": "32355871016", "label": "2026-08-20 09:49", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32355871016", "pass": 20, "qgFail": 1, "noMetrics": 2, "total": 23, "device": "Pixel 7 Pro+13.0", "note": "", "scenarios": {"Cold Start → Onboarding": [2.582, "P"], "Fresh SRP wallet creation": [14.075, "F"], "Import SRP onboarding +50": [3.62, "P"], "Money Home · empty": [2.528, "P"], "Account creation": [1.964, "P"], "Money Home · funded": [3.494, "P"], "Perps open/close": [null, "N"], "Seedless Apple": [3.441, "P"], "Seedless Google": [3.806, "P"], "Seedless Telegram": [3.623, "P"], "Aggregated Balance": [8.503, "P"], "Cross-chain ETH→SOL": [null, "P"], "Asset View": [1.786, "P"], "Cold Start → Login": [5.133, "P"], "Swap ETH→LINK": [1.732, "P"], "Import SRP +50": [2.427, "P"], "Warm Start → Wallet": [2.466, "P"], "Perps add funds": [6.67, "P"], "Warm Start → Login": [0.539, "P"], "Predict Avail. Balance": [0.827, "P"], "Predict Market Details": [1.428, "P"], "Predict Deposit": [8.852, "P"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1574, "importedSec": 1278, "testPhaseSumSec": 2852, "workflowWallSec": 3020}}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "pass": 16, "qgFail": 3, "noMetrics": 4, "total": 23, "device": "Pixel 7 Pro+13.0", "note": "", "scenarios": {"Cold Start → Onboarding": [2.164, "P"], "Fresh SRP wallet creation": [15.85, "F"], "Import SRP onboarding +50": [5.183, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.745, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [1.501, "P"], "Seedless Google": [3.03, "P"], "Seedless Telegram": [3.156, "P"], "Aggregated Balance": [8.181, "P"], "Cross-chain ETH→SOL": [5.43, "P"], "Asset View": [3.898, "P"], "Cold Start → Login": [5.801, "F"], "Swap ETH→LINK": [1.978, "P"], "Import SRP +50": [3.486, "P"], "Warm Start → Wallet": [1.554, "P"], "Perps add funds": [6.633, "P"], "Warm Start → Login": [0.931, "P"], "Predict Avail. Balance": [0.775, "P"], "Predict Market Details": [3.732, "P"], "Predict Deposit": [24.645, "F"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1099, "importedSec": 1056, "testPhaseSumSec": 2155, "workflowWallSec": 3316}}, {"id": "32127829813", "label": "2026-08-18 10:39 · early multi", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32127829813", "pass": 19, "qgFail": 2, "noMetrics": 1, "total": 22, "device": "Pixel 7 Pro+13.0", "note": "", "scenarios": {"Cold Start → Onboarding": [2.806, "P"], "Fresh SRP wallet creation": [15.744, "F"], "Import SRP onboarding +50": [5.703, "P"], "Money Home · empty": [4.125, "P"], "Account creation": [2.112, "P"], "Money Home · funded": [4.7, "P"], "Perps open/close": [null, "N"], "Seedless Apple": [6.405, "P"], "Seedless Google": [6.653, "F"], "Seedless Telegram": [3.644, "P"], "Aggregated Balance": [8.257, "P"], "Cross-chain ETH→SOL": [6.487, "P"], "Asset View": [1.227, "P"], "Cold Start → Login": [3.255, "P"], "Swap ETH→LINK": [1.413, "P"], "Import SRP +50": [3.411, "P"], "Warm Start → Wallet": [1.216, "P"], "Perps add funds": [8.323, "P"], "Warm Start → Login": [0.13, "P"], "Predict Avail. Balance": [0.846, "P"], "Predict Market Details": [3.447, "P"], "Predict Deposit": [10.691, "P"], "Rewards tab": [null, "—"]}, "timing": {"onboardingSec": 895, "importedSec": 660, "testPhaseSumSec": 1555, "workflowWallSec": 9046}}]}, "sauce_private": {"name": "Sauce Labs Private", "status": "under_evaluation", "color": "#b54708", "runs": [{"id": "32707596917", "label": "Run A · 2026-08-24 08:41", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917", "pass": 16, "qgFail": 2, "noMetrics": 5, "total": 23, "device": "Google_Pixel_7_POC(49|05)", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [0.389, "P"], "Fresh SRP wallet creation": [8.797, "P"], "Import SRP onboarding +50": [4.032, "P"], "Money Home · empty": [null, "N"], "Account creation": [4.097, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.415, "P"], "Seedless Google": [5.541, "P"], "Seedless Telegram": [5.341, "P"], "Aggregated Balance": [8.674, "P"], "Cross-chain ETH→SOL": [4.958, "P"], "Asset View": [3.857, "P"], "Cold Start → Login": [6.207, "F"], "Swap ETH→LINK": [1.846, "P"], "Import SRP +50": [3.051, "P"], "Warm Start → Wallet": [1.237, "P"], "Perps add funds": [5.35, "P"], "Warm Start → Login": [0.477, "P"], "Predict Avail. Balance": [1.753, "P"], "Predict Market Details": [1.768, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1184, "importedSec": 1247, "testPhaseSumSec": 2431, "workflowWallSec": 3018}}, {"id": "32722078830", "label": "Run B · 2026-08-24 11:29", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830", "pass": 16, "qgFail": 2, "noMetrics": 5, "total": 23, "device": "Google_Pixel_7_POC(49|05)", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [0.63, "P"], "Fresh SRP wallet creation": [10.62, "P"], "Import SRP onboarding +50": [4.045, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.883, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.45, "P"], "Seedless Google": [4.055, "P"], "Seedless Telegram": [7.938, "F"], "Aggregated Balance": [8.706, "P"], "Cross-chain ETH→SOL": [3.652, "P"], "Asset View": [3.769, "P"], "Cold Start → Login": [5.929, "F"], "Swap ETH→LINK": [1.902, "P"], "Import SRP +50": [3.461, "P"], "Warm Start → Wallet": [1.186, "P"], "Perps add funds": [5.796, "P"], "Warm Start → Login": [0.963, "P"], "Predict Avail. Balance": [0.885, "P"], "Predict Market Details": [1.936, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 966, "importedSec": 1279, "testPhaseSumSec": 2245, "workflowWallSec": 2674}}, {"id": "32730868375", "label": "Run C · 2026-08-24 13:07", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375", "pass": 16, "qgFail": 2, "noMetrics": 5, "total": 23, "device": "Google_Pixel_7_POC(49|05)", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [2.789, "P"], "Fresh SRP wallet creation": [9.238, "P"], "Import SRP onboarding +50": [4.142, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.325, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.398, "P"], "Seedless Google": [5.594, "P"], "Seedless Telegram": [4.795, "P"], "Aggregated Balance": [8.665, "P"], "Cross-chain ETH→SOL": [6.311, "P"], "Asset View": [4.576, "P"], "Cold Start → Login": [5.979, "F"], "Swap ETH→LINK": [2.07, "P"], "Import SRP +50": [3.9, "P"], "Warm Start → Wallet": [3.332, "F"], "Perps add funds": [6.022, "P"], "Warm Start → Login": [0.928, "P"], "Predict Avail. Balance": [0.967, "P"], "Predict Market Details": [2.047, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 978, "importedSec": 1274, "testPhaseSumSec": 2252, "workflowWallSec": 2868}}, {"id": "32736700431", "label": "Run D · 2026-08-24 14:06 · with BS", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "pass": 17, "qgFail": 1, "noMetrics": 5, "total": 23, "device": "Google_Pixel_7_POC(49|05)", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [0.549, "P"], "Fresh SRP wallet creation": [9.111, "P"], "Import SRP onboarding +50": [4.209, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.697, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.274, "P"], "Seedless Google": [4.806, "P"], "Seedless Telegram": [3.73, "P"], "Aggregated Balance": [9.089, "P"], "Cross-chain ETH→SOL": [5.483, "P"], "Asset View": [2.451, "P"], "Cold Start → Login": [5.835, "F"], "Swap ETH→LINK": [2.121, "P"], "Import SRP +50": [4.047, "P"], "Warm Start → Wallet": [1.372, "P"], "Perps add funds": [5.517, "P"], "Warm Start → Login": [0.46, "P"], "Predict Avail. Balance": [1.59, "P"], "Predict Market Details": [2.827, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 1038, "importedSec": 1249, "testPhaseSumSec": 2287, "workflowWallSec": 2686}}]}, "sauce_cloud": {"name": "Sauce Labs Cloud", "status": "under_evaluation", "color": "#0f766e", "runs": [{"id": "32707596917", "label": "Run A · 2026-08-24 08:41", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917", "pass": 16, "qgFail": 1, "noMetrics": 6, "total": 23, "device": "Google Pixel.*", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [4.04, "P"], "Fresh SRP wallet creation": [8.073, "P"], "Import SRP onboarding +50": [3.746, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.4, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.719, "P"], "Seedless Google": [2.572, "P"], "Seedless Telegram": [5.668, "P"], "Aggregated Balance": [9.163, "P"], "Cross-chain ETH→SOL": [null, "N"], "Asset View": [4.388, "P"], "Cold Start → Login": [4.999, "P"], "Swap ETH→LINK": [2.228, "P"], "Import SRP +50": [15.77, "F"], "Warm Start → Wallet": [2.512, "P"], "Perps add funds": [5.188, "P"], "Warm Start → Login": [1.26, "P"], "Predict Avail. Balance": [3.519, "P"], "Predict Market Details": [2.554, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 844, "importedSec": 1109, "testPhaseSumSec": 1953, "workflowWallSec": 3018}}, {"id": "32722078830", "label": "Run B · 2026-08-24 11:29", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830", "pass": 18, "qgFail": 0, "noMetrics": 5, "total": 23, "device": "Google Pixel.*", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [1.714, "P"], "Fresh SRP wallet creation": [8.54, "P"], "Import SRP onboarding +50": [3.766, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.278, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.279, "P"], "Seedless Google": [5.753, "P"], "Seedless Telegram": [4.213, "P"], "Aggregated Balance": [8.603, "P"], "Cross-chain ETH→SOL": [4.334, "P"], "Asset View": [2.272, "P"], "Cold Start → Login": [4.696, "P"], "Swap ETH→LINK": [1.6, "P"], "Import SRP +50": [4.463, "P"], "Warm Start → Wallet": [1.088, "P"], "Perps add funds": [6.038, "P"], "Warm Start → Login": [0.41, "P"], "Predict Avail. Balance": [0.926, "P"], "Predict Market Details": [1.916, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 983, "importedSec": 941, "testPhaseSumSec": 1924, "workflowWallSec": 2674}}, {"id": "32730868375", "label": "Run C · 2026-08-24 13:07", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375", "pass": 18, "qgFail": 0, "noMetrics": 5, "total": 23, "device": "Google Pixel.*", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [0.511, "P"], "Fresh SRP wallet creation": [8.945, "P"], "Import SRP onboarding +50": [3.612, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.465, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.412, "P"], "Seedless Google": [3.76, "P"], "Seedless Telegram": [5.132, "P"], "Aggregated Balance": [8.86, "P"], "Cross-chain ETH→SOL": [3.1, "P"], "Asset View": [2.643, "P"], "Cold Start → Login": [4.361, "P"], "Swap ETH→LINK": [2.241, "P"], "Import SRP +50": [2.912, "P"], "Warm Start → Wallet": [1.06, "P"], "Perps add funds": [4.968, "P"], "Warm Start → Login": [1.026, "P"], "Predict Avail. Balance": [1.344, "P"], "Predict Market Details": [2.623, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 869, "importedSec": 937, "testPhaseSumSec": 1806, "workflowWallSec": 2868}}, {"id": "32736700431", "label": "Run D · 2026-08-24 14:06 · with BS", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "pass": 16, "qgFail": 2, "noMetrics": 5, "total": 23, "device": "Google Pixel.*", "note": "Under evaluation — lane not yet finalized", "scenarios": {"Cold Start → Onboarding": [4.16, "P"], "Fresh SRP wallet creation": [5.902, "P"], "Import SRP onboarding +50": [3.408, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.66, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.801, "P"], "Seedless Google": [5.877, "F"], "Seedless Telegram": [2.101, "P"], "Aggregated Balance": [8.77, "P"], "Cross-chain ETH→SOL": [5.377, "P"], "Asset View": [2.356, "P"], "Cold Start → Login": [5.707, "F"], "Swap ETH→LINK": [2.477, "P"], "Import SRP +50": [3.262, "P"], "Warm Start → Wallet": [2.329, "P"], "Perps add funds": [5.081, "P"], "Warm Start → Login": [0.471, "P"], "Predict Avail. Balance": [3.149, "P"], "Predict Market Details": [4.226, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "timing": {"onboardingSec": 832, "importedSec": 997, "testPhaseSumSec": 1829, "workflowWallSec": 2686}}]}}, "sauceEarlyOverview": [{"id": "32273174546", "date": "2026-08-19", "pass": 7, "total": 23, "note": "pre-Appium-parity"}, {"id": "32249603472", "date": "2026-08-19", "pass": 13, "total": 23, "note": "pre-Appium-parity"}, {"id": "32120467912", "date": "2026-08-18", "pass": 0, "total": 22, "note": "early PoC — not representative"}], "timingMatrix": [{"key": "testmu_he", "name": "TestMu HyperExecute", "status": "evaluated", "color": "#7c3aed", "runs": [{"id": "32373754440", "label": "2026-08-20 13:20 · primary HE baseline", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "onboardingSec": 1013, "importedSec": 1153, "testPhaseSumSec": 2166, "pass": 18, "total": 23}, {"id": "32366480495", "label": "2026-08-20 11:58", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "onboardingSec": 891, "importedSec": 953, "testPhaseSumSec": 1844, "pass": 18, "total": 23}, {"id": "32248728966", "label": "2026-08-19 11:40 · HE + Std dual", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "onboardingSec": 956, "importedSec": 1101, "testPhaseSumSec": 2057, "pass": 18, "total": 23}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "onboardingSec": 1025, "importedSec": 1008, "testPhaseSumSec": 2033, "pass": 18, "total": 23}, {"id": "32249651829", "label": "2026-08-19 11:51", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32249651829", "onboardingSec": 1067, "importedSec": 1147, "testPhaseSumSec": 2214, "pass": 16, "total": 23}, {"id": "32234715969", "label": "2026-08-19 08:52", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32234715969", "onboardingSec": 985, "importedSec": 1003, "testPhaseSumSec": 1988, "pass": 17, "total": 23}, {"id": "32229322597", "label": "2026-08-19 07:45", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32229322597", "onboardingSec": 1060, "importedSec": 1061, "testPhaseSumSec": 2121, "pass": 17, "total": 23}], "avgTestPhaseSec": 2060, "minTestPhaseSec": 1844, "maxTestPhaseSec": 2214, "avgOnboardingSec": 1000, "avgImportedSec": 1061}, {"key": "testmu_std", "name": "TestMu Standard", "status": "evaluated", "color": "#15803d", "runs": [{"id": "32381218479", "label": "2026-08-20 14:37 · primary Std baseline", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32381218479", "onboardingSec": 800, "importedSec": 963, "testPhaseSumSec": 1763, "pass": 17, "total": 23}, {"id": "32234049300", "label": "2026-08-19 08:44", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32234049300", "onboardingSec": 1045, "importedSec": 1038, "testPhaseSumSec": 2083, "pass": 18, "total": 23}, {"id": "32243037559", "label": "2026-08-19 10:30 · with Sauce", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32243037559", "onboardingSec": 1012, "importedSec": 1078, "testPhaseSumSec": 2090, "pass": 18, "total": 23}, {"id": "32248728966", "label": "2026-08-19 11:40 · HE + Std dual", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "onboardingSec": 780, "importedSec": 951, "testPhaseSumSec": 1731, "pass": 16, "total": 23}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "onboardingSec": 1059, "importedSec": 1027, "testPhaseSumSec": 2086, "pass": 17, "total": 23}], "avgTestPhaseSec": 1951, "minTestPhaseSec": 1731, "maxTestPhaseSec": 2090, "avgOnboardingSec": 939, "avgImportedSec": 1011}, {"key": "browserstack", "name": "BrowserStack", "status": "baseline", "color": "#2563eb", "runs": [{"id": "32736700431", "label": "2026-08-24 14:06 · with Sauce", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "onboardingSec": 911, "importedSec": 1027, "testPhaseSumSec": 1938, "pass": 20, "total": 23}, {"id": "32355871016", "label": "2026-08-20 09:49", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32355871016", "onboardingSec": 1574, "importedSec": 1278, "testPhaseSumSec": 2852, "pass": 20, "total": 23}, {"id": "32265974787", "label": "2026-08-19 14:45 · multi-vendor", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "onboardingSec": 1099, "importedSec": 1056, "testPhaseSumSec": 2155, "pass": 16, "total": 23}, {"id": "32127829813", "label": "2026-08-18 10:39 · early multi", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32127829813", "onboardingSec": 895, "importedSec": 660, "testPhaseSumSec": 1555, "pass": 19, "total": 22}], "avgTestPhaseSec": 2125, "minTestPhaseSec": 1555, "maxTestPhaseSec": 2852, "avgOnboardingSec": 1120, "avgImportedSec": 1005}, {"key": "sauce_private", "name": "Sauce Labs Private", "status": "under_evaluation", "color": "#b54708", "runs": [{"id": "32707596917", "label": "Run A · 2026-08-24 08:41", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917", "onboardingSec": 1184, "importedSec": 1247, "testPhaseSumSec": 2431, "pass": 16, "total": 23}, {"id": "32722078830", "label": "Run B · 2026-08-24 11:29", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830", "onboardingSec": 966, "importedSec": 1279, "testPhaseSumSec": 2245, "pass": 16, "total": 23}, {"id": "32730868375", "label": "Run C · 2026-08-24 13:07", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375", "onboardingSec": 978, "importedSec": 1274, "testPhaseSumSec": 2252, "pass": 16, "total": 23}, {"id": "32736700431", "label": "Run D · 2026-08-24 14:06 · with BS", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "onboardingSec": 1038, "importedSec": 1249, "testPhaseSumSec": 2287, "pass": 17, "total": 23}], "avgTestPhaseSec": 2304, "minTestPhaseSec": 2245, "maxTestPhaseSec": 2431, "avgOnboardingSec": 1042, "avgImportedSec": 1262}, {"key": "sauce_cloud", "name": "Sauce Labs Cloud", "status": "under_evaluation", "color": "#0f766e", "runs": [{"id": "32707596917", "label": "Run A · 2026-08-24 08:41", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917", "onboardingSec": 844, "importedSec": 1109, "testPhaseSumSec": 1953, "pass": 16, "total": 23}, {"id": "32722078830", "label": "Run B · 2026-08-24 11:29", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830", "onboardingSec": 983, "importedSec": 941, "testPhaseSumSec": 1924, "pass": 18, "total": 23}, {"id": "32730868375", "label": "Run C · 2026-08-24 13:07", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375", "onboardingSec": 869, "importedSec": 937, "testPhaseSumSec": 1806, "pass": 18, "total": 23}, {"id": "32736700431", "label": "Run D · 2026-08-24 14:06 · with BS", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431", "onboardingSec": 832, "importedSec": 997, "testPhaseSumSec": 1829, "pass": 16, "total": 23}], "avgTestPhaseSec": 1878, "minTestPhaseSec": 1806, "maxTestPhaseSec": 1953, "avgOnboardingSec": 882, "avgImportedSec": 996}]};
+
+    const vendorOrder = ["testmu_he", "testmu_std", "browserstack", "sauce_private", "sauce_cloud"];
+    let currentVendor = "testmu_he";
+    let currentRunId = null;
+
+    function statusClass(s) {
+      if (s === "P") return "pass";
+      if (s === "F") return "fail";
+      if (s === "N") return "missing";
+      return "skip";
+    }
+    function statusLabel(s) {
+      if (s === "P") return "QG passed";
+      if (s === "F") return "QG failed";
+      if (s === "N") return "No metrics";
+      return "—";
+    }
+    function statusBadge(status) {
+      if (status === "under_evaluation") return '<span class="badge eval">Under evaluation</span>';
+      if (status === "evaluated") return '<span class="badge ok">Evaluated</span>';
+      return '<span class="badge base">Baseline</span>';
+    }
+
+
+    function fmtMin(sec) {
+      if (sec === null || sec === undefined) return "—";
+      const m = sec / 60;
+      if (m < 10) return m.toFixed(1) + " min";
+      return Math.round(m) + " min";
+    }
+
+    function renderSpeed() {
+      const matrix = DATA.timingMatrix || [];
+      const maxAvg = Math.max(...matrix.map((m) => m.avgTestPhaseSec || 0), 1);
+      const bars = document.getElementById("speed-bars");
+      bars.innerHTML = matrix.map((m) => {
+        const pct = ((m.avgTestPhaseSec || 0) / maxAvg) * 100;
+        const evalMark = m.status === "under_evaluation" ? " · under eval" : "";
+        return `<div class="row">
+          <div>${m.name}${evalMark}</div>
+          <div class="track"><div class="fill" style="width:${pct}%;background:${m.color}"></div></div>
+          <div><strong>${fmtMin(m.avgTestPhaseSec)}</strong></div>
+        </div>`;
+      }).join("");
+
+      const body = document.getElementById("speed-body");
+      body.innerHTML = matrix.map((m) => `<tr>
+        <td>${m.name}${m.status === "under_evaluation" ? ' <span class="badge eval">Under evaluation</span>' : ""}</td>
+        <td>${fmtMin(m.avgOnboardingSec)}</td>
+        <td>${fmtMin(m.avgImportedSec)}</td>
+        <td><strong>${fmtMin(m.avgTestPhaseSec)}</strong></td>
+        <td class="pass">${fmtMin(m.minTestPhaseSec)}</td>
+        <td class="fail">${fmtMin(m.maxTestPhaseSec)}</td>
+      </tr>`).join("");
+
+      const runsBody = document.getElementById("speed-runs-body");
+      runsBody.innerHTML = "";
+      matrix.forEach((m) => {
+        m.runs.forEach((r, idx) => {
+          runsBody.insertAdjacentHTML("beforeend", `<tr>
+            <td>${idx === 0 ? m.name : ""}</td>
+            <td><a href="${r.url}" target="_blank">${r.id}</a><div style="color:var(--muted);font-size:11px">${r.label}</div></td>
+            <td>${fmtMin(r.onboardingSec)}</td>
+            <td>${fmtMin(r.importedSec)}</td>
+            <td><strong>${fmtMin(r.testPhaseSumSec)}</strong></td>
+            <td>${r.pass} / ${r.total}</td>
+          </tr>`);
+        });
+      });
+    }
+
+    function initControls() {
+      document.getElementById("window-label").textContent = DATA.window;
+      const vs = document.getElementById("vendor-select");
+      vendorOrder.forEach((key) => {
+        const v = DATA.vendors[key];
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = v.name + (v.status === "under_evaluation" ? " · under evaluation" : "");
+        vs.appendChild(opt);
+      });
+      vs.value = currentVendor;
+      vs.addEventListener("change", () => {
+        currentVendor = vs.value;
+        currentRunId = DATA.vendors[currentVendor].runs[0]?.id || null;
+        renderVendor();
+      });
+      document.getElementById("run-select").addEventListener("change", (e) => {
+        currentRunId = e.target.value;
+        renderVendor();
+      });
+      currentRunId = DATA.vendors[currentVendor].runs[0]?.id || null;
+    }
+
+    function renderVendor() {
+      const vendor = DATA.vendors[currentVendor];
+      const runs = vendor.runs;
+      const run = runs.find((r) => r.id === currentRunId) || runs[0];
+      currentRunId = run?.id;
+
+      const header = document.getElementById("vendor-header");
+      header.innerHTML = `<h2 style="margin:0;display:flex;align-items:center;gap:8px">
+        <i class="dot" style="background:${vendor.color}"></i>${vendor.name}
+        ${statusBadge(vendor.status)}
+      </h2>
+      <p style="color:var(--muted);margin:8px 0 0;font-size:13px">${run ? run.device : ""} ·
+        <a href="${run?.url || "#"}" target="_blank">${run?.id || ""}</a>
+        ${run?.label ? " · " + run.label : ""}
+      </p>`;
+
+      const passes = runs.map((r) => r.pass);
+      const best = Math.max(...passes);
+      const latest = passes[0];
+      const avg = passes.reduce((a, b) => a + b, 0) / passes.length;
+      const t = run?.timing || {};
+      document.getElementById("vendor-stats").innerHTML = `
+        <div class="stat"><label>Runs in view</label><strong>${runs.length}</strong></div>
+        <div class="stat"><label>Latest pass</label><strong>${latest} / ${run?.total || 23}</strong></div>
+        <div class="stat"><label>Best pass</label><strong>${best} / 23</strong></div>
+        <div class="stat"><label>Avg pass</label><strong>${avg.toFixed(1)}</strong></div>
+        <div class="stat"><label>Selected QG fail</label><strong>${run?.qgFail ?? "—"}</strong></div>
+        <div class="stat"><label>Selected no metrics</label><strong>${run?.noMetrics ?? "—"}</strong></div>
+      `;
+      const timingEl = document.getElementById("vendor-timing");
+      if (timingEl) {
+        timingEl.innerHTML = `
+          <div class="timing-stat">
+            <label>Onboarding job</label>
+            <strong>${fmtMin(t.onboardingSec)}</strong>
+            <small>suite job wall time</small>
+          </div>
+          <div class="timing-stat">
+            <label>Imported wallet job</label>
+            <strong>${fmtMin(t.importedSec)}</strong>
+            <small>suite job wall time</small>
+          </div>
+          <div class="timing-stat">
+            <label>Test phase (sum)</label>
+            <strong>${fmtMin(t.testPhaseSumSec)}</strong>
+            <small>onboarding + imported</small>
+          </div>
+        `;
+      }
+
+      const rs = document.getElementById("run-select");
+      rs.innerHTML = "";
+      runs.forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.pass}/${r.total} · ${r.label}`;
+        rs.appendChild(opt);
+      });
+      rs.value = currentRunId;
+
+      const pills = document.getElementById("run-pills");
+      pills.innerHTML = "";
+      runs.forEach((r) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "pill" + (r.id === currentRunId ? " active" : "") + (vendor.status === "under_evaluation" ? " eval" : "");
+        b.textContent = `${r.pass}/${r.total}`;
+        b.title = r.label;
+        b.addEventListener("click", () => { currentRunId = r.id; renderVendor(); });
+        pills.appendChild(b);
+      });
+
+      const note = document.getElementById("run-note");
+      if (vendor.status === "under_evaluation") {
+        note.innerHTML = `<div class="warn"><strong>Under evaluation.</strong> ${run?.note || "Treat these Sauce results as provisional."}</div>`;
+      } else {
+        note.innerHTML = run?.note ? `<div class="note">${run.note}</div>` : "";
+      }
+
+      const tbody = document.getElementById("scenario-body");
+      tbody.innerHTML = "";
+      DATA.rowOrder.forEach((name) => {
+        const cell = (run?.scenarios && run.scenarios[name]) || [null, "—"];
+        const [time, st] = cell;
+        const cls = statusClass(st);
+        const text = time === null || time === undefined ? "N/A" : `${Number(time).toFixed(3)} s`;
+        tbody.insertAdjacentHTML(
+          "beforeend",
+          `<tr>
+            <td>${name}</td>
+            <td><span class="time ${cls}">${text}</span></td>
+            <td><span class="status ${cls}">${statusLabel(st)}</span></td>
+          </tr>`
+        );
+      });
+    }
+
+    function renderCompare() {
+      const grid = document.getElementById("compare-grid");
+      const body = document.getElementById("compare-body");
+      grid.innerHTML = "";
+      body.innerHTML = "";
+      vendorOrder.forEach((key) => {
+        const v = DATA.vendors[key];
+        const passes = v.runs.map((r) => r.pass);
+        const best = Math.max(...passes);
+        const latest = passes[0];
+        const max = 23;
+        const spark = v.runs
+          .slice()
+          .reverse()
+          .map((r) => {
+            const h = Math.max(8, (r.pass / max) * 48);
+            return `<span style="height:${h}px;background:${v.color}55;border-top:2px solid ${v.color}" title="${r.pass}/23 · ${r.label}"></span>`;
+          })
+          .join("");
+        grid.insertAdjacentHTML(
+          "beforeend",
+          `<article class="vendor-card">
+            <h3><i class="dot" style="background:${v.color}"></i>${v.name}${statusBadge(v.status)}</h3>
+            <div style="font-size:13px;color:var(--muted)">Best <strong style="color:var(--ink)">${best}/23</strong> · Latest <strong style="color:var(--ink)">${latest}/23</strong></div>
+            <div class="spark">${spark}</div>
+          </article>`
+        );
+        body.insertAdjacentHTML(
+          "beforeend",
+          `<tr>
+            <td>${v.name}</td>
+            <td class="pass">${best} / 23</td>
+            <td>${latest} / 23</td>
+            <td>${v.runs.length}</td>
+            <td>${v.status === "under_evaluation" ? "Under evaluation" : v.status === "evaluated" ? "Evaluated" : "Baseline"}</td>
+          </tr>`
+        );
+      });
+    }
+
+    function renderTestMuAnalysis() {
+      const he = DATA.vendors.testmu_he.runs;
+      const std = DATA.vendors.testmu_std.runs;
+      const hePasses = he.map((r) => r.pass);
+      const stdPasses = std.map((r) => r.pass);
+      const heBest = Math.max(...hePasses);
+      const stdBest = Math.max(...stdPasses);
+      const heStable = he.filter((r) => r.pass >= 18).length;
+
+      // Fresh SRP / shared blockers from primary baselines
+      const hePrimary = he.find((r) => r.id === "32373754440") || he[0];
+      const stdPrimary = std.find((r) => r.id === "32381218479") || std[0];
+      const freshHe = hePrimary.scenarios["Fresh SRP wallet creation"];
+      const freshStd = stdPrimary.scenarios["Fresh SRP wallet creation"];
+      const depositHe = hePrimary.scenarios["Predict Deposit"];
+
+      document.getElementById("testmu-analysis").innerHTML = `
+        <div class="note">
+          Focus of this PoC branch: validate <strong>TestMu HyperExecute</strong> against
+          TestMu Standard and BrowserStack. Sauce Labs lanes are tracked separately and remain under evaluation.
+        </div>
+        <div class="grid2">
+          <div>
+            <h3>HyperExecute</h3>
+            <ul>
+              <li>Best / modal score: <strong>${heBest}/23</strong> (reached in ${heStable}/${he.length} reviewed runs).</li>
+              <li>Primary baseline <a href="${hePrimary.url}" target="_blank">${hePrimary.id}</a>: ${hePrimary.pass}/23 — QG fail ${hePrimary.qgFail}, no metrics ${hePrimary.noMetrics}.</li>
+              <li>Fresh SRP remains the main HE QG pressure (${freshHe ? Number(freshHe[0]).toFixed(3) + "s · " + statusLabel(freshHe[1]) : "n/a"}).</li>
+              <li>Predict Deposit is a HE strength (${depositHe && depositHe[0] != null ? Number(depositHe[0]).toFixed(3) + "s · " + statusLabel(depositHe[1]) : "n/a"}) vs Sauce no-metrics.</li>
+              <li>Shared product blockers (no metrics across vendors): Money Home ×2, Rewards, often Perps open/close.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Standard vs HE</h3>
+            <ul>
+              <li>Standard best <strong>${stdBest}/23</strong>; typically 16–18/23 in this window.</li>
+              <li>Primary Std baseline <a href="${stdPrimary.url}" target="_blank">${stdPrimary.id}</a>: ${stdPrimary.pass}/23.</li>
+              <li>Fresh SRP also fails on Standard (${freshStd ? Number(freshStd[0]).toFixed(3) + "s · " + statusLabel(freshStd[1]) : "n/a"}).</li>
+              <li>HE is the more reliable TestMu lane: higher modal pass rate and fewer QG fails on launch/import flows.</li>
+              <li>Recommendation: keep <strong>TestMu HyperExecute</strong> as the TestMu production candidate; use Standard for spot checks only.</li>
+              <li>Speed: HE test phase typically ~31–37 min; Standard often similar or slightly faster (~29–35 min). Sauce Private is usually slower (~37–47 min post-parity).</li>
+            </ul>
+          </div>
+        </div>
+        <h3 style="margin-top:18px">Final TestMu takeaway</h3>
+        <ul>
+          <li><strong>HyperExecute is the stronger TestMu option</strong> in this week’s data (stable ~18/23 when green).</li>
+          <li>Remaining HE gaps are mostly shared no-metrics scenarios plus Fresh SRP QG — treat Fresh SRP as an app/threshold topic, not a provider outage.</li>
+          <li>BrowserStack can match or beat HE on pass count in recent same-run samples (20/23 on 32736700431 / 32355871016), so HE should continue to be compared against BS on a fixed scenario set.</li>
+          <li><strong>Do not fold Sauce Labs into the final TestMu decision yet</strong> — Sauce remains under evaluation (see section below).</li>
+        </ul>
+      `;
+    }
+
+    initControls();
+    renderVendor();
+    renderCompare();
+    renderSpeed();
+    renderTestMuAnalysis();
+    document.getElementById("footer").textContent =
+      `Branch ${DATA.branch} · Window ${DATA.window} · Generated ${DATA.generatedAt} · Values in seconds.`;
+  </script>
+</body>
+</html>

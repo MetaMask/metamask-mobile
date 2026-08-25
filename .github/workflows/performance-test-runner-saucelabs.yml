@@ -1,0 +1,167 @@
+name: Performance Test Runner — Sauce Labs (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      sauce_app_url:
+        required: true
+        type: string
+      device_matrix:
+        required: false
+        type: string
+        default: '[{"name":"Google_Pixel_7_POC49","os_version":""}]'
+      device_mode:
+        required: false
+        type: string
+        default: private
+        description: 'private or cloud device allocation mode'
+      branch_name:
+        required: true
+        type: string
+      sauce_build_name:
+        required: true
+        type: string
+      grep_tags:
+        required: false
+        type: string
+        default: ''
+      sentry_target:
+        required: false
+        type: string
+        default: test
+    secrets:
+      SAUCE_ACCESS_KEY:
+        required: true
+      MM_TEST_ACCOUNT_SRP:
+        required: true
+      TEST_SRP_1:
+        required: true
+      TEST_SRP_2:
+        required: true
+      TEST_SRP_3:
+        required: true
+      TEST_SRP_4:
+        required: true
+      E2E_PASSWORD:
+        required: true
+      MM_SENTRY_DSN_TEST:
+        required: false
+      MM_SENTRY_DSN:
+        required: false
+
+jobs:
+  run-tests:
+    name: '[Sauce Labs] Run ${{ inputs.build_type }} on ${{ inputs.platform }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(inputs.device_matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn --immutable
+
+      - name: Setup project
+        run: yarn setup:github-ci --node
+
+      - name: Set Sauce Labs test environment
+        run: |
+          set -euo pipefail
+          sauce_app_url="${{ inputs.sauce_app_url }}"
+          if [ -z "$sauce_app_url" ]; then
+            echo "::error::Sauce Labs app URL is required"
+            exit 1
+          fi
+          {
+            echo "SAUCE_USERNAME=oauth-javier.vera-857be"
+            echo "SAUCE_ACCESS_KEY=${{ secrets.SAUCE_ACCESS_KEY }}"
+            echo "SAUCE_ANDROID_APP_URL=$sauce_app_url"
+            echo "SAUCE_ANDROID_ONBOARDING_APP_URL=$sauce_app_url"
+            echo "SAUCE_ANDROID_CLEAN_APP_URL=$sauce_app_url"
+            echo "SAUCE_ANDROID_SEEDLESS_APP_URL=$sauce_app_url"
+            echo "SAUCE_BUILD_TYPE=${{ inputs.build_type }}"
+            if [ "${{ inputs.device_mode }}" = "cloud" ]; then
+              echo "SAUCE_DEVICE=Google Pixel.*"
+              echo "SAUCE_WORKERS=2"
+              echo "SAUCE_PRIVATE_DEVICES_ONLY=false"
+            else
+              echo "SAUCE_DEVICE=Google_Pixel_7_POC(49|05)"
+              echo "SAUCE_WORKERS=2"
+              echo "SAUCE_PRIVATE_DEVICES_ONLY=true"
+            fi
+            echo "SAUCE_BUILD_NAME=${{ inputs.sauce_build_name }}"
+            echo "TEST_PLATFORM=${{ inputs.platform }}"
+            echo "QA_APP_VERSION=sauce-${{ github.run_id }}"
+            echo "E2E_PERFORMANCE_CLOUD_PROVIDER=saucelabs"
+            echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=github-actions-performance-e2e-saucelabs"
+            echo "E2E_PERFORMANCE_SENTRY_DSN=${{ inputs.sentry_target == 'real' && secrets.MM_SENTRY_DSN || secrets.MM_SENTRY_DSN_TEST }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "TEST_SRP_4=${{ secrets.TEST_SRP_4 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "DISABLE_VIDEO_DOWNLOAD=true"
+            echo "DISABLE_NETWORK_LOGS=true"
+          } >> "$GITHUB_ENV"
+
+      - name: Run Sauce Labs tests
+        continue-on-error: true
+        env:
+          GREP_TAGS: ${{ inputs.grep_tags }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
+            projects=(
+              "--project=saucelabs-android-onboarding"
+              "--project=saucelabs-android-onboarding-seedless"
+            )
+          else
+            projects=("--project=saucelabs-android")
+          fi
+          if [ -n "$GREP_TAGS" ]; then
+            yarn playwright test --config=tests/playwright.saucelabs.config.ts "${projects[@]}" --grep "$GREP_TAGS"
+          else
+            yarn playwright test --config=tests/playwright.saucelabs.config.ts "${projects[@]}"
+          fi
+
+      - name: Upload Sauce Labs results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saucelabs-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ github.run_id }}
+          path: |
+            tests/reporters/reports
+            tests/test-reports/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
