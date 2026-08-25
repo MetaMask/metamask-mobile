@@ -108,6 +108,33 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
     expect(getByText('$1,250.00')).toBeOnTheScreen();
   });
 
+  it('shows no qualification message on an unscored day, even with the threshold already covered', () => {
+    // Off the campaign's scored set the backend reports `not_scored` and there
+    // is no verdict for today. qualifyingDepositsUsd still reports real
+    // progress, so deriving a shortfall from it produced "Add $0.00 today".
+    const { getByText, queryByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={{
+          ...stats,
+          qualifyingDepositsUsd: 150,
+          qualifyingThresholdUsd: 100,
+          todayStatus: 'not_scored',
+        }}
+      />,
+    );
+
+    expect(getByText('$150.00')).toBeOnTheScreen();
+    expect(queryByText(/Add \$0/)).toBeNull();
+    expect(queryByText(/to earn today's entry/)).toBeNull();
+    // Neither a promise nor a warning: no Qualified pill, no forfeit copy.
+    expect(queryByText('Qualified')).toBeNull();
+    expect(queryByText(localizedText.onTrackDescription)).toBeNull();
+    expect(queryByText(localizedText.lostTodayDescription)).toBeNull();
+  });
+
   it('renders stats skeletons while participating stats are loading with no data', () => {
     const { getByTestId, queryByText } = render(
       <MoneyAccountSweepstakesCampaignOverview

@@ -179,12 +179,13 @@ import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
 } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 
-interface MarketDetailsRouteParams {
+interface MarketDetailsRouteParams extends NavigationAnalyticsRouteParams {
   market: PerpsMarketData;
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
@@ -227,6 +228,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     source,
     source_section,
     transactionActiveAbTests,
+    analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
   const isRelatedMarketsEnabled = useSelector(
@@ -792,6 +794,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     resetKey: marketDetailsScreenViewResetKey,
     conditions: [isMarketDetailsScreenViewReady],
+    navigationAnalyticsContext: source ? undefined : analyticsContext,
     properties: marketDetailsScreenViewedProperties,
   });
 
