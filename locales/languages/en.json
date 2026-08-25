@@ -1548,6 +1548,11 @@
     "pro_positions_panel": {
       "order_history": "Order history",
       "close_count": "Close ({{count}})",
+      "cancel_all": "Cancel all",
+      "open_orders": {
+        "one": "{{count}} order",
+        "other": "{{count}} orders"
+      },
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
@@ -2439,10 +2444,13 @@
       "error_message": "Failed to close {{count}} position(s)"
     },
     "cancel_all_modal": {
-      "title": "Cancel all orders",
-      "description": "We'll cancel all your open orders.",
+      "title": "Cancel orders",
+      "description": {
+        "one": "We'll cancel {{count}} pending order. Any unfilled orders will be removed immediately.",
+        "other": "We'll cancel {{count}} pending orders. Any unfilled orders will be removed immediately."
+      },
       "keep_orders": "Keep orders",
-      "confirm": "Confirm",
+      "confirm": "Cancel all",
       "canceling": "Canceling...",
       "success_title": "Orders canceled",
       "success_message": "Successfully canceled {{count}} order(s)",
@@ -2779,6 +2787,28 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
+    "market": {
+      "volume": "{{value}} Vol."
+    },
+    "rules": {
+      "event_accessibility_label": "View event rules",
+      "market_accessibility_label": "View market rules",
+      "close_accessibility_label": "Close rules",
+      "event_title": "Event rules",
+      "market_title": "Market rules",
+      "title": "Rules",
+      "settlement_sources": {
+        "prefix": "Outcome verified from ",
+        "separator": ", ",
+        "last_separator": " and ",
+        "suffix": ".",
+        "open_hint": "Opens the source in your browser."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Loading event",
+      "unable_to_load": "Unable to load this event."
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
@@ -10302,6 +10332,7 @@
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
       "retry": "Retry",
+      "last_checked_at": "Last checked at",
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
