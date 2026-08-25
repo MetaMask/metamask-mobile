@@ -1,7 +1,12 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { Keyboard, type View } from 'react-native';
+import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -667,6 +672,61 @@ describe('PerpsProOrderForm', () => {
       });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
+    });
+  });
+
+  describe('slippage edit control', () => {
+    const slippageSummary = {
+      margin: '--',
+      liquidationPrice: '--',
+      slippage: '0.50% / 1%',
+    };
+
+    const backgroundOf = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style)
+        ?.backgroundColor;
+
+    it('renders the slippage edit affordance as an icon-only button', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toBeOnTheScreen();
+      expect(
+        within(editButton).queryByText(slippageSummary.slippage),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).getByText(
+          slippageSummary.slippage,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('applies a pressed background to the slippage edit affordance while held', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).not.toBe(
+        restingBackground,
+      );
+    });
+
+    it('restores the resting background once the slippage edit affordance is released', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressOut');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).toBe(restingBackground);
     });
   });
 

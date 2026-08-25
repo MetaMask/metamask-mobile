@@ -229,37 +229,6 @@ const summaryRowClassName = 'h-5 px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
 
-interface SlippageValueProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
-  >
-    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.Edit}
-        size={IconSize.Sm}
-        color={IconColor.IconDefault}
-      />
-    </Box>
-  </Pressable>
-);
-
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -292,7 +261,12 @@ const OrderSummary = ({
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
+        value={slippage}
+        valueEndButtonIconProps={buttonIcon(
+          IconName.Edit,
+          ids.SUMMARY_SLIPPAGE_BUTTON,
+          onSlippagePress,
+        )}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
