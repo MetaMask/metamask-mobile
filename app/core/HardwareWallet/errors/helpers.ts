@@ -9,10 +9,19 @@ import {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
+import { parseErrorByType } from './parser';
 import { RecoveryAction } from './types';
 
 /**
- * Check if an error represents a user cancellation
+ * Check if an error represents a user cancellation.
+ *
+ * Returns `true` ONLY for parsed `HardwareWalletError` instances whose code is
+ * `UserRejected` or `UserCancelled`. RAW keyring/transport errors (e.g. a
+ * Ledger `TransportStatusError` with status `0x6985`) are NOT
+ * `HardwareWalletError` instances and return `false` BY DESIGN — the
+ * confirm-flow suppression depends on raw errors being ignored here. To
+ * classify a possibly-raw error, parse it first (see
+ * {@link isDeviceUserRejection}).
  */
 export function isUserCancellation(error: unknown): boolean {
   if (HardwareWalletError.isHardwareWalletError(error)) {
@@ -22,6 +31,39 @@ export function isUserCancellation(error: unknown): boolean {
     );
   }
   return false;
+}
+
+/**
+ * Swap/bridge-internal failure messages that merely LOOK like device
+ * cancellations and must never be classified as a user rejection. Keep in
+ * sync with:
+ * - BATCH_CANCELLED_ERROR in app/components/UI/HardwareWallet/Swaps/hw-batch-sign/constants.ts
+ * - STX_NO_HASH_ERROR in app/util/smart-transactions/smart-publish-hook.ts
+ */
+export const INTERNAL_ABORT_MESSAGES: readonly string[] = [
+  'Batch cancelled',
+  'Smart Transaction does not have a transaction hash, there was a problem',
+];
+
+/**
+ * Classifies a possibly-RAW error (keyring/transport/approval rejection) as a
+ * device-side user rejection by parsing it first. Internal abort signals whose
+ * messages merely CONTAIN cancellation keywords (e.g. 'Batch cancelled') must be
+ * passed via excludedMessages (exact match) so they are not misclassified. For
+ * swap/send callers, use {@link INTERNAL_ABORT_MESSAGES} as the recommended
+ * exclusion list.
+ */
+export function isDeviceUserRejection(
+  error: unknown,
+  options?: { excludedMessages?: readonly string[] },
+): boolean {
+  if (
+    error instanceof Error &&
+    options?.excludedMessages?.includes(error.message)
+  ) {
+    return false;
+  }
+  return isUserCancellation(parseErrorByType(error));
 }
 
 /**

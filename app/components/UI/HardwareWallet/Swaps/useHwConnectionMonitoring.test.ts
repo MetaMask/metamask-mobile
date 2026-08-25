@@ -17,18 +17,18 @@ import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import {
   getRecoveryActionForErrorCode,
-  isUserCancellation,
+  isDeviceUserRejection,
 } from '../../../../core/HardwareWallet/errors/helpers';
-import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
+import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
 }));
 
 jest.mock('../../../../core/HardwareWallet/errors/helpers', () => ({
-  isUserCancellation: jest.fn(),
   getRecoveryActionForErrorCode: jest.fn(),
+  isDeviceUserRejection: jest.fn(),
 }));
 
 jest.mock('../../../../core/HardwareWallet/errors/parser', () => ({
@@ -185,7 +185,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
     // Default: errors are recoverable by reconnecting (no flow dispatch).
     (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
       RecoveryAction.RETRY,
@@ -338,7 +338,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.UserRejected),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(true);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(true);
 
     renderAndTransitionToWaiting(createErrorState(error));
 
@@ -354,7 +354,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
     (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
       RecoveryAction.ACKNOWLEDGE,
     );
@@ -371,7 +371,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
     (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
       RecoveryAction.ACKNOWLEDGE,
     );
@@ -386,7 +386,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
     (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
       RecoveryAction.ACKNOWLEDGE,
     );
@@ -405,7 +405,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
 
     renderAndTransitionToWaiting(createErrorState(error));
 
@@ -576,7 +576,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.UserRejected),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(true);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(true);
 
     const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
 
@@ -672,7 +672,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
 
     mockUseHardwareWallet.mockReturnValue(
       mockContextWith(createErrorState(error)),
@@ -767,7 +767,7 @@ describe('useHwConnectionMonitoring', () => {
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
-    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (isDeviceUserRejection as jest.Mock).mockReturnValue(false);
 
     const readyState = createReadyState();
     mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
