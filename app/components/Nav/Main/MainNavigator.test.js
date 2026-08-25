@@ -39,6 +39,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.SETTINGS).toBeDefined();
     expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
     expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
+    expect(Routes.RAMP.GET_PIX_KEY).toBeDefined();
   });
 
   it('has deposit routes defined', () => {

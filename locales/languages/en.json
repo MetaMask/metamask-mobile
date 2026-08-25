@@ -1100,6 +1100,21 @@
       "see_more": "See more"
     }
   },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "Send funds directly to your Money account from any bank account.",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
+      "button": "Agree and continue"
+    }
+  },
   "social_leaderboard": {
     "top_traders_view": {
       "notifications_banner": {
