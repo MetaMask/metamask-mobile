@@ -4,6 +4,13 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 // Mock FilesystemStorage
 jest.mock('redux-persist-filesystem-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),

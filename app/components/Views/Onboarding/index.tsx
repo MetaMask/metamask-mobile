@@ -62,6 +62,8 @@ import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 import {
   useNavigation,
@@ -299,6 +301,16 @@ const Onboarding = () => {
 
   const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
     useState(false);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.ONBOARDING,
+    properties: {
+      ...(state.createWallet ? { wallet_setup_type: 'new' } : {}),
+      ...(state.existingWallet ? { wallet_setup_type: 'import' } : {}),
+    },
+    saveOnboardingEvent,
+  });
 
   useScreenPerformance({
     screenId: OnboardingScreenIds.ONBOARDING_LANDING,
