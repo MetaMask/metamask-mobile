@@ -597,7 +597,10 @@ const PerpsProOrderForm = ({
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />
-          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
+          <Box
+            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+            testID={ids.REDUCE_ONLY_CONTAINER}
+          >
             <Checkbox
               label={strings('perps.order.reduce_only')}
               labelProps={{
