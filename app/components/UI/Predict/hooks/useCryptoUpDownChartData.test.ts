@@ -1408,6 +1408,18 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.window).toBe(30);
     });
 
+    it('uses the 30-second live window for 5-minute TWAP markets', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ twapWindowSeconds: 30 });
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(result.current.isLive).toBe(true);
+      expect(result.current.window).toBe(30);
+    });
+
     it('fetches crypto price history for live markets', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
@@ -1817,7 +1829,7 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.connectionError).toBe(false);
     });
 
-    it('renders lower-cadence TWAP observations without marking the stream stale', () => {
+    it('renders lower-cadence TWAP observations in the 30-second live viewport', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({
         endDate: '2026-01-01T01:00:00.000Z',
@@ -1847,7 +1859,7 @@ describe('useCryptoUpDownChartData', () => {
         { time: 100, value: 51000 },
         { time: 160, value: 51500 },
       ]);
-      expect(result.current.window).toBe(300);
+      expect(result.current.window).toBe(30);
       expect(result.current.loading).toBe(false);
       expect(result.current.connectionError).toBe(false);
     });

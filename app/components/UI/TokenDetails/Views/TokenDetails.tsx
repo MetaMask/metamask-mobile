@@ -12,8 +12,11 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -23,6 +26,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
   selectNetworkConfigurationByChainId,
@@ -162,6 +166,25 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   );
 };
 
+interface ShareTokenBottomSheetControllerRef {
+  open: () => void;
+}
+
+const ShareTokenBottomSheetController = forwardRef<
+  ShareTokenBottomSheetControllerRef,
+  Omit<React.ComponentProps<typeof ShareTokenBottomSheet>, 'onClose'>
+>((props, ref) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useImperativeHandle(ref, () => ({ open: () => setIsVisible(true) }), []);
+
+  return isVisible ? (
+    <ShareTokenBottomSheet {...props} onClose={() => setIsVisible(false)} />
+  ) : null;
+});
+
+ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
+
 /**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
@@ -189,10 +212,11 @@ const TokenDetails: React.FC<{
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
+  const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -250,7 +274,7 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    setIsShareSheetVisible(true);
+    shareSheetRef.current?.open();
   }, [
     shareUrl,
     createEventBuilder,
@@ -628,8 +652,9 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {isShareSheetVisible && shareUrl && (
-        <ShareTokenBottomSheet
+      {shareUrl && (
+        <ShareTokenBottomSheetController
+          ref={shareSheetRef}
           shareUrl={shareUrl}
           token={token}
           currentPrice={currentPrice}
@@ -638,7 +663,6 @@ const TokenDetails: React.FC<{
           currentCurrency={currentCurrency}
           securityData={securityData}
           networkName={networkName}
-          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}
@@ -682,22 +706,24 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const firedRef = useRef(false);
 
   const fireClosedRef = useRef<() => void>(() => undefined);
-  fireClosedRef.current = () => {
-    if (firedRef.current) return;
-    firedRef.current = true;
+  useLayoutEffect(() => {
+    fireClosedRef.current = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
-        .addProperties({
-          chain_id: token.chainId,
-          token_symbol: token.symbol,
-          token_address: token.address,
-          exit_action: closeSourceRef.current ?? 'back_navigation',
-          time_on_screen_ms: Date.now() - openedAtRef.current,
-        })
-        .build(),
-    );
-  };
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
+          .addProperties({
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+            token_address: token.address,
+            exit_action: closeSourceRef.current ?? 'back_navigation',
+            time_on_screen_ms: Date.now() - openedAtRef.current,
+          })
+          .build(),
+      );
+    };
+  });
 
   useEffect(() => {
     // On iOS, `inactive` is transient (Control Center, notifications, Face ID, etc.)

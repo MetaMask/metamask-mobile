@@ -2,7 +2,6 @@ import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
 import type { WebDriverConfig } from '../../types.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import { FrameworkDetector } from '../../FrameworkDetector.ts';
 import UnifiedGestures from '../../UnifiedGestures.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
 
@@ -68,7 +67,6 @@ export const workerDeviceProviderFixture: Fixtures<
 
       try {
         delete globalThis.driver;
-        FrameworkDetector.reset();
         UnifiedGestures.resetStrategy();
       } catch (error) {
         logger.error(

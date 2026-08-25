@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../core/NavigationService/types';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
@@ -10,6 +17,7 @@ import { DEFAULT_TOKEN_SORT_CONFIG } from '../../UI/Tokens/util/sortAssets';
 
 const TokensFullView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TokensFullView'>>();
 
   useEffect(
     () => () => {
@@ -36,7 +44,7 @@ const TokensFullView = () => {
           backButtonProps={{ testID: 'back-button' }}
           includesTopInset
         />
-        <Tokens isFullView />
+        <Tokens isFullView analyticsSource={route.params?.source} />
       </Box>
     </>
   );

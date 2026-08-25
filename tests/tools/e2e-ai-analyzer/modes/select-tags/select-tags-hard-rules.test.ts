@@ -1,5 +1,5 @@
 import { getChangedSpecFiles, isSpecFile } from './test-infrastructure-paths';
-import { checkHardRules } from './handlers';
+import { checkHardRules, SELECT_TAGS_CONFIG } from './handlers';
 
 const BASE_DIR = process.cwd();
 
@@ -56,6 +56,22 @@ describe('checkHardRules', () => {
     baseDir: BASE_DIR,
     baseBranch: 'origin/main',
   };
+
+  it('runs all E2E tags when an E2E-relevant workflow changes', () => {
+    const changedFiles = [
+      '.github/workflows/ci.yml',
+      '.github/workflows/run-appium-e2e-workflow.yml',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toEqual(
+      SELECT_TAGS_CONFIG.map((config) => config.tag),
+    );
+    expect(result?.confidence).toBe(100);
+    expect(result?.reasoning).toContain('e2e-relevant-workflow-change');
+  });
 
   it('selects SmokeAccounts when only an accounts smoke spec changes', () => {
     const changedFiles = [

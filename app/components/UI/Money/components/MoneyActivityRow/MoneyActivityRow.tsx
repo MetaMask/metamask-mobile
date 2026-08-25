@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import AccountsApiActivityItem from '../AccountsApiActivityItem/AccountsApiActivityItem';
+import CardTransactionRow from '../../../Card/components/CardTransactionRow/CardTransactionRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 
 export interface MoneyActivityRowProps {
   item: MoneyActivityItem;
@@ -12,6 +19,37 @@ export interface MoneyActivityRowProps {
   showNetworkBadge?: boolean;
   /** Whether the crypto/fiat amounts should be masked. */
   privacyMode?: boolean;
+  cardEnrichmentByHash?: Map<string, CardTransaction>;
+}
+
+function CardProviderActivityRow({
+  transaction,
+  privacyMode,
+}: {
+  transaction: CardTransaction;
+  privacyMode?: boolean;
+}) {
+  const navigation = useNavigation<AppNavigationProp>();
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
+
+  const handlePress = useCallback(
+    (tx: CardTransaction) => {
+      navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
+        cardTransaction: tx,
+      });
+    },
+    [navigation],
+  );
+
+  return (
+    <CardTransactionRow
+      transaction={transaction}
+      privacyMode={privacyMode}
+      onPress={activityDetailsEnabled ? handlePress : undefined}
+    />
+  );
 }
 
 const MoneyActivityRow = ({
@@ -20,13 +58,28 @@ const MoneyActivityRow = ({
   onPress,
   showNetworkBadge,
   privacyMode,
+  cardEnrichmentByHash,
 }: MoneyActivityRowProps) => {
+  if (item.kind === 'cardProvider') {
+    return (
+      <CardProviderActivityRow
+        transaction={item.tx}
+        privacyMode={privacyMode}
+      />
+    );
+  }
+
   if (item.kind === 'accountsApi') {
+    const enrichment =
+      item.tx.kind === 'card'
+        ? cardEnrichmentByHash?.get(item.tx.hash.toLowerCase())
+        : undefined;
     return (
       <AccountsApiActivityItem
         activity={item.tx}
         showNetworkBadge={showNetworkBadge}
         privacyMode={privacyMode}
+        enrichment={enrichment}
       />
     );
   }

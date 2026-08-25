@@ -263,6 +263,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const entryPoint = route.params?.entryPoint;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -363,11 +364,18 @@ const MoneyOnboardingView = () => {
   }, [riveRef, riveApyValue, setApyValue, setApyAmountDigit]);
 
   const navigateToMoneyHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: {
+          screen: Routes.MONEY.HOME,
+          ...(entryPoint ? { params: { entryPoint } } : {}),
+        },
+      },
+      { pop: true },
+    );
+  }, [entryPoint, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (
@@ -519,7 +527,7 @@ const MoneyOnboardingView = () => {
         layoutScaleFactor={PixelRatio.get()}
         onStateChanged={handleStateChanged}
         onError={handleError}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
       />
       <MoneyOnboardingTextOverlay
@@ -540,10 +548,14 @@ const MoneyOnboardingViewE2E = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const navigateToMoneyHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   }, [navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
