@@ -93,6 +93,7 @@ type LoadingSessionTraceData = ReturnType<
   typeof getActivePerpsLoadingSessionTraceData
 >;
 const loadingSessionDataByTraceId = new Map<string, LoadingSessionTraceData>();
+const MAX_CAPTURED_LOADING_SESSION_TRACE_IDS = 100;
 
 function captureLoadingSessionTraceData(
   traceId: string,
@@ -105,6 +106,15 @@ function captureLoadingSessionTraceData(
       }
     : undefined;
   loadingSessionDataByTraceId.set(traceId, data);
+  while (
+    loadingSessionDataByTraceId.size > MAX_CAPTURED_LOADING_SESSION_TRACE_IDS
+  ) {
+    const oldestTraceId = loadingSessionDataByTraceId.keys().next().value;
+    if (oldestTraceId === undefined) {
+      break;
+    }
+    loadingSessionDataByTraceId.delete(oldestTraceId);
+  }
   return data;
 }
 

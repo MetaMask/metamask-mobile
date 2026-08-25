@@ -73,6 +73,19 @@ interface PendingReconnectRequest {
   force: boolean;
 }
 
+function logPerpsConnectionProof(
+  stage: string,
+  data: Record<string, string | number | boolean> = {},
+): void {
+  DevLogger.log(
+    `[PerpsConnectionProof] ${JSON.stringify({
+      stage,
+      monotonic_ms: Number(performance.now().toFixed(3)),
+      ...data,
+    })}`,
+  );
+}
+
 /**
  * Singleton manager for Perps connection state
  * This ensures that both PerpsScreenStack and PerpsModalStack
@@ -243,8 +256,6 @@ class PerpsConnectionManagerClass {
             networkChanged: hasPerpsNetworkChanged,
             providerChanged: hasProviderChanged,
             hip3Changed: hasHip3Changed,
-            previousAddress: this.previousAddress,
-            currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
             previousProvider: this.previousProvider,
@@ -253,6 +264,13 @@ class PerpsConnectionManagerClass {
             currentHip3Version,
           },
         );
+        logPerpsConnectionProof('context_change_detected', {
+          account_changed: hasAccountChanged,
+          network_changed: hasPerpsNetworkChanged,
+          provider_changed: hasProviderChanged,
+          hip3_changed: hasHip3Changed,
+          connection_generation: this.connectionGeneration,
+        });
 
         // Immediately clear ALL cached data to prevent old account data from showing
         const streamManager = getStreamManagerInstance();
@@ -616,15 +634,11 @@ class PerpsConnectionManagerClass {
 
     // If the existing connection is healthy, keep it instead of forcing a reconnect.
     if (this.isConnected && this.isInitialized) {
+      let connectionHealthy = false;
       try {
         const provider = Engine.context.PerpsController.getActiveProvider();
         await provider.ping();
-        if (!suppressError) {
-          this.clearError();
-        }
-        this.resubscribeActiveStreamChannels();
-        markPerpsLoadingSessionConnectionValidated();
-        return;
+        connectionHealthy = true;
       } catch {
         // First ping failed — JS thread may be sluggish right after foregrounding.
         // Wait briefly and retry before triggering a full reconnection.
@@ -633,20 +647,23 @@ class PerpsConnectionManagerClass {
           const retryProvider =
             Engine.context.PerpsController.getActiveProvider();
           await retryProvider.ping();
+          connectionHealthy = true;
           DevLogger.log(
             'PerpsConnectionManager: resumeFromForeground - retry ping succeeded, connection healthy',
           );
-          if (!suppressError) {
-            this.clearError();
-          }
-          this.resubscribeActiveStreamChannels();
-          markPerpsLoadingSessionConnectionValidated();
-          return;
         } catch {
           DevLogger.log(
             'PerpsConnectionManager: resumeFromForeground - retry ping also failed, falling through to soft reconnect',
           );
         }
+      }
+      if (connectionHealthy) {
+        if (!suppressError) {
+          this.clearError();
+        }
+        this.resubscribeActiveStreamChannels();
+        markPerpsLoadingSessionConnectionValidated();
+        return;
       }
     }
 
@@ -1243,6 +1260,10 @@ class PerpsConnectionManagerClass {
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
+    logPerpsConnectionProof('reconnect_started', {
+      reconnect_id: traceId,
+      connection_generation: this.connectionGeneration,
+    });
 
     // Abandon any pending confirmation CUF (and any stale reconnect span) from
     // the previous session BEFORE arming this reconnection's own span. The
@@ -1388,6 +1409,10 @@ class PerpsConnectionManagerClass {
       const healthCheckStart = performance.now();
       const provider = Engine.context.PerpsController.getActiveProvider();
       await provider.ping();
+      logPerpsConnectionProof('reconnect_health_validated', {
+        reconnect_id: traceId,
+        connection_generation: this.connectionGeneration,
+      });
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionHealthCheck,
         performance.now() - healthCheckStart,
@@ -1436,6 +1461,17 @@ class PerpsConnectionManagerClass {
         preloadedUserContextKey === this.getSelectedUserContextKey()
       ) {
         this.setInitializedUserContextKey(preloadedUserContextKey);
+        logPerpsConnectionProof('reconnect_preload_committed', {
+          reconnect_id: traceId,
+          connection_generation: this.connectionGeneration,
+          selected_user_context_ready: this.isSelectedUserContextReady(),
+        });
+      } else {
+        logPerpsConnectionProof('reconnect_preload_rejected', {
+          reconnect_id: traceId,
+          connection_generation: this.connectionGeneration,
+          selected_user_context_ready: false,
+        });
       }
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionPreload,
@@ -1498,6 +1534,14 @@ class PerpsConnectionManagerClass {
       );
       throw error;
     } finally {
+      logPerpsConnectionProof('reconnect_finished', {
+        reconnect_id: traceId,
+        connection_generation: this.connectionGeneration,
+        success: traceData?.success === true,
+        elapsed_ms: Number(
+          Math.max(0, performance.now() - reconnectionStartTime).toFixed(3),
+        ),
+      });
       endTrace({
         name: TraceName.PerpsAccountSwitchReconnection,
         id: traceId,

@@ -477,6 +477,7 @@ const PerpsProOrderBookPanel = ({
     usePerpsLiveOrderBook({
       symbol,
       enabled: Boolean(symbol) && isMarketContextReady,
+      resetKey: marketContextKey,
       // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
       // relative to the aggregated channel's coarser grouping.
       levels: ORDER_BOOK_AGGREGATED_LEVELS,
@@ -544,6 +545,7 @@ const PerpsProOrderBookPanel = ({
     symbol,
     channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
+    resetKey: marketContextKey,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
@@ -561,16 +563,19 @@ const PerpsProOrderBookPanel = ({
     [aggregatedOrderBook],
   );
 
-  const readinessBaselineRef = useRef<{
-    contextKey: string;
-    updatedAt: number | null;
-  }>({ contextKey: marketContextKey, updatedAt: null });
-  if (readinessBaselineRef.current.contextKey !== marketContextKey) {
+  const readinessBaselineRef = useRef({
+    contextKey: marketContextKey,
+    updatedAt: null as number | null,
+  });
+  useEffect(() => {
+    if (readinessBaselineRef.current.contextKey === marketContextKey) {
+      return;
+    }
     readinessBaselineRef.current = {
       contextKey: marketContextKey,
       updatedAt: aggregatedOrderBook?.lastUpdated ?? null,
     };
-  }
+  }, [aggregatedOrderBook?.lastUpdated, marketContextKey]);
 
   // Asks render above the spread, farthest-to-closest top to bottom (highest
   // ask first) — the standard order-book convention, with the ask nearest
@@ -615,8 +620,10 @@ const PerpsProOrderBookPanel = ({
 
   const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
   const hasFreshContextDelivery =
-    readinessBaselineRef.current.updatedAt === null ||
-    readinessBaselineRef.current.updatedAt !== aggregatedOrderBook?.lastUpdated;
+    readinessBaselineRef.current.contextKey === marketContextKey &&
+    (readinessBaselineRef.current.updatedAt === null ||
+      readinessBaselineRef.current.updatedAt !==
+        aggregatedOrderBook?.lastUpdated);
   const hasLadder = Boolean(
     isMarketContextReady &&
       isOrderBookForCurrentSymbol &&

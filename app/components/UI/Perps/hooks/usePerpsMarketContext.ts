@@ -11,6 +11,7 @@ import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
   key: string;
+  identityKey: string;
   isReady: boolean;
   isUserReady: boolean;
   isConnectionInitialized: boolean;
@@ -74,6 +75,7 @@ export function usePerpsMarketContext(): PerpsMarketContext {
 
   return {
     key,
+    identityKey: selectedContextKey,
     isReady,
     isUserReady,
     isConnectionInitialized: isInitialized,

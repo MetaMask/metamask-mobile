@@ -689,6 +689,9 @@ function requiresFreshMarkets(
 function hasRequiredLiveStreams(
   data: Record<string, string | number | boolean>,
 ): boolean {
+  if (data.success === false) {
+    return true;
+  }
   return (
     !backgroundConnectionValidationPending &&
     (!requiresLiveAccount(data) ||
@@ -707,7 +710,7 @@ function tryFinishPendingSession(): void {
   }
   endActiveLoadingSession({
     ...pendingFinishData,
-    required_live_streams_complete: true,
+    required_live_streams_complete: pendingFinishData.success !== false,
   });
 }
 

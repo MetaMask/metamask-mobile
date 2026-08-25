@@ -41,6 +41,8 @@ interface MeasurementOptions {
   // Blocks work after the owning session has ended. An active span is closed
   // as unsuccessful when ownership is cancelled.
   ownerActive?: boolean;
+  // Consumers that cancel on background must include their foreground
+  // generation in resetKey so the trace restarts when the owner resumes.
   cancelOnAppBackground?: boolean;
 
   debugContext?: Record<string, unknown>;

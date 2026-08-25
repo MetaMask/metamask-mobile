@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
@@ -85,8 +85,11 @@ export const usePerpsMarkets = (
   } = options;
 
   const streamManager = usePerpsStream();
-  const { key: marketContextKey, isReady: isMarketContextReady } =
-    usePerpsMarketContext();
+  const {
+    key: marketContextKey,
+    identityKey: marketIdentityKey,
+    isReady: isMarketContextReady,
+  } = usePerpsMarketContext();
   const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
@@ -121,12 +124,17 @@ export const usePerpsMarkets = (
       hasPreloadedData('cachedMarketData'),
   );
 
+  const previousMarketIdentityKeyRef = useRef(marketIdentityKey);
   useEffect(() => {
+    if (previousMarketIdentityKeyRef.current === marketIdentityKey) {
+      return;
+    }
+    previousMarketIdentityKeyRef.current = marketIdentityKey;
     setMarkets([]);
     setError(null);
     setHasResolvedInitialData(skipInitialFetch);
     setIsLoading(!skipInitialFetch);
-  }, [marketContextKey, skipInitialFetch]);
+  }, [marketIdentityKey, skipInitialFetch]);
 
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(

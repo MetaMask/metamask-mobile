@@ -446,12 +446,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }, [
       cohortTags,
       connectionError,
-      hasItems,
       hasSurfaceContent,
       isLoadingSection,
       marketCount,
       pillsEmptyFeedHidden,
-      perpsPillsData.length,
       sessionId,
       sessionReady,
     ]);

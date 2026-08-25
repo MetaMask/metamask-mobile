@@ -57,6 +57,7 @@ jest.mock('../utils/perpsCufTrace', () => ({
 
 jest.mock('../utils/perpsLoadingSession', () => ({
   getActivePerpsLoadingSessionTraceData: jest.fn(),
+  markPerpsLoadingSessionConnectionValidated: jest.fn(),
   setPerpsLoadingSessionLifecycle: jest.fn(),
   startPerpsLoadingSession: jest.fn(),
 }));
