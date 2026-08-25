@@ -150,6 +150,19 @@ export function useTransactionCustomAmount({
     payToken?.address.toLowerCase() ?? ''
   }`;
 
+  // Totals from a previous pay token must not fill the amount field. Snapshot
+  // which token the current `quotesLastUpdated` belongs to; after a switch the
+  // stamp is unchanged until a new quote settles, so Max still shows the local
+  // prefill (the token balance) instead of the prior quote.
+  const maxQuotePayTokenKeyRef = useRef(payTokenKey);
+  const maxQuoteUpdatedAtRef = useRef(quotesLastUpdated);
+  if (maxQuoteUpdatedAtRef.current !== quotesLastUpdated) {
+    maxQuoteUpdatedAtRef.current = quotesLastUpdated;
+    maxQuotePayTokenKeyRef.current = payTokenKey;
+  }
+  const hasMaxQuoteForCurrentToken =
+    maxQuotePayTokenKeyRef.current === payTokenKey;
+
   useEffect(() => {
     depositMaxHumanRef.current = null;
     userHasEditedRef.current = false;
@@ -219,12 +232,15 @@ export function useTransactionCustomAmount({
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
 
-    // For withdrawals, targetAmount.usd is the destination-side received
-    // value (e.g. BNB after bridge fees), not the amount being withdrawn.
-    // The input field should always display what the user is withdrawing.
+    // Withdrawals: targetAmount.usd is destination-received, not withdrawn.
+    // Money-account deposits: the quote USD is rounded differently from the
+    // local Max/prefill (ROUND_HALF_UP vs ROUND_DOWN), which made the input
+    // jump by a cent once quotes settled. Keep the committed source amount.
     if (
       !isWithdraw &&
+      !isMoneyAccountDeposit &&
       isMaxAmount &&
+      hasMaxQuoteForCurrentToken &&
       targetAmountUsd &&
       targetAmountUsd !== '0'
     ) {
@@ -237,7 +253,14 @@ export function useTransactionCustomAmount({
     }
 
     return amountFiatState;
-  }, [amountFiatState, isMaxAmount, isWithdraw, totals?.targetAmount.usd]);
+  }, [
+    amountFiatState,
+    hasMaxQuoteForCurrentToken,
+    isMaxAmount,
+    isMoneyAccountDeposit,
+    isWithdraw,
+    totals?.targetAmount.usd,
+  ]);
 
   const amountHuman = useMemo(
     () =>
@@ -480,7 +503,13 @@ export function useTransactionCustomAmount({
       prevHasPrefilled.current = depositPrefill.hasPrefilled;
       return;
     }
-    if (depositPrefill.hasPrefilled) {
+    // Apply when committed, or on the token-switch frame where the next
+    // amount is already computed but `hasPrefilled` has not flipped true yet.
+    // Clearing to $0 in that gap is what made the prefill disappear.
+    if (
+      depositPrefill.hasPrefilled ||
+      depositPrefill.prefillAmount !== undefined
+    ) {
       amountChangeTimeRef.current = Date.now();
       // Uncapped percentage prefills go through the same Max/percentage path
       // as the keypad buttons so money-account Max gets isMaxAmount and
@@ -517,8 +546,11 @@ export function useTransactionCustomAmount({
       }
     }
     prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    // Re-run on token change so a new funded token applies immediately instead
+    // of waiting for hasPrefilled to toggle. Same-token balance updates do not
+    // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depositPrefill.hasPrefilled]);
+  }, [depositPrefill.hasPrefilled, payTokenKey]);
 
   useEffect(() => {
     if (
