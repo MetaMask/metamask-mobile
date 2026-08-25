@@ -35,6 +35,14 @@ export class DeviceInfoExtractor {
       };
     }
 
+    if (process.env.SAUCE_DEVICE) {
+      return {
+        name: process.env.SAUCE_DEVICE,
+        osVersion: process.env.SAUCE_OS_VERSION || '',
+        provider: 'saucelabs',
+      };
+    }
+
     return {
       name: 'Unknown',
       osVersion: 'Unknown',

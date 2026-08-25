@@ -4,10 +4,12 @@ import { EmulatorProvider } from './emulator';
 import { BrowserStackProvider } from './browserstack';
 import { ProviderName } from '../../types.ts';
 
+/* eslint-disable @typescript-eslint/no-require-imports -- Sauce Labs stays lazy-loaded */
+
 /**
  * Supported provider types
  */
-export type ProviderType = 'emulator' | 'browserstack';
+export type ProviderType = 'emulator' | 'browserstack' | 'saucelabs';
 
 /**
  * Factory function to create the appropriate service provider
@@ -18,7 +20,7 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
 
   if (!provider) {
     throw new Error(
-      'Device provider is not specified in the configuration. Please specify "emulator" or "browserstack".',
+      'Device provider is not specified in the configuration. Please specify "emulator", "browserstack", or "saucelabs".',
     );
   }
 
@@ -30,9 +32,15 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
     case ProviderName.BROWSERSTACK:
       return new BrowserStackProvider(project);
 
+    case ProviderName.SAUCELABS: {
+      const sauceLabsModule =
+        require('./saucelabs') as typeof import('./saucelabs');
+      return new sauceLabsModule.SauceLabsProvider(project);
+    }
+
     default:
       throw new Error(
-        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack.`,
+        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack, saucelabs.`,
       );
   }
 }

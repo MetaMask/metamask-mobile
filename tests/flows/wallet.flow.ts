@@ -957,10 +957,19 @@ export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
   const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
-  const accountName = deviceAccountMapping[deviceName];
+  // Sauce Labs cloud allocation may use regex device names such as "Google Pixel.*".
+  const normalizedDeviceName = deviceName.replace(/\.\*$/, '');
+  const accountName =
+    deviceAccountMapping[deviceName] ??
+    deviceAccountMapping[normalizedDeviceName];
 
-  if (!(deviceName in deviceAccountMapping)) {
-    throw new Error(`Account name not found for device: ${deviceName}`);
+  if (accountName === undefined) {
+    throw new Error(
+      `Account name not found for device: ${deviceName}` +
+        (normalizedDeviceName !== deviceName
+          ? ` (normalized: ${normalizedDeviceName})`
+          : ''),
+    );
   }
 
   if (!accountName) {

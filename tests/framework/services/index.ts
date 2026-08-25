@@ -11,6 +11,7 @@ export {
   type ProviderType,
   EmulatorProvider,
   BrowserStackProvider,
+  SauceLabsProvider,
 } from './providers';
 
 // Appium utilities

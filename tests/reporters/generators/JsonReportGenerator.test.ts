@@ -82,9 +82,28 @@ describe('JsonReportGenerator', () => {
     ).toBe(true);
     expect(
       paths.some(
-        (p: string) => p.includes('iPhone_14_Pro') && p.includes('16.1'),
+        (p: string) => p.includes('iPhone_14_Pro') && p.includes('16_1'),
       ),
     ).toBe(true);
+  });
+
+  it('sanitizes regex characters in device OS report filenames', () => {
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          device: {
+            name: 'Pixel.*',
+            osVersion: '13.*|14.*',
+            provider: 'testmu',
+          },
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files[0]).not.toMatch(/[|*]/u);
+    expect(files[0]).toContain('13___14__');
   });
 
   it('groups metrics by device key', () => {
@@ -251,6 +270,30 @@ describe('JsonReportGenerator', () => {
         apiCalls,
       });
       expect(firstArtifact.profilingData).toEqual(profilingData);
+    });
+
+    it('sanitizes device OS versions in app-profiling filenames', () => {
+      const data = makeReportData({
+        metrics: [
+          makeMetricsEntry({
+            device: {
+              name: 'Pixel.*',
+              osVersion: '13.*|14.*',
+              provider: 'testmu',
+            },
+            profilingSummary: { issues: 0 },
+          }),
+        ],
+      });
+
+      const files = generator.generate(data, '/reports');
+      const profilingFile = files.find((file) =>
+        file.includes(`${path.sep}app-profiling${path.sep}`),
+      );
+
+      expect(profilingFile).toBeDefined();
+      expect(profilingFile).not.toMatch(/[|*]/u);
+      expect(profilingFile).toContain('13___14__');
     });
 
     it('creates the app-profiling directory when missing', () => {
