@@ -11,10 +11,12 @@ import {
   type GameSelection,
   type GameStatusLine,
 } from '../../game';
-import { formatAskPrice } from './formatAskPrice';
+import {
+  formatAskPrice,
+  getAskPricePercent,
+  parsePredictDecimal,
+} from '../../shared/formatting';
 import { formatMultiplier } from './formatMultiplier';
-import { getAskPricePercent } from './getAskPricePercent';
-import { parsePredictDecimal } from './parsePredictDecimal';
 
 export type { GameSelection };
 
