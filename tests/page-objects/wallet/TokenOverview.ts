@@ -1,6 +1,5 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
@@ -8,191 +7,153 @@ import {
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class TokenOverview {
-  get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            TokenOverviewSelectorsIDs.CONTAINER,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TokenOverviewSelectorsIDs.CONTAINER,
-          ),
-      },
-    });
+  get container(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.CONTAINER);
   }
 
-  get tokenPrice(): EncapsulatedElementType {
+  get tokenPrice(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  get sendButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            TokenOverviewSelectorsIDs.SEND_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TokenOverviewSelectorsIDs.SEND_BUTTON,
-          ),
-      },
-    });
+  get sendButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
   /** Today's change display (e.g. "+2.5% Today") - used by performance tests */
-  get todaysChange(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.TODAYS_CHANGE,
-        ),
-    });
+  get todaysChange(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE);
   }
 
-  get priceChartDotEnd(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.TOKEN_PRICE,
-        ),
-    });
+  get priceChartDotEnd(): Promise<AppiumElement> {
+    // Appium historically matched TOKEN_PRICE for this marker.
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  get priceChartContainer(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
-        ),
-    });
+  get priceChartContainer(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+    );
   }
 
-  get unstakeButton(): EncapsulatedElementType {
+  get unstakeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }
 
-  get stakeMoreButton(): EncapsulatedElementType {
+  get stakeMoreButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-  get stakedBalance(): EncapsulatedElementType {
+  get stakedBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
   }
 
-  get actionSheetSendButton(): EncapsulatedElementType {
+  get actionSheetSendButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get swapButton(): EncapsulatedElementType {
+  get swapButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
-  get bridgeButton(): EncapsulatedElementType {
+  get bridgeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON);
   }
 
-  get claimButton(): EncapsulatedElementType {
+  get claimButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
   }
 
-  get receiveButton(): EncapsulatedElementType {
+  get receiveButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
   }
 
-  get noChartData(): EncapsulatedElementType {
+  get noChartData(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get unstakingBanner(): EncapsulatedElementType {
+  get unstakingBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
   }
 
-  get chartPeriod1d(): EncapsulatedElementType {
+  get chartPeriod1d(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
   }
 
-  get chartPeriod1w(): EncapsulatedElementType {
+  get chartPeriod1w(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1w']);
   }
 
-  get chartPeriod1m(): EncapsulatedElementType {
+  get chartPeriod1m(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1m']);
   }
 
-  get chartPeriod3m(): EncapsulatedElementType {
+  get chartPeriod3m(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3m']);
   }
 
-  get chartPeriod1y(): EncapsulatedElementType {
+  get chartPeriod1y(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1y']);
   }
 
-  get chartPeriod3y(): EncapsulatedElementType {
+  get chartPeriod3y(): Promise<AppiumElement> {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3y']);
   }
 
   async tapSendButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.sendButton, {
-      description: 'Send Button',
+    await Gestures.waitAndTap(this.sendButton, {
+      elemDescription: 'Send Button',
     });
   }
 
   async tapActionSheetSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.actionSheetSendButton);
+    await Gestures.waitAndTap(this.actionSheetSendButton, {
+      elemDescription: 'Action sheet send button',
+    });
   }
 
   async tapBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeButton);
+    await Gestures.waitAndTap(this.bridgeButton, {
+      elemDescription: 'Bridge button',
+    });
   }
 
   async tapSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.swapButton);
+    await Gestures.waitAndTap(this.swapButton, {
+      elemDescription: 'Swap button',
+    });
   }
 
   async tapStakeMoreButton(): Promise<void> {
-    await Gestures.waitAndTap(this.stakeMoreButton);
+    await Gestures.waitAndTap(this.stakeMoreButton, {
+      elemDescription: 'Stake more button',
+    });
   }
 
   async tapUnstakeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.unstakeButton);
+    await Gestures.waitAndTap(this.unstakeButton, {
+      elemDescription: 'Unstake button',
+    });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton);
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Token overview back button',
+    });
   }
 
   async tapClaimButton(): Promise<void> {
-    await Gestures.waitAndTap(this.claimButton);
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Claim button',
+    });
   }
 
   async scrollOnScreen(): Promise<void> {

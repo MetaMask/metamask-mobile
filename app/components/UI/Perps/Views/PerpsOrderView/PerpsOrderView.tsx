@@ -22,6 +22,9 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
   Button as DSButton,
+  ButtonBaseSize,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   TextVariant,
@@ -38,9 +41,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -57,11 +57,13 @@ import {
 } from '../../../../Views/confirmations/constants/perps';
 import {
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { usePayTokenAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -87,7 +89,6 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
-  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -97,6 +98,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -149,7 +151,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { willFlipPosition } from '../../utils/orderUtils';
+import {
+  getOrderManagementToastKey,
+  willFlipPosition,
+} from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
@@ -284,6 +289,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
@@ -622,6 +628,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const isPayAmountStale = useIsTransactionPayAmountStale();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -641,7 +648,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? undiscountedEstimatedFees + depositFeeUsd
     : undiscountedEstimatedFees;
 
-  const isPayStateNotReady = isPayTotalsLoading || isPayAmountStale;
+  // Mirror the publish guard: while the deposit transaction exists but has no
+  // executable quote and no validated direct or fiat route, a tap would be
+  // rejected at publish with "Cannot submit without quote". The loading and
+  // stale-amount checks alone miss states where the quote fetch failed, never
+  // started, or the payment token is still unset.
+  const isPayStateNotReady =
+    isPayTotalsLoading ||
+    isPayAmountStale ||
+    (Boolean(activeTransactionMeta) && !isPaySubmitReady);
 
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
@@ -767,9 +782,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return false;
     }
     const requiredUsd = Number(marginRequired);
-    const balanceUsd = Number(payToken.balanceUsd);
-    return requiredUsd > balanceUsd;
-  }, [hasCustomTokenSelected, marginRequired, payToken]);
+    return requiredUsd > Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, marginRequired, payToken, payTokenBalanceUsd]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -1005,7 +1019,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
@@ -1014,7 +1028,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].creationFailed(error),
         );
       },
@@ -1321,6 +1335,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      if (orderValidation.isValidating) {
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1511,7 +1529,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         showToast(
           PerpsToastOptions.orderManagement[
-            getTriggerExecution(orderForm.type)
+            getOrderManagementToastKey(orderForm.type)
           ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 
@@ -1571,6 +1589,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       commitAmount,
       liveDragAmount,
       orderValidation.isValid,
+      orderValidation.isValidating,
       orderValidation.errors,
       track,
       orderForm.asset,
@@ -2154,7 +2173,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }
               onPress={() => handlePlaceOrder()}
               isFullWidth
-              size={ButtonSizeRNDesignSystem.Lg}
+              size={ButtonBaseSize.Lg}
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
@@ -2164,7 +2183,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2184,7 +2203,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || orderValidation.isValidating}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2227,7 +2246,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? PERPS_EVENT_VALUE.DIRECTION.LONG
                 : PERPS_EVENT_VALUE.DIRECTION.SHORT,
             [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-            previousLeverage: orderForm.leverage,
+            [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
           };
 
           // Add input method if provided
@@ -2367,6 +2386,7 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { payToken } = useTransactionPayToken();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
   // Get navigation params to pass to context provider
@@ -2381,11 +2401,17 @@ const PerpsOrderView: React.FC = () => {
     defaultMaxLeverage,
   } = route.params || {};
 
+  // `payToken.balanceUsd` is a one-time controller snapshot taken when the
+  // token is selected, so it reads 0 until the next quote refresh whenever the
+  // token's balance was not yet tracked. Because 0 is treated as a real cap
+  // (not "unknown"), that snapshot would zero out the sizing slider. Read the
+  // live wallet balance instead, matching the pay-with row and the blocking
+  // insufficient-balance alert.
   const effectiveAvailableBalance = useMemo(() => {
-    if (!hasCustomTokenSelected) return undefined;
-    const amount = payToken?.balanceUsd;
-    return amount !== undefined ? Number(amount) : undefined;
-  }, [hasCustomTokenSelected, payToken?.balanceUsd]);
+    if (!hasCustomTokenSelected || !payToken) return undefined;
+    const amount = Number(payTokenBalanceUsd);
+    return Number.isFinite(amount) ? amount : undefined;
+  }, [hasCustomTokenSelected, payToken, payTokenBalanceUsd]);
 
   return (
     <PerpsOrderProvider

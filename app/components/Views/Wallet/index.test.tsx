@@ -69,9 +69,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
-const mockMoneyAccountGeoEligible = true;
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
+let mockMoneyAccountVisible = false;
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -97,9 +97,17 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
 let mockNetworkConnectionBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
-    networkConnectionBannerState: {
-      visible: mockNetworkConnectionBannerVisible,
-    },
+    status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
+    network: mockNetworkConnectionBannerVisible
+      ? {
+          networkClientId: 'test-client',
+          name: 'Test Network',
+          rpcUrl: 'https://test.rpc',
+          chainId: '0x1',
+          isInfuraEndpoint: false,
+          switchableInfuraNetworkClientId: null,
+        }
+      : null,
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -129,9 +137,12 @@ jest.mock('../../../hooks', () => ({
         variant: {
           layout:
             mockBalanceBreakdownVariantName === 'icons' ||
-            mockBalanceBreakdownVariantName === 'allocation'
-              ? mockBalanceBreakdownVariantName
-              : null,
+            mockBalanceBreakdownVariantName === 'iconsWithArrows'
+              ? 'icons'
+              : mockBalanceBreakdownVariantName === 'allocation'
+                ? 'allocation'
+                : null,
+          showRowArrows: mockBalanceBreakdownVariantName === 'iconsWithArrows',
         },
         isActive: mockBalanceBreakdownVariantName !== 'unresolved',
       };
@@ -306,7 +317,6 @@ import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { initialState as networkConnectionBannerInitialState } from '../../../reducers/networkConnectionBanner';
 import {
   NavigationProp,
   ParamListBase,
@@ -552,7 +562,6 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
-  networkConnectionBanner: networkConnectionBannerInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -777,6 +786,7 @@ beforeEach(() => {
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
+  mockMoneyAccountVisible = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
@@ -1879,16 +1889,18 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money account is enabled', () => {
+  it('renders the MoneyBalanceCard when Money account is visible', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
 
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('does not render the MoneyBalanceCard when Money account is disabled', () => {
-    mockMoneyAccountEnabled = false;
+  it('does not render the MoneyBalanceCard when Money account is geo-ineligible', () => {
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = false;
 
     const { queryByTestId } = render(Wallet);
 
@@ -1897,6 +1909,7 @@ describe('MoneyBalanceCard slot', () => {
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
     mockBalanceBreakdownVariantName = 'icons';
 
     const { queryByTestId } = render(Wallet);
@@ -1916,6 +1929,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
     mockHeaderNavBarVariantName = 'control';
     jest
       .mocked(useSelector)
@@ -1926,6 +1940,7 @@ describe('Header and Nav Bar refresh AB test', () => {
 
   afterEach(() => {
     mockMoneyAccountEnabled = false;
+    mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
   });
 
@@ -2078,23 +2093,39 @@ describe('Homepage balance breakdown ABC test', () => {
   });
 
   it.each([
-    ['icons', 'icons'],
-    ['allocation', 'allocation'],
-  ])('maps %s assignment to the %s layout', (variantName, layout) => {
-    mockBalanceBreakdownVariantName = variantName;
+    { variantName: 'icons', layout: 'icons', showRowArrows: false },
+    {
+      variantName: 'iconsWithArrows',
+      layout: 'icons',
+      showRowArrows: true,
+    },
+    { variantName: 'allocation', layout: 'allocation', showRowArrows: false },
+  ] as const)(
+    'maps $variantName assignment to the $layout layout',
+    ({ variantName, layout, showRowArrows }) => {
+      mockBalanceBreakdownVariantName = variantName;
 
-    render(Wallet);
+      render(Wallet);
 
-    expect(mockHomepage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        balanceBreakdownSectionProps: expect.objectContaining({
-          children: expect.anything(),
-          hideRows: false,
-          layout,
+      expect(mockHomepage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          balanceBreakdownSectionProps: expect.objectContaining({
+            children: expect.anything(),
+            hideRows: false,
+            layout,
+            showRowArrows,
+            transactionActiveAbTests: [
+              {
+                key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+                value: variantName,
+                key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
+              },
+            ],
+          }),
         }),
-      }),
-    );
-  });
+      );
+    },
+  );
 
   it('does not reserve banner spacing when treatment banners are hidden', () => {
     mockBalanceBreakdownVariantName = 'icons';

@@ -46,16 +46,11 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
-} from '../../Earn/selectors/featureFlags';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
@@ -66,7 +61,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -99,6 +94,7 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   endTrace,
   trace,
@@ -220,7 +216,6 @@ export interface AssetOverviewContentProps {
  * - Chart navigation buttons
  * - Action buttons (Buy, Swap, Send, Receive)
  * - Balance display
- * - Merkl rewards section
  * - Perps discovery banner
  * - Token details (contract, decimals, etc.)
  */
@@ -376,19 +371,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
-  const isMerklClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
-  const isTokenEligibleForMerklClaim = useMemo(
-    () =>
-      isMerklClaimingEnabled &&
-      isTokenEligibleForMerklRewards(
-        token.chainId as Hex,
-        token.address as Hex | undefined,
-      ),
-    [isMerklClaimingEnabled, token.chainId, token.address],
-  );
-
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
@@ -455,22 +437,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData?.resultType,
   ]);
 
-  // Start the entry card trace synchronously during render so it is registered
-  // in the trace map before any child useEffect (where endTrace fires) runs.
-  // Using a ref guard ensures we only start one trace per unique asset.
-  const entryCardTraceStartedRef = useRef<string | null>(null);
-  if (
-    isMarketInsightsEnabled &&
-    marketInsightsCaip19Id &&
-    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
-  ) {
-    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
-    trace({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      op: TraceOperation.MarketInsightsLoad,
-      id: marketInsightsCaip19Id,
-    });
-  }
+  // Runs during render (not useEffect) so the trace is registered before any
+  // child's endTrace(); useMemo's deps guard against restarting it per render.
+  useMemo(() => {
+    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        op: TraceOperation.MarketInsightsLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
 
   const goToBrowserUrl = (url: string) => {
     navigateWithDetails(navigation, createWebviewNavDetails({ url }));
@@ -707,9 +684,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <EarnBalance asset={token} />
             </>
           )}
-          {isTokenEligibleForMerklClaim && (
-            <AssetOverviewClaimBonus asset={token} />
-          )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
@@ -774,12 +748,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 animationType="none"
                 statusBarTranslucent
               >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeEligibilityModal}
-                  contentKey="geo_block"
-                  testID="token-details-geo-block-tooltip"
-                />
+                <ModalSafeAreaProvider>
+                  <PerpsBottomSheetTooltip
+                    isVisible
+                    onClose={closeEligibilityModal}
+                    contentKey="geo_block"
+                    testID="token-details-geo-block-tooltip"
+                  />
+                </ModalSafeAreaProvider>
               </Modal>
             </View>
           )}

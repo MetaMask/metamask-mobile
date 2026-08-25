@@ -4,12 +4,12 @@ import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
 import type { AndroidDetailedContext } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
+import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import AppiumContextHelpers from './AppiumContextHelpers';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('ChromeCdpHelpers');
+const logger = createAppiumLogger('ChromeCdpHelpers');
 
 /** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
 const CDP_FORWARD_PORT = 9222;
@@ -475,8 +475,7 @@ export default class ChromeCdpHelpers {
             set(v) {
               pushObserved(v);
               return desc.set.call(this, v);
-            },
-          });
+            } });
         }
       } catch (_) {}
 
@@ -523,8 +522,7 @@ export default class ChromeCdpHelpers {
           : [],
         reconstructed: Array.isArray(window.__mmCdpReconstructedDeeplinks)
           ? window.__mmCdpReconstructedDeeplinks.slice()
-          : [],
-      })`,
+          : [] })`,
     );
   }
 
@@ -901,16 +899,14 @@ export default class ChromeCdpHelpers {
     }
     // iOS: use Appium WebView context switching
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const result = (await getDriver().execute(
         `return (${expression})`,
       )) as T | null;
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return result ?? null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }
@@ -948,18 +944,16 @@ export default class ChromeCdpHelpers {
     }
     // iOS
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const el = getDriver().$(`#${elementId}`);
       await el.waitForExist({ timeout: timeoutMs });
       await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
       await el.click();
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return true;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return false;
     }
   }
@@ -988,16 +982,14 @@ export default class ChromeCdpHelpers {
     }
     // iOS
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const text = (await getDriver().execute(
         `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
       )) as string | null;
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return text || null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }
@@ -1022,22 +1014,20 @@ export default class ChromeCdpHelpers {
     }
 
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       while (Date.now() < deadline) {
         const ready = (await getDriver().execute(
           `return (${isEnabledExpression})`,
         )) as boolean;
         if (ready) {
-          await PlaywrightContextHelpers.switchToNativeContext();
+          await AppiumContextHelpers.switchToNativeContext();
           return;
         }
         await new Promise<void>((r) => setTimeout(r, POLL_MS));
       }
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
     } catch (error) {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       throw error;
     }
 
@@ -1081,7 +1071,7 @@ export default class ChromeCdpHelpers {
     }
     // iOS: hold WebView context open for the full polling duration
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
         try {
@@ -1089,7 +1079,7 @@ export default class ChromeCdpHelpers {
             `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
           )) as string | null;
           if (text) {
-            await PlaywrightContextHelpers.switchToNativeContext();
+            await AppiumContextHelpers.switchToNativeContext();
             return text;
           }
         } catch {
@@ -1097,12 +1087,10 @@ export default class ChromeCdpHelpers {
         }
         await new Promise<void>((r) => setTimeout(r, POLL_MS));
       }
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }

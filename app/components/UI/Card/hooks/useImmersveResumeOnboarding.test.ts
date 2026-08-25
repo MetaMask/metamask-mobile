@@ -27,6 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockSignIn = jest.fn();
 jest.mock('./useImmersveSiweAuth', () => ({
+  ...jest.requireActual('./useImmersveSiweAuth'),
   useImmersveSiweAuth: () => ({
     signIn: mockSignIn,
     isAuthenticating: false,
@@ -50,6 +51,15 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   setImmersveFundingSourceId: (id: string) => ({
     type: 'card/setImmersveFundingSourceId',
     payload: id,
+  }),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
   }),
 }));
 

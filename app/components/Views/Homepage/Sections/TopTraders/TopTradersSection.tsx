@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -38,7 +39,7 @@ import {
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
+import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -78,17 +79,36 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
   const [visibleTraderIds, setVisibleTraderIds] = useState<string[]>([]);
 
+  // Keep an idle placeholder measurable before the first request. Do not feed
+  // query loading back into this hook: doing so would hide visibility as soon
+  // as the visibility-gated request starts.
+  const { isVisible: isSectionVisible, onLayout: sectionVisibleOnLayout } =
+    useSectionViewportVisible(sectionViewRef, { isLoading: false });
+  const [hasEverBeenVisible, setHasEverBeenVisible] =
+    useState(isSectionVisible);
+
+  useEffect(() => {
+    if (isSectionVisible && !hasEverBeenVisible) {
+      setHasEverBeenVisible(true);
+    }
+  }, [hasEverBeenVisible, isSectionVisible]);
+
+  // Keep the query warm after its first reveal. A continuous visibility gate
+  // would re-enable this stale query and refetch whenever the user scrolls back.
+  const hasRequestedTraders = isSectionVisible || hasEverBeenVisible;
+
   const {
     traders: allTraders,
     isLoading,
     isFetching,
+    hasFetched,
     error,
     refresh,
     toggleFollow,
@@ -97,7 +117,7 @@ const TopTradersSection = forwardRef<
     chains: SPOT_CHAINS,
     sort: DEFAULT_LEADERBOARD_SORT,
     timeframe: DEFAULT_TIMEFRAME,
-    enabled: isEnabled,
+    enabled: isEnabled && hasRequestedTraders,
   });
 
   // Mirrors the leaderboard's landing state (Tokens / 7D / P&L): the API only
@@ -124,10 +144,24 @@ const TopTradersSection = forwardRef<
   const hasTraders = traders.length > 0;
   const hasError = Boolean(error);
   const showError = hasError && !isFetching && !hasTraders;
-  const willRender = isEnabled && (isInFlight || hasError || hasTraders);
+  const showSkeletons =
+    !hasTraders && (!hasRequestedTraders || !hasFetched || isInFlight);
+  const showViewMore = hasTraders;
+  // A cached empty result must not remove the viewport target before this
+  // instance has requested data; otherwise it can never become visible and
+  // revalidate the stale query.
+  const isEmpty =
+    hasRequestedTraders &&
+    hasFetched &&
+    !isInFlight &&
+    !hasError &&
+    !hasTraders;
+  // The idle skeleton is a real, measurable root. Keep it registered with
+  // viewport analytics so it is not mistaken for a non-rendered empty section.
+  const sectionMountsVisibleRoot = isEnabled && !isEmpty;
 
   const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
+    sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
@@ -135,9 +169,6 @@ const TopTradersSection = forwardRef<
     isEmpty: traders.length === 0,
     itemCount: traders.length,
   });
-
-  const { isVisible: isSectionVisible, onLayout: sectionVisibleOnLayout } =
-    useSectionViewportVisible(sectionViewRef, { isLoading });
 
   usePrefetchTraderProfiles(visibleTraderIds, {
     enabled: isEnabled && hasTraders,
@@ -157,16 +188,14 @@ const TopTradersSection = forwardRef<
     // sections. Without this, a fetch error with no cached traders would be
     // reported as `content_state: 'empty'`.
     isEmpty: !isLoading && !hasError && !hasTraders,
-    isLoading,
+    // React Query v4 reports isLoading=true for an uncached disabled query.
+    // Require active fetching so offscreen dwell is not counted as fetch time.
+    isLoading: isLoading && isFetching,
     // Disable telemetry once we render the error UI so the in-flight TTC and
     // data-fetch spans get closed via the hook's cleanup instead of remaining
     // open until the user navigates away.
     enabled: isEnabled && !showError,
   });
-
-  const showSkeletons = isInFlight && !hasTraders;
-  const showViewMore = hasTraders;
-  const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {
     const items: TopTradersCarouselItem[] = traders.map((trader) => ({
@@ -204,21 +233,17 @@ const TopTradersSection = forwardRef<
   const handleFollowPress = useCallback(
     async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      const wasFollowing = trader?.isFollowing ?? false;
-      const performFollow = () =>
+      await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
           source: 'home_carousel',
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
           traderAvatarUri: trader?.avatarUri,
-        });
-      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-        return;
-      }
-      await performFollow();
+        }),
+      );
     },
-    [traders, toggleFollow, openSetupIfNeeded],
+    [traders, toggleFollow, followWithSetup],
   );
 
   const onViewableItemsChanged = useRef(

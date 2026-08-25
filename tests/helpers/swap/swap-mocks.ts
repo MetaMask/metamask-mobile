@@ -165,7 +165,7 @@ export const testSpecificMock: TestSpecificMock = async (
     mockServer,
     /getQuoteStream/i,
     toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
-    1, // lower priority than the specific mocks below (999)
+    2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mocks (999)
   );
 
   // Mock ETH->USDC after suggested/default slippage has been persisted (SSE)

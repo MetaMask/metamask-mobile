@@ -1,11 +1,14 @@
 # PredictNext Interface Ledger
 
-This ledger records the mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
 
 ## Canonical read models
 
-- `PredictEvent` is returned by both `getEvents` and `getEvent` and contains one or more `PredictMarket` values.
-- Event list pagination uses `{ items, nextCursor? }`; cursors are opaque.
+- `PredictFeed` is returned by `getFeed` and contains the Feed identity, title, Events, and optional pagination cursor.
+- `PredictEvent` is returned within a Feed and by `getEvent`, and contains one or more `PredictMarket` values.
+- Feed pagination uses `{ venueId, id, title, events, nextCursor? }`; cursors are opaque.
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
@@ -16,11 +19,17 @@ This ledger records the mobile canonical read contract stabilized by PRED-1168 a
 - `PredictEntityId` is venue-local and opaque. An Outcome ID may be native or adapter-derived.
 - `PredictTimestamp` is an RFC 3339/ISO-8601 UTC string.
 
+## Agreed next-contract changes
+
+The next public-read contract will use `Feed → Event → Market → Outcome`, with the same complete Event shape in Feed and detail responses. It will add an optional single Category and Series to Event; optional Event and Market Volume, 24-Hour Volume, and image URL; optional Sport, Competition, Game, Team, Game status, and Game Selection metadata; product-owned Feed reads; and a current-Event read for Rolling Series. A canonical Event will continue to map to exactly one Venue Event.
+
+The reduced browse status will be replaced by the Kalshi lifecycle vocabulary: `initialized`, `active`, `inactive`, `closed`, `determined`, `disputed`, `amended`, and `finalized`. The existing binary Outcome invariant remains unchanged: Game Selection complements rather than replaces an Outcome's `yes | no` side.
+
 ## Query descriptors
 
 ```ts
 marketDataQueries.getVenueStatus(venueId);
-marketDataQueries.getEvents(venueId, params);
+marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 ```
 

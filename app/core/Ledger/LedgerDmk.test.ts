@@ -9,8 +9,10 @@ import {
   connectLedgerDmkDevice,
   connectLedgerDmkHardware,
   disconnectLedgerDmkSession,
+  getLedgerDmkPublicKey,
   getLedgerDmkSessionState,
   isLedgerDmkBridge,
+  listenToLedgerDmkAvailableDevices,
 } from './LedgerDmk';
 import Engine from '../../core/Engine';
 import type { RestrictedController } from '@metamask/keyring-controller';
@@ -53,31 +55,36 @@ const mockBridge = Object.create(
   LedgerDmkBridge.prototype,
 ) as LedgerDmkBridge & {
   getAppNameAndVersion: jest.Mock;
+  getPublicKey: jest.Mock;
   updateSessionId: jest.Mock;
   connect: jest.Mock;
   destroy: jest.Mock;
   startDiscovering: jest.Mock;
 };
 
+const mockListenToAvailableDevices = jest.fn();
+
 mockBridge.getAppNameAndVersion = jest.fn();
+mockBridge.getPublicKey = jest.fn();
 mockBridge.updateSessionId = jest.fn();
 mockBridge.connect = jest.fn();
 mockBridge.destroy = jest.fn();
 mockBridge.startDiscovering = jest.fn();
+Object.defineProperty(mockBridge, 'dmk', {
+  configurable: true,
+  enumerable: true,
+  get: () => ({
+    listenToAvailableDevices: mockListenToAvailableDevices,
+  }),
+});
 Object.defineProperty(mockBridge, 'onSessionStateChange', {
   configurable: true,
   enumerable: true,
   get: () => mockSessionState,
 });
 
-const legacyLedgerKeyring = new LegacyLedgerKeyring({
-  bridge: mockBridge,
-});
-
-const ledgerKeyring = new LedgerKeyring({
-  legacyKeyring: legacyLedgerKeyring,
-  entropySource: 'test-entropy-source',
-});
+let legacyLedgerKeyring: LegacyLedgerKeyring;
+let ledgerKeyring: LedgerKeyring;
 
 function createRestrictedControllerMock(
   keyringController: typeof MockEngine.context.KeyringController,
@@ -127,8 +134,17 @@ describe('LedgerDmk', () => {
     mockBridge.getAppNameAndVersion.mockResolvedValue({
       appName: 'appName',
     });
+    mockBridge.getPublicKey.mockResolvedValue({
+      address: '0x123',
+      publicKey: 'public-key',
+      chainCode: 'chain-code',
+    });
     mockBridge.updateSessionId.mockResolvedValue(true);
-    legacyLedgerKeyring.bridge = mockBridge;
+    legacyLedgerKeyring = new LegacyLedgerKeyring({ bridge: mockBridge });
+    ledgerKeyring = new LedgerKeyring({
+      legacyKeyring: legacyLedgerKeyring,
+      entropySource: 'test-entropy-source',
+    });
 
     jest.spyOn(ledgerKeyring, 'setDeviceId').mockImplementation();
 
@@ -314,14 +330,52 @@ describe('LedgerDmk', () => {
     });
   });
 
+  describe('getLedgerDmkPublicKey', () => {
+    it('requests an address from the DMK bridge', async () => {
+      const hdPath = "44'/60'/0'/0/0";
+
+      await getLedgerDmkPublicKey(hdPath);
+
+      expect(mockBridge.getPublicKey).toHaveBeenCalledWith({ hdPath });
+    });
+  });
+
+  describe('listenToLedgerDmkAvailableDevices', () => {
+    it('returns the observable from the bridge DMK', async () => {
+      const devices$ = of([]);
+      mockListenToAvailableDevices.mockReturnValue(devices$);
+
+      const result = await listenToLedgerDmkAvailableDevices({});
+
+      expect(mockListenToAvailableDevices).toHaveBeenCalledWith({});
+      expect(result).toBe(devices$);
+    });
+
+    it('throws when the bridge is not a LedgerDmkBridge', async () => {
+      legacyLedgerKeyring.bridge = {} as typeof legacyLedgerKeyring.bridge;
+
+      const error = await listenToLedgerDmkAvailableDevices({}).catch(
+        (caughtError) => caughtError,
+      );
+
+      expect(error).toBeInstanceOf(HardwareWalletError);
+      expect(error).toMatchObject({
+        code: ErrorCode.Unknown,
+        message: 'Expected LedgerDmkBridge',
+      });
+    });
+  });
+
   describe('connectLedgerDmkDevice', () => {
     it('returns the session id from the keyring bridge connection', async () => {
-      const device = { id: 'device-1' } as DiscoveredDevice;
+      const discoveredDevice = { id: 'device-1' } as DiscoveredDevice;
       mockBridge.connect.mockResolvedValue('bridge-session-id');
 
-      const sessionId = await connectLedgerDmkDevice(device);
+      const sessionId = await connectLedgerDmkDevice(discoveredDevice);
 
-      expect(mockBridge.connect).toHaveBeenCalledWith({ device });
+      expect(mockBridge.connect).toHaveBeenCalledWith({
+        device: discoveredDevice,
+      });
       expect(sessionId).toBe('bridge-session-id');
     });
 
