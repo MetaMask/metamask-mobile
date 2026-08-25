@@ -30,6 +30,7 @@ const loadedDisclaimer = {
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
       isLoading: false,

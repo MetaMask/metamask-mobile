@@ -15,6 +15,11 @@ jest.mock('../constants', () => ({
 }));
 
 describe('useKycDisclaimers when the KYC API base URL is not configured', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
   it('skips the fetch and returns an empty list immediately', () => {
     const globalFetchSpy = jest.spyOn(global, 'fetch');
 

@@ -20,6 +20,7 @@ describe('useKycDisclaimers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockGetBearerToken.mockResolvedValue('mock-bearer-token');
     globalFetchSpy = jest.spyOn(global, 'fetch');
   });
