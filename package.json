@@ -654,7 +654,7 @@
     "@storybook/addon-ondevice-controls": "^6.5.6",
     "@storybook/builder-webpack5": "^7.5.1",
     "@storybook/react-native": "^6.5.6",
-    "@tanstack/query-core": "4.43.0",
+    "@tanstack/query-core": "^5.90.20",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",
@@ -914,6 +914,14 @@
     "@metamask/subscription-controller": {
       "type": "non-breaking",
       "previewVersion": "8.0.0-preview-7cfd8be"
+    },
+    "@metamask/chomp-api-service": {
+      "type": "non-breaking",
+      "previewVersion": "4.0.0-preview-95f5bf775"
+    },
+    "@metamask/claims-controller": {
+      "type": "non-breaking",
+      "previewVersion": "0.6.0-preview-95f5bf775"
     }
   }
 }

@@ -8082,23 +8082,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/chomp-api-service@npm:4.0.0"
+"@metamask/chomp-api-service@npm:@metamask-previews/chomp-api-service@4.0.0-preview-95f5bf775":
+  version: 4.0.0-preview-95f5bf775
+  resolution: "@metamask-previews/chomp-api-service@npm:4.0.0-preview-95f5bf775"
   dependencies:
     "@metamask/base-data-service": "npm:^0.1.3"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^11.11.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/0d06fbe8e34d9886a9ba9a37026a3c7cf810ad696186c2bc627da6b7ea9d8dabc68b92cbf42ee7793cf913f657ecbcd8f29d9562cd7f61f9e71595442b0b9c9b
+    "@tanstack/query-core": "npm:^5.62.16"
+  checksum: 10/87a4e0d042a9de3ed5e3f0991be36742b071b1d9e349fa6c5af0fd3756850aad37caac68de7c7d85768b85ef33e00a1bd4e990a68dec6ba64e6c2e898f9a17b2
   languageName: node
   linkType: hard
 
-"@metamask/claims-controller@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@metamask/claims-controller@npm:0.6.0"
+"@metamask/claims-controller@npm:@metamask-previews/claims-controller@0.6.0-preview-95f5bf775":
+  version: 0.6.0-preview-95f5bf775
+  resolution: "@metamask-previews/claims-controller@npm:0.6.0-preview-95f5bf775"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/base-data-service": "npm:^0.1.3"
@@ -8108,8 +8108,8 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^11.11.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/a722287b05d0f195fca372b1709d5f7396f0125795038356ba1ebd1598bf32029b0e09f5db4644e563ebc6e69feca1d71b66e33057979e063b8e212a2146e9d5
+    "@tanstack/query-core": "npm:^5.62.16"
+  checksum: 10/5641756c11e18fdc74d33be065546946dd23ed30f9ded683a5cc505600ce58f7b2e70e8dbc05c97d4c16f13d1878db2be75291e59052fe30ee1d385362bbe713
   languageName: node
   linkType: hard
 
@@ -18370,17 +18370,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:4.43.0, @tanstack/query-core@npm:^4.43.0":
-  version: 4.43.0
-  resolution: "@tanstack/query-core@npm:4.43.0"
-  checksum: 10/c2a5a151c7adaea8311e01a643255f31946ae3164a71567ba80048242821ae14043f13f5516b695baebe5ea7e4b2cf717fd60908a929d18a5c5125fee925ff67
-  languageName: node
-  linkType: hard
-
-"@tanstack/query-core@npm:5.101.4, @tanstack/query-core@npm:^5.62.16":
+"@tanstack/query-core@npm:5.101.4, @tanstack/query-core@npm:^5.62.16, @tanstack/query-core@npm:^5.90.20":
   version: 5.101.4
   resolution: "@tanstack/query-core@npm:5.101.4"
   checksum: 10/df86031035ac9a5cf54efece85718b90e93fca62068a44a176da232b6dd49b27168840f2da18c64a0eb25d171bc3fb1aab417db4643025cd194ff887833bd73f
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:^4.43.0":
+  version: 4.43.0
+  resolution: "@tanstack/query-core@npm:4.43.0"
+  checksum: 10/c2a5a151c7adaea8311e01a643255f31946ae3164a71567ba80048242821ae14043f13f5516b695baebe5ea7e4b2cf717fd60908a929d18a5c5125fee925ff67
   languageName: node
   linkType: hard
 
@@ -35895,7 +35895,7 @@ __metadata:
     "@storybook/addon-ondevice-controls": "npm:^6.5.6"
     "@storybook/builder-webpack5": "npm:^7.5.1"
     "@storybook/react-native": "npm:^6.5.6"
-    "@tanstack/query-core": "npm:4.43.0"
+    "@tanstack/query-core": "npm:^5.90.20"
     "@tanstack/react-query": "npm:^5.101.0"
     "@testing-library/react": "npm:14.0.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
