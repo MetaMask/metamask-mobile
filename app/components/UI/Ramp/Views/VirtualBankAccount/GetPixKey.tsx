@@ -24,7 +24,6 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import TagBase from '../../../../../component-library/base-components/TagBase';
 import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
@@ -69,8 +68,8 @@ const GetPixKey = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
-  }, [navigation]);
+    // TODO: navigate to the Verify identity screen (follow-up PR).
+  }, []);
 
   return (
     <SafeAreaView
