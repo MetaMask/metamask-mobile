@@ -54,7 +54,7 @@ interface ValidationState {
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
-  hasInsufficientBalance: boolean;
+  insufficientBalanceErrors: string[];
 }
 
 export interface ValidationResult {
@@ -63,7 +63,12 @@ export interface ValidationResult {
   fieldIssues: OrderFormFieldIssue[];
   isValid: boolean;
   isValidating: boolean;
-  hasInsufficientBalance: boolean;
+  /**
+   * The subset of `errors` caused by insufficient balance or margin. Callers
+   * that render their own insufficient-funds treatment use this to drop the
+   * duplicates without hiding the unrelated errors alongside them.
+   */
+  insufficientBalanceErrors: string[];
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -111,12 +116,15 @@ export function usePerpsOrderValidation(
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
-    hasInsufficientBalance: false,
+    insufficientBalanceErrors: EMPTY_ERRORS,
   });
 
   // Use stable array references to prevent unnecessary re-renders
   const stableErrors = useStableArray(validation.errors);
   const stableWarnings = useStableArray(validation.warnings);
+  const stableInsufficientBalanceErrors = useStableArray(
+    validation.insufficientBalanceErrors,
+  );
 
   const fieldIssues = useMemo(
     () =>
@@ -159,17 +167,20 @@ export function usePerpsOrderValidation(
 
       // Perform immediate UI validation for critical errors
       const immediateErrors: string[] = [];
+      const balanceErrors: string[] = [];
 
       // Balance validation (immediate)
       const requiredMargin = Number.parseFloat(marginRequired);
-      const hasInsufficientBalance = requiredMargin > spendableBalance;
-      if (hasInsufficientBalance) {
-        immediateErrors.push(
-          strings('perps.order.validation.insufficient_balance', {
+      if (requiredMargin > spendableBalance) {
+        const insufficientBalanceError = strings(
+          'perps.order.validation.insufficient_balance',
+          {
             required: marginRequired,
             available: spendableBalance.toString(),
-          }),
+          },
         );
+        immediateErrors.push(insufficientBalanceError);
+        balanceErrors.push(insufficientBalanceError);
       }
 
       // Minimum order size validation using original USD input (prevents precision loss)
@@ -293,6 +304,13 @@ export function usePerpsOrderValidation(
           // Only add protocol error if not already covered by immediate validation
           if (!errors.some((e) => e.includes(translatedError))) {
             errors.push(translatedError);
+            if (
+              protocolValidation.error ===
+                PERPS_ERROR_CODES.INSUFFICIENT_BALANCE ||
+              protocolValidation.error === PERPS_ERROR_CODES.INSUFFICIENT_MARGIN
+            ) {
+              balanceErrors.push(translatedError);
+            }
           }
         }
 
@@ -310,11 +328,8 @@ export function usePerpsOrderValidation(
           warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
           protocolValid: errors.length === 0,
           isValidating: false,
-          hasInsufficientBalance:
-            hasInsufficientBalance ||
-            protocolValidation.error ===
-              PERPS_ERROR_CODES.INSUFFICIENT_BALANCE ||
-            protocolValidation.error === PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+          insufficientBalanceErrors:
+            balanceErrors.length > 0 ? balanceErrors : EMPTY_ERRORS,
         });
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
@@ -329,7 +344,7 @@ export function usePerpsOrderValidation(
           warnings: EMPTY_WARNINGS,
           protocolValid: false,
           isValidating: false,
-          hasInsufficientBalance: false,
+          insufficientBalanceErrors: EMPTY_ERRORS,
         });
       }
     },
@@ -377,10 +392,10 @@ export function usePerpsOrderValidation(
         errors: EMPTY_ERRORS,
         isValidating: false,
         protocolValid: false,
-        // Cleared errors must clear the balance flag too, otherwise the order
+        // Cleared errors must clear the balance errors too, otherwise the order
         // screen keeps showing the insufficient-funds banner after the user
         // clears the amount.
-        hasInsufficientBalance: false,
+        insufficientBalanceErrors: EMPTY_ERRORS,
       }));
       return;
     }
@@ -440,6 +455,6 @@ export function usePerpsOrderValidation(
     fieldIssues,
     isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
-    hasInsufficientBalance: validation.hasInsufficientBalance,
+    insufficientBalanceErrors: stableInsufficientBalanceErrors,
   };
 }

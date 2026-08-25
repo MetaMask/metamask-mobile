@@ -228,10 +228,45 @@ describe('usePerpsOrderValidation', () => {
           available: '0.00004',
         }),
       );
-      expect(result.current.hasInsufficientBalance).toBe(true);
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        strings('perps.order.validation.insufficient_balance', {
+          required: '3.59',
+          available: '0.00004',
+        }),
+      ]);
     });
 
-    it('should clear the insufficient balance flag when the position size is cleared', async () => {
+    it('reports only the balance message as an insufficient-balance error when the amount is also below the minimum', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: 0.00004,
+          marginRequired: '3.59',
+          originalUsdAmount: '3.59',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      const minimumAmountError = strings(
+        'perps.order.validation.minimum_amount',
+        { amount: '10' },
+      );
+      expect(result.current.errors).toContain(minimumAmountError);
+      expect(result.current.insufficientBalanceErrors).not.toContain(
+        minimumAmountError,
+      );
+    });
+
+    it('clears the insufficient balance errors when the position size is cleared', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result, rerender } = renderHook(
@@ -250,7 +285,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       await fastWaitFor(() => {
-        expect(result.current.hasInsufficientBalance).toBe(true);
+        expect(result.current.insufficientBalanceErrors).toHaveLength(1);
       });
 
       rerender('0');
@@ -260,7 +295,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.errors).toEqual([]);
-      expect(result.current.hasInsufficientBalance).toBe(false);
+      expect(result.current.insufficientBalanceErrors).toEqual([]);
     });
   });
 

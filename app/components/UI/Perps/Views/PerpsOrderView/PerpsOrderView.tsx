@@ -1162,8 +1162,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
+  const { insufficientBalanceErrors } = orderValidation;
   const hasInsufficientFundsError =
-    hasInsufficientPayTokenBalance || orderValidation.hasInsufficientBalance;
+    hasInsufficientPayTokenBalance || insufficientBalanceErrors.length > 0;
+
+  // The banner above already states the insufficient-funds condition, so drop
+  // only those messages here — any other blocking error stays visible.
+  const footerErrors = useMemo(() => {
+    if (insufficientBalanceErrors.length === 0) {
+      return filteredErrors;
+    }
+    const covered = new Set(insufficientBalanceErrors);
+    return filteredErrors.filter((error) => !covered.has(error));
+  }, [filteredErrors, insufficientBalanceErrors]);
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
@@ -2137,13 +2148,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
-          {filteredErrors.length > 0 &&
-            !hasInsufficientFundsError &&
+          {footerErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null &&
             !orderValidation.isValidating && (
               <View style={styles.validationContainer}>
-                {filteredErrors.map((error) => (
+                {footerErrors.map((error) => (
                   <Text
                     key={error}
                     variant={TextVariant.BodySm}

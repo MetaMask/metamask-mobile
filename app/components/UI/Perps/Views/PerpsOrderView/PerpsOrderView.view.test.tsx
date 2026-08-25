@@ -397,6 +397,39 @@ describe('PerpsOrderView', () => {
     ).toBeDisabled();
   });
 
+  it('keeps a blocking minimum-amount error visible next to the insufficient-funds banner', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '5',
+        leverage: 1,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The banner covers the balance message only; the minimum-amount error is a
+    // separate blocking reason and must still reach the trader.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(screen.getByText(/^Minimum order size/)).toBeOnTheScreen();
+  });
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({

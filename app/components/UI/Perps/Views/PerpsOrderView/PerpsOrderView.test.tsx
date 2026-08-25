@@ -263,7 +263,7 @@ jest.mock('../../hooks', () => ({
     isValid: true,
     errors: [],
     isValidating: false,
-    hasInsufficientBalance: false,
+    insufficientBalanceErrors: [],
   })),
   usePerpsOrderExecution: jest.fn(() => ({
     placeOrder: jest.fn().mockResolvedValue({ success: true }),
@@ -2060,6 +2060,7 @@ describe('PerpsOrderView', () => {
         isValid: false,
         errors: ['Insufficient balance'],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
 
       // Ensure order execution is not placing
@@ -2094,6 +2095,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2113,6 +2115,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: true,
+        insufficientBalanceErrors: [],
       });
 
       const mockPlaceOrder = jest.fn();
@@ -2141,6 +2144,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       rerender(<PerpsOrderView />);
 
@@ -2153,6 +2157,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
 
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -2181,6 +2186,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2593,6 +2599,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
 
       // Mock order execution not placing
@@ -2664,6 +2671,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2698,6 +2706,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2797,6 +2806,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2833,6 +2843,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2904,6 +2915,7 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -2934,6 +2946,7 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -2964,6 +2977,7 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -2993,6 +3007,7 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -3023,6 +3038,7 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -4795,6 +4811,7 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
       });
     });
 
