@@ -137,16 +137,40 @@ const isLimitPriceValidationError = (message: string): boolean =>
 const getBlockingNotices = ({
   reduceOnlyErrorCode,
   isReduceOnlyPositionLoading,
+  isMarketDataBlocking,
+  isLoadingMarketData,
   filteredErrors,
 }: {
   reduceOnlyErrorCode?: ReduceOnlyValidationCode;
   isReduceOnlyPositionLoading: boolean;
+  isMarketDataBlocking: boolean;
+  isLoadingMarketData: boolean;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
+  if (isMarketDataBlocking) {
+    return [
+      {
+        id: 'market-data',
+        variant: 'banner',
+        message: strings(
+          isLoadingMarketData
+            ? 'perps.order.validation.market_data_loading'
+            : 'perps.failed_to_load_market_data',
+        ),
+      },
+    ];
+  }
+
   // Position data is unresolved — skipValidation retains prior errors, so hide
-  // blocking notices until the live reduce-only state can be evaluated.
+  // stale validation errors until the live reduce-only state can be evaluated.
   if (isReduceOnlyPositionLoading) {
-    return [];
+    return [
+      {
+        id: 'position-loading',
+        variant: 'banner',
+        message: strings('perps.loading_positions'),
+      },
+    ];
   }
 
   if (reduceOnlyErrorCode) {
@@ -396,7 +420,11 @@ export const usePerpsProOrderForm = ({
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
-  const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
+  const {
+    marketData,
+    isLoading: isMarketDataLoading,
+    error: marketDataError,
+  } = usePerpsMarketData({
     asset: symbol,
     showErrorToast: true,
   });
@@ -432,6 +460,8 @@ export const usePerpsProOrderForm = ({
       change: Number.isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
+  const isMarketDataBlocking =
+    isLoadingMarketData || Boolean(marketDataError) || !(assetData.price > 0);
 
   const normalizedTriggerPrice = canonicalizeOrderPrice(
     triggerPrice,
@@ -678,6 +708,7 @@ export const usePerpsProOrderForm = ({
     midPrice: assetData.price,
     szDecimals,
   });
+  const { validateNow } = orderValidation;
 
   const filteredErrors = useMemo(() => {
     const sizePositiveMsg = strings(
@@ -762,6 +793,10 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    if (isMarketDataBlocking || isAtCap) {
+      return;
+    }
+
     const currentFieldIssues = getOrderFormFieldIssues({
       orderType: orderForm.type,
       direction: orderForm.direction,
@@ -813,16 +848,17 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    if (orderValidation.isValidating) {
-      return;
-    }
-
     isSubmittingRef.current = true;
 
     try {
-      if (!orderValidation.isValid) {
+      const validationResult = await validateNow();
+      if (!validationResult.isValid) {
+        const firstFieldIssue = validationResult.fieldIssues[0];
         const firstError =
-          orderValidation.errors[0] || strings('perps.order.validation.error');
+          validationResult.errors[0] ||
+          (firstFieldIssue
+            ? getOrderFormFieldIssueMessage(firstFieldIssue)
+            : strings('perps.order.validation.error'));
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
             firstError,
@@ -991,15 +1027,15 @@ export const usePerpsProOrderForm = ({
     resolvedMaxSlippageBps,
     maxSlippageSource,
     isTriggeredOrdersEnabled,
+    isMarketDataBlocking,
+    isAtCap,
     hasTpslBlocker,
     isReduceOnlyPositionLoading,
     reduceOnlyValidation.isValid,
     reduceOnlyValidation.isFullClose,
     isExactFullClose,
     directionTrackingValue,
-    orderValidation.isValid,
-    orderValidation.isValidating,
-    orderValidation.errors,
+    validateNow,
     currentMarketPosition,
     navigation,
     submissionPositionSize,
@@ -1194,6 +1230,8 @@ export const usePerpsProOrderForm = ({
           ? reduceOnlyValidation.errorCode
           : undefined,
         isReduceOnlyPositionLoading,
+        isMarketDataBlocking,
+        isLoadingMarketData,
         filteredErrors,
       }),
       ...getTpslNotices({
@@ -1218,6 +1256,8 @@ export const usePerpsProOrderForm = ({
   }, [
     reduceOnly,
     isReduceOnlyPositionLoading,
+    isMarketDataBlocking,
+    isLoadingMarketData,
     reduceOnlyValidation.errorCode,
     filteredErrors,
     doesStopLossRiskLiquidation,
@@ -1285,14 +1325,27 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
   ]);
 
+  const hasVisiblePriceValidationError = orderValidation.fieldIssues.some(
+    ({ field, issue }) => {
+      if (issue.code === 'required') {
+        return true;
+      }
+
+      return field === 'triggerPrice'
+        ? hasBlurredTriggerPrice
+        : hasBlurredLimitPrice;
+    },
+  );
+  const hasVisibleOrderValidationError =
+    filteredErrors.length > 0 || hasVisiblePriceValidationError;
+
   const isPlaceOrderDisabled =
-    !orderValidation.isValid ||
+    hasVisibleOrderValidationError ||
     isAtCap ||
     isPlacing ||
-    isLoadingMarketData ||
+    isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
-    (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type)) ||
     hasTpslBlocker;
 
   const onDirectionChange = useCallback(
@@ -1514,7 +1567,7 @@ export const usePerpsProOrderForm = ({
     notices,
     summary,
     isPlaceOrderDisabled,
-    isPlaceOrderLoading: isPlacing || orderValidation.isValidating,
+    isPlaceOrderLoading: isPlacing,
     onPlaceOrderPress,
     // Leverage sheet
     isLeverageVisible,

@@ -56,12 +56,20 @@ interface ValidationState {
   isValidating: boolean;
 }
 
+export interface ValidationAttempt {
+  errors: string[];
+  warnings: string[];
+  fieldIssues: OrderFormFieldIssue[];
+  isValid: boolean;
+}
+
 export interface ValidationResult {
   errors: string[];
   warnings: string[];
   fieldIssues: OrderFormFieldIssue[];
   isValid: boolean;
   isValidating: boolean;
+  validateNow: () => Promise<ValidationAttempt>;
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -141,10 +149,20 @@ export function usePerpsOrderValidation(
   // Track whether we've completed the first validation so we can skip the debounce for it
   const hasValidatedOnceRef = useRef(false);
 
+  const clearValidationTimer = useCallback(() => {
+    if (validationTimerRef.current) {
+      clearTimeout(validationTimerRef.current);
+      validationTimerRef.current = null;
+    }
+  }, []);
+
   const performValidation = useCallback(
-    async (requestId: number, requestFieldIssues: OrderFormFieldIssue[]) => {
+    async (
+      requestId: number,
+      requestFieldIssues: OrderFormFieldIssue[],
+    ): Promise<ValidationAttempt | undefined> => {
       if (requestId !== validationRequestIdRef.current) {
-        return;
+        return undefined;
       }
 
       // Set validation state to indicate we're validating
@@ -153,6 +171,50 @@ export function usePerpsOrderValidation(
         ...prev,
         isValidating: true,
       }));
+
+      const completeValidation = (
+        errors: string[],
+        warnings: string[],
+      ): ValidationAttempt | undefined => {
+        if (requestId !== validationRequestIdRef.current) {
+          return undefined;
+        }
+
+        const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
+        const resolvedWarnings =
+          warnings.length > 0 ? warnings : EMPTY_WARNINGS;
+        const attempt: ValidationAttempt = {
+          errors: resolvedErrors,
+          warnings: resolvedWarnings,
+          fieldIssues: requestFieldIssues,
+          isValid:
+            resolvedErrors.length === 0 && requestFieldIssues.length === 0,
+        };
+
+        setValidation({
+          errors: resolvedErrors,
+          warnings: resolvedWarnings,
+          protocolValid: resolvedErrors.length === 0,
+          isValidating: false,
+        });
+
+        return attempt;
+      };
+
+      if (!(assetPrice > 0)) {
+        return completeValidation(
+          [strings('perps.failed_to_load_market_data')],
+          EMPTY_WARNINGS,
+        );
+      }
+
+      const numericPositionSize = Number.parseFloat(positionSize);
+      if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
+        return completeValidation(
+          [strings('perps.order.validation.amount_required')],
+          EMPTY_WARNINGS,
+        );
+      }
 
       // Perform immediate UI validation for critical errors
       const immediateErrors: string[] = [];
@@ -222,7 +284,7 @@ export function usePerpsOrderValidation(
         );
         const protocolValidation = await validateOrder(orderParams);
         if (requestId !== validationRequestIdRef.current) {
-          return;
+          return undefined;
         }
         DevLogger.log(
           'usePerpsOrderValidation: Validation result',
@@ -291,6 +353,9 @@ export function usePerpsOrderValidation(
             errors.push(translatedError);
           }
         }
+        if (!protocolValidation.isValid && !protocolValidation.error) {
+          errors.push(strings('perps.order.validation.failed'));
+        }
 
         const warnings: string[] = [];
 
@@ -301,26 +366,19 @@ export function usePerpsOrderValidation(
           );
         }
 
-        setValidation({
-          errors: errors.length > 0 ? errors : EMPTY_ERRORS,
-          warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
-          protocolValid: errors.length === 0,
-          isValidating: false,
-        });
+        return completeValidation(errors, warnings);
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
-          return;
+          return undefined;
         }
         DevLogger.log(
           'usePerpsOrderValidation: Error during validation',
           error,
         );
-        setValidation({
-          errors: [strings('perps.order.validation.error')],
-          warnings: EMPTY_WARNINGS,
-          protocolValid: false,
-          isValidating: false,
-        });
+        return completeValidation(
+          [strings('perps.order.validation.error')],
+          EMPTY_WARNINGS,
+        );
       }
     },
     [
@@ -347,6 +405,8 @@ export function usePerpsOrderValidation(
   useEffect(() => {
     const requestId = ++validationRequestIdRef.current;
 
+    clearValidationTimer();
+
     // Synchronous field validation is derived during render. Only the
     // asynchronous validation status belongs in state.
     setValidation((prev) => ({
@@ -357,33 +417,6 @@ export function usePerpsOrderValidation(
     // Skip protocol validation during keypad input to prevent flickering.
     if (skipValidation) {
       return;
-    }
-
-    // Skip validation if critical data is missing
-    const numericPositionSize = Number.parseFloat(positionSize);
-    if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
-      setValidation((prev) => ({
-        ...prev,
-        errors: EMPTY_ERRORS,
-        isValidating: false,
-        protocolValid: false,
-      }));
-      return;
-    }
-
-    if (assetPrice === 0) {
-      setValidation((prev) => ({
-        ...prev,
-        isValidating: false,
-        // Keep existing errors but mark as invalid
-        protocolValid: false,
-      }));
-      return;
-    }
-
-    // Clear existing timer
-    if (validationTimerRef.current) {
-      clearTimeout(validationTimerRef.current);
     }
 
     // Run first validation immediately to enable the place-order button ASAP;
@@ -401,12 +434,11 @@ export function usePerpsOrderValidation(
 
     // Cleanup
     return () => {
-      if (validationTimerRef.current) {
-        clearTimeout(validationTimerRef.current);
-      }
+      clearValidationTimer();
     };
   }, [
     assetPrice,
+    clearValidationTimer,
     midPrice,
     orderForm.direction,
     orderForm.limitPrice,
@@ -419,6 +451,31 @@ export function usePerpsOrderValidation(
     triggerPrice,
   ]);
 
+  const validateNow = useCallback(async (): Promise<ValidationAttempt> => {
+    clearValidationTimer();
+    const requestId = ++validationRequestIdRef.current;
+    hasValidatedOnceRef.current = true;
+
+    if (skipValidation) {
+      return {
+        errors: EMPTY_ERRORS,
+        warnings: EMPTY_WARNINGS,
+        fieldIssues,
+        isValid: false,
+      };
+    }
+
+    const attempt = await performValidation(requestId, fieldIssues);
+    return (
+      attempt ?? {
+        errors: [strings('perps.order.validation.failed')],
+        warnings: EMPTY_WARNINGS,
+        fieldIssues,
+        isValid: false,
+      }
+    );
+  }, [clearValidationTimer, fieldIssues, performValidation, skipValidation]);
+
   // Return validation with stable array references
   return {
     errors: stableErrors,
@@ -426,5 +483,6 @@ export function usePerpsOrderValidation(
     fieldIssues,
     isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
+    validateNow,
   };
 }

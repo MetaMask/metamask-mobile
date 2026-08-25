@@ -218,7 +218,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'shows loading while validation is pending after a live price update',
+    'keeps the CTA enabled without loading during live price validation',
     async () => {
       const validateOrder = Engine.context.PerpsController
         .validateOrder as jest.Mock;
@@ -249,9 +249,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await waitFor(() => {
         expect(placeOrderButton).toBeOnTheScreen();
-        expect(placeOrderButton).toBeDisabled();
+        expect(placeOrderButton).toBeEnabled();
         expect(placeOrderButton.props.accessibilityState).toEqual(
-          expect.objectContaining({ busy: true, disabled: true }),
+          expect.objectContaining({ disabled: false }),
+        );
+        expect(placeOrderButton.props.accessibilityState).not.toEqual(
+          expect.objectContaining({ busy: true }),
         );
       });
       expect(placeOrder).not.toHaveBeenCalled();
@@ -422,7 +425,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '1000');
+
+      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
+        timeout: TIMEOUT_MS,
+      });
+
       fireEvent(triggerInput, 'blur');
 
       await waitFor(
@@ -430,7 +439,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_above_mid'),
           );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+          expect(placeOrderButton).toBeDisabled();
         },
         { timeout: TIMEOUT_MS },
       );
@@ -598,6 +607,82 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         { timeout: TIMEOUT_MS },
       );
       expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('takeProfitPrice');
+    },
+  );
+
+  itForPlatforms(
+    'shows the final validation error and skips trigger-limit execution',
+    async () => {
+      const validateOrder = Engine.context.PerpsController
+        .validateOrder as jest.Mock;
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      validateOrder.mockClear();
+      validateOrder.mockResolvedValue({ isValid: true });
+      placeOrder.mockClear();
+
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2600');
+      fireEvent(triggerInput, 'blur');
+      fireEvent.changeText(limitInput, '2650');
+      fireEvent(limitInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
+        timeout: TIMEOUT_MS,
+      });
+
+      await waitFor(
+        () => {
+          const validationCallIndex = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'stop_limit' &&
+              params.triggerPrice === '2600' &&
+              params.price === '2650',
+          );
+          expect(validationCallIndex).toBeGreaterThanOrEqual(0);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      const validationCallIndex = validateOrder.mock.calls.findIndex(
+        ([params]) =>
+          params.orderType === 'stop_limit' &&
+          params.triggerPrice === '2600' &&
+          params.price === '2650',
+      );
+      await act(async () => {
+        await validateOrder.mock.results[validationCallIndex]?.value;
+      });
+
+      validateOrder.mockResolvedValueOnce({
+        isValid: false,
+        error: 'Final validation failed',
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId(`${ids.NOTICE}-validation-0`),
+          ).toHaveTextContent('Final validation failed');
+          expect(placeOrder).not.toHaveBeenCalled();
+          expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
     },
   );
 });

@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
+import { strings } from '../../../../../../../../locales/i18n';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -93,6 +94,12 @@ const mockValidation = {
   errors: [] as string[],
   fieldIssues: [] as OrderFormFieldIssue[],
   isValidating: false,
+  validateNow: jest.fn().mockResolvedValue({
+    errors: [],
+    warnings: [],
+    fieldIssues: [],
+    isValid: true,
+  }),
 };
 
 let mockExistingPosition: {
@@ -134,6 +141,13 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
 }));
 
 let mockPositionStreamLoading = false;
+let mockMarketDataLoading = false;
+let mockMarketDataError: string | null = null;
+let mockMarketData: { szDecimals: number; maxLeverage: number } | null = {
+  szDecimals: 3,
+  maxLeverage: 40,
+};
+let mockIsPlacing = false;
 
 jest.mock('../../../../hooks', () => ({
   useHasExistingPosition: () => ({
@@ -142,12 +156,13 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
-    marketData: { szDecimals: 3, maxLeverage: 40 },
-    isLoading: false,
+    marketData: mockMarketData,
+    isLoading: mockMarketDataLoading,
+    error: mockMarketDataError,
   }),
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
-    return { placeOrder: mockExecuteOrder, isPlacing: false };
+    return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: () => ({
     totalFee: 5,
@@ -276,6 +291,12 @@ describe('usePerpsProOrderForm', () => {
     mockValidation.isValidating = false;
     mockValidation.errors = [];
     mockValidation.fieldIssues = [];
+    mockValidation.validateNow.mockResolvedValue({
+      errors: [],
+      warnings: [],
+      fieldIssues: [],
+      isValid: true,
+    });
     mockExistingPosition = null;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -285,6 +306,10 @@ describe('usePerpsProOrderForm', () => {
     mockLiveMarkPrice = '90000';
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
+    mockMarketDataLoading = false;
+    mockMarketDataError = null;
+    mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+    mockIsPlacing = false;
     mockIsEligible = true;
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
@@ -355,6 +380,41 @@ describe('usePerpsProOrderForm', () => {
       const banner = result.current.notices.find((n) => n.id === 'margin');
       expect(banner?.variant).toBe('banner');
       expect(banner?.message).toBe('Insufficient funds');
+    });
+
+    it('shows the amount-required message when the amount is empty', () => {
+      // Arrange
+      mockOrderForm.amount = '0';
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Order amount must be greater than 0'];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'validation-0',
+        variant: 'inline',
+        message: 'Order amount must be greater than 0',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows a loading message while market data is loading', () => {
+      // Arrange
+      mockMarketData = null;
+      mockMarketDataLoading = true;
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'market-data',
+        variant: 'banner',
+        message: strings('perps.order.validation.market_data_loading'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('maps an OI cap to a banner notice', () => {
@@ -456,7 +516,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('suppresses stale validation notices while the position is loading', () => {
+    it('shows a position-loading notice while suppressing stale validation errors', () => {
       // Arrange: retain a prior margin error (skipValidation freezes errors)
       // while the position is still loading after Reduce Only is enabled.
       mockValidation.isValid = false;
@@ -473,8 +533,9 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((n) => n.id === 'margin'),
       ).toBeUndefined();
       expect(
-        result.current.notices.find((n) => n.id === 'reduce-only'),
-      ).toBeUndefined();
+        result.current.notices.find((n) => n.id === 'position-loading')
+          ?.message,
+      ).toBe('Loading positions...');
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
   });
@@ -833,6 +894,12 @@ describe('usePerpsProOrderForm', () => {
       // Arrange
       mockValidation.isValid = false;
       mockValidation.errors = ['Bad order'];
+      mockValidation.validateNow.mockResolvedValue({
+        errors: ['Bad order'],
+        warnings: [],
+        fieldIssues: [],
+        isValid: false,
+      });
       const { result } = renderProForm();
 
       // Act
@@ -846,10 +913,27 @@ describe('usePerpsProOrderForm', () => {
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('blocks submit and exposes loading while validation is pending', async () => {
+    it('shows a final trigger-limit field error without executing the order', async () => {
       // Arrange
-      mockValidation.isValidating = true;
-      const { result, rerender } = renderProForm();
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.limitPrice = '89000';
+      mockContextValue.triggerPrice = '91000';
+      mockValidation.validateNow.mockResolvedValue({
+        errors: [],
+        warnings: [],
+        fieldIssues: [
+          {
+            field: 'triggerPrice',
+            issue: {
+              code: 'wrong_side',
+              family: 'stop',
+              requiredSide: 'above',
+            },
+          },
+        ],
+        isValid: false,
+      });
+      const { result } = renderProForm();
 
       // Act
       await act(async () => {
@@ -857,15 +941,63 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
-      expect(result.current.isPlaceOrderLoading).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        'Trigger price must be higher than mid price',
+      );
+    });
 
-      mockValidation.isValidating = false;
-      rerender(undefined);
+    it('keeps the CTA enabled without loading while validation is pending', () => {
+      // Arrange
+      mockValidation.isValidating = true;
 
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
       expect(result.current.isPlaceOrderLoading).toBe(false);
+    });
+
+    it('runs current validation before executing a pending order', async () => {
+      // Arrange
+      mockValidation.isValidating = true;
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
     it('navigates to the cross-margin warning and aborts', async () => {
@@ -1076,6 +1208,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockOrderForm.type).toBe('stop_market');
       expect(mockOrderForm.limitPrice).toBe('90500');
       expect(mockContextValue.triggerPrice).toBe('91000');
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
       expect(mockSetOrderType).not.toHaveBeenCalled();
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
       expect(mockSetTriggerPrice).not.toHaveBeenCalled();
@@ -1245,6 +1378,7 @@ describe('usePerpsProOrderForm', () => {
       const { result, rerender } = renderProForm();
 
       expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
 
       act(() => {
         result.current.onTriggerPriceBlur();
@@ -1486,6 +1620,18 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('isPlaceOrderDisabled', () => {
+    it('shows loading only while order placement is in progress', () => {
+      // Arrange
+      mockIsPlacing = true;
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+    });
+
     it('is disabled at the OI cap', () => {
       // Arrange
       mockIsAtCap = true;
@@ -1493,6 +1639,9 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual(
+        expect.objectContaining({ id: 'oi-cap', variant: 'banner' }),
+      );
     });
 
     it('is enabled for a valid, uncapped order', () => {
@@ -1558,6 +1707,12 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual(
+        expect.objectContaining({
+          id: 'position-loading',
+          variant: 'banner',
+        }),
+      );
     });
   });
 
