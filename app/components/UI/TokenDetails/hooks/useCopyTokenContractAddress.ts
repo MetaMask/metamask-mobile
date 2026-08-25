@@ -19,5 +19,6 @@ export const useCopyTokenContractAddress = (
       title: strings('account_details.account_copied_to_clipboard'),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, [contractAddress, onCopyAddress]);
