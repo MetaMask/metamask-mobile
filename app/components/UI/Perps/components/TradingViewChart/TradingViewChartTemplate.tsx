@@ -1128,25 +1128,27 @@ export const createTradingViewChartTemplate = (
                 if (window.priceLines) {
                     window.priceLines.limitOrders = [];
                 }
+                window.lastLimitOrderPrices = [];
                 return;
             }
             window.priceLines.limitOrders.forEach(function(item) {
                 try {
                     window.candlestickSeries.removePriceLine(item.line || item);
                 } catch (error) {
-                    // Silent error handling
+                    console.error('TradingView: Error removing limit order line:', error);
                 }
             });
             window.priceLines.limitOrders = [];
+            window.lastLimitOrderPrices = [];
         };
 
         window.updateLimitOrderLines = function(limitOrders) {
+            window.clearLimitOrderLines();
             window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {
                 return order && order.price;
             }).filter(function(price) {
                 return price !== undefined && price !== null && price !== '';
             });
-            window.clearLimitOrderLines();
             if (!window.candlestickSeries || !limitOrders || !limitOrders.length) {
                 return;
             }
@@ -1173,13 +1175,13 @@ export const createTradingViewChartTemplate = (
                         side: order.side
                     });
                 } catch (error) {
-                    // Silent error handling
+                    console.error('TradingView: Error creating limit order line:', error);
                 }
             });
             try {
                 window.candlestickSeries.priceScale().applyOptions({ autoScale: true });
             } catch (scaleError) {
-                // Silent error handling
+                console.error('TradingView: Error applying limit order autoscale:', scaleError);
             }
         };
         
