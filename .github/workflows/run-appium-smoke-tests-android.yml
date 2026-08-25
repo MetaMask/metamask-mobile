@@ -64,6 +64,8 @@ on:
 permissions:
   contents: read
   checks: write
+  actions: read
+  pull-requests: read
 
 jobs:
   appium-accounts-android-smoke:

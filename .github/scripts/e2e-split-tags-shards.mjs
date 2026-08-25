@@ -26,6 +26,7 @@ import {
   computeShardingSplit,
   binPackShards,
   planShards,
+  baseSpecPath,
 } from './shared/e2e-timing-shards.mjs';
 
 const env = {
@@ -246,15 +247,23 @@ function computeRetryFilePath(originalPath, retryIndex) {
 function duplicateSpecFile(originalPath) {
   try {
     const srcPath = path.resolve(originalPath);
-    if (!fs.existsSync(srcPath)) return;
-    const content = fs.readFileSync(srcPath);
+    let content;
+    try {
+      content = fs.readFileSync(srcPath);
+    } catch (e) {
+      if (e?.code === 'ENOENT') return;
+      throw e;
+    }
     const retryRel = computeRetryFilePath(originalPath, 1);
     if (!retryRel) return;
     const retryAbs = path.resolve(retryRel);
     fs.mkdirSync(path.dirname(retryAbs), { recursive: true });
-    if (!fs.existsSync(retryAbs)) {
-      fs.writeFileSync(retryAbs, content);
+    // Exclusive create avoids existsSync→writeFileSync TOCTOU (CodeQL js/file-system-race).
+    try {
+      fs.writeFileSync(retryAbs, content, { flag: 'wx' });
       console.log(`🧪 Duplicated for flakiness check: ${retryRel}`);
+    } catch (e) {
+      if (e?.code !== 'EEXIST') throw e;
     }
   } catch (e) {
     console.warn(`⚠️ Failed duplicating ${originalPath}: ${e?.message || e}`);
@@ -592,14 +601,20 @@ async function main() {
         '⚠️  No previous Appium results found — running all specs in this shard.',
       );
     } else {
-      const passedSet = new Set(passed.map(normalizeAppiumSpecPath));
+      // Treat flakiness copies as the original: a base is only "passed" if no
+      // variant (original or *-retry-N) failed.
+      const failedBases = new Set(failed.map((f) => baseSpecPath(f)));
+      const passedBases = new Set(
+        passed
+          .map((f) => baseSpecPath(f))
+          .filter((base) => !failedBases.has(base)),
+      );
       const testsToRerun = splitFiles.filter(
-        (testPath) => !passedSet.has(normalizeAppiumSpecPath(testPath)),
+        (testPath) => !passedBases.has(baseSpecPath(testPath)),
       );
 
-      const failedSet = new Set(failed.map(normalizeAppiumSpecPath));
       const failedInChunk = testsToRerun.filter((t) =>
-        failedSet.has(normalizeAppiumSpecPath(t)),
+        failedBases.has(baseSpecPath(t)),
       ).length;
       const notExecutedInChunk = testsToRerun.length - failedInChunk;
 

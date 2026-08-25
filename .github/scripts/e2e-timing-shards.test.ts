@@ -4,6 +4,7 @@ import {
   planShards,
   binPackShards,
   timingLookupKey,
+  baseSpecPath,
 } from './shared/e2e-timing-shards.mjs';
 
 describe('e2e-timing-shards', () => {
@@ -100,6 +101,34 @@ describe('e2e-timing-shards', () => {
       expect(timingLookupKey('tests\\smoke-appium\\a.spec.ts')).toBe(
         'tests/smoke-appium/a.spec.ts',
       );
+    });
+
+    it('maps flakiness retry copies back to the original spec', () => {
+      expect(baseSpecPath('tests/smoke-appium/foo-retry-1.spec.ts')).toBe(
+        'tests/smoke-appium/foo.spec.ts',
+      );
+      expect(baseSpecPath('tests/smoke-appium/foo.spec.ts')).toBe(
+        'tests/smoke-appium/foo.spec.ts',
+      );
+    });
+
+    it('treats a failed retry as a failed base for re-run filtering', () => {
+      const splitFiles = [
+        'tests/smoke-appium/foo.spec.ts',
+        'tests/smoke-appium/bar.spec.ts',
+      ];
+      const passed = ['tests/smoke-appium/foo.spec.ts', 'tests/smoke-appium/bar.spec.ts'];
+      const failed = ['tests/smoke-appium/foo-retry-1.spec.ts'];
+
+      const failedBases = new Set(failed.map(baseSpecPath));
+      const passedBases = new Set(
+        passed.map(baseSpecPath).filter((base) => !failedBases.has(base)),
+      );
+      const testsToRerun = splitFiles.filter(
+        (testPath) => !passedBases.has(baseSpecPath(testPath)),
+      );
+
+      expect(testsToRerun).toEqual(['tests/smoke-appium/foo.spec.ts']);
     });
 
     it('computeMedian', () => {

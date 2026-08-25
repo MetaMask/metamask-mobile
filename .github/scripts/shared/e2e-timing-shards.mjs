@@ -12,6 +12,15 @@ export function timingLookupKey(filePath) {
 }
 
 /**
+ * Map flakiness copies (`foo-retry-1.spec.ts`) back to the original spec path.
+ * @param {string} filePath
+ * @returns {string}
+ */
+export function baseSpecPath(filePath) {
+  return timingLookupKey(filePath).replace(/-retry-\d+(\.spec\.(?:ts|js))$/, '$1');
+}
+
+/**
  * @param {number[]} values
  * @param {number} [fallback=60]
  * @returns {number}

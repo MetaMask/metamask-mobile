@@ -1534,14 +1534,18 @@ jobs:
       ${{
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'skipped')
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-      # Required to download e2e-timings-${{ github.run_id }} for timing-balanced shards.
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
       actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
     needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
@@ -1573,7 +1577,9 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'skipped') &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure') &&
         (
           (
             github.event_name == 'push' &&
@@ -1596,8 +1602,10 @@ jobs:
       contents: read
       checks: write
       id-token: write
-      # Required to download e2e-timings-${{ github.run_id }} for timing-balanced shards.
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
       actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
