@@ -382,7 +382,7 @@ describe('usePerpsProOrderForm', () => {
       expect(banner?.message).toBe('Insufficient funds');
     });
 
-    it('shows the amount-required message when the amount is empty', () => {
+    it('defers the amount-required message until size interaction', () => {
       // Arrange
       mockOrderForm.amount = '0';
       mockValidation.isValid = false;
@@ -392,12 +392,61 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
+      expect(result.current.notices).not.toContainEqual({
+        id: 'validation-0',
+        variant: 'inline',
+        message: 'Order amount must be greater than 0',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+      act(() => {
+        result.current.sizeInput.onBlur();
+      });
+
       expect(result.current.notices).toContainEqual({
         id: 'validation-0',
         variant: 'inline',
         message: 'Order amount must be greater than 0',
       });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows the amount-required message after a submit attempt', async () => {
+      // Arrange
+      mockOrderForm.amount = '0';
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Order amount must be greater than 0'];
+      mockValidation.validateNow.mockResolvedValue({
+        errors: ['Order amount must be greater than 0'],
+        warnings: [],
+        fieldIssues: [],
+        isValid: false,
+      });
+      const { result } = renderProForm();
+
+      expect(result.current.notices).not.toContainEqual({
+        id: 'validation-0',
+        variant: 'inline',
+        message: 'Order amount must be greater than 0',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(validationError).toHaveBeenCalledWith(
+        'Order amount must be greater than 0',
+      );
+      expect(result.current.notices).toContainEqual({
+        id: 'validation-0',
+        variant: 'inline',
+        message: 'Order amount must be greater than 0',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it('shows a loading message while market data is loading', () => {
@@ -1450,7 +1499,7 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it.each(['stop_limit', 'take_profit_limit'] as const)(
-      'shows a required limit error for %s before the limit price blurs',
+      'defers a required limit error for %s until the limit price blurs',
       (orderType) => {
         mockOrderForm.type = orderType;
         mockOrderForm.limitPrice = undefined;
@@ -1462,10 +1511,8 @@ describe('usePerpsProOrderForm', () => {
         ];
         const { result, rerender } = renderProForm();
 
-        expect(result.current.priceCardMessage).toEqual({
-          severity: 'error',
-          message: 'Please set a limit price for limit orders',
-        });
+        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
 
         act(() => {
           result.current.onLimitPriceBlur();
@@ -1476,10 +1523,35 @@ describe('usePerpsProOrderForm', () => {
           severity: 'error',
           message: 'Please set a limit price for limit orders',
         });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
       },
     );
 
-    it('shows a required trigger error before the trigger price blurs', () => {
+    it('defers a required trigger error until the trigger price blurs', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = undefined;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        { field: 'triggerPrice', issue: { code: 'required' } },
+      ];
+      const { result, rerender } = renderProForm();
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Please set a trigger price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows a required trigger error after a submit attempt', async () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = undefined;
       mockValidation.isValid = false;
@@ -1488,11 +1560,22 @@ describe('usePerpsProOrderForm', () => {
       ];
       const { result } = renderProForm();
 
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(validationError).toHaveBeenCalledWith(
+        'Please set a trigger price',
+      );
       expect(result.current.priceCardMessage).toEqual({
         severity: 'error',
         message: 'Please set a trigger price',
       });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it.each([

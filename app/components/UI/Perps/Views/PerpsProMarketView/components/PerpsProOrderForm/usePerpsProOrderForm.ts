@@ -395,6 +395,10 @@ export const usePerpsProOrderForm = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+  const [hasInteractedWithSize, setHasInteractedWithSize] = useState(false);
+  const [lastSubmittedOrderType, setLastSubmittedOrderType] =
+    useState<OrderType | null>(null);
+  const hasAttemptedSubmit = lastSubmittedOrderType === orderForm.type;
   const isSubmittingRef = useRef(false);
 
   const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
@@ -524,8 +528,8 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const {
-    sizeInput,
-    sizeSlider,
+    sizeInput: rawSizeInput,
+    sizeSlider: rawSizeSlider,
     effectiveUsdAmount,
     commitPendingSliderPreview,
     isAtMaxAmount,
@@ -539,6 +543,32 @@ export const usePerpsProOrderForm = ({
     maxDigits: MAX_PERPS_INPUT_DIGITS,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
+
+  const sizeInput = useMemo<PerpsProSizeInputModel>(
+    () => ({
+      ...rawSizeInput,
+      onChange: (value: string) => {
+        setHasInteractedWithSize(true);
+        rawSizeInput.onChange(value);
+      },
+      onBlur: () => {
+        setHasInteractedWithSize(true);
+        rawSizeInput.onBlur();
+      },
+    }),
+    [rawSizeInput],
+  );
+
+  const sizeSlider = useMemo<PerpsProSizeSliderModel>(
+    () => ({
+      ...rawSizeSlider,
+      onDragEnd: (value: number) => {
+        setHasInteractedWithSize(true);
+        rawSizeSlider.onDragEnd(value);
+      },
+    }),
+    [rawSizeSlider],
+  );
 
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -714,14 +744,32 @@ export const usePerpsProOrderForm = ({
     const sizePositiveMsg = strings(
       'perps.errors.orderValidation.sizePositive',
     );
+    const amountRequiredMsg = strings('perps.order.validation.amount_required');
     const withoutSize = orderValidation.errors.filter(
       (err) => err !== sizePositiveMsg,
     );
     const fieldMessages = new Set(
       orderValidation.fieldIssues.map(getOrderFormFieldIssueMessage),
     );
-    return withoutSize.filter((err) => !fieldMessages.has(err));
-  }, [orderValidation.errors, orderValidation.fieldIssues]);
+    return withoutSize.filter((err) => {
+      if (
+        err === amountRequiredMsg &&
+        !hasValidAmount &&
+        !hasInteractedWithSize &&
+        !hasAttemptedSubmit
+      ) {
+        return false;
+      }
+
+      return !fieldMessages.has(err);
+    });
+  }, [
+    hasAttemptedSubmit,
+    hasValidAmount,
+    hasInteractedWithSize,
+    orderValidation.errors,
+    orderValidation.fieldIssues,
+  ]);
 
   const {
     doesStopLossRiskLiquidation,
@@ -796,6 +844,8 @@ export const usePerpsProOrderForm = ({
     if (isMarketDataBlocking || isAtCap) {
       return;
     }
+
+    setLastSubmittedOrderType(orderForm.type);
 
     const currentFieldIssues = getOrderFormFieldIssues({
       orderType: orderForm.type,
@@ -1007,6 +1057,8 @@ export const usePerpsProOrderForm = ({
       setLimitPrice(undefined);
       setTriggerPrice(undefined);
       setReduceOnly(false);
+      setHasInteractedWithSize(false);
+      setLastSubmittedOrderType(null);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -1192,6 +1244,7 @@ export const usePerpsProOrderForm = ({
         return;
       }
       setOrderType(type);
+      setLastSubmittedOrderType(null);
       setIsOrderTypeVisible(false);
     },
     [isTriggeredOrdersEnabled, setOrderType],
@@ -1326,15 +1379,10 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const hasVisiblePriceValidationError = orderValidation.fieldIssues.some(
-    ({ field, issue }) => {
-      if (issue.code === 'required') {
-        return true;
-      }
-
-      return field === 'triggerPrice'
-        ? hasBlurredTriggerPrice
-        : hasBlurredLimitPrice;
-    },
+    ({ field }) =>
+      field === 'triggerPrice'
+        ? hasBlurredTriggerPrice || hasAttemptedSubmit
+        : hasBlurredLimitPrice || hasAttemptedSubmit,
   );
   const hasVisibleOrderValidationError =
     filteredErrors.length > 0 || hasVisiblePriceValidationError;
@@ -1406,10 +1454,7 @@ export const usePerpsProOrderForm = ({
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
     );
-    if (
-      triggerIssue?.issue.code === 'required' ||
-      (hasBlurredTriggerPrice && triggerIssue?.field === 'triggerPrice')
-    ) {
+    if (triggerIssue && (hasBlurredTriggerPrice || hasAttemptedSubmit)) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(triggerIssue),
@@ -1419,10 +1464,7 @@ export const usePerpsProOrderForm = ({
     const limitIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'limitPrice',
     );
-    if (
-      limitIssue?.issue.code === 'required' ||
-      (hasBlurredLimitPrice && limitIssue?.field === 'limitPrice')
-    ) {
+    if (limitIssue && (hasBlurredLimitPrice || hasAttemptedSubmit)) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(limitIssue),
@@ -1447,6 +1489,7 @@ export const usePerpsProOrderForm = ({
     return { severity: 'warning' as const, message: warning };
   }, [
     assetData.price,
+    hasAttemptedSubmit,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     orderForm.direction,

@@ -478,65 +478,85 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
-  itForPlatforms(
-    'shows required trigger guidance before blur and disables Place order',
-    async () => {
-      renderProMarketWithTriggeredOrdersFlag(true);
-      await findSizeInput();
+  itForPlatforms('defers required trigger guidance until blur', async () => {
+    renderProMarketWithTriggeredOrdersFlag(true);
+    await findSizeInput();
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
-
-      await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
-
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.please_set_a_trigger_price'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
-        },
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+        {},
         { timeout: TIMEOUT_MS },
-      );
-    },
-  );
+      ),
+    );
 
-  itForPlatforms(
-    'shows required limit guidance before blur and disables Place order',
-    async () => {
-      renderProMarketWithTriggeredOrdersFlag(true);
-      await findSizeInput();
+    const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+    const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+        ).not.toBeOnTheScreen();
+        expect(placeOrderButton).toBeEnabled();
+      },
+      { timeout: TIMEOUT_MS },
+    );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
-      await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
-      fireEvent.changeText(triggerInput, '2600');
+    fireEvent(triggerInput, 'blur');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.limit_price_required'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
-        },
+    await waitFor(
+      () => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.please_set_a_trigger_price'),
+        );
+        expect(placeOrderButton).toBeDisabled();
+      },
+      { timeout: TIMEOUT_MS },
+    );
+  });
+
+  itForPlatforms('defers required limit guidance until blur', async () => {
+    renderProMarketWithTriggeredOrdersFlag(true);
+    await findSizeInput();
+
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        {},
         { timeout: TIMEOUT_MS },
-      );
-    },
-  );
+      ),
+    );
+
+    const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+    const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+    const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    fireEvent.changeText(triggerInput, '2600');
+
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+        ).not.toBeOnTheScreen();
+        expect(placeOrderButton).toBeEnabled();
+      },
+      { timeout: TIMEOUT_MS },
+    );
+
+    fireEvent(limitInput, 'blur');
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.limit_price_required'),
+        );
+        expect(placeOrderButton).toBeDisabled();
+      },
+      { timeout: TIMEOUT_MS },
+    );
+  });
 
   itForPlatforms(
     'submits a stop-limit order with triggerPrice and limit price',
