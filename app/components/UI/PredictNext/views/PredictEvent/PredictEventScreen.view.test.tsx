@@ -1,5 +1,9 @@
 import '../../../../../../tests/component-view/mocks';
-import { makePredictNextMultiMarketEvent } from '../../../../../../tests/component-view/fixtures/predictNext';
+import {
+  makePredictNextMultiMarketEvent,
+  makePredictNextSpreadsEvent,
+  makePredictNextTotalsEvent,
+} from '../../../../../../tests/component-view/fixtures/predictNext';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
@@ -7,6 +11,7 @@ import { focusManager } from '@tanstack/react-query';
 import { processColor, StyleSheet } from 'react-native';
 import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
+import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
 import type {
   PredictEntityId,
   PredictHttpsUrl,
@@ -618,6 +623,137 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('0%')).toBeOnTheScreen();
     expect(fieldCard.getByText('Yes · 0¢')).toBeOnTheScreen();
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
+  });
+
+  it('renders a Total group and updates prices when the selected line changes', async () => {
+    const event = makePredictNextTotalsEvent();
+    resolveEvent({ ...event, venueId, id: eventId });
+    const view = renderPredictEventScreen(routeParams);
+
+    const card = await view.findByTestId(
+      MarketGroupCardTestIds.card('nfl-total-points'),
+    );
+    const selectedOption = view.getByTestId(
+      MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-218-5'),
+    );
+
+    expect(selectedOption).toHaveProp('accessibilityState', {
+      selected: true,
+    });
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-total-points',
+          'nfl-total-218-5',
+          'yes',
+        ),
+      ),
+    ).toHaveTextContent('12¢');
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-total-points',
+          'nfl-total-218-5',
+          'no',
+        ),
+      ),
+    ).toHaveTextContent('88¢');
+
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        within(card).getByTestId(
+          MarketGroupCardTestIds.outcomeButton(
+            'nfl-total-points',
+            'nfl-total-220-5',
+            'yes',
+          ),
+        ),
+      ).toHaveTextContent('7¢');
+      expect(
+        within(card).getByTestId(
+          MarketGroupCardTestIds.outcomeButton(
+            'nfl-total-points',
+            'nfl-total-220-5',
+            'no',
+          ),
+        ),
+      ).toHaveTextContent('93¢');
+    });
+    expect(
+      within(card).queryByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-total-points',
+          'nfl-total-218-5',
+          'yes',
+        ),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.title('nfl-total-points'),
+      ),
+    ).toHaveTextContent('Total points');
+  });
+
+  it('renders a grouped Market without a selector when it has one option', async () => {
+    const event = makePredictNextTotalsEvent();
+    const [market] = event.markets;
+    resolveEvent({
+      ...event,
+      venueId,
+      id: eventId,
+      markets: [market],
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    const card = await view.findByTestId(
+      MarketGroupCardTestIds.card('nfl-total-points'),
+    );
+
+    expect(card).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketGroupCardTestIds.selector('nfl-total-points')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders spread groups with disabled Outcome controls', async () => {
+    const event = makePredictNextSpreadsEvent();
+    resolveEvent({ ...event, venueId, id: eventId });
+    const view = renderPredictEventScreen(routeParams);
+
+    const card = await view.findByTestId(
+      MarketGroupCardTestIds.card('nfl-spread-seattle'),
+    );
+
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.title('nfl-spread-seattle'),
+      ),
+    ).toHaveTextContent('Seattle');
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-spread-seattle',
+          'nfl-spread-seattle-1-5',
+          'yes',
+        ),
+      ),
+    ).toBeDisabled();
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-spread-seattle',
+          'nfl-spread-seattle-1-5',
+          'no',
+        ),
+      ),
+    ).toBeDisabled();
   });
 
   it('opens the shared rules sheet with Event and selected Market rules', async () => {

@@ -5,6 +5,8 @@ import {
   parsePredictFeed,
   parsePredictMarketHistory,
   parsePredictVenueStatus,
+  PredictMarketGroupSchema,
+  PredictMarketOptionSchema,
 } from './marketData';
 
 const venueId = 'kalshi';
@@ -82,6 +84,98 @@ describe('Predict API canonical response parsers', () => {
     expect(result.markets[0].rules).toBe('Primary rule.\n\nSecondary rule.');
     expect(result.markets[0]).not.toHaveProperty('rules_primary');
     expect(result.markets[0]).not.toHaveProperty('rules_secondary');
+  });
+
+  it('parses a numeric market-selector group and masks unknown fields', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'total-points',
+            groupType: 'marketSelector',
+            marketType: 'total',
+            option: { type: 'number', value: 220.5 },
+            displayOrder: 0,
+            unknown: 'discard',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    });
+    expect(result.markets[0].group).not.toHaveProperty('unknown');
+  });
+
+  it('accepts an unsupported group type without specializing it', () => {
+    const [error, result] = PredictMarketGroupSchema.validate({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it.each([
+    {
+      name: 'a marketSelector group without marketType',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        option: { type: 'number', value: 220.5 },
+      },
+    },
+    {
+      name: 'a marketSelector group without option',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+      },
+    },
+    {
+      name: 'a group with a non-numeric option',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: '220.5' },
+      },
+    },
+    {
+      name: 'a group with a negative displayOrder',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: 220.5 },
+        displayOrder: -1,
+      },
+    },
+  ])('rejects $name', ({ group }) => {
+    expect(() =>
+      parsePredictEvent(createEvent({ markets: [createMarket({ group })] })),
+    ).toThrow('Invalid Predict API response.');
+  });
+
+  it('rejects non-finite numeric market options', () => {
+    const [error] = PredictMarketOptionSchema.validate({
+      type: 'number',
+      value: Number.NaN,
+    });
+
+    expect(error).toBeDefined();
   });
 
   it.each([

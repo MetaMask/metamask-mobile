@@ -111,6 +111,109 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
   ],
 });
 
+const makeGroupedMarket = ({
+  id,
+  key,
+  marketType,
+  option,
+  displayOrder,
+  yesLabel,
+  noLabel,
+  yesAskPrice,
+  noAskPrice,
+}: {
+  id: string;
+  key: string;
+  marketType: 'spread' | 'total';
+  option: number;
+  displayOrder: number;
+  yesLabel: string;
+  noLabel: string;
+  yesAskPrice: string;
+  noAskPrice: string;
+}): PredictMarket => ({
+  id: id as PredictEntityId,
+  question: `${yesLabel} at ${option}`,
+  status: 'active',
+  group: {
+    key,
+    groupType: 'marketSelector',
+    marketType,
+    option: { type: 'number', value: option },
+    displayOrder,
+  },
+  outcomes: [
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label: yesLabel,
+      askPrice: yesAskPrice as PredictDecimal,
+    },
+    {
+      id: `${id}-no` as PredictEntityId,
+      side: 'no',
+      label: noLabel,
+      askPrice: noAskPrice as PredictDecimal,
+    },
+  ],
+});
+
+export const makePredictNextTotalsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-total', 'New England vs Seattle: Total Points'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-total-220-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 220.5,
+      displayOrder: 1,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.07',
+      noAskPrice: '0.93',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-total-218-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 218.5,
+      displayOrder: 0,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.12',
+      noAskPrice: '0.88',
+    }),
+  ],
+});
+
+export const makePredictNextSpreadsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-spread', 'New England vs Seattle: Spread'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-1-5',
+      key: 'nfl-spread-seattle',
+      marketType: 'spread',
+      option: 1.5,
+      displayOrder: 0,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.58',
+      noAskPrice: '0.42',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-2-5',
+      key: 'nfl-spread-seattle',
+      marketType: 'spread',
+      option: 2.5,
+      displayOrder: 1,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.54',
+      noAskPrice: '0.46',
+    }),
+  ],
+});
+
 export const makePredictNextGameEvent = (
   id: string,
   awayTeam: string,

@@ -2862,6 +2862,10 @@
     "market": {
       "volume": "{{value}} Vol."
     },
+    "market_groups": {
+      "total_points": "Total points",
+      "spread": "Spread"
+    },
     "rules": {
       "event_accessibility_label": "View event rules",
       "market_accessibility_label": "View market rules",

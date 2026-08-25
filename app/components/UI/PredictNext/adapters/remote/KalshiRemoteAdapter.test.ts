@@ -89,6 +89,25 @@ describe('KalshiRemoteAdapter', () => {
     expect(result.events[0].markets[0].outcomes[0].askPrice).toBe('0.42');
   });
 
+  it('preserves grouped Market metadata from the Predict API', async () => {
+    const group = {
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    };
+    client.fetchEvent.mockResolvedValue(
+      createEvent({
+        markets: [{ ...createEvent().markets[0], group }],
+      }),
+    );
+
+    const result = await adapter.marketData.fetchEvent(eventId);
+
+    expect(result.markets[0].group).toEqual(group);
+  });
+
   it('forwards Event query parameters and cancellation', async () => {
     client.fetchFeed.mockResolvedValue({
       venueId: 'kalshi',

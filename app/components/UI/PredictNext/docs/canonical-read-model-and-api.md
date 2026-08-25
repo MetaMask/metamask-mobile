@@ -16,6 +16,7 @@ Feed
        ├── Sports Context 0..1
        │    └── Game 0..1
        └── Market 1..*
+            ├── Group 0..1
             └── Outcome exactly 2 (Yes and No sides)
 ```
 
@@ -28,6 +29,8 @@ A canonical Event maps to exactly one Venue Event. A Feed may combine Events dis
 - **Feed** — a product-owned, ordered, paginated selection of Events for a navigation surface. A Feed can represent a Category, curated collection, or supported filter combination.
 - **Event** — one Venue Event containing one or more related Markets.
 - **Market** — one binary prediction question within an Event.
+- **Market Group** — optional metadata on each Market that tells the Event
+  Screen how related Markets can be presented together.
 - **Outcome** — the Yes or No side of a Market. Labels may be customized.
 - **Category** — the Event's optional primary MetaMask product classification, such as Sports, Crypto, or Politics.
 - **Series** — an optional Venue-backed grouping of related Events.
@@ -149,12 +152,30 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
+type PredictMarketType = 'spread' | 'total' | (string & {});
+type PredictMarketGroupType = 'marketSelector' | (string & {});
+
+interface PredictMarketOption {
+  type: 'number';
+  value: number;
+}
+
+interface PredictMarketGroup {
+  // Stable within the containing Event. Mobile never derives this value.
+  key: string;
+  groupType: PredictMarketGroupType;
+  marketType?: PredictMarketType;
+  option?: PredictMarketOption;
+  displayOrder?: number;
+}
+
 interface PredictMarket {
   id: PredictEntityId;
   question: string;
   rules?: string;
   status: PredictMarketStatus;
   outcomes: readonly [PredictOutcome, PredictOutcome];
+  group?: PredictMarketGroup;
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -220,6 +241,22 @@ interface PredictFeed {
 - `Game.observedAt` records when the backend observed the Game snapshot so mobile can identify stale REST data.
 - `Outcome.gameSelection` is authoritative when present. Mobile must not infer a Team or draw association from an Outcome label, Market question, title, ticker, or array order.
 - A `no` Outcome opposite a Team's `yes` Outcome does not automatically represent the other Team; draws and Venue resolution rules can make that inference false.
+- `Market.group` is optional. The backend owns its key, group type, market type,
+  option value, and display order. Mobile does not parse Market questions,
+  titles, labels, slugs, tickers, or strike text to create this metadata.
+- `group.groupType` selects the presentation behavior. The current supported
+  value is `marketSelector`; unknown values remain standard Markets until a
+  supported composition exists.
+- A `marketSelector` group has a `marketType` and a numeric `option`. For a
+  total, the option is the point threshold. For a spread, it is the canonical
+  handicap supplied by the backend. The option type is explicit so another
+  representation can be added later without changing `groupType`.
+- `displayOrder` orders alternate Markets inside one group. It does not order
+  groups or Events. When it is absent, response order is authoritative. A
+  single Market renders without a selector. Multiple Markets select the first
+  Market after ordering, without an `isDefault` flag.
+- A missing or unsupported group falls back to the standard Market
+  presentation. Malformed known group fields fail runtime validation.
 
 ## Series and rolling Events
 

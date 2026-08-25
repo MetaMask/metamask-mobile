@@ -1,6 +1,7 @@
 import {
   array,
   enums,
+  literal,
   mask,
   number,
   object,
@@ -146,6 +147,37 @@ const outcomeSchema = object({
   gameSelection: optional(gameSelection),
 });
 
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+export const PredictMarketGroupSchema = refine(
+  object({
+    key: refine(string(), 'PredictMarketGroupKey', (value) => value.length > 0),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.length > 0,
+    ),
+    marketType: optional(
+      refine(string(), 'PredictMarketType', (value) => value.length > 0),
+    ),
+    option: optional(PredictMarketOptionSchema),
+    displayOrder: optional(
+      refine(
+        number(),
+        'PredictMarketDisplayOrder',
+        (value) => Number.isInteger(value) && value >= 0,
+      ),
+    ),
+  }),
+  'PredictMarketGroup',
+  (group) =>
+    group.groupType !== 'marketSelector' ||
+    (group.marketType !== undefined && group.option !== undefined),
+);
+
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
   'BinaryOutcomes',
@@ -158,6 +190,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: optional(PredictMarketGroupSchema),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
