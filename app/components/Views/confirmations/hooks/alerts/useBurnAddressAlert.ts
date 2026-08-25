@@ -2,10 +2,7 @@ import { useMemo } from 'react';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import {
-  ZERO_ADDRESS,
-  DEAD_ADDRESS,
-} from '../../../../../constants/address';
+import { ZERO_ADDRESS, DEAD_ADDRESS } from '../../../../../constants/address';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useNestedTransactionTransferRecipients,

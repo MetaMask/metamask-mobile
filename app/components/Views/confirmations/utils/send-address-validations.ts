@@ -12,10 +12,7 @@ import {
   isTronAddress,
   isStellarAddress,
 } from '../../../../core/Multichain/utils';
-import {
-  ZERO_ADDRESS,
-  DEAD_ADDRESS,
-} from '../../../../constants/address';
+import { ZERO_ADDRESS, DEAD_ADDRESS } from '../../../../constants/address';
 
 export const validateBitcoinAddress = (
   toAddress: string,
