@@ -79,31 +79,31 @@
         <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
         <h1>Vendor comparison</h1>
         <p>
-          Sauce Labs <strong>Private</strong> and <strong>Cloud</strong> updated from run
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917" style="color:#fff">32707596917</a>
-          (Appium settings parity with TestMu HE; <code>appiumVersion: latest</code>).
-          BrowserStack / TestMu Standard / HE columns kept from prior baselines.
+          BrowserStack + Sauce Labs <strong>Private</strong> / <strong>Cloud</strong> updated from the same run
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" style="color:#fff">32736700431</a>
+          (first dual run with <code>enable_browserstack=true</code>).
+          TestMu Standard / HE columns kept from prior baselines.
         </p>
         <nav class="links">
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917" target="_blank">Sauce Private + Cloud · latest</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" target="_blank">BS + Sauce Private + Cloud · latest</a>
+          <a href="./bs-sauce-run-comparison.html">BS vs Sauce run history</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440" target="_blank">TestMu HE</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32381218479" target="_blank">TestMu Standard</a>
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Prior multi-vendor baseline</a>
         </nav>
       </header>
 
       <section class="grid metrics">
         <div class="card"><div class="metric">Scenarios<strong>23</strong></div></div>
-        <div class="card"><div class="metric">BrowserStack · passed<strong>16 / 23</strong></div></div>
-        <div class="card"><div class="metric">Sauce Private · passed<strong>16 / 23</strong></div></div>
+        <div class="card"><div class="metric">BrowserStack · passed<strong>20 / 23</strong></div></div>
+        <div class="card"><div class="metric">Sauce Private · passed<strong>17 / 23</strong></div></div>
         <div class="card"><div class="metric">Sauce Cloud · passed<strong>16 / 23</strong></div></div>
         <div class="card"><div class="metric">TestMu · Std / HE<strong>17 / 18</strong></div></div>
       </section>
 
       <section class="grid">
-        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro · Android 13 · prior baseline</small></article>
-        <article class="card provider sauce"><h3>Sauce Private</h3><small>Google_Pixel_7_POC(49|05) · run 32707596917 · 16/23</small></article>
-        <article class="card provider sauce-cloud"><h3>Sauce Cloud</h3><small>Google Pixel.* · public · run 32707596917 · 16/23</small></article>
+        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro+13.0 · run 32736700431 · 20/23</small></article>
+        <article class="card provider sauce"><h3>Sauce Private</h3><small>Google_Pixel_7_POC(49|05) · run 32736700431 · 17/23</small></article>
+        <article class="card provider sauce-cloud"><h3>Sauce Cloud</h3><small>Google Pixel.* · public · run 32736700431 · 16/23</small></article>
         <article class="card provider standard"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14 · prior</small></article>
         <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14 · prior</small></article>
       </section>
@@ -138,55 +138,56 @@
       </section>
 
       <section class="section">
-        <h2>Sauce Private vs Cloud (run 32707596917)</h2>
+        <h2>BS + Sauce Private vs Cloud (run 32736700431)</h2>
         <ul>
-          <li>Both lanes <strong>16/23</strong> passed after Appium settings alignment (<code>waitForIdleTimeout: 0</code>, <code>snapshotMaxDepth: 62</code>, etc.).</li>
-          <li><strong>Fresh SRP</strong> now passes on both (~8.1s Cloud / ~8.8s Private) — previously a heavy QG fail on Sauce.</li>
-          <li>Timed head-to-head: Private faster in more scenarios; biggest Cloud regression is <strong>Import SRP +50</strong> (15.77s QG fail vs 3.05s Private pass).</li>
-          <li>Only Private QG fails: Account creation, Cold → Login. Only Cloud QG fail: Import SRP +50 (+ Cross-chain no metrics).</li>
-          <li>Shared no-metrics fails: Money Home ×2, Rewards, Perps open/close, Predict Deposit.</li>
+          <li><strong>BrowserStack 20/23</strong> — best pass rate in this same-run trio; only no-metrics on Money Home ×2 and Rewards.</li>
+          <li><strong>Fresh SRP</strong> passes on BS (7.03s), Private (9.11s), and Cloud (5.90s) — Cloud is fastest here.</li>
+          <li><strong>BS-only coverage:</strong> <em>Perps open/close</em> (13.66s P) and <em>Predict Deposit</em> (10.83s P) still no-metrics on both Sauce lanes.</li>
+          <li><strong>Cold → Login:</strong> BS passes (3.71s); both Sauce lanes fail (~5.7–5.8s).</li>
+          <li>Sauce Private 17/23 (1 QG fail: Cold → Login). Sauce Cloud 16/23 (2 QG fails: Seedless Google, Cold → Login).</li>
+          <li>Shared no-metrics across all three: Money Home ×2, Rewards.</li>
         </ul>
       </section>
 
       <section class="section">
         <h2>Quick conclusions</h2>
         <ul>
-          <li><strong>HyperExecute</strong> still leads on pass count in the prior baselines (18/23).</li>
-          <li><strong>Sauce Private &amp; Cloud</strong> are now tied at 16/23 and much closer to TestMu on Fresh SRP.</li>
-          <li>Private remains the stabler Sauce lane for launch/warm and Import SRP; Cloud is competitive on Fresh SRP / Google / Perps add funds.</li>
+          <li><strong>BrowserStack</strong> leads same-run reliability (20/23) and is the only vendor measuring Perps open/close + Predict Deposit in this run.</li>
+          <li><strong>TestMu HyperExecute</strong> still leads historical pass count (18/23) among prior baselines, but Fresh SRP still fails there.</li>
+          <li><strong>Sauce Private</strong> (17/23) edges Cloud (16/23); both clear Fresh SRP while TestMu does not.</li>
           <li>Tests without metrics should not be read as app slowness — they indicate flow/session/instrumentation failure.</li>
         </ul>
       </section>
       <p class="foot">
-        Sauce Private + Cloud from run 32707596917 · HE from 32373754440 · BrowserStack/Standard from prior multi-vendor baseline ·
+        BrowserStack + Sauce Private + Cloud from run 32736700431 · HE from 32373754440 · TestMu Standard from prior baseline ·
         Branch MMQA-TestMu-PoC-HyperExecute · Values in seconds.
       </p>
     </main>
     <script>
       // [scenario, BrowserStack, Sauce Private, Sauce Cloud, TestMu Standard, TestMu HE]
       const rows = [
-        ["Cold Start → Onboarding", [2.164, "P"], [0.389, "P"], [4.04, "P"], [2.266, "P"], [1.699, "P"]],
-        ["Fresh SRP wallet creation", [15.85, "F"], [8.797, "P"], [8.073, "P"], [12.985, "F"], [10.272, "F"]],
-        ["Import SRP onboarding +50 accounts", [5.183, "P"], [4.032, "P"], [3.746, "P"], [4.448, "P"], [3.805, "P"]],
+        ["Cold Start → Onboarding", [3.133, "P"], [0.549, "P"], [4.16, "P"], [2.266, "P"], [1.699, "P"]],
+        ["Fresh SRP wallet creation", [7.03, "P"], [9.111, "P"], [5.902, "P"], [12.985, "F"], [10.272, "F"]],
+        ["Import SRP onboarding +50 accounts", [4.985, "P"], [4.209, "P"], [3.408, "P"], [4.448, "P"], [3.805, "P"]],
         ["Money Home · empty wallet", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
-        ["Account creation", [1.745, "P"], [4.097, "F"], [1.4, "P"], [2.723, "P"], [2.826, "P"]],
+        ["Account creation", [3.202, "P"], [1.697, "P"], [1.66, "P"], [2.723, "P"], [2.826, "P"]],
         ["Money Home · imported wallet", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
-        ["Perps open position and close it", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
-        ["Seedless Apple", [1.501, "P"], [4.415, "P"], [4.719, "P"], [4.754, "P"], [8.368, "P"]],
-        ["Seedless Google", [3.03, "P"], [5.541, "P"], [2.572, "P"], [5.156, "P"], [4.292, "P"]],
-        ["Seedless Telegram", [3.156, "P"], [5.341, "P"], [5.668, "P"], [null, "P"], [3.113, "P"]],
-        ["Aggregated Balance Loading", [8.181, "P"], [8.674, "P"], [9.163, "P"], [8.933, "P"], [8.914, "P"]],
-        ["Cross-chain swap ETH → SOL", [5.43, "P"], [4.958, "P"], [null, "N"], [8.268, "P"], [5.812, "P"]],
-        ["Asset View", [3.898, "P"], [3.857, "P"], [4.388, "P"], [2.581, "P"], [2.55, "P"]],
-        ["Cold Start → Login", [5.801, "F"], [6.207, "F"], [4.999, "P"], [null, "P"], [2.787, "P"]],
-        ["Swap ETH → LINK", [1.978, "P"], [1.846, "P"], [2.228, "P"], [1.919, "P"], [1.905, "P"]],
-        ["Import SRP +50 accounts", [3.486, "P"], [3.051, "P"], [15.77, "F"], [null, "P"], [3.15, "P"]],
-        ["Warm Start → Wallet", [1.554, "P"], [1.237, "P"], [2.512, "P"], [null, "N"], [3.115, "P"]],
-        ["Perps add funds", [6.633, "P"], [5.35, "P"], [5.188, "P"], [8.374, "P"], [7.751, "P"]],
-        ["Warm Start → Login", [0.931, "P"], [0.477, "P"], [1.26, "P"], [0.539, "P"], [0.424, "P"]],
-        ["Predict Available Balance", [0.775, "P"], [1.753, "P"], [3.519, "P"], [null, "P"], [0.932, "P"]],
-        ["Predict Market Details", [3.732, "P"], [1.768, "P"], [2.554, "P"], [3.928, "P"], [2.826, "P"]],
-        ["Predict Deposit", [24.645, "F"], [null, "N"], [null, "N"], [19.625, "P"], [9.312, "P"]],
+        ["Perps open position and close it", [13.663, "P"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]],
+        ["Seedless Apple", [4.781, "P"], [5.274, "P"], [4.801, "P"], [4.754, "P"], [8.368, "P"]],
+        ["Seedless Google", [5.776, "P"], [4.806, "P"], [5.877, "F"], [5.156, "P"], [4.292, "P"]],
+        ["Seedless Telegram", [5.765, "P"], [3.73, "P"], [2.101, "P"], [null, "P"], [3.113, "P"]],
+        ["Aggregated Balance Loading", [8.308, "P"], [9.089, "P"], [8.77, "P"], [8.933, "P"], [8.914, "P"]],
+        ["Cross-chain swap ETH → SOL", [5.385, "P"], [5.483, "P"], [5.377, "P"], [8.268, "P"], [5.812, "P"]],
+        ["Asset View", [3.293, "P"], [2.451, "P"], [2.356, "P"], [2.581, "P"], [2.55, "P"]],
+        ["Cold Start → Login", [3.713, "P"], [5.835, "F"], [5.707, "F"], [null, "P"], [2.787, "P"]],
+        ["Swap ETH → LINK", [1.408, "P"], [2.121, "P"], [2.477, "P"], [1.919, "P"], [1.905, "P"]],
+        ["Import SRP +50 accounts", [2.827, "P"], [4.047, "P"], [3.262, "P"], [null, "P"], [3.15, "P"]],
+        ["Warm Start → Wallet", [1.387, "P"], [1.372, "P"], [2.329, "P"], [null, "N"], [3.115, "P"]],
+        ["Perps add funds", [6.672, "P"], [5.517, "P"], [5.081, "P"], [8.374, "P"], [7.751, "P"]],
+        ["Warm Start → Login", [0.65, "P"], [0.46, "P"], [0.471, "P"], [0.539, "P"], [0.424, "P"]],
+        ["Predict Available Balance", [1.067, "P"], [1.59, "P"], [3.149, "P"], [null, "P"], [0.932, "P"]],
+        ["Predict Market Details", [3.027, "P"], [2.827, "P"], [4.226, "P"], [3.928, "P"], [2.826, "P"]],
+        ["Predict Deposit", [10.833, "P"], [null, "N"], [null, "N"], [19.625, "P"], [9.312, "P"]],
         ["Rewards tab", [null, "N"], [null, "N"], [null, "N"], [null, "N"], [null, "N"]]
       ];
       const tbody = document.getElementById("results");
