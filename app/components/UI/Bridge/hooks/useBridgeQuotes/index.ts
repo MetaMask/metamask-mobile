@@ -15,26 +15,15 @@ import { BigNumber as EthersBigNumber } from 'ethers';
 import type { BridgeToken } from '../../types';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import {
-  selectBridgeControllerState,
-  selectBridgeFeatureFlags,
-  selectSlippage,
-} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { TraceName } from '../../../../../util/trace';
 import { useLatestBalance } from '../useLatestBalance';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-// eslint-disable-next-line import-x/no-restricted-paths
-import { fromTokenMinimalUnit } from '../../../../../util/number';
-import AppConstants from '../../../../../core/AppConstants';
-import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
-import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
-import { usePriceImpactFiat } from '../usePriceImpactFiat';
-import I18n from '../../../../../../locales/i18n';
-import { useBlockaidError } from './useBlockaidError';
-import { useValidQuotes } from './useValidQuotes';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { useValidQuotes } from './useValidQuotes';
+import { useBlockaidError } from './useBlockaidError';
+import { useFormattedQuoteData } from './useFormattedQuoteData';
 
 interface UseBridgeQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -284,104 +273,30 @@ export const useQuoteData = ({
   const { quoteFetchError, quotesLoadingStatus } = useSelector(
     selectBridgeControllerState,
   );
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
+  // Resolve active quote and availability status
   const {
     activeQuote,
     bestQuote,
     isActiveQuoteForCurrentTokenPair,
-    validQuotes,
-    willRefresh,
     isExpired,
-    needsNewQuote,
     isLoading,
     isNoQuotesAvailable,
+    needsNewQuote,
+    validQuotes,
+    willRefresh,
   } = useValidQuotes({ latestSourceAtomicBalance, quoteParams });
 
-  // Validate solana
+  // Validate solana quotes
   const blockaidError = useBlockaidError({ activeQuote });
 
   // Format quote data
-  const destTokenAmount =
-    activeQuote && quoteParams.destToken && isActiveQuoteForCurrentTokenPair
-      ? fromTokenMinimalUnit(
-          activeQuote.quote.dest.amount,
-          quoteParams.destToken.decimals,
-        )
-      : undefined;
-
-  const priceImpactFiat = usePriceImpactFiat(activeQuote);
-  const networkFee = useFormattedNetworkFee(activeQuote);
-  const slippage = useSelector(selectSlippage);
-  // TODO use swapRate metadata
-  // const quoteRate = activeQuote?.quote.priceData?.swapRate
-  //   ? Number(activeQuote.quote.priceData.swapRate)
-  //   : undefined;
-  const quoteRate =
-    Number(quoteParams.srcAmount) === 0
-      ? undefined
-      : Number(destTokenAmount) / Number(quoteParams.srcAmount);
-
-  const locale = I18n.locale;
-
-  const formattedQuoteData = useMemo(() => {
-    if (!activeQuote) return undefined;
-
-    const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
-
-    const priceImpact = quote.priceData?.priceImpact?.amount;
-    let priceImpactPercentage;
-
-    if (priceImpact) {
-      priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
-    }
-
-    // Formats quote rate to show an appropriate number of decimal places
-    // For numbers greater than 1, we show 2 decimal places. Example: 1.23456 -> 1.23
-    // For numbers less than 1, we show 3 significant digits. Example: 0.00012345 -> 0.000123
-    const quoteRateFormatter = getIntlNumberFormatter(locale, {
-      ...(quoteRate && quoteRate > 1
-        ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
+  const { destTokenAmount, formattedQuoteData, shouldShowPriceImpactWarning } =
+    useFormattedQuoteData({
+      activeQuote,
+      isActiveQuoteForCurrentTokenPair,
+      quoteParams,
     });
-    const formattedQuoteRate = quoteRateFormatter.format(quoteRate ?? 0);
-    const rate = quoteRate
-      ? `1 ${quoteParams.srcToken?.symbol} = ${formattedQuoteRate} ${quoteParams.destToken?.symbol}`
-      : '--';
-
-    return {
-      networkFee,
-      estimatedTime:
-        estimatedProcessingTimeInSeconds >= 60
-          ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
-          : `${
-              estimatedProcessingTimeInSeconds >= 1
-                ? `${estimatedProcessingTimeInSeconds} seconds`
-                : '< 1 second'
-            }`,
-      rate,
-      priceImpact: priceImpactPercentage,
-      priceImpactFiat,
-      slippage: slippage ? `${slippage}%` : 'Auto',
-    };
-  }, [
-    activeQuote,
-    quoteRate,
-    quoteParams.srcToken?.symbol,
-    quoteParams.destToken?.symbol,
-    slippage,
-    locale,
-    networkFee,
-    priceImpactFiat,
-  ]);
-
-  const shouldShowPriceImpactWarning = Boolean(
-    activeQuote?.quote.priceData?.priceImpact?.amount !== undefined &&
-      bridgeFeatureFlags?.priceImpactThreshold &&
-      parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount) >=
-        (bridgeFeatureFlags.priceImpactThreshold.warning ??
-          AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
-  );
 
   return useMemo(
     () => ({
