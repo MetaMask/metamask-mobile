@@ -1170,6 +1170,16 @@ const Onboarding = () => {
     ],
   );
 
+  const handleMpcFlow = useCallback(() => {
+    operationTestSign({
+      dkmProtocol: SupportedDKMProtocols.CL24_SECP256K1,
+      protocol: SupportedProtocols.DKLS,
+      message: 'hello world',
+    }).catch((error) => {
+      Logger.log(error as Error, 'error');
+    });
+  }, []);
+
   const setStartFoxAnimation = useCallback((): void => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
@@ -1242,6 +1252,17 @@ const Onboarding = () => {
                 : strings('onboarding.import_using_srp')}
             </Button>
           </ThemeProvider>
+          <ThemeProvider theme={Theme.Dark}>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={handleMpcFlow}
+              testID={OnboardingSelectorIDs.MPC_FLOW_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {strings('multichain_accounts.mpc_wallet.run_mpc_flow')}
+            </Button>
+          </ThemeProvider>
         </OnboardingAnimation>
       </Box>
     ),
@@ -1249,6 +1270,7 @@ const Onboarding = () => {
       state.startOnboardingAnimation,
       setStartFoxAnimation,
       handleCtaActions,
+      handleMpcFlow,
       handleOnboardingInteractiveContentReady,
     ],
   );
@@ -1435,13 +1457,6 @@ const Onboarding = () => {
 
   useEffect(() => {
     updateNavBar();
-    operationTestSign({
-      dkmProtocol: SupportedDKMProtocols.CL24_SECP256K1,
-      protocol: SupportedProtocols.DKLS,
-      message: 'hello world',
-    }).catch((error) => {
-      Logger.log(error as Error, 'error');
-    });
   }, [updateNavBar]);
 
   useEffect(() => {

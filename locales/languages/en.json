@@ -9000,6 +9000,7 @@
       "add_mpc_wallet_description": "The MPC wallet will be setup between your device and the cloud. It is super secure because the private key does not exist in one place.",
       "create_mpc_wallet": "Create MPC Wallet",
       "join_mpc_wallet": "Join MPC Wallet",
+      "run_mpc_flow": "Run MPC flow",
       "join_mpc_wallet_description": "Paste the join data provided by the wallet initiator to join an existing MPC wallet.",
       "join_data_label": "Join Data",
       "enter_join_data": "Paste join data from initiator",

@@ -5,6 +5,7 @@ export const OnboardingSelectorIDs = {
   NEW_WALLET_BUTTON: 'wallet-setup-screen-create-new-wallet-button-id',
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-have-an-existing-wallet-button-id',
+  MPC_FLOW_BUTTON: 'onboarding-mpc-flow-button',
   /*
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-import-from-seed-button-id',

@@ -35,6 +35,25 @@ jest.mock('../../../actions/user', () => {
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
+jest.mock('./mfa', () => ({
+  __esModule: true,
+  operationTestSign: jest.fn().mockResolvedValue(undefined),
+  SupportedDKMProtocols: {
+    CL24_SECP256K1: 'cl24-secp256k1',
+  },
+  SupportedProtocols: {
+    DKLS: 'dkls19',
+  },
+}));
+
+jest.mock(
+  '@metamask/mpc-libs-react-native/src/wrapper',
+  () => ({
+    dkls19Lib: {},
+  }),
+  { virtual: true },
+);
+
 jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -63,6 +82,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding, { OAUTH_TRACE_ABANDONMENT_GRACE_MS } from './';
+import { operationTestSign } from './mfa';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -92,6 +112,8 @@ import {
   updateCachedConsent,
 } from '../../../util/trace';
 import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
+
+const mockOperationTestSign = operationTestSign as jest.Mock;
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -602,6 +624,26 @@ describe('Onboarding', () => {
       OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
     fireEvent.press(importSeedButton);
+  });
+
+  it('starts the MPC flow only after pressing the MPC button', async () => {
+    const { getByTestId } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      { state: mockInitialState },
+    );
+
+    expect(mockOperationTestSign).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(OnboardingSelectorIDs.MPC_FLOW_BUTTON));
+
+    await waitFor(() =>
+      expect(mockOperationTestSign).toHaveBeenCalledWith({
+        dkmProtocol: 'cl24-secp256k1',
+        protocol: 'dkls19',
+        message: 'hello world',
+      }),
+    );
   });
 
   describe('Create wallet flow', () => {
