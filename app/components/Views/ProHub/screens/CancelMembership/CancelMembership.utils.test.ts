@@ -101,10 +101,7 @@ describe('buildPostCancellationResetState', () => {
           name: Routes.MAIN_FLOW,
           state: {
             index: 1,
-            routes: [
-              { name: Routes.WALLET.HOME },
-              { name: Routes.MONEY.HOME },
-            ],
+            routes: [{ name: Routes.WALLET.HOME }, { name: Routes.MONEY.HOME }],
           },
         },
       ],
