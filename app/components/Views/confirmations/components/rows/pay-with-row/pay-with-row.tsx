@@ -15,8 +15,13 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
+import { Box } from '../../../../../UI/Box/Box';
 import {
-  Box,
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
+import {
   FontWeight,
   Icon,
   IconColor,
@@ -118,7 +123,9 @@ function PayWithRowLayout({
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
-        twClassName="flex-row items-center justify-between"
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
         <Text
@@ -127,7 +134,11 @@ function PayWithRowLayout({
         >
           {label}
         </Text>
-        <Box twClassName="flex-row items-center gap-2">
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
           {children}
           {showArrow && (
             <Icon
@@ -387,11 +398,17 @@ export function PayWithRowSkeleton() {
   return (
     <Box
       testID="pay-with-row-skeleton"
-      twClassName="flex-row items-center justify-between"
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      justifyContent={JustifyContent.spaceBetween}
       style={styles.skeletonContainer}
     >
       <Skeleton height={18} width={60} style={styles.skeletonTop} />
-      <Box twClassName="flex-row items-center gap-2">
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
         <Skeleton height={32} width={32} style={styles.skeletonCircle} />
         <Skeleton height={18} width={120} style={styles.skeletonTop} />
       </Box>

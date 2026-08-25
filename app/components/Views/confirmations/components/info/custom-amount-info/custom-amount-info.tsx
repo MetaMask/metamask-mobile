@@ -61,7 +61,6 @@ import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirm
 import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useIsPayTokenBalanceUnresolved } from '../../../hooks/pay/useIsPayTokenBalanceUnresolved';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
@@ -156,7 +155,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useFiatFunnelMetricsAdapter();
 
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
-    const isPayBalanceUnresolved = useIsPayTokenBalanceUnresolved();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -491,7 +489,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   Boolean(selectedFiatPaymentMethodId) ||
                   shouldHideAccountSelector
                 }
-                isDoneDisabled={hasBlockingAlert || isPayBalanceUnresolved}
+                isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
                 onDonePress={handleDone}
@@ -510,8 +508,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 disableConfirm ||
                 isAccountSelectionNeeded ||
                 isPrefillPending ||
-                hasAlert ||
-                isPayBalanceUnresolved
+                hasAlert
               }
               onContinue={trackContinue}
               stage={stage}

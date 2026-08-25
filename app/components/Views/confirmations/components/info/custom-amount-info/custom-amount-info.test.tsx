@@ -13,7 +13,6 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useIsPayTokenBalanceUnresolved } from '../../../hooks/pay/useIsPayTokenBalanceUnresolved';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { Alert, Severity } from '../../../types/alerts';
@@ -62,7 +61,6 @@ jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/pay/useIsPayTokenBalanceUnresolved');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../context/alert-system-context');
@@ -284,9 +282,6 @@ function render(
 
 describe('CustomAmountInfo', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useIsPayTokenBalanceUnresolvedMock = jest.mocked(
-    useIsPayTokenBalanceUnresolved,
-  );
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
@@ -364,7 +359,6 @@ describe('CustomAmountInfo', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-    useIsPayTokenBalanceUnresolvedMock.mockReturnValue(false);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -705,14 +699,6 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeOnTheScreen();
-  });
-
-  it('disables the done button while the pay token balance is unresolved', () => {
-    useIsPayTokenBalanceUnresolvedMock.mockReturnValue(true);
-
-    const { getByTestId } = render();
-
-    expect(getByTestId('deposit-keyboard-done-button')).toBeDisabled();
   });
 
   describe('Money Account quote preparation', () => {
