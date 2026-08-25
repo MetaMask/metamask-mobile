@@ -1533,13 +1533,16 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.build-android-apks.result == 'success'
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'skipped')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection]
+      # Required to download e2e-timings-${{ github.run_id }} for timing-balanced shards.
+      actions: read
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1569,6 +1572,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'skipped') &&
         (
           (
             github.event_name == 'push' &&
@@ -1591,7 +1595,9 @@ jobs:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+      # Required to download e2e-timings-${{ github.run_id }} for timing-balanced shards.
+      actions: read
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1623,6 +1629,7 @@ jobs:
       contents: read
       checks: write
       id-token: write
+      actions: read
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:

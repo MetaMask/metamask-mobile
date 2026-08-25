@@ -1,5 +1,7 @@
 # Runs Appium smoke tests for one smoke tag on Android or iOS.
 # Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag/split).
+# Specs for each fixed split are selected via e2e-appium-select-shard-specs.mjs
+# (timing bin-pack when e2e-timings are available; else equal-count).
 
 name: Run Appium E2E
 
@@ -57,6 +59,8 @@ on:
 permissions:
   contents: read
   checks: write
+  # Download frozen e2e-timings-${{ github.run_id }} for timing-balanced shard selection.
+  actions: read
 
 jobs:
   test-appium-mobile:
@@ -302,6 +306,34 @@ jobs:
           fi
         shell: bash
 
+      - name: Download frozen qa-stats timings
+        id: download-timings
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./
+
+      - name: Fetch qa-stats timings fallback
+        if: steps.download-timings.outcome != 'success'
+        run: node .github/scripts/e2e-freeze-timings.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          OUTPUT_PATH: ./e2e-timings.json
+
+      - name: Select specs for this shard (timing bin-pack)
+        id: select-specs
+        run: node .github/scripts/e2e-appium-select-shard-specs.mjs
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+          SPLIT_NUMBER: ${{ inputs.split_number }}
+          TOTAL_SPLITS: ${{ inputs.total_splits }}
+          BASE_DIR: tests/smoke-appium
+          E2E_TIMINGS_PATH: ./e2e-timings.json
+
       - name: Verify Appium runner connectivity (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
@@ -312,14 +344,10 @@ jobs:
         id: run-tests-android
         if: ${{ inputs.platform == 'android' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project android-smoke
-          --grep "${{ steps.appium-grep.outputs.pattern }}"
-          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
+          SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
+          GREP_PATTERN: ${{ steps.appium-grep.outputs.pattern }}
+          PASS_WITH_NO_TESTS: ${{ steps.appium-grep.outputs.pass_with_no_tests }}
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
@@ -337,19 +365,35 @@ jobs:
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SPEC_FILES}" ]]; then
+            if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
+              echo "No FixtureValidation specs found"
+              exit 1
+            fi
+            echo "No specs assigned to this shard — skipping"
+            exit 0
+          fi
+          playwright_args=(
+            --config tests/playwright.smoke-appium.config.ts
+            --project android-smoke
+            --grep "${GREP_PATTERN}"
+          )
+          if [[ -n "${PASS_WITH_NO_TESTS}" ]]; then
+            playwright_args+=("${PASS_WITH_NO_TESTS}")
+          fi
+          read -r -a spec_files <<< "${SPEC_FILES}"
+          yarn playwright test "${spec_files[@]}" "${playwright_args[@]}"
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios
         if: ${{ inputs.platform == 'ios' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project ios-smoke
-          --grep "${{ steps.appium-grep.outputs.pattern }}"
-          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
+          SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
+          GREP_PATTERN: ${{ steps.appium-grep.outputs.pattern }}
+          PASS_WITH_NO_TESTS: ${{ steps.appium-grep.outputs.pass_with_no_tests }}
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
@@ -369,6 +413,26 @@ jobs:
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SPEC_FILES}" ]]; then
+            if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
+              echo "No FixtureValidation specs found"
+              exit 1
+            fi
+            echo "No specs assigned to this shard — skipping"
+            exit 0
+          fi
+          playwright_args=(
+            --config tests/playwright.smoke-appium.config.ts
+            --project ios-smoke
+            --grep "${GREP_PATTERN}"
+          )
+          if [[ -n "${PASS_WITH_NO_TESTS}" ]]; then
+            playwright_args+=("${PASS_WITH_NO_TESTS}")
+          fi
+          read -r -a spec_files <<< "${SPEC_FILES}"
+          yarn playwright test "${spec_files[@]}" "${playwright_args[@]}"
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
@@ -397,8 +461,11 @@ jobs:
           path: tests/test-reports/playwright-json/playwright-report.json
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright JSON report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+      # Always upload to GitHub Artifacts too. Namespace storage is invisible to
+      # collect-qa-stats.mjs / e2e-freeze-timings (GitHub API only), which need
+      # these JSON reports to publish e2e_test_times for timing-balanced sharding.
+      - name: Upload Playwright JSON report (GitHub)
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
