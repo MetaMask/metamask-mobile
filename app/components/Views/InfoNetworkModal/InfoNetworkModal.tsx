@@ -42,7 +42,7 @@ const InfoNetworkModal = () => {
   useEffect(() => {
     if (prevNetwork.current !== chainId && chainId) {
       if (prevNetwork.current) {
-        // Network switched has occured
+        // Network switch has occurred
         // Check if network has been onboarded.
         const networkOnboarded = getIsNetworkOnboarded(
           chainId,

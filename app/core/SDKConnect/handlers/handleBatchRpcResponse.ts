@@ -69,7 +69,7 @@ export const handleBatchRpcResponse = async ({
     //  all batch have been handled can remove from the batch manager before processing it
     batchRPCManager.remove(chainRpcs.baseId);
 
-    // Process the reponse as a normal rpc call
+    // Process the response as a normal rpc call
     await sendMessage({ msg: response });
   } else {
     // Save response and send the next rpc method
