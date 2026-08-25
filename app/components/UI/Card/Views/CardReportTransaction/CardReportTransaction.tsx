@@ -54,10 +54,17 @@ type CardReportTransactionRouteProp = RouteProp<
 export function buildReportTransactionUrl(
   baseUrl: string,
   transactionId: string,
-): string {
-  const url = new URL(baseUrl);
-  url.searchParams.set(IMMERSVE_REPORT_TRANSACTION_ID_PARAM, transactionId);
-  return url.toString();
+): string | undefined {
+  try {
+    const url = new URL(baseUrl);
+    if (url.protocol !== 'https:') {
+      return undefined;
+    }
+    url.searchParams.set(IMMERSVE_REPORT_TRANSACTION_ID_PARAM, transactionId);
+    return url.toString();
+  } catch {
+    return undefined;
+  }
 }
 
 const CardReportTransaction = () => {
@@ -85,12 +92,42 @@ const CardReportTransaction = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const showReportErrorToast = useCallback(
+    (messageKey: string) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings(messageKey),
+          },
+        ],
+        iconName: LegacyIconName.Warning,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef],
+  );
+
   const handleFileReport = useCallback(async () => {
     if (isImmersve) {
-      const baseUrl =
-        immersveConfig.reportTransactionUrl ||
-        DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL;
-      const url = buildReportTransactionUrl(baseUrl, transactionId);
+      const configuredUrl = immersveConfig.reportTransactionUrl
+        ? buildReportTransactionUrl(
+            immersveConfig.reportTransactionUrl,
+            transactionId,
+          )
+        : undefined;
+      const url =
+        configuredUrl ??
+        buildReportTransactionUrl(
+          DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL,
+          transactionId,
+        );
+
+      if (!url) {
+        showReportErrorToast('card.transactions.report_link_error');
+        return;
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
@@ -108,18 +145,19 @@ const CardReportTransaction = () => {
     }
 
     try {
-      await Linking.openURL(`mailto:${supportEmail || CARD_SUPPORT_EMAIL}`);
-    } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('card.transactions.report_open_error'),
-          },
-        ],
-        iconName: LegacyIconName.Warning,
-        hasNoTimeout: false,
+      const subject = strings('card.transactions.report_email_subject', {
+        transactionId,
       });
+      const body = strings('card.transactions.report_email_body', {
+        transactionId,
+      });
+      await Linking.openURL(
+        `mailto:${supportEmail || CARD_SUPPORT_EMAIL}?subject=${encodeURIComponent(
+          subject,
+        )}&body=${encodeURIComponent(body)}`,
+      );
+    } catch {
+      showReportErrorToast('card.transactions.report_open_error');
     }
   }, [
     createEventBuilder,
@@ -127,8 +165,8 @@ const CardReportTransaction = () => {
     isImmersve,
     navigation,
     providerId,
+    showReportErrorToast,
     supportEmail,
-    toastRef,
     trackEvent,
     transactionId,
   ]);

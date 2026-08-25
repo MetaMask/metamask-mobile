@@ -171,6 +171,7 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
       showAuthPrompt: true,
+      postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
     });
   });
 });

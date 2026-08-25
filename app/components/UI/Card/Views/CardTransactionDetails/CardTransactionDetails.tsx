@@ -28,6 +28,8 @@ import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import {
   cardTransactionDisplayInfo,
   formatCardTransactionStatus,
+  getCardTransactionHeroCopy,
+  getCardTransactionStatusColor,
 } from '../../utils/cardTransactionDisplayInfo';
 import { formatCardAmount } from '../../utils/cardTransactionAmount';
 import { getMerchantCategoryLabel } from '../../utils/merchantCategoryLabel';
@@ -47,6 +49,7 @@ import {
 } from '../../../../../util/networks';
 import { RPC } from '../../../../../constants/network';
 import Routes from '../../../../../constants/navigation/Routes';
+import { cardQueries } from '../../queries';
 
 type CardTransactionDetailsRouteProp = RouteProp<
   CardScreensStackParamList,
@@ -71,7 +74,7 @@ const CardTransactionDetails = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['cardTransaction', transactionId],
+    queryKey: cardQueries.transactions.keys.detail(transactionId),
     queryFn: () =>
       Engine.context.CardController.getCardTransaction(transactionId),
     enabled: !initialTransaction && Boolean(Engine.context?.CardController),
@@ -260,11 +263,7 @@ const CardTransactionDetails = () => {
 
   return (
     <CardTransactionDetailsContent
-      heroCopy={strings(
-        transaction.isDebit
-          ? 'money.api_activity_details.you_spent'
-          : 'money.api_activity_details.you_were_refunded',
-      )}
+      heroCopy={getCardTransactionHeroCopy(transaction)}
       primaryAmount={primaryAmount}
       fiatAmount={secondaryAmount}
       amountColor={
@@ -275,7 +274,7 @@ const CardTransactionDetails = () => {
             : TextColor.TextDefault
       }
       statusLabel={formatCardTransactionStatus(transaction.status)}
-      statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
+      statusColor={getCardTransactionStatusColor(transaction.status)}
       dateLabel={processedDateLabel}
       merchantName={transaction.merchant?.name}
       categoryLabel={categoryLabel}

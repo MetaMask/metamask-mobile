@@ -702,6 +702,7 @@ export function useCardHomeActions({
       } else {
         navigation.navigate(Routes.CARD.AUTHENTICATION, {
           showAuthPrompt: true,
+          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
         });
       }
     },

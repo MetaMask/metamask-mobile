@@ -9609,7 +9609,13 @@
       "report_body_continue": "If you've already tried that, we're here to help.",
       "report_file": "File a report",
       "report_open_error": "Couldn't open your mail app",
+      "report_link_error": "Couldn't open the report form",
+      "report_email_subject": "Card transaction report — {{transactionId}}",
+      "report_email_body": "Transaction ID: {{transactionId}}",
       "report_back": "Cancel",
+      "you_withdrew": "You withdrew",
+      "you_deposited": "You deposited",
+      "you_received": "You received",
       "manage_entry_title": "Transaction history",
       "manage_entry_description": "Card purchases and activity"
     },

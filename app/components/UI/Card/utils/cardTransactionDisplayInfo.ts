@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import {
@@ -17,6 +17,13 @@ const TYPE_LABEL_KEY: Record<CardTransactionType, string> = {
   [CardTransactionType.Deposit]: 'money.transaction.deposited',
   [CardTransactionType.Transfer]: 'money.transaction.sent',
   [CardTransactionType.Adjustment]: 'money.transaction.card_transaction',
+};
+
+const HERO_COPY_KEY: Partial<Record<CardTransactionType, string>> = {
+  [CardTransactionType.Purchase]: 'money.api_activity_details.you_spent',
+  [CardTransactionType.Refund]: 'money.api_activity_details.you_were_refunded',
+  [CardTransactionType.Withdrawal]: 'card.transactions.you_withdrew',
+  [CardTransactionType.Deposit]: 'card.transactions.you_deposited',
 };
 
 function startOfDayMs(date: Date): number {
@@ -121,5 +128,30 @@ export function formatCardTransactionStatus(
     case CardTransactionStatus.Completed:
     default:
       return strings('card.transactions.completed');
+  }
+}
+
+export function getCardTransactionHeroCopy(tx: CardTransaction): string {
+  const key =
+    HERO_COPY_KEY[tx.type] ??
+    (tx.isDebit
+      ? 'money.api_activity_details.you_spent'
+      : 'card.transactions.you_received');
+  return strings(key);
+}
+
+export function getCardTransactionStatusColor(
+  status: CardTransactionStatus,
+): TextColor {
+  switch (status) {
+    case CardTransactionStatus.Pending:
+      return TextColor.WarningDefault;
+    case CardTransactionStatus.Failed:
+      return TextColor.ErrorDefault;
+    case CardTransactionStatus.Reversed:
+      return TextColor.TextAlternative;
+    case CardTransactionStatus.Completed:
+    default:
+      return TextColor.SuccessDefault;
   }
 }

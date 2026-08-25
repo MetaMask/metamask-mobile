@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   CardTransactionStatus,
   CardTransactionType,
@@ -8,6 +8,8 @@ import {
   cardTransactionDisplayInfo,
   formatCardTransactionDate,
   formatCardTransactionStatus,
+  getCardTransactionHeroCopy,
+  getCardTransactionStatusColor,
   getCardTransactionTypeLabel,
 } from './cardTransactionDisplayInfo';
 
@@ -244,6 +246,76 @@ describe('cardTransactionDisplayInfo', () => {
       expect(formatCardTransactionStatus(CardTransactionStatus.Completed)).toBe(
         'card.transactions.completed',
       );
+    });
+  });
+
+  describe('getCardTransactionHeroCopy', () => {
+    it('maps purchase and refund types to their hero copy keys', () => {
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({ type: CardTransactionType.Purchase }),
+        ),
+      ).toBe('money.api_activity_details.you_spent');
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({
+            type: CardTransactionType.Refund,
+            isDebit: false,
+          }),
+        ),
+      ).toBe('money.api_activity_details.you_were_refunded');
+    });
+
+    it('maps deposit and withdrawal types to card-specific hero copy', () => {
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({
+            type: CardTransactionType.Deposit,
+            isDebit: false,
+          }),
+        ),
+      ).toBe('card.transactions.you_deposited');
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({ type: CardTransactionType.Withdrawal }),
+        ),
+      ).toBe('card.transactions.you_withdrew');
+    });
+
+    it('falls back to debit/credit copy for transfer and adjustment', () => {
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({
+            type: CardTransactionType.Transfer,
+            isDebit: true,
+          }),
+        ),
+      ).toBe('money.api_activity_details.you_spent');
+      expect(
+        getCardTransactionHeroCopy(
+          createTransaction({
+            type: CardTransactionType.Adjustment,
+            isDebit: false,
+          }),
+        ),
+      ).toBe('card.transactions.you_received');
+    });
+  });
+
+  describe('getCardTransactionStatusColor', () => {
+    it('maps each status to a non-success color where appropriate', () => {
+      expect(
+        getCardTransactionStatusColor(CardTransactionStatus.Completed),
+      ).toBe(TextColor.SuccessDefault);
+      expect(getCardTransactionStatusColor(CardTransactionStatus.Pending)).toBe(
+        TextColor.WarningDefault,
+      );
+      expect(getCardTransactionStatusColor(CardTransactionStatus.Failed)).toBe(
+        TextColor.ErrorDefault,
+      );
+      expect(
+        getCardTransactionStatusColor(CardTransactionStatus.Reversed),
+      ).toBe(TextColor.TextAlternative);
     });
   });
 });

@@ -80,7 +80,12 @@ jest.mock('../../../../../component-library/components/Toast', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: { transactionId?: string }) => {
+    if (params?.transactionId) {
+      return `${key}:${params.transactionId}`;
+    }
+    return key;
+  },
 }));
 
 jest.mock('../../../../../selectors/cardController', () => ({
@@ -113,6 +118,14 @@ function mockSelectors({
   });
 }
 
+function expectedMailto(email: string): string {
+  const subject = encodeURIComponent(
+    'card.transactions.report_email_subject:tx-123',
+  );
+  const body = encodeURIComponent('card.transactions.report_email_body:tx-123');
+  return `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
 describe('buildReportTransactionUrl', () => {
   it('keeps existing query params and appends the transaction id', () => {
     const url = buildReportTransactionUrl(
@@ -120,7 +133,8 @@ describe('buildReportTransactionUrl', () => {
       'tx-123',
     );
 
-    const parsed = new URL(url);
+    expect(url).toBeDefined();
+    const parsed = new URL(url as string);
     expect(parsed.searchParams.get('ticket_form_id')).toBe('22905679582745');
     expect(parsed.searchParams.get(IMMERSVE_REPORT_TRANSACTION_ID_PARAM)).toBe(
       'tx-123',
@@ -139,6 +153,16 @@ describe('buildReportTransactionUrl', () => {
     );
 
     expect(first).not.toBe(second);
+  });
+
+  it('returns undefined for a malformed url', () => {
+    expect(buildReportTransactionUrl('not a url', 'tx-123')).toBeUndefined();
+  });
+
+  it('returns undefined for a non-https url', () => {
+    expect(
+      buildReportTransactionUrl('http://help.example.com/report', 'tx-123'),
+    ).toBeUndefined();
   });
 });
 
@@ -224,7 +248,48 @@ describe('CardReportTransaction', () => {
     });
   });
 
-  it('opens a mailto link for non-Immersve providers', async () => {
+  it('falls back to the default Immersve url when the remote url is malformed', () => {
+    mockSelectors({
+      providerId: CardProviderIds.Immersve,
+      reportTransactionUrl: 'not a url',
+    });
+    const { getByTestId } = render(<CardReportTransaction />);
+
+    fireEvent.press(getByTestId('card-report-transaction-file-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: buildReportTransactionUrl(
+          DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL,
+          'tx-123',
+        ),
+      },
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the default Immersve url when the remote url is not https', () => {
+    mockSelectors({
+      providerId: CardProviderIds.Immersve,
+      reportTransactionUrl: 'http://help.example.com/report',
+    });
+    const { getByTestId } = render(<CardReportTransaction />);
+
+    fireEvent.press(getByTestId('card-report-transaction-file-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: buildReportTransactionUrl(
+          DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL,
+          'tx-123',
+        ),
+      },
+    });
+  });
+
+  it('opens a mailto link with the transaction id for non-Immersve providers', async () => {
     mockSelectors({ providerId: CardProviderIds.Baanx });
     const { getByTestId } = render(<CardReportTransaction />);
 
@@ -232,7 +297,7 @@ describe('CardReportTransaction', () => {
 
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
-        'mailto:support@example.com',
+        expectedMailto('support@example.com'),
       );
     });
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -247,7 +312,7 @@ describe('CardReportTransaction', () => {
 
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
-        `mailto:${CARD_SUPPORT_EMAIL}`,
+        expectedMailto(CARD_SUPPORT_EMAIL),
       );
     });
   });
