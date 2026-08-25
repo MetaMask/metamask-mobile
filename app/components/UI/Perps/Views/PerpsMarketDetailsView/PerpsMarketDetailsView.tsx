@@ -919,13 +919,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const advancedChartSeriesKey = `${market?.symbol ?? ''}|${selectedCandlePeriod}`;
   const advancedChartIdentity = `${advancedChartSeriesKey}|${configuredChartLibrary}|${marketContextKey}`;
-  const previousAdvancedChartIdentityRef = useRef(advancedChartIdentity);
-  const advancedChartGenerationRef = useRef(0);
-  if (previousAdvancedChartIdentityRef.current !== advancedChartIdentity) {
-    previousAdvancedChartIdentityRef.current = advancedChartIdentity;
-    advancedChartGenerationRef.current += 1;
-  }
-  const advancedChartReadinessKey = `${advancedChartIdentity}|${advancedChartGenerationRef.current}`;
+  const advancedChartReadinessKey = advancedChartIdentity;
   const handleAdvancedChartResolved = useCallback(
     (
       resolvedSeriesKey: string,
@@ -1045,6 +1039,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       }),
     [detailSession.generationTrigger],
   );
+  const marketDetailEndData = useMemo(
+    () => ({
+      [PERPS_CUF_TAG.VARIANT]:
+        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
+          ? PERPS_CUF_VARIANT.FUNDED
+          : PERPS_CUF_VARIANT.UNFUNDED,
+    }),
+    [account?.totalBalance],
+  );
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketDetailLive,
     resetKey: detailSession.liveResetKey,
@@ -1060,12 +1063,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     resetReason: 'stats_error',
     blockStartWhileReset: true,
     tags: marketDetailCufTags,
-    endData: {
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    },
+    endData: marketDetailEndData,
   });
 
   const handleTradeAction = useCallback(

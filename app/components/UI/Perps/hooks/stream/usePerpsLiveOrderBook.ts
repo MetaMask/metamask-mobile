@@ -27,6 +27,8 @@ export interface UsePerpsLiveOrderBookOptions {
   throttleMs?: number;
   /** Whether to enable the subscription (default: true) */
   enabled?: boolean;
+  /** Resubscribes when the provider/network connection generation changes. */
+  resetKey?: string;
   /**
    * Enable Hyperliquid's fast order book stream (5 levels @ ~0.5s cadence).
    * When omitted, uses the default cadence (20 levels @ ~2s).
@@ -92,12 +94,12 @@ export function usePerpsLiveOrderBook(
     mantissa,
     throttleMs = 100,
     enabled = true,
+    resetKey,
     fast = false,
     channel = 'orderBook',
   } = options;
 
   const isAggregated = channel === 'orderBookAggregated';
-
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -258,6 +260,7 @@ export function usePerpsLiveOrderBook(
     nSigFigs,
     mantissa,
     enabled,
+    resetKey,
     applyUpdate,
     throttleMs,
     fast,

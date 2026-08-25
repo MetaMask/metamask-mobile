@@ -199,7 +199,11 @@ export const usePerpsMarketStats = (
     const hasCurrentIdentity =
       marketStatsIdentityRef.current === marketStatsIdentity;
     const currentCandleData =
-      isMarketContextReady && hasCurrentIdentity ? candleData : null;
+      isMarketContextReady &&
+      hasCurrentIdentity &&
+      candleData?.symbol === symbol
+        ? candleData
+        : null;
     const { high, low } = calculate24hHighLow(currentCandleData);
     const hasCurrentMarketData = marketDataContextKey === marketContextKey;
     const currentMarketData = hasCurrentMarketData ? marketData : {};

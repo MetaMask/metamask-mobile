@@ -125,8 +125,8 @@ source of truth.
 - `lifecycle`
 - `provider`
 - `network`
-- `market_source`: `terminal_v2`, `provider`, `memory_cache`
-- `account_source`: `provider_snapshot`, `memory_cache`, `fresh_socket`
+- `market_source`: `terminal_v2`, `provider`, `memory_cache`, `unknown`
+- `account_source`: `provider_snapshot`, `memory_cache`, `fresh_socket`, `unknown`
 - `required_live_streams_complete`
 - `content_state`
 - `success`

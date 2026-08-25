@@ -141,7 +141,7 @@ try {
 const startTime = performance.now();
 const result = await someOperation();
 setMeasurement(
-  PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+  PerpsMeasurementName.PerpsGetPositionsOperation,
   performance.now() - startTime,
   'millisecond',
 );
@@ -206,9 +206,9 @@ latency filters exclude both; reliability widgets count them by reason.
 
 ## Event Catalog
 
-### User-Perceived CUF Spans (11 events, TAT-3509)
+### User-Perceived CUF Spans (12 events, TAT-3509)
 
-**Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Op: `perps.operation`; differentiated by `span.description` (the TraceName).
+**Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Most use op `perps.operation`; `PerpsMarketDetailSession` uses `perps.loading`. TraceName is stored as `span.description`.
 
 | TraceName                             | Boundary (gesture → render-complete with live data)                             | Approach                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
@@ -247,18 +247,18 @@ latency filters exclude both; reliability widgets count them by reason.
 **Measurements (sub-operations):**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_TAB_LOADED` | ms | Tab screen render complete |
-| `PERPS_MARKETS_SCREEN_LOADED` | ms | Market list render |
-| `PERPS_ASSET_SCREEN_LOADED` | ms | Asset details render |
-| `PERPS_TRADE_SCREEN_LOADED` | ms | Order form render |
-| `PERPS_CLOSE_SCREEN_LOADED` | ms | Close position render |
-| `PERPS_WITHDRAWAL_SCREEN_LOADED` | ms | Withdrawal form render |
-| `PERPS_TRANSACTION_HISTORY_SCREEN_LOADED` | ms | History render |
-| `PERPS_ORDER_SUBMISSION_TOAST_LOADED` | ms | Toast display |
-| `PERPS_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Confirmation toast |
-| `PERPS_CLOSE_ORDER_SUBMISSION_TOAST_LOADED` | ms | Close toast |
-| `PERPS_CLOSE_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Close confirmation |
-| `PERPS_LEVERAGE_BOTTOM_SHEET_LOADED` | ms | Leverage picker |
+| `perps.screen.tab_loaded` | ms | Tab screen render complete |
+| `perps.screen.markets_loaded` | ms | Market list render |
+| `perps.screen.asset_loaded` | ms | Asset details render |
+| `perps.screen.trade_loaded` | ms | Order form render |
+| `perps.screen.close_loaded` | ms | Close position render |
+| `perps.screen.withdrawal_loaded` | ms | Withdrawal form render |
+| `perps.screen.transaction_history_loaded` | ms | History render |
+| `perps.ui.order_submission_toast_loaded` | ms | Toast display |
+| `perps.ui.order_confirmation_toast_loaded` | ms | Confirmation toast |
+| `perps.ui.close_order_submission_toast_loaded` | ms | Close toast |
+| `perps.ui.close_order_confirmation_toast_loaded` | ms | Close confirmation |
+| `perps.ui.leverage_bottom_sheet_loaded` | ms | Leverage picker |
 
 ### Trading Operations (9 events)
 
@@ -300,17 +300,17 @@ latency filters exclude both; reliability widgets count them by reason.
 **Measurements (sub-operations):**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT` | ms | Transport connection |
-| `PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD` | ms | Connection + data preload |
-| `PERPS_WEBSOCKET_FIRST_POSITION_DATA` | ms | First position received |
-| `PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION` | ms | Account switch timing |
-| `PERPS_PROVIDER_INIT` | ms | Provider initialization |
-| `PERPS_ACCOUNT_STATE_FETCH` | ms | Account state load |
-| `PERPS_SUBSCRIPTIONS_PRELOAD` | ms | Subscription setup |
-| `PERPS_RECONNECTION_CLEANUP` | ms | Cleanup before reconnect |
-| `PERPS_CONTROLLER_REINIT` | ms | Controller restart |
-| `PERPS_NEW_ACCOUNT_FETCH` | ms | New account data |
-| `PERPS_RECONNECTION_PRELOAD` | ms | Reconnection subscriptions |
+| `perps.websocket.connection_establishment` | ms | Transport connection |
+| `perps.websocket.connection_with_preload` | ms | Connection + data preload |
+| `perps.websocket.first_position_data` | ms | First position received |
+| `perps.websocket.account_switch_reconnection` | ms | Account switch timing |
+| `perps.connection.provider_init` | ms | Provider initialization |
+| `perps.connection.account_state_fetch` | ms | Account state load |
+| `perps.connection.subscriptions_preload` | ms | Subscription setup |
+| `perps.connection.cleanup` | ms | Cleanup before reconnect |
+| `perps.connection.controller_reinit` | ms | Controller restart |
+| `perps.connection.new_account_fetch` | ms | New account data |
+| `perps.connection.reconnection_preload` | ms | Reconnection subscriptions |
 
 ### API Integrations (4 events)
 
@@ -324,10 +324,10 @@ latency filters exclude both; reliability widgets count them by reason.
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_REWARDS_FEE_DISCOUNT_API_CALL` | ms | Fee discount fetch (cached) |
-| `PERPS_REWARDS_POINTS_ESTIMATION_API_CALL` | ms | Points calculation (cached) |
-| `PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL` | ms | Live discount during order |
-| `PERPS_DATA_LAKE_API_CALL` | ms | Order report submission |
+| `perps.api.rewards_fee_discount` | ms | Fee discount fetch (cached) |
+| `perps.api.rewards_points_estimation` | ms | Points calculation (cached) |
+| `perps.api.rewards_order_execution_fee_discount` | ms | Live discount during order |
+| `perps.api.data_lake_call` | ms | Order report submission |
 
 ### Data Fetch Operations (9 events)
 
@@ -348,10 +348,10 @@ latency filters exclude both; reliability widgets count them by reason.
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_GET_POSITIONS_OPERATION` | ms | Position fetch within trace |
-| `PERPS_GET_OPEN_ORDERS_OPERATION` | ms | Orders fetch within trace |
-| `PERPS_MARKET_DATA_PRELOAD` | ms | Market data background preload duration |
-| `PERPS_USER_DATA_PRELOAD` | ms | User data background preload duration |
+| `perps.operation.get_positions` | ms | Position fetch within trace |
+| `perps.operation.get_open_orders` | ms | Orders fetch within trace |
+| `perps.operation.market_data_preload` | ms | Market data background preload duration |
+| `perps.operation.user_data_preload` | ms | User data background preload duration |
 
 ### Market Data Updates (1 event)
 
@@ -398,7 +398,7 @@ const YourComponent = () => {
 ```typescript
 // In constants/performanceMetrics.ts
 export enum PerpsMeasurementName {
-  PERPS_YOUR_OPERATION = 'perps_your_operation',
+  PerpsYourOperation = 'perps.operation.your_operation',
 }
 
 // In your component
@@ -408,7 +408,7 @@ import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 const startTime = performance.now();
 await doSomething();
 setMeasurement(
-  PerpsMeasurementName.PERPS_YOUR_OPERATION,
+  PerpsMeasurementName.PerpsYourOperation,
   performance.now() - startTime,
   'millisecond',
 );
@@ -484,7 +484,7 @@ async yourOperation(params: Params): Promise<Result> {
 const subOpStart = performance.now();
 const data = await fetchData();
 setMeasurement(
-  PerpsMeasurementName.PERPS_YOUR_SUB_OPERATION,
+  PerpsMeasurementName.PerpsYourSubOperation,
   performance.now() - subOpStart,
   'millisecond',
   traceSpan, // Optional: attach to parent span
@@ -520,9 +520,8 @@ setMeasurement(
 
 ### PerpsMeasurementName Format
 
-- Pattern: `PERPS_<CATEGORY>_<ACTION>_<SUBJECT>`
-- All uppercase with underscores
-- Examples: `PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT`, `PERPS_GET_POSITIONS_OPERATION`
+- Enum keys use PascalCase. Values use `perps.<category>.<metric_name>`.
+- Examples: `PerpsWebsocketConnectionEstablishment = 'perps.websocket.connection_establishment'`, `PerpsGetPositionsOperation = 'perps.operation.get_positions'`
 
 ## Performance Markers (Development)
 
