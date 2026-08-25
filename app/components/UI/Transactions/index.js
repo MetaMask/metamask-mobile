@@ -309,8 +309,14 @@ const Transactions = (props) => {
   useEffect(() => {
     mountedRef.current = true;
     const txToView = NotificationManager.getTransactionToView();
+    // getTransactionToView() destructively pops the id, so if we unmount
+    // before actually acting on it (e.g. a fast remount or navigating away
+    // before the 1s delay elapses), push it back so a later mount can still
+    // open it instead of silently dropping the notification deep-link.
+    let shouldRequeue = Boolean(txToView);
     if (txToView) {
       notificationTimeoutRef.current = setTimeout(() => {
+        shouldRequeue = false;
         const { transactions: latestTransactions } =
           latestMountPropsRef.current;
         const index = latestTransactions.findIndex((tx) => txToView === tx.id);
@@ -325,6 +331,9 @@ const Transactions = (props) => {
       mountedRef.current = false;
       if (notificationTimeoutRef.current) {
         clearTimeout(notificationTimeoutRef.current);
+      }
+      if (shouldRequeue) {
+        NotificationManager.setTransactionToView(txToView);
       }
     };
   }, []);

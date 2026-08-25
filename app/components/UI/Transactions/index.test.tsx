@@ -147,6 +147,7 @@ jest.mock('../../../util/networks', () => ({
 jest.mock('../../../util/address', () => ({ isHardwareAccount: jest.fn() }));
 jest.mock('../../../core/NotificationManager', () => ({
   getTransactionToView: jest.fn(),
+  setTransactionToView: jest.fn(),
 }));
 jest.mock('../../../util/transaction-controller', () => ({
   getPreviousGasFromController: jest.fn(),
@@ -420,6 +421,41 @@ describe('UnconnectedTransactions', () => {
 
       expect(NotificationManager.getTransactionToView).toHaveBeenCalledTimes(1);
       expect(getTransactionElement(rendered).props.tx).toEqual(transaction);
+    });
+
+    it('requeues the notification transaction id if unmounted before it opens', () => {
+      // getTransactionToView() destructively pops the id. If we unmount
+      // before the 1s delay elapses (e.g. a fast remount), it must be
+      // pushed back so a later mount can still act on it.
+      const transaction = { id: 'notification-transaction', time: 2 };
+      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
+        transaction.id,
+      );
+
+      const rendered = renderTransactions({ transactions: [transaction] });
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+      rendered.unmount();
+
+      expect(NotificationManager.setTransactionToView).toHaveBeenCalledWith(
+        transaction.id,
+      );
+    });
+
+    it('does not requeue the notification transaction id once it has opened', () => {
+      const transaction = { id: 'notification-transaction', time: 2 };
+      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
+        transaction.id,
+      );
+
+      const rendered = renderTransactions({ transactions: [transaction] });
+      act(() => {
+        jest.advanceTimersByTime(1100);
+      });
+      rendered.unmount();
+
+      expect(NotificationManager.setTransactionToView).not.toHaveBeenCalled();
     });
 
     it('sorts submitted transactions without mutating the input', () => {
@@ -842,10 +878,12 @@ describe('mapStateToProps', () => {
   const mockState = {} as never;
 
   beforeEach(() => {
-    (selectChainId as jest.Mock).mockReturnValue('0x1');
-    (selectProviderConfig as jest.Mock).mockReturnValue({ type: 'mainnet' });
-    (selectNetworkClientId as jest.Mock).mockReturnValue('mainnet-client');
-    (selectProviderType as jest.Mock).mockReturnValue('mainnet');
+    jest.mocked(selectChainId).mockReturnValue('0x1');
+    jest.mocked(selectProviderConfig).mockReturnValue({
+      type: 'mainnet',
+    } as ReturnType<typeof selectProviderConfig>);
+    jest.mocked(selectNetworkClientId).mockReturnValue('mainnet-client');
+    jest.mocked(selectProviderType).mockReturnValue('mainnet');
   });
 
   describe('when used for Token Details (tokenChainId is provided)', () => {
