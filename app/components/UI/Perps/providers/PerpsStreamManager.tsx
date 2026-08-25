@@ -62,6 +62,7 @@ import {
 } from '../constants/terminalApi';
 import {
   createPerpsLoadingSessionIdentity,
+  getActivePerpsLoadingSessionIdentity,
   getActivePerpsLoadingSessionTraceData,
   recordPerpsLoadingSessionValuesReady,
   type PerpsLoadingSessionIdentity,
@@ -2430,7 +2431,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
             : 'provider',
           data.length,
           {},
-          getCurrentPerpsLoadingSessionIdentity(),
+          getActivePerpsLoadingSessionIdentity() ??
+            getCurrentPerpsLoadingSessionIdentity(),
         );
         // Notify all subscribers
         this.notifySubscribers(data);

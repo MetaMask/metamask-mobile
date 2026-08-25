@@ -505,6 +505,10 @@ export function getActivePerpsLoadingSessionContext(): PerpsLoadingSessionContex
   return context;
 }
 
+export function getActivePerpsLoadingSessionIdentity(): PerpsLoadingSessionIdentity | null {
+  return activeSessionIdentity ? { ...activeSessionIdentity } : null;
+}
+
 export function getPerpsLoadingSessionContext(
   sessionId: string,
 ): PerpsLoadingSessionContext | null {
