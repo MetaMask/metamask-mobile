@@ -44,6 +44,28 @@ const getOptionValue = (market: PredictMarket): number | undefined =>
     ? market.group.option.value
     : undefined;
 
+const formatSpreadValue = (value: number): string =>
+  value > 0 ? `+${value}` : `${value}`;
+
+const getOutcomeOptionValue = (
+  market: PredictMarket,
+  outcome: PredictOutcome,
+): string => {
+  const optionValue = getOptionValue(market);
+  if (optionValue === undefined) {
+    return '—';
+  }
+
+  if (market.group?.marketType !== 'spread') {
+    return `${optionValue}`;
+  }
+
+  const absoluteOptionValue = Math.abs(optionValue);
+  return formatSpreadValue(
+    outcome.side === 'yes' ? absoluteOptionValue : -absoluteOptionValue,
+  );
+};
+
 const getBarWidth = (outcome: PredictOutcome): DimensionValue => {
   const percent = getAskPricePercent(outcome.askPrice);
   return percent === undefined ? 24 : `${Math.max(9.5, percent)}%`;
@@ -61,7 +83,7 @@ const OutcomeRow = ({
   outcome: PredictOutcome;
 }) => {
   const price = formatAskPrice(outcome.askPrice);
-  const optionValue = getOptionValue(market);
+  const optionValue = getOutcomeOptionValue(market, outcome);
   const color =
     outcome.side === 'yes' ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 

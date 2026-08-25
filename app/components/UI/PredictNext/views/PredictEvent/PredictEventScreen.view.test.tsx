@@ -9,7 +9,7 @@ import { renderPredictEventScreen } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
-import { processColor, StyleSheet } from 'react-native';
+import { PanResponder, processColor, StyleSheet } from 'react-native';
 import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
@@ -647,7 +647,7 @@ describe('PredictEventScreen', () => {
       view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(MarketGroupCardTestIds.card('nfl-spread-seattle')),
+      view.getByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -783,38 +783,137 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders spread groups with disabled Outcome controls', async () => {
+  it('renders both spread legs in one card and keeps both selector options', async () => {
     const event = makePredictNextSpreadsEvent();
+    const panResponderCreateSpy = jest.spyOn(PanResponder, 'create');
     resolveEvent({ ...event, venueId, id: eventId });
     const view = renderPredictEventScreen(routeParams);
 
     const card = await view.findByTestId(
-      MarketGroupCardTestIds.card('nfl-spread-seattle'),
+      MarketGroupCardTestIds.card('nfl-spreads'),
     );
 
     expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.title('nfl-spread-seattle'),
-      ),
-    ).toHaveTextContent('Seattle');
+      within(card).getByTestId(MarketGroupCardTestIds.title('nfl-spreads')),
+    ).toHaveTextContent('Spreads');
     expect(
       within(card).getByTestId(
         MarketGroupCardTestIds.outcomeButton(
-          'nfl-spread-seattle',
-          'nfl-spread-seattle-1-5',
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
           'yes',
         ),
       ),
     ).toBeDisabled();
     expect(
       within(card).getByTestId(
+        MarketGroupCardTestIds.row(
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
+          'yes',
+        ),
+      ),
+    ).toHaveTextContent(/\+2\.5/);
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.row(
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
+          'no',
+        ),
+      ),
+    ).toHaveTextContent(/-2\.5/);
+    expect(
+      within(card).getByTestId(
         MarketGroupCardTestIds.outcomeButton(
-          'nfl-spread-seattle',
-          'nfl-spread-seattle-1-5',
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
           'no',
         ),
       ),
     ).toBeDisabled();
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.option(
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
+        ),
+      ),
+    ).toHaveTextContent('2.5');
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.option(
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
+        ),
+      ),
+    ).toHaveProp('accessibilityState', { selected: true });
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-2-5'),
+      ),
+    ).toHaveTextContent('2.5');
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-2-5'),
+      ),
+    ).toHaveProp('accessibilityState', { selected: false });
+    const selector = view.getByTestId(
+      MarketGroupCardTestIds.selector('nfl-spreads'),
+    );
+    const panResponderConfig = panResponderCreateSpy.mock.calls.at(-1)?.[0];
+    panResponderCreateSpy.mockRestore();
+    expect(panResponderConfig).toBeDefined();
+    if (panResponderConfig === undefined) {
+      return;
+    }
+    act(() => {
+      selector.props.onLayout({
+        nativeEvent: { layout: { width: 300 } },
+      });
+      panResponderConfig.onPanResponderGrant?.({} as never, {} as never);
+      panResponderConfig.onPanResponderMove?.(
+        {} as never,
+        { dx: -168, dy: 0 } as never,
+      );
+      panResponderConfig.onPanResponderRelease?.(
+        {} as never,
+        { dx: -168, dy: 0 } as never,
+      );
+    });
+    await waitFor(() => {
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option(
+            'nfl-spreads',
+            'nfl-spread-seattle-2-5',
+          ),
+        ),
+      ).toHaveProp('accessibilityState', { selected: true });
+      expect(
+        within(card).getByTestId(
+          MarketGroupCardTestIds.row(
+            'nfl-spreads',
+            'nfl-spread-seattle-2-5',
+            'yes',
+          ),
+        ),
+      ).toHaveTextContent(/\+2\.5/);
+      expect(
+        within(card).getByTestId(
+          MarketGroupCardTestIds.row(
+            'nfl-spreads',
+            'nfl-spread-seattle-2-5',
+            'no',
+          ),
+        ),
+      ).toHaveTextContent(/-2\.5/);
+    });
+    expect(
+      view.queryByTestId(
+        MarketGroupCardTestIds.card('nfl-spread-new-england-2-5'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the shared rules sheet with Event and selected Market rules', async () => {

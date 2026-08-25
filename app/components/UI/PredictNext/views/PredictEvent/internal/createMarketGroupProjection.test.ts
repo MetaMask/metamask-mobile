@@ -1,16 +1,28 @@
-import type { PredictEntityId, PredictMarket } from '../../../types';
+import type {
+  PredictEntityId,
+  PredictMarket,
+  PredictOutcome,
+} from '../../../types';
 import { createMarketGroupProjection } from './createMarketGroupProjection';
 
 const createMarket = (
   id: string,
   group?: PredictMarket['group'],
+  yesGameSelection?: PredictOutcome['gameSelection'],
 ): PredictMarket => ({
   id: id as PredictEntityId,
   question: id,
   status: 'active',
   group,
   outcomes: [
-    { id: `${id}-yes` as PredictEntityId, side: 'yes', label: 'Yes' },
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label: 'Yes',
+      ...(yesGameSelection === undefined
+        ? {}
+        : { gameSelection: yesGameSelection }),
+    },
     { id: `${id}-no` as PredictEntityId, side: 'no', label: 'No' },
   ],
 });
@@ -91,6 +103,41 @@ describe('createMarketGroupProjection', () => {
     ]);
   });
 
+  it('merges both spread legs and keeps both sides in the selector', () => {
+    const markets = [
+      createMarket(
+        'spread-home-high',
+        spreadGroup('home-spreads', 2.5, 0),
+        'home',
+      ),
+      createMarket(
+        'spread-away-high',
+        spreadGroup('away-spreads', 2.5, 1),
+        'away',
+      ),
+      createMarket(
+        'spread-home-low',
+        spreadGroup('home-spreads', 1.5, 2),
+        'home',
+      ),
+      createMarket(
+        'spread-away-low',
+        spreadGroup('away-spreads', 1.5, 3),
+        'away',
+      ),
+    ];
+
+    expect(createMarketGroupProjection(markets)).toEqual([
+      {
+        type: 'group',
+        key: 'home-spreads',
+        marketType: 'spread',
+        markets: [markets[0], markets[2], markets[3], markets[1]],
+        firstIndex: 0,
+      },
+    ]);
+  });
+
   it('keeps unsupported groups in the standard Market presentation', () => {
     const market = createMarket('future', {
       key: 'future',
@@ -102,19 +149,16 @@ describe('createMarketGroupProjection', () => {
     ]);
   });
 
-  it('falls back to standard cards for duplicate or conflicting options', () => {
+  it('falls back to standard cards for duplicate total options', () => {
     const duplicate = createMarket('duplicate', totalGroup('bad', 1, 0));
-    const conflicting = createMarket('conflicting', {
-      key: 'bad',
-      groupType: 'marketSelector',
-      marketType: 'spread',
-      option: { type: 'number', value: 1 },
-      displayOrder: 1,
-    });
+    const duplicateAgain = createMarket(
+      'duplicate-again',
+      totalGroup('bad', 1, 1),
+    );
 
-    expect(createMarketGroupProjection([duplicate, conflicting])).toEqual([
+    expect(createMarketGroupProjection([duplicate, duplicateAgain])).toEqual([
       { type: 'standard', market: duplicate, firstIndex: 0 },
-      { type: 'standard', market: conflicting, firstIndex: 1 },
+      { type: 'standard', market: duplicateAgain, firstIndex: 1 },
     ]);
   });
 });

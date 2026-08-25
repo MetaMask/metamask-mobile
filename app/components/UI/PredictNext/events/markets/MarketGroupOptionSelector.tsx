@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import {
+  PanResponder,
   Pressable,
   type LayoutChangeEvent,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -58,8 +60,28 @@ const createStyles = (colors: Theme['colors']) =>
 
 const getOptionValue = (market: PredictMarket): number | undefined =>
   market.group?.option?.type === 'number'
-    ? market.group.option.value
+    ? market.group.marketType === 'spread'
+      ? Math.abs(market.group.option.value)
+      : market.group.option.value
     : undefined;
+
+const isHorizontalGesture = (dx: number, dy: number): boolean =>
+  Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5;
+
+const getIndexForTranslateX = (
+  translationX: number,
+  width: number,
+  itemCount: number,
+): number => {
+  if (width === 0 || itemCount === 0) {
+    return 0;
+  }
+
+  const index = Math.round(
+    (width / 2 - translationX - ITEM_WIDTH / 2) / ITEM_WIDTH,
+  );
+  return Math.max(0, Math.min(itemCount - 1, index));
+};
 
 export const MarketGroupOptionSelector = ({
   groupKey,
@@ -72,6 +94,8 @@ export const MarketGroupOptionSelector = ({
   const styles = createStyles(colors);
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
+  const containerWidthRef = React.useRef(0);
+  const dragStartTranslateX = React.useRef(0);
   const selectedIndex = Math.max(
     0,
     markets.findIndex((market) => market.id === selectedMarketId),
@@ -89,6 +113,7 @@ export const MarketGroupOptionSelector = ({
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const width = event.nativeEvent.layout.width;
+      containerWidthRef.current = width;
       containerWidth.value = width;
       translateX.value = computeTranslateX(selectedIndex, width);
     },
@@ -108,6 +133,59 @@ export const MarketGroupOptionSelector = ({
       },
     );
   }, [computeTranslateX, containerWidth, selectedIndex, translateX]);
+
+  const snapToIndex = useCallback(
+    (index: number) => {
+      const width = containerWidthRef.current;
+      if (width === 0) {
+        return;
+      }
+
+      translateX.value = withTiming(computeTranslateX(index, width), {
+        duration: ANIMATION_DURATION,
+        easing: Easing.inOut(Easing.ease),
+      });
+    },
+    [computeTranslateX, translateX],
+  );
+
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_event, gestureState) =>
+          isHorizontalGesture(gestureState.dx, gestureState.dy),
+        onMoveShouldSetPanResponderCapture: (_event, gestureState) =>
+          isHorizontalGesture(gestureState.dx, gestureState.dy),
+        onPanResponderGrant: () => {
+          cancelAnimation(translateX);
+          dragStartTranslateX.current = translateX.value;
+        },
+        onPanResponderMove: (_event, gestureState) => {
+          if (containerWidthRef.current === 0) {
+            return;
+          }
+
+          translateX.value = dragStartTranslateX.current + gestureState.dx;
+        },
+        onPanResponderRelease: (_event, gestureState) => {
+          const index = getIndexForTranslateX(
+            dragStartTranslateX.current + gestureState.dx,
+            containerWidthRef.current,
+            markets.length,
+          );
+          const market = markets[index];
+
+          snapToIndex(index);
+          if (market !== undefined) {
+            onSelect(market.id);
+          }
+        },
+        onPanResponderTerminate: () => {
+          snapToIndex(selectedIndex);
+        },
+      }),
+    [markets, onSelect, selectedIndex, snapToIndex, translateX],
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     alignItems: 'center' as const,
@@ -138,9 +216,12 @@ export const MarketGroupOptionSelector = ({
     <Box twClassName={`relative h-[${SELECTOR_HEIGHT}px]`}>
       <MaskedView
         style={tw.style('flex-1 overflow-hidden')}
+        testID={MarketGroupCardTestIds.selector(groupKey)}
         maskElement={fadeMask}
+        onLayout={handleLayout}
+        {...panResponder.panHandlers}
       >
-        <Box twClassName="h-full" onLayout={handleLayout}>
+        <Box twClassName="h-full">
           <Animated.View style={animatedStyle}>
             {markets.map((market) => {
               const isSelected = market.id === selectedMarketId;
