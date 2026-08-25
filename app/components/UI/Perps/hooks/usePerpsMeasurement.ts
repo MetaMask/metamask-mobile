@@ -242,7 +242,7 @@ export const usePerpsMeasurement = ({
       traceStarted.current || hasCompleted.current;
     if (traceStarted.current) {
       endTrace({
-        name: traceName,
+        name: activeTraceName.current,
         id: traceId.current,
         data: { success: false, reason: resetReason },
       });
@@ -254,7 +254,7 @@ export const usePerpsMeasurement = ({
       previousEndState.current = false;
     }
     return hadActiveOrCompletedTrace || blockStartWhileReset;
-  }, [blockStartWhileReset, resetReason, shouldReset, traceName]);
+  }, [blockStartWhileReset, resetReason, shouldReset]);
 
   useEffect(() => {
     if (pauseForInactiveOwner() || resetCurrentMeasurement()) return;

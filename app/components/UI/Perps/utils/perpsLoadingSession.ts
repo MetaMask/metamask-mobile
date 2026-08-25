@@ -264,10 +264,7 @@ export function recordPerpsLoadingSessionValuesReady(
     return;
   }
 
-  if (
-    isRecordedMilestone(stream, source, itemCount) ||
-    !matchesActiveSessionIdentity(stream, identity)
-  ) {
+  if (!matchesActiveSessionIdentity(stream, identity)) {
     return;
   }
 
@@ -282,38 +279,56 @@ export function recordPerpsLoadingSessionValuesReady(
   });
 }
 
-function isRecordedMilestone(
-  stream: PerpsLoadingStream,
+function prepareFreshSocketGeneration(
   source: PerpsLoadingSource,
-  itemCount: number,
+  connectionGeneration?: number,
 ): boolean {
-  if (stream === 'markets') {
-    if (itemCount < 0 || (!isFreshMarketSource(source) && itemCount === 0)) {
-      return true;
-    }
-    if (!recordedMilestones.has('markets_ready')) {
-      return false;
-    }
-    return !(
-      isFreshMarketSource(source) &&
-      marketsReadySource !== null &&
-      !isFreshMarketSource(marketsReadySource)
-    );
-  }
-  if (source === 'fresh_socket') {
-    if ((stream === 'account' || stream === 'prices') && itemCount <= 0) {
-      return true;
-    }
-    const milestone = `${stream}_live` as Milestone;
-    return recordedMilestones.has(milestone);
-  }
-  if (recordedMilestones.has('account_cache_ready')) {
+  if (source !== 'fresh_socket') {
     return true;
   }
-  if (stream === 'account' && itemCount <= 0) {
+  if (
+    typeof connectionGeneration !== 'number' ||
+    !Number.isInteger(connectionGeneration)
+  ) {
+    return false;
+  }
+  if (activeConnectionGeneration === undefined) {
     return true;
   }
-  return cacheObservedBySource.get(source)?.has(stream as CacheStream) ?? false;
+  if (connectionGeneration < activeConnectionGeneration) {
+    return false;
+  }
+  if (connectionGeneration === activeConnectionGeneration) {
+    return true;
+  }
+
+  const previousConnectionGeneration = activeConnectionGeneration;
+  activeConnectionGeneration = connectionGeneration;
+  for (const milestone of [
+    'positions_live',
+    'orders_live',
+    'account_live',
+    'prices_live',
+  ] as const) {
+    recordedMilestones.delete(milestone);
+  }
+  annotateTraceByRequest(
+    { name: TraceName.PerpsLoadingSession, id: activeSessionId ?? undefined },
+    { connection_generation: connectionGeneration },
+  );
+  DevLogger.log(
+    `[PerpsLoadProof] ${JSON.stringify({
+      stage: 'connection_generation_advanced',
+      perps_session_id: activeSessionId,
+      lifecycle: activeLifecycle,
+      account_generation: activeAccountGeneration,
+      context_generation: activeContextGeneration,
+      previous_connection_generation: previousConnectionGeneration,
+      connection_generation: connectionGeneration,
+      monotonic_ms: Number(performance.now().toFixed(3)),
+    })}`,
+  );
+  return true;
 }
 
 function isFreshMarketSource(source: PerpsLoadingSource): boolean {
@@ -355,18 +370,16 @@ function recordValuesReady({
   if (
     !activeSessionId ||
     sessionStartedAtMs === null ||
-    !matchesActiveSessionIdentity(stream, identity)
+    !matchesActiveSessionIdentity(stream, identity) ||
+    !prepareFreshSocketGeneration(source, connectionGeneration)
   ) {
     return;
   }
 
   if (
     source === 'fresh_socket' &&
-    (typeof connectionGeneration !== 'number' ||
-      !Number.isInteger(connectionGeneration) ||
-      (stream === 'prices' && activeConnectionGeneration === undefined) ||
-      (activeConnectionGeneration !== undefined &&
-        activeConnectionGeneration !== connectionGeneration))
+    stream === 'prices' &&
+    activeConnectionGeneration === undefined
   ) {
     return;
   }

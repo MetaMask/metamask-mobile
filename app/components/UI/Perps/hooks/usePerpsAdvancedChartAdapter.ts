@@ -83,6 +83,7 @@ export interface UsePerpsAdvancedChartAdapterResult {
   visibleFromMs: number | undefined;
   visibleToMs: number | undefined;
   isLoading: boolean;
+  hasCurrentSeriesData?: boolean;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -186,6 +187,7 @@ export function usePerpsAdvancedChartAdapter({
         latestCandleDataRef.current = candleData;
 
         const converted = convertCandlesToOHLCVBars(candleData.candles);
+        setLatestBarSeriesKey(`${symbol}|${interval}`);
 
         // Clear the skeleton on the first delivery for this subscription, even if the
         // frame is empty (matches usePerpsLiveCandles). Otherwise an empty initial frame
@@ -305,6 +307,7 @@ export function usePerpsAdvancedChartAdapter({
     visibleFromMs,
     visibleToMs,
     isLoading,
+    hasCurrentSeriesData: latestBarSeriesKey === `${symbol}|${interval}`,
     handleFetchOlderBarsRequest,
   };
 }

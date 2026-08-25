@@ -200,6 +200,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     visibleFromMs,
     visibleToMs,
     isLoading,
+    hasCurrentSeriesData = true,
     handleFetchOlderBarsRequest,
   } = usePerpsAdvancedChartAdapter({
     symbol,
@@ -370,7 +371,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   const settleSeries = useCallback(
     (payload?: ChartRangeSettlePayload) => {
-      if (isLoading) return;
+      if (isLoading || !hasCurrentSeriesData) return;
 
       const open = activeVisibilityTraceRef.current;
       if (open) {
@@ -407,6 +408,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     },
     [
       isLoading,
+      hasCurrentSeriesData,
       symbol,
       interval,
       surface,

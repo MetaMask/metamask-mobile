@@ -1896,18 +1896,6 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
     this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
       callback: (caps: string[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OICapStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
-          return;
-        }
-        this.accountAddress = currentAccount;
-
         this.cache.set('oiCaps', caps);
         this.notifySubscribers(caps);
       },
@@ -2108,6 +2096,16 @@ class TopOfBookStreamChannel extends StreamChannel<
     this.currentSymbol = null;
     this.cachedTopOfBook = undefined;
     super.disconnect();
+  }
+
+  public reconnect(): void {
+    const symbol = this.currentSymbol;
+    this.disconnect();
+    super.clearCache();
+    if (symbol && this.subscribers.size > 0) {
+      this.currentSymbol = symbol;
+      this.connect();
+    }
   }
 }
 

@@ -356,10 +356,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const sessionId = sessionContext?.id;
     const marketCount =
-      contentVariant === 'pills' ? perpsPillsData.length : markets.length;
+      contentVariant === 'pills'
+        ? perpsPillsData.length
+        : contentVariant === 'trending'
+          ? allCarouselMarkets.length
+          : markets.length;
     const hasSurfaceContent =
       contentVariant === 'trending'
-        ? markets.length > 0
+        ? allCarouselMarkets.length > 0
         : contentVariant === 'pills'
           ? perpsPillsData.length > 0
           : hasItems;
