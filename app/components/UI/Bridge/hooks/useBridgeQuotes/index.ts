@@ -31,8 +31,8 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import I18n from '../../../../../../locales/i18n';
-import { useBlockaidError } from './useBlockaidError';
-import { useValidQuotes } from './useValidQuotes';
+import { useBlockaidError } from '../useBlockaidError';
+import { useValidQuotes } from '../useValidQuotes';
 
 interface UseBridgeQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
