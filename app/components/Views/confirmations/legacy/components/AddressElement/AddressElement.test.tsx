@@ -134,4 +134,16 @@ describe('AddressElement', () => {
     expect(getByTestId('address-element')).toBeOnTheScreen();
     expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
+
+  it('does not render network badge when network image source is missing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(initialState, {
+      displayNetworkBadge: true,
+      chainId: '0xdeadbeef',
+    });
+
+    expect(getByTestId('address-element')).toBeOnTheScreen();
+    expect(
+      queryByTestId('address-element-network-badge'),
+    ).not.toBeOnTheScreen();
+  });
 });

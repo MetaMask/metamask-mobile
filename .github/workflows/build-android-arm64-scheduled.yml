@@ -58,4 +58,9 @@ jobs:
       build_type: main
       metamask_environment: e2e
       include_arm64: true
+      # Follows standard resolution (NAMESPACE_RUNNER_ANDROID -> NAMESPACE_RUNNER_PROVIDER).
+      # When resolved to namespace, build-android-e2e.yml dual-uploads the arm64 release APK
+      # to Namespace and GitHub stores so gh run download keeps working. On current rollback,
+      # only the GitHub store receives the APK (sufficient for local repro).
+      runner_provider: inherit
     secrets: inherit

@@ -1,5 +1,19 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import BigNumber from 'bignumber.js';
 import { useStyles } from '../../../../hooks/useStyles';
 import Badge, {
   BadgeVariant,
@@ -9,10 +23,6 @@ import BadgeWrapper, {
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -38,6 +48,8 @@ export const TokenConversionAssetHeaderTestIds = {
   ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
   INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
   OUTPUT_TOKEN_AVATAR: 'token-conversion-asset-header-output-token-avatar',
+  INPUT_NETWORK_BADGE: 'token-conversion-asset-header-input-network-badge',
+  OUTPUT_NETWORK_BADGE: 'token-conversion-asset-header-output-network-badge',
 } as const;
 
 export const TokenConversionAssetHeaderSkeleton = ({
@@ -222,7 +234,8 @@ export const TokenConversionAssetHeader = ({
               <Badge
                 variant={BadgeVariant.Network}
                 name={inputNetworkName}
-                imageSource={inputNetworkImageSource}
+                src={inputNetworkImageSource}
+                testID={TokenConversionAssetHeaderTestIds.INPUT_NETWORK_BADGE}
               />
             ) : undefined
           }
@@ -243,8 +256,9 @@ export const TokenConversionAssetHeader = ({
           ]}
         >
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             numberOfLines={isStackedLayout ? undefined : 2}
             ellipsizeMode="tail"
           >
@@ -283,7 +297,8 @@ export const TokenConversionAssetHeader = ({
               <Badge
                 variant={BadgeVariant.Network}
                 name={outputNetworkName}
-                imageSource={outputNetworkImageSource}
+                src={outputNetworkImageSource}
+                testID={TokenConversionAssetHeaderTestIds.OUTPUT_NETWORK_BADGE}
               />
             ) : undefined
           }
@@ -304,8 +319,9 @@ export const TokenConversionAssetHeader = ({
           ]}
         >
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             numberOfLines={isStackedLayout ? undefined : 2}
             ellipsizeMode="tail"
           >

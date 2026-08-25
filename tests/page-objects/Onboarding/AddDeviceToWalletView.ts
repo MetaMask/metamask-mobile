@@ -1,34 +1,18 @@
 import { AddDeviceToWalletTestIds } from '../../../app/components/Views/AddDeviceToWallet/AddDeviceToWallet.testIds';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class AddDeviceToWalletView {
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(AddDeviceToWalletTestIds.SCREEN),
-      appium: () =>
-        PlaywrightMatchers.getElementById(AddDeviceToWalletTestIds.SCREEN, {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID(AddDeviceToWalletTestIds.SCREEN);
   }
 
   get scanQrCodeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
+    );
   }
 
   async expectScreenVisible(timeout = 15_000): Promise<void> {
@@ -39,8 +23,8 @@ class AddDeviceToWalletView {
   }
 
   async tapScanQrCode(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.scanQrCodeButton, {
-      description: 'Add Device Scan QR Code button',
+    await Gestures.waitAndTap(this.scanQrCodeButton, {
+      elemDescription: 'Add Device Scan QR Code button',
       timeout: 15_000,
     });
   }

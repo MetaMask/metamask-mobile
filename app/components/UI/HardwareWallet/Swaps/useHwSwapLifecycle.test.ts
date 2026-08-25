@@ -120,6 +120,7 @@ function renderLifecycle(isQrHardwareWallet: boolean) {
     ({ isQr }: { isQr: boolean }) =>
       useHwSwapLifecycle({
         strategy,
+        setPendingOperationAddress: jest.fn(),
         isQrHardwareWallet: isQr,
       }),
     { initialProps: { isQr: isQrHardwareWallet } },

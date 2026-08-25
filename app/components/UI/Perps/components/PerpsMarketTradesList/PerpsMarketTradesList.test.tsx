@@ -14,6 +14,11 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
@@ -24,6 +29,7 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   usePerpsMarketFills: jest.fn(() => ({
     fills: [],
     isInitialLoading: false,
+    restHistoryStatus: 'ready',
     refresh: jest.fn(),
     isRefreshing: false,
   })),
@@ -173,6 +179,7 @@ describe('PerpsMarketTradesList', () => {
   ) => ({
     fills,
     isInitialLoading,
+    restHistoryStatus: 'ready' as const,
     refresh: jest.fn(),
     isRefreshing: false,
   });
@@ -199,6 +206,9 @@ describe('PerpsMarketTradesList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -357,7 +367,7 @@ describe('PerpsMarketTradesList', () => {
       });
     });
 
-    it('navigates to position transaction detail when trade item is pressed', () => {
+    it('navigates to Activity details when trade item is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(
         createMockFillsReturn(mockOrderFills),
       );
@@ -371,15 +381,10 @@ describe('PerpsMarketTradesList', () => {
       // Verify navigation to correct route with transaction param
       // ID format: {orderId}-{timestamp}-{index}
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
+        Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-1'),
-            type: 'trade',
-            category: 'position_open',
-            title: 'Opened long',
-            asset: 'ETH',
-          }),
+          txIdentifier: expect.stringContaining('fill-1'),
+          preloadKey: expect.any(String),
         }),
       );
     });
@@ -397,14 +402,32 @@ describe('PerpsMarketTradesList', () => {
       // Verify navigation with correct transformed transaction data
       // ID format: {orderId}-{timestamp}-{index}
       expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          txIdentifier: expect.stringContaining('fill-2'),
+          preloadKey: expect.any(String),
+        }),
+      );
+    });
+
+    it('navigates to the legacy position screen when redesign is disabled', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(() => false);
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      const tradeItem = screen.getByText('Opened long');
+      fireEvent.press(tradeItem.parent?.parent || tradeItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_TRANSACTION,
         expect.objectContaining({
           transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-2'),
             type: 'trade',
-            category: 'position_close',
-            title: 'Closed long',
-            asset: 'ETH',
+            id: expect.stringContaining('fill-1'),
           }),
         }),
       );

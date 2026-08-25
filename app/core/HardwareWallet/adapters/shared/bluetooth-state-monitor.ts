@@ -138,6 +138,10 @@ export class BluetoothStateMonitor {
    * Resolve the initial-state promise if still pending.
    */
   #resolveInitialStateIfPending(): void {
+    // Set the flag before resolving: consumers check the flag before awaiting
+    // the promise (see isTransportAvailable), so marking first degrades to
+    // reading the current state rather than hanging if resolution were ever
+    // skipped. Note: resolve() itself cannot throw.
     this.#hasReceivedInitialState = true;
     if (this.#resolveInitialState) {
       this.#resolveInitialState();

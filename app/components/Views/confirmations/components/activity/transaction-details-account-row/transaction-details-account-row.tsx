@@ -6,9 +6,13 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import Text, {
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import Badge, {
@@ -147,7 +151,7 @@ export function TransactionDetailsAccountRow() {
     ? strings('transaction_details.label.money_account')
     : (accountName ?? from);
 
-  const textColor = isWithdraw ? undefined : TextColor.Alternative;
+  const textColor = isWithdraw ? undefined : TextColor.TextAlternative;
 
   const avatarElement = isWithdraw ? (
     <View style={iconStyles.moneyIconWrapper}>

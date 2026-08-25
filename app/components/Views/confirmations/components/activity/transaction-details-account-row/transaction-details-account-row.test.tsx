@@ -122,6 +122,16 @@ describe('TransactionDetailsAccountRow', () => {
     expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 
+  it('hides network badge when network image is missing', () => {
+    useNetworkInfoMock.mockReturnValue({});
+
+    const { queryByTestId } = render();
+
+    expect(
+      queryByTestId('transaction-details-account-network-badge'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
@@ -178,7 +188,7 @@ describe('TransactionDetailsAccountRow', () => {
       useIsMoneyAccountContextMock.mockReturnValue(false);
     });
 
-    it('renders "From" with "Perps Account 1" for perpsWithdraw in money context', () => {
+    it('renders "From" with "Account 1 Perps" for perpsWithdraw in money context', () => {
       useIsMoneyAccountContextMock.mockReturnValue(true);
 
       useTransactionDetailsMock.mockReturnValue({
@@ -197,7 +207,7 @@ describe('TransactionDetailsAccountRow', () => {
       ).toBeDefined();
     });
 
-    it('renders "From" with "Predictions Account 1" for predictWithdraw in money context', () => {
+    it('renders "From" with "Account 1 Predictions" for predictWithdraw in money context', () => {
       useIsMoneyAccountContextMock.mockReturnValue(true);
 
       useTransactionDetailsMock.mockReturnValue({

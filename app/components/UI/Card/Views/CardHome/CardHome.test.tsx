@@ -646,6 +646,7 @@ const BAANX_CAPABILITIES = {
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
   supportsTransactionHistory: true,
+  supportsMoneyAccountLinking: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -1351,19 +1352,6 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId('card-view-title')).toBeOnTheScreen();
   });
 
-  it('does not render wallet address on the card image when unauthenticated', () => {
-    // Given: unauthenticated user with primary asset wallet address
-    setupMockSelectors({ isAuthenticated: false });
-
-    // When: component renders
-    render();
-
-    // Then: card image should not include the wallet address
-    expect(
-      screen.queryByTestId(CardHomeSelectors.CARD_WALLET_ADDRESS),
-    ).not.toBeOnTheScreen();
-  });
-
   it('resets to authentication when onboarding token is revoked', async () => {
     setupMockSelectors({
       isAuthenticated: false,
@@ -1395,20 +1383,6 @@ describe('CardHome Component', () => {
       }),
     );
     expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders wallet address on the card image when authenticated', () => {
-    // Given: authenticated user with primary asset wallet address
-    setupMockSelectors({ isAuthenticated: true });
-    setupLoadCardDataMock({ isAuthenticated: true });
-
-    // When: component renders
-    render();
-
-    // Then: card image should include the wallet address
-    expect(
-      screen.getByTestId(CardHomeSelectors.CARD_WALLET_ADDRESS),
-    ).toBeOnTheScreen();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -1501,51 +1475,6 @@ describe('CardHome Component', () => {
       ...mockPriorityToken,
       isMoneyAccountEntry: true,
     } as typeof mockPriorityToken;
-
-    it('passes the Money Account i18n label as the address to the card image when authenticated', () => {
-      setupMockSelectors({ isAuthenticated: true });
-      setupLoadCardDataMock({
-        priorityToken: moneyAccountPriorityToken,
-        allTokens: [moneyAccountPriorityToken],
-        isAuthenticated: true,
-      });
-
-      render();
-
-      const cardImage = screen.getByTestId(
-        CardHomeSelectors.CARD_WALLET_ADDRESS,
-      );
-      // The SVG `Svg` element receives `address` via `{...props}`; this is
-      // the same prop that drives the rendered SVG `<Text>` content. In
-      // the test environment `strings()` returns the i18n key.
-      expect(cardImage.props.address).toBe(
-        'card.card_spending_limit.money_account_label',
-      );
-    });
-
-    it('passes the truncated wallet hex (not the Money Account label) when the primary token is not a money account entry', () => {
-      setupMockSelectors({ isAuthenticated: true });
-      const walletPriorityToken = {
-        ...mockPriorityToken,
-        isMoneyAccountEntry: false,
-      } as typeof mockPriorityToken;
-      setupLoadCardDataMock({
-        priorityToken: walletPriorityToken,
-        allTokens: [mockPriorityToken],
-        isAuthenticated: true,
-      });
-
-      render();
-
-      const cardImage = screen.getByTestId(
-        CardHomeSelectors.CARD_WALLET_ADDRESS,
-      );
-      // CardImage truncates the hex; what matters here is that the Money
-      // Account label is NOT used when the flag is false.
-      expect(cardImage.props.address).not.toBe(
-        'card.card_spending_limit.money_account_label',
-      );
-    });
 
     it('shows the unlink row when the active primary Money Account owns the Money Account spending source', () => {
       setupMockSelectors({ isAuthenticated: true });
