@@ -17,7 +17,6 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MOCK_EARNED_DATA } from './Earned.constants';
@@ -35,10 +34,8 @@ const Earned = () => {
   }, [navigation]);
 
   const handleAddMoney = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
-  }, [navigation]);
+    /* TODO: Implement add money */
+  }, []);
 
   return (
     <SafeAreaView

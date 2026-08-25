@@ -28,10 +28,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import PhysicalCardPreview from './components/PhysicalCardPreview';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import { BENEFITS } from '../ProSubscription/screens/Benefits/Benefits.constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- ProHub and ProSubscription are the only BenefitRow consumers.
-import BenefitRow from '../ProSubscription/screens/Benefits/components/BenefitRow';
+import { BENEFITS, BenefitRow } from '../shared/pro';
 
 interface StatCardProps {
   iconName: IconName;
@@ -41,6 +38,9 @@ interface StatCardProps {
   onPress?: () => void;
 }
 
+const STAT_CARD_TW_CLASS_NAME =
+  'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0';
+
 const StatCard = ({
   iconName,
   label,
@@ -48,6 +48,8 @@ const StatCard = ({
   testID,
   onPress,
 }: StatCardProps) => {
+  const tw = useTailwind();
+
   const inner = (
     <>
       <Icon name={iconName} size={IconSize.Lg} color={IconColor.IconDefault} />
@@ -66,29 +68,23 @@ const StatCard = ({
     </>
   );
 
-  if (!onPress) {
-    return (
-      <Card
-        twClassName="flex-1 bg-background-section rounded-2xl p-4 gap-y-10 border-0"
-        testID={testID}
-      >
-        {inner}
-      </Card>
-    );
-  }
+  const card = <Card twClassName={STAT_CARD_TW_CLASS_NAME}>{inner}</Card>;
 
   return (
-    <Box twClassName="flex-1">
-      <Pressable
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        testID={testID}
-      >
-        <Card twClassName="bg-background-section rounded-2xl p-4 gap-y-10 border-0">
-          {inner}
-        </Card>
-      </Pressable>
+    <Box twClassName="flex-1 min-w-0">
+      {onPress ? (
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          testID={testID}
+          style={tw.style('w-full')}
+        >
+          {card}
+        </Pressable>
+      ) : (
+        <Box testID={testID}>{card}</Box>
+      )}
     </Box>
   );
 };
@@ -111,10 +107,6 @@ const ProHub = () => {
 
   const handleEarnedPress = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.EARNED);
-  }, [navigation]);
-
-  const handleSavedPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.SAVED);
   }, [navigation]);
 
   return (
@@ -171,7 +163,6 @@ const ProHub = () => {
             label={strings('pro_hub.saved_with_pro')}
             value={MOCK_PRO_HUB_STATS.saved}
             testID={ProHubTestIds.SAVED_CARD}
-            onPress={handleSavedPress}
           />
         </Box>
 
