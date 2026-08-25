@@ -155,7 +155,9 @@ const EarnStrategySelectionView = () => {
     try {
       setIsNavigatingToDeposit(true);
 
-      if (!selectedStrategy || !earnAsset) return;
+      if (!selectedStrategy || !earnAsset) {
+        throw new Error('Selected strategy or earn asset is not available');
+      }
 
       const experienceType = selectedStrategy.experience.type;
 
@@ -173,10 +175,17 @@ const EarnStrategySelectionView = () => {
           return;
         }
 
-        await initiateDeposit({
-          preferredPaymentToken,
-          intent: 'convert',
-        });
+        try {
+          await initiateDeposit({
+            preferredPaymentToken,
+            intent: 'convert',
+          });
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            '[Earn Strategy Selection View] Failed to initiate Money deposit',
+          );
+        }
       }
 
       if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {

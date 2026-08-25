@@ -279,6 +279,31 @@ describe('EarnStrategySelectionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the navigation toast when the selected strategy or asset is unavailable', async () => {
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      asset: undefined,
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-selection-get-started-button').props
+          .accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
+  });
+
   it('renders degraded state when strategy rates are unavailable', () => {
     mockUseEarnAssetStrategies.mockReturnValue({
       ...createHookResult(),
@@ -474,6 +499,87 @@ describe('EarnStrategySelectionView', () => {
       },
       intent: 'convert',
     });
+  });
+
+  it('does not show an Earn toast when the user cancels a Money deposit', async () => {
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+    initiateDeposit.mockRejectedValueOnce(
+      new Error('User rejected the request'),
+    );
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-strategy:MONEY_ACCOUNT_DEPOSIT')
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('does not duplicate Money failure toast in the Earn view', async () => {
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+    initiateDeposit.mockRejectedValueOnce(new Error('deposit failed'));
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-strategy:MONEY_ACCOUNT_DEPOSIT')
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('shows an Earn toast when a Money prerequisite fails', async () => {
+    const prerequisiteError = new Error('Money onboarding check failed');
+    redirectToOnboardingIfNeeded.mockImplementationOnce(() => {
+      throw prerequisiteError;
+    });
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      strategies: [createStrategy('MONEY_ACCOUNT_DEPOSIT')],
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('earn-strategy-card-strategy:MONEY_ACCOUNT_DEPOSIT')
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('earn-strategy-selection-get-started-button'),
+      );
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
+    expect(initiateDeposit).not.toHaveBeenCalled();
   });
 
   it('redirects first-time Money users to onboarding instead of initiating deposit', async () => {
