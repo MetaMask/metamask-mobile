@@ -72,9 +72,8 @@ export function useInsufficientPayTokenBalanceAlert({
   // `undefined` means the reactive source has not produced a value yet.
   // Comparing against a fallback `0` would raise a blocking insufficiency
   // for a balance nobody has measured. The money override reads a different
-  // source and is not subject to that race. Callers that can act before quote
-  // readiness, such as the Perps order view, gate their own CTA during this
-  // window.
+  // source and is not subject to that race. Continue / confirm CTAs still
+  // fail closed via `useIsPayTokenBalanceUnresolved` during this window.
   const isPayBalanceKnown =
     isMoneyPaymentOverride || accountBalanceUsd !== undefined;
 

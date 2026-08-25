@@ -30,6 +30,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
+import { useIsPayTokenBalanceUnresolved } from '../../hooks/pay/useIsPayTokenBalanceUnresolved';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
 
@@ -78,6 +79,8 @@ jest.mock('../../hooks/pay/useTransactionPayData');
 
 jest.mock('../../hooks/pay/useIsTransactionPayAmountStale');
 
+jest.mock('../../hooks/pay/useIsPayTokenBalanceUnresolved');
+
 jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(() => ({
     isFullScreenConfirmation: true,
@@ -116,6 +119,9 @@ describe('Footer', () => {
   const useIsTransactionPayAmountStaleMock = jest.mocked(
     useIsTransactionPayAmountStale,
   );
+  const useIsPayTokenBalanceUnresolvedMock = jest.mocked(
+    useIsPayTokenBalanceUnresolved,
+  );
   const useIsGaslessLoadingMock = jest.mocked(useIsGaslessLoading);
 
   beforeEach(() => {
@@ -150,6 +156,7 @@ describe('Footer', () => {
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useIsTransactionPayAmountStaleMock.mockReturnValue(false);
+    useIsPayTokenBalanceUnresolvedMock.mockReturnValue(false);
     useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
 
@@ -273,6 +280,25 @@ describe('Footer', () => {
   it('disables confirm button if transaction pay is loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
     useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('disables confirm button while the pay token balance is unresolved', () => {
+    useIsPayTokenBalanceUnresolvedMock.mockReturnValue(true);
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
