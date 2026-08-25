@@ -294,8 +294,25 @@ const createAccountChannel = (account: unknown) =>
 const createPositionsChannel = (positions: unknown[]) =>
   mutableChannelWithInitialValue(typedPositions(positions));
 
-const createOrdersChannel = (orders: unknown[]) =>
-  mutableChannelWithInitialValue(typedOrders(orders));
+const createOrdersChannel = (orders: unknown[]) => {
+  const channel = mutableChannelWithInitialValue(typedOrders(orders));
+
+  return {
+    ...channel,
+    /** Optimistic patch used by Pro open-order edit (price/size). */
+    updateOrderOptimistic: (
+      orderId: string,
+      patch: Partial<Order>,
+    ): void => {
+      const snapshot = channel.getSnapshot() ?? [];
+      channel.emit(
+        snapshot.map((order) =>
+          order.orderId === orderId ? ({ ...order, ...patch } as Order) : order,
+        ),
+      );
+    },
+  };
+};
 
 const createMarketDataChannel = (marketData: unknown[]) =>
   mutableChannelWithInitialValue(typedMarkets(marketData));

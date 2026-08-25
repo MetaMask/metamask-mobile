@@ -540,6 +540,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_ROW: 'perps-pro-market-order-row',
   ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
+  GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
 };
 
 // Helper for dynamic Pro position row test IDs
