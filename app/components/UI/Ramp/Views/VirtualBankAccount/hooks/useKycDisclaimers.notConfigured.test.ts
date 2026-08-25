@@ -15,14 +15,21 @@ jest.mock('../constants', () => ({
 }));
 
 describe('useKycDisclaimers when the KYC API base URL is not configured', () => {
-  it('skips the fetch and returns an empty list immediately', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
+  it('skips the fetch and reports an error so the caller can surface it', () => {
     const globalFetchSpy = jest.spyOn(global, 'fetch');
 
     const { result } = renderHook(() => useKycDisclaimers('BRA'));
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.disclaimers).toStrictEqual([]);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe(
+      'KYC service is not configured for this build',
+    );
     expect(globalFetchSpy).not.toHaveBeenCalled();
   });
 });

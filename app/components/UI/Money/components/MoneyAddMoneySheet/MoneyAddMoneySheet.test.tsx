@@ -121,6 +121,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    // Re-establish implementations wiped by resetAllMocks.
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
+    mockInitiateDeposit.mockImplementation(() => Promise.resolve());
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
@@ -507,13 +511,13 @@ describe('MoneyAddMoneySheet', () => {
   // dedupe to first occurrence (which preserves render order).
   const getOptionOrder = (
     root: ReturnType<typeof renderWithProvider>['UNSAFE_root'],
-  ): string[] => {
-    const optionTestIds: string[] = [
+    optionTestIds: string[] = [
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-    ];
+    ],
+  ): string[] => {
     const seen = new Set<string>();
     return root
       .findAll((node) => optionTestIds.includes(node.props.testID))
@@ -552,6 +556,34 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+    ]);
+  });
+
+  it('keeps the coming-soon Bank account row in its pre-flag position when the neobank flag is off', () => {
+    (
+      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
+    ).mockReturnValue(false);
+    // Empty wallet: Convert crypto is disabled too, so the disabled rows'
+    // relative order must still match prod (Convert crypto above Bank account).
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+    const order = getOptionOrder(UNSAFE_root, [
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
+    ]);
+
+    expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
     ]);
   });
 

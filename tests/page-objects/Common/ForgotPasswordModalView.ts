@@ -5,76 +5,76 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class ForgotPasswordModalView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CONTAINER);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.TITLE);
   }
 
-  get description(): EncapsulatedElementType {
+  get description(): Promise<AppiumElement> {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.DESCRIPTION);
   }
 
-  get resetWalletButton(): EncapsulatedElementType {
+  get resetWalletButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
     );
   }
 
-  get yesResetWalletButton(): EncapsulatedElementType {
+  get yesResetWalletButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get warningText(): EncapsulatedElementType {
+  get warningText(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
     );
   }
 
-  get titleText(): EncapsulatedElementType {
+  get titleText(): Promise<AppiumElement> {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.TITLE);
   }
 
-  get descriptionText(): EncapsulatedElementType {
+  get descriptionText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.DESCRIPTION,
     );
   }
 
-  get resetWalletText(): EncapsulatedElementType {
+  get resetWalletText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.RESET_WALLET,
     );
   }
 
-  get yesResetWalletText(): EncapsulatedElementType {
+  get yesResetWalletText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.YES_RESET_WALLET,
     );
   }
 
-  get cancelText(): EncapsulatedElementType {
+  get cancelText(): Promise<AppiumElement> {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.CANCEL);
   }
 
-  get warningTextContent(): EncapsulatedElementType {
+  get warningTextContent(): Promise<AppiumElement> {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING);
   }
 
-  get successBottomNotification(): EncapsulatedElementType {
+  get successBottomNotification(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       OnboardingSelectorText.SUCCESSFUL_WALLET_RESET,
     );

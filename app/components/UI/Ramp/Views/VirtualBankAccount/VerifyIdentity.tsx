@@ -39,6 +39,7 @@ import {
   SUMSUB_TERMS_URL,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import LegalLink from './components/LegalLink';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -54,28 +55,22 @@ const StepRow = ({
     alignItems={BoxAlignItems.Center}
     twClassName="gap-3"
   >
-    {/* Plain icon, no background chip — matches the benefit rows on the
-    Get Pix Key screen for a consistent look across both VBA KYC screens. */}
     <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     <Text variant={TextVariant.BodyMd}>{children}</Text>
   </Box>
 );
 
-// A single collapsible row used for the "Data and privacy" sub-topics
-// (What we collect / How we store data / How to delete). Manages its own
-// expand state and chevron animation since none of them affect each other
-// or anything outside the accordion.
+// Collapsible row for the "Data and privacy" sub-topics; each manages its
+// own expand state since rows don't affect each other.
 const AccordionRow = ({
   title,
   defaultExpanded = false,
   testID,
-  contentTestID,
   children,
 }: {
   title: string;
   defaultExpanded?: boolean;
   testID: string;
-  contentTestID: string;
   children: React.ReactNode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -121,7 +116,6 @@ const AccordionRow = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="pb-3"
-          testID={contentTestID}
         >
           {children}
         </Text>
@@ -130,36 +124,6 @@ const AccordionRow = ({
     </Box>
   );
 };
-
-const LegalLinkRow = ({
-  onPress,
-  testID,
-  children,
-}: {
-  onPress: () => void;
-  testID: string;
-  children: string;
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-1 py-1"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="underline"
-      onPress={onPress}
-      testID={testID}
-    >
-      {children}
-    </Text>
-    <Icon
-      name={IconName.Export}
-      size={IconSize.Sm}
-      color={IconColor.IconDefault}
-    />
-  </Box>
-);
 
 const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -281,9 +245,6 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.what_we_collect_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE}
-              contentTestID={
-                VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_CONTENT
-              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.what_we_collect_description',
@@ -294,9 +255,6 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.how_we_store_data_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE}
-              contentTestID={
-                VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_CONTENT
-              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.how_we_store_data_description',
@@ -307,9 +265,6 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.how_to_delete_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE}
-              contentTestID={
-                VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_CONTENT
-              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.how_to_delete_description',
@@ -318,51 +273,49 @@ const VbaVerifyIdentity = () => {
           </Box>
         ) : null}
 
-        {/* Legal links are their own always-visible section, not gated
-        behind the "Data and privacy" toggle above. */}
         <Box twClassName="mt-4 gap-1">
-          <LegalLinkRow
+          <LegalLink
             onPress={openMetaMaskPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.metamask_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openMetaMaskTerms}
             testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.metamask_terms')}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openIdosPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.idos_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openIdosTerms}
             testID={VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.idos_terms')}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openSumsubPrivacyPolicy}
             testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK}
           >
             {strings(
               'virtual_bank_account.verify_identity.sumsub_privacy_policy',
             )}
-          </LegalLinkRow>
-          <LegalLinkRow
+          </LegalLink>
+          <LegalLink
             onPress={openSumsubTerms}
             testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK}
           >
             {strings('virtual_bank_account.verify_identity.sumsub_terms')}
-          </LegalLinkRow>
+          </LegalLink>
         </Box>
       </ScrollView>
 

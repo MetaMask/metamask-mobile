@@ -151,6 +151,9 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                     <DSTag
                       severity={TagSeverity.Info}
                       startIconName={IconName.Sparkle}
+                      // Optically center the tag against the label — mathematical
+                      // centering leaves it looking slightly high next to the text.
+                      twClassName="mt-[1.25px]"
                     >
                       {strings('money.add_money_sheet.new_badge')}
                     </DSTag>

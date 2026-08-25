@@ -204,6 +204,7 @@ const buildResult = (
   traders: fixtureTraders,
   isLoading: false,
   isFetching: true,
+  hasFetched: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
