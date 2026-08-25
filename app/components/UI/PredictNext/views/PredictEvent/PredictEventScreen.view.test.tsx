@@ -1,7 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
+import { makePredictNextMultiMarketEvent } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
+import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -37,6 +40,12 @@ const createEvent = (overrides: Partial<PredictEvent> = {}): PredictEvent => ({
     },
   ],
   ...overrides,
+});
+
+const createMultiMarketEvent = (): PredictEvent => ({
+  ...makePredictNextMultiMarketEvent(),
+  venueId,
+  id: eventId,
 });
 
 const createGameEvent = (
@@ -143,6 +152,55 @@ describe('PredictEventScreen', () => {
     expect(
       view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders complete Market data in backend order', async () => {
+    resolveEvent(createMultiMarketEvent());
+    const view = renderPredictEventScreen(routeParams);
+
+    expect(
+      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+    ).toBeOnTheScreen();
+    const list = within(view.getByTestId(MarketListTestIds.ROOT));
+    const titles = list.getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN);
+    expect(titles.map(({ props }) => props.children)).toEqual([
+      'Dodgers',
+      'Yankees',
+      'Field',
+    ]);
+
+    const dodgersCard = within(
+      view.getByTestId(MarketStandardCardTestIds.card('dodgers')),
+    );
+    expect(dodgersCard.getByText('$3.2M Vol.')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('38%')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('Yes · 38¢')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('No · 62¢')).toBeOnTheScreen();
+
+    const fieldCard = within(
+      view.getByTestId(MarketStandardCardTestIds.card('field')),
+    );
+    expect(fieldCard.queryByText(/ Vol\.$/)).not.toBeOnTheScreen();
+    expect(fieldCard.getByText('0%')).toBeOnTheScreen();
+    expect(fieldCard.getByText('Yes · 0¢')).toBeOnTheScreen();
+    expect(fieldCard.getByText('No')).toBeOnTheScreen();
+  });
+
+  it('keeps Outcome presses inside the Event Screen', async () => {
+    resolveEvent(createMultiMarketEvent());
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    const serviceCallCount = messengerCall.mock.calls.length;
+
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.yesButton('dodgers')),
+    );
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.noButton('dodgers')),
+    );
+
+    expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
+    expect(messengerCall).toHaveBeenCalledTimes(serviceCallCount);
   });
 
   it('uses the standard header for Sports metadata without a Game', async () => {
