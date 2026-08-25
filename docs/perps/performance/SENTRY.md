@@ -44,18 +44,18 @@ owns.
 
 ## Existing authoritative traces
 
-| Stage                  | Existing trace                                                     | Minimal change                                                             |
-| ---------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| Script load            | `Load Scripts`                                                     | Query by release/platform/app-start type                                   |
-| UI mount               | `UI Startup`                                                       | Query by release/platform/app-start type                                   |
-| Authentication         | `Authenticate User`                                                | Query only where authentication occurs                                     |
-| Homepage readiness     | `Homepage Ready`                                                   | Reuse unchanged; aggregate separately by release/platform                  |
-| Global market preload  | `Perps Market Data Preload`                                        | Reuse overall duration, outcome, market count, and loading-session context |
-| User preload           | `Perps User Data Preload`                                          | Reuse overall duration, outcome, item counts, and loading-session context  |
-| Connection             | `Perps Connection Establishment`                                   | Reuse provider-init, health, socket, and subscription measurements         |
-| First live streams     | `Perps WebSocket First Price/Positions/Orders/Account`             | Add lifecycle/source/session context to all four                           |
-| Homepage Perps TTC/DFD | `Homepage Section Time To Content` / `Homepage Section Data Fetch` | Add lifecycle, market source, account source, content variant              |
-| Critical flows         | Existing Perps CUF traces                                          | Query by release/platform/network/provider                                 |
+| Stage                  | Existing trace                                                     | Minimal change                                                                                         |
+| ---------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Script load            | `Load Scripts`                                                     | Query by release/platform/app-start type                                                               |
+| UI mount               | `UI Startup`                                                       | Query by release/platform/app-start type                                                               |
+| Authentication         | `Authenticate User`                                                | Query only where authentication occurs                                                                 |
+| Homepage readiness     | `Homepage Ready`                                                   | Reuse unchanged; aggregate separately by release/platform                                              |
+| Global market preload  | `Perps Market Data Preload`                                        | Reuse overall duration, outcome, market count, and loading-session context                             |
+| User preload           | `Perps User Data Preload`                                          | Reuse overall duration, outcome, item counts, and loading-session context                              |
+| Connection             | `Perps Connection Establishment`                                   | Reuse provider-init, health, socket, and subscription measurements                                     |
+| First live streams     | `Perps WebSocket First Price/Positions/Orders/Account`             | Reuse stream timing with session/generation context; query lifecycle/source on `Perps Loading Session` |
+| Homepage Perps TTC/DFD | `Homepage Section Time To Content` / `Homepage Section Data Fetch` | Add lifecycle, market source, account source, content variant                                          |
+| Critical flows         | Existing Perps CUF traces                                          | Query by release/platform/network/provider                                                             |
 
 ## Measurements by authoritative trace
 
