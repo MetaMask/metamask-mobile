@@ -104,6 +104,8 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+// Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
+// up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 
 /**
@@ -113,6 +115,9 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
+  MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+  MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
   DefaultMinutes: String(HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes),
   MaximumDays: Math.floor(
     HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes /

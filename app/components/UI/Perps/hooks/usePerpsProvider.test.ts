@@ -121,7 +121,7 @@ describe('usePerpsProvider', () => {
     });
   });
 
-  describe('isMYXProvider / isHyperLiquidProvider / isMultiProviderEnabled', () => {
+  describe('provider helpers', () => {
     it('isMYXProvider is true when activeProvider is myx', () => {
       mockUseSelector.mockReturnValueOnce('myx').mockReturnValueOnce(true);
 
@@ -129,6 +129,7 @@ describe('usePerpsProvider', () => {
 
       expect(result.current.isMYXProvider).toBe(true);
       expect(result.current.isHyperLiquidProvider).toBe(false);
+      expect(result.current.supportsTwapOrders).toBe(false);
     });
 
     it('isHyperLiquidProvider is true when activeProvider is hyperliquid', () => {
@@ -140,6 +141,7 @@ describe('usePerpsProvider', () => {
 
       expect(result.current.isHyperLiquidProvider).toBe(true);
       expect(result.current.isMYXProvider).toBe(false);
+      expect(result.current.supportsTwapOrders).toBe(true);
     });
 
     it('isMultiProviderEnabled is false when only one provider available', () => {

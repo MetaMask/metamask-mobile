@@ -19,6 +19,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -248,6 +249,46 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
+    it('renders the TWAP running-time fields', () => {
+      renderForm({ orderType: 'twap', twap: createTwap() });
+
+      expect(screen.getByTestId(ids.TWAP_DURATION_SECTION)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.TWAP_DURATION_LABEL)).toHaveTextContent(
+        strings('perps.pro_order_form.twap.running_time'),
+      );
+      expect(screen.getByTestId(ids.TWAP_DAYS)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.TWAP_HOURS)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.TWAP_MINUTES)).toBeOnTheScreen();
+    });
+
+    it('hides price and TP/SL inputs for TWAP', () => {
+      renderForm({ orderType: 'twap' });
+
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('forwards TWAP duration focus for keyboard clearance', () => {
+      const onTwapFieldFocus = jest.fn();
+      renderForm({ orderType: 'twap', onTwapFieldFocus });
+
+      fireEvent(screen.getByTestId(ids.TWAP_HOURS), 'focus');
+
+      expect(onTwapFieldFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports every TWAP duration tap for keyboard realignment', () => {
+      const onTwapFieldPress = jest.fn();
+      renderForm({ orderType: 'twap', onTwapFieldPress });
+
+      fireEvent(screen.getByTestId(ids.TWAP_MINUTES), 'pressIn');
+
+      expect(onTwapFieldPress).toHaveBeenCalledTimes(1);
+    });
+
     it('passes raw trigger price text to onTriggerPriceChange', () => {
       const onTriggerPriceChange = jest.fn();
       renderForm({ orderType: 'stop_market', onTriggerPriceChange });
@@ -371,19 +412,6 @@ describe('PerpsProOrderForm', () => {
     const limitPriceAccessoryID = getPerpsProInputAccessoryID(
       ids.LIMIT_PRICE_INPUT,
     );
-    const twapDaysAccessoryID = getPerpsProInputAccessoryID(ids.TWAP_DAYS);
-    const twapHoursAccessoryID = getPerpsProInputAccessoryID(ids.TWAP_HOURS);
-    const twapMinutesAccessoryID = getPerpsProInputAccessoryID(
-      ids.TWAP_MINUTES,
-    );
-    const allAccessoryIDs = [
-      sizeAccessoryID,
-      triggerAccessoryID,
-      limitPriceAccessoryID,
-      twapDaysAccessoryID,
-      twapHoursAccessoryID,
-      twapMinutesAccessoryID,
-    ];
     const mountedAccessoryIDs = () =>
       screen
         .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
@@ -406,7 +434,14 @@ describe('PerpsProOrderForm', () => {
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
+      expect(mountedAccessoryIDs()).toEqual([
+        'perps-pro-order-form-size-input-input-accessory',
+        'perps-pro-order-form-trigger-price-input-input-accessory',
+        'perps-pro-order-form-limit-price-input-input-accessory',
+        'perps-pro-order-form-twap-days-input-accessory',
+        'perps-pro-order-form-twap-hours-input-accessory',
+        'perps-pro-order-form-twap-minutes-input-accessory',
+      ]);
     });
 
     it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
@@ -418,7 +453,14 @@ describe('PerpsProOrderForm', () => {
         triggerAccessoryID,
       );
       expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
+      expect(mountedAccessoryIDs()).toEqual([
+        'perps-pro-order-form-size-input-input-accessory',
+        'perps-pro-order-form-trigger-price-input-input-accessory',
+        'perps-pro-order-form-limit-price-input-input-accessory',
+        'perps-pro-order-form-twap-days-input-accessory',
+        'perps-pro-order-form-twap-hours-input-accessory',
+        'perps-pro-order-form-twap-minutes-input-accessory',
+      ]);
     });
 
     it('connects each visible iOS numeric input to its own keyboard accessory', () => {
@@ -433,7 +475,14 @@ describe('PerpsProOrderForm', () => {
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
+      expect(mountedAccessoryIDs()).toEqual([
+        'perps-pro-order-form-size-input-input-accessory',
+        'perps-pro-order-form-trigger-price-input-input-accessory',
+        'perps-pro-order-form-limit-price-input-input-accessory',
+        'perps-pro-order-form-twap-days-input-accessory',
+        'perps-pro-order-form-twap-hours-input-accessory',
+        'perps-pro-order-form-twap-minutes-input-accessory',
+      ]);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {

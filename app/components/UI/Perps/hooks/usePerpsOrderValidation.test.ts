@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_ERROR_CODES,
   VALIDATION_THRESHOLDS,
   type OrderFormState,
 } from '@metamask/perps-controller';
@@ -120,6 +121,32 @@ describe('usePerpsOrderValidation', () => {
           twapRandomize: true,
         }),
       );
+    });
+
+    it('suppresses protocol errors owned by the calling form by code', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, type: 'twap' },
+          twapDuration: 1,
+          suppressedProtocolErrorCodes: [
+            PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+          ],
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.errors).toEqual([]);
     });
 
     it('clears existing errors when position size changes to zero', async () => {

@@ -13,6 +13,10 @@ import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
 
 type OrderTrackingData = OrderParams['trackingData'];
+type TwapOrderTrackingData = OrderTrackingData & {
+  twapDuration?: number;
+  twapRandomize?: boolean;
+};
 
 export interface BuildPerpsOrderTrackingDataInput {
   /** Required margin string (converted to a number for the event). */
@@ -38,6 +42,10 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Pay-with-any-token context (lite only); omit for the direct Pro path. */
   hasCustomTokenSelected?: boolean;
   payToken?: { symbol?: string; chainId?: string | number } | null;
+  /** TWAP running time in minutes (Pro TWAP only). */
+  twapDuration?: number;
+  /** Whether TWAP child sizes are randomized (Pro TWAP only). */
+  twapRandomize?: boolean;
 }
 
 /**
@@ -62,7 +70,9 @@ export const buildPerpsOrderTrackingData = ({
   vipTier,
   hasCustomTokenSelected,
   payToken,
-}: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
+  twapDuration,
+  twapRandomize,
+}: BuildPerpsOrderTrackingDataInput): TwapOrderTrackingData => ({
   marginUsed: Number(marginRequired),
   totalFee: feeResults.totalFee,
   marketPrice,
@@ -87,6 +97,8 @@ export const buildPerpsOrderTrackingData = ({
     : {}),
   vipTier: vipTier ?? undefined,
   vipDiscount: feeResults.feeDiscountPercentage,
+  ...(twapDuration !== undefined ? { twapDuration } : {}),
+  ...(twapRandomize !== undefined ? { twapRandomize } : {}),
 });
 
 export interface BuildPerpsOrderParamsInput {

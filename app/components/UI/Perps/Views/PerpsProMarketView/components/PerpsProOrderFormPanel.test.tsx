@@ -14,9 +14,13 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
-import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import {
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
 
 const mockUseSelector = jest.fn();
+const selectorValues = new Map<unknown, unknown>();
 const mockUsePerpsProvider = jest.fn();
 const mockUseIsPerpsProModeActive = jest.fn();
 const mockOrderTypeBottomSheet = jest.fn();
@@ -221,8 +225,13 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(true);
-    mockUsePerpsProvider.mockReturnValue({ isHyperLiquidProvider: true });
+    selectorValues.clear();
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, true);
+    selectorValues.set(selectPerpsProTwapEnabledFlag, true);
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selectorValues.get(selector),
+    );
+    mockUsePerpsProvider.mockReturnValue({ supportsTwapOrders: true });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
@@ -444,10 +453,7 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   it('hides triggered types when the remote flag is disabled', () => {
-    mockUseSelector.mockImplementation(
-      (selector: unknown) =>
-        selector !== selectPerpsProTriggeredOrdersEnabledFlag,
-    );
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, false);
     mockHookResult.isOrderTypeVisible = true;
 
     renderPanel();

@@ -38,7 +38,6 @@ import {
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
-import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -48,6 +47,7 @@ import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
+import PerpsProTwapFields from './PerpsProTwapFields';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
@@ -343,6 +343,10 @@ const PerpsProOrderForm = ({
   reduceOnly,
   onReduceOnlyChange,
   twap,
+  twapSectionRef,
+  onTwapFieldFocus,
+  onTwapFieldBlur,
+  onTwapFieldPress,
   onTPSLPress,
   notices,
   summary,
@@ -557,77 +561,13 @@ const PerpsProOrderForm = ({
             />
           </Box>
           {isTwap ? (
-            <Box twClassName="gap-2" testID={ids.TWAP_DURATION}>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                testID={ids.TWAP_DURATION_LABEL}
-              >
-                {strings('perps.pro_order_form.twap.running_time')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings(
-                  'perps.pro_order_form.twap.valid_range',
-                  PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
-                )}
-              </Text>
-              <Box twClassName="flex-row gap-2">
-                <Box twClassName="flex-1">
-                  <PerpsProCompactInput
-                    label={strings('perps.pro_order_form.twap.days')}
-                    value={twap.days}
-                    onChangeText={twap.onDaysChange}
-                    testID={ids.TWAP_DAYS}
-                    keyboardType="number-pad"
-                  />
-                </Box>
-                <Box twClassName="flex-1">
-                  <PerpsProCompactInput
-                    label={strings('perps.pro_order_form.twap.hours')}
-                    value={twap.hours}
-                    onChangeText={twap.onHoursChange}
-                    testID={ids.TWAP_HOURS}
-                    keyboardType="number-pad"
-                  />
-                </Box>
-                <Box twClassName="flex-1">
-                  <PerpsProCompactInput
-                    label={strings('perps.pro_order_form.twap.minutes')}
-                    value={twap.minutes}
-                    onChangeText={twap.onMinutesChange}
-                    testID={ids.TWAP_MINUTES}
-                    keyboardType="number-pad"
-                  />
-                </Box>
-              </Box>
-              <Box twClassName="rounded-xl bg-muted px-3 py-3">
-                <Checkbox
-                  label={strings('perps.pro_order_form.twap.randomize')}
-                  labelProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Medium,
-                    twClassName: 'ml-0 flex-1',
-                  }}
-                  isSelected={twap.randomize}
-                  onChange={twap.onRandomizeChange}
-                  testID={ids.TWAP_RANDOMIZE}
-                  twClassName="w-full flex-row-reverse justify-between"
-                />
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-1"
-                >
-                  {strings(
-                    'perps.pro_order_form.twap.randomize_description',
-                    PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
-                  )}
-                </Text>
-              </Box>
-            </Box>
+            <PerpsProTwapFields
+              twap={twap}
+              sectionRef={twapSectionRef}
+              onFieldFocus={onTwapFieldFocus}
+              onFieldBlur={onTwapFieldBlur}
+              onFieldPress={onTwapFieldPress}
+            />
           ) : null}
           {priceCardMessage ? (
             <HelpText

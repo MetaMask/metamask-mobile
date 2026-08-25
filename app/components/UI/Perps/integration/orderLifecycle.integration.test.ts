@@ -124,6 +124,8 @@ describe('Perps order lifecycle — integration', () => {
       });
 
       // Assert
+      // The SDK returns a numeric venue TWAP id; the provider normalizes every
+      // app-facing order id to a string so strategy and ordinary results align.
       expect(result).toEqual({
         success: true,
         orderId: '123',
@@ -131,12 +133,42 @@ describe('Perps order lifecycle — integration', () => {
       });
       expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledWith({
         twap: {
+          a: 0, // venue asset id
+          b: true, // buy
+          s: '0.1', // size
+          r: false, // reduce only
+          m: 90, // duration in minutes
+          t: true, // randomize child sizes
+        },
+      });
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('passes reduce-only through the real TWAP provider wire action', async () => {
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: false,
+        size: '0.05',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        reduceOnly: true,
+        twapDuration: 30,
+        twapRandomize: false,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledWith({
+        twap: {
           a: 0,
-          b: true,
-          s: '0.1',
-          r: false,
-          m: 90,
-          t: true,
+          b: false,
+          s: '0.05',
+          r: true,
+          m: 30,
+          t: false,
         },
       });
       expect(mocks.exchangeClient.order).not.toHaveBeenCalled();

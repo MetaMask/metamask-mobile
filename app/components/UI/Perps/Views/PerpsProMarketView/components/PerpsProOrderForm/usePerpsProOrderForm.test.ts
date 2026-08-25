@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
 import {
-  HYPERLIQUID_TWAP_LIMITS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -114,9 +113,9 @@ let mockLiveMarkPrice = '90000';
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
 const creationFailed = jest.fn(() => ({ id: 'failed' }));
-const strategySubmitted = jest.fn(() => ({ id: 'strategy-submitted' }));
-const strategyConfirmed = jest.fn(() => ({ id: 'strategy-confirmed' }));
-const strategyCreationFailed = jest.fn(() => ({ id: 'strategy-failed' }));
+const twapSubmitted = jest.fn(() => ({ id: 'twap-submitted' }));
+const twapConfirmed = jest.fn(() => ({ id: 'twap-confirmed' }));
+const twapCreationFailed = jest.fn(() => ({ id: 'twap-failed' }));
 const validationError = jest.fn((message: string) => ({
   id: 'validationError',
   message,
@@ -131,10 +130,10 @@ const mockPerpsToastOptions = {
   orderManagement: {
     market: { submitted, confirmed, creationFailed },
     limit: { submitted, confirmed, creationFailed },
-    strategy: {
-      submitted: strategySubmitted,
-      confirmed: strategyConfirmed,
-      creationFailed: strategyCreationFailed,
+    twap: {
+      submitted: twapSubmitted,
+      confirmed: twapConfirmed,
+      creationFailed: twapCreationFailed,
     },
   },
   formValidation: { orderForm: { validationError, limitPriceRequired } },
@@ -401,7 +400,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('keeps an empty TWAP duration silent while disabling placement', () => {
+    it('shows a required notice when the TWAP duration is empty', () => {
       mockOrderForm.type = 'twap';
       const { result } = renderProForm();
 
@@ -411,8 +410,14 @@ describe('usePerpsProOrderForm', () => {
 
       expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(
-        result.current.notices.find((notice) => notice.id === 'twap-duration'),
-      ).toBeUndefined();
+        result.current.notices.find(
+          (notice) => notice.id === 'twap-duration-required',
+        ),
+      ).toEqual({
+        id: 'twap-duration-required',
+        variant: 'inline',
+        message: strings('perps.errors.orderValidation.twapDurationRequired'),
+      });
     });
 
     it('keeps an empty TWAP size silent while disabling placement', () => {
@@ -590,7 +595,11 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
         'maxSlippageBps',
       );
-      expect(strategySubmitted).toHaveBeenCalledWith(
+      expect(mockExecuteOrder.mock.calls[0][0].trackingData).toMatchObject({
+        twapDuration: 90,
+        twapRandomize: true,
+      });
+      expect(twapSubmitted).toHaveBeenCalledWith(
         'long',
         expect.any(String),
         'BTC',
@@ -626,7 +635,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('shows strategy-specific confirmation for accepted TWAP placement', () => {
+    it('shows TWAP-specific confirmation for accepted placement', () => {
       mockOrderForm.type = 'twap';
       const { result } = renderProForm();
       act(() => {
@@ -637,7 +646,7 @@ describe('usePerpsProOrderForm', () => {
         mockExecutionOptions.onSuccess?.();
       });
 
-      expect(strategyConfirmed).toHaveBeenCalledWith(
+      expect(twapConfirmed).toHaveBeenCalledWith(
         'long',
         expect.any(String),
         'BTC',
@@ -646,7 +655,7 @@ describe('usePerpsProOrderForm', () => {
       expect(confirmed).not.toHaveBeenCalled();
     });
 
-    it('shows strategy-specific failure copy for a rejected TWAP placement', () => {
+    it('shows TWAP-specific failure copy for rejected placement', () => {
       mockOrderForm.type = 'twap';
       renderProForm();
 
@@ -654,7 +663,7 @@ describe('usePerpsProOrderForm', () => {
         mockExecutionOptions.onError?.('TWAP rejected');
       });
 
-      expect(strategyCreationFailed).toHaveBeenCalledWith('TWAP rejected');
+      expect(twapCreationFailed).toHaveBeenCalledWith('TWAP rejected');
       expect(creationFailed).not.toHaveBeenCalled();
     });
 
@@ -2076,49 +2085,39 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetOrderType).not.toHaveBeenCalled();
     });
 
-    it('clamps TWAP duration parts to the supported clock bounds', () => {
+    it('preserves typed digits while blocking an out-of-range duration part', () => {
+      mockOrderForm.type = 'twap';
       const { result } = renderProForm();
 
       act(() => {
-        result.current.twap.onDaysChange('99');
-        result.current.twap.onHoursChange('88');
-        result.current.twap.onMinutesChange('77');
+        result.current.twap.onHoursChange('24');
+      });
+
+      expect(result.current.twap.hours).toBe('24');
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeDefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('blocks a TWAP duration whose individually valid parts exceed the total maximum', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('1');
+        result.current.twap.onMinutesChange('0');
       });
 
       expect(result.current.twap).toMatchObject({
-        days: String(PERPS_TWAP_UI_CONFIG.MaximumDays),
-        hours: String(PERPS_TWAP_UI_CONFIG.MaximumHours),
-        minutes: String(PERPS_TWAP_UI_CONFIG.MaximumMinutes),
+        days: '1',
+        hours: '1',
+        minutes: '0',
       });
-    });
-
-    it('preserves TWAP callback identities while its draft changes', () => {
-      const { result } = renderProForm();
-      const initialCallbacks = {
-        onDaysChange: result.current.twap.onDaysChange,
-        onHoursChange: result.current.twap.onHoursChange,
-        onMinutesChange: result.current.twap.onMinutesChange,
-        onRandomizeChange: result.current.twap.onRandomizeChange,
-      };
-
-      act(() => {
-        result.current.twap.onMinutesChange(
-          String(HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes + 1),
-        );
-      });
-
-      expect(result.current.twap).toEqual(
-        expect.objectContaining(initialCallbacks),
-      );
-    });
-
-    it('memoizes the TWAP model between unchanged renders', () => {
-      const { result, rerender } = renderProForm();
-      const initialTwap = result.current.twap;
-
-      rerender({});
-
-      expect(result.current.twap).toBe(initialTwap);
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeDefined();
     });
 
     it('ignores size input over nine digits and forwards valid input', () => {

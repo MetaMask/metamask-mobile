@@ -51,6 +51,8 @@ interface UsePerpsOrderValidationParams {
   twapDuration?: number;
   /** Whether the venue should randomize TWAP suborder sizes. */
   twapRandomize?: boolean;
+  /** Protocol error codes whose UI is owned by the calling form. */
+  suppressedProtocolErrorCodes?: readonly string[];
 }
 
 interface ValidationState {
@@ -105,6 +107,7 @@ export function usePerpsOrderValidation(
     szDecimals,
     twapDuration,
     twapRandomize,
+    suppressedProtocolErrorCodes = EMPTY_ERRORS,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -120,6 +123,13 @@ export function usePerpsOrderValidation(
   // Use stable array references to prevent unnecessary re-renders
   const stableErrors = useStableArray(validation.errors);
   const stableWarnings = useStableArray(validation.warnings);
+  const stableSuppressedProtocolErrorCodes = useStableArray([
+    ...suppressedProtocolErrorCodes,
+  ]);
+  const suppressedProtocolErrors = useMemo(
+    () => new Set(stableSuppressedProtocolErrorCodes),
+    [stableSuppressedProtocolErrorCodes],
+  );
 
   const fieldIssues = useMemo(
     () =>
@@ -245,7 +255,8 @@ export function usePerpsOrderValidation(
           !(
             requestFieldIssues.length > 0 &&
             FIELD_OWNED_PROTOCOL_ERRORS.has(protocolValidation.error)
-          )
+          ) &&
+          !suppressedProtocolErrors.has(protocolValidation.error)
         ) {
           // Build context data for error interpolation
           const errorContext: Record<string, unknown> = {};
@@ -350,6 +361,7 @@ export function usePerpsOrderValidation(
       triggerPrice,
       twapDuration,
       twapRandomize,
+      suppressedProtocolErrors,
       validateOrder,
     ],
   );

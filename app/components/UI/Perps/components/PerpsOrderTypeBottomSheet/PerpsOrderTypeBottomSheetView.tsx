@@ -252,7 +252,7 @@ const PerpsOrderTypeBottomSheetView = ({
       >
         {title}
       </BottomSheetHeader>
-      {showTriggeredTypes &&
+      {(showTriggeredTypes || showTwapType) &&
         renderSectionHeader(
           strings('perps.order.type.basic'),
           PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,

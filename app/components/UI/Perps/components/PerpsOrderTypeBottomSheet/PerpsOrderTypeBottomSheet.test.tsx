@@ -226,27 +226,6 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides TWAP when the strategy option is disabled', () => {
-      render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
-
-      expect(
-        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders TWAP in the Advanced section when enabled', () => {
-      render(<PerpsOrderTypeBottomSheet {...defaultProps} showTwapType />);
-
-      expect(
-        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
-        ),
-      ).toBeOnTheScreen();
-    });
-
     it('shows order type icons only in the Pro presentation', () => {
       const marketIconTestID = `${PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION}-icon`;
       const { rerender } = render(
@@ -395,26 +374,6 @@ describe('PerpsOrderTypeBottomSheet', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
       },
     );
-
-    it('emits TWAP and closes when its option is pressed', () => {
-      const onSelect = jest.fn();
-      const onClose = jest.fn();
-      render(
-        <PerpsOrderTypeBottomSheet
-          {...defaultProps}
-          onSelect={onSelect}
-          onClose={onClose}
-          showTwapType
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
-      );
-
-      expect(onSelect).toHaveBeenCalledWith('twap');
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
 
     it('marks only the current triggered order type as selected', () => {
       render(

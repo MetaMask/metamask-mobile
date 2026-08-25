@@ -51,9 +51,9 @@ const PerpsProOrderFormPanel = ({
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
-  const { isHyperLiquidProvider } = usePerpsProvider();
+  const { supportsTwapOrders } = usePerpsProvider();
   const isTwapEnabled =
-    isProModeActive && isTwapFlagEnabled && isHyperLiquidProvider;
+    isProModeActive && isTwapFlagEnabled && supportsTwapOrders;
   const {
     direction,
     onDirectionChange,
@@ -122,6 +122,13 @@ const PerpsProOrderFormPanel = ({
     onFocus: onSizeCardFocus,
     onBlur: onSizeCardBlur,
     realign: onSizeFieldPress,
+  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
+  const {
+    cardRef: twapSectionRef,
+    onFocus: onTwapFieldFocus,
+    onBlur: onTwapFieldBlur,
+    realign: onTwapFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
   // One instance per field rather than a single shared handler: each keeps its
@@ -202,6 +209,10 @@ const PerpsProOrderFormPanel = ({
         reduceOnly={reduceOnly}
         onReduceOnlyChange={onReduceOnlyChange}
         twap={twap}
+        twapSectionRef={twapSectionRef}
+        onTwapFieldFocus={onTwapFieldFocus}
+        onTwapFieldBlur={onTwapFieldBlur}
+        onTwapFieldPress={onTwapFieldPress}
         isTPSLConfigured={isTPSLConfigured}
         onTPSLPress={onTPSLPress}
         notices={notices}

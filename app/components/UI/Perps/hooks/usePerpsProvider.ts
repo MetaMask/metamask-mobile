@@ -72,6 +72,10 @@ export function usePerpsProvider() {
     [activeProvider],
   );
 
+  // Normalized capability consumed by UI surfaces. This remains provider-mode
+  // based until Core publishes a routed per-market capability contract.
+  const supportsTwapOrders = isHyperLiquidProvider;
+
   /**
    * Check if multi-provider mode is enabled (more than one provider available)
    */
@@ -92,6 +96,7 @@ export function usePerpsProvider() {
     isProviderAvailable,
     isMYXProvider,
     isHyperLiquidProvider,
+    supportsTwapOrders,
     isMultiProviderEnabled,
   };
 }

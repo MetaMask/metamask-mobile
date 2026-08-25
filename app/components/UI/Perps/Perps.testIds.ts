@@ -579,7 +579,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
   REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
   REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
-  TWAP_DURATION: 'perps-pro-order-form-twap-duration',
+  TWAP_DURATION_SECTION: 'perps-pro-order-form-twap-duration-section',
   TWAP_DURATION_LABEL: 'perps-pro-order-form-twap-duration-label',
   TWAP_DAYS: 'perps-pro-order-form-twap-days',
   TWAP_HOURS: 'perps-pro-order-form-twap-hours',

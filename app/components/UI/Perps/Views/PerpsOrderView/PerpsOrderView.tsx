@@ -151,10 +151,8 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import {
-  getOrderManagementToastKey,
-  willFlipPosition,
-} from '../../utils/orderUtils';
+import { willFlipPosition } from '../../utils/orderUtils';
+import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {

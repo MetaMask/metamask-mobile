@@ -570,12 +570,12 @@ describe('usePerpsToasts', () => {
       });
     });
 
-    describe('orderManagement.strategy', () => {
+    describe('orderManagement.twap', () => {
       it('describes the TWAP window while placement is submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
 
         const config =
-          result.current.PerpsToastOptions.orderManagement.strategy.submitted(
+          result.current.PerpsToastOptions.orderManagement.twap.submitted(
             'long',
             '0.5',
             'ETH',
@@ -583,7 +583,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Long 0.5 ETH over 90 min',
+          label: 'Long 0.5 ETH over 1 hour 30 minutes',
           isBold: false,
         });
       });
@@ -592,7 +592,7 @@ describe('usePerpsToasts', () => {
         const { result } = renderHook(() => usePerpsToasts());
 
         const config =
-          result.current.PerpsToastOptions.orderManagement.strategy.confirmed(
+          result.current.PerpsToastOptions.orderManagement.twap.confirmed(
             'short',
             '1.0',
             'BTC',
@@ -604,7 +604,7 @@ describe('usePerpsToasts', () => {
           isBold: true,
         });
         expect(config.labelOptions).toContainEqual({
-          label: 'Short 1.0 BTC over 45 min',
+          label: 'Short 1.0 BTC over 45 minutes',
           isBold: false,
         });
       });

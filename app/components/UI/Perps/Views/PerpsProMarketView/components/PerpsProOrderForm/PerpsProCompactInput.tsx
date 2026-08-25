@@ -29,6 +29,8 @@ interface PerpsProCompactInputProps {
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
   keyboardType?: KeyboardTypeOptions;
+  labelVariant?: TextVariant;
+  labelNumberOfLines?: number;
   onFocus?: () => void;
   onBlur?: () => void;
   /** Fires on every field tap, including while already focused. Idempotent. */
@@ -52,6 +54,8 @@ const PerpsProCompactInput = ({
   placeholder = '0',
   placeholderColor = 'muted',
   keyboardType = 'decimal-pad',
+  labelVariant = TextVariant.BodySm,
+  labelNumberOfLines,
   onFocus,
   onBlur,
   onFieldPress,
@@ -144,9 +148,9 @@ const PerpsProCompactInput = ({
             as tapping the (visually small) input row itself. */}
         <Pressable onPress={focusInput}>
           <Text
-            variant={TextVariant.BodyXs}
+            variant={labelVariant}
             color={TextColor.TextAlternative}
-            numberOfLines={1}
+            numberOfLines={labelNumberOfLines}
           >
             {label}
           </Text>
