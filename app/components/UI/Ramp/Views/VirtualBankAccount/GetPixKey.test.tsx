@@ -64,11 +64,11 @@ describe('GetPixKey', () => {
   it('enables agree and continue once disclaimers load, without navigating yet', () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
-    fireEvent.press(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
+    const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
+    expect(button).toBeEnabled();
 
     // The Verify identity screen lands in a follow-up PR.
+    fireEvent.press(button);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -85,11 +85,9 @@ describe('GetPixKey', () => {
     expect(
       getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
   });
 
   it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
@@ -108,11 +106,9 @@ describe('GetPixKey', () => {
     expect(
       queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
   });
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
@@ -139,11 +135,9 @@ describe('GetPixKey', () => {
     expect(
       getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
