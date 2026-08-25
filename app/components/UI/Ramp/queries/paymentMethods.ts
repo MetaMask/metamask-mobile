@@ -1,9 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
-import type {
-  PaymentMethod,
-  PaymentMethodsResponse,
-} from '@metamask/ramps-controller';
+import type { PaymentMethodsForContextResponse } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 interface PaymentMethodsQueryParams {
   regionCode: string;
@@ -11,33 +9,45 @@ interface PaymentMethodsQueryParams {
   providerId: string;
 }
 
+const normalizePaymentMethodsContext = ({
+  regionCode,
+  assetId,
+  providerId,
+}: PaymentMethodsQueryParams): PaymentMethodsQueryParams => ({
+  regionCode: regionCode.trim().toLowerCase(),
+  assetId: normalizeAssetIdForApi(assetId.trim()),
+  providerId: providerId.trim(),
+});
+
 export const rampsPaymentMethodsKeys = {
   all: () => ['ramps', 'paymentMethods'] as const,
-  detail: ({
-    regionCode,
-    providerId,
-  }: Pick<PaymentMethodsQueryParams, 'regionCode' | 'providerId'>) =>
-    [
+  detail: (params: PaymentMethodsQueryParams) => {
+    const { regionCode, assetId, providerId } =
+      normalizePaymentMethodsContext(params);
+    return [
       ...rampsPaymentMethodsKeys.all(),
-      regionCode.trim().toLowerCase(),
+      regionCode,
+      assetId,
       providerId,
-    ] as const,
+    ] as const;
+  },
 };
 
-export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
-  queryOptions({
-    queryKey: rampsPaymentMethodsKeys.detail(params),
-    queryFn: async (): Promise<PaymentMethod[]> => {
-      const response: PaymentMethodsResponse =
-        await Engine.context.RampsController.getPaymentMethods(
-          params.regionCode,
-          {
-            assetId: params.assetId,
-            provider: params.providerId,
-          },
-        );
+export const rampsPaymentMethodsOptions = (
+  params: PaymentMethodsQueryParams,
+) => {
+  const { regionCode, assetId, providerId } =
+    normalizePaymentMethodsContext(params);
 
-      return response.payments;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  return queryOptions({
+    queryKey: rampsPaymentMethodsKeys.detail(params),
+    queryFn: async (): Promise<PaymentMethodsForContextResponse> =>
+      Engine.context.RampsController.getPaymentMethodsForContext({
+        region: regionCode,
+        assetId,
+        providers: [providerId],
+        updateState: true,
+      }),
+    staleTime: 0,
   });
+};
