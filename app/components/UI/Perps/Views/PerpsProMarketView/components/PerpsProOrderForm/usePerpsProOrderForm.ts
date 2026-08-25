@@ -138,13 +138,13 @@ const getBlockingNotices = ({
   reduceOnlyErrorCode,
   isReduceOnlyPositionLoading,
   isMarketDataBlocking,
-  isLoadingMarketData,
+  hasMarketDataError,
   filteredErrors,
 }: {
   reduceOnlyErrorCode?: ReduceOnlyValidationCode;
   isReduceOnlyPositionLoading: boolean;
   isMarketDataBlocking: boolean;
-  isLoadingMarketData: boolean;
+  hasMarketDataError: boolean;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
   if (isMarketDataBlocking) {
@@ -153,9 +153,9 @@ const getBlockingNotices = ({
         id: 'market-data',
         variant: 'banner',
         message: strings(
-          isLoadingMarketData
-            ? 'perps.order.validation.market_data_loading'
-            : 'perps.failed_to_load_market_data',
+          hasMarketDataError
+            ? 'perps.failed_to_load_market_data'
+            : 'perps.order.validation.market_data_loading',
         ),
       },
     ];
@@ -1284,7 +1284,7 @@ export const usePerpsProOrderForm = ({
           : undefined,
         isReduceOnlyPositionLoading,
         isMarketDataBlocking,
-        isLoadingMarketData,
+        hasMarketDataError: Boolean(marketDataError),
         filteredErrors,
       }),
       ...getTpslNotices({
@@ -1310,7 +1310,7 @@ export const usePerpsProOrderForm = ({
     reduceOnly,
     isReduceOnlyPositionLoading,
     isMarketDataBlocking,
-    isLoadingMarketData,
+    marketDataError,
     reduceOnlyValidation.errorCode,
     filteredErrors,
     doesStopLossRiskLiquidation,

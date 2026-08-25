@@ -4,7 +4,10 @@ import {
   VALIDATION_THRESHOLDS,
   type OrderFormState,
 } from '@metamask/perps-controller';
-import { usePerpsOrderValidation } from './usePerpsOrderValidation';
+import {
+  usePerpsOrderValidation,
+  type ValidationAttempt,
+} from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -34,6 +37,7 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.failed': 'Order validation failed',
       'perps.failed_to_load_market_data': 'Failed to load market data',
+      'perps.order.validation.market_data_loading': 'Waiting for market data',
       'perps.order.validation.error': 'Validation error',
       'perps.order.validation.please_set_a_trigger_price':
         'Please set a trigger price',
@@ -405,7 +409,7 @@ describe('usePerpsOrderValidation', () => {
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
-      expect(result.current.errors).toContain('Failed to load market data');
+      expect(result.current.errors).toContain('Waiting for market data');
       expect(mockValidateOrder).not.toHaveBeenCalled();
     });
   });
@@ -508,6 +512,46 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
     });
 
+    it('returns the submit validation result after a live price update', async () => {
+      // Arrange
+      const deferredValidation = createDeferred<{
+        isValid: boolean;
+        error?: string;
+      }>();
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      mockValidateOrder.mockClear();
+      mockValidateOrder.mockReturnValueOnce(deferredValidation.promise);
+      let validationPromise!: Promise<ValidationAttempt>;
+      let attempt: ValidationAttempt | undefined;
+
+      // Act
+      act(() => {
+        validationPromise = result.current.validateNow();
+      });
+      rerender({
+        ...defaultParams,
+        assetPrice: 50100,
+      });
+      act(() => {
+        jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
+      });
+      await act(async () => {
+        deferredValidation.resolve({ isValid: true });
+        attempt = await validationPromise;
+      });
+
+      // Assert
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(attempt?.isValid).toBe(true);
+      expect(attempt?.errors).toEqual([]);
+    });
+
     it('cleans up debounce timer on unmount', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
@@ -581,7 +625,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(false);
-      expect(result.current.isValidating).toBe(true);
+      expect(result.current.isValidating).toBe(false);
       expect(result.current.fieldIssues).toEqual([
         { field: 'limitPrice', issue: { code: 'required' } },
       ]);
@@ -606,7 +650,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(true);
-      expect(result.current.isValidating).toBe(true);
+      expect(result.current.isValidating).toBe(false);
 
       act(() => {
         jest.advanceTimersByTime(1000);

@@ -466,6 +466,38 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
+    it('shows a loading message while the live market price is unavailable', () => {
+      // Arrange
+      mockLivePrice = '';
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'market-data',
+        variant: 'banner',
+        message: strings('perps.order.validation.market_data_loading'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows a failure message when market data loading fails', () => {
+      // Arrange
+      mockMarketDataError = 'Market data request failed';
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'market-data',
+        variant: 'banner',
+        message: strings('perps.failed_to_load_market_data'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
     it('maps an OI cap to a banner notice', () => {
       // Arrange
       mockIsAtCap = true;
