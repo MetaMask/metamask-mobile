@@ -7,7 +7,7 @@ import {
   loginToAppPlaywright,
   unlockIfLockScreenVisible,
 } from '../../flows/wallet.flow';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import {
   launchMobileBrowser,
   navigateToDapp,
@@ -38,7 +38,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       );
       await loginToAppPlaywright();
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await launchMobileBrowser();
         await navigateToDapp(UNISWAP_URL);
       });
@@ -47,11 +47,11 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       if (platform === 'android') {
-        await PlaywrightContextHelpers.withWebAction(async () => {
+        await AppiumContextHelpers.withWebAction(async () => {
           await UniswapDapp.connectWithMetaMask();
         }, UNISWAP_URL);
       } else {
-        await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AppiumContextHelpers.withNativeAction(async () => {
           await UniswapDapp.connectIOS();
           await UniswapDapp.selectWalletConnectOption();
         });
@@ -59,7 +59,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       // Android comes from a webAction so needs to be in native context
       if (platform === 'android') {
-        await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AppiumContextHelpers.withNativeAction(async () => {
           await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
         });
       } else {

@@ -704,6 +704,69 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('3.40');
   });
 
+  it('does not display a stale max quote amount after the pay token changes', async () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '567.89' },
+    } as TransactionPayTotals);
+    useParamsMock.mockReturnValue({ amount: '100' });
+
+    const { result, rerender } = runHook();
+
+    expect(result.current.amountFiat).toBe('567.89');
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0xdifferent' as Hex,
+        balanceUsd: '800',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(result.current.amountFiat).toBe('100');
+  });
+
+  it('uses the new max quote amount once quotes settle for the selected token', async () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '567.89' },
+    } as TransactionPayTotals);
+    useParamsMock.mockReturnValue({ amount: '100' });
+
+    const { result, rerender } = runHook();
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0xdifferent' as Hex,
+        balanceUsd: '800',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(result.current.amountFiat).toBe('100');
+
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(11);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '800' },
+    } as TransactionPayTotals);
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(result.current.amountFiat).toBe('800');
+  });
+
   it.each([
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
@@ -725,6 +788,21 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('100');
     },
   );
+
+  it('skips the targetAmount.usd override for moneyAccountDeposit so Max/prefill does not jump by a cent', async () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '567.891' },
+    } as TransactionPayTotals);
+    useParamsMock.mockReturnValue({ amount: '567.88' });
+
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    expect(result.current.amountFiat).toBe('567.88');
+  });
 
   it('returns isInputChanged as true after amount changed and debounce', async () => {
     const { result } = runHook();
@@ -1997,6 +2075,43 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('updates prefill amount when switching to a different funded token', async () => {
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '500',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result, rerender } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0xdifferent' as Hex,
+          balanceUsd: '800',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('800');
+      expect(result.current.isDepositPrefillLoading).toBe(false);
     });
 
     it('only prefills once even if balance changes', async () => {
