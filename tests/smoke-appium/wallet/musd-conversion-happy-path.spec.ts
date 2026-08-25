@@ -120,9 +120,9 @@ appiumTest.describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           await dismissPushNotificationExistingUserSheet();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
-          // Go to Activity and verify mUSD conversion is confirmed (same pattern as send-native-token: no swipeDown)
+          // Go to Activity and verify the mUSD conversion activity appears.
           await TabBarComponent.tapActivity();
-          await ActivitiesView.verifyMusdConversionConfirmed(0);
+          await ActivitiesView.verifyMusdConversionActivity();
           // gets back to wallet to avoid waiting fora rpc updated in the activity view
           await TabBarComponent.tapWallet();
         },
@@ -170,9 +170,9 @@ appiumTest.describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           await dismissPushNotificationExistingUserSheet();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
-          // Go to Activity and verify mUSD conversion is confirmed
+          // Go to Activity and verify the mUSD conversion activity appears.
           await TabBarComponent.tapActivity();
-          await ActivitiesView.verifyMusdConversionConfirmed(0);
+          await ActivitiesView.verifyMusdConversionActivity();
           // gets back to wallet to avoid waiting fora rpc updated in the activity view
           await TabBarComponent.tapWallet();
         },

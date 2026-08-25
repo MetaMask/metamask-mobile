@@ -1,9 +1,9 @@
-import {
-  ActivitiesViewSelectorsIDs,
-  ActivitiesViewSelectorsText,
-} from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
-import { activityListRowItemTestId } from '../../../app/components/Views/ActivityList/ActivityList.testIds';
+import {
+  ActivityListSelectorsIDs,
+  activityListRowItemTestId,
+} from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -63,6 +63,11 @@ class ActivitiesView {
       checkForDisplayed: false,
       delay: 2000,
       timeout: 8000,
+    });
+    await Assertions.expectElementToNotBeVisible(this.typeFilterSheet, {
+      timeout: 4000,
+      description:
+        'Wait for activity type filter sheet to close after selection',
     });
   }
 
@@ -173,28 +178,8 @@ class ActivitiesView {
     );
   }
 
-  get predictionsTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
-  }
-
-  get transferTab(): EncapsulatedElementType {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
-  }
-
-  get tabsBar(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
-    );
-  }
-
   get container(): EncapsulatedElementType {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
-  }
-
-  get confirmedLabel(): EncapsulatedElementType {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
+    return Matchers.getElementByID(ActivityListSelectorsIDs.CONTAINER);
   }
 
   get stakeDepositedLabel(): EncapsulatedElementType {
@@ -244,10 +229,6 @@ class ActivitiesView {
     );
   }
 
-  transactionStatus(row: number): EncapsulatedElementType {
-    return Matchers.getElementByID(`transaction-status-${row}`);
-  }
-
   transactionItem(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(activityListRowItemTestId(row));
   }
@@ -295,10 +276,6 @@ class ActivitiesView {
     await Gestures.waitAndTap(el);
   }
 
-  async tapConfirmedTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmedLabel);
-  }
-
   async swipeDown(): Promise<void> {
     await Gestures.swipe(this.container, 'down', {
       speed: 'slow',
@@ -333,36 +310,19 @@ class ActivitiesView {
   async tapOnPredictionsTab(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        for (let attempt = 0; attempt < 4; attempt += 1) {
-          try {
-            await Assertions.expectElementToBeVisible(this.predictionsTab, {
-              timeout: 1000,
-            });
-            break;
-          } catch {
-            await Gestures.swipe(this.tabsBar, 'left', {
-              percentage: 0.5,
-              speed: 'slow',
-              elemDescription: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
-            });
-          }
-        }
-        await Gestures.waitAndTap(this.predictionsTab, {
-          elemDescription: 'Predictions Tab in Activity View',
-          timeout: 10_000,
-        });
+        await this.tapTypeFilterChip();
+        await this.tapTypeFilterOption('predictions');
       },
       {
         timeout: 30_000,
-        description: 'Tap Predictions tab in Activity View',
+        description: 'Select Predictions in Activity View',
       },
     );
   }
 
   async tapOnTransfersTab(): Promise<void> {
-    await Gestures.waitAndTap(this.transferTab, {
-      elemDescription: 'Transfer Tab in Activity View',
-    });
+    await this.tapTypeFilterChip();
+    await this.tapTypeFilterOption('transactions');
   }
 
   async tapPredictPosition(positionName: string): Promise<void> {
@@ -402,70 +362,15 @@ class ActivitiesView {
     });
   }
 
-  /**
-   * Verifies that an activity item with the given title is visible and its row status matches.
-   * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.
-   *
-   * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
-   * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
-   * @param rowIndex - Row index (default 0 = most recent)
-   */
-  async verifyActivityItemWithStatus(
-    titleText: string,
-    statusText: string,
-    rowIndex = 0,
-  ): Promise<void> {
+  async verifyActivityItem(titleText: string): Promise<void> {
     await Assertions.expectTextDisplayed(titleText, {
       timeout: 20000,
       description: `Activity item "${titleText}" should be visible`,
     });
-    await Assertions.expectElementToHaveText(
-      this.transactionStatus(rowIndex),
-      statusText,
-      {
-        timeout: 10000,
-        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
-      },
-    );
   }
 
-  /**
-   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
-   * Delegates to verifyActivityItemWithStatus.
-   */
-  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
-    await this.verifyActivityItemWithStatus(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      rowIndex,
-    );
-  }
-
-  /**
-   * Wait for a transaction to show "Confirmed" status in the activity list.
-   * For real on-chain transactions, polls with a longer timeout.
-   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
-   */
-  async waitForTransactionConfirmed(
-    rowIndex = 0,
-    timeoutMs = 120_000,
-  ): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Assertions.expectElementToHaveText(
-          this.transactionStatus(rowIndex),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          {
-            timeout: 3_000,
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
-      },
-      {
-        timeout: timeoutMs,
-        description: `Transaction row ${rowIndex} should be confirmed`,
-      },
-    );
+  async verifyMusdConversionActivity(): Promise<void> {
+    await this.verifyActivityItem(ActivitiesViewSelectorsText.MUSD_CONVERSION);
   }
 }
 

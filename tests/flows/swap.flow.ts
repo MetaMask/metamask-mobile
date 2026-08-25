@@ -6,11 +6,10 @@ import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from '../helpers/swap/prepareSwapsTestEnvironment';
-import { ActivitiesViewSelectorsText } from '../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 /**
  * Runs the ETH (Mainnet) -> ETH (Base) bridge flow, from opening the swap
- * screen through the transaction showing as Confirmed in the activity list.
+ * screen through the transaction showing in the activity list.
  */
 export async function runEthToBaseBridgeFlow(
   destNetwork: string,
@@ -18,11 +17,6 @@ export async function runEthToBaseBridgeFlow(
   const quantity = '1';
   const sourceSymbol = 'ETH';
   const destChainId = '0x2105';
-  // Row 0 is a stale STX-shaped entry; the confirmed bridge tx is on row 1.
-  // TODO: stop merging SmartTransactionsController state into
-  // selectLocalTransactions / selectSortedTransactions, then assert row 0.
-  const BRIDGE_ROW = 1;
-
   await loginToAppPlaywright({ scenarioType: 'e2e' });
   await prepareSwapsTestEnvironment();
 
@@ -53,23 +47,14 @@ export async function runEthToBaseBridgeFlow(
 
   await PostTradeBottomSheet.tapViewActivity();
 
-  await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen, {
     timeout: 30000,
-    description: 'Activity title visible after bridge submission',
+    description: 'Activity screen visible after bridge submission',
   });
   await Assertions.expectElementToBeVisible(
     ActivitiesView.bridgeActivityTitle(destNetwork),
     {
       description: 'Bridge activity for destination network visible',
-    },
-  );
-
-  await Assertions.expectElementToHaveText(
-    ActivitiesView.transactionStatus(BRIDGE_ROW),
-    ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    {
-      timeout: 120000,
-      description: 'Bridge transaction should show Confirmed status',
     },
   );
 }

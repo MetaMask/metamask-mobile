@@ -192,11 +192,11 @@ class TabBarComponent {
         // When Money is off, that header button is hidden and the Activity tab
         // is the only entry point. Prefer whichever control is present.
         //
-        // If a prior attempt already navigated but the title was not ready yet,
+        // If a prior attempt already navigated but Activity was not ready yet,
         // neither entry point is on screen — skip / swallow taps and wait for
-        // the title so executeWithRetry can succeed once Activity is visible.
+        // the screen so executeWithRetry can succeed once Activity is visible.
         const alreadyOnActivity = await Utilities.isElementVisible(
-          ActivitiesView.title,
+          ActivitiesView.redesignedScreen,
           500,
         );
         if (!alreadyOnActivity) {
@@ -213,12 +213,19 @@ class TabBarComponent {
               });
             } catch {
               // Both entry points missing — likely already on Activity from a
-              // prior attempt; fall through to the title assertion below.
+              // prior attempt; fall through to the readiness assertions below.
             }
           }
         }
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.redesignedScreen,
+          {
+            description: 'Activity View Screen',
+            timeout: 500,
+          },
+        );
+        await Assertions.expectElementToBeVisible(ActivitiesView.container, {
+          description: 'Activity List',
           timeout: 500,
         });
       },

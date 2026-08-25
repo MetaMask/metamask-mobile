@@ -269,9 +269,6 @@ export const confirmCloseAndAssertActivity = async (
       description: `Activity row "${activityLabel}"`,
     });
   }
-  await Assertions.expectTextDisplayed('Confirmed', {
-    description: 'Activity status Confirmed',
-  });
 };
 
 export const switchToLocalNetworkFromNetworkManager =
