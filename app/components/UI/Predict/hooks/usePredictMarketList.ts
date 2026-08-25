@@ -58,7 +58,7 @@ export const usePredictMarketList = (
     filterByVolume,
   } = options;
 
-  const queryResult = useInfiniteQuery<PredictMarketListResponse, Error>({
+  const queryResult = useInfiniteQuery({
     ...predictQueries.marketList.options(params),
     enabled,
   });

@@ -46,7 +46,7 @@ export const usePredictSearchMarketData = ({
     hasNextPage,
     fetchNextPage,
     refetch: queryRefetch,
-  } = useInfiniteQuery<SearchPage, Error>({
+  } = useInfiniteQuery({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
     initialPageParam: 1,

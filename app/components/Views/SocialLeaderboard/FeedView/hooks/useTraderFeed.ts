@@ -125,7 +125,7 @@ export const useTraderFeed = (
     getNextPageParam: getTraderFeedNextPageParam,
     enabled: enabled && isUnlocked,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<FeedResponse, Error>);
+  } as unknown as UseInfiniteQueryOptions<InfiniteData<FeedResponse>, Error>);
 
   const pages = query.data?.pages ?? undefined;
 

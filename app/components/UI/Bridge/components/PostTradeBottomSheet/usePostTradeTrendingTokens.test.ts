@@ -34,11 +34,6 @@ const queryClients = new Set<QueryClient>();
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
-    logger: {
-      log: () => undefined,
-      warn: () => undefined,
-      error: () => undefined,
-    },
   });
   queryClients.add(queryClient);
 

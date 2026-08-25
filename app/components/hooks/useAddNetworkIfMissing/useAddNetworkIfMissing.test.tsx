@@ -42,7 +42,6 @@ const createTestQueryClient = () =>
       queries: { retry: false, gcTime: Infinity },
       mutations: { retry: false },
     },
-    logger: { log: jest.fn(), warn: jest.fn(), error: jest.fn() },
   });
 
 const teardownQueryClient = async (queryClient: QueryClient) => {

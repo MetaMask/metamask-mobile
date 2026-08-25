@@ -45,7 +45,7 @@ export function usePredictActivity({
     ensurePolygonNetworkExists().catch(() => undefined);
   }, [ensurePolygonNetworkExists]);
 
-  const queryResult = useInfiniteQuery<PredictActivity[], Error>({
+  const queryResult = useInfiniteQuery({
     ...predictQueries.activity.options({ address: address ?? '', limit }),
     enabled: Boolean(address),
   });
