@@ -662,6 +662,19 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      # TEMPORARY (REVERT): uploads the exact CI Metro bundle preserved by
+      # scripts/hermesc-diag.sh when hermesc crashes, so the SIGSEGV can be
+      # replayed locally. Part of the RN 0.85 hermesc exit-139 investigation.
+      - name: Upload hermesc diagnostic artifacts
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermesc-diag-${{ github.run_id }}
+          path: hermesc-diag-artifacts/
+          retention-days: 3
+          if-no-files-found: ignore
+
       - name: Record Namespace E2E APK cache marker
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
