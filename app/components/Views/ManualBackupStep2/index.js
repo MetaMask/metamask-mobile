@@ -26,7 +26,10 @@ import SecureContentView from '../../UI/SecureContentView';
 import { strings } from '../../../../locales/i18n';
 import { seedphraseBackedUp } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { compareMnemonics } from '../../../util/mnemonic';
+import {
+  compareMnemonics,
+  pickUniqueMissingWordSlots,
+} from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
@@ -52,7 +55,7 @@ const ManualBackupStep2 = ({
   const settingsBackup = route?.params?.settingsBackup;
 
   const tw = useTailwind();
-  const { width: innerWidth, height: windowHeight } = useWindowDimensions();
+  const { width: innerWidth } = useWindowDimensions();
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -136,20 +139,12 @@ const ManualBackupStep2 = ({
   };
 
   const generateMissingWords = useCallback(() => {
-    const rows = [0, 1, 2, 3];
-    const sortGridRows = rows.sort(() => 0.5 - Math.random());
-    const selectRandomSlots = sortGridRows.slice(0, 3);
-    const emptySlotsIndexes = selectRandomSlots.map((row) => {
-      const col = Math.floor(Math.random() * 3);
-      return row * 3 + col;
-    });
-
+    const emptySlotsIndexes = pickUniqueMissingWordSlots(words);
     const tempGrid = [...words];
-    const removed = [];
-
-    emptySlotsIndexes.forEach((i) => {
-      removed.push(tempGrid[i]);
+    const removed = emptySlotsIndexes.map((i) => {
+      const word = tempGrid[i];
       tempGrid[i] = '';
+      return word;
     });
 
     setGridWords(tempGrid);
@@ -450,7 +445,6 @@ const ManualBackupStep2 = ({
           <Box
             justifyContent={BoxJustifyContent.SpaceBetween}
             twClassName="flex-1 gap-y-4"
-            style={{ height: windowHeight - 290 }}
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
             <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
