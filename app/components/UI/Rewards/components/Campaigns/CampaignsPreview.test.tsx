@@ -28,9 +28,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('../../hooks/useRewardCampaigns');
-const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
-  typeof useRewardCampaigns
->;
+const mockUseRewardCampaigns = jest.mocked(useRewardCampaigns);
 
 jest.mock('./CampaignTile', () => {
   const ReactActual = jest.requireActual('react');
@@ -61,20 +59,6 @@ jest.mock('./CampaignTile', () => {
   };
 });
 
-jest.mock('./CampaignReminder', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ campaign }: { campaign: CampaignDto }) =>
-      ReactActual.createElement(
-        Text,
-        { testID: `campaign-reminder-${campaign.id}` },
-        `Reminder:${campaign.name}`,
-      ),
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -84,10 +68,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-const now = new Date();
-const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-const furtherFutureDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Campaign status is derived from the clock, so the suite pins both the system
+// time and every fixture date to keep active/upcoming/previous deterministic.
+const FIXED_NOW = new Date('2025-08-15T12:00:00.000Z');
+const futureDate = new Date(FIXED_NOW.getTime() + 30 * DAY_MS);
+const furtherFutureDate = new Date(FIXED_NOW.getTime() + 90 * DAY_MS);
+const pastDate = new Date(FIXED_NOW.getTime() - 30 * DAY_MS);
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
@@ -105,19 +93,28 @@ const createTestCampaign = (
   ...overrides,
 });
 
-const mockHookDefaults = {
+const createHookDefaults = (): ReturnType<typeof useRewardCampaigns> => ({
   campaigns: [],
   categorizedCampaigns: { active: [], upcoming: [], previous: [] },
   isLoading: false,
   hasError: false,
   hasLoaded: true,
   fetchCampaigns: jest.fn(),
-};
+});
+
+let mockHookDefaults = createHookDefaults();
 
 describe('CampaignsPreview', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
+    mockHookDefaults = createHookDefaults();
     mockUseRewardCampaigns.mockReturnValue(mockHookDefaults);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders the section with no campaigns when none are featured', () => {
@@ -267,7 +264,7 @@ describe('CampaignsPreview', () => {
     expect(tiles).toHaveLength(2);
   });
 
-  it('renders CampaignReminder for a featured upcoming campaign', () => {
+  it('renders the standard image CampaignTile for a featured upcoming campaign', () => {
     const upcomingCampaign = createTestCampaign({
       id: 'upcoming-featured',
       name: 'Soon Campaign',
@@ -280,12 +277,12 @@ describe('CampaignsPreview', () => {
       campaigns: [upcomingCampaign],
     });
 
-    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+    const { getByTestId } = render(<CampaignsPreview />);
 
+    expect(getByTestId('campaign-tile-upcoming-featured')).toBeOnTheScreen();
     expect(
-      getByTestId('campaign-reminder-upcoming-featured'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('campaign-tile-upcoming-featured')).toBeNull();
+      getByTestId('campaign-tile-upcoming-featured').props.accessibilityState,
+    ).toEqual({ disabled: false });
   });
 
   it('renders SEASON_1 campaign type as interactive', () => {
@@ -372,5 +369,40 @@ describe('CampaignsPreview', () => {
       screen: Routes.REWARDS_CAMPAIGNS_VIEW,
       params: undefined,
     });
+  });
+
+  it('collapses multiple MONEY_ACCOUNT_SWEEPSTAKES campaigns into one featured tile', () => {
+    const week1Start = new Date(FIXED_NOW.getTime() - 3 * DAY_MS);
+    const week1End = new Date(FIXED_NOW.getTime() + 4 * DAY_MS);
+    const week2Start = week1End;
+    const week2End = new Date(week2Start.getTime() + 7 * DAY_MS);
+
+    const week1 = createTestCampaign({
+      id: 'mas-week-1',
+      name: 'Money Account Sweepstakes',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      startDate: week1Start.toISOString(),
+      endDate: week1End.toISOString(),
+      featured: true,
+    });
+    const week2 = createTestCampaign({
+      id: 'mas-week-2',
+      name: 'Money Account Sweepstakes',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      startDate: week2Start.toISOString(),
+      endDate: week2End.toISOString(),
+      featured: true,
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: [week1, week2],
+    });
+
+    const { getAllByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    const tiles = getAllByTestId(/^campaign-tile-/);
+    expect(tiles).toHaveLength(1);
+    expect(getAllByTestId('campaign-tile-mas-week-1')).toHaveLength(1);
+    expect(queryByTestId('campaign-tile-mas-week-2')).toBeNull();
   });
 });
