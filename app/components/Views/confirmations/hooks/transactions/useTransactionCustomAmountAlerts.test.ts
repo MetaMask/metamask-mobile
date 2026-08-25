@@ -66,32 +66,7 @@ describe('useTransactionCustomAmountAlerts', () => {
     usePendingAmountAlertsMock.mockReturnValue([]);
   });
 
-  it('returns title as alert title if present', () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [ALERT_MOCK],
-    } as AlertsContextParams);
-
-    const { result } = runHook();
-
-    expect(result.current.alertTitle).toBe(TITLE_MOCK);
-  });
-
-  it('returns message as alert title if no title', () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          ...ALERT_MOCK,
-          title: undefined,
-        },
-      ],
-    } as AlertsContextParams);
-
-    const { result } = runHook();
-
-    expect(result.current.alertTitle).toBe(MESSAGE_MOCK);
-  });
-
-  it('returns alert message as message if title', () => {
+  it('returns the message as the alert message when present', () => {
     useAlertsMock.mockReturnValue({
       alerts: [ALERT_MOCK],
     } as AlertsContextParams);
@@ -99,6 +74,21 @@ describe('useTransactionCustomAmountAlerts', () => {
     const { result } = runHook();
 
     expect(result.current.alertMessage).toBe(MESSAGE_MOCK);
+  });
+
+  it('falls back to the title as the alert message when no message', () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          message: undefined,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook();
+
+    expect(result.current.alertMessage).toBe(TITLE_MOCK);
   });
 
   it('returns content from the first alert', () => {
@@ -115,12 +105,13 @@ describe('useTransactionCustomAmountAlerts', () => {
     expect(result.current.alertContent).toBe(content);
   });
 
-  it('returns no alert message if no title', () => {
+  it('returns no alert message if no message or title', () => {
     useAlertsMock.mockReturnValue({
       alerts: [
         {
           ...ALERT_MOCK,
           title: undefined,
+          message: undefined,
         },
       ],
     } as AlertsContextParams);
@@ -140,7 +131,6 @@ describe('useTransactionCustomAmountAlerts', () => {
 
     const { result } = runHook();
 
-    expect(result.current.alertTitle).toBe(PENDING_ALERT_MOCK.title);
     expect(result.current.alertMessage).toBe(PENDING_ALERT_MOCK.message);
   });
 

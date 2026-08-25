@@ -5,7 +5,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -57,16 +56,11 @@ const NotificationSettingsSection = ({
         title={strings('app_settings.notifications_title')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
-        <NotificationSettingsSectionContent
-          type={type}
-          title={title}
-          description={description}
-        />
-      </ScrollView>
+      <NotificationSettingsSectionContent
+        type={type}
+        title={title}
+        description={description}
+      />
     </SafeAreaView>
   );
 };

@@ -27,7 +27,7 @@ import {
   waitForKeyringUnlock,
 } from './AgenticCliQrLoginService';
 
-const AGENTIC_CLI_DISPLAY_NAME = 'Agent CLI';
+const AGENTIC_CLI_DISPLAY_NAME = 'Agent wallet';
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
@@ -129,7 +129,7 @@ export async function handleAgenticCliConnectDeeplink(
         ...connReq.metadata,
         dapp: {
           ...connReq.metadata.dapp,
-          // The Agent CLI is a known first-party flow, so do not surface the
+          // The Agent wallet is a known first-party flow, so do not surface the
           // self-reported "MM CLI" name in product UI.
           name: AGENTIC_CLI_DISPLAY_NAME,
         },

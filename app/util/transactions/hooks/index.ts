@@ -12,7 +12,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
-  type TransactionData,
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
@@ -23,7 +22,10 @@ import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
 } from '../../../selectors/smartTransactionsController';
-import { isNoOpQuote } from '../../../selectors/transactionPayController';
+import {
+  isNoOpQuote,
+  isPayTokenSubmitReady,
+} from '../../../selectors/transactionPayController';
 import {
   selectMetaMaskPayFlags,
   selectPayQuoteConfig,
@@ -272,7 +274,7 @@ function validateRequiredQuote(
   }
 
   if (isPayTokenRequiredType) {
-    if (isValidatedDirectDeposit(data) || isValidatedFiatDeposit(data)) {
+    if (isPayTokenSubmitReady(data)) {
       return;
     }
 
@@ -298,61 +300,6 @@ function validateRequiredQuote(
   }
 
   throw new Error('MetaMask Pay: Cannot submit without quote');
-}
-
-/**
- * A pay-type deposit or conversion may submit without quotes only when the
- * user pays with the required token itself and the controller recorded no
- * pending conversion. Anything else (payment token missing or different, or
- * a required conversion without a quote) means the transaction would land
- * without funds, so it must not submit.
- *
- * @param data - Pay state for the transaction.
- * @returns Whether direct submission is safe.
- */
-function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
-  const paymentToken = data?.paymentToken;
-
-  if (!paymentToken) {
-    return false;
-  }
-
-  const tokens = data?.tokens ?? [];
-  const requiredToken = tokens.find((token) => !token.skipIfBalance);
-
-  const isPayingWithRequiredToken =
-    Boolean(requiredToken) &&
-    requiredToken?.chainId === paymentToken.chainId &&
-    requiredToken?.address.toLowerCase() === paymentToken.address.toLowerCase();
-
-  if (!isPayingWithRequiredToken) {
-    return false;
-  }
-
-  const hasRequiredConversion = (data?.sourceAmounts ?? []).some(
-    (sourceAmount) =>
-      !tokens.find(
-        (token) =>
-          token.address.toLowerCase() ===
-          sourceAmount.targetTokenAddress.toLowerCase(),
-      )?.skipIfBalance,
-  );
-
-  return !hasRequiredConversion;
-}
-
-/**
- * A fiat-funded deposit submits without a pay quote because the on-ramp
- * order itself is the funding source; the flow is validated at confirmation
- * time by the fiat no-quotes alert (see useNoPayTokenQuotesAlert), and the
- * auto-fiat-submission hook publishes as soon as the order is created,
- * before any pay token is ever selected on the controller.
- *
- * @param data - Pay state for the transaction.
- * @returns Whether the fiat-funded submission is safe.
- */
-function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
-  return Boolean(data?.fiatPayment?.orderId);
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
