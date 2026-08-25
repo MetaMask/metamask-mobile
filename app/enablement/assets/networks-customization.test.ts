@@ -12,6 +12,9 @@ import { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 const ARC = NETWORKS_CHAIN_ID.ARC;
 const STABLE = NETWORKS_CHAIN_ID.STABLE;
 const OTHER_TOKEN = '0x1111111111111111111111111111111111111111';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const NATIVE_ASSET = { address: ZERO_ADDRESS, isNative: true };
+const ARC_NATIVE_ASSET_ID = 'eip155:5042/slip44:5042';
 
 describe('networks-customization', () => {
   describe('filterExcludedAssets', () => {
@@ -20,31 +23,61 @@ describe('networks-customization', () => {
         [ARC]: [
           { address: ARC_USDC_ERC20_TOKEN_ADDRESS },
           { address: OTHER_TOKEN },
-          { symbol: 'USDC' }, // native-style asset without address
+          NATIVE_ASSET,
         ],
-        [STABLE]: [{ address: STABLE_USDT0_ERC20_ADDRESS }],
+        [STABLE]: [{ address: STABLE_USDT0_ERC20_ADDRESS }, NATIVE_ASSET],
         '0x1': [{ address: ARC_USDC_ERC20_TOKEN_ADDRESS }],
       } as unknown as AccountGroupAssets;
 
       const result = filterExcludedAssets(assets);
 
-      expect(result[ARC]).toEqual([
+      expect(result[ARC]).toStrictEqual([
         { address: OTHER_TOKEN },
-        { symbol: 'USDC' },
+        NATIVE_ASSET,
       ]);
-      expect(result[STABLE]).toEqual([]);
+      expect(result[STABLE]).toStrictEqual([NATIVE_ASSET]);
       // Same address on an unrelated chain is untouched
-      expect(result['0x1']).toEqual([
+      expect(result['0x1']).toStrictEqual([
         { address: ARC_USDC_ERC20_TOKEN_ADDRESS },
+      ]);
+    });
+
+    it('keeps the excluded ERC-20 when the chain has no native asset', () => {
+      const assets = {
+        [ARC]: [
+          { address: ARC_USDC_ERC20_TOKEN_ADDRESS },
+          { address: OTHER_TOKEN },
+        ],
+      } as unknown as AccountGroupAssets;
+
+      expect(filterExcludedAssets(assets)[ARC]).toStrictEqual([
+        { address: ARC_USDC_ERC20_TOKEN_ADDRESS },
+        { address: OTHER_TOKEN },
+      ]);
+    });
+
+    it('recognises the native asset from a slip44 asset id', () => {
+      const assets = {
+        [ARC]: [
+          { address: ARC_USDC_ERC20_TOKEN_ADDRESS },
+          { assetId: ARC_NATIVE_ASSET_ID },
+        ],
+      } as unknown as AccountGroupAssets;
+
+      expect(filterExcludedAssets(assets)[ARC]).toStrictEqual([
+        { assetId: ARC_NATIVE_ASSET_ID },
       ]);
     });
 
     it('is case-insensitive on address', () => {
       const assets = {
-        [ARC]: [{ address: ARC_USDC_ERC20_TOKEN_ADDRESS.toUpperCase() }],
+        [ARC]: [
+          { address: ARC_USDC_ERC20_TOKEN_ADDRESS.toUpperCase() },
+          NATIVE_ASSET,
+        ],
       } as unknown as AccountGroupAssets;
 
-      expect(filterExcludedAssets(assets)[ARC]).toEqual([]);
+      expect(filterExcludedAssets(assets)[ARC]).toStrictEqual([NATIVE_ASSET]);
     });
   });
 

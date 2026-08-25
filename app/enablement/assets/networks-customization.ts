@@ -3,7 +3,12 @@ import {
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { Hex, isStrictHexString } from '@metamask/utils';
+import {
+  Hex,
+  isCaipAssetType,
+  isStrictHexString,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
@@ -57,17 +62,57 @@ function isExcludedAsset(chainId: string, address: string): boolean {
   return getExcludedAddress(chainId) === address.toLowerCase();
 }
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/**
+ * Whether an asset is the native representation of its chain - the entry the
+ * excluded ERC-20 is a display duplicate of. Native assets reach this filter
+ * flagged with `isNative`, carrying the zero address, or identified only by a
+ * `slip44` CAIP-19 asset ID.
+ */
+function isNativeRepresentation(asset: {
+  isNative?: boolean;
+  address?: string;
+  assetId?: string;
+}): boolean {
+  if (asset.isNative) {
+    return true;
+  }
+
+  const parsed =
+    typeof asset.assetId === 'string' && isCaipAssetType(asset.assetId)
+      ? parseCaipAssetType(asset.assetId)
+      : undefined;
+
+  if (parsed?.assetNamespace === 'slip44') {
+    return true;
+  }
+
+  const address = asset.address ?? parsed?.assetReference;
+  return address?.toLowerCase() === ZERO_ADDRESS;
+}
+
 /**
  * Removes chain-specific ERC-20 tokens (e.g. Arc USDC at 0x3600...,
  * Stable USDT0) from the per-chain asset map so they never appear as
  * duplicates of the native token. The native token (zero address) is kept -
  * it is the source of truth for display on those chains.
+ *
+ * The ERC-20 is only removed when that native token is actually part of the
+ * chain's assets. Both identities mirror the same balance, so when the native
+ * one is missing (e.g. no `assetsInfo` metadata for `eip155:5042/slip44:5042`)
+ * the ERC-20 is the only representation left and hiding it would drop the
+ * token from the list entirely.
  */
 export function filterExcludedAssets(
   assets: AccountGroupAssets,
 ): AccountGroupAssets {
   return Object.entries(assets).reduce((acc, [chainId, chainAssets]) => {
-    if (!chainAssets || !getExcludedAddress(chainId)) {
+    if (
+      !chainAssets ||
+      !getExcludedAddress(chainId) ||
+      !chainAssets.some(isNativeRepresentation)
+    ) {
       return acc;
     }
     return {
@@ -114,6 +159,9 @@ export function filterExcludedTokenBalances(
 /**
  * Filters out excluded ERC-20s (e.g. Arc USDC at 0x3600...) for the
  * given chain - they are display duplicates of the chain's native gas token.
+ *
+ * Unconditional, unlike {@link filterExcludedAssets}: this is a catalogue of
+ * importable tokens, where the duplicate must never be offered.
  */
 export function filterExcludedImportAssets(
   tokens: ImportAsset[],

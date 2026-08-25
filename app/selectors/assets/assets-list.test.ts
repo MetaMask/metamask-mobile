@@ -2330,4 +2330,16 @@ describe('selectAssetsBySelectedAccountGroup – Arc USDC ERC-20 filter', () => 
 
     expect(run()).toStrictEqual(assets);
   });
+
+  it('keeps the Arc USDC ERC-20 when the native token is absent, so USDC is never missing', () => {
+    const assets = {
+      [ARC]: [
+        { address: ARC_ERC20, symbol: 'USDC' },
+        { address: DAI_ADDR, symbol: 'DAI' },
+      ],
+    } as unknown as AccountGroupAssets;
+    innerSelector.mockReturnValue(assets);
+
+    expect(run()[ARC]).toStrictEqual(assets[ARC]);
+  });
 });
