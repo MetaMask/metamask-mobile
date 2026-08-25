@@ -10,6 +10,8 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import EarnSection from '../../../UI/Earn/components/EarnSection';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
@@ -116,6 +118,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEarnSectionEnabled = useSelector(selectExploreEarnSectionEnabledFlag);
   const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
@@ -219,6 +222,18 @@ const CryptoTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (isEarnSectionEnabled) {
+      items.push({
+        key: 'earn',
+        content: (
+          <EarnSection
+            refreshTrigger={refresh.trigger}
+            tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          />
+        ),
+      });
+    }
+
     if (showPredictions) {
       items.push({
         key: 'predictions',
@@ -242,6 +257,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   }, [
     showTokens,
     showCryptoPerps,
+    isEarnSectionEnabled,
     showPredictions,
     navigation,
     tokens.data,
