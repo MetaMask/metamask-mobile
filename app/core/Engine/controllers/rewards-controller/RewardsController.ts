@@ -5829,6 +5829,7 @@ export class RewardsController extends BaseController<
         qualifyingThresholdUsd: 0,
         todayStatus: 'not_yet_qualified',
         daysRemaining: 0,
+        dataAsOf: null,
       };
     }
 
@@ -5852,6 +5853,7 @@ export class RewardsController extends BaseController<
             qualifyingThresholdUsd: cached.qualifyingThresholdUsd,
             todayStatus: cached.todayStatus,
             daysRemaining: cached.daysRemaining,
+            dataAsOf: cached.dataAsOf,
           },
           lastFetched: cached.lastFetched,
         };

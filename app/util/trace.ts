@@ -121,6 +121,7 @@ export enum TraceName {
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   SwapQuoteFetch = 'Swap Quote Fetch',
   SwapTokenSearch = 'Swap Token Search',
+  SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',

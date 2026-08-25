@@ -21,7 +21,7 @@ export interface ActivityTokenMetadata {
   assetId?: string;
 }
 
-export interface ParsedStandardTokenTransactionData {
+interface ParsedStandardTokenTransactionData {
   args?: Record<string, unknown>;
 }
 

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-jest.mock('./PlaywrightWebMatchers.ts', () => ({
+jest.mock('./AppiumWebMatchers.ts', () => ({
   __esModule: true,
   default: {
     withWebViewAction: jest.fn().mockResolvedValue(undefined),
@@ -10,19 +10,19 @@ jest.mock('./PlaywrightWebMatchers.ts', () => ({
 }));
 
 import WebView from './WebView';
-import PlaywrightWebMatchers from './PlaywrightWebMatchers';
+import AppiumWebMatchers from './AppiumWebMatchers';
 
 describe('WebView Appium facades', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('forwards withWebViewAction to PlaywrightWebMatchers', async () => {
+  it('forwards withWebViewAction to AppiumWebMatchers', async () => {
     const action = jest.fn().mockResolvedValue(undefined);
 
     await WebView.withWebViewAction('https://example.test', action);
 
-    expect(PlaywrightWebMatchers.withWebViewAction).toHaveBeenCalledWith(
+    expect(AppiumWebMatchers.withWebViewAction).toHaveBeenCalledWith(
       'https://example.test',
       action,
     );
