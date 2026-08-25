@@ -84,21 +84,21 @@ describe('mnemonic::pickUniqueMissingWordSlots', () => {
   });
 
   it('falls back when repeated random row/column picks keep selecting the same word', () => {
-    // With Math.random always 0, the row/column sampler always hits indexes
-    // 3, 6, and 9 — set those to the same word so attempts collide.
+    // With Math.random always 0, Fisher–Yates always yields rows [1,2,3] and
+    // column 1 → indexes 4, 7, and 10. Set those to the same word so attempts collide.
     const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
     const wordsWithCollisionPath = [
       'w0',
       'w1',
       'w2',
+      'w3',
       'same',
-      'w4',
       'w5',
+      'w6',
       'same',
-      'w7',
       'w8',
+      'w9',
       'same',
-      'w10',
       'w11',
     ];
 

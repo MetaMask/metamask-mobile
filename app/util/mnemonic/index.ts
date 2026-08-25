@@ -49,7 +49,9 @@ export const pickUniqueMissingWordSlots = (
       Array.from({ length: SRP_GRID_ROW_COUNT }, (_, row) => row),
     ).slice(0, count);
     const emptySlotsIndexes = selectedRows.map((row) => {
-      const col = Math.floor(Math.random() * SRP_GRID_COLUMN_COUNT);
+      const col = shuffle(
+        Array.from({ length: SRP_GRID_COLUMN_COUNT }, (_, i) => i),
+      )[0];
       return row * SRP_GRID_COLUMN_COUNT + col;
     });
     const removedWords = emptySlotsIndexes.map((index) => words[index]);
