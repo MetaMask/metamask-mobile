@@ -256,6 +256,8 @@ class PerpsConnectionManagerClass {
             networkChanged: hasPerpsNetworkChanged,
             providerChanged: hasProviderChanged,
             hip3Changed: hasHip3Changed,
+            previousAddress: this.previousAddress,
+            currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
             previousProvider: this.previousProvider,
