@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.8.1]
 
+### Fixed
+
+- Fixed a swap page crash after fetching quotes when intent quote metadata could not be applied to read-only quote state (#35206)
+
 ## [8.8.0]
 
 ### Added
