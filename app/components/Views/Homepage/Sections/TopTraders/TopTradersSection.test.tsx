@@ -9,6 +9,7 @@ import { SectionRefreshHandle } from '../../types';
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
+let mockHasFetched = true;
 
 jest.mock('../../../../../util/haptics', () => ({
   playErrorNotification: () => mockPlayErrorNotification(),
@@ -74,7 +75,10 @@ const mockUseTopTraders = jest.fn((_options?: unknown) => ({
 }));
 
 jest.mock('./hooks', () => ({
-  useTopTraders: (args: unknown) => mockUseTopTraders(args),
+  useTopTraders: (args: unknown) => ({
+    hasFetched: mockHasFetched,
+    ...mockUseTopTraders(args),
+  }),
   usePrefetchTraderProfiles: jest.fn(),
 }));
 
@@ -124,6 +128,17 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
   __esModule: true,
   default: jest.fn(() => ({ isVisible: true, onLayout: jest.fn() })),
 }));
+
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  useSectionPerformance: jest.fn(),
+}));
+
+const mockUseSectionViewportVisible = jest.requireMock(
+  '../../hooks/useSectionViewportVisible',
+).default as jest.Mock;
+const mockUseSectionPerformance = jest.requireMock(
+  '../../hooks/useSectionPerformance',
+).useSectionPerformance as jest.Mock;
 
 let mockNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -200,6 +215,11 @@ describe('TopTradersSection', () => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
+    mockHasFetched = true;
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -227,6 +247,148 @@ describe('TopTradersSection', () => {
         timeframe: '7d',
         limit: 50,
       }),
+    );
+  });
+
+  it('defers the leaderboard query while the section is offscreen', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('keeps a measurable skeleton mounted before the first query', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = false;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+  });
+
+  it('registers the idle placeholder as a rendered section for Home Viewed analytics', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockHasFetched = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    const mockUseHomeViewedEvent = jest.requireMock(
+      '../../hooks/useHomeViewedEvent',
+    ).default as jest.Mock;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      mockUseHomeViewedEvent.mock.calls.at(-1)?.[0].sectionRef,
+    ).not.toBeNull();
+  });
+
+  it('keeps a cached empty result measurable until this section requests data', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('does not count disabled-query idle time as data-fetch latency', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockHasFetched = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        isLoading: false,
+      }),
+    );
+  });
+
+  it('keeps the query enabled after the section first enters the viewport', () => {
+    let isVisible = false;
+    mockUseSectionViewportVisible.mockImplementation(() => ({
+      isVisible,
+      onLayout: jest.fn(),
+    }));
+
+    const { rerender } = renderWithProvider(
+      <TopTradersSection {...defaultProps} />,
+    );
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+
+    isVisible = true;
+    rerender(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+
+    isVisible = false;
+    rerender(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
     );
   });
 
@@ -560,6 +722,19 @@ describe('TopTradersSection', () => {
 
     expect(ref.current).not.toBeNull();
     await expect(ref.current?.refresh()).resolves.toBeUndefined();
+  });
+
+  it('preserves explicit Homepage refresh while the section is offscreen', async () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    const ref = createRef<SectionRefreshHandle>();
+    renderWithProvider(<TopTradersSection ref={ref} {...defaultProps} />);
+
+    await expect(ref.current?.refresh()).resolves.toBeUndefined();
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   it('invokes onLayout from useHomeViewedEvent when the section root lays out', () => {
