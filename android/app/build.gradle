@@ -245,10 +245,9 @@ android {
     // Overlay main react_native_config for BrowserStack builds and mark
     // BrowserStack APKs debuggable — required for mitmproxy network capture.
     def isBrowserStackBuild = System.getenv("IS_BROWSERSTACK_BUILD") == "true"
-    def trustUserCasForNetworkLogs = isBrowserStackBuild
 
     sourceSets {
-      if (trustUserCasForNetworkLogs) {
+      if (isBrowserStackBuild) {
         release {
           res.srcDirs += ["src/browserstackNetworkLogs/res"]
         }
