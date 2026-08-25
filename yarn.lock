@@ -9853,16 +9853,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@20.0.0-preview-634f4cc50":
-  version: 20.0.0-preview-634f4cc50
-  resolution: "@metamask-previews/ramps-controller@npm:20.0.0-preview-634f4cc50"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@20.0.0-preview-2f49d5c05":
+  version: 20.0.0-preview-2f49d5c05
+  resolution: "@metamask-previews/ramps-controller@npm:20.0.0-preview-2f49d5c05"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
-  checksum: 10/103a840877c8504b4e7bb99ea3397abc8af113f1265a71ab5f6cdf9e9faddd6e971db2dcb5c2686fd345b1af726174a10383c62756f9e0f960c29d903b344321
+  checksum: 10/a20b7372a71c40cbb3b9e218ba7dc0767bb3e040fb90d4f805a448ce2fc99fca36497d8c0d63fbf6ddffd8dddd1a68a7ff5b980a62b41a16e741c03877685997
   languageName: node
   linkType: hard
 
@@ -35835,7 +35835,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.3"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@20.0.0-preview-634f4cc50"
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@20.0.0-preview-2f49d5c05"
     "@metamask/react-data-query": "npm:^0.2.2"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
