@@ -24,6 +24,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -60,6 +61,8 @@ export function useInsufficientPayTokenBalanceAlert({
   );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
+  const isGasFeeSponsored =
+    isTransactionMarkedAsGasFeeSponsored(transactionMeta);
   const { withdrawableFiatRaw } = useMoneyAccountBalance();
   const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
     usePayTokenAccountBalance();
@@ -181,6 +184,7 @@ export function useInsufficientPayTokenBalanceAlert({
     () =>
       sourceChainId !== CHAIN_IDS.MONAD &&
       !isMoneyPaymentOverride &&
+      !isGasFeeSponsored &&
       (payToken || isPostQuote) &&
       !isPayTokenNative &&
       !isPendingAlert &&
@@ -189,6 +193,7 @@ export function useInsufficientPayTokenBalanceAlert({
     [
       sourceChainId,
       isMoneyPaymentOverride,
+      isGasFeeSponsored,
       isPayTokenNative,
       isPendingAlert,
       isPostQuote,

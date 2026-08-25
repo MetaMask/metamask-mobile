@@ -80,6 +80,7 @@ import {
   RESET_PASSWORD_GUIDE_URL,
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -789,7 +790,20 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     );
   };
 
-  if (!ready) return renderLoader();
+  // The deterrent stays mounted through the re-authentication loader so
+  // capture protection is not released between verifying the current password
+  // and showing the new-password form.
+  const captureDeterrent = (
+    <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+  );
+
+  if (!ready)
+    return (
+      <>
+        {renderLoader()}
+        {captureDeterrent}
+      </>
+    );
 
   return (
     <SafeAreaView
@@ -808,6 +822,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           ? renderResetPassword()
           : renderConfirmPassword()}
       </Box>
+      {captureDeterrent}
     </SafeAreaView>
   );
 };
