@@ -26,7 +26,15 @@ import {
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
-import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectHip3ConfigVersion,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -71,16 +79,12 @@ function getEvmAccountFromSelectedAccountGroup() {
 }
 
 function getCurrentPerpsLoadingSessionIdentity(): PerpsLoadingSessionIdentity {
-  const {
-    activeProvider = PROVIDER_CONFIG.DefaultProvider,
-    hip3ConfigVersion = 0,
-    isTestnet,
-  } = Engine.context.PerpsController.state;
+  const state = store.getState();
   return createPerpsLoadingSessionIdentity({
-    address: getEvmAccountFromSelectedAccountGroup()?.address,
-    hip3ConfigVersion,
-    network: isTestnet ? 'testnet' : 'mainnet',
-    provider: activeProvider,
+    address: selectPerpsSelectedAccountAddress(state),
+    hip3ConfigVersion: selectHip3ConfigVersion(state),
+    network: selectPerpsNetwork(state),
+    provider: selectPerpsProvider(state),
   });
 }
 
@@ -2245,9 +2249,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
   private getCurrentSourceKey(): string {
     const controller = Engine.context.PerpsController;
-    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-      store.getState(),
-    );
+    const state = store.getState();
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(state);
+    const hip3ConfigVersion = selectHip3ConfigVersion(state);
     const activeProvider =
       controller.state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider;
     const providerNetworkKey = buildProviderCacheKey(
@@ -2260,7 +2264,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     } else if (terminalEnabled) {
       source = 'terminal';
     }
-    return `${providerNetworkKey}:${source}`;
+    return `${providerNetworkKey}:${hip3ConfigVersion}:${source}`;
   }
 
   protected connect() {

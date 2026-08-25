@@ -25,7 +25,15 @@ import {
   resetPerpsLifecycleContextForTests,
 } from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectHip3ConfigVersion,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -45,7 +53,15 @@ jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
 jest.mock('../selectors/featureFlags', () => ({
+  selectHip3ConfigVersion: jest.fn(() => 0),
   selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsNetwork: jest.fn(() => 'mainnet'),
+  selectPerpsProvider: jest.fn(() => 'hyperliquid'),
+}));
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: jest.fn(() => '0x123456789'),
 }));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -67,6 +83,12 @@ const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
 const mockTrace = trace as jest.Mock;
 const mockSelectPerpsTerminalBackendEnabledFlag =
   selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
+const mockSelectHip3ConfigVersion =
+  selectHip3ConfigVersion as unknown as jest.Mock;
+const mockSelectPerpsNetwork = selectPerpsNetwork as unknown as jest.Mock;
+const mockSelectPerpsProvider = selectPerpsProvider as unknown as jest.Mock;
+const mockSelectPerpsSelectedAccountAddress =
+  selectPerpsSelectedAccountAddress as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -110,6 +132,10 @@ describe('PerpsStreamManager', () => {
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
     mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+    mockSelectHip3ConfigVersion.mockReturnValue(0);
+    mockSelectPerpsNetwork.mockReturnValue('mainnet');
+    mockSelectPerpsProvider.mockReturnValue('hyperliquid');
+    mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
 
     // Create a fresh stream manager for each test
     testStreamManager = new PerpsStreamManager();
@@ -2963,8 +2989,8 @@ describe('PerpsStreamManager', () => {
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet:terminal',
-          current: 'providerB:mainnet:terminal',
+          fetchedFor: 'providerA:mainnet:0:terminal',
+          current: 'providerB:mainnet:0:terminal',
         }),
       );
 
