@@ -4,6 +4,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -2419,6 +2420,55 @@ describe('ActivityListItemRow — pending rows', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'To: 0x1234...',
     );
+  });
+
+  it('keeps the pending spinner inside the title column when an amount is present', () => {
+    const item: ActivityListItem = {
+      type: 'unstake',
+      chainId: 'eip155:1',
+      status: 'pending',
+      timestamp: 1_787_646_540_000,
+      hash: '0xactivitypendingunstakelayout',
+      isEarliestNonce: true,
+      data: {
+        token: {
+          direction: 'in',
+          symbol: 'ETH',
+          decimals: 18,
+          amount: '790100000000000',
+        },
+      },
+    };
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    const title = getByTestId(`activity-title-${item.hash}`);
+    const spinner = getByTestId(`activity-pending-spinner-${item.hash}`);
+    const amount = getByTestId(`activity-primary-amount-${item.hash}`);
+
+    expect(title).toHaveTextContent('Unstaking Ethereum');
+    expect(amount).toHaveTextContent('+0.0007901 ETH');
+    expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(title.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(spinner.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(amount.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
   });
 
   it('renders queued rows with an hourglass prefix and no title spinner', () => {
