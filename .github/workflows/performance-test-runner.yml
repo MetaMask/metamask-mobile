@@ -258,5 +258,6 @@ jobs:
           path: |
             tests/reporters/reports
             tests/test-reports/playwright-report/
+            tests/test-reports/performance-profiles/
           if-no-files-found: ignore
           retention-days: 7

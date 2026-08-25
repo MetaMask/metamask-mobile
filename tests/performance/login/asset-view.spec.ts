@@ -5,6 +5,7 @@ import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
+  pullBrowserStackProfiler,
   startBrowserStackProfiler,
   stopBrowserStackProfiler,
 } from '../../framework/services/appium/BrowserStackProfiler';
@@ -34,9 +35,10 @@ perfTest.describe(
         );
 
         await WalletView.tapOnTokensSection();
-        let profilingStarted = false;
-        await startBrowserStackProfiler(driver);
-        profilingStarted = true;
+        const profilingEnabled = currentDeviceDetails.platform === 'android';
+        if (profilingEnabled) {
+          await startBrowserStackProfiler(driver);
+        }
 
         try {
           await WalletView.tapOnToken('ETH');
@@ -52,8 +54,17 @@ perfTest.describe(
 
           performanceTracker.addTimer(assetViewScreen);
         } finally {
-          if (profilingStarted) {
-            await stopBrowserStackProfiler(driver);
+          if (profilingEnabled) {
+            const profileFileName = await stopBrowserStackProfiler(
+              driver,
+              currentDeviceDetails.platform,
+            );
+            await pullBrowserStackProfiler(
+              driver,
+              testInfo,
+              currentDeviceDetails.platform,
+              profileFileName,
+            );
           }
         }
       },
