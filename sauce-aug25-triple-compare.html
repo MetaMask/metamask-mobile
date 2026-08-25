@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sauce Labs · 3-run compare · Aug 25</title>
+  <style>
+    :root {
+      --bg: #0b1220; --panel: #121a2b; --ink: #e8eefc; --muted: #93a0b8;
+      --line: #243149; --green: #34d399; --red: #fb7185; --amber: #fbbf24;
+      --orange: #fb923c; --teal: #2dd4bf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--ink);
+      background: radial-gradient(900px 420px at 15% -5%, #7c2d1244, transparent),
+                  radial-gradient(800px 400px at 90% 0%, #0f766e33, transparent), var(--bg);
+      font: 14px/1.45 Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 18px 64px; }
+    .hero {
+      background: linear-gradient(135deg, #1c1917, #7c2d12 60%, #0f766e);
+      border-radius: 20px; padding: 26px; color: #fff; margin-bottom: 16px;
+      border: 1px solid #ffffff22;
+    }
+    .eyebrow { color: #fed7aa; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    h1 { margin: 8px 0 10px; font-size: clamp(26px, 4vw, 40px); line-height: 1.08; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    p { margin: 0; color: #ffedd5; }
+    .banner {
+      margin-top: 14px; background: #451a03cc; border: 1px solid #f59e0b88;
+      color: #fde68a; border-radius: 12px; padding: 12px 14px; font-size: 13px;
+    }
+    .links { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .links a {
+      color:#fff; border:1px solid #ffffff44; border-radius:999px;
+      padding:6px 11px; text-decoration:none; font-size:12px;
+    }
+    .section {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 18px; padding: 18px; margin-top: 14px;
+    }
+    .grid3 { display:grid; grid-template-columns: repeat(3,1fr); gap:12px; }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .card {
+      background: #0e1626; border: 1px solid var(--line); border-radius: 16px;
+      padding: 14px; border-top: 3px solid var(--c, #fb923c);
+    }
+    .card h3 { margin: 0 0 6px; font-size: 15px; }
+    .meta { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+    .lanes { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .lane { background:#121a2b; border:1px solid var(--line); border-radius:12px; padding:12px; }
+    .lane.priv { border-top: 2px solid var(--orange); }
+    .lane.cloud { border-top: 2px solid var(--teal); }
+    .big { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing:-.02em; }
+    .sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .split { display:flex; gap:10px; margin-top:8px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+    .split strong { color: var(--ink); }
+    .bar-row {
+      display:grid; grid-template-columns: 90px 1fr 58px; gap:8px;
+      align-items:center; margin:7px 0; font-size:12px;
+    }
+    .track { height:12px; background:#0b1220; border-radius:999px; overflow:hidden; border:1px solid var(--line); }
+    .fill { height:100%; border-radius:999px; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:980px; }
+    th, td {
+      border-bottom:1px solid var(--line); padding:8px 6px; text-align:left;
+      vertical-align:middle; font-size:12px;
+    }
+    th {
+      color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+      background:#0e1626; position:sticky; top:0;
+    }
+    td:first-child, th:first-child {
+      position:sticky; left:0; background:#121a2b; z-index:1; min-width:170px; font-weight:600;
+    }
+    .cell {
+      display:inline-block; min-width:78px; text-align:center; border-radius:8px;
+      padding:5px 6px; font-weight:700; font-variant-numeric:tabular-nums;
+    }
+    .P { background:#064e3b66; color:var(--green); }
+    .F { background:#7f1d1d66; color:var(--red); }
+    .N { background:#78350f66; color:var(--amber); }
+    .T { background:#7f1d1d99; color:#fecaca; } /* timeout fail */
+    .win { box-shadow: inset 0 0 0 1px #34d399aa; }
+    .badge {
+      display:inline-block; font-size:10px; font-weight:700; border-radius:999px;
+      padding:2px 7px; background:#78350f; color:#fde68a; margin-left:6px;
+    }
+    ul { margin:8px 0 0; padding-left:18px; color:#d6d3d1; }
+    li { margin:6px 0; }
+    .foot { color:var(--muted); font-size:12px; margin-top:16px; }
+    a { color:#93c5fd; }
+    @media (max-width: 1000px) {
+      .grid3, .grid2, .lanes { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="eyebrow">MetaMask Mobile · Sauce Labs under evaluation</div>
+      <h1>3-run compare · Aug 25</h1>
+      <p>
+        Side-by-side Private vs Cloud for three consecutive manual performance runs
+        (same commit <code>725f4d37</code>). Built for quick visual comparison of
+        pass rate, timeouts, and job speed.
+      </p>
+      <div class="banner">
+        <strong>Sauce Labs remains under evaluation.</strong>
+        These runs show a sharp regression vs Aug 24 (~16–18/23): most scenarios fail with ~300s timeouts.
+        Treat results as provisional — not for final vendor selection.
+      </div>
+      <nav class="links" id="links"></nav>
+    </header>
+
+    <section class="section">
+      <h2>Scoreboard · Private vs Cloud</h2>
+      <div class="grid3" id="scoreboard"></div>
+    </section>
+
+    <section class="section">
+      <h2>Quality &amp; speed at a glance</h2>
+      <div class="grid2">
+        <div>
+          <div class="eyebrow" style="color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Pass / 23</div>
+          <div id="pass-bars"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Test phase minutes (lower is better)</div>
+          <div id="speed-bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Scenario matrix</h2>
+      <p style="color:var(--muted);margin-bottom:12px;font-size:13px">
+        Green = QG passed · Red = failed · Amber = no metrics · Dark red = ~300s timeout fail.
+        Gold outline = fastest valid (passed) timing in the row.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Analysis</h2>
+      <ul>
+        <li><strong>All three runs are degraded</strong> vs Aug 24 Sauce baselines (Private 16–17/23, Cloud 16–18/23).</li>
+        <li>Best lane in this batch: <strong>Run E Cloud / Private at 6/23</strong> — still far below prior post-parity scores.</li>
+        <li>Dominant failure mode is <strong>~300s timeouts</strong> (suite job still “succeeds” at workflow level, but scenarios do not produce usable QG timings).</li>
+        <li>Job speed is also worse: test phase ~57–63 min vs ~30–41 min on Aug 24.</li>
+        <li><strong>Sauce Labs stays under evaluation</strong> — do not use this batch for ranking against TestMu HE / BrowserStack.</li>
+      </ul>
+    </section>
+    <p class="foot">Branch MMQA-TestMu-PoC-HyperExecute · commit 725f4d37 · Generated 2026-08-25 · Values in seconds / minutes.</p>
+  </main>
+  <script>
+    const DATA = {"rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "labels": {"32831401570": "Run E", "32831428412": "Run F", "32831453242": "Run G"}, "runs": {"32831401570": {"id": "32831401570", "createdAt": "2026-08-25T09:20:19Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831401570", "lanes": {"sauce_private": {"pass": 6, "qgFail": 16, "noMetrics": 1, "timeouts": 14, "total": 23, "scenarios": {"Cold Start → Onboarding": [1.025, "P"], "Fresh SRP wallet creation": [10.734, "P"], "Import SRP onboarding +50": [5.804, "P"], "Money Home · empty": [null, "N"], "Account creation": [4.895, "F"], "Money Home · funded": [300.007, "F"], "Perps open/close": [300.203, "F"], "Seedless Apple": [5.27, "P"], "Seedless Google": [300.006, "F"], "Seedless Telegram": [4.341, "P"], "Aggregated Balance": [300.377, "F"], "Cross-chain ETH→SOL": [300.311, "F"], "Asset View": [300.31, "F"], "Cold Start → Login": [6.05, "F"], "Swap ETH→LINK": [300.348, "F"], "Import SRP +50": [300.33, "F"], "Warm Start → Wallet": [300.274, "F"], "Perps add funds": [5.983, "P"], "Warm Start → Login": [300.27, "F"], "Predict Avail. Balance": [300.273, "F"], "Predict Market Details": [300.008, "F"], "Predict Deposit": [300.274, "F"], "Rewards tab": [300.273, "F"]}, "onboardingSec": 1264, "importedSec": 2223, "testPhaseSumSec": 3487}, "sauce_cloud": {"pass": 6, "qgFail": 16, "noMetrics": 1, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.272, "P"], "Fresh SRP wallet creation": [8.282, "P"], "Import SRP onboarding +50": [5.675, "P"], "Money Home · empty": [300.005, "F"], "Account creation": [300.266, "F"], "Money Home · funded": [300.006, "F"], "Perps open/close": [300.269, "F"], "Seedless Apple": [300.269, "F"], "Seedless Google": [300.261, "F"], "Seedless Telegram": [300.003, "F"], "Aggregated Balance": [8.515, "P"], "Cross-chain ETH→SOL": [4.615, "P"], "Asset View": [300.363, "F"], "Cold Start → Login": [300.275, "F"], "Swap ETH→LINK": [300.006, "F"], "Import SRP +50": [4.122, "P"], "Warm Start → Wallet": [300.009, "F"], "Perps add funds": [300.275, "F"], "Warm Start → Login": [300.274, "F"], "Predict Avail. Balance": [300.277, "F"], "Predict Market Details": [300.282, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [300.279, "F"]}, "onboardingSec": 1449, "importedSec": 2079, "testPhaseSumSec": 3528}}}, "32831428412": {"id": "32831428412", "createdAt": "2026-08-25T09:20:36Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831428412", "lanes": {"sauce_private": {"pass": 3, "qgFail": 17, "noMetrics": 3, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [4.573, "F"], "Fresh SRP wallet creation": [300.302, "F"], "Import SRP onboarding +50": [300.347, "F"], "Money Home · empty": [null, "N"], "Account creation": [300.275, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [300.275, "F"], "Seedless Apple": [300.271, "F"], "Seedless Google": [5.813, "P"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [300.315, "F"], "Cross-chain ETH→SOL": [300.336, "F"], "Asset View": [300.375, "F"], "Cold Start → Login": [300.331, "F"], "Swap ETH→LINK": [300.335, "F"], "Import SRP +50": [300.362, "F"], "Warm Start → Wallet": [300.318, "F"], "Perps add funds": [6.457, "P"], "Warm Start → Login": [300.377, "F"], "Predict Avail. Balance": [1.412, "P"], "Predict Market Details": [300.012, "F"], "Predict Deposit": [300.007, "F"], "Rewards tab": [null, "N"]}, "onboardingSec": 1592, "importedSec": 2026, "testPhaseSumSec": 3618}, "sauce_cloud": {"pass": 2, "qgFail": 19, "noMetrics": 2, "timeouts": 18, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.31, "F"], "Fresh SRP wallet creation": [300.373, "F"], "Import SRP onboarding +50": [300.348, "F"], "Money Home · empty": [300.277, "F"], "Account creation": [300.274, "F"], "Money Home · funded": [300.273, "F"], "Perps open/close": [300.308, "F"], "Seedless Apple": [300.278, "F"], "Seedless Google": [300.326, "F"], "Seedless Telegram": [300.001, "F"], "Aggregated Balance": [300.338, "F"], "Cross-chain ETH→SOL": [5.039, "F"], "Asset View": [2.96, "P"], "Cold Start → Login": [300.275, "F"], "Swap ETH→LINK": [300.28, "F"], "Import SRP +50": [4.439, "P"], "Warm Start → Wallet": [300.275, "F"], "Perps add funds": [300.288, "F"], "Warm Start → Login": [300.009, "F"], "Predict Avail. Balance": [300.292, "F"], "Predict Market Details": [300.27, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1590, "importedSec": 2159, "testPhaseSumSec": 3749}}}, "32831453242": {"id": "32831453242", "createdAt": "2026-08-25T09:20:52Z", "headSha": "725f4d37", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32831453242", "lanes": {"sauce_private": {"pass": 4, "qgFail": 18, "noMetrics": 1, "timeouts": 18, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.459, "P"], "Fresh SRP wallet creation": [7.746, "P"], "Import SRP onboarding +50": [3.672, "P"], "Money Home · empty": [300.006, "F"], "Account creation": [300.292, "F"], "Money Home · funded": [300.006, "F"], "Perps open/close": [300.29, "F"], "Seedless Apple": [300.292, "F"], "Seedless Google": [300.281, "F"], "Seedless Telegram": [null, "N"], "Aggregated Balance": [300.223, "F"], "Cross-chain ETH→SOL": [300.199, "F"], "Asset View": [300.213, "F"], "Cold Start → Login": [300.215, "F"], "Swap ETH→LINK": [300.191, "F"], "Import SRP +50": [300.24, "F"], "Warm Start → Wallet": [300.234, "F"], "Perps add funds": [300.004, "F"], "Warm Start → Login": [0.565, "P"], "Predict Avail. Balance": [300.177, "F"], "Predict Market Details": [300.174, "F"], "Predict Deposit": [300.172, "F"], "Rewards tab": [300.175, "F"]}, "onboardingSec": 1619, "importedSec": 2165, "testPhaseSumSec": 3784}, "sauce_cloud": {"pass": 5, "qgFail": 16, "noMetrics": 2, "timeouts": 16, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.312, "F"], "Fresh SRP wallet creation": [300.308, "F"], "Import SRP onboarding +50": [300.336, "F"], "Money Home · empty": [300.284, "F"], "Account creation": [300.288, "F"], "Money Home · funded": [300.311, "F"], "Perps open/close": [300.312, "F"], "Seedless Apple": [300.28, "F"], "Seedless Google": [300.308, "F"], "Seedless Telegram": [300.002, "F"], "Aggregated Balance": [300.306, "F"], "Cross-chain ETH→SOL": [4.952, "P"], "Asset View": [300.309, "F"], "Cold Start → Login": [4.835, "P"], "Swap ETH→LINK": [300.315, "F"], "Import SRP +50": [300.012, "F"], "Warm Start → Wallet": [1.148, "P"], "Perps add funds": [4.976, "P"], "Warm Start → Login": [0.954, "P"], "Predict Avail. Balance": [300.009, "F"], "Predict Market Details": [300.284, "F"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 1603, "importedSec": 1842, "testPhaseSumSec": 3445}}}}, "order": ["32831401570", "32831428412", "32831453242"]};
+
+    function fmtMin(sec) {
+      if (sec == null) return '—';
+      return (sec/60).toFixed(1) + 'm';
+    }
+    function cellClass(time, status) {
+      if (status === 'P') return 'P';
+      if (status === 'N') return 'N';
+      if (status === 'F' && time != null && time >= 290) return 'T';
+      if (status === 'F') return 'F';
+      return 'N';
+    }
+    function cellLabel(time, status) {
+      if (status === 'P') return 'PASS';
+      if (status === 'N') return 'NO METRICS';
+      if (status === 'F' && time != null && time >= 290) return 'TIMEOUT';
+      if (status === 'F') return 'FAIL';
+      return '—';
+    }
+
+    function render() {
+      document.getElementById('links').innerHTML = DATA.order.map(id => {
+        const r = DATA.runs[id];
+        return `<a href="${r.url}" target="_blank">${DATA.labels[id]} · ${id}</a>`;
+      }).join('');
+
+      document.getElementById('scoreboard').innerHTML = DATA.order.map(id => {
+        const r = DATA.runs[id];
+        const priv = r.lanes.sauce_private;
+        const cloud = r.lanes.sauce_cloud;
+        return `<article class="card" style="--c:#fb923c">
+          <h3>${DATA.labels[id]} <span class="badge">under eval</span></h3>
+          <div class="meta"><a href="${r.url}" target="_blank">${id}</a> · ${r.createdAt?.slice(0,16).replace('T',' ')} UTC · <code>${r.headSha}</code></div>
+          <div class="lanes">
+            <div class="lane priv">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Private</div>
+              <div class="big">${priv.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
+              <div class="sub">fail ${priv.qgFail} · timeouts ${priv.timeouts} · no metrics ${priv.noMetrics}</div>
+              <div class="split"><span>Phase <strong>${fmtMin(priv.testPhaseSumSec)}</strong></span>
+                <span>Onb <strong>${fmtMin(priv.onboardingSec)}</strong></span>
+                <span>Imp <strong>${fmtMin(priv.importedSec)}</strong></span></div>
+            </div>
+            <div class="lane cloud">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Cloud</div>
+              <div class="big">${cloud.pass}<span style="font-size:14px;color:var(--muted)">/23</span></div>
+              <div class="sub">fail ${cloud.qgFail} · timeouts ${cloud.timeouts} · no metrics ${cloud.noMetrics}</div>
+              <div class="split"><span>Phase <strong>${fmtMin(cloud.testPhaseSumSec)}</strong></span>
+                <span>Onb <strong>${fmtMin(cloud.onboardingSec)}</strong></span>
+                <span>Imp <strong>${fmtMin(cloud.importedSec)}</strong></span></div>
+            </div>
+          </div>
+        </article>`;
+      }).join('');
+
+      // bars
+      const barItems = [];
+      DATA.order.forEach(id => {
+        const r = DATA.runs[id];
+        barItems.push({label: DATA.labels[id]+' Priv', pass: r.lanes.sauce_private.pass, min: r.lanes.sauce_private.testPhaseSumSec/60, color:'#fb923c'});
+        barItems.push({label: DATA.labels[id]+' Cloud', pass: r.lanes.sauce_cloud.pass, min: r.lanes.sauce_cloud.testPhaseSumSec/60, color:'#2dd4bf'});
+      });
+      const maxMin = Math.max(...barItems.map(b => b.min));
+      document.getElementById('pass-bars').innerHTML = barItems.map(b => `
+        <div class="bar-row"><div>${b.label}</div>
+          <div class="track"><div class="fill" style="width:${(b.pass/23)*100}%;background:${b.color}"></div></div>
+          <div><strong>${b.pass}/23</strong></div></div>`).join('');
+      document.getElementById('speed-bars').innerHTML = barItems.map(b => `
+        <div class="bar-row"><div>${b.label}</div>
+          <div class="track"><div class="fill" style="width:${(b.min/maxMin)*100}%;background:${b.color}"></div></div>
+          <div><strong>${b.min.toFixed(1)}m</strong></div></div>`).join('');
+
+      // table head
+      let head = '<tr><th>Scenario</th>';
+      DATA.order.forEach(id => {
+        head += `<th colspan="2">${DATA.labels[id]}<br><small>${id}</small></th>`;
+      });
+      head += '</tr><tr>';
+      DATA.order.forEach(() => { head += '<th>Private</th><th>Cloud</th>'; });
+      head += '</tr>';
+      document.getElementById('thead').innerHTML = head;
+
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      DATA.rowOrder.forEach(name => {
+        const vals = [];
+        DATA.order.forEach(id => {
+          vals.push(DATA.runs[id].lanes.sauce_private.scenarios[name] || [null,'—']);
+          vals.push(DATA.runs[id].lanes.sauce_cloud.scenarios[name] || [null,'—']);
+        });
+        const passedTimes = vals.filter(v => v[1]==='P' && typeof v[0]==='number').map(v => v[0]);
+        const fastest = passedTimes.length ? Math.min(...passedTimes) : null;
+        let html = `<tr><td>${name}</td>`;
+        vals.forEach(([time, st]) => {
+          const cls = cellClass(time, st);
+          const win = (st==='P' && fastest!=null && time===fastest) ? ' win' : '';
+          const txt = time==null ? 'N/A' : (time >= 290 ? '~300s' : Number(time).toFixed(2)+'s');
+          html += `<td><span class="cell ${cls}${win}">${txt}<div style="font-size:9px;opacity:.9">${cellLabel(time,st)}</div></span></td>`;
+        });
+        html += '</tr>';
+        tbody.insertAdjacentHTML('beforeend', html);
+      });
+    }
+    render();
+  </script>
+</body>
+</html>
