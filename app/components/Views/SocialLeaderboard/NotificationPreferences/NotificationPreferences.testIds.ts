@@ -9,6 +9,7 @@ export const NotificationPreferencesSelectorsIDs = {
   TRADERS_EMPTY: 'notification-preferences-view-traders-empty',
   TRADERS_ERROR: 'notification-preferences-view-traders-error',
   TRADERS_LOADING: 'notification-preferences-view-traders-loading',
+  TRADERS_LIST: 'notification-preferences-view-traders-list',
   TRADER_TOGGLE: (traderId: string) =>
     `notification-preferences-view-trader-toggle-${traderId}`,
   TRADER_ROW: (traderId: string) =>

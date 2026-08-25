@@ -1,5 +1,6 @@
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { AvatarAccount } from '@metamask/design-system-react-native';
+import { FlashList } from '@shopify/flash-list';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import React from 'react';
@@ -33,6 +34,10 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({ navigate: mockNavigate }),
   };
 });
+
+jest.mock('@shopify/flash-list', () => ({
+  FlashList: jest.requireActual('react-native').FlatList,
+}));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
@@ -212,6 +217,26 @@ describe('SocialAINotificationPreferencesContent', () => {
         NotificationPreferencesSelectorsIDs.TRADER_TOGGLE('trader-2'),
       ).props.value,
     ).toBe(false);
+  });
+
+  it('renders followed traders in a FlashList with stable trader keys', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+
+    const { UNSAFE_getByType } = renderComponent();
+    const traderList = UNSAFE_getByType(FlashList);
+
+    expect(
+      screen.getByTestId(NotificationPreferencesSelectorsIDs.TRADERS_LIST),
+    ).toBeOnTheScreen();
+    expect(traderList.props.data).toBe(followedTraders);
+    expect(traderList.props.keyExtractor(followedTraders[0], 0)).toBe(
+      'trader-1',
+    );
+    expect(traderList.props.keyExtractor(followedTraders[0], 1)).toBe(
+      'trader-1',
+    );
   });
 
   it('renders the Maskicon fallback for traders without a profile image', () => {

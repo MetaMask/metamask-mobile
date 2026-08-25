@@ -41,6 +41,20 @@ jest.mock('./AccountsList.hooks', () => ({
     toggleAllAccounts: jest.fn(),
   }),
 }));
+jest.mock('./SocialAINotificationPreferencesContent', () => {
+  const MockView = jest.requireActual('react-native').View;
+
+  return ({
+    ListHeaderComponent,
+  }: {
+    ListHeaderComponent?: React.ReactElement;
+  }) => (
+    <>
+      {ListHeaderComponent}
+      <MockView testID="notification-preferences-view-traders-list" />
+    </>
+  );
+});
 
 const PUSH_TOGGLE =
   NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
@@ -180,6 +194,24 @@ describe('NotificationSettingsSectionContent', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Wallet activity')).toBeOnTheScreen();
+  });
+
+  it('uses the Social AI trader list as the only section scroller', () => {
+    renderContent({
+      type: 'socialAI',
+      title: 'Social AI',
+      description: 'Trading signals',
+    });
+
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId('notification-preferences-view-traders-list'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Social AI')).toBeOnTheScreen();
   });
 
   it('disables both channel toggles when disabled is true', () => {

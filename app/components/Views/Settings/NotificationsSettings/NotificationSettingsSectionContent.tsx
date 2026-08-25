@@ -183,15 +183,19 @@ const WalletActivitySectionContent = ({
 const SocialAISectionContent = ({
   styles,
   disabled = false,
-}: SectionContentProps) => (
-  <>
-    <View style={styles.line} />
-    <SocialAINotificationPreferencesContent
-      showPushToggle={false}
-      withHorizontalPadding={false}
-      disabled={disabled}
-    />
-  </>
+  ListHeaderComponent,
+}: ListSectionContentProps) => (
+  <SocialAINotificationPreferencesContent
+    showPushToggle={false}
+    withHorizontalPadding={false}
+    disabled={disabled}
+    ListHeaderComponent={
+      <>
+        {ListHeaderComponent}
+        <View style={styles.line} />
+      </>
+    }
+  />
 );
 
 const MarketingSectionContent = ({
@@ -218,7 +222,7 @@ const SECTION_DEFINITIONS: Record<
     Content: WalletActivitySectionContent,
   },
   socialAI: {
-    layout: 'scroll',
+    layout: 'list',
     Content: SocialAISectionContent,
   },
   marketing: {

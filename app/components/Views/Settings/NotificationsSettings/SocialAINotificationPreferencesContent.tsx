@@ -11,7 +11,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Switch, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -37,12 +38,15 @@ import {
   DEFAULT_TX_AMOUNT_LIMIT,
   useFollowedTraders,
   useNotificationPreferences,
+  type FollowedTrader,
   type TxAmountThreshold,
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 
 const AVATAR_SIZE = 40;
+const getTraderKey = (trader: FollowedTrader) => trader.id;
+const getTraderItemType = () => 'trader';
 
 interface TraderNotificationRowProps {
   traderId: string;
@@ -56,73 +60,76 @@ interface TraderNotificationRowProps {
   onPress: (traderId: string, username: string) => void;
 }
 
-const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
-  traderId,
-  username,
-  address,
-  avatarUri,
-  isEnabled,
-  isDisabled,
-  withHorizontalPadding,
-  onToggle,
-  onPress,
-}) => {
-  const tw = useTailwind();
-  const { colors, brandColors } = useTheme();
+const TraderNotificationRow: React.FC<TraderNotificationRowProps> = memo(
+  ({
+    traderId,
+    username,
+    address,
+    avatarUri,
+    isEnabled,
+    isDisabled,
+    withHorizontalPadding,
+    onToggle,
+    onPress,
+  }) => {
+    const tw = useTailwind();
+    const { colors, brandColors } = useTheme();
 
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName={`${withHorizontalPadding ? 'px-4' : ''} py-3${
-        isDisabled ? ' opacity-50' : ''
-      }`}
-      testID={NotificationPreferencesSelectorsIDs.TRADER_ROW(traderId)}
-    >
-      <TouchableOpacity
-        onPress={() => onPress(traderId, username)}
-        accessibilityRole="button"
-        style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
-        testID={NotificationPreferencesSelectorsIDs.TRADER_PRESS(traderId)}
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName={`${withHorizontalPadding ? 'px-4' : ''} py-3${
+          isDisabled ? ' opacity-50' : ''
+        }`}
+        testID={NotificationPreferencesSelectorsIDs.TRADER_ROW(traderId)}
       >
-        <TraderAvatar
-          imageUrl={avatarUri}
-          address={address}
-          size={AVATAR_SIZE}
-          recyclingKey={traderId}
-        />
-
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-          twClassName="flex-1"
+        <TouchableOpacity
+          onPress={() => onPress(traderId, username)}
+          accessibilityRole="button"
+          style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
+          testID={NotificationPreferencesSelectorsIDs.TRADER_PRESS(traderId)}
         >
-          {username}
-        </Text>
-      </TouchableOpacity>
+          <TraderAvatar
+            imageUrl={avatarUri}
+            address={address}
+            size={AVATAR_SIZE}
+            recyclingKey={traderId}
+          />
 
-      <Switch
-        value={isEnabled}
-        onValueChange={() => onToggle(traderId)}
-        disabled={isDisabled}
-        trackColor={{
-          true: colors.primary.default,
-          false: colors.border.muted,
-        }}
-        thumbColor={brandColors.white}
-        ios_backgroundColor={colors.border.muted}
-        testID={NotificationPreferencesSelectorsIDs.TRADER_TOGGLE(traderId)}
-      />
-    </Box>
-  );
-};
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="flex-1"
+          >
+            {username}
+          </Text>
+        </TouchableOpacity>
+
+        <Switch
+          value={isEnabled}
+          onValueChange={() => onToggle(traderId)}
+          disabled={isDisabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+          testID={NotificationPreferencesSelectorsIDs.TRADER_TOGGLE(traderId)}
+        />
+      </Box>
+    );
+  },
+);
 
 export interface SocialAINotificationPreferencesContentProps {
   showPushToggle?: boolean;
   withHorizontalPadding?: boolean;
+  ListHeaderComponent?: React.ReactElement;
   /**
    * Forces the dependent Trading Signals UI (thresholds, traders) into the
    * disabled/greyed-out look — same as when both channels are off. Used by
@@ -134,6 +141,7 @@ export interface SocialAINotificationPreferencesContentProps {
 const SocialAINotificationPreferencesContent = ({
   showPushToggle = true,
   withHorizontalPadding = true,
+  ListHeaderComponent,
   disabled = false,
 }: SocialAINotificationPreferencesContentProps) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -225,141 +233,187 @@ const SocialAINotificationPreferencesContent = ({
     `h-px bg-muted${withHorizontalPadding ? ' mx-4' : ''}`,
   );
 
-  return (
-    <>
-      {showPreferencesSkeleton ? (
-        <PreferencesSkeleton />
-      ) : (
-        <>
-          {showPushToggle ? (
-            <>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                twClassName={`${horizontalPaddingClassName} py-4`}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
+  const renderTrader: ListRenderItem<FollowedTrader> = useCallback(
+    ({ item: trader }) => (
+      <TraderNotificationRow
+        traderId={trader.id}
+        username={trader.username}
+        address={trader.address}
+        avatarUri={trader.avatarUri}
+        isEnabled={isTraderNotificationEnabled(trader.id)}
+        isDisabled={tradingSignalsChannelsDisabled}
+        withHorizontalPadding={withHorizontalPadding}
+        onToggle={handleToggleTrader}
+        onPress={handleTraderPress}
+      />
+    ),
+    [
+      handleToggleTrader,
+      handleTraderPress,
+      isTraderNotificationEnabled,
+      tradingSignalsChannelsDisabled,
+      withHorizontalPadding,
+    ],
+  );
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        {ListHeaderComponent}
+
+        {showPreferencesSkeleton ? (
+          <PreferencesSkeleton />
+        ) : (
+          <>
+            {showPushToggle ? (
+              <>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName={`${horizontalPaddingClassName} py-4`}
                 >
-                  {strings(
-                    'social_leaderboard.notification_preferences.allow_push_notifications',
-                  )}
-                </Text>
-                <Switch
-                  value={Boolean(preferences.pushNotificationsEnabled)}
-                  onValueChange={handleSetEnabled}
-                  trackColor={{
-                    true: colors.primary.default,
-                    false: colors.border.muted,
-                  }}
-                  thumbColor={brandColors.white}
-                  ios_backgroundColor={colors.border.muted}
-                  testID={NotificationPreferencesSelectorsIDs.GLOBAL_TOGGLE}
-                />
-              </Box>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings(
+                      'social_leaderboard.notification_preferences.allow_push_notifications',
+                    )}
+                  </Text>
+                  <Switch
+                    value={Boolean(preferences.pushNotificationsEnabled)}
+                    onValueChange={handleSetEnabled}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={brandColors.white}
+                    ios_backgroundColor={colors.border.muted}
+                    testID={NotificationPreferencesSelectorsIDs.GLOBAL_TOGGLE}
+                  />
+                </Box>
 
-              <View style={separatorStyle} />
-            </>
-          ) : null}
+                <View style={separatorStyle} />
+              </>
+            ) : null}
 
-          <ThresholdRadioList
-            selected={
-              (preferences.txAmountLimit ??
-                DEFAULT_TX_AMOUNT_LIMIT) as TxAmountThreshold
-            }
-            onChange={handleSetTxAmountLimit}
-            isDisabled={tradingSignalsChannelsDisabled}
-            currency={currentCurrency}
-            labelText={strings(
-              'social_leaderboard.notification_preferences.trades_over_label',
-            )}
-            withHorizontalPadding={withHorizontalPadding}
-            testIDForAmount={
-              NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION
-            }
-          />
-        </>
-      )}
+            <ThresholdRadioList
+              selected={
+                (preferences.txAmountLimit ??
+                  DEFAULT_TX_AMOUNT_LIMIT) as TxAmountThreshold
+              }
+              onChange={handleSetTxAmountLimit}
+              isDisabled={tradingSignalsChannelsDisabled}
+              currency={currentCurrency}
+              labelText={strings(
+                'social_leaderboard.notification_preferences.trades_over_label',
+              )}
+              withHorizontalPadding={withHorizontalPadding}
+              testIDForAmount={
+                NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION
+              }
+            />
+          </>
+        )}
 
-      <Box
-        twClassName={`${horizontalPaddingClassName} pt-5 pb-2`}
-        testID={NotificationPreferencesSelectorsIDs.TRADERS_SECTION}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={
-            tradingSignalsChannelsDisabled
-              ? TextColor.TextMuted
-              : TextColor.TextDefault
-          }
-        >
-          {strings(
-            'social_leaderboard.notification_preferences.traders_you_follow',
-          )}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={
-            tradingSignalsChannelsDisabled
-              ? TextColor.TextMuted
-              : TextColor.TextAlternative
-          }
-          twClassName="mt-0.5"
-        >
-          {strings(
-            'social_leaderboard.notification_preferences.traders_you_follow_desc',
-          )}
-        </Text>
-      </Box>
-
-      {showFollowedError ? (
-        <Box testID={NotificationPreferencesSelectorsIDs.TRADERS_ERROR}>
-          <ErrorState
-            title={strings(
-              'social_leaderboard.notification_preferences.error_loading_followed',
-            )}
-            onRetry={refreshFollowed}
-          />
-        </Box>
-      ) : showFollowedLoading ? (
-        <View testID={NotificationPreferencesSelectorsIDs.TRADERS_LOADING}>
-          <TradersFollowedSkeleton />
-        </View>
-      ) : showFollowedEmpty ? (
         <Box
-          twClassName={`${horizontalPaddingClassName} py-6`}
-          testID={NotificationPreferencesSelectorsIDs.TRADERS_EMPTY}
+          twClassName={`${horizontalPaddingClassName} pt-5 pb-2`}
+          testID={NotificationPreferencesSelectorsIDs.TRADERS_SECTION}
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
+            fontWeight={FontWeight.Medium}
+            color={
+              tradingSignalsChannelsDisabled
+                ? TextColor.TextMuted
+                : TextColor.TextDefault
+            }
           >
             {strings(
-              'social_leaderboard.notification_preferences.traders_you_follow_empty',
+              'social_leaderboard.notification_preferences.traders_you_follow',
+            )}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            color={
+              tradingSignalsChannelsDisabled
+                ? TextColor.TextMuted
+                : TextColor.TextAlternative
+            }
+            twClassName="mt-0.5"
+          >
+            {strings(
+              'social_leaderboard.notification_preferences.traders_you_follow_desc',
             )}
           </Text>
         </Box>
-      ) : (
-        followedTraders.map((trader) => (
-          <TraderNotificationRow
-            key={trader.id}
-            traderId={trader.id}
-            username={trader.username}
-            address={trader.address}
-            avatarUri={trader.avatarUri}
-            isEnabled={isTraderNotificationEnabled(trader.id)}
-            isDisabled={tradingSignalsChannelsDisabled}
-            withHorizontalPadding={withHorizontalPadding}
-            onToggle={handleToggleTrader}
-            onPress={handleTraderPress}
-          />
-        ))
+      </>
+    ),
+    [
+      ListHeaderComponent,
+      brandColors.white,
+      colors.border.muted,
+      colors.primary.default,
+      currentCurrency,
+      handleSetEnabled,
+      handleSetTxAmountLimit,
+      horizontalPaddingClassName,
+      preferences.pushNotificationsEnabled,
+      preferences.txAmountLimit,
+      separatorStyle,
+      showPreferencesSkeleton,
+      showPushToggle,
+      tradingSignalsChannelsDisabled,
+      withHorizontalPadding,
+    ],
+  );
+
+  const listEmpty = showFollowedError ? (
+    <Box testID={NotificationPreferencesSelectorsIDs.TRADERS_ERROR}>
+      <ErrorState
+        title={strings(
+          'social_leaderboard.notification_preferences.error_loading_followed',
+        )}
+        onRetry={refreshFollowed}
+      />
+    </Box>
+  ) : showFollowedLoading ? (
+    <View testID={NotificationPreferencesSelectorsIDs.TRADERS_LOADING}>
+      <TradersFollowedSkeleton />
+    </View>
+  ) : showFollowedEmpty ? (
+    <Box
+      twClassName={`${horizontalPaddingClassName} py-6`}
+      testID={NotificationPreferencesSelectorsIDs.TRADERS_EMPTY}
+    >
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {strings(
+          'social_leaderboard.notification_preferences.traders_you_follow_empty',
+        )}
+      </Text>
+    </Box>
+  ) : null;
+
+  return (
+    <FlashList
+      data={followedTraders}
+      renderItem={renderTrader}
+      keyExtractor={getTraderKey}
+      getItemType={getTraderItemType}
+      ListHeaderComponent={listHeader}
+      ListEmptyComponent={listEmpty}
+      style={tw.style('flex-1')}
+      contentContainerStyle={tw.style(
+        `${withHorizontalPadding ? '' : 'px-4 '}pb-12`,
       )}
-    </>
+      showsVerticalScrollIndicator={false}
+      testID={NotificationPreferencesSelectorsIDs.TRADERS_LIST}
+    />
   );
 };
 
