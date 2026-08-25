@@ -13,6 +13,9 @@ import {
   getRampsContext,
 } from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { EnvironmentType } from '@metamask/remote-feature-flag-controller';
+import { getBaseSemVerVersion } from '../../../../util/version';
+import { getFeatureFlagAppEnvironment } from '../remote-feature-flag-controller/utils';
 
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
@@ -24,6 +27,14 @@ jest.mock('@metamask/ramps-controller', () => {
     RampsService: jest.fn(),
   };
 });
+
+jest.mock('../../../../util/version', () => ({
+  getBaseSemVerVersion: jest.fn(() => '8.9.0'),
+}));
+
+jest.mock('../remote-feature-flag-controller/utils', () => ({
+  getFeatureFlagAppEnvironment: jest.fn(() => 'dev'),
+}));
 
 describe('getRampsEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
@@ -153,6 +164,10 @@ describe('rampsServiceInit', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(getBaseSemVerVersion).mockReturnValue('8.9.0');
+    jest
+      .mocked(getFeatureFlagAppEnvironment)
+      .mockReturnValue(EnvironmentType.Development);
     delete process.env.RAMPS_ENVIRONMENT;
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -186,6 +201,9 @@ describe('rampsServiceInit', () => {
       environment: expect.any(String),
       context: expect.any(String),
       fetch,
+      clientProduct: 'metamask-mobile',
+      clientVersion: '8.9.0',
+      clientEnvironment: 'dev',
     });
   });
 
@@ -381,6 +399,9 @@ describe('rampsServiceInit', () => {
         environment: RampsEnvironment.Production,
         context: 'mobile-ios',
         fetch,
+        clientProduct: 'metamask-mobile',
+        clientVersion: '8.9.0',
+        clientEnvironment: 'dev',
       });
     });
 
@@ -394,6 +415,9 @@ describe('rampsServiceInit', () => {
         environment: RampsEnvironment.Development,
         context: 'mobile-android',
         fetch,
+        clientProduct: 'metamask-mobile',
+        clientVersion: '8.9.0',
+        clientEnvironment: 'dev',
       });
     });
   });

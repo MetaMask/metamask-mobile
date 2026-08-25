@@ -21,6 +21,14 @@ jest.mock('react-native-device-info', () => ({
   getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
+jest.mock('./ramps-service-init', () => ({
+  getRampsClientIdentity: () => ({
+    clientProduct: 'metamask-mobile',
+    clientVersion: '8.9.0',
+    clientEnvironment: 'dev',
+  }),
+}));
+
 describe('transak-service-init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,6 +117,9 @@ describe('transak-service-init', () => {
           messenger: mockMessenger,
           context: 'mobile-ios',
           fetch: expect.any(Function),
+          clientProduct: 'metamask-mobile',
+          clientVersion: '8.9.0',
+          clientEnvironment: 'dev',
         }),
       );
       expect(result).toEqual({ controller: expect.any(Object) });
