@@ -220,7 +220,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             }
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {localizedText.balanceTitle}
@@ -229,7 +229,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
             ) : (
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >

@@ -2,14 +2,14 @@ import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import ScreenView from '../../../../../Base/ScreenView';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   selectBridgeBalanceRefreshKey,
+  selectSourceAmount,
   selectSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
+import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
-import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
 import {
   HardwareWalletUnsupportedBanner,
@@ -22,13 +22,14 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import type { SwapsKeypadRef } from '../../../components/SwapsKeypad/types';
-import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import { createStyles } from '../orderViewShell.styles';
 import { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
 import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
 import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
+import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
+import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -37,10 +38,9 @@ interface BridgeLimitOrderViewContentProps {
 const BridgeLimitOrderViewContent = ({
   latestSourceBalance,
 }: BridgeLimitOrderViewContentProps) => {
-  const { styles } = useStyles(createStyles);
+  const tw = useTailwind();
   const inputRef = useRef<TokenInputAreaRef>(null);
   const keypadRef = useRef<SwapsKeypadRef>(null);
-
   const {
     destToken,
     destTokenAmount,
@@ -55,6 +55,7 @@ const BridgeLimitOrderViewContent = ({
     isQuoteSponsored,
     sourceAmountInput,
     sourceToken,
+    sourceAmount,
   } = useLimitOrderSwapInputs({ latestSourceBalance });
 
   const dismissInputAndKeypad = useCallback(() => {
@@ -66,18 +67,17 @@ const BridgeLimitOrderViewContent = ({
   const closeKeypad = useCallback(() => keypadRef.current?.close(), []);
 
   return (
-    <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
+    <Box twClassName="flex-1 bg-default">
       <Box
-        style={styles.content}
+        twClassName="flex-1 min-h-0"
         testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={dismissInputAndKeypad}
       >
         <ScrollView
           testID={BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          style={tw.style('flex-1 min-h-0')}
+          contentContainerStyle={tw.style('grow-0')}
           showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={dismissInputAndKeypad}
         >
           <SwapsInputs
             inputRef={inputRef}
@@ -104,23 +104,27 @@ const BridgeLimitOrderViewContent = ({
             }
           />
 
-          <SwapsBanners
-            latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-            onAdjustSourceAmount={handleSourcePresetAmountSelect}
-          >
-            <HardwareWalletUnsupportedBanner />
-            <QuoteErrorBanner />
-            <TokenWarningBanner />
-            <InsufficientNativeReserveBanner />
-            <MissingQuoteAndAssetsPriceDataBanner />
-          </SwapsBanners>
+          <Box onTouchEnd={dismissInputAndKeypad}>
+            <SwapsBanners
+              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+              onAdjustSourceAmount={handleSourcePresetAmountSelect}
+            >
+              <HardwareWalletUnsupportedBanner />
+              <QuoteErrorBanner />
+              <TokenWarningBanner />
+              <InsufficientNativeReserveBanner />
+              <MissingQuoteAndAssetsPriceDataBanner />
+            </SwapsBanners>
 
-          <OrdersTabs
-            enabledChainIds={enabledChainIds}
-            openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
-            history={LIMIT_MOCK_HISTORY_TAB}
-          />
+            <OrdersTabs
+              enabledChainIds={enabledChainIds}
+              openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
+              history={LIMIT_MOCK_HISTORY_TAB}
+            />
+          </Box>
         </ScrollView>
+
+        <BridgeLimitOrderFooterView />
 
         <SwapsKeypad
           ref={keypadRef}
@@ -129,16 +133,24 @@ const BridgeLimitOrderViewContent = ({
           currency={sourceAmountInput.keypadCurrency}
           decimals={sourceAmountInput.keypadDecimals}
         >
-          <GaslessQuickPickOptions
-            token={sourceToken}
-            tokenBalance={latestSourceBalance?.displayBalance}
-            onMaxPress={handleSourceMaxPress}
-            isQuoteSponsored={isQuoteSponsored}
-            onAmountSelect={handleSourcePresetAmountSelect}
-          />
+          {sourceAmount && sourceAmount !== '0' ? (
+            <SwapsLimitOrderConfirmButton
+              onPress={() => 'test'}
+              label="test"
+              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+            />
+          ) : (
+            <GaslessQuickPickOptions
+              token={sourceToken}
+              tokenBalance={latestSourceBalance?.displayBalance}
+              onMaxPress={handleSourceMaxPress}
+              isQuoteSponsored={isQuoteSponsored}
+              onAmountSelect={handleSourcePresetAmountSelect}
+            />
+          )}
         </SwapsKeypad>
       </Box>
-    </ScreenView>
+    </Box>
   );
 };
 
