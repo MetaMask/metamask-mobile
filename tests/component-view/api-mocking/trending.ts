@@ -3,7 +3,7 @@
  * Intercepts:
  * - GET https://token.api.cx.metamask.io/v3/tokens/trending (trending list)
  * - GET https://token.api.cx.metamask.io/tokens/search (token search from useSearchRequest)
- * - GET https://token.api.cx.metamask.io/v1/rwas (dedicated RWA tokens endpoint)
+ * - GET https://token.dev-api.cx.metamask.io/v1/rwas (dedicated RWA tokens endpoint, patched to dev)
  *
  * Search must be mocked when net connect is disabled; otherwise searchTokens can stall
  * until fetch timeout while useTrendingSearch stays loading, and short waitFor timeouts flake.
@@ -92,6 +92,7 @@ export const mockBnbChainToken: MockTrendingToken[] = [
 ];
 
 const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
+const RWA_ORIGINS = [TRENDING_ORIGIN, 'https://token.dev-api.cx.metamask.io'];
 const TRENDING_PATH = '/v3/tokens/trending';
 const TOKEN_SEARCH_PATH = '/tokens/search';
 const RWA_PATH = '/v1/rwas';
@@ -197,16 +198,20 @@ export function setupTrendingApiFetchMock(
     .persist();
   nock('https://uniswap.org').get('/').reply(200, FAVICON_HTML).persist();
 
-  nock(TRENDING_ORIGIN)
-    .get(RWA_PATH)
-    .query(true)
-    .reply(200, {
-      data: rwaResponseData,
-      count: rwaResponseData.length,
-      totalCount: rwaResponseData.length,
-      pageInfo: { nextCursor: null, hasNextPage: false },
-    })
-    .persist();
+  // The RWA endpoint host is patched to the dev API in @metamask/assets-controllers
+  // for testing, so intercept both prod and dev origins.
+  for (const origin of RWA_ORIGINS) {
+    nock(origin)
+      .get(RWA_PATH)
+      .query(true)
+      .reply(200, {
+        data: rwaResponseData,
+        count: rwaResponseData.length,
+        totalCount: rwaResponseData.length,
+        pageInfo: { nextCursor: null, hasNextPage: false },
+      })
+      .persist();
+  }
 }
 
 /**

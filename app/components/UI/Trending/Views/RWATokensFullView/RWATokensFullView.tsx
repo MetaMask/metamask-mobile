@@ -6,10 +6,12 @@ import {
   PriceChangeOption,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
-import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
+import {
+  useRwaTokens,
+  RWA_NETWORKS_LIST,
+} from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
-import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
