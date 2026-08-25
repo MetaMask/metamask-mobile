@@ -436,6 +436,48 @@ describe('useFiatConfirm', () => {
       );
     });
 
+    it.each([undefined, '0'])(
+      'uses the full total when providerFiat is %p',
+      (providerFiat) => {
+        jest.mocked(useTransactionPayTotals).mockReturnValue({
+          total: { fiat: '100.00', usd: '100.00' },
+          fees: {
+            metaMask: { fiat: '0', usd: '0' },
+            provider: { fiat: '0', usd: '0' },
+            ...(providerFiat === undefined
+              ? {}
+              : {
+                  providerFiat: {
+                    fiat: providerFiat,
+                    usd: providerFiat,
+                  },
+                }),
+            sourceNetwork: {
+              estimate: { fiat: '0', usd: '0', raw: '0', human: '0' },
+              max: { fiat: '0', usd: '0', raw: '0', human: '0' },
+            },
+            targetNetwork: { fiat: '0', usd: '0' },
+          },
+        } as never);
+        jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+          selectedPaymentMethodId: 'pm-123',
+          amountFiat: '50.00',
+          rampsQuote: { id: 'quote-1' },
+          caipAssetId: 'eip155:1/erc20:0xabc',
+        } as never);
+        const { result } = renderHook(() => useFiatConfirm());
+
+        act(() => {
+          result.current.onFiatConfirm();
+        });
+
+        expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+          expect.objectContaining({ amount: 100 }),
+          expect.any(Object),
+        );
+      },
+    );
+
     it('clears error and resets headless buy in progress on close', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',

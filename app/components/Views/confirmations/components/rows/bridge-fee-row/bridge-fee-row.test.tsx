@@ -122,6 +122,73 @@ describe('BridgeFeeRow', () => {
     expect(getByText('$1')).toBeDefined();
   });
 
+  it('splits positive on-ramp fee from the provider fee', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        providerFiat: { usd: '0.40' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals);
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('On-ramp fee')).toBeOnTheScreen();
+    expect(getByText('$0.40')).toBeOnTheScreen();
+    expect(getByText('$0.60')).toBeOnTheScreen();
+    expect(getByText('$1.23')).toBeOnTheScreen();
+  });
+
+  it.each([undefined, '0'])(
+    'hides on-ramp row for providerFiat %p',
+    async (providerFiat) => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          provider: { usd: '1.00' },
+          ...(providerFiat === undefined
+            ? {}
+            : { providerFiat: { usd: providerFiat } }),
+          sourceNetwork: { estimate: { usd: '0.20' } },
+          targetNetwork: { usd: '0.03' },
+          metaMask: { usd: '0', fiat: '0' },
+        },
+      } as TransactionPayTotals);
+      const { getByTestId, getByText, queryByText } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(queryByText('On-ramp fee')).toBeNull();
+      expect(getByText('$1')).toBeOnTheScreen();
+    },
+  );
+
+  it('does not render a negative provider fee when providerFiat is excessive', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        providerFiat: { usd: '2.00' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals);
+    const { getByTestId, getByText, queryByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('$0')).toBeOnTheScreen();
+    expect(queryByText('-$1')).toBeNull();
+  });
+
   it('renders skeletons if quotes loading', async () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
 

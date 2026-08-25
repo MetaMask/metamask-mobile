@@ -256,10 +256,23 @@ function FeesTooltip({
     return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
   }, [totals, formatFiat]);
 
-  const providerFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
-    [totals, formatFiat],
-  );
+  const { onRampFeeUsd, providerFeeUsd } = useMemo(() => {
+    const providerFee = new BigNumber(totals.fees.provider.usd);
+    const rawOnRampFee = new BigNumber(totals.fees.providerFiat?.usd ?? 0);
+    const onRampFee =
+      rawOnRampFee.isFinite() && rawOnRampFee.isGreaterThan(0)
+        ? BigNumber.minimum(rawOnRampFee, providerFee)
+        : new BigNumber(0);
+
+    return {
+      onRampFeeUsd: onRampFee.isGreaterThan(0)
+        ? formatFiat(onRampFee)
+        : undefined,
+      providerFeeUsd: formatFiat(
+        BigNumber.maximum(providerFee.minus(onRampFee), 0),
+      ),
+    };
+  }, [totals, formatFiat]);
 
   const metaMaskFeeUsd = useMemo(
     () => formatFiat(new BigNumber(totals.fees.metaMask.usd ?? 0)),
@@ -287,6 +300,17 @@ function FeesTooltip({
         </Text>
         <Text color={TextColor.TextAlternative}>{providerFeeUsd}</Text>
       </Box>
+      {onRampFeeUsd ? (
+        <Box
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Text color={TextColor.TextAlternative}>
+            {strings('confirm.label.onramp_fee')}
+          </Text>
+          <Text color={TextColor.TextAlternative}>{onRampFeeUsd}</Text>
+        </Box>
+      ) : null}
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
