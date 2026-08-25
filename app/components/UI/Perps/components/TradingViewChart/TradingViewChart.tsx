@@ -610,14 +610,14 @@ const TradingViewChart = React.forwardRef<
         // Increment this version number to force WebView remount and HTML reload
         // when making incompatible changes to TradingViewChartTemplate.tsx
         //
-        // Current version: v22 (limit order overlay lines)
+        // Current version: v25 (limit lines included in autoscale)
 
         //
         // Future improvement: Consider using a content hash of the template
         // for automatic cache busting: key={`chart-webview-${templateHash}`}
         //
         // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
-        key="chart-webview-v22"
+        key="chart-webview-v25"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
