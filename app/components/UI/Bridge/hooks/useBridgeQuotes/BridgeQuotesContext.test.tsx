@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { BridgeQuotesProvider, useBridgeQuotes } from './BridgeQuotesContext';
+import { BridgeQuotesProvider } from './BridgeQuotesContext';
+import { useBridgeQuotes } from './index';
 import { runQuoteProviderCases } from '../useBridgeQuoteData/runQuoteProviderCases';
 import { FeatureId } from '@metamask/bridge-controller';
 import { mockContext } from '../useBridgeQuoteRequest/runQuoteRequestCases';

@@ -1,17 +1,12 @@
-import React, { createContext, useContext, useMemo } from 'react';
-import {
-  useQuoteRequest,
-  useQuoteData,
-  type UseQuoteRequestParams,
-  type UseQuoteDataParams,
-} from './index';
+import React, { createContext, useMemo } from 'react';
+import { type UseQuoteRequestParams, useQuoteRequest } from './useQuoteRequest';
+import { useQuoteData, type UseQuoteDataParams } from './useQuoteData';
 
-type BridgeQuotesContextValue = ReturnType<typeof useQuoteRequest> &
+export type BridgeQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
 
-const BridgeQuotesContext = createContext<BridgeQuotesContextValue | null>(
-  null,
-);
+export const BridgeQuotesContext =
+  createContext<BridgeQuotesContextValue | null>(null);
 
 interface BridgeQuotesProviderProps
   extends UseQuoteRequestParams,
@@ -36,17 +31,4 @@ export function BridgeQuotesProvider({
       {children}
     </BridgeQuotesContext.Provider>
   );
-}
-
-/**
- * Hook for updating the bridge-controller's quoteRequest state and returning quote data
- */
-export function useBridgeQuotes(): BridgeQuotesContextValue {
-  const context = useContext(BridgeQuotesContext);
-
-  if (!context) {
-    throw new Error('useBridgeQuotes must be used within BridgeQuotesProvider');
-  }
-
-  return context;
 }

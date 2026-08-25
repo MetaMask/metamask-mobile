@@ -1,5 +1,6 @@
 import React from 'react';
-import { useBridgeQuotes, BridgeQuotesProvider } from './BridgeQuotesContext';
+import { BridgeQuotesProvider } from './BridgeQuotesContext';
+import { useBridgeQuotes } from './index';
 import {
   mockContext,
   runQuoteRequestCases,
