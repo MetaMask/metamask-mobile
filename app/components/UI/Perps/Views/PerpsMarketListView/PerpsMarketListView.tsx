@@ -776,7 +776,10 @@ const PerpsMarketListView = ({
           style={styles.watchlistScrollContainer}
           contentContainerStyle={listContentContainerStyle}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[showRecentlyViewedRail ? 1 : 0]}
+          // Always index 1: the rail component is the first ScrollView child
+          // even when it returns null, so index 0 would pin an empty slot
+          // instead of the count/sort bar.
+          stickyHeaderIndices={[1]}
         >
           <PerpsRecentlyViewedRail
             markets={

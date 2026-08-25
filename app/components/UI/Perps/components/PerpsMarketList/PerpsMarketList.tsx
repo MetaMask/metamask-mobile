@@ -152,6 +152,12 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={renderEmpty}
+      // stickyHeader is a data row, so an empty `markets` array is still a
+      // non-empty list and ListEmptyComponent never runs. Render the empty
+      // copy as a footer in that case.
+      ListFooterComponent={
+        markets.length === 0 && hasStickyHeader ? renderEmpty : undefined
+      }
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       // Disabled so the scroll-to-top on filter change reliably reaches the
       // very top (revealing the header); the market order comes from a static

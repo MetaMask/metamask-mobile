@@ -439,7 +439,7 @@ describe('PerpsMarketList', () => {
       expect(lastProps.stickyHeaderIndices).toBeUndefined();
     });
 
-    it('renders stickyHeader when markets are empty', () => {
+    it('renders stickyHeader and empty state when markets are empty', () => {
       render(
         <PerpsMarketList
           markets={[]}
@@ -454,6 +454,7 @@ describe('PerpsMarketList', () => {
 
       expect(screen.getByTestId('perps-market-list')).toBeOnTheScreen();
       expect(screen.getByTestId('sticky-sort-row')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
   });
 
