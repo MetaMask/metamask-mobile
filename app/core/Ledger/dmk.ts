@@ -1,6 +1,13 @@
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 
+// TEMP — DO NOT MERGE. Hardcoded in place of the `LEDGER_FORCE_DMK` env read so
+// CI-signed device builds run the DMK stack without depending on the `ledgerDmk`
+// remote flag (which currently resolves to `false` for every app version because
+// its `minimumVersion` is `null`) or on `.js.env`, which CI never sources.
+// Revert to `process.env.LEDGER_FORCE_DMK === 'true'` before merging.
+const FORCE_DMK = true;
+
 /**
  * Whether the Ledger DMK stack is enabled, read fresh from the merged feature
  * flags. Pure — no caching; callers pass the current flag state.
@@ -18,7 +25,7 @@ import { FeatureFlagNames } from '../../constants/featureFlags';
 export const isDmkEnabled = (
   flags: Record<string, unknown> | null | undefined = {},
 ): boolean => {
-  if (process.env.LEDGER_FORCE_DMK === 'true') return true;
+  if (FORCE_DMK) return true;
   if (!flags || !(FeatureFlagNames.ledgerDmk in flags)) return false;
   const raw = flags[FeatureFlagNames.ledgerDmk];
   return typeof raw === 'boolean'
