@@ -11,6 +11,7 @@ import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/Hardwa
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
+import { useABTest } from '../../../../../hooks';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -108,10 +109,10 @@ describe('useBridgeConfirm', () => {
     mockEnsureDeviceReady.mockResolvedValue(true);
     jest.mocked(getDeviceIdForAddress).mockResolvedValue('mock-device-id');
     mockUseABTest.mockReturnValue({
-      variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Treatment],
-      variantName: PostTradeModalVariant.Treatment,
+      variant: {},
+      variantName: 'treatment',
       isActive: true,
-    });
+    } as ReturnType<typeof useABTest>);
   });
 
   it('returns a function', () => {

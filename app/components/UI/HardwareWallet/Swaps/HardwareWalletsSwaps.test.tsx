@@ -1288,5 +1288,36 @@ describe('HardwareWalletsSwaps', () => {
       });
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
+
+    it('requires blind signing on submit for tokenMethodTransfer sends', async () => {
+      preparedTxMeta.type = 'tokenMethodTransfer';
+      try {
+        setSendRouteParams({ withApproval: true });
+
+        renderSendScreen({});
+
+        await waitFor(() => {
+          expect(mockAccept).toHaveBeenCalled();
+        });
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-device-id', {
+          requireBlindSigning: true,
+        });
+      } finally {
+        preparedTxMeta.type = 'simpleSend';
+      }
+    });
+
+    it('does not require blind signing on submit for simpleSend', async () => {
+      setSendRouteParams({ withApproval: true });
+
+      renderSendScreen({});
+
+      await waitFor(() => {
+        expect(mockAccept).toHaveBeenCalled();
+      });
+      expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-device-id', {
+        requireBlindSigning: false,
+      });
+    });
   });
 });

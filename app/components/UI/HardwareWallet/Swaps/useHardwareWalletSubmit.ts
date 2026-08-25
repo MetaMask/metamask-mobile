@@ -8,6 +8,7 @@ import {
 import type { Dispatch, AnyAction } from 'redux';
 import {
   TransactionStatus,
+  TransactionType,
   type TransactionMeta,
   type TransactionBatchSingleRequest,
 } from '@metamask/transaction-controller';
@@ -235,7 +236,14 @@ export function useHardwareWalletSubmit({
       setPendingOperationAddress?.(walletAddress);
       try {
         const deviceId = await getDeviceIdForAddress(walletAddress);
-        const isReady = await ensureDeviceReady?.(deviceId);
+        // tokenMethodTransfer is a contract interaction and needs blind
+        // signing; plain simpleSend does not (see EnsureDeviceReadyOptions
+        // docs). Mirrors useConfirmActions' pre-navigation computation.
+        const requireBlindSigning =
+          currentPreparedTxMeta.type !== TransactionType.simpleSend;
+        const isReady = await ensureDeviceReady?.(deviceId, {
+          requireBlindSigning,
+        });
         if (!isReady) {
           dispatch(
             updateHardwareWalletsSwaps({

@@ -275,7 +275,13 @@ export const useDeviceConnectionFlow = ({
         );
         try {
           refs.abortControllerRef.current = new AbortController();
-          const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          // Forward `options` so gates like `requireBlindSigning` are not
+          // bypassed when the device is already connected.
+          const isReady = await tryEnsureReady(
+            adapter,
+            targetDeviceId,
+            options,
+          );
           if (isReady) {
             return true;
           }
@@ -298,7 +304,13 @@ export const useDeviceConnectionFlow = ({
           refs.abortControllerRef.current = new AbortController();
           const reconnected = await adapter.backgroundReconnect(targetDeviceId);
           if (reconnected) {
-            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            // Forward `options` so gates like `requireBlindSigning` are not
+            // bypassed when the device is silently reconnected.
+            const isReady = await tryEnsureReady(
+              adapter,
+              targetDeviceId,
+              options,
+            );
             if (isReady) {
               return true;
             }
