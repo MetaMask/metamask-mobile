@@ -100,6 +100,50 @@ Pass `--device` explicitly, e.g. `--device "iPhone-17"`.
 
 `launchApp.clearState` must be `false` so onboarding is not wiped.
 
+## Wallet password consent (mandatory, before unlock)
+
+The app will lock. You will need the user's wallet password in order to unlock their wallet. Do **not** launch the app, type into the unlock field, or run `maestro test` until they have consented (or unlocked the wallet themselves).
+
+Present a **Yes / No checklist** with the AskQuestion tool. Do not ask this as freeform chat. Use this exact prompt and these two options, then **wait** for their selection:
+
+> I'll need your wallet password in order to unlock your wallet. Do you consent to providing it? The password will never be:
+>
+> - Written into YAML, git, the PR body, gist files, or screenshot names
+> - Echoed, logged, or repeated in later messages
+> - Captured on the login/unlock screen (those PNGs go to the gist)
+> - Passed at runtime only as ${WALLET_PASSWORD} — never hardcoded
+
+| Option | Label |
+| ------ | ----- |
+| `yes`  | Yes |
+| `no`   | No |
+
+- If they choose **No** or do not answer: stop. Ask them to unlock the wallet on the simulator themselves, then continue without ever collecting the password.
+- If they choose **Yes**: ask for the password. Use it only to unlock the local simulator wallet.
+
+Once you have the password, it must **not be uploaded anywhere**:
+
+- Never write it into YAML, scripts, repo `.env` files, git commits, the PR body, gist files, screenshot filenames, or chat summaries.
+- Never echo, print, or log it. Do not repeat it in later messages.
+- Never screenshot the login/unlock screen (typed text can appear in the PNG; those PNGs are uploaded to the gist).
+- In Maestro YAML, reference `${WALLET_PASSWORD}` only — never a literal password.
+- Pass it at runtime only (`maestro test -e WALLET_PASSWORD=...`). Unset the env var after unlock.
+- Before `embed_pr_screenshots.py`, confirm `maestro/before/` and `maestro/after/` contain no unlock-screen PNGs. The gist/PR upload is screenshots only.
+
+## Unlock the wallet (every invocation)
+
+The app locks on launch. **Always** unlock before any capture — do not skip this even if the wallet looked unlocked earlier. Run [templates/unlock.yaml](templates/unlock.yaml) after consent, and again after every `git checkout` / app relaunch (Step 2 and Step 3).
+
+1. Copy [templates/unlock.yaml](templates/unlock.yaml) to `maestro/unlock.yaml` and set `appId`.
+2. Run it (no screenshots; do not copy this run into `before/` or `after/`):
+
+   ```bash
+   maestro test maestro/unlock.yaml --device "<device>" --test-output-dir maestro/runs/unlock -e WALLET_PASSWORD="${WALLET_PASSWORD}"
+   ```
+
+3. Success is `wallet-screen` visible. If login never appears, stop and say so — do not type the password on another screen.
+4. Capture/assert flows also unlock after their own `launchApp` (app restarts lock the wallet). Those copies still use `${WALLET_PASSWORD}` only.
+
 ## Step 1 — Write the capture flow from the diff
 
 Copy [templates/capture.yaml](templates/capture.yaml) into `maestro/<flow>-capture.yaml` and replace placeholders (`APP_ID`, selectors, screenshot names).
@@ -118,11 +162,12 @@ Optional: also copy [templates/assert.yaml](templates/assert.yaml) if the user w
 
 ```bash
 git checkout "${BASE_BRANCH}"
-# install/run the app on the chosen device; user stays logged in
-# leave the app on the screen the flow starts from (usually wallet home)
+# install/run the app on the chosen device; do not wipe the simulator
 
 mkdir -p maestro/before maestro/after maestro/runs
-maestro test maestro/<flow>-capture.yaml --device "<device>" --test-output-dir maestro/runs/base
+# App locks on relaunch — unlock every time, then capture.
+maestro test maestro/unlock.yaml --device "<device>" --test-output-dir maestro/runs/unlock-base -e WALLET_PASSWORD="${WALLET_PASSWORD}"
+maestro test maestro/<flow>-capture.yaml --device "<device>" --test-output-dir maestro/runs/base -e WALLET_PASSWORD="${WALLET_PASSWORD}"
 cp maestro/runs/base/**/takeScreenshot/*.png maestro/before/
 python3 .cursor/skills/maestro-visual-regression/scripts/resize_screenshots.py maestro/before
 ```
@@ -135,7 +180,8 @@ Those files are **Before** (`main`), at 390px width.
 git checkout "${CANDIDATE_BRANCH}"
 # install/run this branch on the same device; do not wipe the simulator
 
-maestro test maestro/<flow>-capture.yaml --device "<device>" --test-output-dir "maestro/runs/${CANDIDATE_BRANCH}"
+maestro test maestro/unlock.yaml --device "<device>" --test-output-dir "maestro/runs/unlock-${CANDIDATE_BRANCH}" -e WALLET_PASSWORD="${WALLET_PASSWORD}"
+maestro test maestro/<flow>-capture.yaml --device "<device>" --test-output-dir "maestro/runs/${CANDIDATE_BRANCH}" -e WALLET_PASSWORD="${WALLET_PASSWORD}"
 cp "maestro/runs/${CANDIDATE_BRANCH}"/**/takeScreenshot/*.png maestro/after/
 python3 .cursor/skills/maestro-visual-regression/scripts/resize_screenshots.py maestro/after
 ```
@@ -181,3 +227,6 @@ If an optional `assertScreenshot` run failed, attach the diff path as well — s
 - Put `main` shots under After, or candidate shots under Before.
 - Skip installing Maestro when it is missing, or install it into the repo.
 - Use `brew install maestro` (wrong package). Always use `mobile-dev-inc/tap/maestro`.
+- Unlock the wallet without consent, or collect the password after they refuse.
+- Skip the unlock flow. The app locks on every skill run and after each branch relaunch.
+- Upload, commit, gist, log, echo, or screenshot the wallet password. It is local unlock only.

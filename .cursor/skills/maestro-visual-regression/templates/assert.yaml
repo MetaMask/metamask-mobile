@@ -6,6 +6,21 @@ appId: "{{APP_ID}}"
 - launchApp:
     clearState: false
 
+# launchApp restarts the app and locks the wallet. Unlock every time.
+- extendedWaitUntil:
+    visible:
+      id: "login-password-input"
+    timeout: 30000
+- tapOn:
+    id: "login-password-input"
+- inputText: ${WALLET_PASSWORD}
+- tapOn:
+    id: "log-in-button"
+- extendedWaitUntil:
+    visible:
+      id: "wallet-screen"
+    timeout: 30000
+
 - tapOn: "{{ENTRY_TEXT_OR_ID}}"
 
 - assertVisible:

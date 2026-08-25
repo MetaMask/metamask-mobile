@@ -7,6 +7,22 @@ appId: "{{APP_ID}}"
 - launchApp:
     clearState: false
 
+# launchApp restarts the app and locks the wallet. Unlock every time.
+# Password is passed at runtime — never hardcode it.
+- extendedWaitUntil:
+    visible:
+      id: "login-password-input"
+    timeout: 30000
+- tapOn:
+    id: "login-password-input"
+- inputText: ${WALLET_PASSWORD}
+- tapOn:
+    id: "log-in-button"
+- extendedWaitUntil:
+    visible:
+      id: "wallet-screen"
+    timeout: 30000
+
 # Start from the screen the flow expects (usually wallet home).
 - tapOn: "{{ENTRY_TEXT_OR_ID}}"
 
