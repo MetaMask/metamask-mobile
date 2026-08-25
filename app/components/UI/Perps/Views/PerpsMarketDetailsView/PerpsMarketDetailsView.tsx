@@ -974,11 +974,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     ),
     hasFallbackData: hasHistoricalData,
   });
-  const statsSectionState = resolveBasicSectionState(
+  const hasCurrentLiveMarketStats =
     !marketStats.hasError &&
-      marketStats.dataSymbol === market?.symbol &&
-      marketStats.hasLiveData,
-    false,
+    marketStats.dataSymbol === market?.symbol &&
+    marketStats.hasLiveData;
+  const statsSectionState = resolveBasicSectionState(
+    hasCurrentLiveMarketStats,
+    !marketStats.hasError && !hasCurrentLiveMarketStats,
     Boolean(marketStats.hasError),
   );
   const insightsSectionState = resolveInsightsSectionState({
