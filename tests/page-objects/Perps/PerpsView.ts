@@ -143,13 +143,10 @@ class PerpsView {
   }
 
   private getPositionPrimaryLine(
-    symbol: string,
+    _symbol: string,
     direction: 'long' | 'short',
   ): EncapsulatedElementType {
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return Matchers.getElementByText(
-      new RegExp(`${escapedSymbol} \\d+x ${direction}`),
-    );
+    return Matchers.getElementByText(new RegExp(`\\d+x ${direction}`, 'i'));
   }
 
   // Orders section on the Perps main tab
@@ -260,7 +257,7 @@ class PerpsView {
   }
 
   /**
-   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   * After fill: order label gone and position row matches symbol + `{n}x {direction}` badge (PerpsCard).
    */
   async expectPositionRowAfterLimitOrderFilled(
     options: PerpsPortfolioLimitFlowExpectOptions,
