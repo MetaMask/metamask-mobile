@@ -136,6 +136,7 @@ describe('WatchlistStarButton', () => {
         title: expect.any(String),
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -177,6 +178,7 @@ describe('WatchlistStarButton', () => {
         title: expect.any(String),
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

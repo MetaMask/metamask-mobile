@@ -52,6 +52,7 @@ const WatchlistStarButton = ({
         : strings('token_watchlist.added_to_watchlist'),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
 
     const eventName = wasWatched
