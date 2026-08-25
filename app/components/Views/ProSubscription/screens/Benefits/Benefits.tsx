@@ -21,7 +21,7 @@ import {
   BENEFIT_DETAILS,
 } from './Benefits.constants';
 import { BenefitsTestIds } from './Benefits.testIds';
-import BenefitRow from './components/BenefitRow';
+import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
 import { strings } from '../../../../../../locales/i18n';

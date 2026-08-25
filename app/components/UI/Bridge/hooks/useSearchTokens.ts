@@ -6,7 +6,12 @@ import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
@@ -150,6 +155,7 @@ export const useSearchTokens = ({
           traceId = uuidv4();
           trace({
             name: TraceName.SwapTokenSearch,
+            op: TraceOperation.BridgeDataFetch,
             id: traceId,
             data: {
               chain_scope:

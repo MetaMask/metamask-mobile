@@ -14,7 +14,12 @@ import * as bridgeSelectors from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -172,6 +177,7 @@ describe('useBridgeQuoteRequest', () => {
 
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
+      op: TraceOperation.BridgeDataFetch,
       data: expect.objectContaining({
         isRefresh: false,
         request_id: expect.any(String),
@@ -197,6 +203,7 @@ describe('useBridgeQuoteRequest', () => {
 
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
+      op: TraceOperation.BridgeDataFetch,
       data: expect.objectContaining({
         isRefresh: true,
         request_id: expect.any(String),

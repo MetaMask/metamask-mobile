@@ -12,7 +12,12 @@ import { act, waitFor } from '@testing-library/react-native';
 import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 // Mock dependencies
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -76,6 +81,7 @@ describe('useLatestBalance', () => {
     const traceId = mockTrace.mock.calls[0][0].id;
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.BridgeBalancesUpdated,
+      op: TraceOperation.BridgeDataFetch,
       id: expect.any(String),
       data: {
         srcChainId: '0x1',
