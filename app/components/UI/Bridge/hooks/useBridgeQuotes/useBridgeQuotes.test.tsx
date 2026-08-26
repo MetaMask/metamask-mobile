@@ -147,9 +147,7 @@ runQuoteRequestCases({
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
-      wrapper: ({ children }) => (
-        <Wrapper {...options}>{children}</Wrapper>
-      ),
+      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
 });
 
@@ -158,8 +156,6 @@ runQuoteDataCases({
   mockDispatch,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes(), {
-      wrapper: ({ children }) => (
-        <Wrapper {...options}>{children}</Wrapper>
-      ),
+      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
 });
