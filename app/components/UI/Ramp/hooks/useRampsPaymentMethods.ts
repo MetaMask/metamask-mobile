@@ -122,17 +122,6 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     return 'loading';
   }, [paymentMethodsQuery.data, paymentMethodsQuery.isError, queryEnabled]);
 
-  const error = useMemo(
-    () =>
-      paymentMethodsQuery.error != null
-        ? parseUserFacingError(
-            paymentMethodsQuery.error,
-            strings('fiat_on_ramp.payment_error'),
-          )
-        : null,
-    [paymentMethodsQuery.error],
-  );
-
   return {
     paymentMethods,
     selectedPaymentMethod: activeSelectedPaymentMethod,
@@ -141,7 +130,13 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',
-    error,
+    error:
+      paymentMethodsQuery.error != null
+        ? parseUserFacingError(
+            paymentMethodsQuery.error,
+            strings('fiat_on_ramp.payment_error'),
+          )
+        : null,
   };
 }
 

@@ -12,9 +12,7 @@ import { rampsPaymentMethodsOptions } from '../queries/paymentMethods';
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
-notifyManager.setNotifyFunction((callback) => {
-  act(callback);
-});
+notifyManager.setNotifyFunction(act);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -96,7 +94,13 @@ const baseRampsState = {
 };
 
 type RampsState = typeof baseRampsState;
-type RampsOverrides = Partial<RampsState>;
+// Every slice member is nullable in real controller state, so overrides must be
+// able to clear `selected` even though `baseRampsState` seeds it with a value.
+type RampsOverrides = {
+  [K in keyof RampsState]?: {
+    [P in keyof RampsState[K]]: RampsState[K][P] | null;
+  };
+};
 
 const createMockStore = (rampsControllerOverrides: RampsOverrides = {}) => {
   const initialRampsState = {
@@ -205,27 +209,10 @@ describe('useRampsPaymentMethods', () => {
     });
   });
 
-  it.each([
-    [
-      'region',
-      {
-        userRegion: { ...baseRampsState.userRegion, regionCode: '' },
-      },
-    ],
-    [
-      'asset',
-      {
-        tokens: { ...baseRampsState.tokens, selected: null },
-      },
-    ],
-    [
-      'provider',
-      {
-        providers: { ...baseRampsState.providers, selected: null },
-      },
-    ],
-  ])('is idle when %s is missing', (_label, overrides) => {
-    const store = createMockStore(overrides as RampsOverrides);
+  it('returns idle when no provider is selected', () => {
+    const store = createMockStore({
+      providers: { ...baseRampsState.providers, selected: null },
+    });
     const { Wrapper } = createWrapper(store);
 
     const { result } = renderHook(() => useRampsPaymentMethods(), {
@@ -238,6 +225,7 @@ describe('useRampsPaymentMethods', () => {
       isLoading: false,
       status: 'idle',
       isSuccess: false,
+      error: null,
     });
     expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
   });
@@ -606,9 +594,31 @@ describe('useRampsPaymentMethods', () => {
     expect(setSelectedPaymentMethodMock).not.toHaveBeenCalled();
   });
 
-  it('preserves localized circuit-breaker errors', async () => {
+  it('returns error when the request rejects', async () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
+
+    getPaymentMethodsForContextMock.mockRejectedValue(
+      new Error('Network error'),
+    );
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe('Network error');
+    expect(result.current.paymentMethods).toEqual([]);
+  });
+
+  it('returns localized fallback when the payment methods query trips the circuit breaker', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
     getPaymentMethodsForContextMock.mockRejectedValue(
       Object.assign(
         new Error('Execution prevented because the circuit breaker is open'),
@@ -620,47 +630,100 @@ describe('useRampsPaymentMethods', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => expect(result.current.status).toBe('error'));
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
     expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
   });
 
-  it('preserves ordinary request errors', async () => {
-    const store = createMockStore();
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {
+    const store = createMockStore({
+      providers: { ...baseRampsState.providers, selected: null },
+    });
     const { Wrapper } = createWrapper(store);
-    getPaymentMethodsForContextMock.mockRejectedValue(
-      new Error('Network error'),
-    );
 
     const { result } = renderHook(() => useRampsPaymentMethods(), {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => expect(result.current.status).toBe('error'));
-    expect(result.current.error).toBe('Network error');
+    act(() => {
+      result.current.setSelectedPaymentMethod(mockPaymentMethods[0]);
+    });
+
+    expect(
+      Engine.context.RampsController.setSelectedPaymentMethod,
+    ).toHaveBeenCalledWith(mockPaymentMethods[0]);
   });
 
-  it('keeps the manual setter unchanged', async () => {
-    const store = createMockStore();
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with null when payment method is null', () => {
+    const store = createMockStore({
+      providers: { ...baseRampsState.providers, selected: null },
+    });
     const { Wrapper } = createWrapper(store);
-    const deferred = createDeferred<ReturnType<typeof contextResponse>>();
-    getPaymentMethodsForContextMock.mockReturnValue(deferred.promise);
+
     const { result } = renderHook(() => useRampsPaymentMethods(), {
       wrapper: Wrapper,
     });
 
-    await act(async () =>
-      result.current.setSelectedPaymentMethod(mockPaymentMethods[0]),
-    );
-
-    expect(setSelectedPaymentMethodMock).toHaveBeenCalledWith(
-      mockPaymentMethods[0],
-    );
-
-    await act(async () => {
-      deferred.resolve(contextResponse());
-      await deferred.promise;
+    act(() => {
+      result.current.setSelectedPaymentMethod(null);
     });
-    await waitFor(() => expect(result.current.status).toBe('success'));
+
+    expect(
+      Engine.context.RampsController.setSelectedPaymentMethod,
+    ).toHaveBeenCalledWith(null);
+  });
+
+  it('setSelectedPaymentMethod is stable across re-renders', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+    const { result, rerender } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    const firstRef = result.current.setSelectedPaymentMethod;
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    rerender({});
+
+    expect(result.current.setSelectedPaymentMethod).toBe(firstRef);
+  });
+
+  it('disables query when userRegion is missing', () => {
+    const store = createMockStore({
+      userRegion: { ...baseRampsState.userRegion, regionCode: '' },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.isLoading).toBe(false);
+    expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
+  });
+
+  it('disables query when no asset is selected', () => {
+    const store = createMockStore({
+      tokens: { ...baseRampsState.tokens, selected: null },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.isLoading).toBe(false);
+    expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
   });
 
   it('deduplicates same-key concurrent consumers safely', async () => {

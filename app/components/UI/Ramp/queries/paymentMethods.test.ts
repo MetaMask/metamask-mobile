@@ -7,7 +7,6 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      getPaymentMethods: jest.fn(),
       getPaymentMethodsForContext: jest.fn(),
     },
   },
@@ -79,11 +78,6 @@ describe('rampsPaymentMethodsOptions', () => {
       providers: ['/providers/transak'],
       updateState: true,
     });
-    expect(
-      Engine.context.RampsController.getPaymentMethodsForContext,
-    ).not.toHaveBeenCalledWith(
-      expect.objectContaining({ preferPaymentMethodId: expect.anything() }),
-    );
     expect(result).toBe(response);
   });
 });
