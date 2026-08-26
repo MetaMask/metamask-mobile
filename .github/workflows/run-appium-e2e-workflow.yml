@@ -420,8 +420,8 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
         run: |
           set -euo pipefail
-          read -r -a spec_files <<< "${SPEC_FILES}"
-          yarn playwright test "${spec_files[@]}" \
+          read -r -a specs <<< "${SPEC_FILES}"
+          yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
             --grep "${{ inputs.test_suite_tag }}" \
@@ -454,8 +454,8 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
         run: |
           set -euo pipefail
-          read -r -a spec_files <<< "${SPEC_FILES}"
-          yarn playwright test "${spec_files[@]}" \
+          read -r -a specs <<< "${SPEC_FILES}"
+          yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project ios-smoke \
             --grep "${{ inputs.test_suite_tag }}" \
