@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
 // Import types from their source files
@@ -163,7 +164,6 @@ import type {
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
 import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
-import type { TraceContext } from '../../util/trace';
 
 // Add asset params
 import type { AddAssetParams } from '../../components/Views/AddAsset/AddAsset';
@@ -321,7 +321,6 @@ type SocialLoginRouteParams = AccountStatusParams & {
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
   previous_screen?: string;
-  onboardingTraceCtx?: TraceContext;
   initialStep?: number;
   qrSyncImport?: boolean;
 }
@@ -556,6 +555,10 @@ export type RootStackParamList = {
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
   RampsServiceDisruptionModal: undefined;
 
+  // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampGetPixKey: undefined;
+  RampVbaVerifyIdentity: undefined;
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -634,7 +637,6 @@ export type RootStackParamList = {
   RewardsOndoCampaignWinning: RewardsNavigationParamList['RewardsOndoCampaignWinning'];
   RewardsSeasonOneCampaignDetails: RewardsNavigationParamList['RewardsSeasonOneCampaignDetails'];
   RewardsCampaignMechanics: RewardsNavigationParamList['RewardsCampaignMechanics'];
-  RewardsMusdCalculatorView: RewardsNavigationParamList['RewardsMusdCalculatorView'];
   RewardsOndoCampaignLeaderboard: RewardsNavigationParamList['RewardsOndoCampaignLeaderboard'];
   RewardsOndoRwaAssetSelector: RewardsNavigationParamList['RewardsOndoRwaAssetSelector'];
   RewardsOndoCampaignPortfolioView: RewardsNavigationParamList['RewardsOndoCampaignPortfolioView'];
@@ -673,6 +675,9 @@ export type RootStackParamList = {
   Pna25BottomSheet: undefined;
   RewardsBottomSheetModal:
     | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsInfoSheetModal:
+    | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
@@ -854,9 +859,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: { source?: string } | undefined;
+  DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
-  TokensFullView: { source?: string } | undefined;
+  TokensFullView: NavigationAnalyticsRouteParams | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -1032,6 +1037,11 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  ProSubscription: { source?: string; initialPlan?: string } | undefined;
+  ProHub: { source?: string } | undefined;
+  ProHubMembership: undefined;
+  ProHubEarned: undefined;
+  ProHubCancelMembership: undefined;
 
   // Notification routes
   NotificationsView: undefined;
@@ -1113,6 +1123,9 @@ export type RootStackParamList = {
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
+  CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
+  CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
@@ -1213,8 +1226,8 @@ export type AppNavigationProp = Omit<
  * that type unless you need the stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
-  NativeStackNavigationProp<ReactNavigation.RootParamList>,
+  NativeStackNavigationProp<RootStackParamList>,
   'getState'
 > & {
-  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+  getState(): NavigationState<RootStackParamList> | undefined;
 };

@@ -63,6 +63,7 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
@@ -113,6 +114,7 @@ const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
+  const transactionHistoryDestination = useCardTransactionHistoryDestination();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
@@ -607,13 +609,6 @@ const CardHome = () => {
                 onCopyDetail={actions.copyCardDetail}
                 cardType={data?.card?.type}
                 cardStatus={data?.card?.status}
-                walletAddress={
-                  isAuthenticated
-                    ? primaryToken?.isMoneyAccountEntry
-                      ? strings('card.card_spending_limit.money_account_label')
-                      : data?.primaryFundingAsset?.walletAddress
-                    : undefined
-                }
               />
             )}
           </Animated.View>
@@ -762,6 +757,14 @@ const CardHome = () => {
             hasPriorityTokenBalance={hasPriorityTokenBalance}
             onCashback={actions.cashbackAction}
             onTravel={actions.navigateToTravelPage}
+            onTransactionHistory={
+              transactionHistoryDestination
+                ? () =>
+                    actions.transactionHistoryAction(
+                      transactionHistoryDestination,
+                    )
+                : undefined
+            }
           />
         )}
 

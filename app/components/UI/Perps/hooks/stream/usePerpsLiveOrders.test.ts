@@ -3,6 +3,11 @@ import React from 'react';
 import { usePerpsLiveOrders } from './index';
 import { type Order } from '@metamask/perps-controller';
 
+let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
 // Mock Engine for lazy isInitialLoading check
 let mockCachedUserData: {
   positions: unknown[];
@@ -52,6 +57,7 @@ describe('usePerpsLiveOrders', () => {
     jest.useFakeTimers();
     mockCachedUserData = null;
     mockChannelOrdersSnapshot = undefined;
+    mockSelectedAddress = '0x1111111111111111111111111111111111111111';
   });
 
   afterEach(() => {
@@ -212,7 +218,7 @@ describe('usePerpsLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => usePerpsLiveOrders());
+    const { result, rerender } = renderHook(() => usePerpsLiveOrders());
 
     // First: receive real orders (simulate loaded state)
     act(() => {
@@ -223,6 +229,10 @@ describe('usePerpsLiveOrders', () => {
       expect(result.current.isInitialLoading).toBe(false);
       expect(result.current.orders).toEqual([mockOrder]);
     });
+
+    mockSelectedAddress = '0x2222222222222222222222222222222222222222';
+    rerender(undefined);
+    expect(result.current).toEqual({ orders: [], isInitialLoading: true });
 
     // Account switch: receive null (clearCache)
     act(() => {

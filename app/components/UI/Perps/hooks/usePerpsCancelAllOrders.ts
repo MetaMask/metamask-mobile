@@ -18,6 +18,11 @@ export interface UsePerpsCancelAllOrdersOptions {
   onError?: (error: Error) => void;
   /** Whether to navigate back on success (default: true) */
   navigateBackOnSuccess?: boolean;
+  /**
+   * Restricts cancellation to exactly the passed orders. Without it the whole
+   * book is cancelled provider-side, which would over-cancel a filtered view.
+   */
+  isFiltered?: boolean;
 }
 
 export interface UsePerpsCancelAllOrdersReturn {
@@ -56,7 +61,12 @@ export const usePerpsCancelAllOrders = (
   const [isCanceling, setIsCanceling] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const { onSuccess, onError, navigateBackOnSuccess = true } = options || {};
+  const {
+    onSuccess,
+    onError,
+    navigateBackOnSuccess = true,
+    isFiltered = false,
+  } = options || {};
 
   const orderCount = orders?.length || 0;
 
@@ -71,12 +81,18 @@ export const usePerpsCancelAllOrders = (
 
     DevLogger.log('[usePerpsCancelAllOrders] Starting cancel all orders', {
       orderCount: orders.length,
+      isFiltered,
     });
 
     try {
-      const result = await Engine.context.PerpsController.cancelOrders({
-        cancelAll: true,
-      });
+      // A filtered view must cancel exactly what it lists. Scope by orderId
+      // rather than symbol: a single market can hold both a long and a short
+      // order, and the side filter can select only one of them.
+      const result = await Engine.context.PerpsController.cancelOrders(
+        isFiltered
+          ? { orderIds: orders.map((order) => order.orderId) }
+          : { cancelAll: true },
+      );
 
       DevLogger.log('[usePerpsCancelAllOrders] Cancel result', {
         success: result.success,
@@ -123,6 +139,7 @@ export const usePerpsCancelAllOrders = (
     }
   }, [
     orders,
+    isFiltered,
     onSuccess,
     onError,
     navigateBackOnSuccess,

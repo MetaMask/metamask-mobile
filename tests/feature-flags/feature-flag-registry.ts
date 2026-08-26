@@ -115,17 +115,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialFeedEnabled: {
-    name: 'aiSocialFeedEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.3.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialAusCacheRefreshEnabled: {
     name: 'aiSocialAusCacheRefreshEnabled',
     type: FeatureFlagType.Remote,
@@ -3421,6 +3410,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnHomeSectionEnabled: {
+    name: 'earnHomeSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyTokenListItemCtaEnabled: {
     name: 'earnMoneyTokenListItemCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -3841,6 +3841,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyMovementBrazilNeobank: {
+    name: 'moneyMovementBrazilNeobank',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountGeoBlockedCountries: {
     name: 'moneyAccountGeoBlockedCountries',
     type: FeatureFlagType.Remote,
@@ -3905,6 +3913,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableCardActivityEnrichment: {
+    name: 'moneyEnableCardActivityEnrichment',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
       minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
@@ -4809,17 +4828,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  socialAIQuickBuyStreamQuotes: {
-    name: 'socialAIQuickBuyStreamQuotes',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.2.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   socialAiTSA612AbtestQuickBuy: {
     name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,
@@ -5498,6 +5506,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'row2Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1276AbtestHeaderNavBar: {
+    name: 'homeTMCU1276AbtestHeaderNavBar',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
         scope: {
           type: 'percentage_rollout',
           value: 1,
@@ -6334,7 +6358,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         name: 'control',
-        scope: { type: 'percentage_rollout', value: 1.0 },
+        scope: { type: 'percentage_rollout', value: 0.75 },
       },
       {
         name: 'treatment',

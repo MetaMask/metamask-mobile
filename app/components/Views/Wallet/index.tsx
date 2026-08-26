@@ -37,7 +37,7 @@ import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSession
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -373,11 +373,7 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
     isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
@@ -960,9 +956,12 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
+  const isNetworkConnectionBannerVisible =
+    (networkConnectionBanner.status === 'degraded' ||
+      networkConnectionBanner.status === 'unavailable') &&
+    Boolean(networkConnectionBanner.network);
   const hasBannerContent =
-    !basicFunctionalityEnabled ||
-    networkConnectionBanner.networkConnectionBannerState.visible;
+    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}
@@ -986,13 +985,27 @@ const Wallet = ({
     </View>
   ) : null;
 
-  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
-  const walletHomeAccountGroupBalanceProps = {
-    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
-    suspendRiveForCurtain: postOnboardingExitAnimating,
-    onTradePrimaryPress,
-    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
-  };
+  /**
+   * Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks.
+   * Memoized so `AccountGroupBalance` (wrapped in React.memo) doesn't re-render on every
+   * `Wallet` render — a fresh object here would defeat that memoization on every unrelated
+   * state change (e.g. the balance/price update bursts that occur right after unlock).
+   */
+  const walletHomeAccountGroupBalanceProps = useMemo(
+    () => ({
+      onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+      suspendRiveForCurtain: postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      onNotificationsPrimaryPress:
+        handleWalletHomeOnboardingNotificationsPrimary,
+    }),
+    [
+      runWalletHomePostOnboardingComplete,
+      postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      handleWalletHomeOnboardingNotificationsPrimary,
+    ],
+  );
 
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
     actionButtonsGridVariant.layout === 'eightCircular' ? (
@@ -1023,7 +1036,7 @@ const Wallet = ({
 
   // Hide growth banners when money account is enabled but user is geo-blocked.
   const growthBanner =
-    !isMoneyAccountEnabled || isMoneyAccountGeoEligible
+    !isMoneyAccountEnabled || isMoneyAccountVisible
       ? homeGrowthBannerContent
       : null;
 
@@ -1063,6 +1076,7 @@ const Wallet = ({
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
         layout: balanceBreakdownLayout,
+        showRowArrows: balanceBreakdownVariant.showRowArrows,
         transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
