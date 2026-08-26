@@ -1,9 +1,14 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokePerps } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import { placeLimitOrderAtPreset } from '../../flows/perps.flow.js';
+import {
+  placeLimitOrderAtPreset,
+  navigateToPerpsProEntry,
+  placeLimitOrderInPro,
+} from '../../flows/perps.flow.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsOrderDetailsView from '../../page-objects/Perps/PerpsOrderDetailsView.js';
+import PerpsProMarketView from '../../page-objects/Perps/PerpsProMarketView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
 import { TestSuiteParams } from '../../framework/types.js';
 import {
@@ -56,6 +61,54 @@ appiumTest.describe(SmokePerps('Perps - Limit order cancel'), () => {
           await PerpsMarketDetailsView.expectCompactOpenOrderNotVisible({
             direction: 'long',
           });
+        },
+      );
+    },
+  );
+});
+
+appiumTest.describe(SmokePerps('Perps Pro - Limit order cancel'), () => {
+  appiumTest(
+    'cancels an open ETH limit long from the Pro orders tab and keeps the panel clear',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildPerpsSmokeFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          permissions: PERPS_SMOKE_PERMISSIONS,
+          testSpecificMock: setupPerpsSmokeMocks,
+          useCommandQueueServer: true,
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not found');
+          }
+
+          await beginPerpsSmokeTestPlaywright();
+
+          await navigateToPerpsProEntry(PERPS_SMOKE_MARKET_SYMBOL);
+          await placeLimitOrderInPro(PERPS_SMOKE_MARKET_SYMBOL, 'long', 'Mid');
+
+          await PerpsProMarketView.tapOrderCancelButton();
+          await PerpsProMarketView.expectOrderRowNotVisible(
+            PERPS_SMOKE_MARKET_SYMBOL,
+            0,
+          );
+
+          await PerpsE2EModifiers.updateMarketPriceServer(
+            commandQueueServer,
+            PERPS_SMOKE_MARKET_SYMBOL,
+            '2125.00',
+          );
+
+          await PerpsProMarketView.expectOrderRowNotVisible(
+            PERPS_SMOKE_MARKET_SYMBOL,
+            0,
+          );
+          await PerpsProMarketView.expectPositionRowNotVisible(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
         },
       );
     },

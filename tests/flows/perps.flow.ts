@@ -5,6 +5,7 @@ import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
+import PerpsProMarketView from '../page-objects/Perps/PerpsProMarketView';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
 import WalletView from '../page-objects/wallet/WalletView';
 
@@ -220,4 +221,73 @@ export const openPosition = async (
   await dismissPerpsNotificationTooltipIfPresent();
   await PerpsMarketDetailsView.waitForScreenReady();
   await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+};
+
+/**
+ * From Perps home (Lite mode), switches to Pro mode and waits for the Pro view.
+ * Handles the optional mode-selection bottom sheet confirmation.
+ */
+export const switchToPerpsProMode = async (): Promise<void> => {
+  await PerpsProMarketView.switchToProMode();
+};
+
+/**
+ * Opens Perps from the wallet home and switches to Pro mode, landing on the
+ * Pro Market View for the given symbol.
+ */
+export const navigateToPerpsProEntry = async (symbol: string): Promise<void> => {
+  await WalletView.scrollAndTapPerpsSection();
+  await dismissPerpsOnboardingTutorialIfPresent();
+  await switchToPerpsProMode();
+  // After switching to Pro mode the default market loads; select the desired one
+  // if the Pro header's market is not already symbol.
+  await PerpsMarketListView.selectMarket(symbol);
+  await PerpsProMarketView.waitForProViewReady();
+};
+
+/**
+ * Places a market order in Pro mode and waits for the position to appear in
+ * the Pro positions panel.
+ */
+export const openPositionInPro = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+): Promise<void> => {
+  await PerpsProMarketView.selectDirection(direction);
+  await PerpsProMarketView.enterSize('500');
+  await PerpsProMarketView.waitForFeesReady();
+  await PerpsProMarketView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsProMarketView.waitForPositionRow(symbol);
+};
+
+/**
+ * Places a limit order at Mid price in Pro mode and verifies the order row
+ * appears in the Orders tab of the Pro positions panel.
+ */
+export const placeLimitOrderInPro = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+  preset: PerpsLimitPricePreset = 'Mid',
+): Promise<void> => {
+  await PerpsProMarketView.selectDirection(direction);
+  await PerpsProMarketView.enterSize('500');
+  await PerpsProMarketView.tapOrderTypeButton();
+  await PerpsProMarketView.selectLimitOrderType();
+
+  if (preset === 'Mid') {
+    await PerpsProMarketView.tapMidPriceButton();
+  } else if (typeof preset === 'number') {
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        `perps-limit-price-bottom-sheet-preset-percent${preset}`,
+      ),
+      { elemDescription: `Pro limit price preset ${preset}%` },
+    );
+  }
+
+  await PerpsProMarketView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsProMarketView.tapOrdersTab();
+  await PerpsProMarketView.waitForOrderRow(symbol, 0);
 };
