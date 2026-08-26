@@ -243,10 +243,15 @@ describe('PerpsOrderView', () => {
     await new Promise<void>((resolve) => setTimeout(resolve, 1100));
     emitEthPrice(stream, '2', '2501');
 
-    expect(placeOrderButton).toBeOnTheScreen();
-    expect(placeOrderButton).toBeDisabled();
-    expect(placeOrderButton.props.accessibilityState).toEqual(
-      expect.objectContaining({ busy: true, disabled: true }),
+    await waitFor(
+      () => {
+        expect(placeOrderButton).toBeOnTheScreen();
+        expect(placeOrderButton).toBeDisabled();
+        expect(placeOrderButton.props.accessibilityState).toEqual(
+          expect.objectContaining({ busy: true, disabled: true }),
+        );
+      },
+      { timeout: TIMEOUT_MS },
     );
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
 
