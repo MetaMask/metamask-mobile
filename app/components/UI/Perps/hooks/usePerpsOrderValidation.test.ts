@@ -802,9 +802,78 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('trigger orders', () => {
+    const triggerRequirementCases = (
+      [
+        { orderType: 'stop_market', direction: 'long' },
+        { orderType: 'stop_market', direction: 'short' },
+        { orderType: 'stop_limit', direction: 'long' },
+        { orderType: 'stop_limit', direction: 'short' },
+        { orderType: 'take_profit_market', direction: 'long' },
+        { orderType: 'take_profit_market', direction: 'short' },
+        { orderType: 'take_profit_limit', direction: 'long' },
+        { orderType: 'take_profit_limit', direction: 'short' },
+      ] as const
+    ).flatMap((orderCase) => [
+      {
+        ...orderCase,
+        triggerPrice: undefined,
+        expectedCode: 'required' as const,
+      },
+      { ...orderCase, triggerPrice: '0', expectedCode: 'positive' as const },
+    ]);
+
+    it.each(triggerRequirementCases)(
+      'reports $expectedCode for $direction $orderType trigger price',
+      async ({ orderType, direction, triggerPrice, expectedCode }) => {
+        mockValidateOrder.mockResolvedValue({ isValid: true });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            orderForm: {
+              ...defaultOrderForm,
+              type: orderType,
+              direction,
+              ...(orderType.endsWith('_limit') ? { limitPrice: '50000' } : {}),
+            },
+            triggerPrice,
+            assetPrice: 50000,
+            midPrice: 50000,
+            szDecimals: 4,
+          }),
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        await fastWaitFor(() => {
+          expect(result.current.isValidating).toBe(false);
+        });
+
+        expect(result.current.isValid).toBe(false);
+        expect(result.current.fieldIssues).toContainEqual({
+          field: 'triggerPrice',
+          issue: { code: expectedCode },
+        });
+      },
+    );
+
     it.each([
       {
         orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '49999',
+        requiredSide: 'above',
+      },
+      {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '50001',
+        requiredSide: 'below',
+      },
+      {
+        orderType: 'stop_limit',
         direction: 'long',
         triggerPrice: '49999',
         requiredSide: 'above',
@@ -817,6 +886,18 @@ describe('usePerpsOrderValidation', () => {
       },
       {
         orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '50001',
+        requiredSide: 'below',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '49999',
+        requiredSide: 'above',
+      },
+      {
+        orderType: 'take_profit_limit',
         direction: 'long',
         triggerPrice: '50001',
         requiredSide: 'below',
@@ -881,6 +962,20 @@ describe('usePerpsOrderValidation', () => {
         expectedPrice: undefined,
       },
       {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '49000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '51000',
+        limitPrice: '50500',
+        expectedPrice: '50500',
+      },
+      {
         orderType: 'stop_limit',
         direction: 'short',
         triggerPrice: '49000',
@@ -893,6 +988,20 @@ describe('usePerpsOrderValidation', () => {
         triggerPrice: '49000',
         limitPrice: '48000',
         expectedPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '51000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'long',
+        triggerPrice: '49000',
+        limitPrice: '49500',
+        expectedPrice: '49500',
       },
       {
         orderType: 'take_profit_limit',

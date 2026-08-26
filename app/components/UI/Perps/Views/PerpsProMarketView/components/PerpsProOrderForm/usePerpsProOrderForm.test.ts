@@ -62,6 +62,7 @@ const mockSetLimitPrice = jest.fn();
 const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetTriggerPrice = jest.fn();
+const mockResetPriceInputInteraction = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -82,6 +83,7 @@ const mockContextValue = {
   hasBlurredTriggerPrice: false,
   triggerPrice: undefined as string | undefined,
   setTriggerPrice: mockSetTriggerPrice,
+  resetPriceInputInteraction: mockResetPriceInputInteraction,
   setOrderType: mockSetOrderType,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
@@ -321,6 +323,10 @@ describe('usePerpsProOrderForm', () => {
     mockCommitTriggerPrice.mockImplementation((price?: string) => {
       mockContextValue.triggerPrice = price;
       mockContextValue.hasBlurredTriggerPrice = true;
+    });
+    mockResetPriceInputInteraction.mockImplementation(() => {
+      mockContextValue.hasBlurredLimitPrice = false;
+      mockContextValue.hasBlurredTriggerPrice = false;
     });
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
@@ -1418,36 +1424,115 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0].triggerPrice).toBe('91001');
     });
 
-    it('shows a blocking helper after the trigger price blurs on the wrong side of mid', () => {
-      mockOrderForm.type = 'stop_market';
-      mockContextValue.triggerPrice = '1000';
-      mockValidation.isValid = false;
-      mockValidation.fieldIssues = [
-        {
-          field: 'triggerPrice',
-          issue: {
-            code: 'wrong_side',
-            family: 'stop',
-            requiredSide: 'above',
-          },
-        },
-      ];
-      const { result, rerender } = renderProForm();
-
-      expect(result.current.priceCardMessage).toBeUndefined();
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-
-      act(() => {
-        result.current.onTriggerPriceBlur();
-      });
-      rerender({});
-
-      expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
+    it.each([
+      {
+        orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '80000',
+        family: 'stop',
+        requiredSide: 'above',
         message: 'Trigger price must be higher than mid price',
-      });
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-    });
+      },
+      {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '100000',
+        family: 'stop',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '80000',
+        family: 'stop',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'short',
+        triggerPrice: '100000',
+        family: 'stop',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '100000',
+        family: 'take_profit',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '80000',
+        family: 'take_profit',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'long',
+        triggerPrice: '100000',
+        family: 'take_profit',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '80000',
+        family: 'take_profit',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+    ] as const)(
+      'blocks $direction $orderType before blur and shows guidance after blur',
+      ({
+        orderType,
+        direction,
+        triggerPrice,
+        family,
+        requiredSide,
+        message,
+      }) => {
+        mockOrderForm.type = orderType;
+        mockOrderForm.direction = direction;
+        mockOrderForm.limitPrice = orderType.endsWith('_limit')
+          ? '90000'
+          : undefined;
+        mockContextValue.triggerPrice = triggerPrice;
+        mockValidation.isValid = false;
+        mockValidation.fieldIssues = [
+          {
+            field: 'triggerPrice',
+            issue: {
+              code: 'wrong_side',
+              family,
+              requiredSide,
+            },
+          },
+        ];
+        const { result, rerender } = renderProForm();
+
+        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+        act(() => {
+          result.current.onTriggerPriceBlur();
+        });
+        rerender({});
+
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'error',
+          message,
+        });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
 
     it('clears the helper once a valid trigger price is entered', () => {
       mockOrderForm.type = 'stop_market';
@@ -1474,6 +1559,38 @@ describe('usePerpsProOrderForm', () => {
       rerender({});
 
       expect(result.current.priceCardMessage).toBeUndefined();
+    });
+
+    it('shows a new wrong-side error when live mid crosses a blurred trigger', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+      expect(result.current.priceCardMessage).toBeUndefined();
+
+      mockLivePrice = '92000';
+      mockLiveMarkPrice = '92000';
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        {
+          field: 'triggerPrice',
+          issue: {
+            code: 'wrong_side',
+            family: 'stop',
+            requiredSide: 'above',
+          },
+        },
+      ];
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('shows the trigger error before the required limit error', () => {
@@ -1559,7 +1676,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('shows a required trigger error after a submit attempt', async () => {
+    it('keeps field copy blur-gated after a blocked submit attempt', async () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = undefined;
       mockValidation.isValid = false;
@@ -1578,10 +1695,7 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).toHaveBeenCalledWith(
         'Please set a trigger price',
       );
-      expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
-        message: 'Please set a trigger price',
-      });
+      expect(result.current.priceCardMessage).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
@@ -2145,7 +2259,47 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
+      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
       expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+    });
+
+    it('preserves price values while resetting presentation for a new order type', () => {
+      // Arrange
+      mockOrderForm.type = 'stop_market';
+      mockOrderForm.limitPrice = '91000';
+      mockContextValue.triggerPrice = '92000';
+      mockContextValue.hasBlurredTriggerPrice = true;
+      mockValidation.fieldIssues = [
+        {
+          field: 'triggerPrice',
+          issue: {
+            code: 'wrong_side',
+            family: 'stop',
+            requiredSide: 'above',
+          },
+        },
+      ];
+      const { result, rerender } = renderProForm();
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid price',
+      });
+
+      // Act
+      act(() => {
+        result.current.onOrderTypeSelect('stop_limit');
+      });
+      mockOrderForm.type = 'stop_limit';
+      rerender({});
+
+      // Assert
+      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+      expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+      expect(mockOrderForm.limitPrice).toBe('91000');
+      expect(mockContextValue.triggerPrice).toBe('92000');
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('ignores size input over nine digits and forwards valid input', () => {

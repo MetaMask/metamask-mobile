@@ -484,6 +484,86 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
+  itForPlatforms(
+    'blocks a short stop-limit trigger above mid before showing blur guidance',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      fireEvent.changeText(triggerInput, '3000');
+
+      expect(
+        screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+      ).not.toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+
+      fireEvent(triggerInput, 'blur');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.trigger_must_be_below_mid'),
+          );
+          expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'blocks a short take-limit trigger below mid before showing blur guidance',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      fireEvent.changeText(triggerInput, '1000');
+
+      expect(
+        screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+      ).not.toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+
+      fireEvent(triggerInput, 'blur');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.trigger_must_be_above_mid'),
+          );
+          expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
   itForPlatforms('defers required trigger guidance until blur', async () => {
     renderProMarketWithTriggeredOrdersFlag(true);
     const sizeInput = await findSizeInput();
@@ -523,6 +603,43 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       { timeout: TIMEOUT_MS },
     );
   });
+
+  itForPlatforms(
+    'blocks an empty ordinary limit price before showing blur guidance',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      expect(
+        screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+      ).not.toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+
+      fireEvent(limitInput, 'blur');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.limit_price_required'),
+          );
+          expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
 
   itForPlatforms('defers required limit guidance until blur', async () => {
     renderProMarketWithTriggeredOrdersFlag(true);

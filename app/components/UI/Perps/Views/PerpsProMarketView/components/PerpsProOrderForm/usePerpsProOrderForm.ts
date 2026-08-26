@@ -380,6 +380,7 @@ export const usePerpsProOrderForm = ({
     hasBlurredTriggerPrice,
     triggerPrice,
     setTriggerPrice,
+    resetPriceInputInteraction,
     setOrderType,
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
@@ -393,9 +394,6 @@ export const usePerpsProOrderForm = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  const [lastSubmittedOrderType, setLastSubmittedOrderType] =
-    useState<OrderType | null>(null);
-  const hasAttemptedSubmit = lastSubmittedOrderType === orderForm.type;
   const isSubmittingRef = useRef(false);
 
   const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
@@ -797,8 +795,6 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    setLastSubmittedOrderType(orderForm.type);
-
     const currentFieldIssues = getOrderFormFieldIssues({
       orderType: orderForm.type,
       direction: orderForm.direction,
@@ -1009,7 +1005,6 @@ export const usePerpsProOrderForm = ({
       setLimitPrice(undefined);
       setTriggerPrice(undefined);
       setReduceOnly(false);
-      setLastSubmittedOrderType(null);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -1194,11 +1189,18 @@ export const usePerpsProOrderForm = ({
         setIsOrderTypeVisible(false);
         return;
       }
+      if (type !== orderForm.type) {
+        resetPriceInputInteraction();
+      }
       setOrderType(type);
-      setLastSubmittedOrderType(null);
       setIsOrderTypeVisible(false);
     },
-    [isTriggeredOrdersEnabled, setOrderType],
+    [
+      isTriggeredOrdersEnabled,
+      orderForm.type,
+      resetPriceInputInteraction,
+      setOrderType,
+    ],
   );
 
   const onUseMidPricePress = useCallback(() => {
@@ -1400,7 +1402,7 @@ export const usePerpsProOrderForm = ({
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
     );
-    if (triggerIssue && (hasBlurredTriggerPrice || hasAttemptedSubmit)) {
+    if (triggerIssue && hasBlurredTriggerPrice) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(triggerIssue),
@@ -1410,7 +1412,7 @@ export const usePerpsProOrderForm = ({
     const limitIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'limitPrice',
     );
-    if (limitIssue && (hasBlurredLimitPrice || hasAttemptedSubmit)) {
+    if (limitIssue && hasBlurredLimitPrice) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(limitIssue),
@@ -1435,7 +1437,6 @@ export const usePerpsProOrderForm = ({
     return { severity: 'warning' as const, message: warning };
   }, [
     assetData.price,
-    hasAttemptedSubmit,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     orderForm.direction,
