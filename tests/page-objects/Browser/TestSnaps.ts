@@ -112,7 +112,6 @@ class TestSnaps {
   /** Native Snap UI control — iOS uses name XPath (testID often not tappable). */
   getSnapUiNativeElement(testID: string): Promise<AppiumElement> {
     return resolve({
-      detoxTestID: testID,
       androidAppiumTestID: testID,
       iosAppiumXPath: snapUiNativeIosXPath(testID),
     });
@@ -530,7 +529,6 @@ class TestSnaps {
 
   async fillCustomDialogInput(text: string) {
     const input = resolve({
-      detoxTestID: SnapUIInputSelectorIDs.customDialogInput,
       androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
       iosAppiumXPath: SnapUIInputSelectorXPaths.textfieldIos,
     });
