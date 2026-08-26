@@ -9,7 +9,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
   Icon,
   IconColor,
@@ -53,6 +53,9 @@ jest.mock(
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+const mockUseIsFocused = useIsFocused as jest.MockedFunction<
+  typeof useIsFocused
 >;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
@@ -186,6 +189,7 @@ describe('EarnSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetEarnSectionRefreshForTests();
+    mockUseIsFocused.mockReturnValue(true);
     mockMoneyAccountVisible = false;
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
@@ -251,6 +255,22 @@ describe('EarnSection', () => {
     );
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('disables Homepage telemetry while Home is unfocused', () => {
+    mockUseIsFocused.mockReturnValue(false);
+
+    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionRef: null,
+        fireImmediateWhenNoView: false,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
     );
   });
 

@@ -147,6 +147,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
     const isHomepageSection = homeAnalytics !== undefined;
+    const homepageTelemetryEnabled = isHomepageSection && enabled;
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
     const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
@@ -215,14 +216,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: isHomepageSection ? sectionViewRef : null,
+      sectionRef: homepageTelemetryEnabled ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.EARN,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
       itemCount: earnSectionItemCount,
-      fireImmediateWhenNoView: isHomepageSection,
+      fireImmediateWhenNoView: homepageTelemetryEnabled,
     });
 
     useSectionPerformance({
@@ -230,7 +231,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       contentReady: !isLoading,
       isEmpty: false,
       isLoading,
-      enabled: isHomepageSection,
+      enabled: homepageTelemetryEnabled,
     });
 
     const handleHeaderPress = () => {
