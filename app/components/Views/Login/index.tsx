@@ -103,11 +103,10 @@ import {
 } from './loginPerformanceTags';
 import {
   getLoginUnlockFailureErrorType,
-  LOGIN_UNLOCK_METHOD,
-  trackLoginUnlockAttempted,
-  trackLoginUnlockCompleted,
-  trackLoginUnlockFailed,
-  type LoginUnlockMethod,
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+  UNLOCK_TYPE,
+  type UnlockType,
 } from './loginUnlockAnalytics';
 import {
   cancelHomepageReadyTrace,
@@ -254,13 +253,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginError: Error, loginMethod: LoginUnlockMethod) => {
+    async (loginError: Error, unlockType: UnlockType) => {
       // Prioritize message property over toString for error handling
       const loginErrorMessage = loginError.message || loginError.toString();
 
-      trackLoginUnlockFailed({
-        loginMethod,
-        errorType: getLoginUnlockFailureErrorType(loginError),
+      trackAppUnlockedFailed({
+        unlockType,
+        reason: getLoginUnlockFailureErrorType(loginError),
         saveOnboardingEvent,
       });
 
@@ -340,11 +339,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    trackLoginUnlockAttempted({
-      loginMethod: LOGIN_UNLOCK_METHOD.PASSWORD,
-      saveOnboardingEvent,
-    });
-
     const homepageReadyTraceToken: HomepageReadyTraceToken | null =
       startHomepageReadyTrace({
         source: 'unlock',
@@ -391,8 +385,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           }
         },
       );
-      trackLoginUnlockCompleted({
-        loginMethod: LOGIN_UNLOCK_METHOD.PASSWORD,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.PASSWORD,
         saveOnboardingEvent,
       });
     } catch (loginErr) {
@@ -400,7 +394,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
-      await handleLoginError(loginErr as Error, LOGIN_UNLOCK_METHOD.PASSWORD);
+      await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
   }, [
@@ -421,11 +415,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setPassword('');
     setLoading(true);
     setError(null);
-
-    trackLoginUnlockAttempted({
-      loginMethod: LOGIN_UNLOCK_METHOD.BIOMETRIC,
-      saveOnboardingEvent,
-    });
 
     const homepageReadyTraceToken: HomepageReadyTraceToken | null =
       startHomepageReadyTrace({
@@ -449,8 +438,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
-      trackLoginUnlockCompleted({
-        loginMethod: LOGIN_UNLOCK_METHOD.BIOMETRIC,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.BIOMETRIC,
         saveOnboardingEvent,
       });
     } catch (loginerror) {
@@ -458,10 +447,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
-      await handleLoginError(
-        loginerror as Error,
-        LOGIN_UNLOCK_METHOD.BIOMETRIC,
-      );
+      await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);
   }, [unlockWallet, loading, handleLoginError, saveOnboardingEvent]);

@@ -21,15 +21,15 @@ describe('trackDeferredOnboardingEvent', () => {
 
   it('tracks immediately when metrics are enabled', () => {
     trackDeferredOnboardingEvent(
-      MetaMetricsEvents.LOGIN_ATTEMPTED,
-      { login_method: 'password' },
+      MetaMetricsEvents.APP_UNLOCKED,
+      { unlock_type: 'password' },
       saveOnboardingEvent,
     );
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: MetaMetricsEvents.LOGIN_ATTEMPTED.category,
-        properties: expect.objectContaining({ login_method: 'password' }),
+        name: MetaMetricsEvents.APP_UNLOCKED.category,
+        properties: expect.objectContaining({ unlock_type: 'password' }),
       }),
     );
     expect(saveOnboardingEvent).not.toHaveBeenCalled();
@@ -39,15 +39,15 @@ describe('trackDeferredOnboardingEvent', () => {
     mockIsEnabled.mockReturnValue(false);
 
     trackDeferredOnboardingEvent(
-      MetaMetricsEvents.LOGIN_ATTEMPTED,
-      { login_method: 'password' },
+      MetaMetricsEvents.APP_UNLOCKED,
+      { unlock_type: 'password' },
       saveOnboardingEvent,
     );
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
     expect(saveOnboardingEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: MetaMetricsEvents.LOGIN_ATTEMPTED.category,
+        name: MetaMetricsEvents.APP_UNLOCKED.category,
       }),
     );
   });
@@ -55,8 +55,8 @@ describe('trackDeferredOnboardingEvent', () => {
   it('tracks when metrics are disabled and no saver is provided', () => {
     mockIsEnabled.mockReturnValue(false);
 
-    trackDeferredOnboardingEvent(MetaMetricsEvents.LOGIN_ATTEMPTED, {
-      login_method: 'password',
+    trackDeferredOnboardingEvent(MetaMetricsEvents.APP_UNLOCKED, {
+      unlock_type: 'password',
     });
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
