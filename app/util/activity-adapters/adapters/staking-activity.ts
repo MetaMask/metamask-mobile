@@ -1,9 +1,7 @@
 /**
- * Recovers staking activity kinds that the shared `@metamask/client-utils`
- * mappers leave uncategorized: `mapApiTransaction` has no pooled-staking branch
- * and `mapKeyringTransaction` has none for the keyring stake types, so both fall
- * through to `contractInteraction` on every device except the one that sent the
- * transaction
+ * Recovers staking kinds the shared `@metamask/client-utils` mappers leave as
+ * `contractInteraction`: `mapApiTransaction` has no pooled-staking branch, and
+ * `mapKeyringTransaction` has none for the keyring stake types.
  */
 import {
   TransactionType as KeyringTransactionType,
@@ -11,8 +9,19 @@ import {
 } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { ActivityFee, ActivityListItem, TokenAmount } from '../types';
+import {
+  mobileActivityAdapterEnvironment,
+  type ActivityAdapterEnvironment,
+} from './environment';
 
 type StakingKind = 'stake' | 'unstake' | 'claim';
+
+type ApiStakingTransaction = Pick<
+  V1TransactionByHashResponse,
+  'chainId' | 'to' | 'methodId' | 'gasUsed' | 'effectiveGasPrice'
+>;
+
+const NATIVE_FEE_DECIMALS = 18;
 
 interface StakingActivityData {
   from?: string;
@@ -20,17 +29,12 @@ interface StakingActivityData {
   fees?: ActivityFee[];
 }
 
-/**
- * Pool contract per chain, keyed by decimal chain id to match the accounts API
- * payload. Mirrors `contractMap` in `@metamask/stake-sdk`, which the package
- * does not re-export.
- */
+/** Mirrors `contractMap` in `@metamask/stake-sdk`, which it does not export. */
 const POOLED_STAKING_CONTRACT_BY_CHAIN_ID = new Map<number, string>([
   [1, '0x4fef9d741011476750a243ac70b9789a63dd47df'],
   [560048, '0xe96ac18cfe5a7af8fe1fe7bc37ff110d88bc67ff'],
 ]);
 
-/** Pool selectors, derived from the SDK's `PooledStakingABI`. */
 const POOLED_STAKING_KIND_BY_METHOD_ID = new Map<string, StakingKind>([
   ['0xf9609f08', 'stake'], // deposit(address,address)
   ['0x8ceab9aa', 'unstake'], // enterExitQueue(uint256,address)
@@ -43,11 +47,7 @@ const KEYRING_STAKING_KIND_BY_TYPE = new Map<string, 'stake' | 'unstake'>([
   [KeyringTransactionType.StakeWithdraw, 'unstake'],
 ]);
 
-/**
- * The pool's internal share transfer can make a staking transaction look like a
- * swap to the mapper, which stores the amount under `sourceToken`/
- * `destinationToken` rather than `token`.
- */
+/** The pool's share transfer can look like a swap, moving the amount off `token`. */
 function getStakingToken(
   data: ActivityListItem['data'],
   kind: StakingKind,
@@ -65,16 +65,52 @@ function getStakingToken(
 function getStakingActivityData(
   activity: ActivityListItem,
   kind: StakingKind,
+  fallbackFees?: ActivityFee[],
 ): StakingActivityData {
   const { data } = activity;
   const from = 'from' in data ? data.from : undefined;
   const token = getStakingToken(data, kind);
+  const fees = data.fees?.length ? data.fees : fallbackFees;
 
   return {
     ...(from ? { from } : {}),
     ...(token ? { token } : {}),
-    ...(data.fees ? { fees: data.fees } : {}),
+    ...(fees ? { fees } : {}),
   };
+}
+
+/** The `contractInteraction` branch skips `getFees`, unlike every other branch. */
+function getNetworkFees(
+  transaction: ApiStakingTransaction,
+  environment: ActivityAdapterEnvironment,
+): ActivityFee[] | undefined {
+  let amount: string;
+  try {
+    amount = (
+      BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice)
+    ).toString();
+  } catch {
+    return undefined;
+  }
+
+  if (amount === '0') {
+    return undefined;
+  }
+
+  const nativeAsset = environment.getNativeAssetForChainId(
+    `0x${transaction.chainId.toString(16)}`,
+  );
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: NATIVE_FEE_DECIMALS,
+      assetType: 'native',
+      ...(nativeAsset?.symbol ? { symbol: nativeAsset.symbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
 }
 
 function getMovementToken(
@@ -98,17 +134,12 @@ function getMovementToken(
  * Re-classifies an API-sourced activity as stake/unstake/claim when it targets
  * the pooled staking contract with a known selector.
  *
- * An unstake carries no amount: `enterExitQueue` transfers no ETH, it queues
- * shares, and the ETH arrives on the later claim.
- *
- * @param transaction - Raw accounts API transaction behind the activity.
- * @param activity - The activity as mapped by `mapApiTransaction`.
- * @returns The re-classified activity, or the original when the transaction is
- * not a recognized pooled staking call.
+ * @returns The original activity when it is not a recognized staking call.
  */
 export function classifyPooledStakingActivity(
-  transaction: Pick<V1TransactionByHashResponse, 'chainId' | 'to' | 'methodId'>,
+  transaction: ApiStakingTransaction,
   activity: ActivityListItem,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
 ): ActivityListItem {
   const contractAddress = POOLED_STAKING_CONTRACT_BY_CHAIN_ID.get(
     transaction.chainId,
@@ -126,7 +157,11 @@ export function classifyPooledStakingActivity(
     return activity;
   }
 
-  const data = getStakingActivityData(activity, kind);
+  const data = getStakingActivityData(
+    activity,
+    kind,
+    getNetworkFees(transaction, environment),
+  );
 
   if (kind === 'stake') {
     return { ...activity, type: 'stake', data };
@@ -138,13 +173,10 @@ export function classifyPooledStakingActivity(
 }
 
 /**
- * Re-classifies a non-EVM activity as stake/unstake from its keyring
- * transaction type. Tron staking uses native system contracts rather than a pool
- * address, so the snap-reported type is the only signal.
+ * Re-classifies a non-EVM activity from its keyring transaction type. Tron
+ * staking uses native system contracts, so there is no pool address to match.
  *
- * @param transaction - The keyring transaction behind the activity.
- * @param activity - The activity as mapped by `mapKeyringTransaction`.
- * @returns The re-classified activity, or the original for non-staking types.
+ * @returns The original activity for non-staking types.
  */
 export function classifyKeyringStakingActivity(
   transaction: NonEvmTransaction,

@@ -45,6 +45,7 @@ function hasNonZeroFeeAmount(amount: string | undefined): boolean {
   }
 }
 
+/** Fallback for staking payloads with no gas data to rebuild a fee from. */
 function isStakingWithNetworkFee(item: ActivityListItem): boolean {
   if (!STAKING_KINDS.has(item.type) || !('fees' in item.data)) {
     return false;

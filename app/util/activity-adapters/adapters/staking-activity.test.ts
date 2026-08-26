@@ -28,14 +28,19 @@ const nativeToken = {
   amount: '1000000000000000000',
 };
 
+type ApiStakingTransaction = Pick<
+  V1TransactionByHashResponse,
+  'chainId' | 'to' | 'methodId' | 'gasUsed' | 'effectiveGasPrice'
+>;
+
 const buildApiTransaction = (
-  overrides: Partial<
-    Pick<V1TransactionByHashResponse, 'chainId' | 'to' | 'methodId'>
-  > = {},
-): Pick<V1TransactionByHashResponse, 'chainId' | 'to' | 'methodId'> => ({
+  overrides: Partial<ApiStakingTransaction> = {},
+): ApiStakingTransaction => ({
   chainId: 1,
   to: MAINNET_POOL,
   methodId: DEPOSIT_METHOD_ID,
+  gasUsed: 100_000,
+  effectiveGasPrice: '20000000000',
   ...overrides,
 });
 
@@ -135,6 +140,52 @@ describe('classifyPooledStakingActivity', () => {
     expect(result.data.fees).toStrictEqual(fees);
   });
 
+  it('rebuilds the network fee from the receipt', () => {
+    const result = classifyPooledStakingActivity(
+      buildApiTransaction(),
+      buildContractInteraction(),
+    );
+
+    expect(result.data.fees).toStrictEqual([
+      {
+        type: 'base',
+        amount: '2000000000000000',
+        decimals: 18,
+        assetType: 'native',
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      },
+    ]);
+  });
+
+  it('omits the asset when the chain has no native asset entry', () => {
+    const result = classifyPooledStakingActivity(
+      buildApiTransaction({ chainId: 560048, to: HOODI_POOL }),
+      buildContractInteraction(),
+    );
+
+    expect(result.data.fees).toStrictEqual([
+      {
+        type: 'base',
+        amount: '2000000000000000',
+        decimals: 18,
+        assetType: 'native',
+      },
+    ]);
+  });
+
+  it.each([
+    ['a zero fee', { gasUsed: 0 }],
+    ['unusable gas data', { effectiveGasPrice: 'not-a-number' }],
+  ])('omits fees for %s', (_label, overrides) => {
+    const result = classifyPooledStakingActivity(
+      buildApiTransaction(overrides),
+      buildContractInteraction(),
+    );
+
+    expect(result.data).not.toHaveProperty('fees');
+  });
+
   it.each(['pending', 'failed'] as const)('preserves %s status', (status) => {
     const result = classifyPooledStakingActivity(buildApiTransaction(), {
       ...buildContractInteraction(),
@@ -181,7 +232,8 @@ describe('classifyPooledStakingActivity', () => {
     );
 
     expect(result.type).toBe('unstake');
-    expect(result.data).toStrictEqual({ from: sender });
+    expect(result.data).not.toHaveProperty('token');
+    expect(result.data.fees).toHaveLength(1);
   });
 
   it('leaves an unrecognized selector on the pool contract untouched', () => {
