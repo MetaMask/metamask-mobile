@@ -4,13 +4,15 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EthAccountType } from '@metamask/keyring-api';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
-import { AssetType } from '../../../Views/confirmations/types/token';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
-import { selectMoneyDepositEligibleAssets } from '../selectors/depositTokens';
+import {
+  type MoneyDepositAsset,
+  selectMoneyDepositEligibleAssets,
+} from '../selectors/depositTokens';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/featureFlagController/confirmations');
@@ -93,8 +95,12 @@ const RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT: RelayFixedSpreadConfig = {
 
 const EMPTY_RELAY_CONFIG: RelayFixedSpreadConfig = { routes: [] };
 
-const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
+const makeToken = (
+  overrides: Partial<MoneyDepositAsset> = {},
+): MoneyDepositAsset =>
   ({
+    accountId: 'account-id',
+    assetId: '0xabc0000000000000000000000000000000000001',
     address: '0xabc0000000000000000000000000000000000001',
     chainId: '0x1',
     symbol: 'TOK',
@@ -102,12 +108,12 @@ const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
     decimals: 18,
     balance: '1000000000000000000',
     fiat: { balance: 100, currency: 'usd', conversionRate: 1 },
-    isETH: false,
-    aggregators: [],
+    rawBalance: '0xde0b6b3a7640000',
+    isNative: false,
     image: '',
     accountType: EthAccountType.Eoa,
     ...overrides,
-  }) as AssetType;
+  }) as MoneyDepositAsset;
 
 const ETH_USDC = makeToken({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -122,7 +128,7 @@ const ETH_USDT = makeToken({
   fiat: { balance: 300, currency: 'usd', conversionRate: 1 },
 });
 
-let eligibleAssets: AssetType[] = [];
+let eligibleAssets: MoneyDepositAsset[] = [];
 
 const mockSelectors = (
   relayFixedSpread: RelayFixedSpreadConfig = EMPTY_RELAY_CONFIG,
@@ -236,7 +242,7 @@ describe('useMoneyDepositTokens', () => {
       const noChain = {
         ...ETH_USDC,
         chainId: undefined,
-      } as unknown as AssetType;
+      };
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -248,7 +254,7 @@ describe('useMoneyDepositTokens', () => {
       // Same address as ETH_USDC but on Arbitrum — no matching route
       const arbitrumUsdc = makeToken({
         address: ETH_USDC.address,
-        chainId: '0xa4b1',
+        chainId: '0xa4b1' as `0x${string}`,
         symbol: 'USDC',
         fiat: { balance: 100, currency: 'usd', conversionRate: 1 },
       });

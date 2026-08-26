@@ -110,6 +110,7 @@ import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -130,6 +131,7 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
@@ -142,6 +144,9 @@ const PerpsHomeView = () => {
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const analyticsContext = (
+    route.params as NavigationAnalyticsRouteParams | undefined
+  )?.analyticsContext;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -500,6 +505,9 @@ const PerpsHomeView = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
+    navigationAnalyticsContext: route.params?.source
+      ? undefined
+      : analyticsContext,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
@@ -1097,6 +1105,7 @@ const PerpsHomeView = () => {
                 mode={perpsMode}
                 onChange={handleModeChange}
                 variant="active"
+                enableHaptics
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
             ) : null}
@@ -1235,12 +1244,14 @@ const PerpsHomeView = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey={'geo_block'}
-              testID={'perps-home-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey={'geo_block'}
+                testID={'perps-home-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
@@ -1249,12 +1260,14 @@ const PerpsHomeView = () => {
       {isCloseAllGeoBlockVisible && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={() => setIsCloseAllGeoBlockVisible(false)}
-              contentKey={'geo_block'}
-              testID={'perps-home-close-all-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={() => setIsCloseAllGeoBlockVisible(false)}
+                contentKey={'geo_block'}
+                testID={'perps-home-close-all-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
