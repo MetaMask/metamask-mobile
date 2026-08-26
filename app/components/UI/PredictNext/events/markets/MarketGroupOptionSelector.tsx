@@ -1,20 +1,15 @@
 import React, { useCallback, useEffect } from 'react';
 import {
-  PanResponder,
   Pressable,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import {
   Box,
   FontWeight,
@@ -38,7 +33,6 @@ export interface MarketGroupOptionSelectorProps {
 const ITEM_WIDTH = 56;
 const FADE_WIDTH = 24;
 const SELECTOR_HEIGHT = 42;
-const ANIMATION_DURATION = 250;
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -65,21 +59,12 @@ const getOptionValue = (market: PredictMarket): number | undefined =>
       : market.group.option.value
     : undefined;
 
-const isHorizontalGesture = (dx: number, dy: number): boolean =>
-  Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5;
-
-const getIndexForTranslateX = (
-  translationX: number,
-  width: number,
-  itemCount: number,
-): number => {
-  if (width === 0 || itemCount === 0) {
+const getIndexForScrollOffset = (offset: number, itemCount: number): number => {
+  if (itemCount === 0) {
     return 0;
   }
 
-  const index = Math.round(
-    (width / 2 - translationX - ITEM_WIDTH / 2) / ITEM_WIDTH,
-  );
+  const index = Math.round(offset / ITEM_WIDTH);
   return Math.max(0, Math.min(itemCount - 1, index));
 };
 
@@ -92,107 +77,62 @@ export const MarketGroupOptionSelector = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const translateX = useSharedValue(0);
-  const containerWidth = useSharedValue(0);
-  const containerWidthRef = React.useRef(0);
-  const dragStartTranslateX = React.useRef(0);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const [containerWidth, setContainerWidth] = React.useState(0);
+  const hasInitializedScroll = React.useRef(false);
+  const lastScrolledIndex = React.useRef<number | null>(null);
   const selectedIndex = Math.max(
     0,
     markets.findIndex((market) => market.id === selectedMarketId),
   );
 
-  const computeTranslateX = useCallback((index: number, width: number) => {
-    if (width === 0) {
-      return 0;
-    }
-
-    const selectedItemCenter = index * ITEM_WIDTH + ITEM_WIDTH / 2;
-    return width / 2 - selectedItemCenter;
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    lastScrolledIndex.current = null;
+    setContainerWidth(width);
   }, []);
 
-  const handleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      containerWidthRef.current = width;
-      containerWidth.value = width;
-      translateX.value = computeTranslateX(selectedIndex, width);
-    },
-    [computeTranslateX, containerWidth, selectedIndex, translateX],
-  );
+  const scrollToIndex = useCallback((index: number, animated: boolean) => {
+    lastScrolledIndex.current = index;
+    scrollViewRef.current?.scrollTo({
+      x: index * ITEM_WIDTH,
+      animated,
+    });
+  }, []);
 
   useEffect(() => {
-    if (containerWidth.value === 0) {
+    if (containerWidth === 0 || lastScrolledIndex.current === selectedIndex) {
       return;
     }
 
-    translateX.value = withTiming(
-      computeTranslateX(selectedIndex, containerWidth.value),
-      {
-        duration: ANIMATION_DURATION,
-        easing: Easing.inOut(Easing.ease),
-      },
-    );
-  }, [computeTranslateX, containerWidth, selectedIndex, translateX]);
+    scrollToIndex(selectedIndex, hasInitializedScroll.current);
+    hasInitializedScroll.current = true;
+  }, [containerWidth, scrollToIndex, selectedIndex]);
 
-  const snapToIndex = useCallback(
-    (index: number) => {
-      const width = containerWidthRef.current;
-      if (width === 0) {
-        return;
+  const handleScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offset =
+        event.nativeEvent.targetContentOffset?.x ??
+        event.nativeEvent.contentOffset.x;
+      const index = getIndexForScrollOffset(offset, markets.length);
+      const market = markets[index];
+
+      lastScrolledIndex.current = index;
+      if (market !== undefined) {
+        onSelect(market.id);
       }
-
-      translateX.value = withTiming(computeTranslateX(index, width), {
-        duration: ANIMATION_DURATION,
-        easing: Easing.inOut(Easing.ease),
-      });
     },
-    [computeTranslateX, translateX],
+    [markets, onSelect],
   );
 
-  const panResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_event, gestureState) =>
-          isHorizontalGesture(gestureState.dx, gestureState.dy),
-        onMoveShouldSetPanResponderCapture: (_event, gestureState) =>
-          isHorizontalGesture(gestureState.dx, gestureState.dy),
-        onPanResponderGrant: () => {
-          cancelAnimation(translateX);
-          dragStartTranslateX.current = translateX.value;
-        },
-        onPanResponderMove: (_event, gestureState) => {
-          if (containerWidthRef.current === 0) {
-            return;
-          }
-
-          translateX.value = dragStartTranslateX.current + gestureState.dx;
-        },
-        onPanResponderRelease: (_event, gestureState) => {
-          const index = getIndexForTranslateX(
-            dragStartTranslateX.current + gestureState.dx,
-            containerWidthRef.current,
-            markets.length,
-          );
-          const market = markets[index];
-
-          snapToIndex(index);
-          if (market !== undefined) {
-            onSelect(market.id);
-          }
-        },
-        onPanResponderTerminate: () => {
-          snapToIndex(selectedIndex);
-        },
-      }),
-    [markets, onSelect, selectedIndex, snapToIndex, translateX],
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (Math.abs(event.nativeEvent.velocity?.x ?? 0) < 0.01) {
+        handleScrollEnd(event);
+      }
+    },
+    [handleScrollEnd],
   );
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    alignItems: 'center' as const,
-    flexDirection: 'row' as const,
-    height: '100%',
-    transform: [{ translateX: translateX.value }],
-  }));
 
   const fadeMask = (
     <View style={tw.style('flex-1 flex-row')}>
@@ -216,51 +156,61 @@ export const MarketGroupOptionSelector = ({
     <Box twClassName={`relative h-[${SELECTOR_HEIGHT}px]`}>
       <MaskedView
         style={tw.style('flex-1 overflow-hidden')}
-        testID={MarketGroupCardTestIds.selector(groupKey)}
         maskElement={fadeMask}
-        onLayout={handleLayout}
-        {...panResponder.panHandlers}
       >
-        <Box twClassName="h-full">
-          <Animated.View style={animatedStyle}>
-            {markets.map((market) => {
-              const isSelected = market.id === selectedMarketId;
-              const optionValue = getOptionValue(market);
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          bounces={false}
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToAlignment="start"
+          snapToInterval={ITEM_WIDTH}
+          decelerationRate="fast"
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('items-center', {
+            paddingHorizontal: Math.max((containerWidth - ITEM_WIDTH) / 2, 0),
+          })}
+          testID={MarketGroupCardTestIds.selector(groupKey)}
+          onLayout={handleLayout}
+          onScrollEndDrag={handleScrollEndDrag}
+          onMomentumScrollEnd={handleScrollEnd}
+        >
+          {markets.map((market) => {
+            const isSelected = market.id === selectedMarketId;
+            const optionValue = getOptionValue(market);
 
-              return (
-                <Pressable
-                  key={market.id}
-                  testID={MarketGroupCardTestIds.option(groupKey, market.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    optionValue === undefined
-                      ? 'Market option'
-                      : `Market option ${optionValue}`
+            return (
+              <Pressable
+                key={market.id}
+                testID={MarketGroupCardTestIds.option(groupKey, market.id)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  optionValue === undefined
+                    ? 'Market option'
+                    : `Market option ${optionValue}`
+                }
+                accessibilityState={{ selected: isSelected }}
+                onPress={() => onSelect(market.id)}
+                style={tw.style('items-center justify-center py-1', {
+                  width: ITEM_WIDTH,
+                })}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
+                  color={
+                    isSelected
+                      ? TextColor.TextDefault
+                      : TextColor.TextAlternative
                   }
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => onSelect(market.id)}
-                  style={tw.style('items-center justify-center py-1', {
-                    width: ITEM_WIDTH,
-                  })}
                 >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={
-                      isSelected ? FontWeight.Bold : FontWeight.Medium
-                    }
-                    color={
-                      isSelected
-                        ? TextColor.TextDefault
-                        : TextColor.TextAlternative
-                    }
-                  >
-                    {optionValue ?? '—'}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </Animated.View>
-        </Box>
+                  {optionValue ?? '—'}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </MaskedView>
       <Box
         testID={MarketGroupCardTestIds.selectionMarker(groupKey)}

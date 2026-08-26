@@ -9,7 +9,7 @@ import { renderPredictEventScreen } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
-import { PanResponder, processColor, StyleSheet } from 'react-native';
+import { processColor, StyleSheet } from 'react-native';
 import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
@@ -783,9 +783,8 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders both spread legs in one card and keeps both selector options', async () => {
+  it('renders both spread legs in one card and selects by horizontal drag', async () => {
     const event = makePredictNextSpreadsEvent();
-    const panResponderCreateSpy = jest.spyOn(PanResponder, 'create');
     resolveEvent({ ...event, venueId, id: eventId });
     const view = renderPredictEventScreen(routeParams);
 
@@ -861,25 +860,16 @@ describe('PredictEventScreen', () => {
     const selector = view.getByTestId(
       MarketGroupCardTestIds.selector('nfl-spreads'),
     );
-    const panResponderConfig = panResponderCreateSpy.mock.calls.at(-1)?.[0];
-    panResponderCreateSpy.mockRestore();
-    expect(panResponderConfig).toBeDefined();
-    if (panResponderConfig === undefined) {
-      return;
-    }
     act(() => {
       selector.props.onLayout({
         nativeEvent: { layout: { width: 300 } },
       });
-      panResponderConfig.onPanResponderGrant?.({} as never, {} as never);
-      panResponderConfig.onPanResponderMove?.(
-        {} as never,
-        { dx: -168, dy: 0 } as never,
-      );
-      panResponderConfig.onPanResponderRelease?.(
-        {} as never,
-        { dx: -168, dy: 0 } as never,
-      );
+      selector.props.onScrollEndDrag?.({
+        nativeEvent: {
+          contentOffset: { x: 168, y: 0 },
+          velocity: { x: 0, y: 0 },
+        },
+      } as never);
     });
     await waitFor(() => {
       expect(
