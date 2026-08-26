@@ -29,6 +29,10 @@ jest.mock('./Engine/controllers/remote-feature-flag-controller/utils', () => ({
   getFeatureFlagAppEnvironment: jest.fn(() => 'production'),
 }));
 
+jest.mock('@metamask/money-account-utils', () => ({
+  MUSD_TOKEN_ADDRESS: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+}));
+
 import './NitroFetchSetup';
 
 const mockNitroFetch = jest.mocked(nitroFetch);
@@ -36,11 +40,42 @@ const mockPrefetchOnAppStart = jest.mocked(prefetchOnAppStart);
 
 const FEATURE_FLAGS_PREFIX =
   'https://client-config.api.cx.metamask.io/v1/flags';
+const POPULAR_TOKENS_SPOT_PRICES_PREFIX =
+  'https://price.api.cx.metamask.io/v3/spot-prices';
+const MUSD_TOKEN_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const POPULAR_TOKENS_SPOT_PRICES_URL = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+  {
+    assetIds: [
+      `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
+      'eip155:1/slip44:60',
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      'eip155:56/slip44:714',
+    ].join(','),
+    includeMarketData: 'true',
+    vsCurrency: 'usd',
+  },
+)}`;
+const PREDICT_TRENDING_MARKETS_PREFIX =
+  'https://gamma-api.polymarket.com/events/keyset';
+const PREDICT_TRENDING_MARKETS_URL = `${PREDICT_TRENDING_MARKETS_PREFIX}?${new URLSearchParams(
+  {
+    limit: '5',
+    active: 'true',
+    archived: 'false',
+    closed: 'false',
+    ascending: 'false',
+    liquidity_min: '10000',
+    volume_min: '10000',
+    order: 'volume24hr',
+  },
+)}`;
+const PREDICT_HOMEPAGE_SLOTS_URL = `${PREDICT_TRENDING_MARKETS_PREFIX}?limit=2&active=true&archived=false&closed=false&id=659518&id=478277`;
 
 describe('NitroFetchSetup', () => {
   describe('startup prefetch registration', () => {
-    it('registers all three startup prefetch endpoints on module load', () => {
-      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(3);
+    it('registers all six startup prefetch endpoints on module load', () => {
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(6);
       expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
         expect.stringContaining(FEATURE_FLAGS_PREFIX),
         { prefetchKey: 'feature-flags' },
@@ -55,6 +90,27 @@ describe('NitroFetchSetup', () => {
         C2_DOMAIN_BLOCKLIST_URL,
         {
           prefetchKey: 'phishing-c2-blocklist',
+        },
+      );
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
+        POPULAR_TOKENS_SPOT_PRICES_URL,
+        {
+          prefetchKey: 'popular-tokens-spot-prices',
+          prefetchCacheTtlMs: 120_000,
+        },
+      );
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
+        PREDICT_TRENDING_MARKETS_URL,
+        {
+          prefetchKey: 'predict-trending-markets',
+          prefetchCacheTtlMs: 120_000,
+        },
+      );
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
+        PREDICT_HOMEPAGE_SLOTS_URL,
+        {
+          prefetchKey: 'predict-homepage-slots',
+          prefetchCacheTtlMs: 120_000,
         },
       );
     });
@@ -238,6 +294,100 @@ describe('NitroFetchSetup', () => {
         expect((init?.headers as Headers).get('prefetchKey')).toBe(
           'phishing-c2-blocklist',
         );
+      });
+
+      it('injects prefetchKey for popular-tokens spot-prices URL (USD + mUSD asset)', async () => {
+        await global.fetch(POPULAR_TOKENS_SPOT_PRICES_URL);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect((init?.headers as Headers).get('prefetchKey')).toBe(
+          'popular-tokens-spot-prices',
+        );
+        expect(
+          (init as RequestInit & { prefetchCacheTtlMs?: number })
+            ?.prefetchCacheTtlMs,
+        ).toBe(120_000);
+      });
+
+      it('does not inject prefetchKey for spot-prices with a non-USD currency', async () => {
+        const eurUrl = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+          {
+            assetIds: `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
+            includeMarketData: 'true',
+            vsCurrency: 'eur',
+          },
+        )}`;
+
+        await global.fetch(eurUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(eurUrl, undefined);
+      });
+
+      it('injects prefetchKey for the homepage predict trending markets URL', async () => {
+        await global.fetch(PREDICT_TRENDING_MARKETS_URL);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect((init?.headers as Headers).get('prefetchKey')).toBe(
+          'predict-trending-markets',
+        );
+        expect(
+          (init as RequestInit & { prefetchCacheTtlMs?: number })
+            ?.prefetchCacheTtlMs,
+        ).toBe(120_000);
+      });
+
+      it('injects prefetchKey for the homepage predict discovery slots URL', async () => {
+        await global.fetch(PREDICT_HOMEPAGE_SLOTS_URL);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect((init?.headers as Headers).get('prefetchKey')).toBe(
+          'predict-homepage-slots',
+        );
+        expect(
+          (init as RequestInit & { prefetchCacheTtlMs?: number })
+            ?.prefetchCacheTtlMs,
+        ).toBe(120_000);
+      });
+
+      it('does not inject prefetchKey for other limit=2 keyset requests without the slot event ids', async () => {
+        const otherUrl = `${PREDICT_TRENDING_MARKETS_PREFIX}?limit=2&active=true&archived=false&closed=false&id=111111&id=222222`;
+
+        await global.fetch(otherUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(otherUrl, undefined);
+      });
+
+      it('does not inject prefetchKey for predict feed requests with a different page size', async () => {
+        const feedUrl = `${PREDICT_TRENDING_MARKETS_PREFIX}?${new URLSearchParams(
+          {
+            limit: '20',
+            active: 'true',
+            archived: 'false',
+            closed: 'false',
+            ascending: 'false',
+            liquidity_min: '10000',
+            volume_min: '10000',
+            order: 'volume24hr',
+          },
+        )}`;
+
+        await global.fetch(feedUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(feedUrl, undefined);
+      });
+
+      it('does not inject prefetchKey for unrelated spot-prices requests', async () => {
+        const otherUrl = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+          {
+            assetIds: 'eip155:1/slip44:60',
+            includeMarketData: 'true',
+            vsCurrency: 'usd',
+          },
+        )}`;
+
+        await global.fetch(otherUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(otherUrl, undefined);
       });
 
       it('preserves existing init options alongside injected prefetchKey', async () => {

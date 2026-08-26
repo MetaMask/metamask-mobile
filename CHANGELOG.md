@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Prefetch empty-wallet popular-token spot prices on cold start via nitro-fetch so homepage prices can resolve from cache
+- Prefetch homepage Predictions requests (trending markets and discovery event slots, covering both A/B variants) on cold start via nitro-fetch so prediction cards can resolve from cache
+
 ## [8.8.1]
 
 ### Fixed
