@@ -472,7 +472,13 @@
             "chartExpanded": false,
             "orderBookExpanded": false,
             "orderBookPosition": "left",
-            "orderFormPosition": "right"
+            "orderFormPosition": "right",
+            "ordersSideFilter": "all",
+            "ordersSortDirection": "desc",
+            "ordersSortField": "time",
+            "positionsSideFilter": "all",
+            "positionsSortDirection": "desc",
+            "positionsSortField": "positionValue"
           },
           "recentlyViewedMarkets": {
             "mainnet": [],
@@ -954,8 +960,6 @@
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
       "multichainAccountsIntroModalSeen": true,
-      "musdConversionAssetDetailCtasSeen": {},
-      "musdConversionEducationSeen": false,
       "onboardingStepperProgress": {},
       "passwordSet": true,
       "protectWalletModalVisible": false,

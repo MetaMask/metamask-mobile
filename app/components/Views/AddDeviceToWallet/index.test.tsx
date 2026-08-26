@@ -383,6 +383,7 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+          { pop: true },
         );
       });
     });
@@ -401,6 +402,7 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+          { pop: true },
         );
       });
     });

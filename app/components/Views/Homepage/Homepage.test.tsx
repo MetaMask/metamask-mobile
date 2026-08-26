@@ -292,6 +292,7 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
 }
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectEarnHomeSectionEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectPooledStakingEnabledFlag: jest.fn(() => false),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
@@ -299,7 +300,6 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdConversionCTATokens: jest.fn(() => ({})),
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
   selectMusdBalanceChainIds: jest.fn(() => []),
 }));
 

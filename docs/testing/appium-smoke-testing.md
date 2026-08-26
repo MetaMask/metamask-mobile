@@ -1,6 +1,6 @@
 # Appium Smoke E2E Tests
 
-Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`. Detox smoke and `wdio/` have been removed (MMQA-2230).
+Appium smoke is the mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`.
 
 |                         | Appium smoke                                           |
 | ----------------------- | ------------------------------------------------------ |
@@ -10,7 +10,7 @@ Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs liv
 | **Build**               | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)       |
 | **Local yarn commands** | `yarn appium-smoke:ios` / `yarn appium-smoke:android`  |
 
-Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework lint freeze: [tests/AGENTS.md](../tests/AGENTS.md).
+Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework imports are ESLint errors: [tests/AGENTS.md](../tests/AGENTS.md).
 
 ## Architecture
 
@@ -234,7 +234,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
 - **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
-- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per smoke tag.
+- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — selects specs per fixed `split`/`total_splits` via `e2e-split-tags-shards.mjs` (qa-stats timing bin-pack when available), then runs Playwright with `--grep` and those files.
 - **Seedless:** `SmokeSeedlessOnboarding` uses **2** shards per platform (thin keep list in `tests/smoke-appium/seedless/`). Smart E2E selects this tag from `tests/tags.js` — prefer CV/unit for Account Already Exists, attribution props, and Import SRP UI.
 
 ## Adding a new Appium smoke spec
@@ -242,7 +242,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 1. Add the spec under `tests/smoke-appium/<feature>/`.
 2. Use `appiumTest` from `tests/framework/fixtures/playwright/index.js`.
 3. Pass `currentDeviceDetails` into `withFixtures`; use `loginToAppPlaywright`.
-4. Reuse existing page objects — avoid Detox-only `device.*` calls.
+4. Reuse existing page objects — use `Gestures` instead of raw driver calls.
 5. Lint: `yarn lint tests/smoke-appium/<path> --fix` and `yarn lint:tsc`.
 6. Run locally with main-e2e build before opening a PR.
 
@@ -258,7 +258,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 ## Related docs
 
-- [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
-- [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
+- [E2E testing guidelines](./e2e-testing.md) — POM, Matchers, Gestures, Assertions
+- [E2E setup](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`

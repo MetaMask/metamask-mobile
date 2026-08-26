@@ -184,6 +184,36 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+              // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+              if (moduleName === 'react-native-safe-area-context') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'app/shims/react-native-safe-area-context.tsx',
+                  ),
+                };
+              }
+              // reflect-metadata's only job is to add metadata APIs
+              // (Reflect.defineMetadata etc.) to the global Reflect object.
+              // getPolyfills above already runs it once at bundle startup,
+              // before lavamoat lockdown freezes Reflect — so the job is done.
+              //
+              // But Metro can't tell that polyfill and a require() from app
+              // code (Ledger DMK, inversify, on-ramp-sdk) are the same file,
+              // so it bundles it a second time. Running that second copy
+              // would re-define properties on the now-frozen Reflect object
+              // and crash with "TypeError: property is not configurable".
+              //
+              // Returning an empty module prevents the second run. Safe here
+              // because no importer uses the module's exports — the DMK
+              // closure only reads the global Reflect, patched at startup.
+              if (moduleName === 'reflect-metadata') {
+                return {
+                  type: 'empty',
+                };
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro

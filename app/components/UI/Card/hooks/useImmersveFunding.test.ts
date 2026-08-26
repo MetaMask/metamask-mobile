@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { awaitTransactionConfirmed } from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveFunding } from './useImmersveFunding';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
@@ -38,7 +39,7 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardImmersveConfig: () => ({ network: 'base-sepolia' }),
+  selectCardImmersveConfig: jest.fn(() => ({ network: 'base-sepolia' })),
 }));
 
 jest.mock('./useEnsureCardNetworkExists', () => ({
@@ -65,6 +66,11 @@ const accountsModule = jest.requireMock(
   '../../../../selectors/multichainAccounts/accounts',
 ) as {
   selectSelectedInternalAccountByScope: jest.Mock;
+};
+const cardFeatureFlagsModule = jest.requireMock(
+  '../../../../selectors/featureFlagController/card',
+) as {
+  selectCardImmersveConfig: jest.Mock;
 };
 
 const mockTrackEvent = jest.fn();
@@ -111,10 +117,13 @@ describe('useImmersveFunding', () => {
         address: MOCK_ACCOUNT_ADDRESS,
       }),
     );
+    cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
+      network: 'base-sepolia',
+    });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('createFundingSource delegates to the controller', async () => {
@@ -235,5 +244,45 @@ describe('useImmersveFunding', () => {
 
     expect(mockTx.addTransaction).not.toHaveBeenCalled();
     expect(result.current.error).not.toBeNull();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          data: expect.objectContaining({
+            method: 'executeFunding',
+            step: 'approve',
+            network: 'base-sepolia',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('executeFunding clears loading when network config is unsupported', async () => {
+    cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
+      network: 'not-a-network',
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await expect(
+        result.current.executeFunding(APPROVE_WRITE),
+      ).rejects.toThrow(/Unsupported Immersve funding network/);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).not.toBeNull();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          data: expect.objectContaining({
+            method: 'executeFunding',
+            network: 'not-a-network',
+          }),
+        }),
+      }),
+    );
   });
 });

@@ -143,6 +143,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsMoneyAccountLinking: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -220,6 +221,7 @@ export interface CardAccountStatus {
   shippingAddress: CardShippingAddress | null;
   countryOfResidence: string | null;
   usState: string | null;
+  createdAt: string | null;
 }
 
 // -- Alerts & Actions --
@@ -489,7 +491,7 @@ export interface CardTransactionMerchant {
 export interface CardTransactionFundingSource {
   txHash?: string;
   /** Wallet address that funded the transaction. */
-  address?: string;
+  walletAddress?: string;
   network?: string;
   chainId?: CaipChainId;
   amount?: string;
@@ -503,6 +505,8 @@ export interface CardTransaction {
   providerId: CardProviderId;
   /** Epoch ms. */
   timestamp: number;
+  /** Epoch ms when the provider finished processing, when available. */
+  processedAt?: number;
   status: CardTransactionStatus;
   type: CardTransactionType;
   isDebit: boolean;
@@ -522,14 +526,18 @@ export interface CardTransaction {
   fundingSources: CardTransactionFundingSource[];
 }
 
+export interface CardTransactionDetails extends CardTransaction {
+  cardFirstSix?: string;
+  securityChallengeOutcome?: string;
+  relatedTransactionId?: string;
+}
+
 /** Opaque pagination cursor; only meaningful to the provider that issued it. */
 export type CardTransactionCursor = string;
 
 export interface CardTransactionListParams {
   limit?: number;
   cursor?: CardTransactionCursor;
-  /** Case-insensitive merchant-name search (server-side). */
-  searchQuery?: string;
   /** Epoch ms. Must be paired with `toDate`. */
   fromDate?: number;
   /** Epoch ms. Must be paired with `fromDate`. */
@@ -662,6 +670,10 @@ export interface ICardProvider {
     params: CardTransactionListParams,
     tokens: CardAuthTokens,
   ): Promise<CardTransactionPage>;
+  getTransaction?(
+    id: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionDetails>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
 }
