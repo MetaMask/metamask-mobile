@@ -1,4 +1,9 @@
-import { launchSumSubSdk } from './launchSumSubSdk';
+import { NativeModules } from 'react-native';
+import {
+  launchSumSubSdk,
+  SUMSUB_NATIVE_MODULE_MISSING_ERROR,
+  SUMSUB_NATIVE_MODULE_NAME,
+} from './launchSumSubSdk';
 
 const mockLaunch = jest.fn();
 const mockBuild = jest.fn();
@@ -89,5 +94,19 @@ describe('launchSumSubSdk', () => {
     await expect(
       launchSumSubSdk({ accessToken: 'applicant-token' }),
     ).rejects.toThrow('Aborted since another instance is in use!');
+  });
+
+  it('throws when the Sumsub native module is not linked', async () => {
+    const originalModule = NativeModules[SUMSUB_NATIVE_MODULE_NAME];
+    delete NativeModules[SUMSUB_NATIVE_MODULE_NAME];
+
+    try {
+      await expect(
+        launchSumSubSdk({ accessToken: 'applicant-token' }),
+      ).rejects.toThrow(SUMSUB_NATIVE_MODULE_MISSING_ERROR);
+      expect(mockInit).not.toHaveBeenCalled();
+    } finally {
+      NativeModules[SUMSUB_NATIVE_MODULE_NAME] = originalModule;
+    }
   });
 });

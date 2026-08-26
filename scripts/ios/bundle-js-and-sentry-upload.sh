@@ -1,20 +1,19 @@
 #!/bin/bash
 set -e
 
-# Enable usage of nvm if it exists
-if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
-. "$HOME/.nvm/nvm.sh"
-elif [[ -x "$(command -v brew)" && -s "$(brew --prefix nvm)/nvm.sh" ]]; then
-. "$(brew --prefix nvm)/nvm.sh"
-fi
-
-# Set node binary to use
-export NODE_BINARY=$(which node)
+# Xcode's PATH does not include nvm. Do not source nvm.sh here: nvm returns 3
+# while resolving aliases and `set -e` aborts this phase with no log output.
+# ios/.xcode.env (via with-environment.sh) sets NODE_BINARY from .nvmrc.
 
 # Source environment if file exists
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 if [ -f "$WITH_ENVIRONMENT" ]; then
   . "$WITH_ENVIRONMENT"
+fi
+
+if [ -z "$NODE_BINARY" ] || [ ! -x "$NODE_BINARY" ]; then
+  echo "error: NODE_BINARY is not set or not executable. Check ios/.xcode.env" >&2
+  exit 1
 fi
 
 # Set Sentry properties

@@ -1,3 +1,4 @@
+import { NativeModules } from 'react-native';
 import SNSMobileSDK, {
   type SumSubLaunchResult,
   type SumSubTokenExpirationHandler,
@@ -6,14 +7,26 @@ import Logger from '../../../../../util/Logger';
 
 export type { SumSubLaunchResult };
 
+export const SUMSUB_NATIVE_MODULE_NAME = 'SNSMobileSDKModule';
+
+export const SUMSUB_NATIVE_MODULE_MISSING_ERROR = `${SUMSUB_NATIVE_MODULE_NAME} is not linked. Rebuild the native app (yarn start:ios or yarn start:android) after adding @sumsub/react-native-mobilesdk-module. A Metro reload or Expo JS-only session is not enough.`;
+
 export interface LaunchSumSubSdkParams {
   accessToken: string;
   onTokenExpired?: SumSubTokenExpirationHandler;
 }
 
+const assertSumSubNativeModuleLinked = (): void => {
+  if (NativeModules[SUMSUB_NATIVE_MODULE_NAME]) {
+    return;
+  }
+
+  throw new Error(SUMSUB_NATIVE_MODULE_MISSING_ERROR);
+};
+
 /**
  * Opens the native Sumsub Mobile SDK. The caller supplies an applicant
- * access token (minted by the KYC API). An empty token is valid input —
+ * access token (minted by the KYC API). An empty token is valid input:
  * the SDK still presents, then asks `onTokenExpired` for a refresh.
  *
  * Stand-in for the KycController launcher (`reactNativeSumSubLauncher`)
@@ -27,6 +40,7 @@ export const launchSumSubSdk = async ({
   accessToken,
   onTokenExpired,
 }: LaunchSumSubSdkParams): Promise<SumSubLaunchResult> => {
+  assertSumSubNativeModuleLinked();
   SNSMobileSDK.reset();
 
   const tokenExpirationHandler: SumSubTokenExpirationHandler =

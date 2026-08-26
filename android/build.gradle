@@ -34,7 +34,7 @@ buildscript {
         maven { url "https://jitpack.io" }
         maven { url "file://${rootDir}/libs" }
 				maven { url "https://cdn.veriff.me/android/" }
-				// Sumsub Idensic Mobile SDK (VBA KYC). Public Maven — no dashboard
+				// Sumsub Idensic Mobile SDK (VBA KYC). Public Maven. No dashboard
 				// credentials or private maven-private repo. Do not add the EID
 				// artifact; that one requires Sumsub-issued Maven credentials.
 				maven { url "https://maven.sumsub.com/repository/maven-public/" }

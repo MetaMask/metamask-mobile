@@ -36,6 +36,8 @@ module.exports = {
         android: {
           extraMavenRepos: [
             '../../node_modules/@notifee/react-native/android/libs',
+            'https://maven.sumsub.com/repository/maven-public/',
+            'https://maven.sumsub.com/repository/maven-releases/',
           ],
         },
         ios: {

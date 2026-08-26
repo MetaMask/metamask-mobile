@@ -1,7 +1,7 @@
 # Vendored from https://github.com/sumsub/Specs/blob/master/IdensicMobileSDK/1.45.1/IdensicMobileSDK.podspec
 # so we do not add a second global CocoaPods source (that breaks FirebaseCore /
 # GzipSwift resolution against github.com/CocoaPods/Specs.git). The zip is
-# public on maven.sumsub.com — no dashboard credentials or ~/.netrc.
+# public on maven.sumsub.com. No dashboard credentials or ~/.netrc.
 Pod::Spec.new do |s|
   s.name = 'IdensicMobileSDK'
   s.version = '1.45.1'
