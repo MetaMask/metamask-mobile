@@ -126,8 +126,8 @@ describe('EarnScreenStack', () => {
     expect(Routes.EARN.MUSD.CONVERSION_EDUCATION).toBeDefined();
   });
 
-  it('defines Earn market-list route', () => {
-    expect(Routes.EARN.MARKET_LIST).toBeDefined();
+  it('defines Earn search-list route', () => {
+    expect(Routes.EARN.SEARCH_LIST).toBeDefined();
   });
 
   it('defines full screen confirmations route', () => {

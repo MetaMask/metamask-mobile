@@ -1,10 +1,7 @@
 import React, { useCallback } from 'react';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonBase,
   FontWeight,
+  ListItem,
   Skeleton,
   Text,
   TextColor,
@@ -36,72 +33,49 @@ const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
           percentage: truncateNumber(item.apyPercent),
         });
 
+  const getRateText = () => {
+    if (item.rateStatus === 'loading') {
+      <Skeleton
+        height={20}
+        width={70}
+        testID="earn-search-money-apy-skeleton"
+      />;
+    }
+    return (
+      <Text
+        color={TextColor.SuccessDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Regular}
+        numberOfLines={1}
+      >
+        {rateText}
+      </Text>
+    );
+  };
+
   return (
-    <ButtonBase
+    <ListItem
+      key={`earn-search-money-account-row`}
+      isInteractive
       accessibilityRole="button"
       onPress={handlePress}
       testID="earn-search-money-row"
-      twClassName="w-full px-4 py-3"
-      contentWrapperProps={{ twClassName: 'w-full' }}
-    >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="w-full gap-3"
-        accessible={false}
-      >
-        <MoneyBalanceIcon width={40} height={40} name="money-balance" />
-        <Box twClassName="min-w-0 flex-1 gap-1">
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2"
-          >
-            {item.balanceRaw === '0' && <EarnNewTag />}
-            <Text
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-              variant={TextVariant.BodyMd}
-              numberOfLines={1}
-            >
-              {strings('earn_module.money_account')}
-            </Text>
-          </Box>
-          {item.isBalanceLoading ? (
-            <Skeleton
-              height={20}
-              width={85}
-              testID="earn-search-money-balance-skeleton"
-            />
-          ) : (
-            <Text
-              color={TextColor.TextDefault}
-              variant={TextVariant.BodySm}
-              numberOfLines={1}
-            >
-              {balanceText}
-            </Text>
-          )}
-        </Box>
-        <Box alignItems={BoxAlignItems.End} twClassName="gap-1">
-          {item.rateStatus === 'loading' ? (
-            <Skeleton
-              height={20}
-              width={70}
-              testID="earn-search-money-apy-skeleton"
-            />
-          ) : (
-            <Text
-              color={TextColor.TextAlternative}
-              variant={TextVariant.BodySm}
-              numberOfLines={1}
-            >
-              {rateText}
-            </Text>
-          )}
-        </Box>
-      </Box>
-    </ButtonBase>
+      avatar={<MoneyBalanceIcon width={40} height={40} name="money-balance" />}
+      title={strings('earn_module.money_account')}
+      titleEndAccessory={item.balanceRaw === '0' ? <EarnNewTag /> : undefined}
+      titleProps={{
+        numberOfLines: 1,
+      }}
+      description={balanceText}
+      descriptionProps={{
+        numberOfLines: 1,
+      }}
+      value={getRateText()}
+      valueProps={{
+        numberOfLines: 1,
+      }}
+      twClassName="py-2 min-h-0"
+    />
   );
 };
 

@@ -97,8 +97,7 @@ export const useExploreSearch = (
     if (isExploreEarnEnabled) {
       sections.push({
         feedId: 'earn',
-        // TODO: Replace with string from trending.search_tabs.earn
-        title: strings('homepage.sections.earn'),
+        title: strings('trending.search_tabs.earn'),
         items: earn.data,
         isLoading: isDebouncing || earn.isLoading,
         total: earn.data.length,

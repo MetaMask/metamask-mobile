@@ -237,10 +237,10 @@ describe('EarnSection', () => {
 
     expect(navigate).toHaveBeenCalledTimes(2);
     expect(navigate).toHaveBeenNthCalledWith(1, Routes.EARN.ROOT, {
-      screen: Routes.EARN.MARKET_LIST,
+      screen: Routes.EARN.SEARCH_LIST,
     });
     expect(navigate).toHaveBeenNthCalledWith(2, Routes.EARN.ROOT, {
-      screen: Routes.EARN.MARKET_LIST,
+      screen: Routes.EARN.SEARCH_LIST,
     });
   });
 

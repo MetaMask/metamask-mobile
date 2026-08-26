@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
-import EarnAssetRow from '../feeds/earn/EarnAssetRow';
+import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,7 +18,7 @@ const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
 
   const handlePress = useCallback(() => {
     if (item.kind === 'money-account') {
-      navigateToMoneyHome();
+      navigateToMoneyHome({ pop: false });
       return;
     }
 
@@ -41,7 +41,7 @@ const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
   return item.kind === 'money-account' ? (
     <EarnMoneyAccountRow item={item} onPress={handlePress} />
   ) : (
-    <EarnAssetRow item={item} onPress={handlePress} />
+    <EarnSearchAssetRow item={item} onPress={handlePress} />
   );
 };
 

@@ -97,10 +97,10 @@ jest.mock('../feeds/earn/EarnMoneyAccountRow', () => ({
   ),
 }));
 
-jest.mock('../feeds/earn/EarnAssetRow', () => ({
+jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
   __esModule: true,
   default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText testID="stub-earn-asset-row">{item.id}</MockText>
+    <MockText testID="stub-earn-search-asset-row">{item.id}</MockText>
   ),
 }));
 
@@ -226,7 +226,7 @@ describe('SearchFeedRow', () => {
 
   it.each([
     ['money-account', 'stub-earn-money-row'],
-    ['eip155:1/erc20:usdc', 'stub-earn-asset-row'],
+    ['eip155:1/erc20:usdc', 'stub-earn-search-asset-row'],
   ] as const)(
     'renders Earn item %s and tracks its stable item ID',
     (itemId, rowTestId) => {

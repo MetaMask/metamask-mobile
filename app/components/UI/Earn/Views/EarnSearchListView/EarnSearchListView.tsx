@@ -11,7 +11,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
-import EarnAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnAssetRow';
+import EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
 import EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
 import { useEarnSearchFeed } from '../../../../Views/TrendingView/feeds/earn/useEarnSearchFeed';
 import type { EarnSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
@@ -19,11 +19,11 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { earnAssetToToken, hasEarnAssetBalance } from '../../utils/earnAssets';
 import Routes from '../../../../../constants/navigation/Routes';
 
-const EarnMarketListSkeleton = () => (
-  <Box testID="earn-market-list-loading" twClassName="px-4">
+const EarnSearchListSkeleton = () => (
+  <Box testID="earn-search-list-loading" twClassName="px-4">
     {Array.from({ length: 3 }, (_, index) => (
       <Box
-        key={`earn-market-list-skeleton-${index}`}
+        key={`earn-search-list-skeleton-${index}`}
         twClassName="flex-row items-center gap-3 py-3"
       >
         <Skeleton height={40} width={40} twClassName="rounded-full" />
@@ -37,8 +37,7 @@ const EarnMarketListSkeleton = () => (
   </Box>
 );
 
-// TODO: Rename component; Doesn't only show markets. Maybe EarnSearchListView?
-const EarnMarketListView = () => {
+const EarnSearchListView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,7 +50,7 @@ const EarnMarketListView = () => {
   const handleItemPress = useCallback(
     (item: EarnSearchItem) => {
       if (item.kind === 'money-account') {
-        navigateToMoneyHome();
+        navigateToMoneyHome({ pop: false });
         return;
       }
 
@@ -78,7 +77,7 @@ const EarnMarketListView = () => {
       item.kind === 'money-account' ? (
         <EarnMoneyAccountRow item={item} onPress={handleItemPress} />
       ) : (
-        <EarnAssetRow item={item} onPress={handleItemPress} />
+        <EarnSearchAssetRow item={item} onPress={handleItemPress} />
       ),
     [handleItemPress],
   );
@@ -91,9 +90,9 @@ const EarnMarketListView = () => {
         includesTopInset
         title={strings('homepage.sections.earn')}
         onBack={handleBack}
-        testID="earn-market-list-header"
+        testID="earn-search-list-header"
       />
-      <Box twClassName="px-4 py-2">
+      <Box twClassName="px-4 py-2 mb-4">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -104,14 +103,14 @@ const EarnMarketListView = () => {
             autoCorrect: false,
             autoCapitalize: 'none',
             // TODO: Breakout testID into constant.
-            testID: 'earn-market-list-search',
+            testID: 'earn-search-list-search',
           }}
         />
       </Box>
       {isLoading ? (
-        <EarnMarketListSkeleton />
+        <EarnSearchListSkeleton />
       ) : data.length === 0 ? (
-        <Box testID="earn-market-list-empty" twClassName="flex-1">
+        <Box testID="earn-search-list-empty" twClassName="flex-1">
           <TabEmptyState
             description={strings('trending.no_results_for_query', {
               query: searchQuery,
@@ -125,11 +124,13 @@ const EarnMarketListView = () => {
           keyExtractor={keyExtractor}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
-          testID="earn-market-list"
+          testID="earn-search-list"
+          // Disable re-anchoring so filtered results do not shift during layout updates.
+          maintainVisibleContentPosition={{ disabled: true }}
         />
       )}
     </Box>
   );
 };
 
-export default EarnMarketListView;
+export default EarnSearchListView;

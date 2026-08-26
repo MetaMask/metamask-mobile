@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { EarnSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
 import { useEarnSearchFeed } from '../../../../Views/TrendingView/feeds/earn/useEarnSearchFeed';
 import { navigateToEarnItem } from '../../../../Views/TrendingView/feeds/earn/earnNavigation';
-import EarnMarketListView from './EarnMarketListView';
+import EarnSearchListView from './EarnSearchListView';
 
 const mockGoBack = jest.fn();
 const mockUseEarnSearchFeed = jest.mocked(useEarnSearchFeed);
@@ -46,7 +46,7 @@ jest.mock(
       return ReactActual.createElement(
         MockPressable,
         {
-          testID: 'earn-market-list-money-row',
+          testID: 'earn-search-list-money-row',
           onPress: () => props.onPress(props.item),
         },
         ReactActual.createElement(MockText, null, 'Money account'),
@@ -55,26 +55,29 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../Views/TrendingView/feeds/earn/EarnAssetRow', () => ({
-  __esModule: true,
-  default: (props: {
-    onPress: (item: EarnSearchItem) => void;
-    item: EarnSearchItem;
-  }) => {
-    const ReactActual = jest.requireActual<typeof import('react')>('react');
-    const { Pressable: MockPressable, Text: MockText } =
-      jest.requireActual<typeof import('react-native')>('react-native');
+jest.mock(
+  '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow',
+  () => ({
+    __esModule: true,
+    default: (props: {
+      onPress: (item: EarnSearchItem) => void;
+      item: EarnSearchItem;
+    }) => {
+      const ReactActual = jest.requireActual<typeof import('react')>('react');
+      const { Pressable: MockPressable, Text: MockText } =
+        jest.requireActual<typeof import('react-native')>('react-native');
 
-    return ReactActual.createElement(
-      MockPressable,
-      {
-        testID: `earn-market-list-asset-row-${props.item.id}`,
-        onPress: () => props.onPress(props.item),
-      },
-      ReactActual.createElement(MockText, null, props.item.id),
-    );
-  },
-}));
+      return ReactActual.createElement(
+        MockPressable,
+        {
+          testID: `earn-search-list-asset-row-${props.item.id}`,
+          onPress: () => props.onPress(props.item),
+        },
+        ReactActual.createElement(MockText, null, props.item.id),
+      );
+    },
+  }),
+);
 
 jest.mock('@shopify/flash-list', () => ({
   FlashList: (props: {
@@ -117,7 +120,7 @@ const assetItem = {
   asset: {},
 } as unknown as EarnSearchItem;
 
-describe('EarnMarketListView', () => {
+describe('EarnSearchListView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useNavigation).mockReturnValue({
@@ -130,18 +133,18 @@ describe('EarnMarketListView', () => {
   });
 
   it('renders Money and every matching Earn asset', () => {
-    render(<EarnMarketListView />);
+    render(<EarnSearchListView />);
 
-    expect(screen.getByTestId('earn-market-list-money-row')).toBeOnTheScreen();
+    expect(screen.getByTestId('earn-search-list-money-row')).toBeOnTheScreen();
     expect(
-      screen.getByTestId('earn-market-list-asset-row-eip155:1/erc20:usdc'),
+      screen.getByTestId('earn-search-list-asset-row-eip155:1/erc20:usdc'),
     ).toBeOnTheScreen();
   });
 
   it('passes local search text to the shared Earn feed', () => {
-    render(<EarnMarketListView />);
+    render(<EarnSearchListView />);
 
-    fireEvent.changeText(screen.getByTestId('earn-market-list-search'), 'usdc');
+    fireEvent.changeText(screen.getByTestId('earn-search-list-search'), 'usdc');
 
     expect(mockUseEarnSearchFeed).toHaveBeenLastCalledWith({ query: 'usdc' });
   });
@@ -152,26 +155,26 @@ describe('EarnMarketListView', () => {
       isLoading: true,
     });
 
-    render(<EarnMarketListView />);
+    render(<EarnSearchListView />);
 
-    expect(screen.getByTestId('earn-market-list-loading')).toBeOnTheScreen();
+    expect(screen.getByTestId('earn-search-list-loading')).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('earn-market-list-money-row'),
+      screen.queryByTestId('earn-search-list-money-row'),
     ).not.toBeOnTheScreen();
   });
 
   it('renders the existing empty state when no assets match', () => {
     mockUseEarnSearchFeed.mockReturnValue({ data: [], isLoading: false });
 
-    render(<EarnMarketListView />);
+    render(<EarnSearchListView />);
 
-    expect(screen.getByTestId('earn-market-list-empty')).toBeOnTheScreen();
+    expect(screen.getByTestId('earn-search-list-empty')).toBeOnTheScreen();
   });
 
   it('delegates row presses to Earn navigation', () => {
-    render(<EarnMarketListView />);
+    render(<EarnSearchListView />);
 
-    fireEvent.press(screen.getByTestId('earn-market-list-money-row'));
+    fireEvent.press(screen.getByTestId('earn-search-list-money-row'));
 
     expect(mockNavigateToEarnItem).toHaveBeenCalledWith(
       expect.anything(),

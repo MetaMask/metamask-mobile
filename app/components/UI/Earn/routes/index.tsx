@@ -4,7 +4,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
-import EarnMarketListView from '../Views/EarnMarketListView/EarnMarketListView';
+import EarnSearchListView from '../Views/EarnSearchListView/EarnSearchListView';
 import EarnStrategySelectionView from '../Views/EarnStrategySelectionView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
@@ -53,8 +53,8 @@ const EarnScreenStack = () => {
         options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
-        name={Routes.EARN.MARKET_LIST}
-        component={EarnMarketListView}
+        name={Routes.EARN.SEARCH_LIST}
+        component={EarnSearchListView}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

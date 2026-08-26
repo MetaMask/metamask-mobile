@@ -45,6 +45,7 @@ import {
   earnAssetToToken,
   getEarnAssetFiatDisplay,
   getEarnAssetMetadata,
+  hasEarnAssetSubsidizedFee,
 } from '../../utils/earnAssets';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -211,7 +212,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleViewAll = useCallback(() => {
       navigation.navigate(Routes.EARN.ROOT, {
-        screen: Routes.EARN.MARKET_LIST,
+        screen: Routes.EARN.SEARCH_LIST,
       });
     }, [navigation]);
 
@@ -298,9 +299,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           const metadata = getEarnAssetMetadata(asset);
           const hasMinDepositAmount =
             !isEarnAssetBalanceBelowMinDepositAmount(asset);
-          const hasSubsidizedFee = asset.experiences.some(
-            ({ isFeeSubsidized }) => isFeeSubsidized,
-          );
+          const hasSubsidizedFee = hasEarnAssetSubsidizedFee(asset);
 
           const rateText = getEarnAssetRateText({ asset });
 

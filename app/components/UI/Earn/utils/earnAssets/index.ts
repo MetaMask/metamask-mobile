@@ -11,3 +11,4 @@ export {
   getEarnAssetFiatNumber,
   hasEarnAssetBalance,
 } from './earnAssetBalance';
+export { hasEarnAssetSubsidizedFee } from './earnAssetFee';

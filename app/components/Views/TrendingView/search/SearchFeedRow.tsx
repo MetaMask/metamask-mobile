@@ -97,7 +97,11 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       case 'sites':
         return <SiteRowItem site={item as SiteData} />;
       case 'earn':
-        return <EarnSearchRow item={item as EarnSearchItem} />;
+        return (
+          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+            <EarnSearchRow item={item as EarnSearchItem} />
+          </Box>
+        );
     }
   })();
 

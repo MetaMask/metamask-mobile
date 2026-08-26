@@ -11,7 +11,7 @@ import type {
 import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
 import { rankEarnAssets } from '../../../../UI/Earn/utils/earnSection';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
-import EarnAssetRow from './EarnAssetRow';
+import EarnSearchAssetRow from './EarnSearchAssetRow';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const {
@@ -134,12 +134,12 @@ const createItem = (
   asset: rankEarnAssets([asset])[0],
 });
 
-describe('EarnAssetRow', () => {
+describe('EarnSearchAssetRow', () => {
   it('renders held asset name, token amount, and Get APY copy', () => {
     const item = createItem(createHeldSearchAsset('USDC', '0.001'));
 
     const { getByText } = render(
-      <EarnAssetRow item={item} onPress={jest.fn()} />,
+      <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
     expect(getByText('USDC Coin')).toBeOnTheScreen();
@@ -153,7 +153,7 @@ describe('EarnAssetRow', () => {
     const item = createItem(createDiscoverySearchAsset('USDT'));
 
     const { getByText } = render(
-      <EarnAssetRow item={item} onPress={jest.fn()} />,
+      <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
     expect(getByText('USDT Coin')).toBeOnTheScreen();
@@ -167,7 +167,7 @@ describe('EarnAssetRow', () => {
     const item = createItem(createHeldSearchAsset('ETH', '1', 'APR'));
 
     const { getByText } = render(
-      <EarnAssetRow item={item} onPress={jest.fn()} />,
+      <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
     expect(
@@ -179,7 +179,7 @@ describe('EarnAssetRow', () => {
     const item = createItem(createDiscoverySearchAsset('DAI'));
 
     const { getByTestId } = render(
-      <EarnAssetRow item={item} onPress={jest.fn()} />,
+      <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
     expect(getByTestId('earn-search-asset-network-badge')).toHaveTextContent(
@@ -192,7 +192,7 @@ describe('EarnAssetRow', () => {
     const onPress = jest.fn();
 
     const { getByTestId } = render(
-      <EarnAssetRow item={item} onPress={onPress} />,
+      <EarnSearchAssetRow item={item} onPress={onPress} />,
     );
 
     fireEvent.press(getByTestId('earn-search-asset-row'));
