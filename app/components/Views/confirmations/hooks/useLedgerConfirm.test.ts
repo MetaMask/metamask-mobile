@@ -1,4 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { useLedgerConfirm } from './useLedgerConfirm';
 
 const mockEnsureDeviceReady = jest.fn();
@@ -7,6 +11,9 @@ const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
 const mockIsUserCancellation = jest.fn().mockReturnValue(false);
+const mockSubscribeOnceIf = jest.fn();
+const mockTryUnsubscribe = jest.fn();
+const mockTransactions: TransactionMeta[] = [];
 
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
@@ -25,6 +32,25 @@ jest.mock('../../../../core/HardwareWallet/helpers', () => ({
     mockGetDeviceIdForAddress(...args),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      subscribeOnceIf: (...args: unknown[]) => mockSubscribeOnceIf(...args),
+      tryUnsubscribe: (...args: unknown[]) => mockTryUnsubscribe(...args),
+    },
+    context: {
+      TransactionController: {
+        state: {
+          get transactions() {
+            return mockTransactions;
+          },
+        },
+      },
+    },
+  },
+}));
+
 describe('useLedgerConfirm', () => {
   const onReject = jest.fn();
   const onTransactionConfirm = jest.fn().mockResolvedValue(undefined);
@@ -40,6 +66,7 @@ describe('useLedgerConfirm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTransactions.splice(0);
     mockEnsureDeviceReady.mockResolvedValue(true);
   });
 
@@ -88,6 +115,84 @@ describe('useLedgerConfirm', () => {
       onError: expect.any(Function),
     });
     expect(executeApproval).not.toHaveBeenCalled();
+  });
+
+  it('completes signing after every required transaction is signed', async () => {
+    const transactionId = 'parent-transaction';
+    const firstTransaction = {
+      id: 'first-transaction',
+      status: TransactionStatus.unapproved,
+    } as TransactionMeta;
+    const secondTransaction = {
+      id: 'second-transaction',
+      status: TransactionStatus.unapproved,
+    } as TransactionMeta;
+    mockTransactions.push(
+      {
+        id: transactionId,
+        requiredTransactionIds: [firstTransaction.id, secondTransaction.id],
+      } as TransactionMeta,
+      firstTransaction,
+      secondTransaction,
+    );
+
+    let signedHandler: (() => void) | undefined;
+    let signedPredicate:
+      | ((payload: { transactionMeta: TransactionMeta }) => boolean)
+      | undefined;
+    mockSubscribeOnceIf.mockImplementation(
+      (
+        _event: unknown,
+        handler: () => void,
+        predicate: (payload: { transactionMeta: TransactionMeta }) => boolean,
+      ) => {
+        signedHandler = handler;
+        signedPredicate = predicate;
+        return handler;
+      },
+    );
+    onTransactionConfirm.mockImplementationOnce(async () => {
+      firstTransaction.status = TransactionStatus.signed;
+      const firstMatches = signedPredicate?.({
+        transactionMeta: firstTransaction,
+      });
+      if (firstMatches) {
+        signedHandler?.();
+      }
+
+      secondTransaction.status = TransactionStatus.signed;
+      const secondMatches = signedPredicate?.({
+        transactionMeta: secondTransaction,
+      });
+      if (secondMatches) {
+        signedHandler?.();
+      }
+    });
+    const onSigningComplete = jest.fn();
+    const { result } = renderHook(() =>
+      useLedgerConfirm({
+        ...defaultOptions,
+        isTransactionReq: true,
+        onSigningComplete,
+        requiredTransactionCount: 2,
+        transactionId,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(1);
+    expect(mockSubscribeOnceIf).toHaveBeenCalledTimes(1);
+    expect(onTransactionConfirm).toHaveBeenCalledTimes(1);
+    expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+    expect(onSigningComplete).toHaveBeenCalledTimes(1);
+    expect(onTransactionConfirm).toHaveBeenCalledWith({
+      deferNavigation: true,
+      onError: expect.any(Function),
+    });
+    expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
   });
 
   it('continues with readiness check when device id is unavailable', async () => {

@@ -15,8 +15,10 @@ interface UseLedgerConfirmOptions {
   fromAddress: string;
   onReject: () => void;
   onTransactionConfirm: (opts?: {
+    deferNavigation?: boolean;
     onError?: (err: unknown) => void;
   }) => Promise<void>;
+  onSigningComplete?: () => void;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
   requiredTransactionCount?: number;
@@ -32,6 +34,7 @@ export function useLedgerConfirm({
   fromAddress,
   onReject,
   onTransactionConfirm,
+  onSigningComplete,
   executeApproval,
   isTransactionReq,
   requiredTransactionCount,
@@ -62,6 +65,12 @@ export function useLedgerConfirm({
     }
 
     setPendingOperationAddress(fromAddress);
+    const shouldCompleteAfterSigning = Boolean(
+      isTransactionReq &&
+        onSigningComplete &&
+        requiredTransactionCount &&
+        transactionId,
+    );
     let stopWatchingSignedTransactions = () => undefined;
     let hasHiddenAwaitingConfirmation = false;
     const hideAwaitingConfirmationOnce = () => {
@@ -71,6 +80,14 @@ export function useLedgerConfirm({
 
       hasHiddenAwaitingConfirmation = true;
       hideAwaitingConfirmation();
+    };
+    const completeSigningOnce = () => {
+      if (hasHiddenAwaitingConfirmation) {
+        return;
+      }
+
+      hideAwaitingConfirmationOnce();
+      onSigningComplete?.();
     };
 
     try {
@@ -87,11 +104,15 @@ export function useLedgerConfirm({
         rejectOnce();
       });
 
-      if (requiredTransactionCount && transactionId) {
+      if (
+        shouldCompleteAfterSigning &&
+        requiredTransactionCount &&
+        transactionId
+      ) {
         const signedHandler = Engine.controllerMessenger.subscribeOnceIf(
           'TransactionController:transactionStatusUpdated',
           () => {
-            hideAwaitingConfirmationOnce();
+            completeSigningOnce();
           },
           ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
             const transactions =
@@ -133,6 +154,7 @@ export function useLedgerConfirm({
 
       if (isTransactionReq) {
         await onTransactionConfirm({
+          ...(shouldCompleteAfterSigning ? { deferNavigation: true } : {}),
           onError: (err) => {
             throw err;
           },
@@ -141,7 +163,11 @@ export function useLedgerConfirm({
         await executeApproval();
       }
 
-      hideAwaitingConfirmationOnce();
+      if (shouldCompleteAfterSigning) {
+        completeSigningOnce();
+      } else {
+        hideAwaitingConfirmationOnce();
+      }
     } catch (err) {
       hideAwaitingConfirmationOnce();
 
@@ -158,6 +184,7 @@ export function useLedgerConfirm({
     onReject,
     isTransactionReq,
     onTransactionConfirm,
+    onSigningComplete,
     executeApproval,
     ensureDeviceReady,
     showAwaitingConfirmation,

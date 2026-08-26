@@ -555,6 +555,8 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDepositFailed).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
   });
 
   it('forwards replaceConfirmation to confirmation navigation', async () => {

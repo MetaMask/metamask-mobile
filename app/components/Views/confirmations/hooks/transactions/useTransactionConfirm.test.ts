@@ -511,6 +511,29 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
+    it('defers money account deposit navigation until requested', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm({ deferNavigation: true });
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.navigateOnConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+
     it('money home if money account deposit is a nested batch transaction', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

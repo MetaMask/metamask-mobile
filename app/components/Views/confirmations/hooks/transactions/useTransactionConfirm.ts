@@ -110,8 +110,68 @@ export function useTransactionConfirm() {
     [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
+  const navigateOnConfirm = useCallback(() => {
+    if (!transactionMetadata) {
+      return;
+    }
+
+    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+    if (type === TransactionType.perpsDepositAndOrder) {
+      return;
+    } else if (type === TransactionType.perpsDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
+      } else {
+        navigateToPerpsHome();
+      }
+    } else if (type === TransactionType.predictDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
+      } else {
+        navigation.goBack();
+      }
+    } else if (type === TransactionType.musdConversion) {
+      musdConversionNavigateOnConfirm();
+    } else if (
+      hasTransactionType(transactionMetadata, [
+        TransactionType.moneyAccountDeposit,
+      ])
+    ) {
+      navigation.navigate(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    } else if (
+      isFullScreenConfirmation &&
+      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+    ) {
+      navigateToActivityAfterConfirmation(navigation);
+    } else {
+      navigation.goBack();
+    }
+
+    tryEnableEvmNetwork(chainId);
+  }, [
+    chainId,
+    isFullScreenConfirmation,
+    musdConversionNavigateOnConfirm,
+    navigateToPerpsHome,
+    navigation,
+    payWithOption,
+    transactionMetadata,
+    tryEnableEvmNetwork,
+    type,
+  ]);
+
   const onConfirm = useCallback(
     async (options?: {
+      deferNavigation?: boolean;
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
       existingOrderId?: string;
@@ -172,74 +232,28 @@ export function useTransactionConfirm() {
         options?.onError?.(error);
       }
 
-      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-      if (type === TransactionType.perpsDepositAndOrder) {
-        return;
-      } else if (type === TransactionType.perpsDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(Routes.HOME_TABS, {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          });
-        } else {
-          navigateToPerpsHome();
-        }
-      } else if (type === TransactionType.predictDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(Routes.HOME_TABS, {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          });
-        } else {
-          navigation.goBack();
-        }
-      } else if (type === TransactionType.musdConversion) {
-        musdConversionNavigateOnConfirm();
-      } else if (
-        hasTransactionType(transactionMetadata, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
-      } else if (
-        isFullScreenConfirmation &&
-        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-      ) {
-        navigateToActivityAfterConfirmation(navigation);
-      } else {
-        navigation.goBack();
+      if (!options?.deferNavigation) {
+        navigateOnConfirm();
       }
-
-      tryEnableEvmNetwork(chainId);
     },
     [
-      chainId,
       handleGasless7702,
       shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
-      isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
-      navigation,
-      navigateToPerpsHome,
-      musdConversionNavigateOnConfirm,
+      navigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,
-      payWithOption,
       selectedGasFeeToken,
       transactionMetadata,
-      tryEnableEvmNetwork,
-      type,
       waitForResult,
       isSignerHardwareWallet,
     ],
   );
 
-  return { onConfirm };
+  return { navigateOnConfirm, onConfirm };
 }

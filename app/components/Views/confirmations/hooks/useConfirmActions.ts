@@ -97,7 +97,10 @@ export const useConfirmActions = () => {
     onReject: onRequestReject,
     approvalRequest,
   } = useApprovalRequest();
-  const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
+  const {
+    navigateOnConfirm: onTransactionSigningComplete,
+    onConfirm: onTransactionConfirm,
+  } = useTransactionConfirm();
   const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
@@ -181,6 +184,7 @@ export const useConfirmActions = () => {
       fromAddress:
         payingAccount || (approvalRequest?.requestData?.from as string),
       onReject,
+      onSigningComplete: onTransactionSigningComplete,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
@@ -191,6 +195,7 @@ export const useConfirmActions = () => {
       approvalRequest?.requestData?.from,
       payingAccount,
       onReject,
+      onTransactionSigningComplete,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq,
