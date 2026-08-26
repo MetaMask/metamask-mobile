@@ -19,7 +19,7 @@ const ETH_MAINNET: FiatDepositAsset = {
 /**
  * Mirrors `FIAT_ASSET_ID_BY_TX_TYPE` in
  * `@metamask/transaction-pay-controller`, which owns this mapping but does not
- * export it. See the TODO on {@link deriveFiatDepositAssetId}.
+ * export it. See the note on {@link deriveFiatDepositAssetId}.
  */
 const DEFAULT_ASSET_BY_TX_TYPE: Partial<
   Record<TransactionType, FiatDepositAsset>
