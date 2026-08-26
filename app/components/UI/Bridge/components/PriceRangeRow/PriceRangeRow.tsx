@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
-  BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
   Box,
@@ -25,9 +24,87 @@ import { getTokenImageSource } from '../../utils';
 import { PriceRangeRowSelectorsIDs } from './PriceRangeRow.testIds';
 import type { PriceRangeRowProps } from './PriceRangeRow.types';
 
-const PriceRangeRow = ({ token, rangeLabel, onPress }: PriceRangeRowProps) => {
+const PRICE_RANGE_NETWORK_BADGE_SIZE = 8;
+const PRICE_RANGE_TOKEN_TO_RANGE_GAP = 7;
+const PRICE_RANGE_AVATAR_SIZE = 16;
+const PRICE_RANGE_CHEVRON_SIZE = 16;
+const PRICE_RANGE_CLUSTER_GAP = 4;
+const PRICE_RANGE_CLUSTER_CHROME_WIDTH =
+  PRICE_RANGE_AVATAR_SIZE +
+  PRICE_RANGE_TOKEN_TO_RANGE_GAP +
+  PRICE_RANGE_CHEVRON_SIZE +
+  PRICE_RANGE_CLUSTER_GAP;
+
+function PriceRangeValue({
+  minLabel,
+  maxLabel,
+  shouldStack,
+}: {
+  minLabel: string;
+  maxLabel: string;
+  shouldStack: boolean;
+}) {
+  const oneLineLabel = `${minLabel} - ${maxLabel}`;
+
+  if (shouldStack) {
+    return (
+      <Box
+        testID={PriceRangeRowSelectorsIDs.VALUE}
+        twClassName="min-w-0 shrink"
+        style={{ marginLeft: PRICE_RANGE_TOKEN_TO_RANGE_GAP }}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          testID={PriceRangeRowSelectorsIDs.MIN_VALUE}
+        >
+          {minLabel}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          testID={PriceRangeRowSelectorsIDs.MAX_VALUE}
+        >
+          {maxLabel}
+        </Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+      numberOfLines={1}
+      twClassName="min-w-0 shrink"
+      style={{ marginLeft: PRICE_RANGE_TOKEN_TO_RANGE_GAP }}
+      testID={PriceRangeRowSelectorsIDs.VALUE}
+    >
+      {oneLineLabel}
+    </Text>
+  );
+}
+
+const PriceRangeRow = ({
+  token,
+  minLabel,
+  maxLabel,
+  onPress,
+}: PriceRangeRowProps) => {
   const tw = useTailwind();
-  const hasRangeLabel = Boolean(rangeLabel);
+  const [rowWidth, setRowWidth] = useState(0);
+  const [oneLineWidth, setOneLineWidth] = useState(0);
+  const oneLineLabel =
+    minLabel && maxLabel ? `${minLabel} - ${maxLabel}` : undefined;
+
+  useEffect(() => {
+    setOneLineWidth(0);
+  }, [oneLineLabel]);
 
   const tokenImageSource = useMemo(
     () =>
@@ -48,6 +125,13 @@ const PriceRangeRow = ({ token, rangeLabel, onPress }: PriceRangeRowProps) => {
     [token],
   );
 
+  const availableOneLineWidth =
+    rowWidth * 0.5 - PRICE_RANGE_CLUSTER_CHROME_WIDTH;
+  const shouldStack =
+    Boolean(minLabel && maxLabel && token) &&
+    rowWidth > 0 &&
+    oneLineWidth > availableOneLineWidth;
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -61,7 +145,28 @@ const PriceRangeRow = ({ token, rangeLabel, onPress }: PriceRangeRowProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="w-full"
+        onLayout={(event) => {
+          setRowWidth(event.nativeEvent.layout.width);
+        }}
       >
+        {oneLineLabel ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            accessible={false}
+            importantForAccessibility="no"
+            numberOfLines={1}
+            style={{ position: 'absolute', opacity: 0 }}
+            onTextLayout={(event) => {
+              const lineWidth = event.nativeEvent.lines[0]?.width;
+              if (lineWidth) {
+                setOneLineWidth(lineWidth);
+              }
+            }}
+          >
+            {oneLineLabel}
+          </Text>
+        ) : null}
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -74,35 +179,61 @@ const PriceRangeRow = ({ token, rangeLabel, onPress }: PriceRangeRowProps) => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          twClassName="shrink"
+          style={{ maxWidth: '50%' }}
         >
-          {hasRangeLabel && token ? (
-            <BadgeWrapper
-              testID={PriceRangeRowSelectorsIDs.AVATAR}
-              position={BadgeWrapperPosition.BottomRight}
-              badge={
-                <BadgeNetwork
-                  twClassName="rounded-md"
-                  src={networkImageSource}
-                />
-              }
+          {minLabel && maxLabel && token ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="min-w-0 shrink"
             >
-              <AvatarToken
-                name={token.symbol}
-                src={tokenImageSource}
-                size={AvatarTokenSize.Xs}
+              <BadgeWrapper
+                testID={PriceRangeRowSelectorsIDs.AVATAR}
+                twClassName="self-center"
+                position={BadgeWrapperPosition.BottomRight}
+                badge={
+                  <Box
+                    twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+                    style={{
+                      width: PRICE_RANGE_NETWORK_BADGE_SIZE,
+                      height: PRICE_RANGE_NETWORK_BADGE_SIZE,
+                    }}
+                  >
+                    {networkImageSource ? (
+                      <Image
+                        source={networkImageSource}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      />
+                    ) : null}
+                  </Box>
+                }
+              >
+                <AvatarToken
+                  name={token.symbol}
+                  src={tokenImageSource}
+                  size={AvatarTokenSize.Xs}
+                />
+              </BadgeWrapper>
+              <PriceRangeValue
+                minLabel={minLabel}
+                maxLabel={maxLabel}
+                shouldStack={shouldStack}
               />
-            </BadgeWrapper>
-          ) : null}
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={
-              hasRangeLabel ? TextColor.TextDefault : TextColor.TextAlternative
-            }
-            testID={PriceRangeRowSelectorsIDs.VALUE}
-          >
-            {rangeLabel ?? strings('bridge.recurring.price_range.not_set')}
-          </Text>
+            </Box>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={PriceRangeRowSelectorsIDs.VALUE}
+            >
+              {strings('bridge.recurring.price_range.not_set')}
+            </Text>
+          )}
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}

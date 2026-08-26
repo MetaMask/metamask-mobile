@@ -30,8 +30,8 @@ import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurri
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
+import { formatCurrency } from '../../../utils/currencyUtils';
 import {
-  formatPriceRangeLabel,
   isPriceRangeInCurrentCurrency,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
@@ -97,12 +97,11 @@ const BridgeRecurringBuyViewContent = ({
     : undefined;
   const priceRangeToken =
     effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
-  const priceRangeLabel = effectiveRange
-    ? formatPriceRangeLabel(
-        effectiveRange.min,
-        effectiveRange.max,
-        effectiveRange.currency,
-      )
+  const priceRangeMinLabel = effectiveRange
+    ? formatCurrency(effectiveRange.min, effectiveRange.currency)
+    : undefined;
+  const priceRangeMaxLabel = effectiveRange
+    ? formatCurrency(effectiveRange.max, effectiveRange.currency)
     : undefined;
 
   const handlePriceRangePress = useCallback(() => {
@@ -186,7 +185,8 @@ const BridgeRecurringBuyViewContent = ({
 
           <PriceRangeRow
             token={effectiveRange ? priceRangeToken : undefined}
-            rangeLabel={priceRangeLabel}
+            minLabel={priceRangeMinLabel}
+            maxLabel={priceRangeMaxLabel}
             onPress={handlePriceRangePress}
           />
 
