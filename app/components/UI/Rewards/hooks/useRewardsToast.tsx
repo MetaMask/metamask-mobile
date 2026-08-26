@@ -21,6 +21,13 @@ import RewardsTrophyIcon from '../../../../images/rewards/trophy.svg';
 
 export type RewardsToastOptions = ToastOptions & {
   hapticsType: HapticNotificationMoment;
+  /**
+   * Temporary compatibility field for callers that still wrap the legacy
+   * ToastContext close button. The follow-up call-site PR removes this.
+   */
+  closeButtonOptions?: {
+    onPress?: () => void;
+  };
 };
 
 export interface OutcomeCtaToastParams {

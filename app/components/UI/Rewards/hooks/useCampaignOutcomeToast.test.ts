@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import { useCampaignOutcomeToast } from './useCampaignOutcomeToast';
 import { navigateToRewardsRoute } from '../utils';
@@ -15,21 +16,16 @@ import {
   CampaignType,
   type BaseCampaignParticipantOutcomeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-const ToastVariants = { Icon: 'Icon', App: 'App', Plain: 'Plain' };
-const ButtonIconVariant = { Icon: 'Icon' };
-const IconName = { Close: 'Close', Confirmation: 'Confirmation', Star: 'Star' };
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../../component-library/components/Toast', () => ({
   ToastContext: { Consumer: jest.fn(), Provider: jest.fn() },
-}));
-
-jest.mock('../../../../component-library/components/Toast/Toast.types', () => ({
-  ToastVariants: { Icon: 'Icon', App: 'App', Plain: 'Plain' },
-  ButtonIconVariant: { Icon: 'Icon' },
-}));
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
-  IconName: { Close: 'Close', Confirmation: 'Confirmation', Star: 'Star' },
 }));
 
 jest.mock('react', () => ({
@@ -96,10 +92,10 @@ jest.mock('../utils', () => ({
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
-const mockShowToast = jest.fn();
+const mockShowToast = jest.mocked(toast);
 const mockCloseToast = jest.fn();
 const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: mockCloseToast },
+  current: { showToast: jest.fn(), closeToast: mockCloseToast },
 };
 
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
@@ -274,7 +270,6 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Plain,
           hasNoTimeout: true,
           startAccessory: expect.anything(),
         }),
@@ -286,18 +281,9 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [
-            {
-              label: 'rewards.campaign_outcome_toast.winner.title',
-              isBold: true,
-            },
-          ],
-          descriptionOptions: {
-            description: `rewards.campaign_outcome_toast.winner.description:${CAMPAIGN_NAME}`,
-          },
-          linkButtonOptions: expect.objectContaining({
-            label: 'rewards.campaign_outcome_toast.winner.cta',
-          }),
+          title: 'rewards.campaign_outcome_toast.winner.title',
+          description: `rewards.campaign_outcome_toast.winner.description:${CAMPAIGN_NAME}`,
+          actionButtonLabel: 'rewards.campaign_outcome_toast.winner.cta',
         }),
       );
     });
@@ -307,10 +293,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          closeButtonOptions: expect.objectContaining({
-            variant: ButtonIconVariant.Icon,
-            iconName: IconName.Close,
-          }),
+          onClose: expect.any(Function),
         }),
       );
     });
@@ -334,9 +317,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Confirmation,
-          backgroundColor: 'transparent',
+          severity: ToastSeverity.Success,
           hasNoTimeout: true,
         }),
       );
@@ -347,18 +328,9 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [
-            {
-              label: 'rewards.campaign_outcome_toast.non_winner.title',
-              isBold: true,
-            },
-          ],
-          descriptionOptions: {
-            description: `rewards.campaign_outcome_toast.non_winner.description:${CAMPAIGN_NAME}`,
-          },
-          linkButtonOptions: expect.objectContaining({
-            label: 'rewards.campaign_outcome_toast.non_winner.cta',
-          }),
+          title: 'rewards.campaign_outcome_toast.non_winner.title',
+          description: `rewards.campaign_outcome_toast.non_winner.description:${CAMPAIGN_NAME}`,
+          actionButtonLabel: 'rewards.campaign_outcome_toast.non_winner.cta',
         }),
       );
     });
@@ -381,9 +353,8 @@ describe('useCampaignOutcomeToast', () => {
       });
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
-      const closeButtonOptions =
-        mockShowToast.mock.calls[0][0].closeButtonOptions;
-      closeButtonOptions.onPress();
+      const { onClose } = mockShowToast.mock.calls[0][0];
+      onClose();
 
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith({
         campaignId: CAMPAIGN_ID,
@@ -403,9 +374,8 @@ describe('useCampaignOutcomeToast', () => {
       });
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
-      const closeButtonOptions =
-        mockShowToast.mock.calls[0][0].closeButtonOptions;
-      closeButtonOptions.onPress();
+      const { onClose } = mockShowToast.mock.calls[0][0];
+      onClose();
 
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith({
         campaignId: CAMPAIGN_ID,
@@ -426,8 +396,8 @@ describe('useCampaignOutcomeToast', () => {
       });
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
-      const { onPress } = mockShowToast.mock.calls[0][0].linkButtonOptions;
-      onPress();
+      const { actionButtonOnPress } = mockShowToast.mock.calls[0][0];
+      actionButtonOnPress();
 
       expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
         { navigate: mockNavigate },
@@ -449,8 +419,8 @@ describe('useCampaignOutcomeToast', () => {
       });
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
-      const { onPress } = mockShowToast.mock.calls[0][0].linkButtonOptions;
-      onPress();
+      const { actionButtonOnPress } = mockShowToast.mock.calls[0][0];
+      actionButtonOnPress();
 
       expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
         { navigate: mockNavigate },
