@@ -1,5 +1,6 @@
 import {
   BridgeController,
+  UnifiedSwapBridgeEventName,
   type BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
@@ -28,7 +29,10 @@ import {
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 
-jest.mock('@metamask/bridge-controller');
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  BridgeController: jest.fn(),
+}));
 jest.mock('../../utils/analytics');
 jest.mock('../../../../util/trace');
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
@@ -260,6 +264,32 @@ describe('BridgeController Init', () => {
         requestMock.initMessenger,
         'bridge_completed',
         { property: 'value' },
+      );
+    });
+
+    it('forwards Failed failure telemetry including hash presence', () => {
+      const requestMock = buildInitRequestMock();
+
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const { trackMetaMetricsFn } = constructorOptions;
+      const properties = {
+        error_message: 'Snap request failed',
+        error_code: 'unknown',
+        failure_phase: 'broadcast',
+        source_hash_present: false,
+        destination_hash_present: false,
+        provider: 'rango_sunswap',
+        chain_id_source: 'tron:728126428',
+      };
+
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.Failed, properties);
+
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.Failed,
+        properties,
       );
     });
 
