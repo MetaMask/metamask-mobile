@@ -5,9 +5,8 @@ import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import Logger from '../Logger';
 
 /**
- * Tracks when unlockWallet forces a keychain/biometric reset (e.g. the OS
- * reports the stored credential is no longer usable), so we can see how
- * often users hit this without their vault actually being touched.
+ * Tracks unlockWallet failure on App Unlocked Failed. Mixpanel wipe slice is
+ * forced_reset true (lockApp was called with reset after the failure).
  *
  * @param unlockErrorType - The classified reason unlockWallet failed.
  * @param forcedReset - Whether lockApp was called with reset:true as a result.
@@ -19,7 +18,7 @@ export const trackForcedReset = (
   try {
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ACCOUNT_ACCESS_FORCED_RESET,
+        MetaMetricsEvents.APP_UNLOCKED_FAILED,
       )
         .addProperties({
           unlock_error_type: unlockErrorType,
@@ -31,7 +30,7 @@ export const trackForcedReset = (
     // Never throw from analytics tracking - log and continue
     Logger.error(
       error as Error,
-      'Error tracking account access forced reset event - analytics tracking failed',
+      'Error tracking App Unlocked Failed - analytics tracking failed',
     );
   }
 };

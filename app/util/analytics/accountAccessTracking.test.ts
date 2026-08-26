@@ -40,12 +40,12 @@ describe('accountAccessTracking', () => {
   });
 
   describe('trackForcedReset', () => {
-    it('tracks the forced reset event with the classified error type', () => {
+    it('tracks App Unlocked Failed with the classified error type', () => {
       trackForcedReset(UnlockWalletErrorType.UNRECOGNIZED_ERROR, true);
 
       expect(
         mockedAnalyticsEventBuilder.createEventBuilder,
-      ).toHaveBeenCalledWith(MetaMetricsEvents.ACCOUNT_ACCESS_FORCED_RESET);
+      ).toHaveBeenCalledWith(MetaMetricsEvents.APP_UNLOCKED_FAILED);
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         unlock_error_type: UnlockWalletErrorType.UNRECOGNIZED_ERROR,
         forced_reset: true,
@@ -66,7 +66,7 @@ describe('accountAccessTracking', () => {
 
       expect(mockedLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'Error tracking account access forced reset event - analytics tracking failed',
+        'Error tracking App Unlocked Failed - analytics tracking failed',
       );
     });
   });

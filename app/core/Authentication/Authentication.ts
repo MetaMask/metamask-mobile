@@ -958,8 +958,7 @@ class AuthenticationService {
       if (error instanceof Error) {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
-        // Track whether this failure forced a keychain/biometric reset, so we
-        // can see how often users hit this without their vault being touched.
+        // Track App Unlocked Failed with whether lockApp reset the keychain.
         trackForcedReset(classifyUnlockError(error), shouldResetOnLock);
       }
       throw ensureError(error, 'Unlock wallet failed');
