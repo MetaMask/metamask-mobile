@@ -20,10 +20,6 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import { ALLOWED_CAPABILITIES as IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ImportFromSecretRecoveryPhrase/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep1/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep2/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep3/messenger';
-import { ALLOWED_CAPABILITIES as OAUTH_REHYDRATION_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/OAuthRehydration/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
@@ -215,22 +211,6 @@ const ChoosePasswordWithMessenger = withMessenger(ChoosePassword, {
   capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const ManualBackupStep1WithMessenger = withMessenger(ManualBackupStep1, {
-  capabilities: MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const ManualBackupStep2WithMessenger = withMessenger(ManualBackupStep2, {
-  capabilities: MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const ManualBackupStep3WithMessenger = withMessenger(ManualBackupStep3, {
-  capabilities: MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const OAuthRehydrationWithMessenger = withMessenger(OAuthRehydration, {
-  capabilities: OAUTH_REHYDRATION_ROUTE_ALLOWED_CAPABILITIES,
-});
-
 const QRTabSwitcherWithMessenger = withMessenger(QRTabSwitcher, {
   capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -365,17 +345,17 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
-        component={ManualBackupStep1WithMessenger}
+        component={ManualBackupStep1}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep2"
-        component={ManualBackupStep2WithMessenger}
+        component={ManualBackupStep2}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep3"
-        component={ManualBackupStep3WithMessenger}
+        component={ManualBackupStep3}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -428,7 +408,7 @@ const OnboardingNav = () => {
       {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
-        component={OAuthRehydrationWithMessenger}
+        component={OAuthRehydration}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -1180,7 +1160,7 @@ const AppFlow = () => {
       {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.REHYDRATE}
-        component={OAuthRehydrationWithMessenger}
+        component={OAuthRehydration}
       />
       <NativeStack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}

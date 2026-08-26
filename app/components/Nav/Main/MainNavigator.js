@@ -192,9 +192,6 @@ import { withMessenger } from '../../../messengers/helpers/route-messenger-helpe
 import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep1/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep2/messenger';
-import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep3/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
@@ -211,18 +208,6 @@ const AddDeviceToWalletWithMessenger = withMessenger(AddDeviceToWallet, {
 
 const ChoosePasswordWithMessenger = withMessenger(ChoosePassword, {
   capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const ManualBackupStep1WithMessenger = withMessenger(ManualBackupStep1, {
-  capabilities: MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const ManualBackupStep2WithMessenger = withMessenger(ManualBackupStep2, {
-  capabilities: MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const ManualBackupStep3WithMessenger = withMessenger(ManualBackupStep3, {
-  capabilities: MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES,
 });
 
 const QRTabSwitcherWithMessenger = withMessenger(QRTabSwitcher, {
@@ -569,15 +554,15 @@ const SettingsFlow = () => {
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
-        component={ManualBackupStep1WithMessenger}
+        component={ManualBackupStep1}
       />
       <NativeStack.Screen
         name="ManualBackupStep2"
-        component={ManualBackupStep2WithMessenger}
+        component={ManualBackupStep2}
       />
       <NativeStack.Screen
         name="ManualBackupStep3"
-        component={ManualBackupStep3WithMessenger}
+        component={ManualBackupStep3}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
@@ -989,15 +974,15 @@ const SetPasswordFlow = () => (
     />
     <NativeStack.Screen
       name="ManualBackupStep1"
-      component={ManualBackupStep1WithMessenger}
+      component={ManualBackupStep1}
     />
     <NativeStack.Screen
       name="ManualBackupStep2"
-      component={ManualBackupStep2WithMessenger}
+      component={ManualBackupStep2}
     />
     <NativeStack.Screen
       name="ManualBackupStep3"
-      component={ManualBackupStep3WithMessenger}
+      component={ManualBackupStep3}
     />
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
