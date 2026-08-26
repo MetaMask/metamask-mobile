@@ -24,6 +24,15 @@ jest.mock('../../../../../hooks', () => ({
     Reflect.apply(mockUseABTest, undefined, args),
 }));
 
+const mockUseSectionViewportVisible = jest.fn(() => ({
+  isVisible: false,
+  onLayout: jest.fn(),
+}));
+jest.mock('../../hooks/useSectionViewportVisible', () => ({
+  __esModule: true,
+  default: () => mockUseSectionViewportVisible(),
+}));
+
 jest.mock('./PerpsSection', () => {
   const ReactLib = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
@@ -59,6 +68,10 @@ jest.mock('./PerpsSection', () => {
 describe('HomepagePerpsHomeSlot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
   });
 
   it('renders PerpsSection when experiment is control', () => {
@@ -115,5 +128,36 @@ describe('HomepagePerpsHomeSlot', () => {
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
     expect(screen.getByText('emptyStateContent:pills')).toBeOnTheScreen();
     expect(screen.getByText('emptyStateTitle:Perps movers')).toBeOnTheScreen();
+  });
+
+  it('notifies Homepage when the Perps section enters the viewport', () => {
+    const onVisible = jest.fn();
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
+    mockUseABTest.mockImplementation((key: string) => {
+      if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+        return {
+          variant:
+            HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+              HomepagePerpsPillsEmptyVariant.Control
+            ],
+          variantName: HomepagePerpsPillsEmptyVariant.Control,
+          isActive: true,
+        };
+      }
+      return { variant: {}, variantName: 'control', isActive: false };
+    });
+
+    renderWithProvider(
+      <HomepagePerpsHomeSlot
+        sectionIndex={1}
+        totalSectionsLoaded={5}
+        onVisible={onVisible}
+      />,
+    );
+
+    expect(onVisible).toHaveBeenCalledTimes(1);
   });
 });

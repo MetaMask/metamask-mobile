@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   useRef,
@@ -59,11 +60,14 @@ export const PerpsConnectionProvider: React.FC<
     PerpsConnectionManager.getConnectionState(),
   );
   const [retryAttempts, setRetryAttempts] = useState(0);
-  const pollIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const wasPollingEnabledRef = useRef(isEnabled);
   const lastErrorBreadcrumbRef = useRef<string | null>(null);
 
   // Poll connection state to sync with singleton
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const wasPollingEnabled = wasPollingEnabledRef.current;
+    wasPollingEnabledRef.current = isEnabled;
+
     if (!isEnabled) {
       return;
     }
@@ -100,14 +104,16 @@ export const PerpsConnectionProvider: React.FC<
       });
     };
 
-    // Poll every 100ms for state changes
-    pollIntervalRef.current = setInterval(updateState, 100);
+    // The state initializer already captures the current snapshot for an
+    // initially enabled provider. Only re-sync after an idle → active transition.
+    if (!wasPollingEnabled) {
+      updateState();
+    }
 
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
+    // Poll every 100ms for state changes
+    const pollInterval = setInterval(updateState, 100);
+
+    return () => clearInterval(pollInterval);
   }, [isEnabled]);
 
   useEffect(() => {
