@@ -258,33 +258,6 @@ function enrichLocalActivityKind(
   return activity;
 }
 
-function enrichSwapIncomplete(
-  activity: ActivityListItem,
-  transactionGroup: TransactionGroup,
-): ActivityListItem {
-  const transactionType = resolveTransactionType(transactionGroup);
-
-  if (
-    (transactionType !== TransactionType.swap &&
-      transactionType !== TransactionType.swapAndSend) ||
-    activity.type !== 'swap'
-  ) {
-    return activity;
-  }
-
-  if (transactionGroup.destinationToken?.symbol !== undefined) {
-    return activity;
-  }
-
-  return {
-    ...activity,
-    type: 'swapIncomplete',
-    data: {
-      sourceToken: transactionGroup.sourceToken ?? activity.data.sourceToken,
-    },
-  };
-}
-
 function enrichStakingDeposit(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
@@ -515,7 +488,6 @@ export function enrichLocalActivity(
   next = enrichLocalActivityKind(next, transactionGroup, environment);
   next = enrichTokenTransferActivity(next, transactionGroup, environment);
   next = enrichApprovalActivity(next, transactionGroup);
-  next = enrichSwapIncomplete(next, transactionGroup);
   next = enrichStakingDeposit(next, transactionGroup, environment);
   next = enrichMusdClaim(next, transactionGroup, environment);
   next = enrichCancelledStatus(next, transactionGroup, environment);

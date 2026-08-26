@@ -12,6 +12,11 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
@@ -137,6 +142,9 @@ describe('PerpsRecentActivityList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -305,7 +313,7 @@ describe('PerpsRecentActivityList', () => {
       });
     });
 
-    it('navigates to position transaction detail when transaction item is pressed', () => {
+    it('navigates to Activity details when transaction item is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
@@ -313,10 +321,12 @@ describe('PerpsRecentActivityList', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[0],
-        },
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[0].id,
+          preloadKey: expect.any(String),
+        }),
       );
     });
 
@@ -327,10 +337,27 @@ describe('PerpsRecentActivityList', () => {
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
       expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[1].id,
+          preloadKey: expect.any(String),
+        }),
+      );
+    });
+
+    it('navigates to the legacy position screen when redesign is disabled', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(() => false);
+
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
+
+      const transactionItem = screen.getByText('Opened long');
+      fireEvent.press(transactionItem.parent?.parent || transactionItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[1],
-        },
+        { transaction: mockTransactions[0] },
       );
     });
 

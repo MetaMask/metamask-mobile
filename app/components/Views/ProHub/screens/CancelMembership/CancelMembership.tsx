@@ -1,86 +1,22 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  ButtonIcon,
-  ButtonSize,
-  HeaderBase,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import {
-  CancelMembershipTestIds,
-  getCancelReasonCheckmarkTestId,
-  getCancelReasonTestId,
-} from './CancelMembership.testIds';
-import {
-  CANCEL_REASONS,
-  MOCK_CANCEL_STATS,
-} from './CancelMembership.constants';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { CancelMembershipTestIds } from './CancelMembership.testIds';
+import { buildPostCancellationResetState } from './CancelMembership.utils';
+import CancelSurveyStep from './components/CancelSurveyStep';
+import CancelSuccessStep from './components/CancelSuccessStep';
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface ReasonItemProps {
-  id: string;
-  label: string;
-  isSelected: boolean;
-  onPress: () => void;
-}
-
-const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={getCancelReasonTestId(id)}
-    accessibilityRole="radio"
-    accessibilityState={{ selected: isSelected }}
-    activeOpacity={1}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName={`p-4 rounded-2xl border-2 ${
-        isSelected
-          ? 'border-border-default bg-background-section'
-          : 'border-border-muted'
-      }`}
-    >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-        {label}
-      </Text>
-      {isSelected && (
-        <Icon
-          name={IconName.Check}
-          size={IconSize.Md}
-          color={IconColor.IconDefault}
-          testID={getCancelReasonCheckmarkTestId(id)}
-        />
-      )}
-    </Box>
-  </TouchableOpacity>
-);
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
+type CancelStep = 'survey' | 'success';
 
 const CancelMembership = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const [step, setStep] = useState<CancelStep>('survey');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -91,141 +27,77 @@ const CancelMembership = () => {
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(() => {
-    // TODO: trigger cancellation API call and navigate to confirmation
+    setStep('success');
   }, []);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
   }, []);
 
+  const handleDone = useCallback(() => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    // Reset instead of navigate: navigate() pushes another Pro Hub on top of
+    // this success step, so Header back would return here. Reset keeps Pro Hub
+    // on top of the screen that started the flow (Money, Wallet, etc.).
+    navigation.dispatch((state) =>
+      CommonActions.reset(buildPostCancellationResetState(state)),
+    );
+  }, [navigation]);
+
+  // Once the membership is cancelled (success step), disable iOS swipe-back
+  // so the user cannot accidentally return to the now-stale Membership screen.
+  useEffect(() => {
+    navigation.setOptions({ gestureEnabled: step !== 'success' });
+  }, [navigation, step]);
+
+  // Intercept any navigation attempt that would remove this screen while
+  // on the success step. Covers programmatic goBack() and acts as
+  // defense-in-depth alongside the disabled gesture.
+  useEffect(() => {
+    if (step !== 'success') {
+      return undefined;
+    }
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isNavigatingRef.current) return;
+      e.preventDefault();
+      handleDone();
+    });
+    return () => unsubscribe();
+  }, [step, navigation, handleDone]);
+
+  // Android hardware back button: redirect to handleDone on the success step.
+  useEffect(() => {
+    if (step !== 'success') {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        handleDone();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [step, handleDone]);
+
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      testID={CancelMembershipTestIds.CONTAINER}
+      style={[tw.style('flex-1 bg-background-default')]}
       edges={['top', 'bottom']}
+      testID={CancelMembershipTestIds.CONTAINER}
     >
-      <HeaderBase
-        twClassName="pl-4 pr-3"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={CancelMembershipTestIds.BACK_BUTTON}
-          />
-        }
-      />
-
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Title + subtitle */}
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="mb-1"
-          testID={CancelMembershipTestIds.TITLE}
-        >
-          {strings('pro_hub.cancel_membership.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mb-6"
-          testID={CancelMembershipTestIds.SUBTITLE}
-        >
-          {strings('pro_hub.cancel_membership.subtitle')}
-        </Text>
-
-        {/* ── Stats card ────────────────────────────────────────────────── */}
-        <Box
-          twClassName="bg-background-section rounded-2xl p-4 gap-y-3 mb-6"
-          testID={CancelMembershipTestIds.STATS_CARD}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('pro_hub.cancel_membership.earned_as_member')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.SuccessDefault}
-            >
-              {MOCK_CANCEL_STATS.earnedAsMember}
-            </Text>
-          </Box>
-
-          <Box twClassName="border-b border-border-muted" />
-
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('pro_hub.cancel_membership.membership_cost')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_CANCEL_STATS.membershipCost}
-            </Text>
-          </Box>
-        </Box>
-
-        {/* ── Reason options ─────────────────────────────────────────────── */}
-        <Box
-          twClassName="gap-y-3"
-          testID={CancelMembershipTestIds.REASONS_LIST}
-        >
-          {CANCEL_REASONS.map((reason) => (
-            <ReasonItem
-              key={reason.id}
-              id={reason.id}
-              label={strings(reason.labelKey)}
-              isSelected={selectedReasonId === reason.id}
-              onPress={() => handleReasonSelect(reason.id)}
-            />
-          ))}
-        </Box>
-      </ScrollView>
-
-      {/* ── Bottom actions ─────────────────────────────────────────────────── */}
-      <Box twClassName="px-4 pb-2 gap-y-4 w-full">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleKeepMembership}
-          testID={CancelMembershipTestIds.KEEP_BUTTON}
-          isFullWidth
-        >
-          {strings('pro_hub.cancel_membership.keep_membership')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleCancelConfirm}
-          testID={CancelMembershipTestIds.CANCEL_BUTTON}
-          isFullWidth
-        >
-          {strings('pro_hub.cancel_membership.cancel')}
-        </Button>
-      </Box>
+      {step === 'survey' ? (
+        <CancelSurveyStep
+          selectedReasonId={selectedReasonId}
+          onReasonSelect={handleReasonSelect}
+          onBack={handleBack}
+          onKeepMembership={handleKeepMembership}
+          onCancelConfirm={handleCancelConfirm}
+        />
+      ) : (
+        <CancelSuccessStep onDone={handleDone} />
+      )}
     </SafeAreaView>
   );
 };

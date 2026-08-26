@@ -292,6 +292,7 @@ describe('QRTabSwitcher', () => {
           initialStep: 1,
           qrSyncImport: true,
         },
+        { pop: true },
       );
     });
   });

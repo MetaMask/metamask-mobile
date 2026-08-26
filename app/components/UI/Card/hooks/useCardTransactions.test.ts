@@ -114,7 +114,6 @@ describe('useCardTransactions', () => {
     expect(mockListTransactions).toHaveBeenCalledWith({
       limit: 20,
       cursor: undefined,
-      searchQuery: undefined,
       fromDate: undefined,
       toDate: undefined,
     });
@@ -164,42 +163,6 @@ describe('useCardTransactions', () => {
     expect(mockListTransactions).toHaveBeenCalledTimes(1);
   });
 
-  it('debounces the search query before refetching', async () => {
-    jest.useFakeTimers();
-    try {
-      const { Wrapper } = createWrapper();
-
-      const { result, rerender } = renderHook(
-        ({ searchQuery }: { searchQuery?: string }) =>
-          useCardTransactions({ searchQuery }),
-        {
-          wrapper: Wrapper,
-          initialProps: { searchQuery: undefined as string | undefined },
-        },
-      );
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      rerender({ searchQuery: 'uber' });
-      // Not yet debounced: no new request with the search term.
-      expect(mockListTransactions).not.toHaveBeenCalledWith(
-        expect.objectContaining({ searchQuery: 'uber' }),
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      expect(mockListTransactions).toHaveBeenCalledWith(
-        expect.objectContaining({ searchQuery: 'uber' }),
-      );
-      expect(result.current).toBeDefined();
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
   it('passes fromDate and toDate through to the controller', async () => {
     const { Wrapper } = createWrapper();
 
@@ -234,7 +197,6 @@ describe('useCardTransactions', () => {
       cardQueries.transactions.keys.list(
         'baanx',
         'user-1',
-        '',
         undefined,
         undefined,
       ),
@@ -255,7 +217,6 @@ describe('useCardTransactions', () => {
           cardQueries.transactions.keys.list(
             'baanx',
             'user-1',
-            '',
             undefined,
             undefined,
           ),
@@ -280,7 +241,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'baanx',
           'user-1',
-          '',
           undefined,
           undefined,
         ),
@@ -291,7 +251,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'immersve',
           'user-1',
-          '',
           undefined,
           undefined,
         ),
@@ -302,7 +261,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'baanx',
           'user-2',
-          '',
           undefined,
           undefined,
         ),

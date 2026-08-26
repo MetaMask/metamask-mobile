@@ -6,12 +6,17 @@ import {
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
+import {
+  findBridgeHistoryItemBySrcTxHash,
+  useBridgeHistoryItemBySrcTxHash,
+} from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 /**
  * Re-resolves a single {@link ActivityListItem} by its transaction identifier
@@ -21,11 +26,8 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
  *
  * Mirrors the extension's `ui/pages/details/transaction-details.tsx` resolution:
  * a more-categorized API item takes precedence over a local item when the local
- * item is less-categorized than the API copy — either a generic
- * `contractInteraction` or a `swapIncomplete` (a swap whose destination token
- * could not be resolved on-device, which the API often resolves to a full
- * `swap`). This keeps the details page in sync with the list, which dedups
- * confirmed swaps to the API copy.
+ * item is less-categorized than the API copy — a generic
+ * `contractInteraction`. This keeps the details page in sync with the list.
  *
  * Local gasless/STX rows may temporarily change their displayed hash while the
  * meta `id` stays stable. Lookup therefore indexes local rows by meta id and
@@ -159,6 +161,8 @@ export function useActivityDetailsItem(
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
+  const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
@@ -166,8 +170,16 @@ export function useActivityDetailsItem(
   );
 
   const nonEvmItems = useMemo<ActivityListItem[]>(
-    () => mapNonEvmTransactions(nonEvmState?.transactions ?? []),
-    [nonEvmState?.transactions],
+    () =>
+      mapNonEvmTransactions(
+        nonEvmState?.transactions ?? [],
+        (txId) =>
+          findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, txId),
+        (transaction) =>
+          accounts.find((account) => account.id === transaction.account)
+            ?.address,
+      ),
+    [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
   const chainedLocalItems = useMemo(

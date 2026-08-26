@@ -99,7 +99,7 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('parses Event detail from the Predict API', async () => {
+  it('parses an immutable Event from the Predict API', async () => {
     client.fetchEvent.mockResolvedValue(createEvent());
 
     const result = await adapter.marketData.fetchEvent(eventId);
@@ -107,7 +107,7 @@ describe('KalshiRemoteAdapter', () => {
     expect(result.id).toBe(eventId);
   });
 
-  it('rejects Event detail with another Event ID', async () => {
+  it('rejects an immutable Event with another Event ID', async () => {
     client.fetchEvent.mockResolvedValue(createEvent({ id: 'event-2' }));
 
     await expect(adapter.marketData.fetchEvent(eventId)).rejects.toEqual(
