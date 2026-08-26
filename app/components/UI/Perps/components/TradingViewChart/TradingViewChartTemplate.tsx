@@ -1,6 +1,7 @@
 import { Theme } from '../../../../../util/theme/models';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { hexToRgba } from '../../utils/chartColors';
+import { createLimitOrderOverlayScript } from './limitOrderOverlay';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
@@ -1123,67 +1124,10 @@ export const createTradingViewChartTemplate = (
             limitOrders: []
         };
 
-        window.clearLimitOrderLines = function() {
-            if (!window.candlestickSeries || !window.priceLines.limitOrders) {
-                if (window.priceLines) {
-                    window.priceLines.limitOrders = [];
-                }
-                window.lastLimitOrderPrices = [];
-                return;
-            }
-            window.priceLines.limitOrders.forEach(function(item) {
-                try {
-                    window.candlestickSeries.removePriceLine(item.line || item);
-                } catch (error) {
-                    console.error('TradingView: Error removing limit order line:', error);
-                }
-            });
-            window.priceLines.limitOrders = [];
-            window.lastLimitOrderPrices = [];
-        };
-
-        window.updateLimitOrderLines = function(limitOrders) {
-            window.clearLimitOrderLines();
-            window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {
-                return order && order.price;
-            }).filter(function(price) {
-                return price !== undefined && price !== null && price !== '';
-            });
-            if (!window.candlestickSeries || !limitOrders || !limitOrders.length) {
-                return;
-            }
-            limitOrders.forEach(function(order) {
-                var price = parseFloat(order.price);
-                if (isNaN(price)) {
-                    return;
-                }
-                try {
-                    var color = order.side === 'sell'
-                        ? '${theme.colors.error.default}'
-                        : '${theme.colors.success.default}';
-                    var priceLine = window.candlestickSeries.createPriceLine({
-                        price: price,
-                        color: color,
-                        lineWidth: 1,
-                        lineStyle: 2,
-                        axisLabelVisible: true,
-                        title: 'Limit'
-                    });
-                    window.priceLines.limitOrders.push({
-                        line: priceLine,
-                        price: price,
-                        side: order.side
-                    });
-                } catch (error) {
-                    console.error('TradingView: Error creating limit order line:', error);
-                }
-            });
-            try {
-                window.candlestickSeries.priceScale().applyOptions({ autoScale: true });
-            } catch (scaleError) {
-                console.error('TradingView: Error applying limit order autoscale:', scaleError);
-            }
-        };
+${createLimitOrderOverlayScript({
+  sell: theme.colors.error.default,
+  buy: theme.colors.success.default,
+})}
         
         // Store original price line data for restoration
         window.originalPriceLineData = null;

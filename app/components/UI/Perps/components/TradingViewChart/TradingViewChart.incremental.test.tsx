@@ -431,8 +431,12 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(clearTpslCase).toContain('window.clearLimitOrderLines();');
   });
 
-  it('reports Limit line remove, create, and autoscale failures', () => {
+  it('reports Limit line remove and create failures without forcing autoscale', () => {
     const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const updateFn = template.slice(
+      template.indexOf('window.updateLimitOrderLines = function'),
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
 
     expect(template).toContain(
       "console.error('TradingView: Error removing limit order line:', error)",
@@ -440,7 +444,8 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(template).toContain(
       "console.error('TradingView: Error creating limit order line:', error)",
     );
-    expect(template).toContain(
+    expect(updateFn).not.toContain('applyOptions({ autoScale: true })');
+    expect(template).not.toContain(
       "console.error('TradingView: Error applying limit order autoscale:', scaleError)",
     );
   });

@@ -77,11 +77,11 @@ export function mapTpslToPositionLines(
       if (!Number.isFinite(price)) {
         return undefined;
       }
+      const side: PositionLines['side'] =
+        order.side === 'sell' ? 'short' : 'long';
       return {
         price,
-        side: (order.side === 'sell'
-          ? 'short'
-          : 'long') as PositionLines['side'],
+        side,
       };
     })
     .filter((order): order is { price: number; side: PositionLines['side'] } =>
