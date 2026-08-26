@@ -102,6 +102,22 @@ describe('TraderPositionChartSection', () => {
     );
   });
 
+  it('forwards onSupportsChartTypeChange to the advanced chart', () => {
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderPositionChartSection
+        {...defaultProps}
+        assetId="eip155:8453/erc20:0x1"
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({ onSupportsChartTypeChange }),
+    );
+  });
+
   it('forwards scrollPassthrough to the legacy price chart', () => {
     render(<TraderPositionChartSection {...defaultProps} scrollPassthrough />);
 

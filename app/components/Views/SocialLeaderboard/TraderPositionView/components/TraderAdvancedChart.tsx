@@ -7,6 +7,7 @@ import {
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -380,6 +381,11 @@ export interface TraderAdvancedChartProps {
   onPerpMetricsChange?: (metrics: PerpMetrics) => void;
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
   onTradeMarkerPress?: (id: string) => void;
+  /**
+   * Reports whether the AdvancedChart (which honors `chartType`) is the
+   * active surface. False when this component falls back to TraderPriceChart.
+   */
+  onSupportsChartTypeChange?: (supported: boolean) => void;
   chartHeight?: number;
   /**
    * When true, the chart surface stops capturing touches so drags fall through to
@@ -396,9 +402,19 @@ type SharedChartProps = Pick<
   | 'onChartIndexChange'
   | 'onScrubPercentChange'
   | 'onTradeMarkerPress'
+  | 'onSupportsChartTypeChange'
   | 'chartHeight'
   | 'scrollPassthrough'
 >;
+
+function useNotifyChartTypeSupported(
+  supported: boolean,
+  onSupportsChartTypeChange?: (supported: boolean) => void,
+) {
+  useLayoutEffect(() => {
+    onSupportsChartTypeChange?.(supported);
+  }, [supported, onSupportsChartTypeChange]);
+}
 
 const TraderPerpAdvancedChart = ({
   perpSymbol,
@@ -411,6 +427,7 @@ const TraderPerpAdvancedChart = ({
   onPerpMetricsChange,
   onRequestCandlePeriod,
   onTradeMarkerPress,
+  onSupportsChartTypeChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
   scrollPassthrough = false,
 }: SharedChartProps & {
@@ -518,6 +535,8 @@ const TraderPerpAdvancedChart = ({
   const shouldFallback =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || ohlcvData.length === 0);
+
+  useNotifyChartTypeSupported(!shouldFallback, onSupportsChartTypeChange);
 
   const focusTradeOnChart = useCallback(
     (tradeTime: number, request: TradeFocusRequest): boolean => {
@@ -676,7 +695,6 @@ const TraderPerpAdvancedChart = ({
     <View style={{ height: chartHeight }} testID="trader-advanced-chart">
       <AdvancedChart
         ref={chartRef}
-        slbMode
         scrollPassthrough={scrollPassthrough}
         ohlcvData={ohlcvData}
         ohlcvSeriesKey={ohlcvSeriesKey}
@@ -720,6 +738,7 @@ const TraderSpotAdvancedChart = ({
   onChartIndexChange,
   onScrubPercentChange,
   onTradeMarkerPress,
+  onSupportsChartTypeChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
   scrollPassthrough = false,
 }: SharedChartProps &
@@ -913,6 +932,8 @@ const TraderSpotAdvancedChart = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || !!chartError);
 
+  useNotifyChartTypeSupported(!shouldFallback, onSupportsChartTypeChange);
+
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
@@ -1019,6 +1040,7 @@ const TraderAdvancedChart = (props: TraderAdvancedChartProps) => {
         onScrubPercentChange={props.onScrubPercentChange}
         onPerpMetricsChange={props.onPerpMetricsChange}
         onTradeMarkerPress={props.onTradeMarkerPress}
+        onSupportsChartTypeChange={props.onSupportsChartTypeChange}
         chartHeight={props.chartHeight}
         scrollPassthrough={props.scrollPassthrough}
       />

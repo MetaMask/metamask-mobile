@@ -324,6 +324,62 @@ describe('TraderAdvancedChart', () => {
     );
   });
 
+  it('enables RN-backed pagination on perp charts instead of slbMode', () => {
+    setOHLCV([]);
+    setPerpAdapter(makeBars(20));
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+      />,
+    );
+
+    // slbMode would short-circuit getBars with noData and make
+    // rnBackedPagination unreachable, so panning could not load YTD history.
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rnBackedPagination: { enabled: true },
+      }),
+    );
+    expect(mockAdvancedChart).not.toHaveBeenCalledWith(
+      expect.objectContaining({ slbMode: true }),
+    );
+  });
+
+  it('reports chart type support when the AdvancedChart is rendered', () => {
+    setOHLCV(makeBars(20));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(true);
+  });
+
+  it('reports chart type is unsupported when falling back to the legacy chart', () => {
+    setOHLCV(makeBars(2));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(false);
+  });
+
   it('passes ALL trades as markers and frames a trade older than the loaded page when more history can be paginated', () => {
     const bars = makeBars(20); // window: 1_700_000_000_000 .. +19*60_000
     setOHLCV(bars, { hasMore: true, nextCursor: 'next' });
@@ -968,6 +1024,27 @@ describe('TraderAdvancedChart', () => {
 
     expect(getByTestId('legacy-chart')).toBeTruthy();
     expect(queryByTestId('advanced-chart')).toBeNull();
+  });
+
+  it('reports chart type is unsupported when a perp chart falls back to the legacy chart', () => {
+    setOHLCV([]);
+    setPerpAdapter(makeBars(2));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(false);
   });
 
   it('centers and pulses a trade in the current period when its data is loaded', () => {

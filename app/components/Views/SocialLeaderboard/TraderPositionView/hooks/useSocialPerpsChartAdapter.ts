@@ -89,14 +89,20 @@ export function useSocialPerpsChartAdapter({
   /**
    * Merge accumulated older bars with the base adapter's ohlcvData.
    * Deduplicates by `time` and returns bars sorted ascending by time.
+   *
+   * When pagination expands the series, AdvancedChart sends a full
+   * SET_OHLCV_DATA replacement (length changed). That payload must include
+   * the current realtime bar or the last candle rolls back until the next
+   * tick — realtimeBar is unchanged, so no follow-up REALTIME_UPDATE fires.
    */
   const ohlcvData = useMemo<OHLCVBar[]>(() => {
     if (historicalBars.length === 0) return base.ohlcvData;
     const byTime = new Map<number, OHLCVBar>();
     for (const bar of historicalBars) byTime.set(bar.time, bar);
     for (const bar of base.ohlcvData) byTime.set(bar.time, bar);
+    if (base.realtimeBar) byTime.set(base.realtimeBar.time, base.realtimeBar);
     return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
-  }, [historicalBars, base.ohlcvData]);
+  }, [historicalBars, base.ohlcvData, base.realtimeBar]);
 
   /**
    * Hold the base callback in a ref so this wrapper's `handleFetchOlderBarsRequest`

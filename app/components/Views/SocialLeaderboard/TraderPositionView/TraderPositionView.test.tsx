@@ -187,6 +187,11 @@ jest.mock('./hooks/useSocialPerpsChartAdapter', () => ({
     mockUseSocialPerpsChartAdapter(...args),
 }));
 
+const mockUseOHLCVChart = jest.fn();
+jest.mock('../../../UI/Charts/AdvancedChart/useOHLCVChart', () => ({
+  useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
+}));
+
 const mockSetPerpsChartPreferredCandlePeriod = jest.fn((period: string) => ({
   type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
   payload: period,
@@ -348,6 +353,14 @@ describe('TraderPositionView', () => {
         noData: true,
       }),
     });
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [],
+      isLoading: false,
+      error: null,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: true,
+    });
     mockRefetchPosition.mockResolvedValue(undefined);
     mockRefreshProfile.mockResolvedValue(undefined);
     mockHandleFetch.mockResolvedValue({});
@@ -396,6 +409,15 @@ describe('TraderPositionView', () => {
   });
 
   it('renders the spot time period selector and chart type toggle', () => {
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: makePerpAdapterBars(),
+      isLoading: false,
+      error: null,
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: false,
+    });
+
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     expect(screen.getByText('1H')).toBeOnTheScreen();
@@ -412,6 +434,22 @@ describe('TraderPositionView', () => {
       ...makeDefaultPosition(),
       chain: 'unsupported-chain',
     };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.queryByLabelText('Line chart')).toBeNull();
+    expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
+  });
+
+  it('hides the chart type toggle when the spot advanced chart falls back to the price chart', () => {
+    mockUseOHLCVChart.mockReturnValue({
+      ohlcvData: [],
+      isLoading: false,
+      error: 'boom',
+      hasMore: false,
+      nextCursor: null,
+      hasEmptyData: true,
+    });
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -763,6 +801,29 @@ describe('TraderPositionView', () => {
 
       expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
       expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
+    });
+
+    it('hides the chart type toggle when the perp advanced chart falls back to the price chart', () => {
+      mockUseSocialPerpsChartAdapter.mockReturnValue({
+        ohlcvData: makePerpAdapterBars().slice(0, 2),
+        realtimeBar: undefined,
+        latestBar: makePerpAdapterBars()[1],
+        ohlcvSeriesKey: 'ETH|15m',
+        visibleFromMs: undefined,
+        visibleToMs: undefined,
+        isLoading: false,
+        handleFetchOlderBarsRequest: jest.fn().mockResolvedValue({
+          requestId: 'test',
+          seriesGeneration: 0,
+          bars: [],
+          noData: true,
+        }),
+      });
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.queryByLabelText('Line chart')).toBeNull();
+      expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
     });
 
     it('opens the candle period bottom sheet when More is pressed', () => {

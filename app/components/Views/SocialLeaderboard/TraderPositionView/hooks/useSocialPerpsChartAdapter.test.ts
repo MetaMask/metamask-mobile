@@ -344,4 +344,32 @@ describe('useSocialPerpsChartAdapter', () => {
     expect(result.current.realtimeBar).toBe(rt);
     expect(result.current.latestBar).toBe(rt);
   });
+
+  it('merges the current realtime bar into ohlcvData after pagination', async () => {
+    const baseBars = [bar(3000), bar(4000)];
+    const realtimeBar = { ...bar(4000), close: 999 };
+    setBaseAdapter(baseBars, `${SYMBOL}|${INTERVAL}`, {
+      realtimeBar,
+      latestBar: realtimeBar,
+    });
+    const { result } = render();
+
+    mockBaseHandleFetchOlderBars.mockResolvedValueOnce({
+      requestId: 'req-1',
+      seriesGeneration: 1,
+      bars: [bar(1000), bar(2000)],
+      noData: false,
+    });
+
+    await act(async () => {
+      await result.current.handleFetchOlderBarsRequest(
+        olderRequest({ oldestLoadedTimeMs: 3000 }),
+      );
+    });
+
+    expect(result.current.ohlcvData.map((b) => b.time)).toEqual([
+      1000, 2000, 3000, 4000,
+    ]);
+    expect(result.current.ohlcvData.at(-1)).toEqual(realtimeBar);
+  });
 });

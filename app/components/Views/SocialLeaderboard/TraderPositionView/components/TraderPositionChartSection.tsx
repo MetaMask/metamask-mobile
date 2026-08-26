@@ -57,6 +57,11 @@ export interface TraderPositionChartSectionProps {
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
   onTradeMarkerPress?: (id: string) => void;
   /**
+   * Reports whether the AdvancedChart (which honors `chartType`) is active.
+   * False when the section falls back to TraderPriceChart.
+   */
+  onSupportsChartTypeChange?: (supported: boolean) => void;
+  /**
    * When true, the chart stops capturing touches so drags fall through to the
    * scrolling list behind it once the chart is pinned as a scroll-linked overlay.
    */
@@ -82,6 +87,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   onRequestCandlePeriod,
   onPerpMetricsChange,
   onTradeMarkerPress,
+  onSupportsChartTypeChange,
   scrollPassthrough = false,
 }) => (
   <PriceChartProvider>
@@ -106,6 +112,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           onScrubPercentChange={onScrubPercentChange}
           onPerpMetricsChange={onPerpMetricsChange}
           onTradeMarkerPress={onTradeMarkerPress}
+          onSupportsChartTypeChange={onSupportsChartTypeChange}
           chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
           scrollPassthrough={scrollPassthrough}
         />

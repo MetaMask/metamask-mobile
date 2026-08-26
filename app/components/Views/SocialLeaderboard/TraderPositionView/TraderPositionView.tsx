@@ -362,6 +362,7 @@ const TraderPositionView = () => {
   });
 
   const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
+  const [isAdvancedChartActive, setIsAdvancedChartActive] = useState(true);
 
   useEffect(() => {
     if (!displayPosition || chartTypeInitializedRef.current) return;
@@ -764,6 +765,7 @@ const TraderPositionView = () => {
               onTradeMarkerPress={
                 chartAssetId || isPerp ? handleMarkerPress : undefined
               }
+              onSupportsChartTypeChange={setIsAdvancedChartActive}
             />
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -786,11 +788,11 @@ const TraderPositionView = () => {
                   />
                 )}
               </Box>
-              {/* Chart-type toggle only applies to charts that back both a
-                  line and candle rendering (perp candles, or spot with a
-                  resolvable CAIP asset id feeding OHLCV). Hide it on spot
-                  positions that fall back to the price-only chart. */}
-              {(chartAssetId || isPerp) && (
+              {/* Chart-type toggle only applies while AdvancedChart is
+                  the active surface (it honors chartType). Hide it on
+                  unsupported spot and whenever either advanced chart
+                  falls back to the price-only TraderPriceChart. */}
+              {(chartAssetId || isPerp) && isAdvancedChartActive && (
                 <ChartTypeToggle
                   chartType={chartType}
                   onChartTypeSelect={setChartType}
