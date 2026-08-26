@@ -1,6 +1,4 @@
 const mockGoBack = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockNavigate = jest.fn();
@@ -14,12 +12,11 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '99.0.0'),
 }));
 
-jest.mock('../../../../../component-library/components/Toast', () => {
-  const React = jest.requireActual('react');
-  const ToastContext = React.createContext({ toastRef: null });
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    ToastContext,
-    ToastVariants: { Icon: 'Icon' },
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -193,26 +190,15 @@ jest.mock('../../hooks/useRedeemableWallet', () => ({
 
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { ToastContext } from '../../../../../component-library/components/Toast';
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
-
-const CashbackWithToast = () => (
-  <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-    <Cashback />
-  </ToastContext.Provider>
-);
+const CashbackWithToast = () => <Cashback />;
 
 interface RenderOverrides {
   cardHomeDataStatus?: string;
@@ -827,7 +813,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('shows success toast when monitoring completes', () => {
@@ -842,11 +828,12 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: 'Icon',
+          title: 'Withdrawal completed successfully',
+          severity: 'success',
           hasNoTimeout: false,
-          labelOptions: [{ label: 'Withdrawal completed successfully' }],
+          showCloseButton: false,
         }),
       );
     });
@@ -908,11 +895,12 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: 'Icon',
+          title: 'Withdrawal failed. Please try again.',
+          severity: 'danger',
           hasNoTimeout: false,
-          labelOptions: [{ label: 'Withdrawal failed. Please try again.' }],
+          showCloseButton: false,
         }),
       );
     });
@@ -929,9 +917,11 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Withdrawal failed. Please try again.' }],
+          title: 'Withdrawal failed. Please try again.',
+          severity: 'danger',
+          showCloseButton: false,
         }),
       );
     });
@@ -948,11 +938,12 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: 'Icon',
+          title: 'Withdrawal failed. Please try again.',
+          severity: 'danger',
           hasNoTimeout: false,
-          labelOptions: [{ label: 'Withdrawal failed. Please try again.' }],
+          showCloseButton: false,
         }),
       );
     });

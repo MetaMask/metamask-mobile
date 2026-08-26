@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -13,6 +13,8 @@ import {
   HeaderStandard,
   AvatarAccount,
   AvatarBaseSize,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -24,12 +26,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import useRedeemableWallet, {
@@ -74,8 +71,6 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
 
@@ -211,40 +206,37 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
 
   useEffect(() => {
     if (monitoringStatus === 'success') {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalSuccess) }],
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
+      toast({
+        title: strings(config.strings.withdrawalSuccess),
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       navigation.goBack();
     }
-  }, [monitoringStatus, toastRef, theme, navigation, config]);
+  }, [monitoringStatus, navigation, config]);
 
   useEffect(() => {
     if (monitoringStatus === 'failed' || monitoringError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
+      toast({
+        title: strings(config.strings.withdrawalFailed),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     }
-  }, [monitoringStatus, monitoringError, toastRef, theme, config]);
+  }, [monitoringStatus, monitoringError, config]);
 
   useEffect(() => {
     if (withdrawError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
+      toast({
+        title: strings(config.strings.withdrawalFailed),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     }
-  }, [withdrawError, toastRef, theme, config]);
+  }, [withdrawError, config]);
 
   useEffect(
     () => () => {

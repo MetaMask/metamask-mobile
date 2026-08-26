@@ -54,9 +54,32 @@ jest.mock('../../sdk', () => ({
   }),
 }));
 
-const mockShowToast = jest.fn();
-
-jest.mock('../../../../../component-library/components/Toast');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+      }: {
+        children?: React.ReactNode;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => cb?.(),
+      }));
+      return ReactActual.createElement(View, null, children);
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  return {
+    ...actual,
+    BottomSheet,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -97,9 +120,13 @@ const mockTw = Object.assign(
   },
 );
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => mockTw,
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
+  return {
+    ...actual,
+    useTailwind: () => mockTw,
+  };
+});
 
 jest.mock('@shopify/flash-list', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -111,6 +138,7 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { toast } from '@metamask/design-system-react-native';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
 import {
   FundingStatus,
@@ -118,27 +146,12 @@ import {
   DelegationSettingsResponse,
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-// Wrapper component to provide Toast context
-const renderWithToastContext = (component: React.ReactElement) =>
-  render(
-    <ToastContext.Provider
-      value={{
-        toastRef: {
-          current: { showToast: mockShowToast, closeToast: jest.fn() },
-        },
-      }}
-    >
-      {component}
-    </ToastContext.Provider>,
-  );
 
 // Helper function to create mock token
 const createMockToken = (
@@ -223,7 +236,7 @@ const setupComponent = (paramsOverrides: Record<string, unknown> = {}) => {
     data: { delegationSettings },
   });
 
-  return renderWithToastContext(<AssetSelectionBottomSheet />);
+  return render(<AssetSelectionBottomSheet />);
 };
 
 describe('AssetSelectionBottomSheet', () => {
@@ -747,9 +760,11 @@ describe('AssetSelectionBottomSheet', () => {
         { timeout: 3000 },
       );
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Spend priority updated successfully' }],
+          title: 'Spend priority updated successfully',
+          severity: 'success',
+          showCloseButton: false,
         }),
       );
     });
@@ -794,9 +809,11 @@ describe('AssetSelectionBottomSheet', () => {
 
       await waitFor(
         () => {
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(toast).toHaveBeenCalledWith(
             expect.objectContaining({
-              labelOptions: [{ label: 'Failed to update spend priority' }],
+              title: 'Failed to update spend priority',
+              severity: 'danger',
+              showCloseButton: false,
             }),
           );
         },
@@ -827,9 +844,11 @@ describe('AssetSelectionBottomSheet', () => {
 
       await waitFor(
         () => {
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(toast).toHaveBeenCalledWith(
             expect.objectContaining({
-              labelOptions: [{ label: 'Failed to update spend priority' }],
+              title: 'Failed to update spend priority',
+              severity: 'danger',
+              showCloseButton: false,
             }),
           );
         },

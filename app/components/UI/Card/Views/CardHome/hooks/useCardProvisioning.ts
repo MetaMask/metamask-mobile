@@ -1,11 +1,6 @@
-import { useContext, useMemo } from 'react';
-import { useTheme } from '../../../../../../util/theme';
+import { useMemo } from 'react';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
 import {
   usePushProvisioning,
   getWalletName,
@@ -18,9 +13,6 @@ import {
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 export function useCardProvisioning(data: CardHomeData | null | undefined) {
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
-
   const cardholderName = useMemo(() => {
     if (!data?.account?.holderName) return 'Card Holder';
     const parts = data.account.holderName.split(' ');
@@ -66,33 +58,23 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
       userAddress: userAddressForProvisioning,
       provisioningEligible: data?.account?.provisioningEligible ?? false,
       onSuccess: () => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('card.push_provisioning.success_message', {
-                walletName: getWalletName(),
-              }),
-            },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
+        toast({
+          title: strings('card.push_provisioning.success_message', {
+            walletName: getWalletName(),
+          }),
+          severity: ToastSeverity.Success,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
       },
       onError: (provisioningError: ProvisioningError) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label:
-                provisioningError.message ||
-                strings('card.push_provisioning.error_unknown'),
-            },
-          ],
-          iconName: IconName.Danger,
-          iconColor: theme.colors.error.default,
+        toast({
+          title:
+            provisioningError.message ||
+            strings('card.push_provisioning.error_unknown'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
       },
     });
