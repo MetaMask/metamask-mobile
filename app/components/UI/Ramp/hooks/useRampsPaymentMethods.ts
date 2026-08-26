@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -11,10 +11,12 @@ import {
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
+import type { PaymentMethodsQueryParams } from '../queries/paymentMethods';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
-import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
+
+const NO_PAYMENT_METHODS: PaymentMethod[] = [];
 
 /**
  * Result returned by the useRampsPaymentMethods hook.
@@ -24,6 +26,11 @@ export interface UseRampsPaymentMethodsResult {
    * The list of payment methods available for the current context.
    */
   paymentMethods: PaymentMethod[];
+  /**
+   * Selection suggested by the controller for this request only. Reading it
+   * never implies a write to `paymentMethods.selected`.
+   */
+  suggestedPaymentMethod: PaymentMethod | null;
   /**
    * The currently selected payment method, or null if none selected.
    */
@@ -55,12 +62,18 @@ export interface UseRampsPaymentMethodsResult {
   error: string | null;
 }
 
+/** The context-scoped subset, without the Buy-owned Redux selection. */
+export type RampsPaymentMethodsContextResult = Omit<
+  UseRampsPaymentMethodsResult,
+  'selectedPaymentMethod' | 'setSelectedPaymentMethod'
+>;
+
 /**
  * Hook to get payment methods via React Query.
  *
- * The query fires only when a provider is selected (provider change is the
- * sole trigger). Token is passed to the API call but is NOT part of the query
- * key, so changing it does not cause a refetch.
+ * The query executes for the active Buy region, asset, and provider context.
+ * RampsController owns catalog writes and automatic selection, so this path
+ * requests with `updateState: true`.
  *
  * @returns Payment methods state.
  */
@@ -70,15 +83,11 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
-  const queryEnabled = Boolean(userRegion?.regionCode && selectedProvider?.id);
-
-  const paymentMethodsQuery = useQuery({
-    ...rampsQueries.paymentMethods.options({
-      regionCode: userRegion?.regionCode ?? '',
-      assetId: normalizeAssetIdForApi(selectedToken?.assetId),
-      providerId: selectedProvider?.id ?? '',
-    }),
-    enabled: queryEnabled,
+  const context = useRampsPaymentMethodsForContext({
+    regionCode: userRegion?.regionCode ?? '',
+    assetId: selectedToken?.assetId ?? '',
+    providerId: selectedProvider?.id ?? '',
+    updateState: true,
   });
 
   const setSelectedPaymentMethod = useCallback(
@@ -93,59 +102,59 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     [],
   );
 
-  useEffect(() => {
-    const methods = paymentMethodsQuery.data;
-    if (!methods || methods.length === 0) return;
+  const { paymentMethods, suggestedPaymentMethod } = context;
+  const inContext = (method: PaymentMethod | null) =>
+    method ? (paymentMethods.find(({ id }) => id === method.id) ?? null) : null;
 
-    let target: PaymentMethod | null = null;
-
-    if (selectedPaymentMethod) {
-      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
-    }
-
-    if (!target) {
-      target = methods[0];
-    }
-
-    if (target.id !== selectedPaymentMethod?.id) {
-      setSelectedPaymentMethod(target);
-    }
-  }, [
-    paymentMethodsQuery.data,
-    selectedPaymentMethod,
+  return {
+    ...context,
+    selectedPaymentMethod:
+      inContext(selectedPaymentMethod) ?? inContext(suggestedPaymentMethod),
     setSelectedPaymentMethod,
-  ]);
+  };
+}
 
-  const isAutoSelecting = Boolean(
-    paymentMethodsQuery.data?.length &&
-      (!selectedPaymentMethod ||
-        paymentMethodsQuery.data.every(
-          (m) => m.id !== selectedPaymentMethod.id,
-        )),
+/**
+ * Payment methods for a caller-supplied region / asset / provider context.
+ *
+ * The caller owns its context, so this hook reads no globals of its own and
+ * must never import from the confirmations tree: `RampsBootstrap` mounts the
+ * Buy binding above at app root.
+ */
+export function useRampsPaymentMethodsForContext(
+  context: PaymentMethodsQueryParams,
+): RampsPaymentMethodsContextResult {
+  const { regionCode, assetId, providerId, autoSelectProvider } = context;
+  const queryEnabled = Boolean(
+    regionCode.trim() &&
+      assetId.trim() &&
+      (providerId?.trim() || autoSelectProvider),
   );
+
+  const paymentMethodsQuery = useQuery({
+    ...rampsQueries.paymentMethods.options(context),
+    enabled: queryEnabled,
+  });
+
+  const activeResponse = queryEnabled ? paymentMethodsQuery.data : undefined;
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
       return 'idle';
     }
-    if (paymentMethodsQuery.isLoading) {
-      return 'loading';
-    }
     if (paymentMethodsQuery.isError) {
       return 'error';
     }
-    return 'success';
-  }, [
-    paymentMethodsQuery.isError,
-    paymentMethodsQuery.isLoading,
-    queryEnabled,
-  ]);
+    if (paymentMethodsQuery.data !== undefined) {
+      return 'success';
+    }
+    return 'loading';
+  }, [paymentMethodsQuery.data, paymentMethodsQuery.isError, queryEnabled]);
 
   return {
-    paymentMethods: paymentMethodsQuery.data ?? [],
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    isLoading: status === 'loading' || isAutoSelecting,
+    paymentMethods: activeResponse?.methods ?? NO_PAYMENT_METHODS,
+    suggestedPaymentMethod: activeResponse?.selected ?? null,
+    isLoading: status === 'loading',
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',

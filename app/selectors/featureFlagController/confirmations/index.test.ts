@@ -472,6 +472,29 @@ describe('selectMetaMaskPayFiatFlags', () => {
       maxDelayMinutesForPaymentMethods: 30,
     });
   });
+
+  it('returns assetPerTransactionType from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    const assetPerTransactionType = {
+      moneyAccountDeposit: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      },
+    };
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: {
+          assetPerTransactionType,
+        },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+      assetPerTransactionType,
+    });
+  });
 });
 
 describe('selectPayHardwareConfig', () => {
