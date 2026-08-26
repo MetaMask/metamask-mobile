@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed bottom sheets that could mount off-screen under Reanimated 4 / Fabric by opening on mount when the initial onLayout open path is missed
+
 ## [8.8.0]
 
 ### Added

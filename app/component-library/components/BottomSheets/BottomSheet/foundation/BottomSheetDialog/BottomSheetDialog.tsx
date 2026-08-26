@@ -189,6 +189,22 @@ const BottomSheetDialog = forwardRef<
       );
     };
 
+    // Reanimated 4 / Fabric can miss the initial Animated.View onLayout that
+    // normally triggers onOpenDialog, leaving the sheet translated off-screen
+    // (Appium: node exists but displayed=false). Open once on mount if layout
+    // has not already done so.
+    useEffect(() => {
+      const frame = requestAnimationFrame(() => {
+        if (!isMounted.current) {
+          isMounted.current = true;
+          onOpenDialog();
+        }
+      });
+      return () => cancelAnimationFrame(frame);
+      // Mount-once fallback; onOpenDialog closes over stable shared values.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
       bottomOfDialogYValue.value = height;
@@ -230,6 +246,7 @@ const BottomSheetDialog = forwardRef<
       >
         <GestureDetector gesture={gestureHandler}>
           <Animated.View
+            collapsable={false}
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
           >
