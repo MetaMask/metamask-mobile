@@ -183,14 +183,17 @@ describe('useCryptoUpDownChartData', () => {
       return refetchInterval();
     };
 
-    const recordFailures = (rerender: () => void, count: number): void => {
+    const recordFailures = (
+      rerender: (props?: unknown) => void,
+      count: number,
+    ): void => {
       for (let i = 0; i < count; i += 1) {
         mockQueryOverrides.error = new Error('foo');
         act(() => rerender());
       }
     };
 
-    const recordSuccess = (rerender: () => void): void => {
+    const recordSuccess = (rerender: (props?: unknown) => void): void => {
       mockQueryOverrides.error = null;
       mockQueryOverrides.data = [{ time: 1, value: 100 }];
       act(() => rerender());

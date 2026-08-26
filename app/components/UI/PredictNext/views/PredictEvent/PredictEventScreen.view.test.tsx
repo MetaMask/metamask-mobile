@@ -225,7 +225,6 @@ describe('PredictEventScreen', () => {
         venueId,
         secondMarket.id,
         'ALL',
-        undefined,
       ),
     );
     expect(
@@ -263,7 +262,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'market-1',
         '1W',
-        undefined,
       ),
     );
     expect(
@@ -435,14 +433,12 @@ describe('PredictEventScreen', () => {
           venueId,
           awayMarket.id,
           'ALL',
-          undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
           'ALL',
-          undefined,
         ],
       ]),
     );
