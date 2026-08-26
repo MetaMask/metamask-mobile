@@ -35,6 +35,7 @@ import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { SRP_LENGTHS } from './constant';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -472,9 +473,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(continueButton).toBeEnabled();
       });
 
-      const { SRP_LENGTHS } = require('./constant') as {
-        SRP_LENGTHS: number[];
-      };
       const includesSpy = jest
         .spyOn(SRP_LENGTHS, 'includes')
         .mockReturnValue(false);
