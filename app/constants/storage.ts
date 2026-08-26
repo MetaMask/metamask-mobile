@@ -107,3 +107,6 @@ export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_
 export const PUSH_PRE_PROMPT_SHOWN = `${prefix}PUSH_PRE_PROMPT_SHOWN`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
+
+/** Persisted while an OAuth round trip is in flight (Android process-death detection). */
+export const OAUTH_IN_PROGRESS = `${prefix}oauthInProgress`;

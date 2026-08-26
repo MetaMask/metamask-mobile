@@ -1,0 +1,17 @@
+export const ProHubTestIds = {
+  CONTAINER: 'pro-hub-container',
+  BACK_BUTTON: 'pro-hub-back-button',
+  TITLE: 'pro-hub-title',
+  HEADER_ROOT: 'pro-hub-header-root',
+  MANAGE_PLANS_BUTTON: 'pro-hub-manage-plans-button',
+  EARNED_CARD: 'pro-hub-earned-card',
+  SAVED_CARD: 'pro-hub-saved-card',
+  CARD_PLACEHOLDER: 'pro-hub-card-placeholder',
+  PHYSICAL_CARD_TITLE: 'pro-hub-physical-card-title',
+  PHYSICAL_CARD_DESCRIPTION: 'pro-hub-physical-card-description',
+  GET_CARD_BUTTON: 'pro-hub-get-card-button',
+  BENEFITS_SECTION: 'pro-hub-benefits-section',
+  MEMBERSHIP_SECTION: 'pro-hub-membership-section',
+  NEXT_PAYMENT_TEXT: 'pro-hub-next-payment-text',
+  MANAGE_BUTTON: 'pro-hub-manage-button',
+} as const;

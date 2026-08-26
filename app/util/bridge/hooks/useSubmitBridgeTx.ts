@@ -25,7 +25,7 @@ import {
   SWAPS_CTA_BUTTON_COLOR_AB_KEY,
   SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
   SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-} from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
+} from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,

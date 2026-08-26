@@ -1,9 +1,20 @@
-import type { Order, Position } from '@metamask/perps-controller';
-import { getOrderPositionDirection } from '../../../utils/orderUtils';
+import {
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
+  type Order,
+  type Position,
+  type ProOrdersSideFilter,
+  type ProPositionsSideFilter,
+} from '@metamask/perps-controller';
 
-export type ProPositionSideFilter = 'all' | 'long' | 'short';
+export type ProPositionSideFilter = ProPositionsSideFilter;
 
-export const DEFAULT_PRO_POSITION_SIDE_FILTER: ProPositionSideFilter = 'all';
+export type ProOrderSideFilter = ProOrdersSideFilter;
+
+export const DEFAULT_PRO_POSITION_SIDE_FILTER: ProPositionSideFilter =
+  DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter;
+
+export const DEFAULT_PRO_ORDER_SIDE_FILTER: ProOrderSideFilter =
+  DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter;
 
 export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
   id: ProPositionSideFilter;
@@ -23,12 +34,20 @@ export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
   },
 ];
 
+/**
+ * Shared shape of the positions and orders side filters. The two domains export
+ * independent contracts (`ProPositionSideFilter` / `ProOrderSideFilter`) that
+ * happen to be value-equal today; the shared internals below are typed against
+ * this local union so neither domain borrows the other's contract.
+ */
+type ProSideFilter = ProPositionSideFilter | ProOrderSideFilter;
+
 const getPositionSide = (position: Position): 'long' | 'short' =>
   parseFloat(position.size) >= 0 ? 'long' : 'short';
 
 const filterProItemsBySide = <T>(
   items: T[],
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProSideFilter,
   getSide: (item: T) => 'long' | 'short',
 ): T[] => {
   if (sideFilter === 'all') {
@@ -46,15 +65,19 @@ export const filterProPositionsBySide = (
   sideFilter: ProPositionSideFilter,
 ): Position[] => filterProItemsBySide(positions, sideFilter, getPositionSide);
 
+const getOrderSide = (order: Order): 'long' | 'short' =>
+  order.side === 'buy' ? 'long' : 'short';
+
 /**
- * Filters orders by the position direction they create or reduce.
- * Returns the original array when filter is `all`.
+ * Filters orders by their own side: a buy is a long order, a sell is a short
+ * order. Closing orders are not inverted here — a "Close long" order is a sell,
+ * so it belongs to the short side of this filter even though its label names the
+ * long position it reduces. Returns the original array when filter is `all`.
  */
 export const filterProOrdersBySide = (
   orders: Order[],
-  sideFilter: ProPositionSideFilter,
-): Order[] =>
-  filterProItemsBySide(orders, sideFilter, getOrderPositionDirection);
+  sideFilter: ProOrderSideFilter,
+): Order[] => filterProItemsBySide(orders, sideFilter, getOrderSide);
 
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
@@ -81,7 +104,7 @@ const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
 } as const;
 
 export const getProSideFilterEmptyDescriptionKey = (
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProSideFilter,
   entity: keyof typeof SIDE_FILTER_EMPTY_DESCRIPTION_KEYS,
 ): string | undefined => {
   if (sideFilter === 'all') {
@@ -97,6 +120,6 @@ export const getProPositionSideFilterEmptyDescriptionKey = (
   getProSideFilterEmptyDescriptionKey(sideFilter, 'positions');
 
 export const getProOrderSideFilterEmptyDescriptionKey = (
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProOrderSideFilter,
 ): string | undefined =>
   getProSideFilterEmptyDescriptionKey(sideFilter, 'orders');

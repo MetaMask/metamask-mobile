@@ -11,14 +11,13 @@ import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelp
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
   TestDapps,
   sleep,
-  PlaywrightGestures,
-  asPlaywrightElement,
+  Gestures,
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -103,7 +102,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       // (relies on connection state established by the preceding multiclient test)
       //
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -113,7 +112,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await sleep(1000);
 
       // Tap the Connect button (multichain API - default scopes)
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Note: the Solana wallet standard provider itself has an issue where it does not
         // listen for wallet_sessionChanged events, so we need to use the Solana's connect button
         // as the entrypoint for now.
@@ -121,7 +120,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       }, DAPP_URL);
 
       // Handle connection approval in MetaMask
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton();
@@ -134,7 +133,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       //
       // Step 1: Disconnect Solana, verify EVM persists
       //
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Disconnect Solana
         await BrowserPlaygroundDapp.tapSolanaDisconnect();
 
@@ -149,11 +148,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton();
       });
@@ -162,7 +161,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
         // Reconnect Solana
@@ -172,7 +171,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       // Reconnecting Solana takes a bit of time to trigger the deeplink, so we need to wait for it to complete
       await sleep(3500);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         // Reconnecting Solana takes a bit of time, so we need to wait for it to complete
         await DappConnectionModal.tapConnectButton({
@@ -185,7 +184,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertScopeCardVisible(
           SOLANA_MAINNET_CAIP_CHAIN_ID,
         );
@@ -194,14 +193,13 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
           ACCOUNT_1_SOLANA_ADDRESS,
         );
         // Verify solana sign works when solana is connected
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.solanaCard),
-          { scrollParams: { direction: 'down' } },
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.solanaCard, {
+          direction: 'down',
+        });
         await BrowserPlaygroundDapp.tapSolanaSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SnapSignModal.tapConfirmButton();
       });
@@ -210,7 +208,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
           ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
         );
@@ -221,11 +219,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton();
       });
@@ -234,7 +232,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
         // Setup for concurrent connect test
@@ -244,12 +242,12 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
         await BrowserPlaygroundDapp.tapSolanaConnect();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
         // Purposely terminate the app without accepting the approval
-        await PlaywrightGestures.terminateApp(currentDeviceDetails);
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await Gestures.terminateApp(currentDeviceDetails);
+        await Gestures.activateApp(currentDeviceDetails);
         await loginToAppPlaywright();
         await sleep(1000);
       });
@@ -258,11 +256,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton();
       });
@@ -271,7 +269,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
@@ -283,7 +281,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
       // Cleanup - disconnect
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Note: the Solana wallet standard provider itself has an issue where it does not
         // listen for wallet_sessionChanged events, so we need to use the Solana's disconnect button
         // to ensure the solana react hook state is reset correctly.

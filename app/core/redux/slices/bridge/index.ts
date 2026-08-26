@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { uniqBy } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
@@ -60,6 +60,13 @@ import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/is
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import {
+  DEFAULT_RECURRING_EVERY_VALUE,
+  initialRecurringState,
+  validateRecurringSchedule,
+  type RecurringIntervalUnit,
+  type RecurringState,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -108,12 +115,20 @@ export interface BridgeState {
   selectedQuoteRequestId: string | undefined;
   balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
+
+  // Batch Sell
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
     Record<CaipAssetType, string | undefined>
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+
+  // Recurring
+  recurring: RecurringState;
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: CaipChainId | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -146,6 +161,12 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
+  recurring: initialRecurringState,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -205,6 +226,19 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
+    setRecurringEveryValue: (state, action: PayloadAction<string>) => {
+      state.recurring.everyValue = action.payload;
+    },
+    setRecurringRepeatCount: (state, action: PayloadAction<string>) => {
+      state.recurring.repeatCount = action.payload;
+    },
+    setRecurringEveryUnit: (
+      state,
+      action: PayloadAction<RecurringIntervalUnit>,
+    ) => {
+      state.recurring.everyUnit = action.payload;
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -225,6 +259,12 @@ const slice = createSlice({
       state.destAmount = undefined;
       state.isMaxSourceAmount = false;
       state.selectedQuoteRequestId = undefined;
+    },
+    resetBridgeDestToken: (state) => {
+      state.destToken = undefined;
+      state.selectedDestChainId = undefined;
+      state.isDestTokenManuallySet = false;
+      clearSlippageState(state);
     },
     incrementBridgeBalanceRefreshKey: (state) => {
       state.balanceRefreshKey += 1;
@@ -294,6 +334,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setOrdersNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.ordersNetworkFilter = action.payload;
     },
     setVisiblePillChainIds: (
       state,
@@ -419,6 +465,31 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectRecurring = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
+);
+
+export const selectRecurringEveryValue = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyValue,
+);
+
+export const selectRecurringEveryUnit = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyUnit,
+);
+
+export const selectRecurringRepeatCount = createSelector(
+  selectRecurring,
+  (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringScheduleValidation = createSelector(
+  selectRecurring,
+  validateRecurringSchedule,
 );
 
 export const selectIsMaxSourceAmount = createSelector(
@@ -580,13 +651,29 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
  * Selector that returns chainRanking from feature flags filtered by
  * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
  * in the future won't be surfaced by older app versions that lack support.
+ *
+ * When `enabledChainIds` is provided, it fully replaces the
+ * ALLOWED_BRIDGE_CHAIN_IDS filter: only chains present in `enabledChainIds`
+ * are returned. Callers that pass this argument must pass a stable
+ * (e.g. module-level) array reference to avoid busting memoization.
  */
 export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) =>
-    (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
+  (_state: RootState, enabledChainIds?: CaipChainId[]) => enabledChainIds,
+  (bridgeFeatureFlags, enabledChainIds) => {
+    const chainRanking = bridgeFeatureFlags.chainRanking ?? [];
+
+    if (enabledChainIds) {
+      const enabledChainIdsSet = new Set(enabledChainIds);
+      return chainRanking.filter((chain) =>
+        enabledChainIdsSet.has(chain.chainId),
+      );
+    }
+
+    return chainRanking.filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
-    ),
+    );
+  },
 );
 
 /**
@@ -597,7 +684,12 @@ export const selectAllowedChainRanking = createSelector(
  * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
  */
 export const selectIsBridgeEnabledSourceFactory = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state`: selectIsBridgeEnabledSourceFactory is itself
+  // used as an input selector to selectIsBridgeEnabledSource, which is
+  // invoked with a `chainId` second argument. Reselect forwards outer
+  // arguments to input selectors, so without this wrapper that chainId
+  // would leak into selectAllowedChainRanking's `enabledChainIds` param.
+  (state: RootState) => selectAllowedChainRanking(state),
   (allowedChains) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
     return allowedChains.some((chain) => chain.chainId === caipChainId);
@@ -630,7 +722,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
  * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
  */
 export const selectEnabledSourceChains = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state` for the same reason as
+  // selectIsBridgeEnabledSourceFactory above: guards against any outer
+  // selector args leaking into selectAllowedChainRanking's `enabledChainIds`.
+  (state: RootState) => selectAllowedChainRanking(state),
   selectNetworkConfigurations,
   (allowedChainRanking, networkConfigurations) => {
     const allowedCaipIds = new Set(allowedChainRanking.map((c) => c.chainId));
@@ -776,7 +871,14 @@ export const selectControllerFields = createSelector(
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (requiredControllerFields, selectedQuoteRequestId) => {
+  (readOnlyRequiredControllerFields, selectedQuoteRequestId) => {
+    // This is a workaround to enable adding metadata to intent
+    // quotes during QuoteResponse migration.
+    const clonedQuotes = cloneDeep(readOnlyRequiredControllerFields.quotes);
+    const requiredControllerFields = {
+      ...readOnlyRequiredControllerFields,
+      quotes: clonedQuotes,
+    };
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
@@ -953,6 +1055,11 @@ export const selectTokenSelectorNetworkFilter = createSelector(
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
 );
 
+export const selectOrdersNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.ordersNetworkFilter,
+);
+
 export const selectVisiblePillChainIds = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.visiblePillChainIds,
@@ -1036,8 +1143,12 @@ export const {
   setSourceAmount,
   setSourceAmountAsMax,
   setDestAmount,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
   resetBridgeState,
   resetBridgeTokenInputs,
+  resetBridgeDestToken,
   incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
@@ -1055,6 +1166,7 @@ export const {
   setIsGasIncluded7702Supported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   updateHardwareWalletsSwaps,
