@@ -450,9 +450,6 @@ jobs:
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
-      # Weekly Appium timings review (and `gh run download`) read these through
-      # the GitHub Artifacts API. Namespace storage is invisible to that API, so
-      # keep this upload on Namespace runs as well as the Namespace-native copy.
       - name: Upload Appium phase timings (GitHub)
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
