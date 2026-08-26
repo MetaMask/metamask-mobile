@@ -1,6 +1,6 @@
 # Appium Smoke E2E Tests
 
-Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`. Detox smoke and `wdio/` have been removed.
+Appium smoke is the mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`.
 
 |                         | Appium smoke                                           |
 | ----------------------- | ------------------------------------------------------ |
@@ -242,7 +242,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 1. Add the spec under `tests/smoke-appium/<feature>/`.
 2. Use `appiumTest` from `tests/framework/fixtures/playwright/index.js`.
 3. Pass `currentDeviceDetails` into `withFixtures`; use `loginToAppPlaywright`.
-4. Reuse existing page objects — avoid Detox-only `device.*` calls.
+4. Reuse existing page objects — use `Gestures` instead of raw driver calls.
 5. Lint: `yarn lint tests/smoke-appium/<path> --fix` and `yarn lint:tsc`.
 6. Run locally with main-e2e build before opening a PR.
 
@@ -258,7 +258,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 ## Related docs
 
-- [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
-- [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
+- [E2E testing guidelines](./e2e-testing.md) — POM, Matchers, Gestures, Assertions
+- [E2E setup](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`

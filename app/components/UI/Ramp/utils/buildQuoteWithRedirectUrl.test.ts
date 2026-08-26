@@ -34,12 +34,10 @@ describe('getCheckoutContext', () => {
       expect(result.network).toBe('');
     });
 
-    it('falls back to the whole chainId when the CAIP reference is missing', () => {
-      // RampsController rejects an empty chainId, so an order with a malformed
-      // chainId must still register rather than be dropped.
+    it('returns empty network when chainId ends with colon and no suffix', () => {
       const result = getCheckoutContext({ chainId: 'eip155:' }, '0xabc', null);
 
-      expect(result.network).toBe('eip155:');
+      expect(result.network).toBe('');
     });
   });
 });

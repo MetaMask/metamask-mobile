@@ -395,10 +395,8 @@ const Checkout = () => {
     // providerCode and walletAddress are passed, so hasCallbackFlow is true
     // and we can register. hasCallbackFlow being false means we lack the data
     // required for addPrecreatedOrder anyway.
-    // RampsController requires a non-empty chainId (see Core #9777).
-    // `getCheckoutContext` falls back to the full CAIP-2 chainId rather than
-    // returning an empty string, so `network` is empty only when there is no
-    // chain to register against at all.
+    // RampsController requires a non-empty chainId (see Core #9777); skip
+    // registration when network is missing rather than seeding an empty stub.
     const canRegister =
       hasCallbackFlow &&
       effectiveOrderId &&
