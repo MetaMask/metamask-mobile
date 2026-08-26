@@ -13,12 +13,12 @@ import useIsInsufficientBalance from '../useInsufficientBalance';
 
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { calcTokenValue } from '../../../../../util/transactions';
 import { TraceName } from '../../../../../util/trace';
 import { useLatestBalance } from '../useLatestBalance';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import type { UseBridgeQuotesParams } from './types';
+import { buildGenericQuoteRequest } from './utils/buildQuoteRequest';
 
 export interface UseQuoteRequestParams extends UseBridgeQuotesParams {
   featureId: FeatureId;
@@ -47,19 +47,13 @@ export const useQuoteRequest = (params: UseQuoteRequestParams) => {
     quoteRequestCount = 1,
     featureId,
   } = params;
-  const {
-    srcAmount,
-    srcToken,
-    destToken,
-    walletAddress,
-    destWalletAddress,
-    slippage,
-  } = quoteParams;
+  const { srcAmount, srcToken, destToken, walletAddress } = quoteParams;
+
+  const metricsContext = useUnifiedSwapBridgeContext(featureId);
 
   // Presence (not truthiness): parent may pass undefined while its own
   // useLatestBalance is still loading. That must not start a second fetch.
   const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in params;
-
   const latestSourceBalance = useLatestBalance(
     hasLatestSourceBalanceOverride
       ? {}
@@ -85,10 +79,7 @@ export const useQuoteRequest = (params: UseQuoteRequestParams) => {
     ignoreGasFees: true,
   });
 
-  const { gasIncluded, gasIncluded7702 } = useSelector(
-    selectGasIncludedQuoteParams,
-  );
-
+  // Build generic quote request params
   const insufficientNativeReserveError = useInsufficientNativeReserveError({
     amount: srcAmount,
     token: srcToken,
@@ -96,49 +87,27 @@ export const useQuoteRequest = (params: UseQuoteRequestParams) => {
     walletAddress,
   });
 
-  const insufficientBal =
-    insufficientBalance || Boolean(insufficientNativeReserveError);
+  const { gasIncluded, gasIncluded7702 } = useSelector(
+    selectGasIncludedQuoteParams,
+  );
 
-  const quoteRequestParams: GenericQuoteRequest | undefined = useMemo(() => {
-    if (!walletAddress || !srcToken || !destToken || srcAmount === undefined) {
-      return;
-    }
-    const normalizedSourceAmount =
-      srcAmount && srcToken?.decimals
-        ? calcTokenValue(
-            srcAmount === '.' ? '0' : srcAmount || '0',
-            srcToken.decimals,
-          ).toFixed(0)
-        : '0';
-
-    const slippageNumber = slippage ? Number(slippage) : undefined;
-
-    return {
-      srcChainId: srcToken?.chainId,
-      srcTokenAddress: srcToken?.address,
-      destChainId: destToken?.chainId,
-      destTokenAddress: destToken?.address,
-      srcTokenAmount: normalizedSourceAmount,
-      slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
-      walletAddress,
-      destWalletAddress: destWalletAddress ?? walletAddress,
+  const quoteRequestParams: GenericQuoteRequest | undefined = useMemo(
+    () =>
+      buildGenericQuoteRequest({
+        quoteParams,
+        gasIncluded,
+        gasIncluded7702,
+        insufficientBalance,
+        insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
+      }),
+    [
+      quoteParams,
       gasIncluded,
       gasIncluded7702,
-      insufficientBal,
-    };
-  }, [
-    srcToken,
-    destToken,
-    srcAmount,
-    walletAddress,
-    destWalletAddress,
-    slippage,
-    gasIncluded,
-    gasIncluded7702,
-    insufficientBal,
-  ]);
-
-  const context = useUnifiedSwapBridgeContext(featureId);
+      insufficientBalance,
+      insufficientNativeReserveError,
+    ],
+  );
 
   /**
    * Updates quote parameters in the bridge controller
@@ -159,7 +128,7 @@ export const useQuoteRequest = (params: UseQuoteRequestParams) => {
       try {
         await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
           quoteRequestParams,
-          context,
+          metricsContext,
           quoteRequestIndex,
           quoteRequestCount,
         );
@@ -171,7 +140,7 @@ export const useQuoteRequest = (params: UseQuoteRequestParams) => {
       }
     },
     [
-      context,
+      metricsContext,
       quoteRequestIndex,
       quoteRequestCount,
       traceName,
