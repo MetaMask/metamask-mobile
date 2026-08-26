@@ -12,6 +12,14 @@ interface UseScreenPerformanceConfig {
   contentReady: boolean;
   isEmpty: boolean;
   isLoading?: boolean;
+  /**
+   * Optional TTFD signal. When the screen's primary content is fully
+   * interactive (all data loaded, animations done, user can act).
+   * Defaults to `contentReady` when not provided — set explicitly when
+   * TTFD differs from first paint (e.g. waiting for async deps after
+   * initial content renders).
+   */
+  fullyDisplayed?: boolean;
   enabled?: boolean;
 }
 
@@ -20,11 +28,16 @@ export const useScreenPerformance = ({
   contentReady,
   isEmpty,
   isLoading,
+  fullyDisplayed,
   enabled = true,
 }: UseScreenPerformanceConfig): void => {
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
   const ttcEnded = useRef(false);
+
+  const ttfdTraceId = useRef(uuidv4());
+  const ttfdStarted = useRef(false);
+  const ttfdEnded = useRef(false);
 
   const fetchTraceId = useRef(uuidv4());
   const fetchStarted = useRef(false);
@@ -32,6 +45,7 @@ export const useScreenPerformance = ({
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
   const traceContentState = isEmpty ? 'empty' : 'filled';
+  const effectiveFullyDisplayed = fullyDisplayed ?? contentReady;
 
   useRenderStormMonitor({
     id: screenId,
@@ -56,6 +70,17 @@ export const useScreenPerformance = ({
     });
     ttcStarted.current = true;
 
+    ttfdTraceId.current = uuidv4();
+    ttfdEnded.current = false;
+    trace({
+      name: TraceName.OnboardingScreenFullyDisplayed,
+      op: TraceOperation.OnboardingScreenPerformance,
+      id: ttfdTraceId.current,
+      tags: getOnboardingPerformanceTags({ screen_id: screenId }),
+      data: { perf_fix: 'ttfd-v1' },
+    });
+    ttfdStarted.current = true;
+
     return () => {
       if (ttcStarted.current && !ttcEnded.current) {
         endTrace({
@@ -68,6 +93,18 @@ export const useScreenPerformance = ({
           },
         });
         ttcStarted.current = false;
+      }
+      if (ttfdStarted.current && !ttfdEnded.current) {
+        endTrace({
+          name: TraceName.OnboardingScreenFullyDisplayed,
+          id: ttfdTraceId.current,
+          data: {
+            success: false,
+            reason: 'unmounted',
+            screen_id: screenId,
+          },
+        });
+        ttfdStarted.current = false;
       }
       if (fetchStarted.current && !fetchEnded.current) {
         endTrace({
@@ -98,6 +135,25 @@ export const useScreenPerformance = ({
       ttcEnded.current = true;
     }
   }, [enabled, contentReady, screenId, traceContentState]);
+
+  useEffect(() => {
+    if (
+      enabled &&
+      effectiveFullyDisplayed &&
+      ttfdStarted.current &&
+      !ttfdEnded.current
+    ) {
+      endTrace({
+        name: TraceName.OnboardingScreenFullyDisplayed,
+        id: ttfdTraceId.current,
+        data: {
+          success: true,
+          screen_id: screenId,
+        },
+      });
+      ttfdEnded.current = true;
+    }
+  }, [enabled, effectiveFullyDisplayed, screenId]);
 
   useEffect(() => {
     if (!enabled || isLoading === undefined) {

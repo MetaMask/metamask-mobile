@@ -116,6 +116,7 @@ export enum TraceName {
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
   // Onboarding screen / Rive / navigation performance
   OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenFullyDisplayed = 'Onboarding Screen Fully Displayed',
   OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
   OnboardingRiveReady = 'Onboarding Rive Ready',
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
