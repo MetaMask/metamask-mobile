@@ -179,16 +179,53 @@ describe('usePerpsProvider', () => {
       await waitFor(() => {
         expect(result.current.supportsTwapOrders).toBe(true);
       });
+      expect(result.current.orderCapabilities).toEqual({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap'],
+      });
       expect(mockGetOrderCapabilities).toHaveBeenCalledWith({
         symbol: 'BTC',
         providerId: 'hyperliquid',
       });
     });
 
+    it('preserves the provider route resolved by default capability routing', async () => {
+      mockUseSelector.mockReturnValue('aggregated');
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap'],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+
+      await waitFor(() => {
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
+        expect(result.current.orderCapabilities?.providerId).toBe(
+          'hyperliquid',
+        );
+      });
+      expect(mockGetOrderCapabilities).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        providerId: undefined,
+      });
+    });
+
+    it('marks a new capability route pending before it resolves', () => {
+      mockUseSelector.mockReturnValue('aggregated');
+      mockGetOrderCapabilities.mockReturnValue(
+        new Promise<never>(() => undefined),
+      );
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+      expect(result.current.orderCapabilities).toBeNull();
+    });
+
     it('keeps TWAP disabled when capabilities are unavailable', async () => {
-      mockUseSelector
-        .mockReturnValueOnce('aggregated')
-        .mockReturnValueOnce(true);
+      mockUseSelector.mockReturnValue('aggregated');
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'unavailable',
         providerId: 'hyperliquid',

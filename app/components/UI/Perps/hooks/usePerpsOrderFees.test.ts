@@ -255,7 +255,11 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.metamaskFeeRate).toBe(0);
     });
 
-    it('keeps strategy fees unavailable without a provider route', async () => {
+    it('uses controller default routing for strategy fees without a provider route', async () => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
       const { result } = renderHook(
         () =>
           usePerpsOrderFees({
@@ -270,9 +274,14 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(mockCalculateFees).not.toHaveBeenCalled();
-      expect(result.current.protocolFeeRate).toBeUndefined();
-      expect(result.current.metamaskFeeRate).toBeUndefined();
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'twap',
+        isMaker: false,
+        amount: '1000',
+        symbol: 'BTC',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0);
     });
 
     it('derives total fees from protocol and MetaMask rates when provider fee amount is stale', async () => {

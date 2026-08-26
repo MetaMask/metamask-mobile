@@ -18,7 +18,6 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
-  isStrategyOrderType,
   type OrderType,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
@@ -84,7 +83,7 @@ interface UsePerpsOrderFeesParams {
   amount: string;
   /** Symbol for the trade (e.g., 'BTC', 'ETH') */
   symbol?: string;
-  /** Provider route required for strategy fee quotes. */
+  /** Optional provider route resolved for this order. */
   providerId?: PerpsProviderType;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
@@ -560,18 +559,6 @@ export function usePerpsOrderFees({
         setError(null);
 
         // Step 1: Get core fees from provider
-        if (isStrategyOrderType(orderType) && !providerId) {
-          updateFeeState(
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-          );
-          return;
-        }
-
         const coreFeesResult = await calculateFees({
           orderType,
           isMaker,

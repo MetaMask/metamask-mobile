@@ -6,8 +6,20 @@ import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import type {
   GetOrderCapabilitiesParams,
   PerpsActiveProviderMode,
+  PerpsOrderCapabilities,
   SwitchProviderResult,
 } from '@metamask/perps-controller';
+
+interface OrderCapabilitiesState {
+  requestKey?: string;
+  capabilities: PerpsOrderCapabilities | null;
+  isLoading: boolean;
+}
+
+const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
+  capabilities: null,
+  isLoading: false,
+};
 
 /**
  * Hook for managing perps provider selection
@@ -75,19 +87,41 @@ export function usePerpsProvider(
     [activeProvider],
   );
 
-  const [supportsTwapOrders, setSupportsTwapOrders] = useState(false);
+  const capabilityRequestKey = orderCapabilitiesParams?.symbol
+    ? JSON.stringify([
+        orderCapabilitiesParams.providerId,
+        orderCapabilitiesParams.symbol,
+      ])
+    : undefined;
+  const [orderCapabilitiesState, setOrderCapabilitiesState] =
+    useState<OrderCapabilitiesState>(EMPTY_ORDER_CAPABILITIES_STATE);
+  const isCurrentCapabilityRequest =
+    capabilityRequestKey !== undefined &&
+    orderCapabilitiesState.requestKey === capabilityRequestKey;
+  const orderCapabilities = isCurrentCapabilityRequest
+    ? orderCapabilitiesState.capabilities
+    : null;
+  const isLoadingOrderCapabilities =
+    capabilityRequestKey !== undefined &&
+    (!isCurrentCapabilityRequest || orderCapabilitiesState.isLoading);
 
   useEffect(() => {
     let isCurrent = true;
     const symbol = orderCapabilitiesParams?.symbol;
     const providerId = orderCapabilitiesParams?.providerId;
 
-    setSupportsTwapOrders(false);
     if (!symbol) {
+      setOrderCapabilitiesState(EMPTY_ORDER_CAPABILITIES_STATE);
       return () => {
         isCurrent = false;
       };
     }
+    const requestKey = JSON.stringify([providerId, symbol]);
+    setOrderCapabilitiesState({
+      requestKey,
+      capabilities: null,
+      isLoading: true,
+    });
 
     const loadCapabilities = async () => {
       try {
@@ -97,14 +131,19 @@ export function usePerpsProvider(
             providerId,
           });
         if (isCurrent) {
-          setSupportsTwapOrders(
-            capabilities.status === 'ready' &&
-              capabilities.supportedStrategies.includes('twap'),
-          );
+          setOrderCapabilitiesState({
+            requestKey,
+            capabilities,
+            isLoading: false,
+          });
         }
       } catch {
         if (isCurrent) {
-          setSupportsTwapOrders(false);
+          setOrderCapabilitiesState({
+            requestKey,
+            capabilities: null,
+            isLoading: false,
+          });
         }
       }
     };
@@ -115,6 +154,10 @@ export function usePerpsProvider(
       isCurrent = false;
     };
   }, [orderCapabilitiesParams?.providerId, orderCapabilitiesParams?.symbol]);
+
+  const supportsTwapOrders =
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.supportedStrategies.includes('twap');
 
   /**
    * Check if multi-provider mode is enabled (more than one provider available)
@@ -136,6 +179,8 @@ export function usePerpsProvider(
     isProviderAvailable,
     isMYXProvider,
     isHyperLiquidProvider,
+    isLoadingOrderCapabilities,
+    orderCapabilities,
     supportsTwapOrders,
     isMultiProviderEnabled,
   };
