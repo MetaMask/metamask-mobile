@@ -502,15 +502,17 @@ describe('TokenDetails', () => {
     });
   });
 
-  it('renders loader when txLoading is true', () => {
+  it('does not render a full-page loader when txLoading is true', () => {
     mockUseTokenTransactions.mockReturnValue({
       ...defaultUseTokenTransactionsReturn,
       loading: true,
     });
 
-    const { UNSAFE_getByType } = render(<TokenDetails />);
+    const { UNSAFE_queryAllByType } = render(<TokenDetails />);
 
-    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+    // Content (and its own skeletons) mounts immediately instead of being
+    // blocked behind a full-page spinner while transactions load.
+    expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
   });
 
   it('requests the auto-add of the network for the token chain', () => {
