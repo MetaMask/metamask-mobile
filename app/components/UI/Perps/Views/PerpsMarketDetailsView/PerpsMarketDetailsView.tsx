@@ -56,6 +56,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -119,6 +120,7 @@ import {
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   usePerpsLiveAccount,
@@ -690,7 +692,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
-  const handleAddFunds = useCallback(async () => {
+  const handleAddFunds = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -702,10 +706,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       return;
     }
     try {
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      await withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PERPS.ROOT,
+      });
+      // Do not await deposit prep — keep the skeleton on screen immediately.
+      withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
         depositWithConfirmation(),
-      );
+      ).catch((err: unknown) => {
+        Logger.error(
+          ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+          },
+        );
+        navigation.goBack();
+      });
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -716,6 +732,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     track,
     navigateToConfirmation,
     depositWithConfirmation,
+    navigation,
     transactionActiveAbTests,
   ]);
 

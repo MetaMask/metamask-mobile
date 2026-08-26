@@ -17,7 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
+import { useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
@@ -71,7 +71,7 @@ const PerpsProSizeInput = ({
   isDisabled = false,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
-  const { playImpact, playSelection } = useHaptics();
+  const { playSelection } = useHaptics();
   const internalInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? internalInputRef;
   const unitLabel = getUnitLabel(denomination);
@@ -159,9 +159,8 @@ const PerpsProSizeInput = ({
       return;
     }
 
-    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onAddFundsPress();
-  }, [isDisabled, onAddFundsPress, playImpact]);
+  }, [isDisabled, onAddFundsPress]);
 
   return (
     <Box

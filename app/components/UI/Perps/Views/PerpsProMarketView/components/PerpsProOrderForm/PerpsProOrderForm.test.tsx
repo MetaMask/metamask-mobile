@@ -17,11 +17,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../../../../util/haptics';
+import { playImpact, playSelection } from '../../../../../../../util/haptics';
 
 const mockInputFocus = jest.fn();
 let mockInputHandlesActive = true;
@@ -969,7 +965,7 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
 
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('does not play Add funds haptics when the action is disabled', () => {

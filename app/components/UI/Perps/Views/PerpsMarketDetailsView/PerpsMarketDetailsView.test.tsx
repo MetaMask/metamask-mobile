@@ -1826,10 +1826,58 @@ describe('PerpsMarketDetailsView', () => {
 
       await waitFor(() => {
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: 'customAmount',
           stack: 'Perps',
         });
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
       });
+    });
+
+    it('navigates to confirmation without waiting for deposit preparation', async () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '0.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '0',
+        },
+        isInitialLoading: false,
+      });
+      mockNavigateToConfirmation.mockClear();
+      mockDepositWithConfirmation.mockClear();
+      mockDepositWithConfirmation.mockReturnValue(new Promise(() => undefined));
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
@@ -1875,6 +1923,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       await waitFor(() => {
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
       });
     });
 

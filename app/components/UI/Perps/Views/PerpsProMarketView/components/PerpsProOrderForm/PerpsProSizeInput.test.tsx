@@ -2,11 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../../../../util/haptics';
+import { playImpact, playSelection } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProSizeInput, {
@@ -95,14 +91,14 @@ describe('PerpsProSizeInput', () => {
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
-  it('plays PrimaryCTA when Add funds is pressed', () => {
+  it('calls onAddFundsPress when Add funds is pressed', () => {
     const onAddFundsPress = jest.fn();
     renderInput({ onAddFundsPress });
 
     fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
 
     expect(onAddFundsPress).toHaveBeenCalledTimes(1);
-    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('does not play Add funds haptics when the action is disabled', () => {

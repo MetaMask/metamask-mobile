@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { ImpactMoment } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
@@ -15,6 +17,7 @@ import {
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
+    goBack: jest.fn(),
   })),
 }));
 
@@ -59,19 +62,26 @@ jest.mock('./usePerpsWithdrawConfirmation', () => ({
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
-
 jest.mock('../../Compliance', () => ({
   useComplianceGate: () => ({
     gate: mockComplianceGate,
-    isBlocked: false,
     isComplianceEnabled: false,
     checkCompliance: jest.fn(),
+  }),
+}));
+
+const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../util/haptics', () => ({
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+  useHaptics: () => ({
+    playImpact: mockPlayImpact,
   }),
 }));
 
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
+    goBack: jest.fn(),
   };
 
   const mockDepositWithConfirmation = jest
@@ -83,6 +93,8 @@ describe('usePerpsHomeActions', () => {
     jest.clearAllMocks();
     mockTrack.mockClear();
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockDepositWithConfirmation.mockReset();
+    mockDepositWithConfirmation.mockReturnValue(Promise.resolve());
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -148,8 +160,23 @@ describe('usePerpsHomeActions', () => {
       });
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: ConfirmationLoader.CustomAmount,
         stack: Routes.PERPS.ROOT,
       });
+      expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('navigates to confirmation without waiting for deposit preparation', async () => {
+      mockDepositWithConfirmation.mockReturnValue(new Promise(() => undefined));
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
       expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
     });
 
@@ -194,6 +221,7 @@ describe('usePerpsHomeActions', () => {
       await waitFor(() => {
         expect(result.current.error).toEqual(depositError);
         expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
+        expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -243,7 +271,9 @@ describe('usePerpsHomeActions', () => {
         await result.current.handleAddFunds();
       });
 
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
     });
 
