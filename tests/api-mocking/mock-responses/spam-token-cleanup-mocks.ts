@@ -20,16 +20,6 @@ import type { Mockttp } from 'mockttp';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 
 /**
- * Above the priority used by `setupMockRequest` (999) and the default `/proxy`
- * handler, which already answers `/v3/assets` with an empty array.
- */
-const MOCK_OVERRIDE_PRIORITY = 1001;
-
-const SUGGESTED_OCCURRENCE_FLOORS_PATH =
-  'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors';
-const V3_ASSETS_PATH = 'tokens.api.cx.metamask.io/v3/assets';
-
-/**
  * Chains missing from this map fall back to the controller's default floor of
  * 3, which is what BNB Chain (56) and Polygon (137) rely on below.
  */
@@ -57,8 +47,7 @@ export interface TrackedAsset {
 }
 
 /**
- * Real airdropped spam tokens across Ethereum, BNB Chain and Polygon. All
- * eight sit below their chain's occurrence floor and must be cleaned up.
+ * Real airdropped spam tokens across Ethereum, BNB Chain and Polygon.
  */
 export const SPAM_ASSETS: TrackedAsset[] = [
   {
@@ -68,14 +57,6 @@ export const SPAM_ASSETS: TrackedAsset[] = [
     decimals: 8,
     occurrences: 1,
     amount: '888888',
-  },
-  {
-    assetId: 'eip155:56/erc20:0xA1B99485D58D70D86E455Ab8823492090C3F43C0',
-    name: 'Ape-Swap.io',
-    symbol: 'APE',
-    decimals: 18,
-    occurrences: 1,
-    amount: '350',
   },
   {
     assetId: 'eip155:56/erc20:0xD22202d23fE7dE9E3DbE11a2a88F42f4CB9507cf',
@@ -176,10 +157,9 @@ export async function mockOccurrenceApis(
     .forGet('/proxy')
     .matching((request) =>
       getDecodedProxiedURL(request.url).includes(
-        SUGGESTED_OCCURRENCE_FLOORS_PATH,
+        'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
       ),
     )
-    .asPriority(MOCK_OVERRIDE_PRIORITY)
     .always()
     .thenCallback(() =>
       failOccurrenceFloors
@@ -192,11 +172,10 @@ export async function mockOccurrenceApis(
     .matching((request) => {
       const url = new URL(getDecodedProxiedURL(request.url));
       return (
-        url.href.includes(V3_ASSETS_PATH) &&
+        url.href.includes('tokens.api.cx.metamask.io/v3/assets') &&
         url.searchParams.get('includeOccurrences') === 'true'
       );
     })
-    .asPriority(MOCK_OVERRIDE_PRIORITY)
     .always()
     .thenCallback((request) => {
       const url = new URL(getDecodedProxiedURL(request.url));

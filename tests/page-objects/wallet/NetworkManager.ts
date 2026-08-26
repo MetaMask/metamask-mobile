@@ -144,6 +144,34 @@ class NetworkManager {
 
   /**
    * Check if a specific token is not visible
+   */
+  async checkTokenIsNotVisible(symbol: string) {
+    const tokenElement = this.getTokenBySymbol(symbol);
+    await Assertions.expectElementToNotBeVisible(tokenElement, {
+      elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
+    });
+  }
+
+  /**
+   * Check that a token row is mounted, whether or not it is on screen.
+   *
+   * Rows below the fold report isDisplayed=false, so
+   * {@link checkTokenIsVisible} cannot prove that a token is still held.
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to appear.
+   */
+  async checkTokenExists(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should be in the asset list`,
+      timeout,
+    });
+  }
+
+  /**
+   * Check that a token row is absent from the hierarchy.
    *
    * @param symbol - Token symbol rendered on the asset row.
    * @param options - Assertion overrides.
@@ -151,10 +179,9 @@ class NetworkManager {
    * Raise it when the row is expected to disappear as the result of async work
    * (for example the spam cleanup that runs after unlock).
    */
-  async checkTokenIsNotVisible(symbol: string, { timeout = 3000 } = {}) {
-    const tokenElement = this.getTokenBySymbol(symbol);
-    await Assertions.expectElementToNotBeVisible(tokenElement, {
-      elemDescription: `Token ${symbol} should not be visible`,
+  async checkTokenDoesNotExist(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToNotExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should not be in the asset list`,
       timeout,
     });
   }

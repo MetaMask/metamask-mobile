@@ -32,9 +32,6 @@ const ENABLED_NETWORKS = {
  */
 const CLEANUP_TIMEOUT_MS = 30_000;
 
-/** One spam token per chain, used as the negative control. */
-const SPAM_SAMPLE_SYMBOLS = ['KICK', 'MGRT', 'PKT'];
-
 /**
  * Writes the tracked assets straight into `AssetsController` — the slice the
  * cleanup reads and rewrites. `FixtureBuilder.withTokenHoldings` cannot be used
@@ -109,7 +106,7 @@ function buildFixture() {
 
 appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
   appiumTest(
-    'removes below-floor spam tokens from the token list on unlock',
+    'removes below-floor spam tokens from persisted state on unlock',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -128,22 +125,22 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           await TokensFullView.waitForVisible();
 
           for (const { symbol } of SPAM_ASSETS) {
-            await NetworkManager.checkTokenIsNotVisible(symbol, {
+            await NetworkManager.checkTokenDoesNotExist(symbol, {
               timeout: CLEANUP_TIMEOUT_MS,
             });
           }
 
           // The widely-listed token and the hand-imported one must survive, so
           // that an empty list cannot make the assertions above pass.
-          await NetworkManager.checkTokenIsVisible(LEGITIMATE_ASSET.symbol);
-          await NetworkManager.checkTokenIsVisible(CUSTOM_ASSET.symbol);
+          await NetworkManager.checkTokenExists(LEGITIMATE_ASSET.symbol);
+          await NetworkManager.checkTokenExists(CUSTOM_ASSET.symbol);
         },
       );
     },
   );
 
   appiumTest(
-    'keeps spam tokens when the occurrence floor API fails',
+    'leaves persisted spam tokens untouched when the occurrence floor API fails',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -163,9 +160,10 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           await WalletView.tapOnNewTokensSection();
           await TokensFullView.waitForVisible();
 
-          for (const symbol of SPAM_SAMPLE_SYMBOLS) {
-            await WalletView.scrollToToken(symbol);
-            await NetworkManager.checkTokenIsVisible(symbol);
+          // Every spam row must still be held: a failed floor lookup must never
+          // be read as "no floor", which would delete the whole set.
+          for (const { symbol } of SPAM_ASSETS) {
+            await NetworkManager.checkTokenExists(symbol);
           }
         },
       );
