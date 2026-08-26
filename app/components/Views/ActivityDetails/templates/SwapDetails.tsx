@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -70,8 +71,15 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  // Non-EVM activity comes from the keyring API, whose amounts are already
+  // human-readable rather than atomic units.
+  const amountIsHumanReadable = isNonEvmChainId(item.chainId);
+  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData, {
+    amountIsHumanReadable,
+  });
+  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData, {
+    amountIsHumanReadable,
+  });
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,
