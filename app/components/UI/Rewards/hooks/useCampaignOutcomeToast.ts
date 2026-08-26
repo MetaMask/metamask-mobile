@@ -1,9 +1,9 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import type {
   BaseCampaignParticipantOutcomeDto,
   CampaignType,
@@ -20,6 +20,14 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
 import type { RewardsStackParamList } from '../types/navigation';
+
+const dismissToast = () => {
+  try {
+    toast.dismiss();
+  } catch {
+    // Toaster is registered at app root; ignore if it is not mounted yet.
+  }
+};
 
 export interface CampaignOutcomeToastConfig {
   campaignType: CampaignType;
@@ -47,7 +55,6 @@ export function useCampaignOutcomeToast(
   } = config;
 
   const dispatch = useDispatch();
-  const { toastRef } = useContext(ToastContext);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -105,8 +112,8 @@ export function useCampaignOutcomeToast(
         variant,
       }),
     );
-    toastRef?.current?.closeToast();
-  }, [variant, targetCampaign, subscriptionId, dispatch, toastRef]);
+    dismissToast();
+  }, [variant, targetCampaign, subscriptionId, dispatch]);
 
   const handleCta = useCallback(() => {
     if (!targetCampaign || !variant) return;
@@ -163,13 +170,12 @@ export function useCampaignOutcomeToast(
       }
 
       return () => {
-        toastRef?.current?.closeToast();
+        dismissToast();
       };
     }, [
       variant,
       isDismissed,
       targetCampaign,
-      toastRef,
       showToast,
       RewardsToastOptions,
       handleCta,
