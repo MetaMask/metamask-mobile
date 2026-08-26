@@ -47,6 +47,10 @@ import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/
 import PerpsTooltipView from '../../../app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsCrossMarginWarningBottomSheet from '../../../app/components/UI/Perps/components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
 import {
+  handlePerpsCufOrdersDelivered,
+  handlePerpsCufPositionsDelivered,
+} from '../../../app/components/UI/Perps/utils/perpsCufTrace';
+import {
   type AccountState,
   type PerpsMarketData,
   type Position,
@@ -294,8 +298,22 @@ const createAccountChannel = (account: unknown) =>
 const createPositionsChannel = (positions: unknown[]) =>
   mutableChannelWithInitialValue(typedPositions(positions));
 
-const createOrdersChannel = (orders: unknown[]) =>
-  mutableChannelWithInitialValue(typedOrders(orders));
+const createOrdersChannel = (orders: unknown[]) => {
+  const channel = mutableChannelWithInitialValue(typedOrders(orders));
+
+  return {
+    ...channel,
+    /** Optimistic patch used by Pro open-order edit (price/size). */
+    updateOrderOptimistic: (orderId: string, patch: Partial<Order>): void => {
+      const snapshot = channel.getSnapshot() ?? [];
+      channel.emit(
+        snapshot.map((order) =>
+          order.orderId === orderId ? ({ ...order, ...patch } as Order) : order,
+        ),
+      );
+    },
+  };
+};
 
 const createMarketDataChannel = (marketData: unknown[]) =>
   mutableChannelWithInitialValue(typedMarkets(marketData));
@@ -347,8 +365,16 @@ function createTestStreamManager(
     stream: {
       emitAccount: account.emit,
       emitMarketData: marketData.emit,
-      emitOrders: orders.emit,
-      emitPositions: positions.emit,
+      // Mirror production stream channels: notify CUF matchers when test
+      // doubles deliver positions/orders so place/cancel waits resolve.
+      emitOrders: (nextOrders) => {
+        orders.emit(nextOrders);
+        handlePerpsCufOrdersDelivered(nextOrders ?? []);
+      },
+      emitPositions: (nextPositions) => {
+        positions.emit(nextPositions);
+        handlePerpsCufPositionsDelivered(nextPositions ?? []);
+      },
       emitPrices: prices.emit,
     },
   };
@@ -591,7 +617,6 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
-  szDecimals: 2,
 };
 
 const defaultProPrices: Record<string, PriceUpdate> = {

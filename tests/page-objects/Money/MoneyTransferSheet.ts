@@ -3,37 +3,37 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 
 class MoneyTransferSheet {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyTransferSheetTestIds.CONTAINER);
   }
 
-  get betweenAccountsOption(): EncapsulatedElementType {
+  get betweenAccountsOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     );
   }
 
-  get perpsAccountOption(): EncapsulatedElementType {
+  get perpsAccountOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
     );
   }
 
-  get predictionsAccountOption(): EncapsulatedElementType {
+  get predictionsAccountOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
     );
   }
 
-  get sendExternalRow(): EncapsulatedElementType {
+  get sendExternalRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW);
   }
 
-  get withdrawToBankRow(): EncapsulatedElementType {
+  get withdrawToBankRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW,
     );

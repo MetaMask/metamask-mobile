@@ -1124,6 +1124,9 @@ export type RootStackParamList = {
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
+  CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
+  CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];

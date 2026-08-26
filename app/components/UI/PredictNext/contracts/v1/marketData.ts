@@ -16,16 +16,28 @@ import type {
   PredictEvent,
   PredictFeed,
   PredictMarket,
+  PredictMarketHistory,
   PredictVenueStatus,
 } from '../../types';
 
-const timestamp = refine(
-  string(),
-  'PredictTimestamp',
-  (value) =>
-    !Number.isNaN(Date.parse(value)) &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value),
-);
+const timestamp = refine(string(), 'PredictTimestamp', (value) => {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$/.exec(
+      value,
+    );
+  if (!match) {
+    return false;
+  }
+
+  const [, year, month, day, hour, minute, second, fraction = ''] = match;
+  const milliseconds = fraction.padEnd(3, '0').slice(0, 3);
+  const parsed = Date.parse(value);
+  return (
+    !Number.isNaN(parsed) &&
+    new Date(parsed).toISOString() ===
+      `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}Z`
+  );
+});
 
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(
@@ -73,6 +85,14 @@ const status = enums([
 ] as const);
 const venueStatus = enums(['available', 'degraded', 'unavailable'] as const);
 const side = enums(['yes', 'no'] as const);
+const marketHistoryRange = enums([
+  'LIVE',
+  '1D',
+  '1W',
+  '1M',
+  '1Y',
+  'ALL',
+] as const);
 const gameSelection = enums(['home', 'away', 'draw'] as const);
 const gameStatus = enums([
   'scheduled',
@@ -186,6 +206,46 @@ const venueStatusSchema = object({
   checkedAt: timestamp,
 });
 
+const marketHistoryPointSchema = refine(
+  object({
+    timestamp,
+    yesPrice: decimal,
+    noPrice: decimal,
+  }),
+  'ComplementaryMarketHistoryPrices',
+  ({ yesPrice, noPrice }) => {
+    const [yesWhole, yesFraction = ''] = yesPrice.split('.');
+    const [noWhole, noFraction = ''] = noPrice.split('.');
+    const scale = Math.max(yesFraction.length, noFraction.length);
+    const yesUnits = BigInt(`${yesWhole}${yesFraction.padEnd(scale, '0')}`);
+    const noUnits = BigInt(`${noWhole}${noFraction.padEnd(scale, '0')}`);
+
+    return yesUnits + noUnits === 10n ** BigInt(scale);
+  },
+);
+
+const marketHistorySchema = refine(
+  object({
+    venueId,
+    marketId: entityId,
+    range: marketHistoryRange,
+    observedAt: timestamp,
+    points: array(marketHistoryPointSchema),
+  }),
+  'OrderedMarketHistory',
+  ({ observedAt, points }) => {
+    const observedAtMs = Date.parse(observedAt);
+    let previousTimestampMs = -Infinity;
+
+    return points.every((point) => {
+      const pointTimestampMs = Date.parse(point.timestamp);
+      const isOrdered = pointTimestampMs > previousTimestampMs;
+      previousTimestampMs = pointTimestampMs;
+      return isOrdered && pointTimestampMs <= observedAtMs;
+    });
+  },
+);
+
 const eventsParamsSchema = object({
   cursor: optional(string()),
   limit: optional(refine(number(), 'PositiveLimit', (value) => value > 0)),
@@ -209,6 +269,11 @@ export const parsePredictFeed = (value: unknown): PredictFeed =>
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;
+
+export const parsePredictMarketHistory = (
+  value: unknown,
+): PredictMarketHistory =>
+  parse(value, marketHistorySchema) as unknown as PredictMarketHistory;
 
 export const parsePredictVenueStatus = (value: unknown): PredictVenueStatus =>
   parse(value, venueStatusSchema) as unknown as PredictVenueStatus;

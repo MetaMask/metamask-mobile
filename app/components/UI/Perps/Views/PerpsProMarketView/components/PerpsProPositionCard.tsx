@@ -320,7 +320,7 @@ const PerpsProPositionCard = ({
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
-                testID="pnl-text"
+                testID={PerpsProMarketViewSelectorsIDs.POSITION_PNL_TEXT}
               >
                 {formatPnl(pnlNum)}
               </SensitiveText>
