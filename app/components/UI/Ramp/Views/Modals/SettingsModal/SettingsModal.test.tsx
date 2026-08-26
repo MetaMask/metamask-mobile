@@ -90,7 +90,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const BottomSheet = ReactActual.forwardRef(
     (
       props: { children?: unknown; goBack?: () => void },
-      ref: ReactActual.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: (cb?: () => void) => {

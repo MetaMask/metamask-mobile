@@ -1,5 +1,6 @@
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import type { GestureResponderEvent } from 'react-native';
 import {
   buildV2OrderToastOptions,
   showV2OrderToast,
@@ -71,7 +72,7 @@ describe('v2OrderToast', () => {
       };
 
       const result = buildV2OrderToastOptions(params);
-      result?.actionButtonOnPress?.();
+      result?.actionButtonOnPress?.({} as GestureResponderEvent);
 
       expect(toast.dismiss).toHaveBeenCalled();
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
