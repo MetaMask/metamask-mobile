@@ -985,15 +985,7 @@ const usePerpsToasts = (): {
         },
       },
     }),
-    [
-      navigationHandlers,
-      perpsBaseToastOptions.error,
-      perpsBaseToastOptions.inProgress,
-      perpsBaseToastOptions.info,
-      perpsBaseToastOptions.success,
-      perpsBaseToastOptions.warning,
-      perpsToastButtonOptions,
-    ],
+    [navigationHandlers, perpsBaseToastOptions, perpsToastButtonOptions],
   );
 
   return { showToast, PerpsToastOptions };
