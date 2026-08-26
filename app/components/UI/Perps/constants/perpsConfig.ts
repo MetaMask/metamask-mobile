@@ -110,7 +110,9 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 
 /**
  * Mobile-only TWAP input and copy configuration derived from the controller's
- * executable Hyperliquid limits.
+ * executable Hyperliquid limits. Controller v13 caps duration at 1,440 minutes
+ * and exposes neither TWAP trigger price nor max price, so Mobile intentionally
+ * omits those venue-documented fields until Core owns executable contracts.
  */
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,

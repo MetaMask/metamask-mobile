@@ -113,6 +113,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
       testID: PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
     },
   ] as const;
+  const triggeredOrderTypes: readonly OrderType[] = triggeredOptions.map(
+    ({ type }) => type,
+  );
+  const proOrderTypes: readonly OrderType[] = [
+    'market',
+    'limit',
+    ...triggeredOrderTypes,
+  ];
+  const proOrderTypesWithTwap: readonly OrderType[] = [
+    ...proOrderTypes,
+    'twap',
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -151,7 +163,13 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
     it('renders triggered order type descriptions when enabled', () => {
       render(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypes}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
       );
 
       expect(
@@ -175,42 +193,107 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(screen.getByText('Limit Order')).toBeOnTheScreen();
     });
 
-    it('hides section labels and triggered options when disabled', () => {
+    it('preserves the Basic-only sheet when categorized options are omitted', () => {
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
       expect(
-        screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
-        ),
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TABS),
       ).not.toBeOnTheScreen();
       for (const { testID } of triggeredOptions) {
         expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
       }
     });
 
-    it('renders Basic and Triggered sections when enabled', () => {
+    it('renders only non-empty Basic and Triggered tabs', () => {
       render(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypes}
+        />,
       );
 
       expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        ),
-      ).toHaveTextContent('Basic');
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
+      ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('Basic')).not.toHaveLength(0);
+      expect(screen.getAllByText('Triggered')).not.toHaveLength(0);
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
         ),
-      ).toHaveTextContent('Triggered');
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the Figma Basic, Triggered, Advanced tab order when each category has an option', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+        />,
+      );
+
+      const tabs = screen.getByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TABS,
+      );
+      const tabTestIDs = [
+        PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB,
+        PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+      ];
+      const renderedTabTestIDs = [
+        ...new Set(
+          tabs
+            .findAll((node) => tabTestIDs.includes(node.props.testID))
+            .map((node) => node.props.testID),
+        ),
+      ];
+
+      expect(renderedTabTestIDs).toEqual(tabTestIDs);
+      expect(screen.getAllByText('Basic').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Triggered').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Advanced').length).toBeGreaterThan(0);
+    });
+
+    it('shows only the active tab order types', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      );
+
       for (const { testID } of triggeredOptions) {
         expect(screen.getByTestId(testID)).toBeOnTheScreen();
       }
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('derives the initial active tab from the selected order type', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType="twap"
+          availableOrderTypes={proOrderTypesWithTwap}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders options with stable testIDs', () => {
@@ -244,12 +327,13 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           showSelectedIcon
-          showTriggeredTypes
+          availableOrderTypes={proOrderTypes}
+          currentOrderType="stop_limit"
         />,
         AppThemeKey.dark,
       );
 
-      expect(screen.getAllByLabelText(/-icon-dark$/)).toHaveLength(6);
+      expect(screen.getAllByLabelText(/-icon-dark$/)).toHaveLength(4);
       expect(screen.queryByLabelText(/-icon-light$/)).not.toBeOnTheScreen();
     });
 
@@ -258,12 +342,13 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           showSelectedIcon
-          showTriggeredTypes
+          availableOrderTypes={proOrderTypes}
+          currentOrderType="stop_limit"
         />,
         AppThemeKey.light,
       );
 
-      expect(screen.getAllByLabelText(/-icon-light$/)).toHaveLength(6);
+      expect(screen.getAllByLabelText(/-icon-light$/)).toHaveLength(4);
       expect(screen.queryByLabelText(/-icon-dark$/)).not.toBeOnTheScreen();
     });
 
@@ -362,8 +447,13 @@ describe('PerpsOrderTypeBottomSheet', () => {
             currentOrderType="market"
             onSelect={onSelect}
             onClose={onClose}
-            showTriggeredTypes
+            availableOrderTypes={proOrderTypes}
           />,
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+          ),
         );
 
         fireEvent.press(screen.getByTestId(testID));
@@ -378,7 +468,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           currentOrderType="stop_limit"
-          showTriggeredTypes
+          availableOrderTypes={proOrderTypes}
         />,
       );
 
@@ -408,7 +498,10 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
 
       rerender(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypes}
+        />,
       );
 
       expect(
@@ -421,31 +514,37 @@ describe('PerpsOrderTypeBottomSheet', () => {
     const analyticsCases = [
       {
         type: 'market',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
       },
       {
         type: 'limit',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
       },
       {
         type: 'stop_limit',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_LIMIT,
       },
       {
         type: 'stop_market',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_MARKET,
       },
       {
         type: 'take_profit_limit',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_LIMIT,
       },
       {
         type: 'take_profit_market',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
       },
@@ -453,14 +552,15 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
     it.each(analyticsCases)(
       'tracks $type with its analytics value',
-      ({ testID, eventValue }) => {
+      ({ tabTestID, testID, eventValue }) => {
         render(
           <PerpsOrderTypeBottomSheet
             {...defaultProps}
             currentOrderType={undefined}
-            showTriggeredTypes
+            availableOrderTypes={proOrderTypes}
           />,
         );
+        fireEvent.press(screen.getByTestId(tabTestID));
 
         fireEvent.press(screen.getByTestId(testID));
 
@@ -478,8 +578,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           currentOrderType={undefined}
-          showTwapType
+          availableOrderTypes={proOrderTypesWithTwap}
         />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
       );
 
       fireEvent.press(

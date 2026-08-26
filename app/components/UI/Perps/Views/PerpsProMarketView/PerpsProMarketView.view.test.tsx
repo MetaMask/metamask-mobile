@@ -76,8 +76,24 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
   activeProvider: 'hyperliquid' | 'myx' = 'hyperliquid',
-) =>
-  renderPerpsProMarketView({
+) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue(
+      activeProvider === 'hyperliquid'
+        ? {
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: ['twap'],
+          }
+        : {
+            status: 'unavailable',
+            providerId: 'myx',
+            reason: 'strategy_market_unsupported',
+          },
+    );
+
+  return renderPerpsProMarketView({
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
     },
@@ -107,6 +123,7 @@ const renderProMarketWithTwapFlag = (
       },
     },
   });
+};
 
 const findSizeInput = () =>
   screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
@@ -115,7 +132,15 @@ const openTwapOrderForm = async () => {
   const sizeInput = await findSizeInput();
   fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
   await screen.findByTestId(
-    PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+    PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+  fireEvent.press(
+    screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
+  );
+  await screen.findByTestId(
+    PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
     {},
     { timeout: TIMEOUT_MS },
   );
@@ -131,6 +156,22 @@ const openTwapOrderForm = async () => {
     minutes: screen.getByTestId(ids.TWAP_MINUTES),
     randomize: screen.getByTestId(ids.TWAP_RANDOMIZE),
   };
+};
+
+const selectTriggeredOrderType = async (
+  optionTestID: (typeof triggeredOrderTypeIDs)[number],
+) => {
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(optionTestID, {}, { timeout: TIMEOUT_MS }),
+  );
 };
 
 const emitEthPrice = (
@@ -195,16 +236,17 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       expect(
         await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
           {},
           { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        ),
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
       ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      );
       for (const testID of triggeredOrderTypeIDs) {
         expect(screen.getByTestId(testID)).toBeOnTheScreen();
       }
@@ -226,13 +268,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       expect(
         screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         ),
       ).not.toBeOnTheScreen();
       expect(
-        screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        ),
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
       ).not.toBeOnTheScreen();
       for (const testID of triggeredOrderTypeIDs) {
         expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
@@ -315,33 +355,39 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   });
 
   itForPlatforms(
-    'shows Basic and Advanced when only TWAP is enabled',
+    'shows Basic and Advanced tabs when only TWAP is enabled',
     async () => {
       renderProMarketWithTwapFlag(true);
       await findSizeInput();
 
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
       await screen.findByTestId(
-        PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
         {},
         { timeout: TIMEOUT_MS },
       );
 
       expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        ),
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
-        ),
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         ),
       ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+        ),
+      ).toBeOnTheScreen();
     },
   );
 
@@ -357,9 +403,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     );
 
     expect(
-      screen.queryByTestId(
-        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
-      ),
+      screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
@@ -381,7 +425,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       expect(
         screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
         ),
       ).not.toBeOnTheScreen();
       expect(
@@ -632,13 +676,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const sizeInput = await findSizeInput();
       fireEvent.changeText(sizeInput, '100');
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
       const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
@@ -666,13 +705,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const sizeInput = await findSizeInput();
       fireEvent.changeText(sizeInput, '100');
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
       );
 
       const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
@@ -697,13 +731,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       await findSizeInput();
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
       await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
@@ -726,13 +755,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       await findSizeInput();
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
       );
 
       const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
@@ -763,13 +787,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const sizeInput = await findSizeInput();
       fireEvent.changeText(sizeInput, '100');
 
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
       );
 
       const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);

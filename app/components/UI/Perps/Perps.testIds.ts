@@ -889,9 +889,10 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',
   TAKE_PROFIT_MARKET_OPTION: 'perps-order-type-take-profit-market',
   TWAP_OPTION: 'perps-order-type-twap',
-  BASIC_SECTION_HEADER: 'perps-order-type-basic-section-header',
-  TRIGGERED_SECTION_HEADER: 'perps-order-type-triggered-section-header',
-  ADVANCED_SECTION_HEADER: 'perps-order-type-advanced-section-header',
+  TABS: 'perps-order-type-tabs',
+  BASIC_TAB: 'perps-order-type-tab-basic',
+  TRIGGERED_TAB: 'perps-order-type-tab-triggered',
+  ADVANCED_TAB: 'perps-order-type-tab-advanced',
 } as const;
 
 export const PerpsMarginModeBottomSheetSelectorsIDs = {

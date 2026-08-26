@@ -441,11 +441,10 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
 export const selectPerpsProTwapEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_TWAP_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsMobileTwap as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

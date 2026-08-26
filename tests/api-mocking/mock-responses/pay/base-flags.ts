@@ -1014,7 +1014,7 @@ const BASE_PERPS_FLAGS = [
   },
   {
     perpsMobileTwap: {
-      minimumVersion: '8.8.0',
+      minimumVersion: '8.10.0',
       enabled: false,
     },
   },

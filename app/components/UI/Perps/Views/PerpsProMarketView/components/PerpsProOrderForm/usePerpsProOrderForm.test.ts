@@ -3,6 +3,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
@@ -272,12 +273,19 @@ const market = {
   providerId: 'hyperliquid',
 } as PerpsMarketData;
 
-const renderProForm = (isTriggeredOrdersEnabled = true, isTwapEnabled = true) =>
+const renderProForm = (
+  isTriggeredOrdersEnabled = true,
+  isTwapEnabled = true,
+  resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
+  isTwapAvailabilityPending = false,
+) =>
   renderHook(() =>
     usePerpsProOrderForm({
       market,
       isTriggeredOrdersEnabled,
       isTwapEnabled,
+      isTwapAvailabilityPending,
+      resolvedTwapProviderId,
     }),
   );
 
@@ -706,6 +714,80 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
         strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
+    it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
+      let continuePlacement: (() => Promise<unknown>) | undefined;
+      mockComplianceGate.mockImplementation((action) => {
+        continuePlacement = action;
+        return Promise.resolve();
+      });
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      rerender({ isTwapEnabled: false });
+      await act(async () => {
+        await continuePlacement?.();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
+    it('resets a selected TWAP after rollout availability disappears', () => {
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+      mockSetOrderType.mockClear();
+
+      rerender({ isTwapEnabled: false });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('keeps a selected TWAP while capability discovery is pending', () => {
+      mockOrderForm.type = 'twap';
+
+      renderProForm(true, false, undefined, true);
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+    });
+
+    it('keeps ordinary placement on controller default routing', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.not.objectContaining({ providerId: expect.anything() }),
       );
     });
 

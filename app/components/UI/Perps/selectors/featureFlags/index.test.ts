@@ -2232,29 +2232,15 @@ describe('Perps Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('falls back to the local flag when the remote flag is missing', () => {
-      process.env.MM_PERPS_TWAP_ENABLED = 'true';
+    it('returns false when the remote flag is missing', () => {
       const state = createStateWithFlag();
 
       const result = selectPerpsProTwapEnabledFlag(state);
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
-    it('falls back to an enabled local flag when the remote flag is malformed', () => {
-      process.env.MM_PERPS_TWAP_ENABLED = 'true';
-      const state = createStateWithFlag({
-        enabled: 'yes',
-        minimumVersion: 1,
-      });
-
-      const result = selectPerpsProTwapEnabledFlag(state);
-
-      expect(result).toBe(true);
-    });
-
-    it('falls back to a disabled local flag when the remote flag is malformed', () => {
-      process.env.MM_PERPS_TWAP_ENABLED = 'false';
+    it('returns false when the remote flag is malformed', () => {
       const state = createStateWithFlag({
         enabled: 'yes',
         minimumVersion: 1,

@@ -1,6 +1,6 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
 import React, { useCallback, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -23,6 +23,15 @@ import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
+
+const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
+const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
+  'stop_limit',
+  'stop_market',
+  'take_profit_limit',
+  'take_profit_market',
+];
+const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -51,12 +60,32 @@ const PerpsProOrderFormPanel = ({
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
-  const { supportsTwapOrders } = usePerpsProvider({
-    symbol: market.symbol,
-    providerId: market.providerId,
-  });
-  const isTwapEnabled =
-    isProModeActive && isTwapFlagEnabled && supportsTwapOrders;
+  const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
+  const { isLoadingOrderCapabilities, orderCapabilities, supportsTwapOrders } =
+    usePerpsProvider(
+      isTwapRolloutEnabled
+        ? {
+            symbol: market.symbol,
+            providerId: market.providerId,
+          }
+        : undefined,
+    );
+  const isTwapEnabled = isTwapRolloutEnabled && supportsTwapOrders;
+  const isTwapAvailabilityPending =
+    isTwapRolloutEnabled && isLoadingOrderCapabilities;
+  const resolvedTwapProviderId =
+    orderCapabilities?.status === 'ready'
+      ? orderCapabilities.providerId
+      : undefined;
+  const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
+  const availableOrderTypes = useMemo<readonly OrderType[]>(
+    () => [
+      ...BASIC_ORDER_TYPES,
+      ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
+      ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
+    ],
+    [areTriggeredOrdersEnabled, isTwapEnabled],
+  );
   const {
     direction,
     onDirectionChange,
@@ -109,12 +138,13 @@ const PerpsProOrderFormPanel = ({
     feeDiscountPercentage,
   } = usePerpsProOrderForm({
     market,
-    isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+    isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
     isTwapEnabled,
+    isTwapAvailabilityPending,
+    resolvedTwapProviderId,
   });
 
   const { styles } = useStyles(createStyles, {});
-  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
@@ -249,8 +279,7 @@ const PerpsProOrderFormPanel = ({
             direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
-            showTriggeredTypes={showTriggeredTypes}
-            showTwapType={isTwapEnabled}
+            availableOrderTypes={availableOrderTypes}
           />
         </PerpsProModalPortal>
       )}

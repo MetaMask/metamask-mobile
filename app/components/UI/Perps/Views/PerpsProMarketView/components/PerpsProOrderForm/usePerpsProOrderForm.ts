@@ -8,6 +8,7 @@ import {
   isTriggerOrderType,
   type OrderType,
   type PerpsMarketData,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -100,7 +101,6 @@ import {
   normalizeNumericTextInput,
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
-import { selectPerpsProvider } from '../../../../selectors/perpsController';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
@@ -257,6 +257,10 @@ export interface UsePerpsProOrderFormParams {
   isTriggeredOrdersEnabled: boolean;
   /** Gate Hyperliquid TWAP placement as well as the type picker. */
   isTwapEnabled: boolean;
+  /** True while a rollout-enabled market capability query is unresolved. */
+  isTwapAvailabilityPending: boolean;
+  /** Concrete provider route returned by the ready capability response. */
+  resolvedTwapProviderId?: PerpsProviderType;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -339,12 +343,10 @@ export const usePerpsProOrderForm = ({
   market,
   isTriggeredOrdersEnabled,
   isTwapEnabled,
+  isTwapAvailabilityPending,
+  resolvedTwapProviderId,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
-  const activeProvider = useSelector(selectPerpsProvider);
-  const orderProviderId =
-    market.providerId ??
-    (activeProvider === 'aggregated' ? undefined : activeProvider);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -537,6 +539,20 @@ export const usePerpsProOrderForm = ({
   });
 
   const isTwapOrder = orderForm.type === 'twap';
+  const orderProviderId = isTwapOrder ? resolvedTwapProviderId : undefined;
+  const isTwapEnabledRef = useRef(isTwapEnabled);
+  const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
+
+  useEffect(() => {
+    isTwapEnabledRef.current = isTwapEnabled;
+    resolvedTwapProviderIdRef.current = resolvedTwapProviderId;
+  }, [isTwapEnabled, resolvedTwapProviderId]);
+
+  useEffect(() => {
+    if (isTwapOrder && !isTwapEnabled && !isTwapAvailabilityPending) {
+      setOrderType('market');
+    }
+  }, [isTwapAvailabilityPending, isTwapEnabled, isTwapOrder, setOrderType]);
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: effectiveUsdAmount,
@@ -838,7 +854,7 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    if (!isTwapEnabled && isTwapOrder) {
+    if (!isTwapEnabledRef.current && isTwapOrder) {
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.order.validation.twap_unavailable'),
@@ -984,7 +1000,7 @@ export const usePerpsProOrderForm = ({
         reduceOnly,
         twapDuration: isTwapOrder ? twapDuration : undefined,
         twapRandomize: isTwapOrder ? twapRandomize : undefined,
-        providerId: orderProviderId,
+        providerId: isTwapOrder ? resolvedTwapProviderIdRef.current : undefined,
         isFullClose: reduceOnly
           ? reduceOnlyValidation.isFullClose || isExactFullClose
           : undefined,
@@ -1097,7 +1113,6 @@ export const usePerpsProOrderForm = ({
     resolvedMaxSlippageBps,
     maxSlippageSource,
     isTriggeredOrdersEnabled,
-    isTwapEnabled,
     hasTpslBlocker,
     twapDurationMissing,
     twapDurationError,
@@ -1119,7 +1134,6 @@ export const usePerpsProOrderForm = ({
     isTwapOrder,
     twapDuration,
     twapRandomize,
-    orderProviderId,
     marginRequired,
     feeResults,
     assetData.price,

@@ -171,7 +171,7 @@ Follow existing test patterns covering:
 | `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                     |
 | `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                       |
 | `perpsProModeEnabled`                              | `perps-pro-mode-enabled`                                 | —                                              | false   | Lite/Pro mode toggle and Pro-mode entry points (Pro market view)                                         |
-| `perpsMobileTwap`                                  | `perps-mobile-twap`                                      | `MM_PERPS_TWAP_ENABLED`                        | false   | Hyperliquid TWAP placement in the Pro order form                                                         |
+| `perpsMobileTwap`                                  | `perps-mobile-twap`                                      | —                                              | false   | Version-gated Hyperliquid TWAP placement in the Pro order form, minimum production version 8.10.0        |
 | `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                 |
 | `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only) |
 | `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                  |
@@ -179,6 +179,8 @@ Follow existing test patterns covering:
 | `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                  |
 | `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
 | `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)          |
+
+`perpsMobileTwap` is remote-only. Missing, malformed, disabled, or below-version values resolve to `false`; the production configuration starts at Mobile 8.10.0.
 
 ### A/B Test Flags
 
