@@ -52,13 +52,19 @@ function getStakingToken(
   data: ActivityListItem['data'],
   kind: StakingKind,
 ): TokenAmount | undefined {
+  const isStake = kind === 'stake';
+  let token: TokenAmount | undefined;
+
   if ('token' in data && data.token) {
-    return data.token;
+    token = data.token;
+  } else if (isStake) {
+    token = 'sourceToken' in data ? data.sourceToken : undefined;
+  } else {
+    token = 'destinationToken' in data ? data.destinationToken : undefined;
   }
-  if (kind === 'stake') {
-    return 'sourceToken' in data ? data.sourceToken : undefined;
-  }
-  return 'destinationToken' in data ? data.destinationToken : undefined;
+
+  // A token pointing against the kind is the pool's share leg, not the amount.
+  return token?.direction === (isStake ? 'out' : 'in') ? token : undefined;
 }
 
 /** `to` is dropped: `claim` has no such field, and no staking row shows it. */

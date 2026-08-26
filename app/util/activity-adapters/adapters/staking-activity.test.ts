@@ -6,7 +6,7 @@ import {
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import type { ActivityListItem } from '../types';
+import type { ActivityListItem, TokenAmount } from '../types';
 import {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
@@ -48,7 +48,7 @@ const buildApiTransaction = (
 const buildContractInteraction = (
   dataOverrides: {
     fees?: typeof fees;
-    token?: typeof nativeToken | undefined;
+    token?: TokenAmount | undefined;
   } = {},
 ): ActivityListItem => ({
   type: 'contractInteraction',
@@ -223,6 +223,49 @@ describe('classifyPooledStakingActivity', () => {
 
     expect(result.type).toBe('stake');
   });
+
+  // The pool's share leg would otherwise render as the staked amount, pointing
+  // the wrong way — an unstake showing money leaving the account.
+  it.each([
+    ['unstake', ENTER_EXIT_QUEUE_METHOD_ID, 'out'],
+    ['claim', CLAIM_EXITED_ASSETS_METHOD_ID, 'out'],
+    ['stake', DEPOSIT_METHOD_ID, 'in'],
+  ] as [string, string, TokenAmount['direction']][])(
+    'drops a %s token pointing the wrong way',
+    (_kind, methodId, direction) => {
+      const result = classifyPooledStakingActivity(
+        buildApiTransaction({ methodId }),
+        buildContractInteraction({
+          token: { direction, symbol: 'osETH', decimals: 18, amount: '1045' },
+        }),
+      );
+
+      expect(result.data).not.toHaveProperty('token');
+    },
+  );
+
+  it.each([
+    ['unstake', ENTER_EXIT_QUEUE_METHOD_ID, 'in'],
+    ['claim', CLAIM_EXITED_ASSETS_METHOD_ID, 'in'],
+    ['stake', DEPOSIT_METHOD_ID, 'out'],
+  ] as [string, string, TokenAmount['direction']][])(
+    'keeps a %s token pointing the right way',
+    (_kind, methodId, direction) => {
+      const token = {
+        direction,
+        symbol: 'ETH',
+        decimals: 18,
+        amount: '1045',
+      };
+
+      const result = classifyPooledStakingActivity(
+        buildApiTransaction({ methodId }),
+        buildContractInteraction({ token }),
+      );
+
+      expect(result.data).toMatchObject({ token });
+    },
+  );
 
   // `enterExitQueue` transfers no ETH, so no amount can be shown.
   it('leaves an unstake without an amount rather than inventing one', () => {
