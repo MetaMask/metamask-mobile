@@ -8,10 +8,12 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
+import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
 
 const mockNavigate = jest.fn();
 const mockEarnSection = jest.fn((_props: Record<string, unknown>) => null);
+const mockUseIsFocused = jest.fn(() => true);
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -22,6 +24,7 @@ const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useIsFocused: () => mockUseIsFocused(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -104,6 +107,7 @@ const arrangeMocks = ({
   earnSectionEnabled?: boolean;
 } = {}) => {
   jest.clearAllMocks();
+  mockUseIsFocused.mockReturnValue(true);
 
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
@@ -162,6 +166,7 @@ describe('CryptoTab — Earn section', () => {
 
     expect(screen.getByTestId('explore-section-earn')).toBeOnTheScreen();
     expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: false,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
@@ -187,9 +192,39 @@ describe('CryptoTab — Earn section', () => {
     );
 
     expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: false,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
+  });
+
+  it('enables Earn when Crypto is the active Explore tab', () => {
+    arrangeMocks({ earnSectionEnabled: true });
+
+    render(
+      <ExploreActiveTabProvider activeTab="Crypto">
+        <CryptoTab {...defaultTabProps} />
+      </ExploreActiveTabProvider>,
+    );
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('disables Earn when Explore screen is unfocused', () => {
+    arrangeMocks({ earnSectionEnabled: true });
+    mockUseIsFocused.mockReturnValue(false);
+
+    render(
+      <ExploreActiveTabProvider activeTab="Crypto">
+        <CryptoTab {...defaultTabProps} />
+      </ExploreActiveTabProvider>,
+    );
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 });
 

@@ -62,7 +62,7 @@ import {
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
-import EarnSection from '../../../UI/Earn/components/EarnSection';
+import ExploreEarnSection from '../components/ExploreEarnSection';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -371,12 +371,7 @@ const NowTabContent: React.FC<TabProps> = ({
     if (isEarnSectionEnabled) {
       items.push({
         key: 'earn',
-        content: (
-          <EarnSection
-            refresh={refresh}
-            tokenDetailsSource={TokenDetailsSource.ExploreEarn}
-          />
-        ),
+        content: <ExploreEarnSection tabName="Now" refresh={refresh} />,
       });
     }
 

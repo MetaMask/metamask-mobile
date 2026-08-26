@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import EarnSection from '../../../../UI/Earn/components/EarnSection';
+import { useIsFocused } from '@react-navigation/native';
 
 interface HomepageEarnSectionProps {
   sectionIndex: number;
@@ -19,13 +20,18 @@ interface HomepageEarnSectionProps {
 const HomepageEarnSection = forwardRef<
   SectionRefreshHandle,
   HomepageEarnSectionProps
->(({ sectionIndex, totalSectionsLoaded, showDividers }, ref) => (
-  <EarnSection
-    ref={ref}
-    tokenDetailsSource={TokenDetailsSource.HomeSection}
-    homeAnalytics={{ sectionIndex, totalSectionsLoaded }}
-    showDividers={showDividers}
-  />
-));
+>(({ sectionIndex, totalSectionsLoaded, showDividers }, ref) => {
+  const isFocused = useIsFocused();
+
+  return (
+    <EarnSection
+      ref={ref}
+      tokenDetailsSource={TokenDetailsSource.HomeSection}
+      homeAnalytics={{ sectionIndex, totalSectionsLoaded }}
+      showDividers={showDividers}
+      enabled={isFocused}
+    />
+  );
+});
 
 export default React.memo(HomepageEarnSection);

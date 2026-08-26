@@ -51,4 +51,10 @@ describe('useEarnSectionAssets', () => {
 
     expect(result.current.refresh).toBe(refresh);
   });
+
+  it('forwards enabled state to the catalogue hook', () => {
+    renderHook(() => useEarnSectionAssets({ enabled: false }));
+
+    expect(mockUseEarnAssetCatalogue).toHaveBeenCalledWith({ enabled: false });
+  });
 });

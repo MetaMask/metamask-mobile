@@ -135,6 +135,7 @@ const mockEarnSection = jest.fn(
     refresh?: { trigger: number; silentRefresh: boolean };
     showDividers?: boolean;
     tokenDetailsSource?: string;
+    enabled?: boolean;
   }) =>
     React.createElement('View', {
       testID: 'explore-earn-section',
@@ -149,6 +150,7 @@ jest.mock('../../../UI/Earn/components/EarnSection', () => ({
     refresh?: { trigger: number; silentRefresh: boolean };
     showDividers?: boolean;
     tokenDetailsSource?: string;
+    enabled?: boolean;
   }) => mockEarnSection(props),
 }));
 
@@ -710,6 +712,7 @@ describe('NowTab — Earn section', () => {
 
     expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
     expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: true,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
@@ -727,9 +730,37 @@ describe('NowTab — Earn section', () => {
     });
 
     expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: true,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
+  });
+
+  it('disables Earn when another Explore tab is active', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: true }),
+    );
+
+    renderNowTab(defaultTabProps, { activeTab: 'Crypto' });
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('disables Earn when Explore screen is unfocused', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: true }),
+    );
+    mockUseIsFocused.mockReturnValue(false);
+
+    renderNowTab();
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   it('does not render Earn section when disabled', () => {

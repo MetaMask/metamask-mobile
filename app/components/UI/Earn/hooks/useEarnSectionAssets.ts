@@ -5,10 +5,16 @@ import {
 } from '../utils/earnSection';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
 
+interface UseEarnSectionAssetsOptions {
+  enabled?: boolean;
+}
+
 /**
  * Projects the shared Earn asset catalogue into fixed card slots.
  */
-const useEarnSectionAssets = () => {
+const useEarnSectionAssets = ({
+  enabled = true,
+}: UseEarnSectionAssetsOptions = {}) => {
   const {
     assets,
     moneyApyPercent,
@@ -17,7 +23,7 @@ const useEarnSectionAssets = () => {
     hasError,
     errors,
     refresh,
-  } = useEarnAssetCatalogue();
+  } = useEarnAssetCatalogue({ enabled });
 
   const assetSlots = useMemo(() => rankEarnSectionAssets(assets), [assets]);
   const hasMoreAssets = assets.length > EARN_SECTION_ASSET_LIMIT;

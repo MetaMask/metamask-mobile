@@ -74,6 +74,7 @@ export interface EarnSectionProps {
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
   refresh?: RefreshConfig;
+  enabled?: boolean;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -128,6 +129,10 @@ const renderUnavailableAssetCard = (key: string) => (
 // Module-level promise to prevent multiple concurrent refreshes.
 let refreshPromise: Promise<void> | undefined;
 
+export const resetEarnSectionRefreshForTests = () => {
+  refreshPromise = undefined;
+};
+
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   (
     {
@@ -135,6 +140,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       homeAnalytics,
       showDividers = false,
       refresh: exploreFeedRefreshConfig,
+      enabled = true,
     },
     ref,
   ) => {
@@ -157,14 +163,16 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       isLoading,
       hasError,
       refresh: refreshEarnSectionAssets,
-    } = useEarnSectionAssets();
+    } = useEarnSectionAssets({ enabled });
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
       totalFiatRaw: moneyAccountBalanceRaw,
       isBalanceLoading: isMoneyAccountBalanceLoading,
       refetchBalance: refetchMoneyAccountBalance,
-    } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+    } = useMoneyAccountBalance({
+      enabled: enabled && isMoneyAccountVisible,
+    });
 
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
       useMoneyNavigation();
@@ -202,7 +210,10 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
      * Refreshes Earn data when the parent requests a page refresh.
      * Currently used for Explore pull-to-refresh.
      */
-    useFeedRefresh(exploreFeedRefreshConfig, handleExploreFeedRefresh);
+    useFeedRefresh(
+      enabled ? exploreFeedRefreshConfig : undefined,
+      handleExploreFeedRefresh,
+    );
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 

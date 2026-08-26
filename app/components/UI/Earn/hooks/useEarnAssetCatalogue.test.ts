@@ -41,7 +41,9 @@ jest.mock('../../../../core/Engine', () => ({
 
 const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const AUSDC_ADDRESS = '0xbcca60bb61934080951369a648fb03df4f96263c';
+const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}`;
+const DAI_ASSET_ID = `eip155:1/erc20:${DAI_ADDRESS}`;
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
 const POL_ASSET_ID = 'eip155:137/slip44:966';
 const TRON_CHAIN_ID = 'tron:728126428';
@@ -80,6 +82,15 @@ const market: LendingMarket = {
   },
   outputToken: {
     address: AUSDC_ADDRESS,
+    chainId: 1,
+  },
+};
+const unheldMarket: LendingMarket = {
+  ...market,
+  id: 'mainnet-aave-dai',
+  name: 'Aave DAI',
+  underlying: {
+    address: DAI_ADDRESS,
     chainId: 1,
   },
 };
@@ -300,6 +311,64 @@ describe('useEarnAssetCatalogue', () => {
     mockDependencies();
   });
 
+  it('disables catalogue data sources when disabled', async () => {
+    const { result } = renderHook(() =>
+      useEarnAssetCatalogue({ enabled: false }),
+    );
+
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+      fetchOnMount: false,
+      chainId: expect.anything(),
+    });
+    expect(mockUseEarnSectionLendingMarkets).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(mockUseEarnSectionTokenMetadata).toHaveBeenCalledWith([], false);
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(refetchMoneyApy).not.toHaveBeenCalled();
+    expect(refreshLendingMarkets).not.toHaveBeenCalled();
+    expect(refreshLendingMetadata).not.toHaveBeenCalled();
+    expect(refetchTrxApy).not.toHaveBeenCalled();
+    expect(
+      Engine.context.EarnController.refreshPooledStakingVaultApyAverages,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not report loading while cached lending markets refresh', () => {
+    mockUseEarnSectionLendingMarkets.mockReturnValue({
+      markets: [market],
+      isLoading: true,
+      error: null,
+      refresh: refreshLendingMarkets,
+    });
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      assets: [moneyToken],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.assets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: USDC_ASSET_ID,
+          kind: 'held',
+          experiences: expect.arrayContaining([
+            expect.objectContaining({
+              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            }),
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it('merges Money and lending experiences for the same underlying asset', () => {
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
@@ -319,6 +388,51 @@ describe('useEarnAssetCatalogue', () => {
     expect(
       usdc?.experiences.map(({ isFeeSubsidized }) => isFeeSubsidized),
     ).toEqual([false, false]);
+  });
+
+  it('fetches metadata only for lending assets absent from wallet assets', () => {
+    mockUseEarnSectionLendingMarkets.mockReturnValue({
+      markets: [market, unheldMarket],
+      isLoading: false,
+      error: null,
+      refresh: refreshLendingMarkets,
+    });
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+    });
+
+    renderHook(() => useEarnAssetCatalogue());
+
+    expect(mockUseEarnSectionTokenMetadata).toHaveBeenLastCalledWith(
+      [DAI_ASSET_ID],
+      true,
+    );
+  });
+
+  it('retains held Earn lending experience without lending metadata', () => {
+    mockUseEarnSectionTokenMetadata.mockReturnValue({
+      tokensByAssetId: {},
+      isLoading: false,
+      isSettled: true,
+      error: null,
+      refresh: refreshLendingMetadata,
+    });
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      assets: [moneyToken],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(usdc).toMatchObject({ kind: 'held' });
+    expect(
+      usdc?.experiences.some(
+        ({ type }) => type === EARN_EXPERIENCES.STABLECOIN_LENDING,
+      ),
+    ).toBe(true);
   });
 
   it('marks Money deposit experiences with subsidized routes', () => {
@@ -766,6 +880,16 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('reports initial lending metadata work as loading without an error', () => {
+    mockUseEarnSectionLendingMarkets.mockReturnValue({
+      markets: [market, unheldMarket],
+      isLoading: false,
+      error: null,
+      refresh: refreshLendingMarkets,
+    });
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      assets: [moneyToken],
+    });
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {},
       isLoading: true,

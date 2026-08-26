@@ -27,12 +27,9 @@ import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSecti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import type { EarnAssetId } from '../../types/earnAssets';
-import type {
-  EarnSectionAssetSlot,
-  EarnSectionRankedAsset,
-} from '../../utils/earnSection';
+import type { EarnSectionRankedAsset } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import EarnSection from './EarnSection';
+import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
 import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
 import Logger from '../../../../../util/Logger';
 
@@ -188,6 +185,7 @@ const renderEarnSection = (
 describe('EarnSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetEarnSectionRefreshForTests();
     mockMoneyAccountVisible = false;
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
@@ -539,6 +537,27 @@ describe('EarnSection', () => {
     expect(mockRefetchBalance).not.toHaveBeenCalled();
   });
 
+  it('does not refresh or query Money balance while disabled', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({ refresh });
+
+    renderEarnSection({
+      enabled: false,
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockUseEarnSectionAssets).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(refresh).not.toHaveBeenCalled();
+    expect(mockRefetchBalance).not.toHaveBeenCalled();
+  });
+
   it('refreshes catalogue and Money balance for an Explore trigger', async () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
     mockSectionResult({ refresh });
@@ -643,12 +662,13 @@ describe('EarnSection', () => {
 
   it('prevents duplicate retries while a refresh is pending', async () => {
     let resolveRefresh: (() => void) | undefined;
-    const refresh = jest.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveRefresh = resolve;
-        }),
-    );
+    let refreshPromise: Promise<void> | undefined;
+    const refresh = jest.fn(() => {
+      refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      return refreshPromise;
+    });
     mockSectionResult({
       hasError: true,
       refresh,
@@ -663,11 +683,20 @@ describe('EarnSection', () => {
 
     await act(async () => {
       resolveRefresh?.();
+      await refreshPromise;
     });
 
-    fireEvent.press(retryButton);
+    await act(async () => {
+      fireEvent.press(retryButton);
+      await Promise.resolve();
+    });
 
     expect(refresh).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      resolveRefresh?.();
+      await refreshPromise;
+    });
   });
 
   it('renders skeleton slots while catalogue data loads', () => {

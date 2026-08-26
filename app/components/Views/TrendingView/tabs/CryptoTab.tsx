@@ -11,7 +11,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
-import EarnSection from '../../../UI/Earn/components/EarnSection';
+import ExploreEarnSection from '../components/ExploreEarnSection';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
@@ -225,12 +225,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     if (isEarnSectionEnabled) {
       items.push({
         key: 'earn',
-        content: (
-          <EarnSection
-            refresh={refresh}
-            tokenDetailsSource={TokenDetailsSource.ExploreEarn}
-          />
-        ),
+        content: <ExploreEarnSection tabName="Crypto" refresh={refresh} />,
       });
     }
 

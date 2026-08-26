@@ -186,7 +186,7 @@ const useMoneyAccountBalance = ({
   const withdrawableMusdRaw = moneyBalanceQuery.data?.vmusdValueInMusd;
 
   useEffect(() => {
-    if (isBalanceFetchError || isBalanceLoading) {
+    if (!enabled || isBalanceFetchError || isBalanceLoading) {
       return;
     }
     dispatch(
@@ -200,6 +200,7 @@ const useMoneyAccountBalance = ({
     dispatch,
     moneyAccountAddress,
     withdrawableMusdRaw,
+    enabled,
     isBalanceFetchError,
     isBalanceLoading,
   ]);
