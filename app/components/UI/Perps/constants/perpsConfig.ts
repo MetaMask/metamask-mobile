@@ -355,3 +355,17 @@ export const PERPS_CONNECTION_SOURCE = {
   PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
   UNSPECIFIED: 'unspecified',
 } as const;
+
+/**
+ * Pro-mode layout defaults that intentionally differ from the shared controller
+ * defaults. Mobile shows the order-book column pinned right; Extension opens its
+ * slide-in panel closed on the left. Confirmed as a deliberate per-platform
+ * split, so mobile overrides rather than changing the shared default.
+ *
+ * Applied to fresh installs at controller init; migration 151 moves installs
+ * that were created before the split.
+ */
+export const MOBILE_PRO_LAYOUT_DEFAULTS = {
+  orderBookExpanded: true,
+  orderBookPosition: 'right',
+} as const;
