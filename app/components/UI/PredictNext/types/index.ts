@@ -1,3 +1,5 @@
+import { PREDICT_MARKET_TYPES } from '../constants';
+
 export type PredictVenueId = string & { readonly __brand: 'PredictVenueId' };
 export type PredictEntityId = string & { readonly __brand: 'PredictEntityId' };
 export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
@@ -22,7 +24,9 @@ export type PredictMarketStatus =
 
 export type PredictOutcomeSide = 'yes' | 'no';
 export type PredictGameSelection = 'home' | 'away' | 'draw';
-export type PredictMarketType = 'spread' | 'total' | (string & {});
+export type PredictMarketType =
+  | (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES]
+  | (string & {});
 export type PredictMarketGroupType = 'marketSelector' | (string & {});
 
 export interface PredictMarketOption {

@@ -1,3 +1,4 @@
+import { PREDICT_MARKET_TYPES } from '../../constants';
 import { PredictErrorCode } from '../../errors';
 import type {
   PredictEntityId,
@@ -93,7 +94,7 @@ describe('KalshiRemoteAdapter', () => {
     const group = {
       key: 'total-points',
       groupType: 'marketSelector',
-      marketType: 'total',
+      marketType: PREDICT_MARKET_TYPES.TOTAL,
       option: { type: 'number', value: 220.5 },
       displayOrder: 0,
     };
@@ -119,7 +120,7 @@ describe('KalshiRemoteAdapter', () => {
     const spreadGroup = {
       key: 'spread-home',
       groupType: 'marketSelector',
-      marketType: 'spread',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
       option: { type: 'number', value: 1.5 },
       displayOrder: 0,
     };
@@ -140,8 +141,8 @@ describe('KalshiRemoteAdapter', () => {
     expect(result.markets).toHaveLength(3);
     expect(result.markets.map((market) => market.group?.marketType)).toEqual([
       undefined,
-      'total',
-      'spread',
+      PREDICT_MARKET_TYPES.TOTAL,
+      PREDICT_MARKET_TYPES.SPREAD,
     ]);
   });
 

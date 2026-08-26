@@ -846,7 +846,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders both spread legs in one card and selects by horizontal drag', async () => {
+  it('renders both spread legs from home to away and selects by horizontal drag', async () => {
     const event = makePredictNextSpreadsEvent();
     resolveEventForRoute(event);
     const view = renderPredictEventScreen(routeParams);
@@ -864,6 +864,9 @@ describe('PredictEventScreen', () => {
       within(card).getByTestId(
         MarketGroupCardTestIds.row('nfl-spreads', marketId, side),
       );
+    const selector = view.getByTestId(
+      MarketGroupCardTestIds.selector('nfl-spreads'),
+    );
 
     expect(
       within(card).getByTestId(MarketGroupCardTestIds.title('nfl-spreads')),
@@ -872,16 +875,16 @@ describe('PredictEventScreen', () => {
       getOutcomeButton('nfl-spread-new-england-2-5', 'yes'),
     ).toBeDisabled();
     expect(getRow('nfl-spread-new-england-2-5', 'yes')).toHaveTextContent(
-      /\+2\.5/,
+      /-2\.5/,
     );
     expect(getRow('nfl-spread-new-england-2-5', 'no')).toHaveTextContent(
-      /-2\.5/,
+      /\+2\.5/,
     );
     expect(getOutcomeButton('nfl-spread-new-england-2-5', 'no')).toBeDisabled();
     expect(
       getOutcomeButton('nfl-spread-new-england-2-5', 'yes').props
         .accessibilityLabel,
-    ).toBe('New England, line +2.5, price 46¢');
+    ).toBe('New England, line -2.5, price 46¢');
     expect(getOption('nfl-spread-new-england-2-5')).toHaveTextContent('2.5');
     expect(
       getOption('nfl-spread-new-england-2-5').props.accessibilityLabel,
@@ -890,14 +893,42 @@ describe('PredictEventScreen', () => {
       'accessibilityState',
       { selected: true },
     );
+    expect(getOption('nfl-spread-new-england-1-5')).toHaveTextContent('1.5');
+    expect(getOption('nfl-spread-new-england-1-5')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
+    expect(getOption('nfl-spread-seattle-1-5')).toHaveTextContent('1.5');
+    expect(getOption('nfl-spread-seattle-1-5')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
     expect(getOption('nfl-spread-seattle-2-5')).toHaveTextContent('2.5');
     expect(getOption('nfl-spread-seattle-2-5')).toHaveProp(
       'accessibilityState',
       { selected: false },
     );
-    const selector = view.getByTestId(
-      MarketGroupCardTestIds.selector('nfl-spreads'),
-    );
+    expect(
+      within(selector).getAllByTestId(
+        /^predict-next-market-group-nfl-spreads-option-/,
+      ),
+    ).toHaveLength(4);
+    expect(
+      within(selector)
+        .getAllByTestId(/^predict-next-market-group-nfl-spreads-option-/)
+        .map((option) => option.props.testID),
+    ).toEqual([
+      MarketGroupCardTestIds.option(
+        'nfl-spreads',
+        'nfl-spread-new-england-2-5',
+      ),
+      MarketGroupCardTestIds.option(
+        'nfl-spreads',
+        'nfl-spread-new-england-1-5',
+      ),
+      MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-1-5'),
+      MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-2-5'),
+    ]);
     act(() => {
       selector.props.onLayout({
         nativeEvent: { layout: { width: 300 } },
@@ -914,9 +945,17 @@ describe('PredictEventScreen', () => {
       );
       expect(getRow('nfl-spread-seattle-2-5', 'no')).toHaveTextContent(/-2\.5/);
     });
+    expect(getOption('nfl-spread-seattle-1-5')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
     expect(
       view.queryByTestId(
-        MarketGroupCardTestIds.card('nfl-spread-new-england-2-5'),
+        MarketGroupCardTestIds.row(
+          'nfl-spreads',
+          'nfl-spread-new-england-2-5',
+          'yes',
+        ),
       ),
     ).not.toBeOnTheScreen();
   });

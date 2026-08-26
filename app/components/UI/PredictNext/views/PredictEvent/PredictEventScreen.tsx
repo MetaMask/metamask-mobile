@@ -19,6 +19,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PREDICT_MARKET_TYPES } from '../../constants';
 import { findGameSelectionQuote, getEventGame } from '../../events/game';
 import {
   MarketList,
@@ -247,7 +248,7 @@ export const PredictEventScreen = () => {
         onRulesPress: handleMarketRulesPress,
       };
 
-      return projection.marketType === 'total' ? (
+      return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
         <TotalMarketGroupCard key={projection.key} {...groupProps} />
       ) : (
         <SpreadMarketGroupCard key={projection.key} {...groupProps} />

@@ -1,10 +1,12 @@
+import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type {
   PredictMarket,
   PredictMarketGroup,
   PredictMarketOption,
 } from '../../../types';
 
-type SupportedMarketType = 'spread' | 'total';
+type SupportedMarketType =
+  (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES];
 
 type GroupedMarket = PredictMarket & {
   group: PredictMarketGroup & {
@@ -50,29 +52,61 @@ function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
     group !== undefined &&
     group.key.trim().length > 0 &&
     group.groupType === 'marketSelector' &&
-    (group.marketType === 'total' || group.marketType === 'spread') &&
+    (group.marketType === PREDICT_MARKET_TYPES.TOTAL ||
+      group.marketType === PREDICT_MARKET_TYPES.SPREAD) &&
     group.option?.type === 'number' &&
     Number.isFinite(group.option.value)
   );
+}
+
+type SpreadAxisSide = 'home' | 'away';
+
+function getSpreadAxisSide(market: GroupedMarket): SpreadAxisSide | undefined {
+  const gameSelection = market.outcomes.find(
+    (outcome) => outcome.side === 'yes',
+  )?.gameSelection;
+
+  return gameSelection === 'home' || gameSelection === 'away'
+    ? gameSelection
+    : undefined;
 }
 
 function compareMarkets(
   left: { market: GroupedMarket; index: number },
   right: { market: GroupedMarket; index: number },
 ): number {
-  const leftOrder = left.market.group.displayOrder;
-  const rightOrder = right.market.group.displayOrder;
+  if (
+    left.market.group.marketType === PREDICT_MARKET_TYPES.SPREAD &&
+    right.market.group.marketType === PREDICT_MARKET_TYPES.SPREAD
+  ) {
+    const leftSide = getSpreadAxisSide(left.market);
+    const rightSide = getSpreadAxisSide(right.market);
 
-  if (leftOrder !== undefined && rightOrder !== undefined) {
-    return leftOrder - rightOrder || left.index - right.index;
+    if (leftSide !== undefined && rightSide !== undefined) {
+      if (leftSide !== rightSide) {
+        return leftSide === 'home' ? -1 : 1;
+      }
+
+      const magnitudeDifference =
+        Math.abs(left.market.group.option.value) -
+        Math.abs(right.market.group.option.value);
+
+      if (magnitudeDifference !== 0) {
+        return leftSide === 'home' ? -magnitudeDifference : magnitudeDifference;
+      }
+    }
+
+    return (
+      left.market.group.option.value - right.market.group.option.value ||
+      (left.market.group.displayOrder ?? left.index) -
+        (right.market.group.displayOrder ?? right.index)
+    );
   }
-  if (leftOrder !== undefined) {
-    return -1;
-  }
-  if (rightOrder !== undefined) {
-    return 1;
-  }
-  return left.index - right.index;
+
+  return (
+    (left.market.group.displayOrder ?? left.index) -
+    (right.market.group.displayOrder ?? right.index)
+  );
 }
 
 function getProjectedMarkets(
@@ -108,7 +142,10 @@ export function createMarketGroupProjection(
       return;
     }
 
-    const hasDuplicateOption = existing.optionValues.has(group.option.value);
+    // Kalshi has one market per team for each spread magnitude.
+    const hasDuplicateOption =
+      group.marketType !== PREDICT_MARKET_TYPES.SPREAD &&
+      existing.optionValues.has(group.option.value);
     existing.markets.push({ market, index });
     existing.optionValues.add(group.option.value);
     existing.isValid =

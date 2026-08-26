@@ -1,3 +1,4 @@
+import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type {
   PredictEntityId,
   PredictMarket,
@@ -28,7 +29,7 @@ const createMarket = (
 });
 
 const createGroup = (
-  marketType: 'spread' | 'total',
+  marketType: (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES],
   key: string,
   option: number,
   displayOrder?: number,
@@ -44,8 +45,14 @@ describe('createMarketGroupProjection', () => {
   it('groups related Markets, orders options, and keeps the group position', () => {
     const markets = [
       createMarket('standard'),
-      createMarket('total-high', createGroup('total', 'totals', 220.5, 1)),
-      createMarket('total-low', createGroup('total', 'totals', 218.5, 0)),
+      createMarket(
+        'total-high',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 220.5, 1),
+      ),
+      createMarket(
+        'total-low',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 218.5, 0),
+      ),
       createMarket('after-standard'),
     ];
 
@@ -56,7 +63,7 @@ describe('createMarketGroupProjection', () => {
       {
         type: 'group',
         key: 'totals',
-        marketType: 'total',
+        marketType: PREDICT_MARKET_TYPES.TOTAL,
         markets: [markets[2], markets[1]],
         firstIndex: 1,
       },
@@ -67,10 +74,22 @@ describe('createMarketGroupProjection', () => {
   it('keeps moneyline Markets beside total and spread groups', () => {
     const markets = [
       createMarket('moneyline'),
-      createMarket('spread-high', createGroup('spread', 'spreads', 2.5, 1)),
-      createMarket('total-high', createGroup('total', 'totals', 220.5, 1)),
-      createMarket('spread-low', createGroup('spread', 'spreads', 1.5, 0)),
-      createMarket('total-low', createGroup('total', 'totals', 218.5, 0)),
+      createMarket(
+        'spread-high',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 2.5, 1),
+      ),
+      createMarket(
+        'total-high',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 220.5, 1),
+      ),
+      createMarket(
+        'spread-low',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 0),
+      ),
+      createMarket(
+        'total-low',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 218.5, 0),
+      ),
     ];
 
     expect(createMarketGroupProjection(markets)).toEqual([
@@ -78,7 +97,7 @@ describe('createMarketGroupProjection', () => {
       {
         type: 'group',
         key: 'spreads',
-        marketType: 'spread',
+        marketType: PREDICT_MARKET_TYPES.SPREAD,
         markets: [markets[3], markets[1]],
         firstIndex: 1,
       },
@@ -96,22 +115,22 @@ describe('createMarketGroupProjection', () => {
     const markets = [
       createMarket(
         'spread-home-high',
-        createGroup('spread', 'home-spreads', 2.5, 0),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'home-spreads', 2.5, 0),
         'home',
       ),
       createMarket(
         'spread-away-high',
-        createGroup('spread', 'away-spreads', 2.5, 1),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'away-spreads', 2.5, 1),
         'away',
       ),
       createMarket(
         'spread-home-low',
-        createGroup('spread', 'home-spreads', 1.5, 2),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'home-spreads', 1.5, 2),
         'home',
       ),
       createMarket(
         'spread-away-low',
-        createGroup('spread', 'away-spreads', 1.5, 3),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'away-spreads', 1.5, 3),
         'away',
       ),
     ];
@@ -120,16 +139,53 @@ describe('createMarketGroupProjection', () => {
       {
         type: 'group',
         key: 'home-spreads',
-        marketType: 'spread',
+        marketType: PREDICT_MARKET_TYPES.SPREAD,
         markets: [markets[0], markets[2]],
         firstIndex: 0,
       },
       {
         type: 'group',
         key: 'away-spreads',
-        marketType: 'spread',
-        markets: [markets[1], markets[3]],
+        marketType: PREDICT_MARKET_TYPES.SPREAD,
+        markets: [markets[3], markets[1]],
         firstIndex: 1,
+      },
+    ]);
+  });
+
+  it('orders spread legs across the home-to-away axis', () => {
+    const markets = [
+      createMarket(
+        'spread-home-high',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 2.5, 0),
+        'home',
+      ),
+      createMarket(
+        'spread-away-high',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 2.5, 1),
+        'away',
+      ),
+      createMarket(
+        'spread-home-low',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 2),
+        'home',
+      ),
+      createMarket(
+        'spread-away-low',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 3),
+        'away',
+      ),
+    ];
+
+    const result = createMarketGroupProjection(markets);
+
+    expect(result).toEqual([
+      {
+        type: 'group',
+        key: 'spreads',
+        marketType: PREDICT_MARKET_TYPES.SPREAD,
+        markets: [markets[0], markets[2], markets[3], markets[1]],
+        firstIndex: 0,
       },
     ]);
   });
@@ -148,11 +204,11 @@ describe('createMarketGroupProjection', () => {
   it('falls back to standard cards for duplicate total options', () => {
     const duplicate = createMarket(
       'duplicate',
-      createGroup('total', 'bad', 1, 0),
+      createGroup(PREDICT_MARKET_TYPES.TOTAL, 'bad', 1, 0),
     );
     const duplicateAgain = createMarket(
       'duplicate-again',
-      createGroup('total', 'bad', 1, 1),
+      createGroup(PREDICT_MARKET_TYPES.TOTAL, 'bad', 1, 1),
     );
 
     expect(createMarketGroupProjection([duplicate, duplicateAgain])).toEqual([
