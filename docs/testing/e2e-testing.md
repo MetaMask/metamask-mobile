@@ -109,16 +109,14 @@ import AppiumMatchers from '../framework/AppiumMatchers';
 // Different testID on iOS vs Android Appium
 get actionButton() {
   return encapsulated({
-    appium: {
-      android: () =>
-        AppiumMatchers.getElementById(TabBarSelectorIDs.TRADE, {
-          exact: true,
-        }),
-      ios: () =>
-        AppiumMatchers.getElementByAccessibilityId(
-          TabBarSelectorIDs.ACTIONS,
-        ),
-    },
+    android: () =>
+      AppiumMatchers.getElementById(TabBarSelectorIDs.TRADE, {
+        exact: true,
+      }),
+    ios: () =>
+      AppiumMatchers.getElementByAccessibilityId(
+        TabBarSelectorIDs.ACTIONS,
+      ),
   });
 }
 
@@ -150,7 +148,7 @@ Available `resolve()` shapes:
 | `{ label }`                                | Match by accessibility label                     |
 | `{ text }`                                 | Match by visible text                            |
 
-For Appium-only iOS vs Android testID differences, use `encapsulated({ appium: { android: () => ..., ios: () => ... } })` instead of `resolve()` when the locator strategy itself differs.
+For Appium-only iOS vs Android testID differences, use `encapsulated({ android: () => ..., ios: () => ... })` instead of `resolve()` when the locator strategy itself differs.
 
 ### Edge Case: different selector type per platform
 
@@ -161,9 +159,7 @@ import { encapsulated } from '../framework/EncapsulatedElement';
 import AppiumMatchers from '../framework/AppiumMatchers';
 
 getAccountElementByName(accountName: string) {
-  return encapsulated({
-    appium: () => AppiumMatchers.getElementByText(accountName),
-  });
+  return encapsulated(() => AppiumMatchers.getElementByText(accountName));
 }
 ```
 
@@ -176,11 +172,9 @@ import { encapsulatedAction } from '../framework/encapsulatedAction';
 import AppiumGestures from '../framework/AppiumGestures';
 
 async enterPassword(password: string): Promise<void> {
-  await encapsulatedAction({
-    appium: async () => {
-      await Gestures.typeText(this.passwordInput, password);
-      await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
-    },
+  await encapsulatedAction(async () => {
+    await Gestures.typeText(this.passwordInput, password);
+    await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
   });
 }
 ```
@@ -196,13 +190,13 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
   NO → Does only the testID value differ per platform?
     YES → resolve({ testID, iosAppiumTestID }) when Android shares testID
           OR resolve({ androidAppiumTestID, iosAppiumTestID | iosAppiumXPath })
-          OR encapsulated({ appium: { android: () => ..., ios: () => ... } })
+          OR encapsulated({ android: () => ..., ios: () => ... })
 
     NO → Does only the selector type differ (ID vs text vs label)?
-      YES → encapsulated({ appium: ... })
+      YES → encapsulated(() => ...)
 
       NO → Does the action flow itself differ?
-        YES → encapsulatedAction({ appium: ... })
+        YES → encapsulatedAction(async () => ...)
 ```
 
 ## Test Organization — Appium Specs

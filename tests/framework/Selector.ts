@@ -18,100 +18,87 @@ export type Selector =
 export function resolve(selector: Selector): Promise<AppiumElement> {
   if ('iosAppiumXPath' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
     });
   }
 
   if ('androidAppiumTestID' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () =>
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
     });
   }
 
   if ('iosAppiumTestID' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.testID, {
-            exact: true,
-            index: selector.index,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
-            index: selector.index,
-          }),
-      },
-    });
-  }
-
-  if ('label' in selector) {
-    return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementByAndroidUIAutomator(
-            `.description("${selector.label}")`,
-            { index: selector.index ?? 0 },
-          ),
-        ios: () =>
-          AppiumMatchers.getElementByCatchAll(selector.label, {
-            index: selector.index ?? 0,
-          }),
-      },
-    });
-  }
-
-  if ('text' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementByText(selector.text, false, {
-          index: selector.index ?? 0,
-        }),
-    });
-  }
-
-  if ('textPattern' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementByText(selector.textPattern, false, {
-          index: selector.index ?? 0,
-        }),
-    });
-  }
-
-  if ('testIDPattern' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementById(selector.testIDPattern, {
-          index: selector.index,
-        }),
-    });
-  }
-
-  return encapsulated({
-    appium: {
       android: () =>
         AppiumMatchers.getElementById(selector.testID, {
           exact: true,
           index: selector.index,
         }),
       ios: () =>
-        AppiumMatchers.getElementByAccessibilityId(selector.testID, {
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
           index: selector.index,
         }),
-    },
+    });
+  }
+
+  if ('label' in selector) {
+    return encapsulated({
+      android: () =>
+        AppiumMatchers.getElementByAndroidUIAutomator(
+          `.description("${selector.label}")`,
+          { index: selector.index ?? 0 },
+        ),
+      ios: () =>
+        AppiumMatchers.getElementByCatchAll(selector.label, {
+          index: selector.index ?? 0,
+        }),
+    });
+  }
+
+  if ('text' in selector) {
+    return encapsulated(() =>
+      AppiumMatchers.getElementByText(selector.text, false, {
+        index: selector.index ?? 0,
+      }),
+    );
+  }
+
+  if ('textPattern' in selector) {
+    return encapsulated(() =>
+      AppiumMatchers.getElementByText(selector.textPattern, false, {
+        index: selector.index ?? 0,
+      }),
+    );
+  }
+
+  if ('testIDPattern' in selector) {
+    return encapsulated(() =>
+      AppiumMatchers.getElementById(selector.testIDPattern, {
+        index: selector.index,
+      }),
+    );
+  }
+
+  return encapsulated({
+    android: () =>
+      AppiumMatchers.getElementById(selector.testID, {
+        exact: true,
+        index: selector.index,
+      }),
+    ios: () =>
+      AppiumMatchers.getElementByAccessibilityId(selector.testID, {
+        index: selector.index,
+      }),
   });
 }
 

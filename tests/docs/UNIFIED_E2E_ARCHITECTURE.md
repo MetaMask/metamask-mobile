@@ -53,8 +53,8 @@ export default new LoginPage();
 Prefer the same `Matchers` / `Gestures` / `Assertions` call for iOS and Android.
 
 - Different testID / platform locator → `resolve({ testID, iosAppiumTestID, ... })`
-- Different selector strategy → `encapsulated({ appium: () => ... })`
-- Structurally different action flow → `encapsulatedAction({ appium: async () => ... })`
+- Different selector strategy → `encapsulated(() => ...)` or `encapsulated({ android, ios })`
+- Structurally different action flow → `encapsulatedAction(async () => ...)`
 
 Canonical guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
 Runbook: [docs/testing/appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md).

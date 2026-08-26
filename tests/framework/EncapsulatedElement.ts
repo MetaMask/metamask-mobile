@@ -23,42 +23,32 @@ export interface PlatformLocator {
 }
 
 /**
- * Locator configuration for Appium (platform-generic or per-platform).
+ * Locator configuration: a single locator function, or per-platform locators.
  */
-export interface LocatorConfig {
-  appium:
-    | (() => Promise<AppiumElement>)
-    | {
-        android?: () => Promise<AppiumElement>;
-        ios?: () => Promise<AppiumElement>;
-      };
-}
+export type LocatorConfig =
+  | (() => Promise<AppiumElement>)
+  | {
+      android?: () => Promise<AppiumElement>;
+      ios?: () => Promise<AppiumElement>;
+    };
 
 /**
  * Encapsulated element factory — resolves Appium locators.
  */
 export class EncapsulatedElement {
   static create(config: LocatorConfig): Promise<AppiumElement> {
-    return this.createAppiumElement(config);
-  }
-
-  private static async createAppiumElement(
-    config: LocatorConfig,
-  ): Promise<AppiumElement> {
-    if (!config.appium) {
-      throw new Error('Appium configuration is required');
-    }
-
-    if (typeof config.appium === 'function') {
-      return config.appium();
+    if (typeof config === 'function') {
+      return config();
     }
 
     const platform = PlatformDetector.getPlatform();
-    const platformLocator = config.appium[platform];
+    const platformLocator = config[platform];
 
     if (!platformLocator) {
-      throw new Error(
-        `Appium locator for platform '${platform}' is not provided in the configuration`,
+      return Promise.reject(
+        new Error(
+          `Locator for platform '${platform}' is not provided in the configuration`,
+        ),
       );
     }
 

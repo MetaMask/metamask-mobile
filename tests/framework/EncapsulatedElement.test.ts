@@ -57,11 +57,9 @@ describe('EncapsulatedElement', () => {
   });
 
   describe('EncapsulatedElement.create', () => {
-    it('uses a generic appium locator function', async () => {
+    it('uses a locator function', async () => {
       const mockElement = createMockAppiumElement();
-      const config: LocatorConfig = {
-        appium: () => Promise.resolve(mockElement),
-      };
+      const config: LocatorConfig = () => Promise.resolve(mockElement);
 
       await expect(EncapsulatedElement.create(config)).resolves.toBe(
         mockElement,
@@ -73,10 +71,8 @@ describe('EncapsulatedElement', () => {
       const androidElement = createMockAppiumElement();
       const iosElement = createMockAppiumElement();
       const config: LocatorConfig = {
-        appium: {
-          android: () => Promise.resolve(androidElement),
-          ios: () => Promise.resolve(iosElement),
-        },
+        android: () => Promise.resolve(androidElement),
+        ios: () => Promise.resolve(iosElement),
       };
 
       await expect(EncapsulatedElement.create(config)).resolves.toBe(
@@ -89,10 +85,8 @@ describe('EncapsulatedElement', () => {
       const androidElement = createMockAppiumElement();
       const iosElement = createMockAppiumElement();
       const config: LocatorConfig = {
-        appium: {
-          android: () => Promise.resolve(androidElement),
-          ios: () => Promise.resolve(iosElement),
-        },
+        android: () => Promise.resolve(androidElement),
+        ios: () => Promise.resolve(iosElement),
       };
 
       await expect(EncapsulatedElement.create(config)).resolves.toBe(
@@ -100,22 +94,14 @@ describe('EncapsulatedElement', () => {
       );
     });
 
-    it('throws when appium config is missing', async () => {
-      await expect(
-        EncapsulatedElement.create({} as LocatorConfig),
-      ).rejects.toThrow('Appium configuration is required');
-    });
-
     it('throws when platform locator is missing', async () => {
       setDeviceInfo('ios', windowSize);
       const config: LocatorConfig = {
-        appium: {
-          android: () => Promise.resolve(createMockAppiumElement()),
-        },
+        android: () => Promise.resolve(createMockAppiumElement()),
       };
 
       await expect(EncapsulatedElement.create(config)).rejects.toThrow(
-        /Appium locator for platform 'ios'/,
+        /Locator for platform 'ios'/,
       );
     });
   });
@@ -124,7 +110,7 @@ describe('EncapsulatedElement', () => {
     it('delegates to EncapsulatedElement.create', async () => {
       const mockElement = createMockAppiumElement();
       await expect(
-        encapsulated({ appium: () => Promise.resolve(mockElement) }),
+        encapsulated(() => Promise.resolve(mockElement)),
       ).resolves.toBe(mockElement);
     });
   });
