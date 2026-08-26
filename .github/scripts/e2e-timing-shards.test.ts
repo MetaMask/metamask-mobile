@@ -146,11 +146,11 @@ describe('e2e-timing-shards', () => {
 
   describe('chooseShardCount (dynamic)', () => {
     const cfg = {
-      targetMinutes: 25,
-      overheadMinutes: 8,
+      targetMinutes: 20,
+      overheadMinutes: 5,
       maxShards: 6,
     };
-    // budget = 17 minutes = 1020s
+    // budget = 15 minutes = 900s
 
     it('returns 0 for empty file lists', () => {
       expect(chooseShardCount(0, 9999, cfg)).toBe(0);
@@ -162,15 +162,15 @@ describe('e2e-timing-shards', () => {
     });
 
     it('uses packed budget (target − overhead)', () => {
-      // 1020s → 1 shard; 1021s → 2
-      expect(chooseShardCount(10, 1020, cfg)).toBe(1);
-      expect(chooseShardCount(10, 1021, cfg)).toBe(2);
+      // 900s → 1 shard; 901s → 2
+      expect(chooseShardCount(10, 900, cfg)).toBe(1);
+      expect(chooseShardCount(10, 901, cfg)).toBe(2);
     });
 
     it('exposes defaults matching the opt-in label policy', () => {
-      expect(DYNAMIC_SHARD_DEFAULTS.overheadMinutes).toBe(8);
+      expect(DYNAMIC_SHARD_DEFAULTS.overheadMinutes).toBe(5);
       expect(DYNAMIC_SHARD_DEFAULTS.maxShards).toBe(6);
-      expect(DYNAMIC_SHARD_DEFAULTS.targetMinutes).toBe(25);
+      expect(DYNAMIC_SHARD_DEFAULTS.targetMinutes).toBe(20);
     });
   });
 

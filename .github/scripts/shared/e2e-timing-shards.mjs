@@ -5,8 +5,8 @@
 
 /** Defaults for opt-in dynamic shard count (`appium-dynamic-shards` label). */
 export const DYNAMIC_SHARD_DEFAULTS = {
-  targetMinutes: 25,
-  overheadMinutes: 8,
+  targetMinutes: 20,
+  overheadMinutes: 5,
   maxShards: 6,
   medianFallbackSeconds: 60,
 };

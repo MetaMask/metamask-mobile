@@ -41,7 +41,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Appium dynamic shard count
 
-- **appium-dynamic-shards**: Opt into timing-based Appium smoke shard **counts** (25m target − 8m overhead packed budget, max 6 shards), then LPT-pack specs into those shards. Default remains fixed `total_splits` from the smoke workflows with the same LPT / equal-count packing. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **appium-dynamic-shards**: Opt into timing-based Appium smoke shard **counts** (20m target − 5m overhead packed budget, max 6 shards), then LPT-pack specs into those shards. Default remains fixed `total_splits` from the smoke workflows with the same LPT / equal-count packing. Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Force Performance Tests
 
