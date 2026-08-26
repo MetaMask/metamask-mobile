@@ -673,9 +673,9 @@ jobs:
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     needs: [js-bundle-size-check]
-    # Cron on main only: scheduled runs would otherwise push duplicate
+    # Push/merge on main only: scheduled runs would otherwise push duplicate
     # entries to the external mobile_bundlesize_stats repo.
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'schedule' }}
     permissions:
       id-token: write
       contents: read
