@@ -77,10 +77,11 @@ const additionalArtifactDirs = (
     if (
       path.isAbsolute(relativeDir) ||
       relativeDir === '.' ||
-      relativeDir.split(/[\\/]/).includes('..')
+      relativeDir.split(/[\\/]/).includes('..') ||
+      path.resolve(__dirname, relativeDir) === __dirname
     ) {
       throw new Error(
-        'METRO_ADDITIONAL_ARTIFACT_DIRS accepts only checkout-relative directories without `..`.',
+        'METRO_ADDITIONAL_ARTIFACT_DIRS accepts only non-root checkout-relative directories without `..`.',
       );
     }
     return relativeDir;
