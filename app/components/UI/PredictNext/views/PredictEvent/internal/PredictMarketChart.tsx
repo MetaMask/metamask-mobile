@@ -17,7 +17,7 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from 'react-native-svg';
-import I18n from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useTheme } from '../../../../../../util/theme';
 import { roundProbabilityToWhole } from '../../../utils/formatProbability';
@@ -215,8 +215,13 @@ export const PredictMarketChart = ({
       accessibilityRole="image"
       accessibilityLabel={
         scrub
-          ? `Market probability history at ${scrubTime}. ${accessibilityValues}`
-          : `Market probability history. ${accessibilityValues}`
+          ? strings('predict.history.chart_scrub_accessibility_label', {
+              time: scrubTime,
+              values: accessibilityValues,
+            })
+          : strings('predict.history.chart_accessibility_label', {
+              values: accessibilityValues,
+            })
       }
       onLayout={handleLayout}
       style={[styles.container, { height: layout.height }]}
