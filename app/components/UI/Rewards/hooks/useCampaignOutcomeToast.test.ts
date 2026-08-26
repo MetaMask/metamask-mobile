@@ -344,7 +344,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
       const { onClose } = mockToast.mock.calls[0][0];
-      onClose();
+      onClose?.();
 
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith({
         campaignId: CAMPAIGN_ID,
@@ -365,7 +365,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
       const { onClose } = mockToast.mock.calls[0][0];
-      onClose();
+      onClose?.();
 
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith({
         campaignId: CAMPAIGN_ID,
@@ -387,7 +387,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
       const { actionButtonOnPress } = mockToast.mock.calls[0][0];
-      actionButtonOnPress();
+      actionButtonOnPress?.({} as never);
 
       expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
         { navigate: mockNavigate },
@@ -410,7 +410,7 @@ describe('useCampaignOutcomeToast', () => {
       renderHook(() => useCampaignOutcomeToast(mockConfig));
 
       const { actionButtonOnPress } = mockToast.mock.calls[0][0];
-      actionButtonOnPress();
+      actionButtonOnPress?.({} as never);
 
       expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
         { navigate: mockNavigate },
