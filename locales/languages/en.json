@@ -2846,6 +2846,13 @@
       "loading_accessibility_label": "Loading event",
       "unable_to_load": "Unable to load this event."
     },
+    "history": {
+      "loading_accessibility_label": "Loading market history",
+      "unable_to_load": "Market history could not be loaded.",
+      "unavailable_for_range": "Market history is not available for this range.",
+      "chart_accessibility_label": "Market probability history. {{values}}",
+      "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
