@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,7 +22,7 @@ import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import type { PredictMarket } from '../../types';
+import type { PredictEvent, PredictMarket } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import {
   EventLoadingHeader,
@@ -37,6 +37,23 @@ type RulesTarget =
   | { type: 'market'; marketId: PredictMarket['id'] }
   | null;
 
+const EventScreenChrome = ({
+  children,
+  onBack,
+}: {
+  children: React.ReactNode;
+  onBack: () => void;
+}) => (
+  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+    <HeaderStandard
+      includesTopInset
+      onBack={onBack}
+      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+    />
+    {children}
+  </Box>
+);
+
 const EventScreenLayout = ({
   children,
   onBack,
@@ -47,23 +64,38 @@ const EventScreenLayout = ({
   const tw = useTailwind();
 
   return (
-    <Box
-      testID={PredictEventScreenTestIds.VIEW}
-      twClassName="flex-1 bg-default"
-    >
-      <HeaderStandard
-        includesTopInset
-        onBack={onBack}
-        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-      />
+    <EventScreenChrome onBack={onBack}>
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
-    </Box>
+    </EventScreenChrome>
   );
 };
 
+const EventDetailHeader = ({
+  event,
+  onEventRulesPress,
+}: {
+  event: PredictEvent;
+  onEventRulesPress?: () => void;
+}) => (
+  <Box>
+    {getEventGame(event) ? (
+      <GameEventHeader event={event} onRulesPress={onEventRulesPress} />
+    ) : (
+      <StandardEventHeader event={event} onRulesPress={onEventRulesPress} />
+    )}
+    <Box
+      testID={PredictEventScreenTestIds.PREDICT_SECTION}
+      twClassName="mt-8 pb-[14px]"
+    >
+      <Text variant={TextVariant.HeadingMd}>{strings('wallet.predict')}</Text>
+    </Box>
+  </Box>
+);
+
 export const PredictEventScreen = () => {
+  const tw = useTailwind();
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, eventId, titleSnapshot } =
@@ -71,12 +103,14 @@ export const PredictEventScreen = () => {
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
+  const listContentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
     debugContext: {
       hasEvent: Boolean(query.data),
       error: query.isError,
+      marketCount: query.data?.markets.length ?? 0,
     },
   });
   useEffect(() => {
@@ -102,6 +136,15 @@ export const PredictEventScreen = () => {
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
+  const renderMarket = useCallback(
+    (market: PredictMarket) => (
+      <MarketStandardCard
+        market={market}
+        onRulesPress={handleMarketRulesPress}
+      />
+    ),
+    [handleMarketRulesPress],
+  );
 
   if (query.data) {
     const eventRules = query.data.rules?.trim();
@@ -114,36 +157,21 @@ export const PredictEventScreen = () => {
 
     return (
       <>
-        <EventScreenLayout onBack={handleBack}>
-          {getEventGame(query.data) ? (
-            <GameEventHeader
-              event={query.data}
-              onRulesPress={eventRules ? handleEventRulesPress : undefined}
-            />
-          ) : (
-            <StandardEventHeader
-              event={query.data}
-              onRulesPress={eventRules ? handleEventRulesPress : undefined}
-            />
-          )}
-          <Box
-            testID={PredictEventScreenTestIds.PREDICT_SECTION}
-            twClassName="mt-8 gap-[14px]"
-          >
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('wallet.predict')}
-            </Text>
-            <MarketList>
-              {query.data.markets.map((market) => (
-                <MarketStandardCard
-                  key={market.id}
-                  market={market}
-                  onRulesPress={handleMarketRulesPress}
-                />
-              ))}
-            </MarketList>
-          </Box>
-        </EventScreenLayout>
+        <EventScreenChrome onBack={handleBack}>
+          <MarketList
+            markets={query.data.markets}
+            renderItem={renderMarket}
+            contentContainerStyle={listContentContainerStyle}
+            ListHeaderComponent={
+              <EventDetailHeader
+                event={query.data}
+                onEventRulesPress={
+                  eventRules ? handleEventRulesPress : undefined
+                }
+              />
+            }
+          />
+        </EventScreenChrome>
         <RulesBottomSheet
           isVisible={rulesTarget !== null}
           eventRules={eventRules}
