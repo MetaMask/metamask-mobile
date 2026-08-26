@@ -80,7 +80,14 @@ const status = enums([
 ] as const);
 const venueStatus = enums(['available', 'degraded', 'unavailable'] as const);
 const side = enums(['yes', 'no'] as const);
-const marketHistoryRange = enums(['LIVE', '1D', '1W', '1M', '1Y'] as const);
+const marketHistoryRange = enums([
+  'LIVE',
+  '1D',
+  '1W',
+  '1M',
+  '1Y',
+  'ALL',
+] as const);
 const gameSelection = enums(['home', 'away', 'draw'] as const);
 const gameStatus = enums([
   'scheduled',

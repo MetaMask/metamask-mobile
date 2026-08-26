@@ -33,8 +33,8 @@ import {
 } from './chartModel';
 import { ChartPulse } from './chartPulse';
 
-const DEFAULT_HEIGHT = 150;
-const DEFAULT_LABEL_GUTTER = 116;
+export const PREDICT_MARKET_CHART_HEIGHT = 150;
+const DEFAULT_LABEL_GUTTER = 0;
 const DEFAULT_CONTINUATION_WIDTH = 0;
 const LABEL_NAME_BASELINE_OFFSET = -5;
 const LABEL_VALUE_BASELINE_OFFSET = 24;
@@ -66,7 +66,7 @@ const getGradientId = (prefix: string, seriesId: string, index: number) =>
 /** Renders caller-owned probability series without choosing product data. */
 export const PredictMarketChart = ({
   series,
-  height = DEFAULT_HEIGHT,
+  height = PREDICT_MARKET_CHART_HEIGHT,
   labelGutter = DEFAULT_LABEL_GUTTER,
   continuationWidth = DEFAULT_CONTINUATION_WIDTH,
   lineWidth = 2,

@@ -99,13 +99,13 @@ describe('PredictMarketChart', () => {
     const awayPath = view.getByTestId('market-chart-line-away').props.d;
     const homeStart = Number(homePath.match(/^M(-?[\d.]+),/)?.[1]);
     const awayStart = Number(awayPath.match(/^M(-?[\d.]+),/)?.[1]);
-    const homeEnd = Number(homePath.match(/L([\d.]+),[^L]+$/)?.[1]);
-    const awayEnd = Number(awayPath.match(/L([\d.]+),[^L]+$/)?.[1]);
+    const homeEnd = Number(homePath.match(/(-?[\d.]+),-?[\d.]+$/)?.[1]);
+    const awayEnd = Number(awayPath.match(/(-?[\d.]+),-?[\d.]+$/)?.[1]);
 
-    expect(homePath).not.toContain('C');
-    expect(awayPath).not.toContain('C');
+    expect(homePath).toContain('C');
+    expect(awayPath).toContain('C');
     expect(homeStart).toBeCloseTo(0);
-    expect(awayStart).toBeGreaterThan(homeStart);
+    expect(awayStart).toBeCloseTo(homeStart);
     expect(awayEnd).toBeCloseTo(homeEnd);
     expect(view.getByLabelText(/Vikings 61%, Ravens 38%/)).toBeOnTheScreen();
     expect(
@@ -116,7 +116,7 @@ describe('PredictMarketChart', () => {
     ).toBeOnTheScreen();
   });
 
-  it('holds each observed price until the next observation', () => {
+  it('smooths every observed price movement with horizontal bumps', () => {
     const view = render(
       <PredictMarketChart
         series={[
@@ -141,8 +141,8 @@ describe('PredictMarketChart', () => {
 
     const path = view.getByTestId('market-chart-line-price').props.d as string;
 
-    expect(path).not.toContain('C');
-    expect(path.match(/L/g)).toHaveLength(4);
+    expect(path.match(/C/g)).toHaveLength(2);
+    expect(path).not.toContain('L');
   });
 
   it('uses Kalshi-style nice bounds for the visible value range', () => {
@@ -182,8 +182,8 @@ describe('PredictMarketChart', () => {
     const lowerY = Number(lowerPath.match(/^M-?[\d.]+,([\d.]+)/)?.[1]);
     const upperY = Number(upperPath.match(/^M-?[\d.]+,([\d.]+)/)?.[1]);
 
-    expect(lowerY).toBeCloseTo(112.8);
-    expect(upperY).toBeCloseTo(37.2);
+    expect(lowerY).toBeCloseTo(108.736);
+    expect(upperY).toBeCloseTo(49.264);
   });
 
   it('keeps a low-probability value label inside the chart viewport', () => {
@@ -243,7 +243,7 @@ describe('PredictMarketChart', () => {
     const path = view.getByTestId('market-chart-line-top').props.d as string;
     const firstY = Number(path.match(/^M-?[\d.]+,([\d.]+)/)?.[1]);
 
-    expect(firstY).toBeGreaterThanOrEqual(13);
+    expect(firstY).toBeGreaterThanOrEqual(21);
   });
 
   it('reserves scaled space for endpoint labels at large font sizes', () => {
@@ -397,7 +397,7 @@ describe('PredictMarketChart', () => {
 
   it.each([
     { x: 0, edge: 'left' },
-    { x: 227, edge: 'right' },
+    { x: 260, edge: 'right' },
   ] as const)('keeps the scrub timestamp inside the $edge edge', ({ x }) => {
     const view = render(
       <PredictMarketChart
@@ -416,7 +416,7 @@ describe('PredictMarketChart', () => {
     expect(view.getByTestId('market-chart-scrub-time').props.matrix[4]).toBe(x);
   });
 
-  it('shows the timestamp and carry-forward prices while scrubbing', () => {
+  it('shows the timestamp and interpolated prices while scrubbing', () => {
     const view = render(
       <PredictMarketChart
         series={testSeries}
@@ -429,11 +429,11 @@ describe('PredictMarketChart', () => {
       nativeEvent: { layout: { width: 343, height: 240 } },
     });
 
-    fireEvent(chart, 'responderGrant', createResponderEvent(90.8, 80));
+    fireEvent(chart, 'responderGrant', createResponderEvent(104, 80));
 
     expect(
       view.getByLabelText(
-        /Market probability history at Time 1[34][0-9]\. Vikings 58%/,
+        /Market probability history at Time 1[34][0-9]\. Vikings 59%/,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -446,15 +446,15 @@ describe('PredictMarketChart', () => {
       0.3,
     );
 
-    fireEvent(chart, 'responderMove', createResponderEvent(154.4, 80));
+    fireEvent(chart, 'responderMove', createResponderEvent(176.9, 80));
 
     expect(
       view.getByLabelText(
-        /Market probability history at Time 1[67][0-9]\. Vikings 58%, Ravens 41%/,
+        /Market probability history at Time 1[67][0-9]\. Vikings 60%, Ravens 39%/,
       ),
     ).toBeOnTheScreen();
 
-    fireEvent(chart, 'responderRelease', createResponderEvent(154.4, 80));
+    fireEvent(chart, 'responderRelease', createResponderEvent(176.9, 80));
 
     expect(view.queryByTestId('market-chart-scrub-future')).toBeNull();
     expect(

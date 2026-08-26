@@ -1,4 +1,4 @@
-import { area, curveStepAfter, line } from 'd3-shape';
+import { area, curveBumpX, line } from 'd3-shape';
 
 export interface ChartPoint {
   /** Unix timestamp in milliseconds. */
@@ -53,7 +53,7 @@ interface ScaledChartLayoutOptions {
   values: readonly string[];
 }
 
-export const CHART_PLOT_TOP = 12;
+export const CHART_PLOT_TOP = 20;
 export const CHART_PLOT_BOTTOM_INSET = 12;
 export const ENDPOINT_LABEL_GAP = 18;
 
@@ -67,6 +67,7 @@ const LABEL_NAME_FONT_SIZE = 14;
 const LABEL_VALUE_FONT_SIZE = 28;
 const MIN_LABEL_SPACING = 46;
 const VALUE_TICK_COUNT = 5;
+const VALUE_SCALE_MARGIN = 0.08;
 
 const estimateTextWidth = (
   text: string,
@@ -146,6 +147,35 @@ export const sampleAtTime = (
   return value;
 };
 
+const interpolateAtTime = (
+  data: readonly ChartPoint[],
+  time: number,
+): number | undefined => {
+  let low = 0;
+  let high = data.length - 1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    const point = data[middle];
+    if (point.time === time) {
+      return point.value;
+    }
+    if (point.time < time) {
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  const previous = data[high];
+  const next = data[low];
+  if (!previous) return undefined;
+  if (!next) return previous.value;
+
+  const progress = (time - previous.time) / (next.time - previous.time);
+  return previous.value + (next.value - previous.value) * progress;
+};
+
 const getTimeDomain = (
   series: readonly ChartSeries[],
 ): [number, number] | undefined => {
@@ -167,8 +197,14 @@ const clipToTimeDomain = (
   const points = data.filter(
     (point) => point.time >= minTime && point.time <= maxTime,
   );
-  const startValue = sampleAtTime(data, minTime);
-  const endValue = sampleAtTime(data, maxTime);
+  // Carry the first observation left so a late-starting series still
+  // spans the shared domain instead of appearing mid-chart.
+  const startValue =
+    sampleAtTime(data, minTime) ?? points[0]?.value ?? data[0]?.value;
+  const endValue =
+    sampleAtTime(data, maxTime) ??
+    points[points.length - 1]?.value ??
+    data[data.length - 1]?.value;
 
   if (startValue !== undefined && points[0]?.time !== minTime) {
     points.unshift({ time: minTime, value: startValue });
@@ -251,12 +287,11 @@ const scaleValue = (
   const normalizedValue =
     (Math.max(minValue, Math.min(maxValue, value)) - minValue) /
     (maxValue - minValue);
+  const scaledValue =
+    VALUE_SCALE_MARGIN + normalizedValue * (1 - VALUE_SCALE_MARGIN * 2);
   return Math.max(
     CHART_PLOT_TOP + strokeInset,
-    Math.min(
-      plotBottom - strokeInset,
-      plotBottom - normalizedValue * plotHeight,
-    ),
+    Math.min(plotBottom - strokeInset, plotBottom - scaledValue * plotHeight),
   );
 };
 
@@ -352,12 +387,12 @@ export const createChartModel = ({
   const lineGenerator = line<ChartPoint>()
     .x((point) => x(point.time))
     .y((point) => y(point.value))
-    .curve(curveStepAfter);
+    .curve(curveBumpX);
   const areaGenerator = area<ChartPoint>()
     .x((point) => x(point.time))
     .y0(plotBottom)
     .y1((point) => y(point.value))
-    .curve(curveStepAfter);
+    .curve(curveBumpX);
   const endpoints = addLabelPositions(
     drawableSeries.map((entry) => {
       const value =
@@ -380,7 +415,7 @@ export const createChartModel = ({
   let displayedSeries = preparedSeries;
   if (scrub) {
     const scrubbed = preparedSeries.flatMap((entry) => {
-      const value = sampleAtTime(entry.data, scrub.time);
+      const value = interpolateAtTime(entry.data, scrub.time);
       return value === undefined
         ? []
         : [{ entry, x: scrub.x, y: y(value), value }];

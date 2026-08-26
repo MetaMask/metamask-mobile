@@ -3,7 +3,7 @@ import { renderPredictEventScreen } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
-import { processColor } from 'react-native';
+import { processColor, StyleSheet } from 'react-native';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -114,7 +114,7 @@ const createGameEventWithTeamMarkets = () => {
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
-const createHistory = (marketId: string, range = 'LIVE', pointCount = 2) => ({
+const createHistory = (marketId: string, range = 'ALL', pointCount = 2) => ({
   venueId,
   marketId,
   range,
@@ -205,7 +205,7 @@ describe('PredictEventScreen', () => {
         'PredictMarketDataService:getMarketHistory',
         venueId,
         secondMarket.id,
-        'LIVE',
+        'ALL',
         undefined,
       ),
     );
@@ -220,6 +220,21 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    expect(
+      view.getByTestId(PredictMarketHistoryTestIds.range('ALL')).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
+    expect(
+      (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
+        view.getByTestId(PredictMarketHistoryTestIds.range(range)),
+      ),
+    ).toHaveLength(4);
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.range('1Y')),
+    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
     fireEvent.press(view.getByTestId(PredictMarketHistoryTestIds.range('1W')));
 
@@ -281,11 +296,31 @@ describe('PredictEventScreen', () => {
     expect(empty).toHaveTextContent(
       'Market history is not available for this range.',
     );
+    expect(StyleSheet.flatten(empty.props.style).height).toBe(150);
     expect(view.getByText('40%')).toBeOnTheScreen();
     expect(view.queryByText('+0 pts')).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.CHART),
     ).not.toBeOnTheScreen();
+  });
+
+  it('reserves the chart height while Market history loads', async () => {
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getEvent') {
+        return Promise.resolve(createEvent());
+      }
+      if (action === 'PredictMarketDataService:getMarketHistory') {
+        return new Promise(() => undefined);
+      }
+      return Promise.resolve(undefined);
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    const loading = await view.findByTestId(
+      PredictMarketHistoryTestIds.LOADING,
+    );
+
+    expect(StyleSheet.flatten(loading.props.style).height).toBe(150);
   });
 
   it('keeps cached Market history visible when a refetch fails', async () => {
@@ -325,7 +360,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders Game chart lines from each Team Market history', async () => {
+  it('plots each Team Market history as its own chart line', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
     resolveEvent(event);
     const view = renderPredictEventScreen(routeParams);
@@ -345,26 +380,68 @@ describe('PredictEventScreen', () => {
         `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
       ).props.stroke.payload,
     ).toEqual(processColor(homeTeamColor));
+    // The API serves complementary series per market; each line ends at its
+    // own market's latest point.
+    expect(
+      view.getByLabelText(/Panthers 42%, Cardinals 42%/),
+    ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           awayMarket.id,
-          'LIVE',
+          'ALL',
           undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
-          'LIVE',
+          'ALL',
           undefined,
         ],
       ]),
     );
     expect(
       view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits a Team chart line whose history has fewer than two points', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string, range?: string) => {
+        if (action === 'PredictMarketDataService:getEvent') {
+          return Promise.resolve(event);
+        }
+        if (action === 'PredictMarketDataService:getMarketHistory') {
+          return Promise.resolve(
+            createHistory(id, range, id === homeMarket.id ? 1 : 2),
+          );
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
+      ),
+    ).toBeNull();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.EMPTY),
     ).not.toBeOnTheScreen();
   });
 
@@ -590,7 +667,7 @@ describe('PredictEventScreen', () => {
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
-      'LIVE',
+      'ALL',
       undefined,
     );
   });

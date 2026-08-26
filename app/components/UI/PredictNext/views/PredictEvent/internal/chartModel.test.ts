@@ -54,7 +54,7 @@ describe('sampleAtTime', () => {
 });
 
 describe('createChartModel', () => {
-  it('preserves series presentation and uses step-after paths', () => {
+  it('preserves series presentation and smooths every observed movement', () => {
     const series = [
       {
         id: 'yes',
@@ -83,11 +83,11 @@ describe('createChartModel', () => {
       color: 'blue',
       data: series[0].data,
     });
-    expect(result?.series[0].linePath.match(/L/g)).toHaveLength(2);
-    expect(result?.series[0].linePath).not.toContain('C');
+    expect(result?.series[0].linePath.match(/C/g)).toHaveLength(1);
+    expect(result?.series[0].linePath).not.toContain('L');
   });
 
-  it('omits a scrub endpoint before its series starts', () => {
+  it('extends a late-starting series left while omitting its pre-start scrub', () => {
     const result = createChartModel({
       series: [
         {
@@ -119,7 +119,8 @@ describe('createChartModel', () => {
     });
 
     expect(result?.displayedSeries.map((entry) => entry.id)).toEqual(['home']);
-    expect(result?.series[1].linePath.startsWith('M100,')).toBe(true);
+    expect(result?.displayedSeries[0].endpoint.value).toBeCloseTo(0.575);
+    expect(result?.series[1].linePath.startsWith('M0,')).toBe(true);
   });
 
   it('normalizes unordered points before generating paths and endpoints', () => {
@@ -175,6 +176,19 @@ describe('getScaledChartLayout', () => {
     });
 
     expect(result.labelGutter).toBe(360);
+  });
+
+  it('sizes the gutter to compact team labels instead of a wide default', () => {
+    const result = getScaledChartLayout({
+      height: 150,
+      labelGutter: 0,
+      fontScale: 1,
+      labels: ['Bills', 'Steelers'],
+      values: ['54%', '46%'],
+    });
+
+    expect(result.labelGutter).toBeGreaterThan(80);
+    expect(result.labelGutter).toBeLessThan(116);
   });
 });
 

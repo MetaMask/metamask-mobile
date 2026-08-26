@@ -24,6 +24,7 @@ import {
   roundProbabilityToWhole,
 } from '../../../utils/formatProbability';
 import {
+  PREDICT_MARKET_CHART_HEIGHT,
   PredictMarketChart,
   type PredictMarketChartPoint,
   type PredictMarketChartSeries,
@@ -31,11 +32,10 @@ import {
 import { PredictMarketHistoryTestIds } from './PredictMarketHistory.testIds';
 
 const HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
-  'LIVE',
   '1D',
   '1W',
   '1M',
-  '1Y',
+  'ALL',
 ];
 
 const styles = StyleSheet.create({
@@ -74,6 +74,14 @@ interface MarketHistorySeries {
   points: readonly PredictMarketChartPoint[];
 }
 
+const toChartPoints = (
+  points: readonly { timestamp: string; yesPrice: string }[],
+): PredictMarketChartPoint[] =>
+  points.map((point) => ({
+    time: Date.parse(point.timestamp),
+    value: Number(point.yesPrice),
+  }));
+
 interface MarketHistoryContentProps {
   range: PredictMarketHistoryRange;
   onRangeChange: (range: PredictMarketHistoryRange) => void;
@@ -94,14 +102,16 @@ const MarketHistoryContent = ({
   header,
 }: MarketHistoryContentProps) => {
   const { colors } = useTheme();
-  const hasDrawableSeries =
-    series.length > 0 && series.every((entry) => entry.points.length >= 2);
-  const chartSeries: PredictMarketChartSeries[] = series.map((entry) => ({
-    id: entry.id,
-    label: entry.label,
-    color: entry.color,
-    data: entry.points,
-  }));
+  const chartStateStyle = { height: PREDICT_MARKET_CHART_HEIGHT };
+  const chartSeries: PredictMarketChartSeries[] = series
+    .filter((entry) => entry.points.length >= 2)
+    .map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      color: entry.color,
+      data: entry.points,
+    }));
+  const hasDrawableSeries = chartSeries.length > 0;
 
   return (
     <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
@@ -113,12 +123,14 @@ const MarketHistoryContent = ({
           accessibilityLabel="Loading Market history"
           accessibilityRole="progressbar"
           testID={PredictMarketHistoryTestIds.LOADING}
-          twClassName="h-44 rounded-2xl bg-muted"
+          style={chartStateStyle}
+          twClassName="rounded-2xl bg-muted"
         />
       ) : isError ? (
         <Box
           testID={PredictMarketHistoryTestIds.ERROR}
-          twClassName="h-44 items-center justify-center gap-4 rounded-2xl bg-muted px-6"
+          style={chartStateStyle}
+          twClassName="items-center justify-center gap-4 rounded-2xl bg-muted px-6"
         >
           <Text
             accessibilityRole="alert"
@@ -133,17 +145,20 @@ const MarketHistoryContent = ({
       ) : !hasDrawableSeries ? (
         <Box
           testID={PredictMarketHistoryTestIds.EMPTY}
-          twClassName="h-44 items-center justify-center rounded-2xl bg-muted px-6"
+          style={chartStateStyle}
+          twClassName="items-center justify-center rounded-2xl bg-muted px-6"
         >
           <Text color={TextColor.TextAlternative}>
             Market history is not available for this range.
           </Text>
         </Box>
       ) : (
-        <PredictMarketChart
-          testID={PredictMarketHistoryTestIds.CHART}
-          series={chartSeries}
-        />
+        <Box twClassName="-ml-4">
+          <PredictMarketChart
+            testID={PredictMarketHistoryTestIds.CHART}
+            series={chartSeries}
+          />
+        </Box>
       )}
 
       <Box style={styles.rangeRow}>
@@ -190,7 +205,7 @@ export const PredictMarketHistory = ({
   market,
 }: PredictMarketHistoryProps) => {
   const { colors } = useTheme();
-  const [range, setRange] = useState<PredictMarketHistoryRange>('LIVE');
+  const [range, setRange] = useState<PredictMarketHistoryRange>('ALL');
   const historyQuery = useMarketHistory(venueId, market.id, range);
   const yesOutcome = market.outcomes.find((outcome) => outcome.side === 'yes');
   const noOutcome = market.outcomes.find((outcome) => outcome.side === 'no');
@@ -287,30 +302,24 @@ export const PredictGameMarketHistory = ({
   away,
 }: PredictGameMarketHistoryProps) => {
   const { colors } = useTheme();
-  const [range, setRange] = useState<PredictMarketHistoryRange>('LIVE');
+  const [range, setRange] = useState<PredictMarketHistoryRange>('ALL');
   const homeHistory = useMarketHistory(venueId, home.market.id, range);
   const awayHistory = useMarketHistory(venueId, away.market.id, range);
-  const homePoints = homeHistory.data?.points ?? [];
-  const awayPoints = awayHistory.data?.points ?? [];
   const hasCompleteData = Boolean(homeHistory.data && awayHistory.data);
+  // The Predict API merges both team markets of a game into complementary
+  // series, so each line plots its own market's history unchanged.
   const series: MarketHistorySeries[] = [
     {
       id: home.market.id,
       label: getCompactTeamLabel(home.team),
       color: home.team.primaryColor ?? colors.success.default,
-      points: homePoints.map((point) => ({
-        time: Date.parse(point.timestamp),
-        value: Number(point.yesPrice),
-      })),
+      points: toChartPoints(homeHistory.data?.points ?? []),
     },
     {
       id: away.market.id,
       label: getCompactTeamLabel(away.team),
       color: away.team.primaryColor ?? colors.info.default,
-      points: awayPoints.map((point) => ({
-        time: Date.parse(point.timestamp),
-        value: Number(point.yesPrice),
-      })),
+      points: toChartPoints(awayHistory.data?.points ?? []),
     },
   ];
 
