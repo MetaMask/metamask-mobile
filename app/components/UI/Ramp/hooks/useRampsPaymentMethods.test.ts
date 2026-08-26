@@ -1,4 +1,9 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import {
+  cleanup,
+  renderHook,
+  act,
+  waitFor,
+} from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { Provider } from 'react-redux';
@@ -245,6 +250,13 @@ describe('useRampsPaymentMethods', () => {
   });
 
   afterEach(async () => {
+    // Unmount first. RNTL registers its auto-cleanup at root scope, and
+    // jest-circus runs the innermost afterEach first, so without this the
+    // clients below are torn down under a live React tree: observers re-render,
+    // rebuild the query, and (Buy runs at staleTime 0) fetch again. That fires
+    // 0-2 stray requests per suite run, absorbed today only by the
+    // `jest.clearAllMocks()` in `beforeEach` above. Keep that clear where it is.
+    cleanup();
     await act(async () => {
       for (const queryClient of queryClients.splice(0)) {
         await queryClient.cancelQueries();
@@ -704,6 +716,9 @@ describe('useRampsPaymentMethods', () => {
     const { Wrapper } = createWrapper(store);
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
+    // The two mounts must stay adjacent with no await between them. Buy runs at
+    // staleTime 0, so once the first request settles the second mount refetches
+    // rather than sharing it, and the dedupe below counts 2.
     const first = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
