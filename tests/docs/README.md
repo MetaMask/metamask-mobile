@@ -15,7 +15,7 @@
 
 - **Appium smoke (`tests/smoke-appium/`)** — Primary E2E path for new coverage (Playwright + Appium). See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
 - **Helpers (`tests/helpers/`)** — Shared E2E helpers (swap, perps, analytics, etc.)
-- **Legacy smoke shared utils (`tests/smoke/identity/`, `tests/smoke/snaps/`)** — Still imported by Appium; no Detox specs remain
+- **Legacy smoke shared utils (`tests/smoke/identity/`, `tests/smoke/snaps/`)** — Still imported by Appium
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
@@ -37,7 +37,7 @@
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
 - `tests/smoke-appium/` - Appium smoke tests (Playwright); primary path for new specs
 - `tests/helpers/` - Shared E2E helpers (swap, perps, analytics, …)
-- `tests/smoke/identity/`, `tests/smoke/snaps/` - Shared Appium helpers (no Detox specs)
+- `tests/smoke/identity/`, `tests/smoke/snaps/` - Shared Appium helpers
 - `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
@@ -76,7 +76,7 @@ await withFixtures(
 - ✅ **ALWAYS** define element selectors in page objects or selector files
 - ✅ **ALWAYS** access UI elements through page object methods
 - ❌ **NEVER** use `element(by.id())` directly in test specs
-- ❌ **NEVER** use raw driver assertions or Detox APIs in new specs
+- ❌ **NEVER** use raw driver assertions in specs
 
 **Test Structure Requirements:**
 
@@ -267,7 +267,7 @@ await Assertions.checkIfVisible(element);
 // DON'T: Use direct element selectors in tests
 element(by.id('send-button')).tap();
 
-// DON'T: Use raw driver assertions or Detox APIs in new specs
+// DON'T: Use raw driver assertions in specs
 await waitFor(element).toBeVisible();
 
 // DON'T: Missing descriptions

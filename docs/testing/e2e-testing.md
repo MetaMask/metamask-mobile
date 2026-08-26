@@ -217,7 +217,7 @@ Required Appium spec differences:
 - `import { test as appiumTest }` from the Playwright fixture index
 - `{ driver: _driver, currentDeviceDetails }` fixture args
 - `currentDeviceDetails` passed to `withFixtures`
-- `loginToAppPlaywright(...)` instead of legacy Detox `loginToApp()`
+- `loginToAppPlaywright(...)` for Appium smoke login
 
 ## Test Atomicity and Coupling
 
