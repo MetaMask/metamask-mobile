@@ -488,3 +488,50 @@ declare module '@veriff/react-native-sdk' {
   const VeriffSdk: VeriffSdkModule;
   export default VeriffSdk;
 }
+
+declare module '@sumsub/react-native-mobilesdk-module' {
+  export interface SumSubLaunchResult {
+    success: boolean;
+    status: string;
+    errorType?: string;
+    errorMsg?: string;
+  }
+
+  export interface SumSubStatusChangedEvent {
+    prevStatus: string;
+    newStatus: string;
+  }
+
+  export type SumSubTokenExpirationHandler = () => Promise<string>;
+
+  export interface SumSubSdkInstance {
+    launch: () => Promise<SumSubLaunchResult>;
+    dismiss: () => void;
+  }
+
+  export interface SumSubSdkBuilder {
+    withHandlers: (handlers: {
+      onStatusChanged?: (event: SumSubStatusChangedEvent) => void;
+      onEvent?: (event: { eventType: string; payload?: unknown }) => void;
+      onLog?: (event: { message: string }) => void;
+    }) => SumSubSdkBuilder;
+    withDebug: (debug: boolean) => SumSubSdkBuilder;
+    withLocale: (locale: string) => SumSubSdkBuilder;
+    withAnalyticsEnabled: (enabled: boolean) => SumSubSdkBuilder;
+    withApplicantConf: (conf: Record<string, string>) => SumSubSdkBuilder;
+    withTheme: (theme: Record<string, unknown>) => SumSubSdkBuilder;
+    onTestEnv: () => SumSubSdkBuilder;
+    build: () => SumSubSdkInstance;
+  }
+
+  interface SNSMobileSDKModule {
+    init: (
+      accessToken: string,
+      expirationHandler: SumSubTokenExpirationHandler,
+    ) => SumSubSdkBuilder;
+    reset: () => void;
+  }
+
+  const SNSMobileSDK: SNSMobileSDKModule;
+  export default SNSMobileSDK;
+}

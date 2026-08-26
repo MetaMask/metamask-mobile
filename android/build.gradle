@@ -34,6 +34,11 @@ buildscript {
         maven { url "https://jitpack.io" }
         maven { url "file://${rootDir}/libs" }
 				maven { url "https://cdn.veriff.me/android/" }
+				// Sumsub Idensic Mobile SDK (VBA KYC). Public Maven — no dashboard
+				// credentials or private maven-private repo. Do not add the EID
+				// artifact; that one requires Sumsub-issued Maven credentials.
+				maven { url "https://maven.sumsub.com/repository/maven-public/" }
+				maven { url "https://maven.sumsub.com/repository/maven-releases/" }
     }
 	}
 }
@@ -44,6 +49,11 @@ subprojects { subproject ->
 	subproject.afterEvaluate {
 		if (subproject.extensions.findByName('android') != null) {
 			subproject.android.ndkVersion = rootProject.ext.ndkVersion
+			// AGP 8 requires namespace; the Sumsub RN module still only sets it via
+			// the manifest package attribute.
+			if (subproject.name.contains('react-native-mobilesdk') && !subproject.android.namespace) {
+				subproject.android.namespace = 'com.sumsub.msdk.plugins.reactnative'
+			}
 		}
 	}
 }

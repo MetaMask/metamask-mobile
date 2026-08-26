@@ -1,17 +1,33 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { launchSumSubSdk } from './launchSumSubSdk';
 import {
   IDOS_PRIVACY_POLICY_URL,
   IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
+  SUMSUB_ACCESS_TOKEN,
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
+
+jest.mock('./launchSumSubSdk', () => ({
+  launchSumSubSdk: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -156,5 +172,35 @@ describe('VbaVerifyIdentity', () => {
       getByTestId(VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK),
     );
     expect(spy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
+  });
+
+  it('launches the Sumsub SDK when continue is pressed', async () => {
+    mockLaunchSumSubSdk.mockResolvedValue({
+      success: true,
+      status: 'Approved',
+    });
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
+        accessToken: SUMSUB_ACCESS_TOKEN,
+      });
+    });
+  });
+
+  it('stays on the screen when the Sumsub SDK launch fails', async () => {
+    mockLaunchSumSubSdk.mockRejectedValue(new Error('launch failed'));
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

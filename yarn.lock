@@ -18067,6 +18067,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sumsub/react-native-mobilesdk-module@npm:^1.45.1":
+  version: 1.45.1
+  resolution: "@sumsub/react-native-mobilesdk-module@npm:1.45.1"
+  peerDependencies:
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 10/e6fd41b16af1b15824fa894415a9f6d128b981cbc66e4fdb4b058b93d5c51a4a0bc7b59df99724773bc4446057a1188c4df25f258b263b839f0edc059349f4f1
+  languageName: node
+  linkType: hard
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
@@ -35897,6 +35906,7 @@ __metadata:
     "@storybook/addon-ondevice-controls": "npm:^6.5.6"
     "@storybook/builder-webpack5": "npm:^7.5.1"
     "@storybook/react-native": "npm:^6.5.6"
+    "@sumsub/react-native-mobilesdk-module": "npm:^1.45.1"
     "@tanstack/query-core": "npm:4.43.0"
     "@tanstack/react-query": "npm:^4.43.0"
     "@testing-library/react": "npm:14.0.0"

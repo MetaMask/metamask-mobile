@@ -556,6 +556,14 @@ NativeModules.NotifeeApiModule = {
   eventsNotifyReady: jest.fn(),
 };
 
+NativeModules.SNSMobileSDKModule = {
+  launch: jest.fn(() => Promise.resolve({ success: false, status: 'Failed' })),
+  dismiss: jest.fn(),
+  updateAccessToken: jest.fn(),
+  addListener: jest.fn(),
+  removeListeners: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };

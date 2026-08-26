@@ -493,6 +493,11 @@ PODS:
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
+  - IdensicMobileSDK (1.45.1):
+    - IdensicMobileSDK/Default (= 1.45.1)
+  - IdensicMobileSDK/Core (1.45.1)
+  - IdensicMobileSDK/Default (1.45.1):
+    - IdensicMobileSDK/Core
   - libavif/core (1.0.0)
   - libavif/libdav1d (1.0.0):
     - libavif/core
@@ -2830,6 +2835,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-mobilesdk-module (1.45.1):
+    - IdensicMobileSDK (= 1.45.1)
+    - React-Core
   - react-native-netinfo (11.5.2):
     - boost
     - DoubleConversion
@@ -4573,6 +4581,7 @@ DEPENDENCIES:
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - IdensicMobileSDK (from `IdensicMobileSDK.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
   - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
@@ -4632,6 +4641,7 @@ DEPENDENCIES:
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
+  - "react-native-mobilesdk-module (from `../node_modules/@sumsub/react-native-mobilesdk-module`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -4839,6 +4849,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-v0.14.1
+  IdensicMobileSDK:
+    :podspec: IdensicMobileSDK.podspec
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   NativeUtils:
@@ -4953,6 +4965,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-launch-arguments"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
+  react-native-mobilesdk-module:
+    :path: "../node_modules/@sumsub/react-native-mobilesdk-module"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -5174,6 +5188,7 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: f37e1d6f1eb198649a60b3f17b6f685a6ac12470
+  IdensicMobileSDK: 5e4a2270591256ca50b44d55329943a7d7a8b2de
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -5240,6 +5255,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: dbf568b5d029cdc5b26667a7c2323b160c25dc00
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
+  react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
   react-native-netinfo: 57447b5a45c98808f8eae292cf641f3d91d13830
   react-native-pager-view: 1baaa3452a7d5efbd642856cbbdafbd8958028b4
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
@@ -5331,6 +5347,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 765be4dd3d78fecfb151a4b9e4a55956b1ebf8aa
+PODFILE CHECKSUM: 9eb9ed1f649572c8931fbdacb3e93082c06c4d91
 
 COCOAPODS: 1.16.2

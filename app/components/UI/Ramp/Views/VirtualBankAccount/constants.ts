@@ -54,3 +54,10 @@ export const IDOS_PRIVACY_POLICY_URL =
 export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
+
+/**
+ * Optional applicant access token for local Sumsub launches. Tokens are minted
+ * by the KYC API (not by embedding Sumsub dashboard App Token / Secret in the
+ * app). Leave unset — the native SDK still launches without it.
+ */
+export const SUMSUB_ACCESS_TOKEN = process.env.MM_SUMSUB_ACCESS_TOKEN ?? '';
