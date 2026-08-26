@@ -197,7 +197,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
-  it('keeps the minimum-order error visible during live-price validation', async () => {
+  it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
       .validateOrder as jest.Mock;
     let resolvePendingValidation:
@@ -206,9 +206,9 @@ describe('PerpsOrderView', () => {
     const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
       resolvePendingValidation = resolve;
     });
-    validateOrder.mockResolvedValue({ isValid: true });
+    validateOrder.mockReturnValue(pendingValidation);
 
-    const { stream } = renderPerpsOrderView({
+    renderPerpsOrderView({
       overrides: eligibleOverrides,
       initialParams: {
         asset: 'ETH',
@@ -243,11 +243,9 @@ describe('PerpsOrderView', () => {
     expect(placeOrderButton).toBeDisabled();
     fireEvent.press(placeOrderButton);
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
-
-    validateOrder.mockReturnValue(pendingValidation);
-    await new Promise<void>((resolve) => setTimeout(resolve, 1100));
-    emitEthPrice(stream, '2', '2501');
-    await new Promise<void>((resolve) => setTimeout(resolve, 1100));
+    await waitFor(() => {
+      expect(validateOrder).toHaveBeenCalled();
+    });
 
     expect(placeOrderButton).toBeOnTheScreen();
     expect(placeOrderButton).toBeDisabled();

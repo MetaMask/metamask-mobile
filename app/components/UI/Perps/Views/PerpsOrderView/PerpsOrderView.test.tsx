@@ -272,6 +272,7 @@ jest.mock('../../hooks', () => ({
     warnings: [],
     fieldIssues: [],
     isValidating: false,
+    validateNow: jest.fn(),
   })),
   usePerpsOrderExecution: jest.fn(() => ({
     placeOrder: jest.fn().mockResolvedValue({ success: true }),
@@ -1034,6 +1035,7 @@ describe('PerpsOrderView', () => {
       warnings: [],
       fieldIssues: [],
       isValidating: false,
+      validateNow: jest.fn(),
     });
     mockPerpsAdvancedChartEnabled = false;
     mockSliderDragValue = 0;
@@ -2139,16 +2141,34 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.busy).toBe(true);
     });
 
-    it('keeps a previously valid CTA stable during active protocol validation', async () => {
+    it('validates a pending order on tap without changing CTA presentation', async () => {
       // Arrange
+      let resolveValidation:
+        | ((attempt: {
+            isValid: boolean;
+            errors: string[];
+            warnings: string[];
+            fieldIssues: never[];
+          }) => void)
+        | undefined;
+      const pendingValidation = new Promise<{
+        isValid: boolean;
+        errors: string[];
+        warnings: string[];
+        fieldIssues: never[];
+      }>((resolve) => {
+        resolveValidation = resolve;
+      });
+      const validateNow = jest.fn().mockReturnValue(pendingValidation);
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
         fieldIssues: [],
         isValidating: true,
+        validateNow,
       });
 
-      const mockPlaceOrder = jest.fn();
+      const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: mockPlaceOrder,
         isPlacing: false,
@@ -2168,8 +2188,17 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.busy).not.toBe(true);
       await act(async () => {
         fireEvent.press(placeOrderButton);
+        fireEvent.press(placeOrderButton);
+        resolveValidation?.({
+          isValid: true,
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+        });
+        await pendingValidation;
       });
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(validateNow).toHaveBeenCalledTimes(1);
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
 
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,

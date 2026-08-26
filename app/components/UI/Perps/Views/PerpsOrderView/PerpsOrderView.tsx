@@ -1273,6 +1273,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
 
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
+  const validateOrderNow = orderValidation.validateNow;
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
@@ -1335,7 +1336,36 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      let submissionIsValid = orderValidation.isValid;
+      let submissionErrors = orderValidation.errors;
       if (orderValidation.isValidating) {
+        isSubmittingRef.current = true;
+        try {
+          const validationAttempt = await validateOrderNow();
+          submissionIsValid = validationAttempt.isValid;
+          submissionErrors = validationAttempt.errors;
+        } finally {
+          isSubmittingRef.current = false;
+        }
+      }
+
+      if (!submissionIsValid) {
+        const firstError =
+          submissionErrors[0] || strings('perps.order.validation.error');
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            firstError,
+          ),
+        );
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+        });
         return;
       }
 
@@ -1419,30 +1449,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
       try {
-        // Validation errors are shown in the UI
-        if (!orderValidation.isValid) {
-          const firstError = orderValidation.errors[0];
-          showToast(
-            PerpsToastOptions.formValidation.orderForm.validationError(
-              firstError,
-            ),
-          );
-
-          // Track validation failure as error encountered
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
-            [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-              PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-          });
-
-          isSubmittingRef.current = false; // Reset flag on early return
-          return;
-        }
-
         // Check for cross-margin position (MetaMask only supports isolated margin)
         if (currentMarketPosition?.leverage?.type === 'cross') {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -1591,6 +1597,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderValidation.isValid,
       orderValidation.isValidating,
       orderValidation.errors,
+      validateOrderNow,
       track,
       orderForm.asset,
       orderForm.direction,
