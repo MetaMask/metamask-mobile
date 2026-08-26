@@ -1,5 +1,7 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { UnconnectedTransactions } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -16,11 +18,20 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { speedUpTransaction } from '../../../util/transaction-controller';
+import { strings } from '../../../../locales/i18n';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
 const mockCreateQRSigningTransactionModalNavDetails = jest.fn();
 const mockExecuteHardwareWalletOperation = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 type FlashListItem = Record<string, unknown>;
 
@@ -188,10 +199,6 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
-}));
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
 }));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -368,6 +375,18 @@ describe('UnconnectedTransactions', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
     resetNavigationMocks();
     (isHardwareAccount as jest.Mock).mockReturnValue(false);
     (isNonEvmChainId as jest.Mock).mockReturnValue(false);
@@ -387,6 +406,7 @@ describe('UnconnectedTransactions', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -801,6 +821,12 @@ describe('UnconnectedTransactions', () => {
         message: 'speedUpTransaction failed ',
         speedUpTxId: 'replacement',
       });
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('transaction_update_toast.title'),
+        description: 'replacement failed',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+      });
     });
 
     it('reports failed cancellation submissions through the transaction toast', async () => {
@@ -817,6 +843,12 @@ describe('UnconnectedTransactions', () => {
       expect(Logger.error).toHaveBeenCalledWith(error, {
         cancelTxId: 'replacement',
         message: 'cancelTransaction failed ',
+      });
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('transaction_update_toast.title'),
+        description: 'cancellation failed',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
       });
     });
 

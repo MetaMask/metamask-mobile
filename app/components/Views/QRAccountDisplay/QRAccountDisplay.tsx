@@ -1,5 +1,5 @@
 'use strict';
-import React, { useContext } from 'react';
+import React from 'react';
 import {
   Box,
   Text,
@@ -10,17 +10,13 @@ import {
   ButtonVariant,
   ButtonSize,
   IconName,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ClipboardManager from '../../../core/ClipboardManager';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../util/theme';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { renderAccountName } from '../../../util/address';
 import { QRAccountDisplayProps } from './QRAccountDisplay.types';
@@ -44,8 +40,6 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   const addr = accountAddress;
   const accounts = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, accounts);
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const addressStart = addr.substring(0, ADDRESS_PREFIX_LENGTH);
   const addressMiddle: string = addr.substring(
@@ -57,16 +51,9 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   );
 
   const showCopyNotificationToast = () => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.Confirmation,
-      iconColor: colors.success.default,
-      labelOptions: [
-        {
-          label: strings(`notifications.address_copied_to_clipboard`),
-          isBold: true,
-        },
-      ],
+    toast({
+      title: strings(`notifications.address_copied_to_clipboard`),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
     });
   };
