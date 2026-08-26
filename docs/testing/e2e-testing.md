@@ -59,7 +59,7 @@ Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID
 ```
 Page object calls Gestures.waitAndTap(elem)
         │
-        └── Appium run → AppiumGestureStrategy → PlaywrightGestures
+        └── Appium run → AppiumGestureStrategy → AppiumGestures
 ```
 
 ## Writing Page Objects
@@ -104,18 +104,18 @@ When the same element needs a different testID or selector strategy between iOS 
 ```typescript
 import { resolve } from '../framework';
 import { encapsulated } from '../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import AppiumMatchers from '../framework/AppiumMatchers';
 
 // Different testID on iOS vs Android Appium (Appium-only — no Detox branch)
 get actionButton() {
   return encapsulated({
     appium: {
       android: () =>
-        PlaywrightMatchers.getElementById(TabBarSelectorIDs.TRADE, {
+        AppiumMatchers.getElementById(TabBarSelectorIDs.TRADE, {
           exact: true,
         }),
       ios: () =>
-        PlaywrightMatchers.getElementByAccessibilityId(
+        AppiumMatchers.getElementByAccessibilityId(
           TabBarSelectorIDs.ACTIONS,
         ),
     },
@@ -159,11 +159,11 @@ When the selector strategy itself differs between iOS and Android Appium (e.g. o
 
 ```typescript
 import { encapsulated } from '../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import AppiumMatchers from '../framework/AppiumMatchers';
 
 getAccountElementByName(accountName: string) {
   return encapsulated({
-    appium: () => PlaywrightMatchers.getElementByText(accountName),
+    appium: () => AppiumMatchers.getElementByText(accountName),
   });
 }
 ```
@@ -174,7 +174,7 @@ Legacy dual-runner branches remain for remaining Detox suites; new work should o
 getAccountElementByName(accountName: string) {
   return encapsulated({
     detox: () => Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
-    appium: () => PlaywrightMatchers.getElementByText(accountName),
+    appium: () => AppiumMatchers.getElementByText(accountName),
   });
 }
 ```
@@ -185,13 +185,13 @@ When the action itself must differ structurally between iOS and Android Appium (
 
 ```typescript
 import { encapsulatedAction } from '../framework/encapsulatedAction';
-import PlaywrightGestures from '../framework/PlaywrightGestures';
+import AppiumGestures from '../framework/AppiumGestures';
 
 async enterPassword(password: string): Promise<void> {
   await encapsulatedAction({
     appium: async () => {
       await Gestures.typeText(this.passwordInput, password);
-      await PlaywrightGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+      await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
     },
   });
 }
@@ -207,7 +207,7 @@ async enterPassword(password: string): Promise<void> {
     },
     appium: async () => {
       await Gestures.typeText(this.passwordInput, password);
-      await PlaywrightGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+      await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
     },
   });
 }
@@ -429,12 +429,9 @@ The following patterns are prohibited in test specs:
 
    ```typescript
    // DON'T — unnecessary when Gestures/Assertions handle the flow:
-   import PlaywrightAssertions from '../framework/PlaywrightAssertions';
-   import { asPlaywrightElement } from '../framework/EncapsulatedElement';
+   import AppiumAssertions from '../framework/AppiumAssertions';
 
-   await PlaywrightAssertions.expectElementToBeVisible(
-     await asPlaywrightElement(this.heading),
-   );
+   await AppiumAssertions.expectElementToBeVisible(await this.heading);
 
    // DO:
    import Assertions from '../framework/Assertions';
@@ -509,7 +506,7 @@ Before submitting E2E tests, ensure:
 - [ ] Framework configuration used appropriately
 - [ ] Error handling for expected failure scenarios
 - [ ] `Gestures` used for interactions — do **not** import or call `UnifiedGestures`
-- [ ] `Gestures`/`Assertions`/`Matchers` used directly — `PlaywrightAssertions`, `PlaywrightGestures`, `asPlaywrightElement` only imported when the flow genuinely requires platform-specific branching
+- [ ] `Gestures`/`Assertions`/`Matchers` used directly — `AppiumAssertions` / `AppiumGestures` only imported when the flow genuinely requires platform-specific branching
 - [ ] `encapsulatedAction` only used when iOS and Android Appium flows structurally differ — not just to call the same method twice
 
 ## Debugging Failed Tests
