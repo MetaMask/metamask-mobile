@@ -117,6 +117,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Components**: Design system first → `component-library` second → custom last
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
@@ -204,6 +205,7 @@ If the user asks to implement a ticket directly from Jira:
 | Documentation             | Path                                         |
 | ------------------------- | -------------------------------------------- |
 | Architecture              | `/docs/readme/architecture.md`               |
+| Animations                | `/docs/readme/animations.md`                 |
 | Environment Setup         | `/docs/readme/environment.md`                |
 | E2E Testing               | `/docs/readme/e2e-testing.md`                |
 | Debugging                 | `/docs/readme/debugging.md`                  |
