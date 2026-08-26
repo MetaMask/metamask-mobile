@@ -52,16 +52,10 @@ describe('rampsPaymentMethodsOptions', () => {
   });
 
   it('requests and returns the exact normalized explicit context', async () => {
-    const response = {
-      methods: [],
-      selected: null,
-      providerIds: ['/providers/transak'],
-    };
-    jest
-      .mocked(
-        Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock,
-      )
-      .mockResolvedValue(response);
+    const response = { methods: [], selected: null };
+    (
+      Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock
+    ).mockResolvedValue(response);
     const opts = rampsPaymentMethodsOptions({
       regionCode: ' US ',
       assetId: ' eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 ',
