@@ -5,6 +5,11 @@ import {
   binPackShards,
   timingLookupKey,
   baseSpecPath,
+  chooseShardCount,
+  estimateTotalDurationSeconds,
+  assignShards,
+  shardsToGithubMatrix,
+  DYNAMIC_SHARD_DEFAULTS,
 } from './shared/e2e-timing-shards.mjs';
 
 describe('e2e-timing-shards', () => {
@@ -136,6 +141,83 @@ describe('e2e-timing-shards', () => {
       expect(computeMedian([10])).toBe(10);
       expect(computeMedian([10, 30])).toBe(20);
       expect(computeMedian([10, 20, 30])).toBe(20);
+    });
+  });
+
+  describe('chooseShardCount (dynamic)', () => {
+    const cfg = {
+      targetMinutes: 25,
+      overheadMinutes: 8,
+      maxShards: 6,
+    };
+    // budget = 17 minutes = 1020s
+
+    it('returns 0 for empty file lists', () => {
+      expect(chooseShardCount(0, 9999, cfg)).toBe(0);
+    });
+
+    it('caps at maxShards and file count', () => {
+      expect(chooseShardCount(3, 10_000, cfg)).toBe(3);
+      expect(chooseShardCount(20, 10_000, cfg)).toBe(6);
+    });
+
+    it('uses packed budget (target − overhead)', () => {
+      // 1020s → 1 shard; 1021s → 2
+      expect(chooseShardCount(10, 1020, cfg)).toBe(1);
+      expect(chooseShardCount(10, 1021, cfg)).toBe(2);
+    });
+
+    it('exposes defaults matching the opt-in label policy', () => {
+      expect(DYNAMIC_SHARD_DEFAULTS.overheadMinutes).toBe(8);
+      expect(DYNAMIC_SHARD_DEFAULTS.maxShards).toBe(6);
+      expect(DYNAMIC_SHARD_DEFAULTS.targetMinutes).toBe(25);
+    });
+  });
+
+  describe('assignShards / shardsToGithubMatrix', () => {
+    const files = [
+      'tests/smoke-appium/long-a.spec.ts',
+      'tests/smoke-appium/long-b.spec.ts',
+      'tests/smoke-appium/short-c.spec.ts',
+      'tests/smoke-appium/short-d.spec.ts',
+    ];
+    const timings = {
+      'tests/smoke-appium/long-a.spec.ts': { android: 300 },
+      'tests/smoke-appium/long-b.spec.ts': { android: 300 },
+      'tests/smoke-appium/short-c.spec.ts': { android: 10 },
+      'tests/smoke-appium/short-d.spec.ts': { android: 10 },
+    };
+
+    it('LPT-assigns when timings exist', () => {
+      const shards = assignShards(files, timings, 'android', 2);
+      expect(shards).toHaveLength(2);
+      expect(shards[0].totalDuration).toBe(310);
+    });
+
+    it('equal-count assigns when timings are missing', () => {
+      const shards = assignShards(files, null, 'android', 2);
+      expect(shards[0].files).toEqual([
+        'tests/smoke-appium/long-a.spec.ts',
+        'tests/smoke-appium/long-b.spec.ts',
+      ]);
+      expect(shards[1].files).toEqual([
+        'tests/smoke-appium/short-c.spec.ts',
+        'tests/smoke-appium/short-d.spec.ts',
+      ]);
+    });
+
+    it('builds a GitHub matrix and drops empty shards', () => {
+      const shards = [
+        { index: 1, files: ['a.spec.ts'], totalDuration: 1 },
+        { index: 2, files: [], totalDuration: 0 },
+      ];
+      expect(shardsToGithubMatrix(shards)).toEqual({
+        include: [{ shard: 1, spec_files: 'a.spec.ts' }],
+      });
+    });
+
+    it('estimates total duration with median fallback', () => {
+      expect(estimateTotalDurationSeconds(files, timings, 'android')).toBe(620);
     });
   });
 });

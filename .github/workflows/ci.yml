@@ -1599,6 +1599,7 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
+      dynamic_shards: ${{ needs.get_requirements.outputs.appium_dynamic_shards == 'true' }}
     secrets: inherit
 
   appium-smoke-tests-ios:
@@ -1659,6 +1660,7 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
+      dynamic_shards: ${{ needs.get_requirements.outputs.appium_dynamic_shards == 'true' }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -1684,6 +1686,7 @@ jobs:
       test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
+      skip_shard_planning: true
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'

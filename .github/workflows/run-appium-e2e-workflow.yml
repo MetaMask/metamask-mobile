@@ -1,7 +1,7 @@
 # Runs Appium smoke tests for one smoke tag on Android or iOS.
-# Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag/split).
-# Specs for each fixed split are selected via e2e-split-tags-shards.mjs
-# (timing bin-pack when e2e-timings are available; else equal-count).
+# Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag).
+# Plans shards (fixed total_splits by default; dynamic count with appium-dynamic-shards),
+# then fans out matrix jobs with explicit SPEC_FILES + flakiness/re-run filtering.
 
 name: Run Appium E2E
 
@@ -55,6 +55,16 @@ on:
         required: false
         type: string
         default: 'namespace'
+      dynamic_shards:
+        description: 'When true, choose shard count from timings (label appium-dynamic-shards)'
+        required: false
+        type: boolean
+        default: false
+      skip_shard_planning:
+        description: 'Skip planner (FixtureValidation). Uses a single discovery shard.'
+        required: false
+        type: boolean
+        default: false
       android-tag:
         description: >-
           Android system image tag. Stays on `default` (AOSP): `google_apis` is
@@ -75,9 +85,72 @@ permissions:
   # PR label check for skip-e2e-flakiness-detection.
   pull-requests: read
 
+
 jobs:
+  plan-shards:
+    name: Plan shards (${{ inputs.test_suite_tag }})
+    if: ${{ !inputs.skip_shard_planning }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      skip: ${{ steps.plan.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download frozen qa-stats timings
+        id: download-timings
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./
+
+      - name: Fetch qa-stats timings fallback
+        if: steps.download-timings.outcome != 'success'
+        run: node .github/scripts/e2e-freeze-timings.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          OUTPUT_PATH: ./e2e-timings.json
+
+      - name: Plan shards for tag
+        id: plan
+        run: node .github/scripts/e2e-split-tags-shards.mjs --plan-matrix
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+          TOTAL_SPLITS: ${{ inputs.total_splits }}
+          DYNAMIC_SHARDS: ${{ inputs.dynamic_shards }}
+          BASE_DIR: tests/smoke-appium
+          E2E_TIMINGS_PATH: ./e2e-timings.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+
   test-appium-mobile:
-    name: ${{ inputs.test-suite-name }}
+    name: ${{ inputs.skip_shard_planning && inputs.test-suite-name || format('{0}-{1}', inputs.test-suite-name, matrix.shard) }}
+    needs: plan-shards
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (
+          inputs.skip_shard_planning ||
+          (needs.plan-shards.result == 'success' && needs.plan-shards.outputs.skip != 'true')
+        )
+      }}
+    strategy:
+      matrix: ${{ fromJSON(inputs.skip_shard_planning && '{"include":[{"shard":1,"spec_files":""}]}' || needs.plan-shards.outputs.matrix) }}
+      fail-fast: false
+    env:
+      SUITE_NAME: ${{ inputs.skip_shard_planning && inputs.test-suite-name || format('{0}-{1}', inputs.test-suite-name, matrix.shard) }}
     # iOS Appium smoke is not put on low-priority: those runners are often
     # preempted around ~15m wall-clock, which kills the Playwright step before
     # reports/logs upload (and before shards that no longer fail-fast can finish).
@@ -360,7 +433,7 @@ jobs:
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
+          name: playwright-json-report-${{ env.SUITE_NAME }}
           path: ./previous-playwright-json/
 
       - name: Download previous Playwright results (on re-run) (current)
@@ -369,7 +442,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
+          name: playwright-json-report-${{ env.SUITE_NAME }}
           path: ./previous-playwright-json/
 
       - name: Select specs for this shard (timing bin-pack)
@@ -378,8 +451,9 @@ jobs:
         env:
           PLATFORM: ${{ inputs.platform }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
-          SPLIT_NUMBER: ${{ inputs.split_number }}
-          TOTAL_SPLITS: ${{ inputs.total_splits }}
+          SPLIT_NUMBER: ${{ inputs.skip_shard_planning && inputs.split_number || matrix.shard }}
+          TOTAL_SPLITS: ${{ inputs.skip_shard_planning && inputs.total_splits || 1 }}
+          PACKED_SPEC_FILES: ${{ matrix.spec_files }}
           BASE_DIR: tests/smoke-appium
           E2E_TIMINGS_PATH: ./e2e-timings.json
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -401,10 +475,10 @@ jobs:
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         env:
           SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
-          APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_SUITE_NAME: ${{ env.SUITE_NAME }}
+          APPIUM_SMOKE_JOB_TITLE: Appium ${{ env.SUITE_NAME }} (android)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ env.SUITE_NAME }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ env.SUITE_NAME }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
@@ -433,10 +507,10 @@ jobs:
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         env:
           SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
-          APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_SUITE_NAME: ${{ env.SUITE_NAME }}
+          APPIUM_SMOKE_JOB_TITLE: Appium ${{ env.SUITE_NAME }} (ios)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ env.SUITE_NAME }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ env.SUITE_NAME }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
@@ -483,16 +557,16 @@ jobs:
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          name: appium-smoke-report-${{ env.SUITE_NAME }}
+          path: tests/test-reports/appium-smoke-report/${{ env.SUITE_NAME }}/
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload Playwright HTML report (current)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          name: appium-smoke-report-${{ env.SUITE_NAME }}
+          path: tests/test-reports/appium-smoke-report/${{ env.SUITE_NAME }}/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -503,7 +577,7 @@ jobs:
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
+          name: playwright-json-report-${{ env.SUITE_NAME }}
           path: tests/test-reports/playwright-json/
           if-no-files-found: ignore
           retention-days: 7
@@ -514,7 +588,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
+          name: playwright-json-report-${{ env.SUITE_NAME }}
           path: tests/test-reports/playwright-json/
           if-no-files-found: ignore
           retention-days: 7
@@ -524,7 +598,7 @@ jobs:
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: appium-timings-${{ inputs.test-suite-name }}
+          name: appium-timings-${{ env.SUITE_NAME }}
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
@@ -532,7 +606,7 @@ jobs:
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: appium-timings-${{ inputs.test-suite-name }}
+          name: appium-timings-${{ env.SUITE_NAME }}
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
@@ -541,16 +615,16 @@ jobs:
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          name: appium-smoke-videos-${{ env.SUITE_NAME }}
+          path: tests/test-reports/appium-smoke-videos/${{ env.SUITE_NAME }}/
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload failure screen recordings (current)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          name: appium-smoke-videos-${{ env.SUITE_NAME }}
+          path: tests/test-reports/appium-smoke-videos/${{ env.SUITE_NAME }}/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -559,7 +633,7 @@ jobs:
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: Appium ${{ inputs.test-suite-name }} (${{ inputs.platform }})
-          path: tests/test-reports/appium-smoke-junit/${{ inputs.test-suite-name }}.xml
+          path: tests/test-reports/appium-smoke-junit/${{ env.SUITE_NAME }}.xml
           reporter: java-junit
           fail-on-error: false
           list-suites: all

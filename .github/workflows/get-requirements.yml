@@ -32,6 +32,9 @@ on:
       run_appium_ios:
         description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label (also opts into the iOS native build on Android-only PRs), skip-smart-e2e-selection when path filters require iOS, or e2e smoke infra / smoke-appium file changes'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
+      appium_dynamic_shards:
+        description: 'Whether Appium smoke uses timing-based dynamic shard counts (appium-dynamic-shards label)'
+        value: ${{ jobs.detect-changes.outputs.appium_dynamic_shards }}
       native_build_needed:
         description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
         value: ${{ jobs.detect-changes.outputs.native_build_needed }}
@@ -51,6 +54,7 @@ jobs:
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
       run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
+      appium_dynamic_shards: ${{ steps.check-labels.outputs.APPIUM_DYNAMIC_SHARDS == 'true' && 'true' || 'false' }}
       native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
@@ -99,6 +103,7 @@ jobs:
             echo "SKIP_SMART_SELECTION=false"
             echo "RUN_PERFORMANCE=false"
             echo "RUN_APPIUM_IOS=false"
+            echo "APPIUM_DYNAMIC_SHARDS=false"
           } >> "$GITHUB_OUTPUT"
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
@@ -129,6 +134,11 @@ jobs:
           if echo "$LABELS" | grep -qx "run-appium-ios-tests"; then
             echo "RUN_APPIUM_IOS=true" >> "$GITHUB_OUTPUT"
             echo "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR"
+          fi
+
+          if echo "$LABELS" | grep -qx "appium-dynamic-shards"; then
+            echo "APPIUM_DYNAMIC_SHARDS=true" >> "$GITHUB_OUTPUT"
+            echo "-> APPIUM_DYNAMIC_SHARDS=true due to 'appium-dynamic-shards' label on PR"
           fi
 
       - name: Filter changed files
