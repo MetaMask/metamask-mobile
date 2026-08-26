@@ -6,7 +6,7 @@ const normalizeSrcAmount = (
   srcAmount: string | undefined,
   decimals: number | undefined,
 ): string => {
-  if (srcAmount === '.' || !decimals) {
+  if (!srcAmount || srcAmount === '.' || !decimals) {
     return '0';
   }
   return calcTokenValue(srcAmount, decimals).toFixed(0);
