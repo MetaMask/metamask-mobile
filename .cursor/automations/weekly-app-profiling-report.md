@@ -61,6 +61,12 @@ Using only the collected app-profiling data, write:
    - Do not repeat every scenario or every investigation lead.
    - Group the executive summary by team.
    - Start every executive-summary bullet with the relevant Slack team tag(s).
+   - For each profiling lead (and any risk bullet that cites a peak/outlier), append the
+     BrowserStack recording URL from `peakRecordings` / lead `recordingUrl` using Slack
+     mrkdwn: `<url|Recording (peak memMax 1114.65 MB)>` or
+     `<url|Recording (peak slow frames 39.94%)>`.
+   - Prefer the peak sample for the metric you cite (memMax → `peakRecordings.memMax`,
+     slow-frame outlier → `peakRecordings.slowFrames`).
    - End with exactly 3 or fewer prioritized actions.
    - English, Slack-friendly markdown, concise.
 
@@ -109,7 +115,7 @@ Slow frames: [value] · Issues: [value] · App size: [value]
 
 *Profiling leads*
 
-[No more than 3 concise profiling-based leads.]
+[No more than 3 concise profiling-based leads, each ending with a BrowserStack recording link for the peak/outlier sample when available.]
 
 *AI insights to investigate*
 
