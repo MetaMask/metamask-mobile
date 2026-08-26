@@ -101,6 +101,12 @@ jest.mock(
   }),
 );
 
+let mockIsMasterNotificationsEnabled = true;
+jest.mock('../../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../../selectors/notifications'),
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
+}));
+
 const mockNavigateToSocialLeaderboard = jest.fn();
 jest.mock(
   '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
@@ -215,6 +221,7 @@ describe('TopTradersSection', () => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
+    mockIsMasterNotificationsEnabled = true;
     mockHasFetched = true;
     mockUseSectionViewportVisible.mockReturnValue({
       isVisible: true,
@@ -528,6 +535,32 @@ describe('TopTradersSection', () => {
       Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
+  });
+
+  it('navigates to the feature notifications gate when following with the master toggle off', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockIsMasterNotificationsEnabled = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+      params: { feature: 'socialAI', autoDismiss: true },
+    });
   });
 
   it('intercepts the follow without calling toggleFollow when both channels are off', async () => {

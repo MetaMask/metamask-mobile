@@ -268,12 +268,24 @@ jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
   })),
 }));
 
+const mockRecordMarketViewed = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      recordMarketViewed: (...args: unknown[]) =>
+        mockRecordMarketViewed(...args),
+    },
+  },
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useRoute: () => ({ params: mockRouteParams }),
     useNavigation: () => ({ setParams: mockSetParams }),
+    useFocusEffect: (cb: () => void | (() => void)) => cb(),
   };
 });
 
@@ -1201,5 +1213,36 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682');
+  });
+
+  describe('Recently viewed tracking', () => {
+    it('records the market view when the screen is focused', () => {
+      renderView();
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+    });
+
+    it('records the market symbol from route params', () => {
+      mockRouteParams = {
+        market: {
+          symbol: 'ETH',
+          price: '$3,000.00',
+          name: 'Ethereum',
+          maxLeverage: '25x',
+        },
+      };
+
+      renderView();
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
+    });
+
+    it('does not record a view when there is no market', () => {
+      mockRouteParams = {};
+
+      renderView();
+
+      expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
   });
 });

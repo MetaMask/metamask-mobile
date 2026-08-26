@@ -1,6 +1,6 @@
 # Predict canonical read model and REST API
 
-- **Status:** Agreed working direction for team review; not yet implemented
+- **Status:** Agreed working direction; implemented slices remain executable truth
 - **Scope:** Public, read-only Predict navigation and Event Screens
 - **Venues:** Kalshi first, with a future Polymarket backend mapping
 
@@ -365,6 +365,14 @@ The existing Venue-qualified status route remains:
 GET /v1/venues/{venueId}/status
 ```
 
+### Read Market history
+
+```http
+GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}
+```
+
+Supported ranges are `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response is Market-qualified and contains `venueId`, `marketId`, `range`, `observedAt`, and ordered `{ timestamp, yesPrice, noPrice }` points. `yesPrice` is the last traded Yes probability for the period, falling back to the previous trade when a period has no trade. For a binary Market, `noPrice` is the exact complementary representation of the same trade (`1 - yesPrice`), derived by the backend with fixed-point arithmetic. `LIVE` remains an authoritative REST snapshot through `observedAt`; continuous updates and client-generated points are not part of this route.
+
 ### Refresh Game snapshots
 
 No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy; a later live-data slice may patch the same canonical Game shape while REST remains the recovery path.
@@ -483,4 +491,4 @@ Until that implementation lands, code and tests remain the executable contract.
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
 - continuous live updates and WebSockets;
-- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, charts, history, and account-scoped data.
+- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, and account-scoped data.

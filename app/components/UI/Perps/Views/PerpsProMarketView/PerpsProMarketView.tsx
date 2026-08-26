@@ -51,6 +51,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { usePerpsProOrderBookExpanded } from '../../hooks/usePerpsProOrderBookExpanded';
 import { usePerpsProOrderBookPosition } from '../../hooks/usePerpsProOrderBookPosition';
+import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
@@ -354,6 +355,8 @@ const PerpsProMarketView = () => {
     handleFavoritePress,
     handlePerpsModeChange,
   } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
+
+  usePerpsRecordMarketViewed(market?.symbol);
 
   if (!market?.symbol) {
     return (

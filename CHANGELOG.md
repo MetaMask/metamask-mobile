@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.8.1]
+
+### Fixed
+
+- Fixed a swap page crash after fetching quotes when intent quote metadata could not be applied to read-only quote state (#35206)
+
 ## [8.8.0]
 
 ### Added
@@ -13404,7 +13410,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.1...HEAD
+[8.8.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...v8.8.1
 [8.8.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...v8.8.0
 [8.7.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.1...v8.7.0
 [8.6.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.0...v8.6.1
