@@ -17,9 +17,12 @@ import { useNavigationPerformance } from './useNavigationPerformance';
 import { useRivePerformance } from './useRivePerformance';
 import { useScreenPerformance } from './useScreenPerformance';
 
+const mockPerformanceMountTs = 1_750_000_000_000;
+
 jest.mock('../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => mockPerformanceMountTs),
   TraceName: {
     OnboardingScreenTimeToContent: 'ttc',
     OnboardingScreenFullyDisplayed: 'ttfd',
@@ -38,8 +41,11 @@ jest.mock('./useRenderStormMonitor', () => ({
   useRenderStormMonitor: jest.fn(),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } =
-  jest.requireMock('../../util/trace');
+const {
+  trace: mockTrace,
+  endTrace: mockEndTrace,
+  getPerformanceTimestamp: mockGetPerformanceTimestamp,
+} = jest.requireMock('../../util/trace');
 
 const expectEnd = (partial: Record<string, unknown>) => {
   expect(mockEndTrace).toHaveBeenCalledWith(expect.objectContaining(partial));
@@ -48,6 +54,7 @@ const expectEnd = (partial: Record<string, unknown>) => {
 describe('onboarding performance hooks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetPerformanceTimestamp.mockReturnValue(mockPerformanceMountTs);
     _resetOnboardingNavigationPerformanceForTesting();
     jest.useFakeTimers();
   });
@@ -138,8 +145,8 @@ describe('onboarding performance hooks', () => {
 
       expect(ttcCall).toBeDefined();
       expect(ttfdCall).toBeDefined();
-      expect(ttcCall[0].startTime).toBeDefined();
-      expect(ttfdCall[0].startTime).toBeDefined();
+      expect(ttcCall[0].startTime).toBe(mockPerformanceMountTs);
+      expect(ttfdCall[0].startTime).toBe(mockPerformanceMountTs);
       expect(ttcCall[0].startTime).toBe(ttfdCall[0].startTime);
 
       // End TTC first (contentReady fires before fullyDisplayed)
@@ -163,6 +170,36 @@ describe('onboarding performance hooks', () => {
         name: TraceName.OnboardingScreenFullyDisplayed,
         data: expect.objectContaining({ success: true }),
       });
+    });
+
+    it('starts TTC and TTFD from getPerformanceTimestamp, not Date.now', () => {
+      const performanceTs = 1_750_000_000_456;
+      const wallClockTs = 9_999_999_999_999;
+      mockGetPerformanceTimestamp.mockReturnValue(performanceTs);
+      jest.setSystemTime(wallClockTs);
+
+      renderHook(() =>
+        useScreenPerformance({
+          screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+          contentReady: false,
+          isEmpty: false,
+        }),
+      );
+
+      const ttcCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenTimeToContent,
+      );
+      const ttfdCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenFullyDisplayed,
+      );
+
+      expect(ttcCall).toBeDefined();
+      expect(ttfdCall).toBeDefined();
+      expect(ttcCall[0].startTime).toBe(performanceTs);
+      expect(ttfdCall[0].startTime).toBe(performanceTs);
+      expect(ttcCall[0].startTime).not.toBe(wallClockTs);
     });
 
     it('defaults fullyDisplayed to contentReady when omitted', () => {

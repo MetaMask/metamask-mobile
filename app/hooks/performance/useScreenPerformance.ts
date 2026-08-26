@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  endTrace,
+  getPerformanceTimestamp,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../util/trace';
 import {
   getOnboardingPerformanceTags,
   type OnboardingScreenId,
@@ -33,7 +39,8 @@ export const useScreenPerformance = ({
 }: UseScreenPerformanceConfig): void => {
   // Capture a single mount timestamp so TTC and TTFD share the same start,
   // guaranteeing TTFD duration >= TTC duration (both measure from mount).
-  const [mountTime] = useState(() => Date.now());
+  // Use getPerformanceTimestamp so start/end share one clock with endTrace.
+  const [mountTime] = useState(() => getPerformanceTimestamp());
 
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
