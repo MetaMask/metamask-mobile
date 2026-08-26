@@ -903,6 +903,43 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
+    it('clears pending min and max without closing the sheet', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+      fireEvent.press(
+        renderResult.getByTestId(
+          PriceRangeSheetSelectorsIDs.PERCENT('min', -10),
+        ),
+      );
+      fireEvent.press(
+        renderResult.getByTestId(
+          PriceRangeSheetSelectorsIDs.PERCENT('max', 10),
+        ),
+      );
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+        ).toHaveDisplayValue('');
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue('');
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+      const confirmButton = renderResult.getByTestId(
+        PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeOnTheScreen();
+      expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+    });
+
     it('fills min and max from percent chips relative to the live price', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
@@ -956,7 +993,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
-    it('keeps confirm disabled when min is empty or not less than max', async () => {
+    it('keeps confirm enabled when min and max are empty', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -965,8 +1002,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       const confirmButton = renderResult.getByTestId(
         PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
       );
-      expect(confirmButton).toBeDisabled();
-      expect(confirmButton.props.accessibilityState.disabled).toBe(true);
+      expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+    });
+
+    it('keeps confirm disabled when min is not less than max', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
 
       await openPriceRangeKeypad(renderResult, 'min');
       typePriceRangeDigits(renderResult, '2000');
@@ -1063,6 +1106,35 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           max,
         },
       );
+    });
+
+    it('clears the stored range when empty min and max are confirmed', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
+      await openPriceRangeSheet(renderResult);
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+      );
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+      ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
+      expect(
+        renderResult.queryByTestId(PriceRangeRowSelectorsIDs.AVATAR),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.store.getState().bridge.recurring.priceRange,
+      ).toBeUndefined();
     });
 
     it('treats a stored range as unset when the settings currency differs', async () => {

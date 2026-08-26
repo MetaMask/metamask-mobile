@@ -15,5 +15,5 @@ export interface PriceRangeSheetProps {
   initialMin?: string;
   initialMax?: string;
   onClose: () => void;
-  onConfirm: (priceRange: RecurringPriceRange) => void;
+  onConfirm: (priceRange?: RecurringPriceRange) => void;
 }

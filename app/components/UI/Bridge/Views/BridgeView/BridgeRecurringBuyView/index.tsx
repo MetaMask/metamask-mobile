@@ -115,7 +115,7 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const handlePriceRangeConfirm = useCallback(
-    (nextPriceRange: RecurringPriceRange) => {
+    (nextPriceRange?: RecurringPriceRange) => {
       dispatch(setRecurringPriceRange(nextPriceRange));
     },
     [dispatch],

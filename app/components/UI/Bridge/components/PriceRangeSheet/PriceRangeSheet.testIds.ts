@@ -4,6 +4,7 @@ export const PriceRangeSheetSelectorsIDs = {
   SHEET: 'price-range-sheet',
   CLOSE_BUTTON: 'price-range-sheet-close',
   CONFIRM_BUTTON: 'price-range-sheet-confirm',
+  CLEAR_ALL: 'price-range-sheet-clear-all',
   TOKEN_CONTROL: 'price-range-token-control',
   TOKEN_OPTION: (side: PriceRangeTokenSide) => `price-range-token-${side}`,
   PRICE: 'price-range-price',

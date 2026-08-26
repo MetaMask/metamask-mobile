@@ -15,6 +15,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize,
+  ButtonsAlignment,
   FilterButton,
   FontWeight,
   SegmentedControl,
@@ -192,7 +194,8 @@ const PriceRangeSheet = ({
     pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
   const hasLivePrice =
     selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
-  const canConfirm = isValidPriceRange(pendingMin, pendingMax);
+  const isClearedRange = pendingMin === '' && pendingMax === '';
+  const canConfirm = isClearedRange || isValidPriceRange(pendingMin, pendingMax);
   const currencySymbol = getCurrencySymbol(currentCurrency);
   const isKeypadOpen = focusedField !== null;
 
@@ -290,16 +293,25 @@ const PriceRangeSheet = ({
     [focusedField],
   );
 
+  const handleClearAll = useCallback(() => {
+    setPendingMin('');
+    setPendingMax('');
+  }, []);
+
   const handleConfirm = useCallback(() => {
     if (!canConfirm) {
       return;
     }
-    onConfirm({
-      tokenSide: pendingTokenSide,
-      currency: currentCurrency,
-      min: pendingMin,
-      max: pendingMax,
-    });
+    onConfirm(
+      isValidPriceRange(pendingMin, pendingMax)
+        ? {
+            tokenSide: pendingTokenSide,
+            currency: currentCurrency,
+            min: pendingMin,
+            max: pendingMax,
+          }
+        : undefined,
+    );
     closeSheet();
   }, [
     canConfirm,
@@ -473,10 +485,21 @@ const PriceRangeSheet = ({
         ) : null}
       </Box>
       <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        twClassName="gap-4"
+        secondaryButtonProps={{
+          children: strings('bridge.recurring.price_range.clear_all'),
+          onPress: handleClearAll,
+          isDisabled: !pendingMin && !pendingMax,
+          size: ButtonSize.Lg,
+          testID: PriceRangeSheetSelectorsIDs.CLEAR_ALL,
+        }}
         primaryButtonProps={{
           children: strings('bridge.recurring.confirm'),
           onPress: handleConfirm,
           isDisabled: !canConfirm,
+          size: ButtonSize.Lg,
+          style: { marginTop: 0 },
           testID: PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
