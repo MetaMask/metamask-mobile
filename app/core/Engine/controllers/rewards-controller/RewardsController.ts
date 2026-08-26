@@ -5827,8 +5827,12 @@ export class RewardsController extends BaseController<
         yieldEarnedUsd: 0,
         qualifyingDepositsUsd: 0,
         qualifyingThresholdUsd: 0,
-        todayStatus: 'not_yet_qualified',
+        // No campaign is being scored when rewards is off. `not_yet_qualified`
+        // here paired with a zero threshold, which a shortfall-deriving caller
+        // renders as "add $0".
+        todayStatus: 'not_scored',
         daysRemaining: 0,
+        dataAsOf: null,
       };
     }
 
@@ -5852,6 +5856,7 @@ export class RewardsController extends BaseController<
             qualifyingThresholdUsd: cached.qualifyingThresholdUsd,
             todayStatus: cached.todayStatus,
             daysRemaining: cached.daysRemaining,
+            dataAsOf: cached.dataAsOf,
           },
           lastFetched: cached.lastFetched,
         };
