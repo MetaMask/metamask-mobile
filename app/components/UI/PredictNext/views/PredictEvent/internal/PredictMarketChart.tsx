@@ -12,7 +12,6 @@ import Svg, {
   G,
   LinearGradient,
   Line,
-  Mask,
   Path,
   Rect,
   Stop,
@@ -40,6 +39,7 @@ const LABEL_NAME_BASELINE_OFFSET = -5;
 const LABEL_VALUE_BASELINE_OFFSET = 24;
 const SCRUB_TIME_BOTTOM_INSET = 4;
 const SCRUB_RIGHT_OPACITY = 0.3;
+const EDGE_FADE_RATIO = 0.14;
 
 const styles = StyleSheet.create({
   container: { width: '100%', overflow: 'hidden' },
@@ -164,7 +164,6 @@ export const PredictMarketChart = ({
       .join(', ') ?? '';
   const clipId = `${idPrefix}-plot-clip`;
   const fadeId = `${idPrefix}-edge-fade`;
-  const fadeMaskId = `${idPrefix}-edge-fade-mask`;
   const scrubLeftId = `${idPrefix}-scrub-left-clip`;
   const scrubRightId = `${idPrefix}-scrub-right-clip`;
   const scrubTime = scrub ? formatTime(scrub.time) : '';
@@ -185,7 +184,6 @@ export const PredictMarketChart = ({
   ) => (
     <G
       clipPath={clipPath ?? `url(#${clipId})`}
-      mask={`url(#${fadeMaskId})`}
       opacity={opacity}
       testID={groupTestID}
     >
@@ -233,29 +231,45 @@ export const PredictMarketChart = ({
         >
           <Defs>
             <ClipPath id={clipId}>
-              <Rect width={model.plotRight} height={layout.height} />
-            </ClipPath>
-            <LinearGradient id={fadeId} x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0%" stopColor="white" stopOpacity={0} />
-              <Stop offset="14%" stopColor="white" stopOpacity={1} />
-              <Stop offset="100%" stopColor="white" stopOpacity={1} />
-            </LinearGradient>
-            <Mask id={fadeMaskId}>
               <Rect
+                y={-lineWidth}
                 width={model.plotRight}
-                height={layout.height}
-                fill={`url(#${fadeId})`}
+                height={layout.height + lineWidth * 2}
               />
-            </Mask>
+            </ClipPath>
+            <LinearGradient
+              id={fadeId}
+              x1={0}
+              y1={0}
+              x2={model.plotRight * EDGE_FADE_RATIO}
+              y2={0}
+              gradientUnits="userSpaceOnUse"
+            >
+              <Stop
+                offset="0"
+                stopColor={colors.background.default}
+                stopOpacity={1}
+              />
+              <Stop
+                offset="1"
+                stopColor={colors.background.default}
+                stopOpacity={0}
+              />
+            </LinearGradient>
             {scrub ? (
               <>
                 <ClipPath id={scrubLeftId}>
-                  <Rect width={scrub.x} height={layout.height} />
+                  <Rect
+                    y={-lineWidth}
+                    width={scrub.x}
+                    height={layout.height + lineWidth * 2}
+                  />
                 </ClipPath>
                 <ClipPath id={scrubRightId}>
                   <Rect
+                    y={-lineWidth}
                     width={Math.max(0, model.plotRight - scrub.x)}
-                    height={layout.height}
+                    height={layout.height + lineWidth * 2}
                     transform={[{ translateX: scrub.x }]}
                   />
                 </ClipPath>
@@ -292,6 +306,12 @@ export const PredictMarketChart = ({
           ) : (
             renderSeries()
           )}
+
+          <Rect
+            width={model.plotRight * EDGE_FADE_RATIO}
+            height={layout.height}
+            fill={`url(#${fadeId})`}
+          />
 
           {scrub && scrubTimePosition ? (
             <G>
