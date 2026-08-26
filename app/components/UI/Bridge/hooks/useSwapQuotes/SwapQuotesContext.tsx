@@ -8,15 +8,15 @@ import { useFormattedQuoteData } from '../useFormattedQuoteData';
 
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import {
-  useDebouncedUpdate,
+  useUpdateQuoteParams,
   type UseDebouncedUpdateParams,
-} from './useDebouncedUpdate';
+} from '../useUpdateQuoteParams';
 import type { UseSwapQuotesParams } from './types';
 import { useLatestBalance } from '../useLatestBalance';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from './utils/buildQuoteRequest';
+import { buildGenericQuoteRequest } from './utils';
 
 export type SwapQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
@@ -122,7 +122,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     ],
   );
 
-  const debouncedUpdateQuoteParams = useDebouncedUpdate({
+  const debouncedUpdateQuoteParams = useUpdateQuoteParams({
     featureId: params.featureId,
     debounceWait: params.debounceWait,
     traceName: params.traceName,

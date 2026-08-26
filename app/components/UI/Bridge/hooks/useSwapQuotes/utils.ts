@@ -1,6 +1,6 @@
 import type { GenericQuoteRequest } from '@metamask/bridge-controller';
-import { calcTokenValue } from '../../../../../../util/transactions';
-import type { UseSwapQuotesParams } from '../types';
+import { calcTokenValue } from '../../../../../util/transactions';
+import type { UseSwapQuotesParams } from './types';
 
 const normalizeSrcAmount = (
   srcAmount: string | undefined,

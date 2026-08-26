@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { TraceName } from '../../../../../util/trace';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
-import type { UseSwapQuotesParams } from './types';
+import type { UseSwapQuotesParams } from '../useSwapQuotes/types';
 
 export interface UseDebouncedUpdateParams extends UseSwapQuotesParams {
   featureId: FeatureId;
@@ -31,7 +31,7 @@ interface UpdateQuoteParamsOptions {
  * Hook for handling bridge quote request updates
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
-export const useDebouncedUpdate = (params: UseDebouncedUpdateParams) => {
+export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
   const {
     genericQuoteRequest,
     featureId,
