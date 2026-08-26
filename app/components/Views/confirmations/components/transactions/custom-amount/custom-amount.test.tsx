@@ -96,6 +96,18 @@ describe('CustomAmount', () => {
     expect(getByText('123.45')).toBeOnTheScreen();
   });
 
+  it('renders amount when max amount and quotes are loading if preserveAmountOnMaxQuoteLoad', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
+    mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" preserveAmountOnMaxQuoteLoad />,
+    );
+
+    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+  });
+
   it('renders amount when quotes are loading but not max amount', () => {
     mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
     mockUseIsTransactionPayLoading.mockReturnValue(true);
