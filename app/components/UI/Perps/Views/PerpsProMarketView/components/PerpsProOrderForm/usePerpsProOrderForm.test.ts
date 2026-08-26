@@ -1313,7 +1313,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('trigger orders', () => {
-    it('preserves trigger inputs and blocks submission when the feature is disabled', async () => {
+    it('explains and blocks a preserved trigger order when the feature is disabled', async () => {
       mockOrderForm.type = 'stop_market';
       mockOrderForm.limitPrice = '90500';
       mockContextValue.triggerPrice = '91000';
@@ -1323,6 +1323,11 @@ describe('usePerpsProOrderForm', () => {
       expect(mockOrderForm.limitPrice).toBe('90500');
       expect(mockContextValue.triggerPrice).toBe('91000');
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'trigger-orders-unavailable',
+        variant: 'banner',
+        message: strings('perps.order.validation.trigger_orders_unavailable'),
+      });
       expect(mockSetOrderType).not.toHaveBeenCalled();
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
       expect(mockSetTriggerPrice).not.toHaveBeenCalled();

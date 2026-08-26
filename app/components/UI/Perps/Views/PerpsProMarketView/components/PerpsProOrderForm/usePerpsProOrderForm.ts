@@ -164,14 +164,26 @@ const getMarketDataBlockingReason = ({
 const getBlockingNotices = ({
   reduceOnlyErrorCode,
   isReduceOnlyPositionLoading,
+  isTriggerOrderUnavailable,
   marketDataBlockingReason,
   filteredErrors,
 }: {
   reduceOnlyErrorCode?: ReduceOnlyValidationCode;
   isReduceOnlyPositionLoading: boolean;
+  isTriggerOrderUnavailable: boolean;
   marketDataBlockingReason: MarketDataBlockingReason | null;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
+  if (isTriggerOrderUnavailable) {
+    return [
+      {
+        id: 'trigger-orders-unavailable',
+        variant: 'banner',
+        message: strings('perps.order.validation.trigger_orders_unavailable'),
+      },
+    ];
+  }
+
   if (marketDataBlockingReason === 'loading') {
     return [];
   }
@@ -1289,6 +1301,9 @@ export const usePerpsProOrderForm = ({
     });
   }, [isInitialized, spendableBalance]);
 
+  const isTriggerOrderUnavailable =
+    !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
+
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
       ...getBlockingNotices({
@@ -1296,6 +1311,7 @@ export const usePerpsProOrderForm = ({
           ? reduceOnlyValidation.errorCode
           : undefined,
         isReduceOnlyPositionLoading,
+        isTriggerOrderUnavailable,
         marketDataBlockingReason,
         filteredErrors,
       }),
@@ -1321,6 +1337,7 @@ export const usePerpsProOrderForm = ({
   }, [
     reduceOnly,
     isReduceOnlyPositionLoading,
+    isTriggerOrderUnavailable,
     marketDataBlockingReason,
     reduceOnlyValidation.errorCode,
     filteredErrors,
@@ -1401,7 +1418,7 @@ export const usePerpsProOrderForm = ({
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
     hasTpslBlocker ||
-    (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type));
+    isTriggerOrderUnavailable;
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) => {
