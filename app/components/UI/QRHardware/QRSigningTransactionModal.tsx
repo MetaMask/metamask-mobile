@@ -24,7 +24,7 @@ import {
   type GasPriceValue,
 } from '@metamask/transaction-controller';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
-import ToastService from '../../../core/ToastService/ToastService';
+import { toast } from '@metamask/design-system-react-native';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 export const QRSignMode = {
@@ -97,9 +97,7 @@ const QRSigningTransactionModal = () => {
       } catch (error) {
         if (signMode === QRSignMode.SpeedUp || signMode === QRSignMode.Cancel) {
           InteractionManager.runAfterInteractions(() => {
-            ToastService.showToast(
-              getTransactionUpdateErrorToastOptions(error),
-            );
+            toast(getTransactionUpdateErrorToastOptions(error));
           });
         }
         onConfirmationComplete(false);

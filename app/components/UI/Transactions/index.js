@@ -25,7 +25,7 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import ToastService from '../../../core/ToastService/ToastService';
+import { toast } from '@metamask/design-system-react-native';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -467,7 +467,7 @@ const Transactions = (props) => {
   );
 
   const showTransactionUpdateErrorToast = (error) => {
-    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
+    toast(getTransactionUpdateErrorToastOptions(error));
   };
 
   const handleSpeedUpTransactionFailure = (error) => {

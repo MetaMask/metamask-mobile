@@ -1,6 +1,6 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../../core/Engine';
 import {
@@ -54,6 +54,84 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const PropTypes = require('prop-types');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      }: {
+        children?: React.ReactNode;
+        onClose?: (hasCallback?: boolean) => void;
+        onOpen?: () => void;
+        goBack?: () => void;
+        style?: unknown;
+        twClassName?: unknown;
+        testID?: string;
+        accessibilityLabel?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: (callback?: () => void) => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback?: () => void) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback?: () => void) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
+  return {
+    ...actual,
+    BottomSheet,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -220,10 +298,7 @@ function setControllerTransactions(transactions: { id: string }[]) {
   ).state = { transactions };
 }
 
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
-};
+const mockToast = toast as unknown as jest.Mock;
 
 interface DeferredPromise {
   promise: Promise<void>;
@@ -242,13 +317,18 @@ function createDeferredPromise(): DeferredPromise {
   return { promise, reject, resolve };
 }
 
+// CustomAmountInfo is memoized. Tests update hook mocks then rerender with the
+// same props; a changing non-visual child busts memo without remounting state.
+let customAmountInfoRenderEpoch = false;
+
 function createCustomAmountInfo(
   props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
 ) {
+  customAmountInfoRenderEpoch = !customAmountInfoRenderEpoch;
   return (
-    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-      <CustomAmountInfo {...props} />
-    </ToastContext.Provider>
+    <CustomAmountInfo {...props}>
+      {customAmountInfoRenderEpoch}
+    </CustomAmountInfo>
   );
 }
 
@@ -343,7 +423,7 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    mockShowToast.mockReset();
+    mockToast.mockReset();
     mockTransactionPayControllerState.transactionData = {};
 
     mockUseRampsUserRegion.mockReturnValue({
@@ -1067,7 +1147,7 @@ describe('CustomAmountInfo', () => {
       expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
         expect.any(Function),
       );
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockToast).toHaveBeenCalledTimes(1);
     });
 
     it('unblocks non-Money review rows once quote loading starts', async () => {
@@ -1231,9 +1311,9 @@ describe('CustomAmountInfo', () => {
     // onAmountSubmit must NOT be called — keep keyboard visible for retry
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
     // Toast must be shown with the transaction-update title
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({ labelOptions: expect.any(Array) }),
+    expect(mockToast).toHaveBeenCalledTimes(1);
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: expect.any(String) }),
     );
     // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
@@ -1281,7 +1361,7 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
   });
 
@@ -1322,7 +1402,7 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
     expect(mockOnAmountSubmit).not.toHaveBeenCalled();
   });
 
@@ -1612,11 +1692,7 @@ describe('CustomAmountInfo', () => {
       });
 
       await act(async () => {
-        rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo hasMax />
-          </ToastContext.Provider>,
-        );
+        rerender(createCustomAmountInfo({ hasMax: true }));
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
@@ -1652,9 +1728,10 @@ describe('CustomAmountInfo', () => {
 
       await act(async () => {
         rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo hasMax onAmountSubmit={onAmountSubmitMock} />
-          </ToastContext.Provider>,
+          createCustomAmountInfo({
+            hasMax: true,
+            onAmountSubmit: onAmountSubmitMock,
+          }),
         );
       });
 
@@ -1868,7 +1945,7 @@ describe('CustomAmountInfo', () => {
 
       // The Done handler's catch shows a toast and returns early without committing.
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockToast).toHaveBeenCalledTimes(1);
     });
 
     // Regression guard for FIX 2 (no double emission). Renders the REAL money
@@ -2148,10 +2225,12 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
-    const toastArg = mockShowToast.mock.calls[0][0];
-    toastArg.closeButtonOptions.onPress();
+    const toastArg = mockToast.mock.calls[0][0] as { onClose: () => void };
+    toastArg.onClose();
 
-    expect(mockToastRef.current.closeToast).toHaveBeenCalledTimes(1);
+    expect(
+      (toast as typeof toast & { dismiss: jest.Mock }).dismiss,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('opens keyboard when custom amount input is pressed', async () => {
@@ -2374,11 +2453,7 @@ describe('CustomAmountInfo', () => {
       });
 
       await act(async () => {
-        rerender(
-          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-            <CustomAmountInfo />
-          </ToastContext.Provider>,
-        );
+        rerender(createCustomAmountInfo());
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);

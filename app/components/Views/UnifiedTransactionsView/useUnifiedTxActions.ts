@@ -9,15 +9,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
-import {
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -110,13 +104,6 @@ export function useUnifiedTxActions() {
     hideAwaitingConfirmation,
     showHardwareWalletError,
   } = useHardwareWallet();
-  const toastContext = useContext(ToastContext);
-  const toastRef = toastContext?.toastRef;
-  const toastRefStable = useRef(toastRef);
-  useLayoutEffect(() => {
-    toastRefStable.current = toastRef;
-  }, [toastRef]);
-
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
   const selectedAddress = useSelector(
@@ -139,9 +126,7 @@ export function useUnifiedTxActions() {
   ]);
 
   const showTransactionUpdateErrorToast = useCallback((error: unknown) => {
-    toastRefStable.current?.current?.showToast(
-      getTransactionUpdateErrorToastOptions(error),
-    );
+    toast(getTransactionUpdateErrorToastOptions(error));
   }, []);
 
   const closeSpeedUpCancelModal = useCallback(() => {

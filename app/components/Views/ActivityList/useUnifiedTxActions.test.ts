@@ -26,12 +26,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../component-library/components/Toast', () => {
-  const ReactActual = jest.requireActual('react');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    ToastContext: ReactActual.createContext({
-      toastRef: { current: { showToast: jest.fn() } },
-    }),
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
