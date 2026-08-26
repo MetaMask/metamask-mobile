@@ -2328,6 +2328,53 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.selectedTooltip).toBe('size_skew');
     });
 
+    it('preserves a supported Scale draft while capability refresh is pending', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(
+        true,
+        true,
+        jest.fn().mockResolvedValue(true),
+        true,
+      );
+      configureScaleOrder(result);
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('preserves an initial persisted Scale draft while capability support is pending', async () => {
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(
+        true,
+        false,
+        checkScaleOrderSupport,
+        true,
+      );
+      configureScaleOrder(result);
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('resets a selected Scale draft after capability resolves unsupported', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+
+      renderProForm(true, false, jest.fn().mockResolvedValue(false), false);
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+    });
+
     it('blocks Scale selection when the remote flag is disabled', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';

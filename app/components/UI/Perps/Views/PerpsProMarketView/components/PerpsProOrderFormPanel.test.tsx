@@ -27,6 +27,8 @@ const mockUseIsPerpsProModeActive = jest.fn();
 const mockUsePerpsProOrderForm = jest.fn();
 const mockOrderTypeBottomSheet = jest.fn();
 const mockUsePerpsScaleOrderSupport = jest.fn();
+const mockUsePerpsProOrderForm = jest.fn();
+const mockCheckScaleOrderSupport = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
@@ -252,6 +254,8 @@ describe('PerpsProOrderFormPanel', () => {
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     mockUsePerpsScaleOrderSupport.mockReturnValue({
       supportsScaleOrders: true,
+      isScaleOrderSupportPending: false,
+      checkScaleOrderSupport: mockCheckScaleOrderSupport,
     });
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.

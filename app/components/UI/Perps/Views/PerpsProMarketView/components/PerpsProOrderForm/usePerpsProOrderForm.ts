@@ -591,10 +591,15 @@ export const usePerpsProOrderForm = ({
   const isScaleOrder = orderForm.type === 'scale';
 
   useEffect(() => {
-    if (!isScaleOrdersEnabled && isScaleOrder) {
+    if (isScaleOrder && !isScaleOrderSupportPending && !isScaleOrdersEnabled) {
       setOrderType('market');
     }
-  }, [isScaleOrder, isScaleOrdersEnabled, setOrderType]);
+  }, [
+    isScaleOrder,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    setOrderType,
+  ]);
 
   const normalizeScaleInput = useCallback(
     (value: string, previousValue: string, setter: (next: string) => void) => {
@@ -1531,6 +1536,7 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking,
     isAtCap,
     isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
     checkScaleOrderSupport,
     isScaleOrder,
     scaleLadderResult,
@@ -2009,6 +2015,7 @@ export const usePerpsProOrderForm = ({
     (reduceOnly && !reduceOnlyValidation.isValid) ||
     (isScaleOrder && !scaleLadderResult.success) ||
     (isScaleOrder && !isScaleOrdersEnabled) ||
+    (isScaleOrder && isScaleOrderSupportPending) ||
     (!isTwapEnabled && isTwapOrder) ||
     hasTpslBlocker ||
     isTriggerOrderUnavailable ||

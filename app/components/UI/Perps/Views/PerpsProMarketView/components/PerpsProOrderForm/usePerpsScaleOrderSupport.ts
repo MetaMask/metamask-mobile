@@ -21,6 +21,7 @@ interface UsePerpsScaleOrderSupportParams {
 
 interface ScaleSupportState {
   routeKey: string;
+  status: 'pending' | 'supported' | 'unsupported';
   isSupported: boolean;
 }
 
@@ -38,76 +39,91 @@ export const usePerpsScaleOrderSupport = ({
 }: UsePerpsScaleOrderSupportParams) => {
   const routeKey = `${symbol}:${providerId ?? ''}`;
   const currentRouteKeyRef = useRef(routeKey);
+  const requestIdRef = useRef(0);
   currentRouteKeyRef.current = routeKey;
   const [supportState, setSupportState] = useState<ScaleSupportState>({
-    routeKey: '',
+    routeKey,
+    status: enabled && symbol && providerId ? 'pending' : 'unsupported',
     isSupported: false,
   });
 
-  const checkScaleOrderSupport = useCallback(async () => {
+  const refreshScaleOrderSupport = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+
     if (!enabled || !symbol || !providerId) {
+      if (currentRouteKeyRef.current === routeKey) {
+        setSupportState({
+          routeKey,
+          status: 'unsupported',
+          isSupported: false,
+        });
+      }
       return false;
     }
+
+    setSupportState((currentState) => ({
+      routeKey,
+      status: 'pending',
+      isSupported: currentState.isSupported,
+    }));
 
     const controller = Engine.context
       .PerpsController as unknown as PerpsControllerWithOrderCapabilities;
     const getOrderCapabilities =
       controller.getOrderCapabilities?.bind(controller);
 
-    if (!getOrderCapabilities) {
+    let isSupported = false;
+    try {
+      const capabilities = await getOrderCapabilities?.({ symbol, providerId });
+      isSupported = Boolean(
+        capabilities &&
+          capabilities.status === 'ready' &&
+          capabilities.supportedStrategies.includes('scale'),
+      );
+    } catch {
+      isSupported = false;
+    }
+
+    if (
+      currentRouteKeyRef.current !== routeKey ||
+      requestIdRef.current !== requestId
+    ) {
       return false;
     }
 
-    try {
-      const capabilities = await getOrderCapabilities({ symbol, providerId });
-      return (
-        currentRouteKeyRef.current === routeKey &&
-        capabilities.status === 'ready' &&
-        capabilities.supportedStrategies.includes('scale')
-      );
-    } catch {
-      return false;
-    }
+    setSupportState({
+      routeKey,
+      status: isSupported ? 'supported' : 'unsupported',
+      isSupported,
+    });
+    return isSupported;
   }, [enabled, providerId, routeKey, symbol]);
 
   useEffect(() => {
-    let isCurrent = true;
-
-    setSupportState({ routeKey, isSupported: false });
-
-    if (!enabled || !symbol || !providerId) {
-      return () => {
-        isCurrent = false;
-      };
-    }
-
-    checkScaleOrderSupport().then((isSupported) => {
-      if (isCurrent) {
-        setSupportState({ routeKey, isSupported });
-      }
-    });
+    refreshScaleOrderSupport();
 
     return () => {
-      isCurrent = false;
+      requestIdRef.current += 1;
     };
-  }, [checkScaleOrderSupport, enabled, providerId, routeKey, symbol]);
-
-  const recheckScaleOrderSupport = useCallback(async () => {
-    const isSupported = await checkScaleOrderSupport();
-    if (currentRouteKeyRef.current === routeKey) {
-      setSupportState({ routeKey, isSupported });
-    }
-    return isSupported;
-  }, [checkScaleOrderSupport, routeKey]);
+  }, [refreshScaleOrderSupport]);
 
   return useMemo(
     () => ({
       supportsScaleOrders:
-        enabled &&
-        supportState.routeKey === routeKey &&
-        supportState.isSupported,
-      checkScaleOrderSupport: recheckScaleOrderSupport,
+        Boolean(enabled && symbol && providerId) && supportState.isSupported,
+      isScaleOrderSupportPending:
+        Boolean(enabled && symbol && providerId) &&
+        (supportState.routeKey !== routeKey ||
+          supportState.status === 'pending'),
+      checkScaleOrderSupport: refreshScaleOrderSupport,
     }),
-    [enabled, recheckScaleOrderSupport, routeKey, supportState],
+    [
+      enabled,
+      providerId,
+      refreshScaleOrderSupport,
+      routeKey,
+      supportState,
+      symbol,
+    ],
   );
 };

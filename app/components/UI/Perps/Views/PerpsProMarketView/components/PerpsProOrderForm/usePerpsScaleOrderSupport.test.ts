@@ -36,9 +36,11 @@ describe('usePerpsScaleOrderSupport', () => {
 
     // Assert
     expect(result.current.supportsScaleOrders).toBe(false);
+    expect(result.current.isScaleOrderSupportPending).toBe(true);
     await waitFor(() => {
       expect(result.current.supportsScaleOrders).toBe(true);
     });
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
     expect(mockGetOrderCapabilities).toHaveBeenCalledWith({
       symbol: 'ETH',
       providerId: 'hyperliquid',
@@ -50,6 +52,97 @@ describe('usePerpsScaleOrderSupport', () => {
     });
     expect(isSupported).toBe(true);
     expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves support while a same-route refresh is pending', async () => {
+    mockGetOrderCapabilities.mockResolvedValueOnce({
+      status: 'ready',
+      supportedStrategies: ['scale'],
+    });
+    const { result } = renderHook(() =>
+      usePerpsScaleOrderSupport({
+        enabled: true,
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      }),
+    );
+    await waitFor(() => {
+      expect(result.current.supportsScaleOrders).toBe(true);
+    });
+
+    let resolveRefresh:
+      | ((value: { status: string; supportedStrategies: string[] }) => void)
+      | undefined;
+    mockGetOrderCapabilities.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
+    let refreshPromise: Promise<boolean> | undefined;
+
+    act(() => {
+      refreshPromise = result.current.checkScaleOrderSupport();
+    });
+
+    expect(result.current.isScaleOrderSupportPending).toBe(true);
+    expect(result.current.supportsScaleOrders).toBe(true);
+
+    await act(async () => {
+      resolveRefresh?.({
+        status: 'ready',
+        supportedStrategies: ['scale'],
+      });
+      await refreshPromise;
+    });
+
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
+    expect(result.current.supportsScaleOrders).toBe(true);
+  });
+
+  it('preserves support during a route change until unsupported resolves', async () => {
+    mockGetOrderCapabilities.mockResolvedValueOnce({
+      status: 'ready',
+      supportedStrategies: ['scale'],
+    });
+    const { result, rerender } = renderHook(
+      ({ providerId }) =>
+        usePerpsScaleOrderSupport({
+          enabled: true,
+          symbol: 'ETH',
+          providerId,
+        }),
+      { initialProps: { providerId: 'hyperliquid' } },
+    );
+    await waitFor(() => {
+      expect(result.current.supportsScaleOrders).toBe(true);
+    });
+
+    let resolveMyx:
+      | ((value: { status: string; supportedStrategies: string[] }) => void)
+      | undefined;
+    mockGetOrderCapabilities.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMyx = resolve;
+      }),
+    );
+
+    rerender({ providerId: 'myx' });
+
+    expect(result.current.isScaleOrderSupportPending).toBe(true);
+    expect(result.current.supportsScaleOrders).toBe(true);
+
+    await act(async () => {
+      resolveMyx?.({
+        status: 'ready',
+        supportedStrategies: ['twap'],
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isScaleOrderSupportPending).toBe(false);
+    });
+    expect(result.current.supportsScaleOrders).toBe(false);
   });
 
   it.each([
@@ -76,6 +169,7 @@ describe('usePerpsScaleOrderSupport', () => {
       await Promise.resolve();
     });
     expect(result.current.supportsScaleOrders).toBe(false);
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
   });
 
   it('does not query capabilities when the Scale flag or Pro mode gate is off', () => {
@@ -90,6 +184,7 @@ describe('usePerpsScaleOrderSupport', () => {
 
     // Assert
     expect(result.current.supportsScaleOrders).toBe(false);
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
     expect(mockGetOrderCapabilities).not.toHaveBeenCalled();
   });
 
@@ -102,6 +197,7 @@ describe('usePerpsScaleOrderSupport', () => {
     );
 
     expect(result.current.supportsScaleOrders).toBe(false);
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
     let isSupported = true;
     await act(async () => {
       isSupported = await result.current.checkScaleOrderSupport();
@@ -134,6 +230,7 @@ describe('usePerpsScaleOrderSupport', () => {
       await act(async () => {
         await Promise.resolve();
       });
+      expect(result.current.isScaleOrderSupportPending).toBe(false);
     } finally {
       controller.getOrderCapabilities = originalGetOrderCapabilities;
     }
@@ -166,8 +263,12 @@ describe('usePerpsScaleOrderSupport', () => {
 
     // Act
     rerender({ providerId: 'myx' });
+    expect(result.current.isScaleOrderSupportPending).toBe(true);
     await waitFor(() => {
       expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+    });
+    await waitFor(() => {
+      expect(result.current.isScaleOrderSupportPending).toBe(false);
     });
     await act(async () => {
       resolveHyperliquid?.({
@@ -179,5 +280,6 @@ describe('usePerpsScaleOrderSupport', () => {
 
     // Assert
     expect(result.current.supportsScaleOrders).toBe(false);
+    expect(result.current.isScaleOrderSupportPending).toBe(false);
   });
 });

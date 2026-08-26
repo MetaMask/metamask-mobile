@@ -307,13 +307,12 @@ export function usePerpsOrderExecution(
             // immediately, then end the order-render CUF when the resting order
             // appears in the stream (or on timeout).
             onSuccess?.();
-            const scaleChildOrderIds =
+            const orderIds = (
               orderParams.orderType === 'scale'
                 ? (result.childOrderIds ?? [])
-                : [];
-            const orderIds = [result.orderId, ...scaleChildOrderIds].filter(
-              (orderId): orderId is string =>
-                Boolean(orderId && typeof orderId === 'string'),
+                : [result.orderId]
+            ).filter((orderId): orderId is string =>
+              Boolean(orderId && typeof orderId === 'string'),
             );
             const renderedOrderId = orderIds.find((orderId) =>
               stream.orders

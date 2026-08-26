@@ -449,13 +449,14 @@ describe('usePerpsOrderExecution', () => {
       }
     });
 
-    it('uses Scale child order IDs for the resting-order CUF path', async () => {
+    it('ignores the Scale group handle and completes from a child order ID', async () => {
       jest.useFakeTimers();
       try {
         const onSuccess = jest.fn();
         mockGetOrdersSnapshot.mockReturnValue([]);
         mockPlaceOrder.mockResolvedValue({
           success: true,
+          orderId: 'scale-group',
           childOrderIds: ['scale-1', 'scale-2'],
           submittedSize: '0.2',
         });
@@ -484,6 +485,19 @@ describe('usePerpsOrderExecution', () => {
         );
 
         act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'scale-group' }]);
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
           handlePerpsCufOrdersDelivered([{ orderId: 'scale-1' }]);
         });
 
@@ -502,6 +516,39 @@ describe('usePerpsOrderExecution', () => {
       } finally {
         jest.useRealTimers();
       }
+    });
+
+    it('finishes Scale CUF immediately when a child order is already rendered', async () => {
+      mockGetOrdersSnapshot.mockReturnValue([{ orderId: 'scale-2' }]);
+      mockOrdersLastDeliveredAt.mockReturnValue(4242);
+      mockPlaceOrder.mockResolvedValue({
+        success: true,
+        orderId: 'scale-group',
+        childOrderIds: ['scale-1', 'scale-2'],
+        submittedSize: '0.2',
+      });
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'scale',
+          scaleMinPrice: '49000',
+          scaleMaxPrice: '51000',
+          scaleNumOrders: 2,
+          scaleSkew: 1,
+        });
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsPlaceLimitOrderToOrderRendered,
+          ),
+          timestamp: 4242,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
     });
 
     it('does not use strategy child IDs for an ordinary limit order', async () => {
