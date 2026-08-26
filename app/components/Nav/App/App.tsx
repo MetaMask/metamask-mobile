@@ -21,7 +21,7 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import { ALLOWED_CAPABILITIES as IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ImportFromSecretRecoveryPhrase/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
-import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -196,22 +196,22 @@ import ProHub from '../../Views/ProHub';
 
 const NativeStack = createNativeStackNavigator();
 
-const ImportFromSecretRecoveryPhraseWithMessenger = withMessenger(
+const ImportFromSecretRecoveryPhraseWithMessenger = withRouteMessenger(
   ImportFromSecretRecoveryPhrase,
   {
     capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES,
   },
 );
 
-const AddDeviceToWalletWithMessenger = withMessenger(AddDeviceToWallet, {
+const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
   capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const ChoosePasswordWithMessenger = withMessenger(ChoosePassword, {
+const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
   capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const QRTabSwitcherWithMessenger = withMessenger(QRTabSwitcher, {
+const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
   capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
