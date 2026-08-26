@@ -166,7 +166,6 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
-import { getOrderFormFieldIssueMessage } from '../../utils/triggerOrderValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -1154,7 +1153,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     skipValidation: isInputFocused,
     originalUsdAmount: orderForm.amount, // Pass original USD input to prevent validation flash from price updates
   });
-  const { validateNow } = orderValidation;
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
   // Hide the "Size must be a positive number" message from the error list
@@ -1293,67 +1291,144 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
-      isSubmittingRef.current = true;
+      // Track the Place Order button press for ALL users on the real
+      // tap — emitted BEFORE the deposit/direct branching so deposit-path taps
+      // are captured too (the deposit branch returns early). `forceTrade` marks
+      // the post-deposit re-invocation, not a user tap, so it is excluded. The
+      // active A/B assignment (e.g. button color) is auto-injected onto this
+      // PERPS_UI_INTERACTION event via enrichWithABTests().
+      if (!forceTrade) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        });
+      }
 
-      try {
-        // Track the Place Order button press for ALL users on the real
-        // tap — emitted BEFORE the deposit/direct branching so deposit-path taps
-        // are captured too (the deposit branch returns early). `forceTrade` marks
-        // the post-deposit re-invocation, not a user tap, so it is excluded. The
-        // active A/B assignment (e.g. button color) is auto-injected onto this
-        // PERPS_UI_INTERACTION event via enrichWithABTests().
-        if (!forceTrade) {
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-            [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-              PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
-            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-            [PERPS_EVENT_PROPERTY.DIRECTION]:
-              orderForm.direction === 'long'
-                ? PERPS_EVENT_VALUE.DIRECTION.LONG
-                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          });
-        }
+      // Bail out before the pay-with-any-token deposit branch so an
+      // excessive-slippage order never starts a deposit/signature flow.
+      if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
+        const estPct = bpsToPercent(estimatedSlippageBps);
+        const maxPct = bpsToPercent(maxSlippageBps);
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            strings('perps.slippage.exceeds_max', {
+              est: estPct.toFixed(2),
+              max: maxPct.toFixed(2),
+            }),
+          ),
+        );
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
+          [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+        });
+        return;
+      }
 
-        // Bail out before the pay-with-any-token deposit branch so an
-        // excessive-slippage order never starts a deposit/signature flow.
-        if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
-          const estPct = bpsToPercent(estimatedSlippageBps);
-          const maxPct = bpsToPercent(maxSlippageBps);
-          showToast(
-            PerpsToastOptions.formValidation.orderForm.validationError(
-              strings('perps.slippage.exceeds_max', {
-                est: estPct.toFixed(2),
-                max: maxPct.toFixed(2),
-              }),
-            ),
-          );
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
-            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
-            [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-          });
+      if (orderValidation.isValidating) {
+        return;
+      }
+
+      // Check if deposit is needed first (when custom token is selected)
+      const needsDeposit =
+        isTradeWithAnyTokenEnabled &&
+        depositAmount &&
+        depositAmount.trim() !== '' &&
+        activeTransactionMeta &&
+        hasCustomTokenSelected;
+
+      if (needsDeposit && !forceTrade) {
+        // Deposit first, then order will be placed automatically when funds arrive
+        if (marginRequired === undefined || marginRequired === null) {
           return;
         }
 
-        const validationAttempt = await validateNow();
-        if (!validationAttempt.isValid) {
-          const firstFieldIssue = validationAttempt.fieldIssues[0];
-          const firstError =
-            validationAttempt.errors[0] ||
-            (firstFieldIssue
-              ? getOrderFormFieldIssueMessage(firstFieldIssue)
-              : strings('perps.order.validation.error'));
+        if (!activeTransactionMeta) {
+          DevLogger.log('No active transaction to confirm');
+          return;
+        }
+
+        // Show deposit toast and set up tracking before confirming
+        handleDepositConfirm(activeTransactionMeta, () => {
+          handlePlaceOrder(true);
+        });
+        // useTransactionConfirm swallows confirm errors and reports them via
+        // onError, so capture failure explicitly instead of assuming success.
+        let depositConfirmError: unknown;
+        await onDepositConfirm({
+          onError: (error) => {
+            depositConfirmError = error;
+          },
+        });
+        if (depositConfirmError) {
+          // A cancelled/failed deposit confirmation is not a commitment: keep
+          // abandon tracking armed and stay on the screen so the user can retry
+          // (leaving later then correctly counts as an abandon).
+          return;
+        }
+        // Deposit confirmed: the order is placed once funds arrive, so leaving
+        // now is a real commitment, not an abandoned order.
+        hasPlacedOrderRef.current = true;
+        if (fromTokenDetails) {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: {
+                    market: navigationMarketData ?? {
+                      symbol: orderForm.asset,
+                      name: orderForm.asset,
+                    },
+                    monitoringIntent: {
+                      asset: orderForm.asset,
+                      monitorOrders: true,
+                      monitorPositions: true,
+                    },
+                  },
+                },
+              ],
+            }),
+          );
+        } else {
+          navigation.goBack();
+        }
+        return;
+      }
+
+      // No deposit needed, place order directly
+      isSubmittingRef.current = true;
+
+      // Note: order_execution_latency_ms is intentionally not emitted
+      // here — the terminal Perp transaction event is owned by the perps
+      // controller, and the latency field lands with the @metamask/perps-controller
+      // 9.2.2 bump (TrackingData.orderExecutionLatencyMs) in a follow-up PR.
+      // The Place Order button press (incl. A/B context) is already tracked at
+      // the top of this callback for all paths; the button-color assignment is
+      // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
+
+      try {
+        // Validation errors are shown in the UI
+        if (!orderValidation.isValid) {
+          const firstError = orderValidation.errors[0];
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               firstError,
             ),
           );
 
+          // Track validation failure as error encountered
           track(MetaMetricsEvents.PERPS_ERROR, {
             [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
               PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
@@ -1363,84 +1438,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
               PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
           });
+
+          isSubmittingRef.current = false; // Reset flag on early return
           return;
         }
-
-        // Check if deposit is needed first (when custom token is selected)
-        const needsDeposit =
-          isTradeWithAnyTokenEnabled &&
-          depositAmount &&
-          depositAmount.trim() !== '' &&
-          activeTransactionMeta &&
-          hasCustomTokenSelected;
-
-        if (needsDeposit && !forceTrade) {
-          // Deposit first, then order will be placed automatically when funds arrive
-          if (marginRequired === undefined || marginRequired === null) {
-            return;
-          }
-
-          if (!activeTransactionMeta) {
-            DevLogger.log('No active transaction to confirm');
-            return;
-          }
-
-          // Show deposit toast and set up tracking before confirming
-          handleDepositConfirm(activeTransactionMeta, () => {
-            handlePlaceOrder(true);
-          });
-          // useTransactionConfirm swallows confirm errors and reports them via
-          // onError, so capture failure explicitly instead of assuming success.
-          let depositConfirmError: unknown;
-          await onDepositConfirm({
-            onError: (error) => {
-              depositConfirmError = error;
-            },
-          });
-          if (depositConfirmError) {
-            // A cancelled/failed deposit confirmation is not a commitment: keep
-            // abandon tracking armed and stay on the screen so the user can retry
-            // (leaving later then correctly counts as an abandon).
-            return;
-          }
-          // Deposit confirmed: the order is placed once funds arrive, so leaving
-          // now is a real commitment, not an abandoned order.
-          hasPlacedOrderRef.current = true;
-          if (fromTokenDetails) {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: Routes.PERPS.MARKET_DETAILS,
-                    params: {
-                      market: navigationMarketData ?? {
-                        symbol: orderForm.asset,
-                        name: orderForm.asset,
-                      },
-                      monitoringIntent: {
-                        asset: orderForm.asset,
-                        monitorOrders: true,
-                        monitorPositions: true,
-                      },
-                    },
-                  },
-                ],
-              }),
-            );
-          } else {
-            navigation.goBack();
-          }
-          return;
-        }
-
-        // Note: order_execution_latency_ms is intentionally not emitted
-        // here — the terminal Perp transaction event is owned by the perps
-        // controller, and the latency field lands with the @metamask/perps-controller
-        // 9.2.2 bump (TrackingData.orderExecutionLatencyMs) in a follow-up PR.
-        // The Place Order button press (incl. A/B context) is already tracked at
-        // the top of this callback for all paths; the button-color assignment is
-        // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
         // Check for cross-margin position (MetaMask only supports isolated margin)
         if (currentMarketPosition?.leverage?.type === 'cross') {
@@ -1459,6 +1460,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
           });
 
+          isSubmittingRef.current = false;
           return;
         }
 
@@ -1586,7 +1588,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isDraggingSlider,
       commitAmount,
       liveDragAmount,
-      validateNow,
+      orderValidation.isValid,
+      orderValidation.isValidating,
+      orderValidation.errors,
       track,
       orderForm.asset,
       orderForm.direction,

@@ -72,10 +72,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
-import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import PerpsOrderView from './PerpsOrderView';
-
-const mockValidateNow = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -105,8 +102,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
-      'perps.order.validation.limit_price_required':
-        'Please set a limit price for limit orders',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -274,10 +269,7 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
     errors: [],
-    warnings: [],
-    fieldIssues: [],
     isValidating: false,
-    validateNow: mockValidateNow,
   })),
   usePerpsOrderExecution: jest.fn(() => ({
     placeOrder: jest.fn().mockResolvedValue({ success: true }),
@@ -572,7 +564,6 @@ jest.mock(
 );
 
 let mockPerpsAdvancedChartEnabled = false;
-let mockTradeWithAnyTokenEnabled = false;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -584,12 +575,6 @@ jest.mock('react-redux', () => ({
       selector.toString().includes('perpsAdvancedChart')
     ) {
       return mockPerpsAdvancedChartEnabled;
-    }
-    if (
-      selector.toString().includes('selectPerpsTradeWithAnyTokenEnabledFlag') ||
-      selector.toString().includes('perpsTradeWithAnyToken')
-    ) {
-      return mockTradeWithAnyTokenEnabled;
     }
     if (selector.toString().includes('selectTokenList')) {
       return {};
@@ -1041,29 +1026,12 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockValidateNow.mockResolvedValue({
-      isValid: true,
-      errors: [],
-      warnings: [],
-      fieldIssues: [],
-    });
-    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-      isValid: true,
-      errors: [],
-      warnings: [],
-      fieldIssues: [],
-      isValidating: false,
-      validateNow: mockValidateNow,
-    });
     mockPerpsAdvancedChartEnabled = false;
-    mockTradeWithAnyTokenEnabled = false;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
-    mockPayRequiredTokens = [];
     mockIsPaySubmitReady = true;
     mockPayTokenAccountBalanceUsd = '0';
     mockProviderEffectiveAvailableBalance = undefined;
-    mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1204,176 +1172,6 @@ describe('PerpsOrderView', () => {
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
     expect(placeOrderButton).toBeDefined();
-  });
-
-  it('uses authoritative validation before direct order placement', async () => {
-    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
-    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder: mockExecuteOrder,
-      isPlacing: false,
-    });
-    mockValidateNow.mockResolvedValueOnce({
-      isValid: false,
-      errors: ['Insufficient balance'],
-      warnings: [],
-      fieldIssues: [],
-    });
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(placeOrderButton);
-    });
-
-    expect(mockValidateNow).toHaveBeenCalledTimes(1);
-    expect(mockExecuteOrder).not.toHaveBeenCalled();
-  });
-
-  it('reports an authoritative field issue before direct order placement', async () => {
-    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
-    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder: mockExecuteOrder,
-      isPlacing: false,
-    });
-    const mockBuilder = {
-      addProperties: jest.fn(),
-      build: jest.fn().mockReturnValue({}),
-    };
-    mockBuilder.addProperties.mockReturnValue(mockBuilder);
-    mockCreateEventBuilder.mockReturnValue(mockBuilder);
-    const currentToasts = (usePerpsToasts as jest.Mock)();
-    const mockShowToast = jest.fn();
-    const mockValidationError = jest.fn((message) => ({ message }));
-    (usePerpsToasts as jest.Mock).mockReturnValue({
-      ...currentToasts,
-      showToast: mockShowToast,
-      PerpsToastOptions: {
-        ...currentToasts.PerpsToastOptions,
-        formValidation: {
-          ...currentToasts.PerpsToastOptions.formValidation,
-          orderForm: {
-            ...currentToasts.PerpsToastOptions.formValidation.orderForm,
-            validationError: mockValidationError,
-          },
-        },
-      },
-    });
-    mockValidateNow.mockResolvedValueOnce({
-      isValid: false,
-      errors: [],
-      warnings: [],
-      fieldIssues: [{ field: 'limitPrice', issue: { code: 'required' } }],
-    });
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(placeOrderButton);
-    });
-
-    expect(mockValidationError).toHaveBeenCalledWith(
-      'Please set a limit price for limit orders',
-    );
-    expect(mockShowToast).toHaveBeenCalledWith({
-      message: 'Please set a limit price for limit orders',
-    });
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.PERPS_ERROR,
-    );
-    expect(mockBuilder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-          'Please set a limit price for limit orders',
-      }),
-    );
-    expect(mockExecuteOrder).not.toHaveBeenCalled();
-  });
-
-  it('validates before starting a custom-token deposit', async () => {
-    mockTradeWithAnyTokenEnabled = true;
-    mockUseIsPerpsBalanceSelected.mockReturnValue(false);
-    mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
-    const mockDepositConfirm = jest.fn();
-    jest.mocked(useTransactionConfirm).mockReturnValue({
-      onConfirm: mockDepositConfirm,
-    } as unknown as ReturnType<typeof useTransactionConfirm>);
-    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder: mockExecuteOrder,
-      isPlacing: false,
-    });
-    mockValidateNow.mockResolvedValueOnce({
-      isValid: false,
-      errors: ['Insufficient balance'],
-      warnings: [],
-      fieldIssues: [],
-    });
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(placeOrderButton);
-    });
-
-    expect(mockValidateNow).toHaveBeenCalledTimes(1);
-    expect(mockDepositConfirm).not.toHaveBeenCalled();
-    expect(mockExecuteOrder).not.toHaveBeenCalled();
-  });
-
-  it('keeps authoritative validation single-flight across duplicate taps', async () => {
-    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
-    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder: mockExecuteOrder,
-      isPlacing: false,
-    });
-    let resolveValidation:
-      | ((attempt: {
-          isValid: boolean;
-          errors: string[];
-          warnings: string[];
-          fieldIssues: [];
-        }) => void)
-      | undefined;
-    mockValidateNow.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveValidation = resolve;
-      }),
-    );
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-
-    fireEvent.press(placeOrderButton);
-    fireEvent.press(placeOrderButton);
-    expect(mockValidateNow).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      resolveValidation?.({
-        isValid: true,
-        errors: [],
-        warnings: [],
-        fieldIssues: [],
-      });
-      await Promise.resolve();
-    });
-
-    await waitFor(() => {
-      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
-    });
   });
 
   it('displays components when connected', async () => {
@@ -2305,25 +2103,6 @@ describe('PerpsOrderView', () => {
       expect(errorText).toBeDefined();
     });
 
-    it('keeps the button disabled without displaying the zero amount message', async () => {
-      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-        isValid: false,
-        errors: [],
-        isValidating: false,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-
-      expect(placeOrderButton).toBeDisabled();
-      expect(
-        screen.queryByText('Order amount must be greater than 0'),
-      ).toBeNull();
-    });
-
     it('disables button when order is placing', async () => {
       // Mock placing order state
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -2335,10 +2114,7 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
-        warnings: [],
-        fieldIssues: [],
         isValidating: false,
-        validateNow: mockValidateNow,
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -5167,10 +4943,7 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
-        warnings: [],
-        fieldIssues: [],
         isValidating: false,
-        validateNow: mockValidateNow,
       });
     });
 
