@@ -186,10 +186,18 @@ const PerpsProCompactInput = ({
             twClassName={
               isInlineActive
                 ? 'w-full flex-row items-center'
-                : 'absolute h-0 w-0'
+                : 'absolute h-0 w-0 overflow-hidden'
             }
           >
-            {isInlineActive ? startAccessory : null}
+            {/* Keep the accessory slot stable so activating the field does not
+                remount the focused native input. */}
+            <Box
+              twClassName={
+                isInlineActive ? 'shrink-0' : 'h-0 w-0 overflow-hidden'
+              }
+            >
+              {startAccessory}
+            </Box>
             {input}
           </Box>
         </Pressable>

@@ -9,6 +9,7 @@ import PerpsProCompactInput, {
 // design system's real `forwardRef<TextInput>` contract.
 const mockInputFocus = jest.fn();
 const mockInputBlur = jest.fn();
+const mockInputUnmount = jest.fn();
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const MockReact = jest.requireActual('react');
@@ -21,6 +22,12 @@ jest.mock('@metamask/design-system-react-native', () => {
           focus: mockInputFocus,
           blur: mockInputBlur,
         }));
+        MockReact.useEffect(
+          () => () => {
+            mockInputUnmount();
+          },
+          [],
+        );
         return MockReact.createElement(TextInput, props);
       },
     ),
@@ -114,6 +121,7 @@ describe('PerpsProCompactInput', () => {
           {...defaultProps}
           variant="inline"
           placeholder="0.00"
+          startAccessory={<Text>$</Text>}
         />,
       );
 
@@ -128,6 +136,7 @@ describe('PerpsProCompactInput', () => {
       expect(label.props.style).not.toEqual(inactiveLabelStyle);
       expect(input).toHaveProp('placeholder', '0.00');
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputUnmount).not.toHaveBeenCalled();
     });
 
     it('restores the full label after an empty inline field blurs', () => {
