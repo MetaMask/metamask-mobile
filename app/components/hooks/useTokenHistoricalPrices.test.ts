@@ -229,7 +229,12 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
   it('sets apiDurationMs on a successful fetch', async () => {
     mockFetch.mockResolvedValue({
       status: 200,
-      json: async () => ({ prices: [['1', 100], ['2', 101]] }),
+      json: async () => ({
+        prices: [
+          ['1', 100],
+          ['2', 101],
+        ],
+      }),
     });
 
     const { result } = renderPrices();
