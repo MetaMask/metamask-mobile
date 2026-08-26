@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -735,6 +735,30 @@ describe('PerpsSection', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('SOL')).toBeOnTheScreen();
+    });
+
+    it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh,
+        isRefreshing: false,
+      });
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} ref={ref} />,
+      );
+
+      await act(async () => {
+        await ref.current?.refresh();
+      });
+
+      expect(refresh).toHaveBeenCalledTimes(1);
     });
 
     it('does not show trending carousel when user has positions', () => {
