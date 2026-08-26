@@ -2,6 +2,7 @@ import { hmac } from '@noble/hashes/hmac';
 import { sha256 } from '@noble/hashes/sha2';
 import { utf8ToBytes } from '@noble/hashes/utils';
 import {
+  isSumSubSandboxMintAllowed,
   mintSumSubSandboxAccessToken,
   resolveSumSubAccessToken,
   signSumSubSandboxRequest,
@@ -80,6 +81,7 @@ describe('mintSumSubSandboxAccessToken', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.resetAllMocks();
   });
 
@@ -178,6 +180,152 @@ describe('mintSumSubSandboxAccessToken', () => {
     );
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null when called with no sandbox env or overrides', async () => {
+    const token = await mintSumSubSandboxAccessToken();
+
+    expect(token).toBeNull();
+  });
+
+  it('evaluates the sandbox mint __DEV__ gate', () => {
+    const allowed = isSumSubSandboxMintAllowed();
+
+    expect(allowed).toBe(typeof __DEV__ === 'undefined' || Boolean(__DEV__));
+  });
+
+  it('binds the minted token to the default sandbox user id when none is given', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        ok: true,
+        status: 200,
+        payload: { token: '_act-sandbox' },
+      }),
+    );
+
+    const token = await mintSumSubSandboxAccessToken({
+      nowSeconds: NOW_SECONDS,
+      fetchImpl,
+      appToken: SANDBOX_CREDS.appToken,
+      secretKey: SANDBOX_CREDS.secretKey,
+      levelName: SANDBOX_CREDS.levelName,
+      isMintAllowed: true,
+      timeoutMs: 0,
+    });
+
+    expect(token).toBe('_act-sandbox');
+    expect(fetchImpl).toHaveBeenCalledWith(
+      `${SUMSUB_API_BASE_URL}${SUMSUB_SANDBOX_ACCESS_TOKEN_PATH}`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          userId: 'mm-mobile-vba-sandbox',
+          levelName: SANDBOX_CREDS.levelName,
+          ttlInSecs: SUMSUB_SANDBOX_TOKEN_TTL_SECS,
+        }),
+      }),
+    );
+  });
+
+  it('throws using the Sumsub errorName when description is missing', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        ok: false,
+        status: 401,
+        payload: {
+          errorName: 'app-token-signature mismatch',
+        },
+      }),
+    );
+
+    await expect(
+      mintSumSubSandboxAccessToken({
+        nowSeconds: NOW_SECONDS,
+        fetchImpl,
+        ...SANDBOX_CREDS,
+      }),
+    ).rejects.toThrow(
+      'Sumsub sandbox token mint failed: app-token-signature mismatch',
+    );
+  });
+
+  it('throws using the HTTP status when Sumsub returns no error fields', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        ok: false,
+        status: 500,
+        payload: {},
+      }),
+    );
+
+    await expect(
+      mintSumSubSandboxAccessToken({
+        nowSeconds: NOW_SECONDS,
+        fetchImpl,
+        ...SANDBOX_CREDS,
+      }),
+    ).rejects.toThrow('Sumsub sandbox token mint failed: HTTP 500');
+  });
+
+  it('throws when the mint response has no applicant token', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        ok: true,
+        status: 200,
+        payload: { userId: SANDBOX_CREDS.userId },
+      }),
+    );
+
+    await expect(
+      mintSumSubSandboxAccessToken({
+        nowSeconds: NOW_SECONDS,
+        fetchImpl,
+        ...SANDBOX_CREDS,
+      }),
+    ).rejects.toThrow('Sumsub sandbox token mint failed: HTTP 200');
+  });
+
+  it('throws using the HTTP status when the mint body is not JSON', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => {
+        throw new Error('invalid json');
+      },
+    });
+
+    await expect(
+      mintSumSubSandboxAccessToken({
+        nowSeconds: NOW_SECONDS,
+        fetchImpl,
+        ...SANDBOX_CREDS,
+      }),
+    ).rejects.toThrow('Sumsub sandbox token mint failed: HTTP 502');
+  });
+
+  it('aborts the mint when the request exceeds the timeout', async () => {
+    jest.useFakeTimers();
+    const fetchImpl = jest.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new Error('The operation was aborted'));
+          });
+        }),
+    );
+
+    const mintPromise = mintSumSubSandboxAccessToken({
+      nowSeconds: NOW_SECONDS,
+      fetchImpl,
+      ...SANDBOX_CREDS,
+      timeoutMs: 15_000,
+    });
+    const pendingRejection = await expect(mintPromise).rejects.toThrow(
+      'The operation was aborted',
+    );
+
+    await jest.advanceTimersByTimeAsync(15_000);
+
+    await pendingRejection;
   });
 });
 
