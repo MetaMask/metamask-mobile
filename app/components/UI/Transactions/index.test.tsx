@@ -378,8 +378,14 @@ describe('UnconnectedTransactions', () => {
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((callback) => {
-        callback();
-        return { cancel: jest.fn() };
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
       });
     resetNavigationMocks();
     (isHardwareAccount as jest.Mock).mockReturnValue(false);
