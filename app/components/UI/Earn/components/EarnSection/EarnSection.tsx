@@ -210,10 +210,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
      * Refreshes Earn data when the parent requests a page refresh.
      * Currently used for Explore pull-to-refresh.
      */
-    useFeedRefresh(
-      enabled ? exploreFeedRefreshConfig : undefined,
-      handleExploreFeedRefresh,
-    );
+    useFeedRefresh(exploreFeedRefreshConfig, handleExploreFeedRefresh, enabled);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
