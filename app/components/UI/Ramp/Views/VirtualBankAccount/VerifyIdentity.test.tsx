@@ -56,8 +56,8 @@ describe('VbaVerifyIdentity', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
     jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders the title, steps, and continue button', () => {
@@ -222,7 +222,7 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('stays on the screen when the Sumsub SDK launch fails', async () => {
-    mockLaunchSumSubSdk.mockRejectedValue(new Error('launch failed'));
+    mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     await act(async () => {

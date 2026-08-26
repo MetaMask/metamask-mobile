@@ -53,15 +53,19 @@ const captureExpirationHandler = (): {
   return captured;
 };
 
+const wireSumSubSdkBuilderMocks = () => {
+  mockInit.mockReturnValue({ withDebug: mockWithDebug });
+  mockWithDebug.mockReturnValue({ withHandlers: mockWithHandlers });
+  mockWithHandlers.mockReturnValue({ build: mockBuild });
+  mockBuild.mockReturnValue({ launch: mockLaunch });
+  mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
+};
+
 describe('launchSumSubSdk', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     restoreSumSubNativeModule();
-    mockInit.mockReturnValue({ withDebug: mockWithDebug });
-    mockWithDebug.mockReturnValue({ withHandlers: mockWithHandlers });
-    mockWithHandlers.mockReturnValue({ build: mockBuild });
-    mockBuild.mockReturnValue({ launch: mockLaunch });
-    mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
+    wireSumSubSdkBuilderMocks();
   });
 
   afterEach(() => {

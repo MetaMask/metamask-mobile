@@ -61,6 +61,12 @@ export interface MintSumSubSandboxAccessTokenParams {
   levelName?: string;
   userId?: string;
   /**
+   * Abort the mint after this many milliseconds. `0` skips the timer
+   * (used by unit tests so Jest does not hold a 15s handle). Production
+   * callers omit this.
+   */
+  timeoutMs?: number;
+  /**
    * Test seam. Overrides {@link isSumSubSandboxMintAllowed}. Same-module
    * calls do not go through the export, so `jest.spyOn` cannot stub the
    * gate. Production callers omit this.
@@ -121,6 +127,7 @@ export const mintSumSubSandboxAccessToken = async ({
   secretKey = SUMSUB_SANDBOX_SECRET_KEY,
   levelName = SUMSUB_SANDBOX_LEVEL_NAME,
   userId = SUMSUB_SANDBOX_USER_ID,
+  timeoutMs = SUMSUB_SANDBOX_MINT_TIMEOUT_MS,
   isMintAllowed = isSumSubSandboxMintAllowed(),
 }: MintSumSubSandboxAccessTokenParams = {}): Promise<string | null> => {
   if (
@@ -149,9 +156,12 @@ export const mintSumSubSandboxAccessToken = async ({
   });
 
   const abortController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    abortController.abort();
-  }, SUMSUB_SANDBOX_MINT_TIMEOUT_MS);
+  const timeoutId =
+    timeoutMs > 0
+      ? setTimeout(() => {
+          abortController.abort();
+        }, timeoutMs)
+      : undefined;
 
   try {
     const response = await fetchImpl(
@@ -194,7 +204,9 @@ export const mintSumSubSandboxAccessToken = async ({
 
     return token;
   } finally {
-    clearTimeout(timeoutId);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   }
 };
 

@@ -27,6 +27,7 @@ const SANDBOX_CREDS = {
   levelName: 'basic-kyc-level',
   userId: 'mm-mobile-vba-sandbox',
   isMintAllowed: true,
+  timeoutMs: 0,
 } as const;
 
 const NOW_SECONDS = 1_700_000_000;
