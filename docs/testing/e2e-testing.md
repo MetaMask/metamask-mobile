@@ -54,7 +54,7 @@
 
 ### Gestures facade (canonical)
 
-Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `FrameworkDetector`, `encapsulated`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `FrameworkDetector` or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
 
 ```
 Page object calls Gestures.waitAndTap(elem)
@@ -103,20 +103,12 @@ When the same element needs a different testID or selector strategy between iOS 
 
 ```typescript
 import { resolve } from '../framework';
-import { encapsulated } from '../framework/EncapsulatedElement';
-import AppiumMatchers from '../framework/AppiumMatchers';
 
 // Different testID on iOS vs Android Appium
 get actionButton() {
-  return encapsulated({
-    android: () =>
-      AppiumMatchers.getElementById(TabBarSelectorIDs.TRADE, {
-        exact: true,
-      }),
-    ios: () =>
-      AppiumMatchers.getElementByAccessibilityId(
-        TabBarSelectorIDs.ACTIONS,
-      ),
+  return resolve({
+    androidAppiumTestID: TabBarSelectorIDs.TRADE,
+    iosAppiumTestID: TabBarSelectorIDs.ACTIONS,
   });
 }
 
@@ -148,18 +140,13 @@ Available `resolve()` shapes:
 | `{ label }`                                | Match by accessibility label                     |
 | `{ text }`                                 | Match by visible text                            |
 
-For Appium-only iOS vs Android testID differences, use `encapsulated({ android: () => ..., ios: () => ... })` instead of `resolve()` when the locator strategy itself differs.
-
 ### Edge Case: different selector type per platform
 
-When the selector strategy itself differs between iOS and Android Appium (e.g. one platform matches by ID+label, the other by text), use `encapsulated()`:
+When the selector strategy itself differs between iOS and Android Appium (e.g. one platform matches by ID+label, the other by text), use the matching `Matchers` method or `resolve()`:
 
 ```typescript
-import { encapsulated } from '../framework/EncapsulatedElement';
-import AppiumMatchers from '../framework/AppiumMatchers';
-
 getAccountElementByName(accountName: string) {
-  return encapsulated(() => AppiumMatchers.getElementByText(accountName));
+  return Matchers.getElementByText(accountName);
 }
 ```
 
@@ -188,10 +175,9 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
   NO → Does only the testID value differ per platform?
     YES → resolve({ testID, iosAppiumTestID }) when Android shares testID
           OR resolve({ androidAppiumTestID, iosAppiumTestID | iosAppiumXPath })
-          OR encapsulated({ android: () => ..., ios: () => ... })
 
     NO → Does only the selector type differ (ID vs text vs label)?
-      YES → encapsulated(() => ...)
+      YES → Matchers.getElementByText / getElementByIDAndLabel / getElementByLabel
 
       NO → Does the action flow itself differ?
         YES → PlatformDetector + Gestures / Assertions in the page object

@@ -1,6 +1,6 @@
-import { encapsulated } from './EncapsulatedElement.ts';
 import type { AppiumElement } from './AppiumElement.ts';
 import AppiumMatchers from './AppiumMatchers.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 export type Selector =
   | { testID: string; index?: number }
@@ -11,6 +11,22 @@ export type Selector =
   | { androidAppiumTestID: string; iosAppiumTestID: string }
   | { androidAppiumTestID: string; iosAppiumXPath: string }
   | { testID: string; iosAppiumTestID: string; index?: number };
+
+function encapsulated(locators: {
+  android?: () => Promise<AppiumElement>;
+  ios?: () => Promise<AppiumElement>;
+}): Promise<AppiumElement> {
+  const platform = PlatformDetector.getPlatform();
+  const locator = locators[platform];
+  if (!locator) {
+    return Promise.reject(
+      new Error(
+        `Locator for platform '${platform}' is not provided in the configuration`,
+      ),
+    );
+  }
+  return locator();
+}
 
 /**
  * Resolve a declarative Selector to the Appium Element API.
@@ -66,27 +82,21 @@ export function resolve(selector: Selector): Promise<AppiumElement> {
   }
 
   if ('text' in selector) {
-    return encapsulated(() =>
-      AppiumMatchers.getElementByText(selector.text, false, {
-        index: selector.index ?? 0,
-      }),
-    );
+    return AppiumMatchers.getElementByText(selector.text, false, {
+      index: selector.index ?? 0,
+    });
   }
 
   if ('textPattern' in selector) {
-    return encapsulated(() =>
-      AppiumMatchers.getElementByText(selector.textPattern, false, {
-        index: selector.index ?? 0,
-      }),
-    );
+    return AppiumMatchers.getElementByText(selector.textPattern, false, {
+      index: selector.index ?? 0,
+    });
   }
 
   if ('testIDPattern' in selector) {
-    return encapsulated(() =>
-      AppiumMatchers.getElementById(selector.testIDPattern, {
-        index: selector.index,
-      }),
-    );
+    return AppiumMatchers.getElementById(selector.testIDPattern, {
+      index: selector.index,
+    });
   }
 
   return encapsulated({

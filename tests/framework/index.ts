@@ -49,13 +49,6 @@ export { default as AppiumMatchers } from './AppiumMatchers.ts';
 export { default as AppiumGestures } from './AppiumGestures.ts';
 export { default as AppiumAssertions } from './AppiumAssertions.ts';
 
-export {
-  EncapsulatedElement,
-  LocatorStrategy,
-  type LocatorConfig,
-  type PlatformLocator,
-} from './EncapsulatedElement.ts';
-
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export {

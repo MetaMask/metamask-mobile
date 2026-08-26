@@ -14,16 +14,6 @@ const dualFrameworkRestrictedImportOptions = {
     },
     {
       group: [
-        '**/EncapsulatedElement',
-        '**/EncapsulatedElement.ts',
-        '**/EncapsulatedElement.js',
-      ],
-      importNames: ['encapsulated'],
-      message:
-        'Do not use encapsulated(). Prefer Matchers + Gestures/Assertions.',
-    },
-    {
-      group: [
         '**/AppiumMatchers',
         '**/AppiumMatchers.ts',
         '**/AppiumGestures',
@@ -37,7 +27,7 @@ const dualFrameworkRestrictedImportOptions = {
         'Do not import AppiumMatchers/AppiumGestures/AppiumAssertions backends in POs/specs. Use Gestures/Assertions/Matchers.',
     },
     {
-      // Only bare `from '.../framework'` / index re-exports (not framework/EncapsulatedElement etc.)
+      // Only bare `from '.../framework'` / index re-exports
       group: [
         '**/framework/index',
         '**/framework/index.ts',
@@ -45,7 +35,6 @@ const dualFrameworkRestrictedImportOptions = {
       ],
       importNames: [
         'FrameworkDetector',
-        'encapsulated',
         'AppiumMatchers',
         'AppiumGestures',
         'AppiumAssertions',
@@ -65,7 +54,6 @@ const dualFrameworkRestrictedImportOptions = {
       ],
       importNames: [
         'FrameworkDetector',
-        'encapsulated',
         'AppiumMatchers',
         'AppiumGestures',
         'AppiumAssertions',

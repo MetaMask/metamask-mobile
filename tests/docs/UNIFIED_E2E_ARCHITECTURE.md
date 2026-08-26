@@ -53,7 +53,7 @@ export default new LoginPage();
 Prefer the same `Matchers` / `Gestures` / `Assertions` call for iOS and Android.
 
 - Different testID / platform locator → `resolve({ testID, iosAppiumTestID, ... })`
-- Different selector strategy → `encapsulated(() => ...)` or `encapsulated({ android, ios })`
+- Different selector strategy → `Matchers` (`getElementByText`, `getElementByIDAndLabel`, …)
 - Structurally different action flow → `PlatformDetector` + `Gestures` / `Assertions` in the page object
 
 Canonical guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
