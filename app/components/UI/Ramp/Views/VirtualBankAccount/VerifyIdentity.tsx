@@ -35,13 +35,13 @@ import {
   IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-  SUMSUB_ACCESS_TOKEN,
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { launchSumSubSdk } from './launchSumSubSdk';
+import { resolveSumSubAccessToken } from './mintSumSubSandboxAccessToken';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -144,8 +144,10 @@ const VbaVerifyIdentity = () => {
   const handleContinue = useCallback(async () => {
     setIsLaunchingSumSub(true);
     try {
+      const accessToken = await resolveSumSubAccessToken();
       const result = await launchSumSubSdk({
-        accessToken: SUMSUB_ACCESS_TOKEN,
+        accessToken,
+        onTokenExpired: resolveSumSubAccessToken,
       });
       Logger.log('[VBA KYC] Sumsub SDK closed', {
         success: result.success,
