@@ -27,9 +27,7 @@ const EMPHASIS_FADE_MS = 1600;
 export interface TradeRowProps {
   trade: Trade;
   /**
-   * Where this fill sits in the position's lifecycle. Resolved once for the
-   * whole position by the parent, since a fill's stage depends on the ones
-   * before it.
+   * Where this fill sits in the position's lifecycle, as provided by the API.
    */
   action: TradeAction;
   traderImageUrl?: string;

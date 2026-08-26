@@ -84,6 +84,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 5,
             usdCost: 88000,
             timestamp: 1_700_000_500,
@@ -107,6 +108,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 5,
             usdCost: 88000,
             timestamp: 1_700_000_500,
@@ -135,7 +137,7 @@ describe('mapFeedItem', () => {
     });
   });
 
-  it('derives "closed" for a spot exit that empties the position', () => {
+  it('uses the server "closed" action for a spot exit', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         positionAmount: 0,
@@ -144,6 +146,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 1000,
             usdCost: 90000,
             timestamp: 1_700_000_000,
@@ -157,9 +160,7 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('closed');
   });
 
-  // The bug this replaced: `intent === 'exit'` alone announced "closed" for a
-  // trader who had only trimmed part of their bag.
-  it('derives "reduced" for a spot exit that leaves the position open', () => {
+  it('uses the server "reduced" action for a partial spot exit', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         positionAmount: 600,
@@ -168,6 +169,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'reduced',
             tokenAmount: 400,
             usdCost: 40000,
             timestamp: 1_700_000_000,
@@ -181,7 +183,7 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('reduced');
   });
 
-  it('falls back to the most recent trade when none matches the feed timestamp', () => {
+  it('uses the most recent trade action when no timestamp matches the feed', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         timestamp: 9_999_999_999,
@@ -191,6 +193,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 10,
             usdCost: 100,
             timestamp: 1_700_000_000,
@@ -200,6 +203,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 10,
             usdCost: 200,
             timestamp: 1_700_000_900,
@@ -215,16 +219,15 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('closed');
   });
 
-  it('keeps a perp enter fill as "opened" even when the snapshot looks closed', () => {
+  it('uses the server "opened" action for a perp entry', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
-        // A closed-looking snapshot (Clicker reports currentValueUSD === 0) must
-        // not override the triggering trade's `enter` intent.
         currentValueUSD: 0,
         trades: [
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 5,
             usdCost: 50600,
             timestamp: 1_700_000_500,
@@ -240,17 +243,16 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('opened');
   });
 
-  it('keeps a spot enter fill as "opened" even when the snapshot looks closed', () => {
+  it('uses the server "opened" action for a spot entry', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
-        // Closed-looking spot snapshot (fully sold out) must still defer to the
-        // triggering trade's `enter` intent.
         positionAmount: 0,
         soldUsd: 100_000,
         trades: [
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 1000,
             usdCost: 120000,
             timestamp: 1_700_000_000,
@@ -289,6 +291,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 1000,
             usdCost: 103_000,
             marketCap: 73_500_000,
@@ -320,6 +323,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: -0.568,
             usdCost: -36_300,
             timestamp: 1_700_000_000,
@@ -347,6 +351,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: -250,
             usdCost: -40_429,
             timestamp: 1_700_000_500,
@@ -376,6 +381,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 1_451_472,
             usdCost: 4_004.61,
             timestamp: 1_700_000_000,
@@ -405,6 +411,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 1_000_000,
             usdCost: 2_759,
             marketCap: null,
@@ -430,6 +437,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 5,
             usdCost: 50_000,
             marketCap: 73_500_000,
@@ -494,6 +502,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 26.785,
             usdCost: 4351.49,
             timestamp: 1_700_000_000,
@@ -527,6 +536,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: -250,
             usdCost: -40_429,
             timestamp: 1_700_000_500,
@@ -564,6 +574,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: -2.5,
             usdCost: -151_400,
             timestamp: 1_700_000_500,

@@ -76,9 +76,8 @@ export interface TraderTradesSectionHandle {
 export interface TraderTradesSectionProps {
   trades: Trade[];
   /**
-   * Lifecycle stage per trade, in the same order as {@link trades}. Resolved by
-   * the parent because a fill's stage depends on the whole position (the fills
-   * before it, and the position's remaining size), not on the fill alone.
+   * Server-provided lifecycle stage per trade, in the same order as
+   * {@link trades}.
    */
   tradeActions: TradeAction[];
   traderImageUrl?: string;

@@ -156,9 +156,8 @@ export interface TraderPositionData {
 
   allTrades: Position['trades'];
   /**
-   * Lifecycle stage per entry in {@link allTrades}, same order. Resolved here
-   * rather than per row because a fill's stage depends on the fills before it
-   * and on the position's remaining size.
+   * Server-provided lifecycle stage per entry in {@link allTrades}, same order.
+   * Resolved here so each row receives the action that belongs to its trade.
    */
   tradeActions: TradeAction[];
   chartTrades: Position['trades'];

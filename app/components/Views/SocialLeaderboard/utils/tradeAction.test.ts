@@ -4,20 +4,17 @@ import {
   resolveTradeAction,
   resolveTradeActions,
   tradeActionLabelKey,
-  type PositionWithOpenState,
   type TradeAction,
 } from './tradeAction';
 
 /**
- * A fill described the way the walk cares about it: an intent and a size.
- * `tokenAmount` is written negative for exits to mirror the API's own sign
- * convention and prove the walk ignores it in favour of `intent`.
+ * A fill returned by the social API.
  */
 interface Fill {
   intent: 'enter' | 'exit';
   size: number;
   timestamp?: number;
-  action?: TradeAction;
+  action: TradeAction;
 }
 
 const buildTrade = (fill: Fill, index: number): Trade =>
@@ -28,276 +25,62 @@ const buildTrade = (fill: Fill, index: number): Trade =>
     transactionHash: `0xtrade${index}`,
     direction: fill.intent === 'enter' ? 'buy' : 'sell',
     intent: fill.intent,
-    ...(fill.action && { action: fill.action }),
+    action: fill.action,
   }) as unknown as Trade;
 
 /**
- * Builds a position from fills given oldest-first (how a human reads a
- * history) and stores them newest-first, the order the API sends.
- * `positionAmount` defaults to the net of the fills — an untruncated window.
+ * Builds a position from fills given oldest-first and stores them newest-first,
+ * the order the API sends.
  */
 function buildPosition(
   fills: Fill[],
-  overrides: Partial<PositionWithOpenState> = {},
-): PositionWithOpenState {
-  const net = fills.reduce(
-    (sum, fill) => sum + (fill.intent === 'enter' ? fill.size : -fill.size),
-    0,
-  );
+  overrides: Partial<Position> = {},
+): Position {
   return {
-    // Spot on Ethereum unless a test overrides it — `isClosedPosition` reads
-    // `chain` and `perpPositionType` to pick its open/closed heuristic.
     chain: 'ethereum',
-    soldUsd: fills.some((fill) => fill.intent === 'exit') ? 1_000 : 0,
+    soldUsd: 0,
     trades: fills.map(buildTrade).reverse(),
-    positionAmount: net,
+    positionAmount: 0,
     ...overrides,
-  } as unknown as PositionWithOpenState;
+  } as unknown as Position;
 }
-
-/** Actions in chronological order, so expectations read like the history. */
-const actionsInOrder = (position: PositionWithOpenState) =>
-  [...resolveTradeActions(position)].reverse();
 
 describe('resolveTradeActions', () => {
   it('returns nothing for a position with no trades', () => {
-    expect(resolveTradeActions(buildPosition([]))).toStrictEqual([]);
+    const result = resolveTradeActions(buildPosition([]));
+
+    expect(result).toStrictEqual([]);
   });
 
-  it('labels a lone entry as opened', () => {
-    expect(
-      actionsInOrder(buildPosition([{ intent: 'enter', size: 100 }])),
-    ).toStrictEqual(['opened']);
+  it('returns server-provided lifecycle stages in API order', () => {
+    const position = buildPosition([
+      { intent: 'enter', size: 100, action: 'opened' },
+      { intent: 'enter', size: 50, action: 'added' },
+      { intent: 'exit', size: 40, action: 'reduced' },
+      { intent: 'exit', size: 110, action: 'closed' },
+    ]);
+
+    const result = resolveTradeActions(position);
+
+    expect(result).toStrictEqual(['closed', 'reduced', 'added', 'opened']);
   });
 
-  it('labels a second entry as added, not a second open', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([
-          { intent: 'enter', size: 100 },
-          { intent: 'enter', size: 50 },
-        ]),
-      ),
-    ).toStrictEqual(['opened', 'added']);
-  });
+  it('uses the server action instead of inferring it from intent', () => {
+    const position = buildPosition([
+      { intent: 'enter', size: 100, action: 'added' },
+    ]);
 
-  it('labels a partial exit as reduced rather than closed', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([
-          { intent: 'enter', size: 100 },
-          { intent: 'exit', size: 40 },
-        ]),
-      ),
-    ).toStrictEqual(['opened', 'reduced']);
-  });
+    const result = resolveTradeActions(position);
 
-  it('labels an exit that zeroes the position as closed', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([
-          { intent: 'enter', size: 100 },
-          { intent: 'exit', size: 100 },
-        ]),
-      ),
-    ).toStrictEqual(['opened', 'closed']);
-  });
-
-  it('walks a full round trip through all four stages', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([
-          { intent: 'enter', size: 100 },
-          { intent: 'exit', size: 40 },
-          { intent: 'enter', size: 25 },
-          { intent: 'exit', size: 85 },
-        ]),
-      ),
-    ).toStrictEqual(['opened', 'reduced', 'added', 'closed']);
-  });
-
-  it('re-opens after a full close', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([
-          { intent: 'enter', size: 100 },
-          { intent: 'exit', size: 100 },
-          { intent: 'enter', size: 30 },
-        ]),
-      ),
-    ).toStrictEqual(['opened', 'closed', 'opened']);
-  });
-
-  // Opening a short is `direction: 'sell'` with `intent: 'enter'`, and the API
-  // reports the resulting size as a positive magnitude, so signing by intent
-  // makes shorts accumulate exactly like longs.
-  it('treats a short the same as a long', () => {
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 5 },
-            { intent: 'enter', size: 3 },
-            { intent: 'exit', size: 3 },
-            { intent: 'exit', size: 5 },
-          ],
-          { positionAmount: 0, isOpen: false },
-        ),
-      ),
-    ).toStrictEqual(['opened', 'added', 'reduced', 'closed']);
-  });
-
-  it('does not report the oldest visible fill as opened when the window is truncated', () => {
-    // The trader already held 500 before these fills; the API capped the array.
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 100 },
-            { intent: 'exit', size: 40 },
-          ],
-          { positionAmount: 560 },
-        ),
-      ),
-    ).toStrictEqual(['added', 'reduced']);
-  });
-
-  // A closed perp keeps its historical positionAmount (a closed 5x long still
-  // reports a size of 5), so anchoring to it would fabricate a pre-window
-  // balance and read the closing fill as a reduce.
-  it('does not anchor a perp walk to its stale positionAmount', () => {
-    const position = buildPosition([{ intent: 'exit', size: 5 }], {
-      chain: 'hyperliquid',
-      perpPositionType: 'long',
-      positionAmount: 5,
-      currentValueUSD: 0,
-    });
-
-    expect(actionsInOrder(position)).toStrictEqual(['closed']);
-  });
-
-  it('reads a perp trim as reduced while exposure remains', () => {
-    const position = buildPosition(
-      [
-        { intent: 'enter', size: 5 },
-        { intent: 'exit', size: 2 },
-      ],
-      {
-        chain: 'hyperliquid',
-        perpPositionType: 'long',
-        positionAmount: 5,
-        currentValueUSD: 30_000,
-      },
-    );
-
-    expect(actionsInOrder(position)).toStrictEqual(['opened', 'reduced']);
-  });
-
-  it('ignores reconciliation drift between positionAmount and the fills', () => {
-    expect(
-      actionsInOrder(
-        buildPosition([{ intent: 'enter', size: 100 }], {
-          positionAmount: 100.05,
-        }),
-      ),
-    ).toStrictEqual(['opened']);
-  });
-
-  it('does not read a redelivered fill as an add to itself', () => {
-    const position = buildPosition([{ intent: 'enter', size: 100 }]);
-    position.trades = [position.trades[0], { ...position.trades[0] }];
-
-    expect(resolveTradeActions(position)).toStrictEqual(['opened', 'opened']);
-  });
-
-  it('treats a dust residue as flat', () => {
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 100 },
-            { intent: 'exit', size: 99.999999 },
-          ],
-          { positionAmount: 0, isOpen: false },
-        ),
-      ),
-    ).toStrictEqual(['opened', 'closed']);
-  });
-
-  it('trusts isOpen over the arithmetic for the newest exit', () => {
-    // The fills net to zero, but the API still reports exposure — it wins.
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 100 },
-            { intent: 'exit', size: 100 },
-          ],
-          { isOpen: true },
-        ),
-      ),
-    ).toStrictEqual(['opened', 'reduced']);
-  });
-
-  it('leaves earlier exits to the arithmetic', () => {
-    // isOpen describes the position now, so it must not colour historical fills.
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 100 },
-            { intent: 'exit', size: 40 },
-            { intent: 'enter', size: 10 },
-          ],
-          { isOpen: true },
-        ),
-      ),
-    ).toStrictEqual(['opened', 'reduced', 'added']);
-  });
-
-  it('walks same-timestamp siblings in chronological order', () => {
-    // A Hyperliquid flip emits its exit and entry legs with one timestamp.
-    expect(
-      actionsInOrder(
-        buildPosition(
-          [
-            { intent: 'enter', size: 100, timestamp: 1_700_000_000 },
-            { intent: 'exit', size: 100, timestamp: 1_700_000_100 },
-            { intent: 'enter', size: 60, timestamp: 1_700_000_100 },
-          ],
-          { positionAmount: 60, isOpen: true },
-        ),
-      ),
-    ).toStrictEqual(['opened', 'closed', 'opened']);
-  });
-
-  describe('when the API supplies the action', () => {
-    it('prefers it over the local derivation', () => {
-      // The arithmetic alone would say "opened" for a truncated window; the
-      // server computed "added" against the full history and wins.
-      const position = buildPosition([
-        { intent: 'enter', size: 100, action: 'added' },
-      ]);
-
-      expect(resolveTradeActions(position)).toStrictEqual(['added']);
-    });
-
-    it('falls back to the derivation when only some fills carry it', () => {
-      const position = buildPosition([
-        { intent: 'enter', size: 100 },
-        { intent: 'enter', size: 50, action: 'added' },
-      ]);
-
-      expect(actionsInOrder(position)).toStrictEqual(['opened', 'added']);
-    });
+    expect(result).toStrictEqual(['added']);
   });
 });
 
 describe('resolveTradeAction', () => {
   it('resolves the action for a specific fill', () => {
     const position = buildPosition([
-      { intent: 'enter', size: 100 },
-      { intent: 'enter', size: 50 },
+      { intent: 'enter', size: 100, action: 'opened' },
+      { intent: 'enter', size: 50, action: 'added' },
     ]);
     const [newest] = position.trades;
 
@@ -305,8 +88,13 @@ describe('resolveTradeAction', () => {
   });
 
   it('returns undefined for a trade from another position', () => {
-    const position = buildPosition([{ intent: 'enter', size: 100 }]);
-    const stranger = buildTrade({ intent: 'enter', size: 1 }, 99);
+    const position = buildPosition([
+      { intent: 'enter', size: 100, action: 'opened' },
+    ]);
+    const stranger = buildTrade(
+      { intent: 'enter', size: 1, action: 'opened' },
+      99,
+    );
 
     expect(resolveTradeAction(position, stranger)).toBeUndefined();
   });
