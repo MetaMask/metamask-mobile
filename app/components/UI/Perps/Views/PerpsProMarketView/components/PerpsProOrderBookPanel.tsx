@@ -37,6 +37,10 @@ import {
 } from '../../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
 import {
+  usePerpsProOrderBookPosition,
+  type PerpsProOrderBookPosition,
+} from '../../../hooks/usePerpsProOrderBookPosition';
+import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -421,6 +425,8 @@ const PerpsProOrderBookPanel = ({
   const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
+  const { orderBookPosition, setOrderBookPosition } =
+    usePerpsProOrderBookPosition();
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
     savedGrouping ?? null,
   );
@@ -571,13 +577,15 @@ const PerpsProOrderBookPanel = ({
       currency: OrderBookListCurrency;
       metric: OrderBookListMetric;
       grouping: number;
+      layout: PerpsProOrderBookPosition;
     }) => {
       setCurrency(next.currency);
       setMetric(next.metric);
       setSelectedGrouping(next.grouping);
       saveGrouping(next.grouping);
+      setOrderBookPosition(next.layout);
     },
-    [saveGrouping],
+    [saveGrouping, setOrderBookPosition],
   );
 
   const hasLadder = Boolean(
@@ -885,6 +893,7 @@ const PerpsProOrderBookPanel = ({
         metric={metric}
         grouping={currentGrouping}
         groupingOptions={groupingOptions}
+        layout={orderBookPosition}
         onApply={handleApplyConfig}
         onClose={() => setIsConfigOpen(false)}
         testID={`${testID}-config-sheet`}

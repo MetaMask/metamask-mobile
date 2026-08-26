@@ -49,6 +49,8 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsProOrderBookExpanded } from '../../hooks/usePerpsProOrderBookExpanded';
+import { usePerpsProOrderBookPosition } from '../../hooks/usePerpsProOrderBookPosition';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
@@ -178,7 +180,10 @@ const PerpsProMarketView = () => {
     const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
     return fullMarket || routeMarket;
   }, [hasFormattedMaxLeverage, markets, routeMarket]);
-  const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+  const { isOrderBookExpanded, setOrderBookExpanded } =
+    usePerpsProOrderBookExpanded();
+  const isOrderBookCollapsed = !isOrderBookExpanded;
+  const { orderBookPosition } = usePerpsProOrderBookPosition();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Swapping the route param rather than pushing keeps a single Pro screen on
@@ -220,12 +225,12 @@ const PerpsProMarketView = () => {
   }, [market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
-    setIsOrderBookCollapsed(true);
-  }, []);
+    setOrderBookExpanded(false);
+  }, [setOrderBookExpanded]);
 
   const handleExpandOrderBook = useCallback(() => {
-    setIsOrderBookCollapsed(false);
-  }, []);
+    setOrderBookExpanded(true);
+  }, [setOrderBookExpanded]);
 
   // Drives the header's subtitle/live-price crossfade (see
   // PerpsProMarketHeader). The price section above the fold has a fixed
@@ -440,6 +445,7 @@ const PerpsProMarketView = () => {
           >
             <PerpsProMarketLayout
               isOrderBookCollapsed={isOrderBookCollapsed}
+              orderBookPosition={orderBookPosition}
               orderForm={
                 // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
                 // to support deep-link trade-detail entries that may only carry

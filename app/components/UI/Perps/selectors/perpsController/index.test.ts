@@ -20,6 +20,7 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProOrderBookPosition,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
   selectPerpsProOrdersSideFilter,
@@ -1004,6 +1005,34 @@ describe('PerpsController Selectors', () => {
 
       expect(selectPerpsProChartExpanded(mockState)).toBe(
         DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrderBookPosition', () => {
+    it('returns the persisted order book side', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { orderBookPosition: 'right' },
+      });
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe('right');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.orderBookPosition,
+      );
+    });
+
+    it('falls back to the default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.orderBookPosition,
       );
     });
   });

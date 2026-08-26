@@ -13,6 +13,8 @@ const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
+const mockSetOrderBookPosition = jest.fn();
+let mockOrderBookPosition: 'left' | 'right' = 'left';
 
 jest.mock('../../../../../../util/haptics');
 
@@ -24,6 +26,15 @@ jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: (symbol: string) => ({
     savedGrouping: mockSavedGroupingBySymbol[symbol],
     saveGrouping: mockSaveGrouping,
+  }),
+}));
+
+// Persistence through to `setProLayoutPreferences` is covered by
+// usePerpsProOrderBookPosition.test.ts; here only the panel wiring matters.
+jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
+  usePerpsProOrderBookPosition: () => ({
+    orderBookPosition: mockOrderBookPosition,
+    setOrderBookPosition: mockSetOrderBookPosition,
   }),
 }));
 
@@ -118,6 +129,7 @@ describe('PerpsProOrderBookPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderBookPosition = 'left';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -348,6 +360,51 @@ describe('PerpsProOrderBookPanel', () => {
     fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
 
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
+
+  it('persists the chosen order book side on save', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+
+    expect(mockSetOrderBookPosition).toHaveBeenCalledWith('right');
+  });
+
+  it('leaves the order book side untouched when the sheet is dismissed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-close`));
+
+    expect(mockSetOrderBookPosition).not.toHaveBeenCalled();
+  });
+
+  it('seeds the sheet with the persisted order book side', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(getByTestId(`${testID}-config-sheet-layout-right`)).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+    expect(getByTestId(`${testID}-config-sheet-layout-left`)).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {

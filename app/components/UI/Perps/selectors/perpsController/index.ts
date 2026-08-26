@@ -218,6 +218,28 @@ const selectPerpsProChartExpanded = createSelector(
 );
 
 /**
+ * Whether the Pro order-book column is shown. Persisted globally across markets
+ * and app restarts via `PerpsController.proLayoutPreferences.orderBookExpanded`.
+ * Mobile defaults to shown (see `MOBILE_PRO_LAYOUT_DEFAULTS`).
+ */
+const selectPerpsProOrderBookExpanded = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences): boolean => proLayoutPreferences.orderBookExpanded,
+);
+
+/**
+ * Which side of the Pro trading area the order-book column is pinned to.
+ * Persisted globally across markets and app restarts via
+ * `PerpsController.proLayoutPreferences.orderBookPosition`.
+ * Mobile defaults to `'right'` (see `MOBILE_PRO_LAYOUT_DEFAULTS`).
+ */
+const selectPerpsProOrderBookPosition = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences): ProLayoutPreferences['orderBookPosition'] =>
+    proLayoutPreferences.orderBookPosition,
+);
+
+/**
  * Pro Positions panel side filter (all/long/short). Persisted globally
  * across markets and app restarts via
  * `PerpsController.proLayoutPreferences.positionsSideFilter`.
@@ -296,6 +318,8 @@ export {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProOrderBookExpanded,
+  selectPerpsProOrderBookPosition,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
   selectPerpsProOrdersSideFilter,
