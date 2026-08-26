@@ -89,7 +89,7 @@ export const customColors = {
   },
   dark: {
     successGreen: null as null, // fall back to colors.success.default
-    gettingStartedBackground: '#EAC2FF',
+    gettingStartedBackground: '#3D065F',
     gettingStartedText: '#3D065F',
   },
 } as const;
