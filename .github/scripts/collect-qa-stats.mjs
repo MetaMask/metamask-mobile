@@ -104,11 +104,13 @@ let _artifactList = null;
  * Fetches the ID of the latest successful CI workflow run on `main` triggered
  * by a `push` (merge-queue merge) or `schedule` event.
  *
- * These two event types always upload artifacts to standard GitHub storage.
- * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
- * own storage instead, which is invisible to the standard GitHub artifacts API
- * and would cause all artifact-based metrics to silently drop from the output.
- * `workflow_call` runs are PR shadow runs — also not useful here.
+ * `workflow_dispatch` and `workflow_call` runs are skipped: dispatch can be
+ * a Namespace trial with a different artifact store, and `workflow_call` is
+ * used for PR shadow runs.
+ *
+ * Do not query `status=success`. That filter can return a stale cached run
+ * (it pinned QA Stats to a July 2026 push on 19 Aug 2026). Page completed
+ * runs and keep the newest with `conclusion === 'success'`.
  *
  * The GitHub API only supports a single `event` filter per request, so both
  * event types are fetched in parallel and the most recently created run wins.
@@ -122,13 +124,20 @@ async function getLatestCiRunId() {
   };
 
   const fetchLatestForEvent = async (event) => {
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=${event}&per_page=1`;
-    const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+    const maxPages = 3;
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      const runs = data.workflow_runs ?? [];
+      const successful = runs.find((r) => r.conclusion === 'success');
+      if (successful) return successful;
+      if (runs.length < 30) break;
     }
-    const data = await res.json();
-    return data.workflow_runs?.[0] ?? null;
+    return null;
   };
 
   const [pushRun, scheduleRun] = await Promise.all([
