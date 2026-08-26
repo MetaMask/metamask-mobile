@@ -203,7 +203,8 @@ describe('JsonReportGenerator', () => {
             testName: 'Cold Start Login',
             projectName: 'browserstack-android',
             sessionId: 'session-1',
-            videoURL: 'https://app-automate.browserstack.com/builds/b1/sessions/session-1',
+            videoURL:
+              'https://app-automate.browserstack.com/builds/b1/sessions/session-1',
             timestamp: '2026-07-22T12:00:00.000Z',
             profilingSummary,
             profilingData: profilingData as MetricsEntry['profilingData'],
@@ -213,7 +214,8 @@ describe('JsonReportGenerator', () => {
             testName: 'Warm Start Wallet',
             projectName: 'browserstack-android',
             sessionId: 'session-2',
-            videoURL: 'https://app-automate.browserstack.com/builds/b1/sessions/session-2',
+            videoURL:
+              'https://app-automate.browserstack.com/builds/b1/sessions/session-2',
             timestamp: '2026-07-22T12:01:00.000Z',
             profilingSummary,
             profilingData: profilingData as MetricsEntry['profilingData'],
