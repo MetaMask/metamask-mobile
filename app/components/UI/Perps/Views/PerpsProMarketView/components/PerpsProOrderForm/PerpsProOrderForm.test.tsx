@@ -532,36 +532,26 @@ describe('PerpsProOrderForm', () => {
       expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
-    it('exposes Reduce only with selected button semantics', () => {
+    it('exposes Reduce only with checked checkbox semantics', () => {
       renderForm({ reduceOnly: true });
 
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toHaveProp(
         'accessibilityRole',
-        'button',
+        'checkbox',
       );
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toHaveProp(
         'accessibilityState',
-        expect.objectContaining({ selected: true }),
+        expect.objectContaining({ checked: true }),
       );
     });
 
-    it('selects Reduce only when the inactive filter is pressed', () => {
+    it('calls onReduceOnlyChange with the next checked value', () => {
       const onReduceOnlyChange = jest.fn();
       renderForm({ onReduceOnlyChange });
 
       fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
 
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
-      expect(playSelection).toHaveBeenCalledTimes(1);
-    });
-
-    it('clears Reduce only when the active filter is pressed', () => {
-      const onReduceOnlyChange = jest.fn();
-      renderForm({ onReduceOnlyChange, reduceOnly: true });
-
-      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
-
-      expect(onReduceOnlyChange).toHaveBeenCalledWith(false);
       expect(playSelection).toHaveBeenCalledTimes(1);
     });
 

@@ -555,6 +555,10 @@ export type RootStackParamList = {
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
   RampsServiceDisruptionModal: undefined;
 
+  // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampGetPixKey: undefined;
+  RampVbaVerifyIdentity: undefined;
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -1119,6 +1123,9 @@ export type RootStackParamList = {
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
+  CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
+  CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
