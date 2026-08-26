@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -58,9 +58,8 @@ export interface UseRampsPaymentMethodsResult {
 /**
  * Hook to get payment methods via React Query.
  *
- * The query fires only when a provider is selected (provider change is the
- * sole trigger). Token is passed to the API call but is NOT part of the query
- * key, so changing it does not cause a refetch.
+ * The query executes for the active region, asset, and provider context.
+ * RampsController owns catalog writes and automatic selection.
  *
  * @returns Payment methods state.
  */
@@ -70,13 +69,16 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
-  const queryEnabled = Boolean(userRegion?.regionCode && selectedProvider?.id);
+  const regionCode = userRegion?.regionCode?.trim().toLowerCase() ?? '';
+  const assetId = normalizeAssetIdForApi(selectedToken?.assetId?.trim() ?? '');
+  const providerId = selectedProvider?.id?.trim() ?? '';
+  const queryEnabled = Boolean(regionCode && assetId && providerId);
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
-      regionCode: userRegion?.regionCode ?? '',
-      assetId: normalizeAssetIdForApi(selectedToken?.assetId),
-      providerId: selectedProvider?.id ?? '',
+      regionCode,
+      assetId,
+      providerId,
     }),
     enabled: queryEnabled,
   });
@@ -93,69 +95,53 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     [],
   );
 
-  useEffect(() => {
-    const methods = paymentMethodsQuery.data;
-    if (!methods || methods.length === 0) return;
-
-    let target: PaymentMethod | null = null;
-
-    if (selectedPaymentMethod) {
-      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
-    }
-
-    if (!target) {
-      target = methods[0];
-    }
-
-    if (target.id !== selectedPaymentMethod?.id) {
-      setSelectedPaymentMethod(target);
-    }
-  }, [
-    paymentMethodsQuery.data,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-  ]);
-
-  const isAutoSelecting = Boolean(
-    paymentMethodsQuery.data?.length &&
-      (!selectedPaymentMethod ||
-        paymentMethodsQuery.data.every(
-          (m) => m.id !== selectedPaymentMethod.id,
-        )),
-  );
+  const activeResponse = queryEnabled ? paymentMethodsQuery.data : undefined;
+  const paymentMethods = activeResponse?.methods ?? [];
+  const activeSelectedPaymentMethod =
+    (selectedPaymentMethod
+      ? (paymentMethods.find(
+          (method) => method.id === selectedPaymentMethod.id,
+        ) ?? null)
+      : null) ??
+    (activeResponse?.selected
+      ? (paymentMethods.find(
+          (method) => method.id === activeResponse.selected?.id,
+        ) ?? null)
+      : null);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
       return 'idle';
     }
-    if (paymentMethodsQuery.isLoading) {
-      return 'loading';
-    }
     if (paymentMethodsQuery.isError) {
       return 'error';
     }
-    return 'success';
-  }, [
-    paymentMethodsQuery.isError,
-    paymentMethodsQuery.isLoading,
-    queryEnabled,
-  ]);
+    if (paymentMethodsQuery.data !== undefined) {
+      return 'success';
+    }
+    return 'loading';
+  }, [paymentMethodsQuery.data, paymentMethodsQuery.isError, queryEnabled]);
 
-  return {
-    paymentMethods: paymentMethodsQuery.data ?? [],
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    isLoading: status === 'loading' || isAutoSelecting,
-    isFetching: paymentMethodsQuery.isFetching,
-    status,
-    isSuccess: status === 'success',
-    error:
+  const error = useMemo(
+    () =>
       paymentMethodsQuery.error != null
         ? parseUserFacingError(
             paymentMethodsQuery.error,
             strings('fiat_on_ramp.payment_error'),
           )
         : null,
+    [paymentMethodsQuery.error],
+  );
+
+  return {
+    paymentMethods,
+    selectedPaymentMethod: activeSelectedPaymentMethod,
+    setSelectedPaymentMethod,
+    isLoading: status === 'loading',
+    isFetching: paymentMethodsQuery.isFetching,
+    status,
+    isSuccess: status === 'success',
+    error,
   };
 }
 
