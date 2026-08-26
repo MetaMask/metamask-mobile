@@ -9572,9 +9572,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@metamask/perps-controller@npm:12.0.0"
+"@metamask/perps-controller@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@metamask/perps-controller@npm:13.0.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9590,7 +9590,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/99afb97183c274b466ed09143dbf19b4ee5a403769443010beb31ec0f0cd80852d99cfe125e2e5bde16ea325a5003e3707a683a7dcdf3d24d8b939ae2184595c
+  checksum: 10/1203a718f27a570912ffbea756a5c62d9c89383475789c66d12d3993e4143f0058c2ba285474b21762472b5e0dc7fe32257d4c9ad463fdc459fa197b1b462805
   languageName: node
   linkType: hard
 
@@ -35775,7 +35775,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^26.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^12.0.0"
+    "@metamask/perps-controller": "npm:^13.0.0"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
