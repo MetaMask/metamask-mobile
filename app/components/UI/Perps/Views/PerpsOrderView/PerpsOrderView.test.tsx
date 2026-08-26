@@ -132,12 +132,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock the context
+// Mock the context. `usePerpsOrderContext` is stubbed, so the balance the view
+// feeds into the order form is only observable on the provider — capture it.
+let mockProviderEffectiveAvailableBalance: number | undefined;
 jest.mock('../../contexts/PerpsOrderContext', () => {
+  const ReactActual = jest.requireActual('react');
   const actual = jest.requireActual('../../contexts/PerpsOrderContext');
   return {
     ...actual,
     usePerpsOrderContext: jest.fn(),
+    PerpsOrderProvider: (props: { effectiveAvailableBalance?: number }) => {
+      mockProviderEffectiveAvailableBalance = props.effectiveAvailableBalance;
+      return ReactActual.createElement(actual.PerpsOrderProvider, props);
+    },
   };
 });
 
@@ -473,6 +480,19 @@ jest.mock(
   () => ({
     useTransactionPayToken: (...args: unknown[]) =>
       mockUseTransactionPayToken(...args),
+  }),
+);
+
+// Live wallet balance for the selected pay token, independent of the stale
+// `payToken.balanceUsd` controller snapshot.
+let mockPayTokenAccountBalanceUsd = '0';
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
+  () => ({
+    usePayTokenAccountBalance: () => ({
+      balanceUsd: mockPayTokenAccountBalanceUsd,
+      balanceRaw: '0',
+    }),
   }),
 );
 
@@ -1010,6 +1030,8 @@ describe('PerpsOrderView', () => {
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
     mockIsPaySubmitReady = true;
+    mockPayTokenAccountBalanceUsd = '0';
+    mockProviderEffectiveAvailableBalance = undefined;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -4586,6 +4608,7 @@ describe('PerpsOrderView', () => {
         setPayToken: jest.fn(),
         isNative: false,
       });
+      mockPayTokenAccountBalanceUsd = '0.01';
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -4624,6 +4647,7 @@ describe('PerpsOrderView', () => {
         setPayToken: jest.fn(),
         isNative: false,
       });
+      mockPayTokenAccountBalanceUsd = '999999999';
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -4744,6 +4768,132 @@ describe('PerpsOrderView', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('pay-token available balance', () => {
+    const PAY_TOKEN = {
+      address: '0xusdc',
+      chainId: '0xa4b1',
+      symbol: 'mUSD',
+    };
+
+    // `payToken.balanceUsd` is captured once when the token is selected, so it
+    // reads 0 whenever the token's balance was not tracked yet. Sizing must use
+    // the live wallet balance or the form shows $0 available until the next
+    // quote refresh.
+    it('caps sizing by the live wallet balance when the pay-token snapshot is stale at zero', async () => {
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { ...PAY_TOKEN, balanceUsd: '0' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = '250.5';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      expect(mockProviderEffectiveAvailableBalance).toBe(250.5);
+    });
+
+    it('reports a genuinely empty pay token as zero available balance', async () => {
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { ...PAY_TOKEN, balanceUsd: '120' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = '0';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      expect(mockProviderEffectiveAvailableBalance).toBe(0);
+    });
+
+    it('defers to the Perps balance while the pay token is still resolving', async () => {
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+        isNative: undefined,
+      });
+      mockPayTokenAccountBalanceUsd = '0';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      expect(mockProviderEffectiveAvailableBalance).toBeUndefined();
+    });
+
+    it('defers to the Perps balance when the Perps account is the payment method', async () => {
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { ...PAY_TOKEN, balanceUsd: '0' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = '250';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      expect(mockProviderEffectiveAvailableBalance).toBeUndefined();
+    });
+
+    it('does not warn about insufficient margin when the stale snapshot reads zero but the wallet is funded', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { ...PAY_TOKEN, balanceUsd: '0' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = '999999999';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      const warningCalls = (
+        mockCreateEventBuilder.mock.calls as unknown as [
+          { category?: string },
+        ][]
+      ).filter((call, idx) => {
+        if (call[0]?.category !== 'Perp Error') {
+          return false;
+        }
+        const builder = mockCreateEventBuilder.mock.results[idx].value;
+        return (builder.addProperties as jest.Mock).mock.calls.some(
+          (c: [Record<string, unknown>]) => c[0]?.error_type === 'warning',
+        );
+      });
+
+      expect(warningCalls).toHaveLength(0);
     });
   });
 

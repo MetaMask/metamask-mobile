@@ -8,7 +8,7 @@ import {
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import WalletView from './WalletView';
 import TokensFullView from './HomeSections';
@@ -17,14 +17,14 @@ class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): EncapsulatedElementType {
+  get openNetworkManagerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): EncapsulatedElementType {
+  get networkManagerBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
     );
@@ -33,7 +33,7 @@ class NetworkManager {
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): EncapsulatedElementType {
+  get popularNetworksTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
     );
@@ -42,7 +42,7 @@ class NetworkManager {
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): EncapsulatedElementType {
+  get customNetworksTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
     );
@@ -51,7 +51,7 @@ class NetworkManager {
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): EncapsulatedElementType {
+  get popularNetworksContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
     );
@@ -60,7 +60,7 @@ class NetworkManager {
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): EncapsulatedElementType {
+  get customNetworksContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
     );
@@ -69,7 +69,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksSelected(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
     );
@@ -78,7 +78,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksNotSelected(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
     );
@@ -87,7 +87,7 @@ class NetworkManager {
   /**
    * Select the network by name wether it is selected or not
    */
-  getNetworkByCaipChainId(caipChainId: CaipChainId): EncapsulatedElementType {
+  getNetworkByCaipChainId(caipChainId: CaipChainId): Promise<AppiumElement> {
     return Matchers.getElementByID(
       new RegExp(`^network-list-item-${caipChainId}-(selected|not-selected)$`),
     );
@@ -98,7 +98,7 @@ class NetworkManager {
    */
   getSelectedNetworkByCaipChainId(
     caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, true),
     );
@@ -109,7 +109,7 @@ class NetworkManager {
    */
   getNotSelectedNetworkByCaipChainId(
     caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, false),
     );
@@ -118,7 +118,7 @@ class NetworkManager {
   /**
    * Select the network by name in the base control bar
    */
-  getBaseControlBarText(caipChainId: CaipChainId): EncapsulatedElementType {
+  getBaseControlBarText(caipChainId: CaipChainId): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
@@ -128,7 +128,7 @@ class NetworkManager {
    * Get token element by symbol
    * Note: Gets the first instance in case of duplicates during render cycles
    */
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+  getTokenBySymbol(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
@@ -344,7 +344,7 @@ class NetworkManager {
   /**
    * Get network by display name (for custom networks)
    */
-  getNetworkByName(networkName: string): EncapsulatedElementType {
+  getNetworkByName(networkName: string): Promise<AppiumElement> {
     return Matchers.getElementByText(networkName);
   }
 
