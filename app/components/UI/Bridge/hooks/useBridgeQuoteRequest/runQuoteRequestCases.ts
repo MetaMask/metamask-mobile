@@ -700,7 +700,7 @@ export const runQuoteRequestCases = ({
         });
       });
 
-      it.skip('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
+      it('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
           { latestSourceAtomicBalance: undefined },

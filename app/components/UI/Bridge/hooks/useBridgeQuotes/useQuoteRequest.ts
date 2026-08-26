@@ -37,15 +37,16 @@ interface UpdateQuoteParamsOptions {
  * Hook for handling bridge quote request updates
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
-export const useQuoteRequest = ({
-  traceName,
-  quoteParams,
-  latestSourceAtomicBalance,
-  debounceWait,
-  quoteRequestIndex = 0,
-  quoteRequestCount = 1,
-  featureId,
-}: UseQuoteRequestParams) => {
+export const useQuoteRequest = (params: UseQuoteRequestParams) => {
+  const {
+    traceName,
+    quoteParams,
+    latestSourceAtomicBalance,
+    debounceWait,
+    quoteRequestIndex = 0,
+    quoteRequestCount = 1,
+    featureId,
+  } = params;
   const {
     srcAmount,
     srcToken,
@@ -55,8 +56,12 @@ export const useQuoteRequest = ({
     slippage,
   } = quoteParams;
 
+  // Presence (not truthiness): parent may pass undefined while its own
+  // useLatestBalance is still loading. That must not start a second fetch.
+  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in params;
+
   const latestSourceBalance = useLatestBalance(
-    latestSourceAtomicBalance
+    hasLatestSourceBalanceOverride
       ? {}
       : {
           address: srcToken?.address,
@@ -65,8 +70,9 @@ export const useQuoteRequest = ({
           balance: srcToken?.balance,
         },
   );
-  const latestAtomicBalance =
-    latestSourceAtomicBalance ?? latestSourceBalance?.atomicBalance;
+  const latestAtomicBalance = hasLatestSourceBalanceOverride
+    ? latestSourceAtomicBalance
+    : latestSourceBalance?.atomicBalance;
 
   // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing

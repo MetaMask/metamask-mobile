@@ -108,7 +108,7 @@ const mockDebounceMs = 300;
 
 const Wrapper = ({
   children,
-  latestSourceAtomicBalance,
+  ...options
 }: {
   children: React.ReactNode;
   latestSourceAtomicBalance?: BigNumber;
@@ -124,7 +124,6 @@ const Wrapper = ({
     <BridgeQuotesProvider
       featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
       traceName={TraceName.SwapQuoteFetch}
-      latestSourceAtomicBalance={latestSourceAtomicBalance}
       debounceWait={mockDebounceMs}
       quoteParams={{
         srcAmount: sourceAmount,
@@ -134,6 +133,9 @@ const Wrapper = ({
         walletAddress,
         destWalletAddress: destAddress,
       }}
+      {...('latestSourceAtomicBalance' in options
+        ? { latestSourceAtomicBalance: options.latestSourceAtomicBalance }
+        : {})}
     >
       {children}
     </BridgeQuotesProvider>
@@ -146,9 +148,7 @@ runQuoteRequestCases({
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
       wrapper: ({ children }) => (
-        <Wrapper latestSourceAtomicBalance={options?.latestSourceAtomicBalance}>
-          {children}
-        </Wrapper>
+        <Wrapper {...options}>{children}</Wrapper>
       ),
     }),
 });
@@ -159,9 +159,7 @@ runQuoteDataCases({
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes(), {
       wrapper: ({ children }) => (
-        <Wrapper latestSourceAtomicBalance={options?.latestSourceAtomicBalance}>
-          {children}
-        </Wrapper>
+        <Wrapper {...options}>{children}</Wrapper>
       ),
     }),
 });
