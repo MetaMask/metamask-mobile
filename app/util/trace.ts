@@ -64,6 +64,8 @@ export enum TraceName {
   RampBuyToOrderDetails = 'Ramp Buy To Order Details',
   RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
+  /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
+  RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -121,6 +123,7 @@ export enum TraceName {
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   SwapQuoteFetch = 'Swap Quote Fetch',
   SwapTokenSearch = 'Swap Token Search',
+  SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -261,6 +264,7 @@ export enum TraceName {
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
+  PredictNextGetMarketHistory = 'PredictNext Get Market History',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',

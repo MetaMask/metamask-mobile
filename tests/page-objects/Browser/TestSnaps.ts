@@ -32,14 +32,10 @@ import Assertions from '../../framework/Assertions';
 import Utilities, { sleep } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import {
-  RetryOptions,
-  EncapsulatedElementType,
-  resolve,
-} from '../../framework';
+import { RetryOptions, type AppiumElement, resolve } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getWindowSize } from '../../framework/DeviceInfoCache';
-import { getDriver } from '../../framework/PlaywrightUtilities';
+import { getDriver } from '../../framework/AppiumUtilities';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
@@ -51,61 +47,61 @@ const TEST_SNAPS_WEBVIEW_OPTIONS: WebViewByIdOptions = {
   ...testSnapsAndroidScrollOptions,
 };
 class TestSnaps {
-  get getConnectSnapButton(): EncapsulatedElementType {
+  get getConnectSnapButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
+  get getApproveSnapPermissionsRequestButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
+  get getConnectSnapInstallOkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): EncapsulatedElementType {
+  get getApproveSignRequestButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): EncapsulatedElementType {
+  get confirmSignatureButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get solanaConfirmButton(): EncapsulatedElementType {
+  get solanaConfirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
-  get footerButton(): EncapsulatedElementType {
+  get footerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
   }
 
-  get checkboxElement(): EncapsulatedElementType {
+  get checkboxElement(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.checkbox);
   }
 
-  get dateTimePickerTouchable(): EncapsulatedElementType {
+  get dateTimePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(
       SnapUIRendererSelectorIDs.dateTimeTouchable,
     );
   }
 
-  get datePickerTouchable(): EncapsulatedElementType {
+  get datePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.dateTouchable);
   }
 
-  get timePickerTouchable(): EncapsulatedElementType {
+  get timePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.timeTouchable);
   }
 
-  get dateTimePickerOkButton(): EncapsulatedElementType {
+  get dateTimePickerOkButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('OK');
   }
 
@@ -114,7 +110,7 @@ class TestSnaps {
   }
 
   /** Native Snap UI control — iOS uses name XPath (testID often not tappable). */
-  getSnapUiNativeElement(testID: string): EncapsulatedElementType {
+  getSnapUiNativeElement(testID: string): Promise<AppiumElement> {
     return resolve({
       detoxTestID: testID,
       androidAppiumTestID: testID,
@@ -123,7 +119,7 @@ class TestSnaps {
   }
 
   /** Snap UI text input — iOS: first scrollview textfield (index 0). */
-  getSnapUiInput(name: string): EncapsulatedElementType {
+  getSnapUiInput(name: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(`${name}-snap-ui-input`);
     }
@@ -134,7 +130,7 @@ class TestSnaps {
   }
 
   /** JSX Snap counter ("0" / "1"), scoped under the Snap UI scrollview. */
-  jsxCountElement(count: string): EncapsulatedElementType {
+  jsxCountElement(count: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         snapUIJsxCountAndroidXPath(count),
@@ -651,7 +647,7 @@ class TestSnaps {
   }
 
   private async openSnapUiPicker(
-    touchable: EncapsulatedElementType,
+    touchable: Promise<AppiumElement>,
     elemDescription: string,
     scrollOptions: { startPositionX?: number; startPositionY?: number } = {},
   ): Promise<void> {
@@ -720,7 +716,7 @@ class TestSnaps {
     // Wait explicitly between steps; Snap install sheets are slower on Android CI.
     const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
     const waitForSheetTransition = async (
-      elem: EncapsulatedElementType,
+      elem: Promise<AppiumElement>,
     ): Promise<void> => {
       await Utilities.waitForElementToDisappear(elem, stepTimeout);
     };

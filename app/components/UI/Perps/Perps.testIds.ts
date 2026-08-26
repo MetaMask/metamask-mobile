@@ -529,6 +529,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
+  POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
@@ -540,6 +541,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_ROW: 'perps-pro-market-order-row',
   ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
+  GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -575,6 +577,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
   REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',

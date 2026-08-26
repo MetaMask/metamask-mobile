@@ -164,12 +164,12 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
-        "title": "Malicious address"
+        "message": "Security partners have flagged this address for malicious activity.",
+        "title": "Address flagged as high risk"
       },
       "warning": {
-        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        "title": "Address needs review"
+        "message": "Security partners don't have enough reliable history to verify this address.",
+        "title": "Limited or mixed address signals"
       }
     },
     "url_trust_signal": {
@@ -1098,6 +1098,42 @@
       "try_again": "Try again",
       "error_details_title": "Error details",
       "see_more": "See more"
+    }
+  },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "Send funds directly to your Money account from any bank account.",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
+      "button": "Agree and continue"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
+      "step_upload_id": "Upload ID document",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm personal details",
+      "data_and_privacy_title": "Data and privacy",
+      "what_we_collect_title": "What we collect",
+      "what_we_collect_description": "We collect personal information as part of identity verification, including legal full name, address, and more.",
+      "how_we_store_data_title": "How we store data",
+      "how_we_store_data_description": "Verification info is securely stored on MetaMask-managed servers. It's encrypted with your Secret Recovery Phrase entropy and we can't access the data. Your consent will be required for future use with another provider.",
+      "how_to_delete_title": "How to delete",
+      "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask T&C",
+      "idos_privacy_policy": "idOS Privacy Policy",
+      "idos_terms": "idOS T&C",
+      "sumsub_privacy_policy": "Sumsub Privacy Policy",
+      "sumsub_terms": "Sumsub T&C",
+      "button": "Continue"
     }
   },
   "social_leaderboard": {
@@ -2491,7 +2527,8 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply",
-      "clear": "Clear"
+      "clear": "Clear",
+      "reset": "Reset"
     },
     "provider_selector": {
       "title": "Select Provider"
@@ -2787,6 +2824,35 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
+    "market": {
+      "volume": "{{value}} Vol."
+    },
+    "rules": {
+      "event_accessibility_label": "View event rules",
+      "market_accessibility_label": "View market rules",
+      "close_accessibility_label": "Close rules",
+      "event_title": "Event rules",
+      "market_title": "Market rules",
+      "title": "Rules",
+      "settlement_sources": {
+        "prefix": "Outcome verified from ",
+        "separator": ", ",
+        "last_separator": " and ",
+        "suffix": ".",
+        "open_hint": "Opens the source in your browser."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Loading event",
+      "unable_to_load": "Unable to load this event."
+    },
+    "history": {
+      "loading_accessibility_label": "Loading market history",
+      "unable_to_load": "Market history could not be loaded.",
+      "unavailable_for_range": "Market history is not available for this range.",
+      "chart_accessibility_label": "Market probability history. {{values}}",
+      "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
@@ -4879,19 +4945,19 @@
     "malicious": "Malicious",
     "risky": "Risky",
     "malicious_token_title": "Malicious token",
-    "malicious_token_description": "{{symbol}} is a malicious token. Avoid interacting with it or trading it.",
-    "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
-    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
-    "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
-    "suspicious_token_description": "{{symbol}} is a suspicious token.",
-    "suspicious_token_description_no_symbol": "This is a suspicious token.",
+    "malicious_token_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_description_no_symbol": "Security partners flag this token as high risk.",
+    "malicious_token_banner_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_banner_description_no_symbol": "Security partners flag this token as high risk.",
+    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
+    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
-    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
-    "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
-    "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
-    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
+    "risky_token_description": "{{symbol}} has limited history or risk signals.",
+    "risky_token_description_no_symbol": "This token has limited history or risk signals.",
+    "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
     "proceed": "Proceed",
     "continue_anyway": "Continue anyway",
@@ -4899,8 +4965,8 @@
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
     "subtitle_no_issues": "No risk signals detected. Always research any asset before trading.",
-    "subtitle_suspicious": "Cautionary signals detected. Review the flagged issues carefully before trading this asset.",
-    "subtitle_malicious": "Serious risk signals detected. We recommend avoiding this asset.",
+    "subtitle_suspicious": "This token has limited history or risk signals.",
+    "subtitle_malicious": "Security partners flag this token as high risk.",
     "subtitle_unavailable": "Security analysis could not be loaded for this token.",
     "token_distribution": "Token distribution",
     "total_supply": "Total supply",
@@ -7839,7 +7905,8 @@
       "bank_account": "Bank account",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
-      "coming_soon": "Coming soon"
+      "coming_soon": "Coming soon",
+      "new_badge": "New"
     },
     "more_sheet": {
       "title": "More",
@@ -9551,6 +9618,12 @@
       }
     },
     "transactions": {
+      "title": "Transactions",
+      "empty": "No transactions yet",
+      "load_error": "Can't load transactions",
+      "load_error_more": "Couldn't load more",
+      "retry": "Try again",
+      "end_of_list": "You're all caught up",
       "pending": "Pending",
       "completed": "Completed",
       "reversed": "Reversed",
@@ -9575,7 +9648,21 @@
         "misc": "Other"
       },
       "view_on_explorer": "View on block explorer",
-      "report_cta": "Report Transaction"
+      "report_cta": "Report an issue",
+      "report_title": "Have you contacted the merchant?",
+      "report_body_merchant": "Most transaction issues get resolved faster when you reach out to the merchant directly.",
+      "report_body_continue": "If you've already tried that, we're here to help.",
+      "report_file": "File a report",
+      "report_open_error": "Couldn't open your mail app",
+      "report_link_error": "Couldn't open the report form",
+      "report_email_subject": "Card transaction report — {{transactionId}}",
+      "report_email_body": "Transaction ID: {{transactionId}}",
+      "report_back": "Cancel",
+      "you_withdrew": "You withdrew",
+      "you_deposited": "You deposited",
+      "you_received": "You received",
+      "manage_entry_title": "Transaction history",
+      "manage_entry_description": "Card purchases and activity"
     },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
