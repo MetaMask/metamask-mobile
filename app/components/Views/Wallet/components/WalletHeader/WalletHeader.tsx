@@ -14,6 +14,7 @@ import {
   IconName as MMDSIconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
@@ -71,11 +72,27 @@ const WalletHeader = ({
     navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation]);
 
+  const handleAgentChatPress = useCallback(() => {
+    navigation.navigate(Routes.AGENT_CHAT);
+  }, [navigation]);
+
   return (
     <HeaderRoot
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
       endAccessory={
         <View style={headerActionButtonsContainerStyle} accessible={false}>
+          {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+            <ButtonIcon
+              iconProps={{
+                color: MMDSIconColor.IconDefault,
+              }}
+              onPress={handleAgentChatPress}
+              iconName={MMDSIconName.Messages}
+              size={ButtonIconSize.Md}
+              accessibilityLabel={strings('app_settings.agent_chat.title')}
+              hitSlop={touchAreaSlop}
+            />
+          )}
           <ButtonIcon
             iconProps={{
               color: MMDSIconColor.IconDefault,

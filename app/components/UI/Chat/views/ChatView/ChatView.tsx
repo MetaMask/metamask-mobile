@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
+import MarkdownText from '../../components/MarkdownText';
 import { useAgentChat } from '../../hooks/useAgentChat';
 import type { ChatMessage } from '../../types';
 
@@ -43,12 +44,20 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
           {toolCall.toolName}
         </Text>
       ))}
-      <Text
-        variant={TextVariant.BodyMd}
-        color={isUser ? TextColor.PrimaryInverse : TextColor.TextDefault}
-      >
-        {message.text === '' && message.status !== 'error' ? '…' : message.text}
-      </Text>
+      {isUser || message.text === '' ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={isUser ? TextColor.PrimaryInverse : TextColor.TextDefault}
+        >
+          {message.text === '' && message.status !== 'error'
+            ? '…'
+            : message.text}
+        </Text>
+      ) : (
+        <MarkdownText color={TextColor.TextDefault}>
+          {message.text}
+        </MarkdownText>
+      )}
     </Box>
   );
 };
