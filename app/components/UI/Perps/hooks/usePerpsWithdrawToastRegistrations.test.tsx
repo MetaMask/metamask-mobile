@@ -7,9 +7,17 @@ import {
 } from '@metamask/transaction-controller';
 import { usePerpsWithdrawToastRegistrations } from './usePerpsWithdrawToastRegistrations';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+    Spinner: 'Spinner',
+  };
+});
 
 jest.mock('../../../../util/theme', () => ({
   ...jest.requireActual('../../../../util/theme'),
@@ -36,11 +44,8 @@ jest.mock('../../../../store', () => ({
 }));
 
 describe('usePerpsWithdrawToastRegistrations', () => {
-  let mockShowToast: jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowToast = jest.fn();
   });
 
   function getHandler() {
@@ -55,28 +60,18 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('shows pending toast when perpsWithdraw transaction is approved', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-1',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.approved,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-1',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.approved,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
+        title: strings('perps.withdrawal.toast_pending_title'),
         hasNoTimeout: false,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: strings('perps.withdrawal.toast_pending_title'),
-            isBold: true,
-          }),
-        ]),
       }),
     );
   });
@@ -84,21 +79,18 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('shows pending toast when perpsWithdraw is in nestedTransactions', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-2',
-          type: TransactionType.simpleSend,
-          nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
-          status: TransactionStatus.approved,
-        } as unknown as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-2',
+        type: TransactionType.simpleSend,
+        nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
+        status: TransactionStatus.approved,
+      } as unknown as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        iconName: IconName.Loading,
+        startAccessory: expect.anything(),
       }),
     );
   });
@@ -106,27 +98,18 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('shows success toast when perpsWithdraw transaction is confirmed', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-3',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.confirmed,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-3',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.confirmed,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: strings('perps.withdrawal.toast_completed_title'),
-            isBold: true,
-          }),
-        ]),
+        severity: ToastSeverity.Success,
+        title: strings('perps.withdrawal.toast_completed_title'),
       }),
     );
   });
@@ -134,27 +117,18 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('shows error toast when perpsWithdraw transaction fails', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-4',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.failed,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-4',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.failed,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Error,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: strings('perps.withdrawal.toast_error_title'),
-            isBold: true,
-          }),
-        ]),
+        severity: ToastSeverity.Danger,
+        title: strings('perps.withdrawal.toast_error_title'),
       }),
     );
   });
@@ -162,18 +136,15 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('ignores non-perpsWithdraw transactions', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-5',
-          type: TransactionType.simpleSend,
-          status: TransactionStatus.approved,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-5',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('shows success toast with post-quote token and amount', () => {
@@ -207,26 +178,17 @@ describe('usePerpsWithdrawToastRegistrations', () => {
 
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-pq',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.confirmed,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-pq',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.confirmed,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        iconName: IconName.Confirmation,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: expect.stringContaining('BNB'),
-            isBold: false,
-          }),
-        ]),
+        description: expect.stringContaining('BNB'),
       }),
     );
   });
@@ -260,22 +222,15 @@ describe('usePerpsWithdrawToastRegistrations', () => {
 
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-ticker',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.confirmed,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-ticker',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.confirmed,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        iconName: IconName.Confirmation,
-      }),
-    );
+    expect(toast).toHaveBeenCalledWith(expect.objectContaining({}));
   });
 
   it('shows success toast with USDC fallback when no token or ticker found', () => {
@@ -301,26 +256,19 @@ describe('usePerpsWithdrawToastRegistrations', () => {
 
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-usdc',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.confirmed,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-usdc',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.confirmed,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        iconName: IconName.Confirmation,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: strings('perps.withdrawal.toast_completed_subtitle_generic'),
-            isBold: false,
-          }),
-        ]),
+        description: strings(
+          'perps.withdrawal.toast_completed_subtitle_generic',
+        ),
       }),
     );
   });
@@ -345,41 +293,35 @@ describe('usePerpsWithdrawToastRegistrations', () => {
     it('suppresses the native success toast when destination is the Money account', () => {
       const handler = getHandler();
 
-      handler(
-        {
-          transactionMeta: moneyWithdrawMeta(
-            'tx-money',
-            TransactionStatus.confirmed,
-          ),
-        },
-        mockShowToast,
-      );
+      handler({
+        transactionMeta: moneyWithdrawMeta(
+          'tx-money',
+          TransactionStatus.confirmed,
+        ),
+      });
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
       const handler = getHandler();
 
-      handler(
-        {
-          transactionMeta: {
-            id: 'tx-not-money',
-            type: TransactionType.perpsWithdraw,
-            status: TransactionStatus.confirmed,
-            metamaskPay: {
-              tokenAddress: MUSD_TOKEN_ADDRESS,
-              chainId: '0x1',
-              isPostQuote: true,
-              targetFiat: '25',
-            },
-          } as unknown as TransactionMeta,
-        },
-        mockShowToast,
-      );
+      handler({
+        transactionMeta: {
+          id: 'tx-not-money',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: '0x1',
+            isPostQuote: true,
+            targetFiat: '25',
+          },
+        } as unknown as TransactionMeta,
+      });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({ iconName: IconName.Confirmation }),
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: ToastSeverity.Success }),
       );
     });
   });
@@ -387,18 +329,15 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   it('ignores other status changes like submitted', () => {
     const handler = getHandler();
 
-    handler(
-      {
-        transactionMeta: {
-          id: 'tx-sub',
-          type: TransactionType.perpsWithdraw,
-          status: TransactionStatus.submitted,
-        } as TransactionMeta,
-      },
-      mockShowToast,
-    );
+    handler({
+      transactionMeta: {
+        id: 'tx-sub',
+        type: TransactionType.perpsWithdraw,
+        status: TransactionStatus.submitted,
+      } as TransactionMeta,
+    });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('does not duplicate toasts for same transaction + status', () => {
@@ -412,9 +351,9 @@ describe('usePerpsWithdrawToastRegistrations', () => {
       } as TransactionMeta,
     };
 
-    handler(payload, mockShowToast);
-    handler(payload, mockShowToast);
+    handler(payload);
+    handler(payload);
 
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,9 +1,9 @@
 import {
   IconSize as ReactNativeDsIconSize,
-  Text,
-  TextVariant,
   Spinner,
-  FontWeight,
+  toast,
+  ToastSeverity,
+  type ToastOptions,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
@@ -14,19 +14,8 @@ import {
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import { ToastContext } from '../../../../component-library/components/Toast';
-import {
-  ButtonIconVariant,
-  ToastOptions,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
 import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
@@ -38,7 +27,6 @@ import {
   PerpsActivityFilter,
 } from '../../../Views/ActivityScreen/types';
 import { capitalize } from '../../../../util/general';
-import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   PERPS_EVENT_VALUE,
   OrderDirection,
@@ -49,13 +37,8 @@ import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 
-export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
+export type PerpsToastOptions = ToastOptions & {
   hapticsType: HapticNotificationMoment;
-  // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
-  labelOptions?: {
-    label: string | React.ReactNode;
-    isBold?: boolean;
-  }[];
 };
 
 export interface PerpsToastOptionsConfig {
@@ -227,31 +210,20 @@ export interface PerpsToastOptionsConfig {
 }
 
 const getPerpsToastLabels = (
-  primary: string | React.ReactNode,
-  secondary?: string | React.ReactNode,
-) => {
-  const labels = [
-    {
-      label: primary,
-      isBold: true,
-    },
-  ];
+  primary: string,
+  secondary?: string,
+): Pick<ToastOptions, 'title' | 'description'> => ({
+  title: primary,
+  description: secondary,
+});
 
-  if (secondary) {
-    labels.push(
-      {
-        label: '\n',
-        isBold: false,
-      },
-      {
-        label: secondary,
-        isBold: false,
-      },
-    );
+function dismissToast() {
+  try {
+    toast.dismiss();
+  } catch {
+    // Toaster may be unmounted in tests
   }
-
-  return labels;
-};
+}
 
 const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
@@ -261,24 +233,18 @@ const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
   PerpsToastOptions: PerpsToastOptionsConfig;
 } => {
-  const { toastRef } = useContext(ToastContext);
-  const theme = useAppThemeFromContext();
   const navigation = useNavigation<AppNavigationProp>();
 
   const perpsBaseToastOptions: Record<string, PerpsToastOptions> = useMemo(
     () => ({
       success: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: IconColor.Success,
+        severity: ToastSeverity.Success,
         hapticsType: NotificationMoment.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
       inProgress: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
           <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
@@ -286,23 +252,17 @@ const usePerpsToasts = (): {
       },
       info: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Info,
-        iconColor: IconColor.Default,
+        severity: ToastSeverity.Default,
         hapticsType: NotificationMoment.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Error,
+        severity: ToastSeverity.Danger,
         hapticsType: NotificationMoment.Error,
       },
       warning: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Warning,
+        severity: ToastSeverity.Warning,
         hapticsType: NotificationMoment.Warning,
       },
     }),
@@ -312,14 +272,14 @@ const usePerpsToasts = (): {
   const navigationHandlers = useMemo(
     () => ({
       goToPerpsTab: () => {
-        toastRef?.current?.closeToast();
+        dismissToast();
         navigation.navigate(Routes.PERPS.ROOT);
       },
       goToActivity: (
         transactionId: string,
         perpsFilter?: PerpsActivityFilter,
       ) => {
-        toastRef?.current?.closeToast();
+        dismissToast();
         const state = store.getState();
         const depositMeta = selectTransactionMetadataById(state, transactionId);
         navigateToTransactionDetails(navigation, {
@@ -334,7 +294,7 @@ const usePerpsToasts = (): {
         });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
-        toastRef?.current?.closeToast();
+        dismissToast();
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
@@ -342,7 +302,7 @@ const usePerpsToasts = (): {
         });
       },
     }),
-    [navigation, toastRef],
+    [navigation],
   );
 
   const perpsToastButtonOptions = useMemo(
@@ -350,35 +310,30 @@ const usePerpsToasts = (): {
       pnlHeroCardShareButton: (
         position: Position,
         marketPrice?: string,
-      ): ToastOptions['closeButtonOptions'] => ({
-        label: strings('perps.pnl_hero_card.share_button'),
-        onPress: () =>
+      ): Pick<ToastOptions, 'actionButtonLabel' | 'actionButtonOnPress'> => ({
+        actionButtonLabel: strings('perps.pnl_hero_card.share_button'),
+        actionButtonOnPress: () =>
           navigationHandlers.goToPnlHeroCard(position, marketPrice),
-        variant: ButtonVariants.Link,
       }),
       goToActivityButton: (
         transactionId: string,
-      ): ToastOptions['closeButtonOptions'] => ({
-        label: strings('perps.deposit.track'),
-        onPress: () =>
+      ): Pick<ToastOptions, 'actionButtonLabel' | 'actionButtonOnPress'> => ({
+        actionButtonLabel: strings('perps.deposit.track'),
+        actionButtonOnPress: () =>
           navigationHandlers.goToActivity(
             transactionId,
             PerpsActivityFilter.Deposits,
           ),
-        variant: ButtonVariants.Link,
       }),
     }),
     [navigationHandlers],
   );
 
-  const showToast = useCallback(
-    (config: PerpsToastOptions) => {
-      const { hapticsType, ...toastOptions } = config;
-      toastRef?.current?.showToast(toastOptions as ToastOptions);
-      playNotification(hapticsType);
-    },
-    [toastRef],
-  );
+  const showToast = useCallback((config: PerpsToastOptions) => {
+    const { hapticsType, ...toastOptions } = config;
+    toast(toastOptions);
+    playNotification(hapticsType);
+  }, []);
 
   // Centralized toast options for Perp
   const PerpsToastOptions: PerpsToastOptionsConfig = useMemo(
@@ -396,7 +351,7 @@ const usePerpsToasts = (): {
 
             return {
               ...perpsBaseToastOptions.success,
-              labelOptions: getPerpsToastLabels(
+              ...getPerpsToastLabels(
                 strings('perps.deposit.success_toast'),
                 subtext,
               ),
@@ -422,60 +377,38 @@ const usePerpsToasts = (): {
               );
             }
 
-            let closeButtonOptions;
-
-            if (processingTimeInSeconds) {
-              closeButtonOptions =
-                perpsToastButtonOptions.goToActivityButton(transactionId);
-            }
-
             return {
               ...perpsBaseToastOptions.inProgress,
-              labelOptions: getPerpsToastLabels(
+              ...getPerpsToastLabels(
                 strings('perps.deposit.in_progress'),
                 processingMessage,
               ),
-              closeButtonOptions,
+              ...(processingTimeInSeconds
+                ? perpsToastButtonOptions.goToActivityButton(transactionId)
+                : {}),
             };
           },
           takingLonger: {
             ...perpsBaseToastOptions.warning,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.deposit.deposit_taking_longer'),
             ),
             hasNoTimeout: true,
-            closeButtonOptions: {
-              label: (
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  style={{ color: theme.colors.error.default }}
-                >
-                  {strings('perps.deposit.cancel_trade')}
-                </Text>
-              ),
-              variant: ButtonVariants.Secondary,
-              onPress: () => {
-                /* no-op */
-              },
+            actionButtonLabel: strings('perps.deposit.cancel_trade'),
+            actionButtonOnPress: () => {
+              /* no-op — callers wrap this to cancel the in-flight trade */
             },
           },
           tradeCanceled: {
             ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
-            variant: ToastVariants.Icon,
-            iconName: IconName.Warning,
-            iconColor: IconColor.Error,
+            severity: ToastSeverity.Warning,
             hapticsType: NotificationMoment.Warning,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.deposit.trade_canceled'),
-            ),
-            descriptionOptions: {
-              description: strings('perps.deposit.funds_returned_to_account'),
-            },
+            ...getPerpsToastLabels(strings('perps.deposit.trade_canceled')),
+            description: strings('perps.deposit.funds_returned_to_account'),
           },
           error: {
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
             ),
@@ -484,7 +417,7 @@ const usePerpsToasts = (): {
         oneClickTrade: {
           txCreationFailed: {
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.one_click_trade.tx_creation_failed_title'),
               strings('perps.one_click_trade.tx_creation_failed_description'),
             ),
@@ -493,13 +426,13 @@ const usePerpsToasts = (): {
         withdrawal: {
           withdrawalInProgress: {
             ...perpsBaseToastOptions.inProgress,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.withdrawal.processing_title'),
             ),
           },
           withdrawalSuccess: (amount: string, assetSymbol: string) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.withdrawal.success_toast'),
               strings('perps.withdrawal.success_toast_description', {
                 amount: amount
@@ -512,7 +445,7 @@ const usePerpsToasts = (): {
           }),
           withdrawalFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.withdrawal.error'),
               handlePerpsError({
                 error,
@@ -522,16 +455,12 @@ const usePerpsToasts = (): {
           }),
           withdrawalStartFailed: (onRetry: () => void) => ({
             ...perpsBaseToastOptions.error,
-            iconName: IconName.Error,
-            iconColor: IconColor.Error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.withdrawal.toast_error_title'),
               strings('perps.withdrawal.toast_start_error_description'),
             ),
-            linkButtonOptions: {
-              label: strings('perps.withdrawal.try_again'),
-              onPress: onRetry,
-            },
+            actionButtonLabel: strings('perps.withdrawal.try_again'),
+            actionButtonOnPress: onRetry,
           }),
         },
       },
@@ -544,7 +473,7 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.inProgress,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_submitted'),
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
@@ -560,7 +489,7 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_filled'),
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
@@ -571,7 +500,7 @@ const usePerpsToasts = (): {
           }),
           creationFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
@@ -589,7 +518,7 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.inProgress,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_submitted'),
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
@@ -605,7 +534,7 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_placed'),
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
@@ -616,7 +545,7 @@ const usePerpsToasts = (): {
           }),
           creationFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
@@ -629,9 +558,7 @@ const usePerpsToasts = (): {
           editSubmitting: () => ({
             ...perpsBaseToastOptions.inProgress,
             hasNoTimeout: true,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.order.updating_your_order'),
-            ),
+            ...getPerpsToastLabels(strings('perps.order.updating_your_order')),
           }),
           editConfirmed: (
             direction: OrderDirection,
@@ -639,7 +566,7 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_updated'),
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
@@ -650,7 +577,7 @@ const usePerpsToasts = (): {
           }),
           editFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.order_update_failed'),
               handlePerpsError({
                 error,
@@ -666,14 +593,9 @@ const usePerpsToasts = (): {
           submitting: () => ({
             ...perpsBaseToastOptions.inProgress,
             hasNoTimeout: true,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.submitting_your_trade'),
             ),
-            closeButtonOptions: {
-              variant: ButtonIconVariant.Icon,
-              iconName: IconName.Close,
-              onPress: () => toastRef?.current?.closeToast(),
-            },
           }),
           cancellationInProgress: (
             direction: OrderDirection,
@@ -709,7 +631,7 @@ const usePerpsToasts = (): {
 
             return {
               ...perpsBaseToastOptions.inProgress,
-              labelOptions: getPerpsToastLabels(labels[0], labels?.[1]),
+              ...getPerpsToastLabels(labels[0], labels?.[1]),
             };
           },
           cancellationSuccess: (
@@ -751,19 +673,19 @@ const usePerpsToasts = (): {
 
             return {
               ...perpsBaseToastOptions.success,
-              labelOptions: getPerpsToastLabels(labels[0], labels?.[1]),
+              ...getPerpsToastLabels(labels[0], labels?.[1]),
             };
           },
           cancellationFailed: {
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.failed_to_cancel_order'),
               strings('perps.order.order_still_active'),
             ),
           },
           cancelAllSuccess: (count: number) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.cancel_all_modal.success_title'),
               strings('perps.cancel_all_modal.success_message', { count }),
             ),
@@ -773,7 +695,7 @@ const usePerpsToasts = (): {
             totalCount: number,
           ) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.cancel_all_modal.success_title'),
               strings('perps.cancel_all_modal.partial_success', {
                 successCount,
@@ -783,7 +705,7 @@ const usePerpsToasts = (): {
           }),
           cancelAllFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.cancel_all_modal.error_title'),
               error || 'Unknown error',
             ),
@@ -816,7 +738,7 @@ const usePerpsToasts = (): {
 
                 return {
                   ...perpsBaseToastOptions.inProgress,
-                  labelOptions: getPerpsToastLabels(
+                  ...getPerpsToastLabels(
                     strings('perps.close_position.closing_position'),
                     subtext,
                   ),
@@ -831,34 +753,19 @@ const usePerpsToasts = (): {
 
                 return {
                   ...perpsBaseToastOptions.success,
-                  closeButtonOptions:
-                    perpsToastButtonOptions.pnlHeroCardShareButton(
-                      position,
-                      marketPrice,
-                    ),
-                  labelOptions: getPerpsToastLabels(
+                  ...perpsToastButtonOptions.pnlHeroCardShareButton(
+                    position,
+                    marketPrice,
+                  ),
+                  ...getPerpsToastLabels(
                     strings('perps.close_position.position_closed'),
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('perps.close_position.your_pnl_is')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={{
-                          color:
-                            roeValue >= 0
-                              ? theme.colors.success.default
-                              : theme.colors.error.default,
-                        }}
-                      >
-                        {' '}
-                        {`${roeValue.toFixed(2)}%`}
-                      </Text>
-                    </Text>,
+                    `${strings('perps.close_position.your_pnl_is')} ${roeValue.toFixed(2)}%`,
                   ),
                 };
               },
               closeFullPositionFailed: {
                 ...perpsBaseToastOptions.error,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings('perps.close_position.failed_to_close_position'),
                   strings('perps.close_position.your_position_is_still_active'),
                 ),
@@ -887,7 +794,7 @@ const usePerpsToasts = (): {
 
                 return {
                   ...perpsBaseToastOptions.inProgress,
-                  labelOptions: getPerpsToastLabels(
+                  ...getPerpsToastLabels(
                     strings('perps.close_position.partially_closing_position'),
                     subtext,
                   ),
@@ -902,34 +809,19 @@ const usePerpsToasts = (): {
 
                 return {
                   ...perpsBaseToastOptions.success,
-                  closeButtonOptions:
-                    perpsToastButtonOptions.pnlHeroCardShareButton(
-                      position,
-                      marketPrice,
-                    ),
-                  labelOptions: getPerpsToastLabels(
+                  ...perpsToastButtonOptions.pnlHeroCardShareButton(
+                    position,
+                    marketPrice,
+                  ),
+                  ...getPerpsToastLabels(
                     strings('perps.close_position.position_partially_closed'),
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('perps.close_position.your_pnl_is')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={{
-                          color:
-                            roeValue >= 0
-                              ? theme.colors.success.default
-                              : theme.colors.error.default,
-                        }}
-                      >
-                        {' '}
-                        {`${roeValue.toFixed(2)}%`}
-                      </Text>
-                    </Text>,
+                    `${strings('perps.close_position.your_pnl_is')} ${roeValue.toFixed(2)}%`,
                   ),
                 };
               },
               closePartialPositionFailed: {
                 ...perpsBaseToastOptions.error,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings(
                     'perps.close_position.failed_to_partially_close_position',
                   ),
@@ -950,7 +842,7 @@ const usePerpsToasts = (): {
                 // partial close and the open limit "Order placed" toast —
                 // instead of an in-progress spinner that never resolves.
                 ...perpsBaseToastOptions.success,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
@@ -961,7 +853,7 @@ const usePerpsToasts = (): {
               }),
               fullPositionCloseFailed: {
                 ...perpsBaseToastOptions.error,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings('perps.close_position.failed_to_place_close_order'),
                   strings('perps.close_position.your_position_is_still_active'),
                 ),
@@ -974,7 +866,7 @@ const usePerpsToasts = (): {
                 assetSymbol: string,
               ) => ({
                 ...perpsBaseToastOptions.success,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings('perps.close_position.partial_close_submitted'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
@@ -985,7 +877,7 @@ const usePerpsToasts = (): {
               }),
               partialPositionCloseFailed: {
                 ...perpsBaseToastOptions.error,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings(
                     'perps.close_position.failed_to_place_partial_close_order',
                   ),
@@ -994,7 +886,7 @@ const usePerpsToasts = (): {
               },
               switchToMarketOrderMissingLimitPrice: {
                 ...perpsBaseToastOptions.info,
-                labelOptions: getPerpsToastLabels(
+                ...getPerpsToastLabels(
                   strings(
                     'perps.close_position.order_type_reverted_to_market_order',
                   ),
@@ -1009,13 +901,13 @@ const usePerpsToasts = (): {
         tpsl: {
           updateTPSLSuccess: {
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.position.tpsl.update_success'),
             ),
           },
           updateTPSLError: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.position.tpsl.update_failed'),
               error || strings('perps.errors.tpslUpdateFailed'),
             ),
@@ -1024,7 +916,7 @@ const usePerpsToasts = (): {
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.position.margin.add_success', {
                 amount,
                 asset: assetSymbol,
@@ -1033,7 +925,7 @@ const usePerpsToasts = (): {
           }),
           removeSuccess: (assetSymbol: string, amount: string) => ({
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.position.margin.remove_success', {
                 amount,
                 asset: assetSymbol,
@@ -1042,7 +934,7 @@ const usePerpsToasts = (): {
           }),
           adjustmentFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.position.margin.adjustment_failed'),
               error || strings('perps.errors.marginAdjustmentFailed'),
             ),
@@ -1053,14 +945,14 @@ const usePerpsToasts = (): {
         orderForm: {
           validationError: (error: string) => ({
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.validation.failed'),
               error, // Pass through directly - validation errors are already localized
             ),
           }),
           limitPriceRequired: {
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.order.validation.please_set_a_limit_price'),
               strings(
                 'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
@@ -1074,18 +966,15 @@ const usePerpsToasts = (): {
           error: {
             marketDataUnavailable: (assetSymbol: string) => ({
               ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
+              ...getPerpsToastLabels(
                 strings('perps.order.error.invalid_asset'),
                 strings('perps.order.error.asset_not_tradable', {
                   asset: getPerpsDisplaySymbol(assetSymbol),
                 }),
               ),
-              closeButtonOptions: {
-                label: strings('perps.order.error.go_back'),
-                variant: ButtonVariants.Secondary,
-                onPress: () => {
-                  navigationHandlers.goToPerpsTab();
-                },
+              actionButtonLabel: strings('perps.order.error.go_back'),
+              actionButtonOnPress: () => {
+                navigationHandlers.goToPerpsTab();
               },
             }),
           },
@@ -1095,22 +984,20 @@ const usePerpsToasts = (): {
         pnlHeroCard: {
           shareSuccess: {
             ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
+            ...getPerpsToastLabels(
               strings('perps.pnl_hero_card.export_success'),
             ),
           },
           shareFailed: {
             ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.pnl_hero_card.share_failed'),
-            ),
+            ...getPerpsToastLabels(strings('perps.pnl_hero_card.share_failed')),
           },
         },
       },
       watchlist: {
         added: (symbol: string) => ({
           ...perpsBaseToastOptions.success,
-          labelOptions: getPerpsToastLabels(
+          ...getPerpsToastLabels(
             strings('perps.watchlist.added', {
               symbol: getPerpsDisplaySymbol(symbol),
             }),
@@ -1118,7 +1005,7 @@ const usePerpsToasts = (): {
         }),
         removed: (symbol: string) => ({
           ...perpsBaseToastOptions.info,
-          labelOptions: getPerpsToastLabels(
+          ...getPerpsToastLabels(
             strings('perps.watchlist.removed', {
               symbol: getPerpsDisplaySymbol(symbol),
             }),
@@ -1126,13 +1013,11 @@ const usePerpsToasts = (): {
         }),
         addError: {
           ...perpsBaseToastOptions.error,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.add_error'),
-          ),
+          ...getPerpsToastLabels(strings('perps.watchlist.add_error')),
         },
         limitReached: {
           ...perpsBaseToastOptions.info,
-          labelOptions: getPerpsToastLabels(
+          ...getPerpsToastLabels(
             strings('perps.watchlist.limit_reached', { limit: 100 }),
           ),
         },
@@ -1146,9 +1031,6 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
-      theme.colors.error.default,
-      theme.colors.success.default,
-      toastRef,
     ],
   );
 

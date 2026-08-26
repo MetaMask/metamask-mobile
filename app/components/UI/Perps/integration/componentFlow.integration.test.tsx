@@ -75,22 +75,14 @@ describe('Perps component flows — integration', () => {
         );
         expect(perps.mocks.showToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: expect.stringMatching(/submitted/i),
-              }),
-            ]),
+            title: expect.stringMatching(/submitted/i),
           }),
         );
         await waitFor(
           () => {
             expect(perps.mocks.showToast).toHaveBeenCalledWith(
               expect.objectContaining({
-                labelOptions: expect.arrayContaining([
-                  expect.objectContaining({
-                    label: expect.stringMatching(/filled/i),
-                  }),
-                ]),
+                title: expect.stringMatching(/filled/i),
               }),
             );
           },
@@ -153,11 +145,7 @@ describe('Perps component flows — integration', () => {
         );
         expect(perps.mocks.showToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Order filled',
-              }),
-            ]),
+            title: 'Order filled',
           }),
         );
       } finally {
