@@ -73,6 +73,19 @@ const PREDICT_TRENDING_MARKETS_URL = `https://gamma-api.polymarket.com/events/ke
   },
 )}`;
 
+/**
+ * Must mirror the homepage Predictions discovery-variant request:
+ * useHomepagePredictMarketSlots → usePredictMarketData (category 'hot',
+ * limit = HOMEPAGE_PREDICT_EVENT_SLOTS.length) with
+ * HOMEPAGE_PREDICT_EVENT_QUERY in
+ * app/components/Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots.ts.
+ * The A/B experiment coreMCU747AbtestPredictPositionsEmptyState shows either
+ * trending markets (control) or these fixed event slots (treatment), so both
+ * URLs are registered; only one is consumed per launch.
+ */
+const PREDICT_HOMEPAGE_SLOTS_URL =
+  'https://gamma-api.polymarket.com/events/keyset?limit=2&active=true&archived=false&closed=false&id=659518&id=478277';
+
 interface StartupPrefetch {
   url: string;
   urlPrefix: string;
@@ -138,6 +151,17 @@ const STARTUP_PREFETCHES: readonly StartupPrefetch[] = [
     urlPrefix: 'https://gamma-api.polymarket.com/events/keyset',
     urlIncludes: ['limit=5&', 'order=volume24hr'],
     key: 'predict-trending-markets',
+    prefetchCacheTtlMs: HOMEPAGE_PREFETCH_TTL_MS,
+  },
+  {
+    // Homepage Predictions discovery-variant event slots
+    // (useHomepagePredictMarketSlots). urlIncludes pins the one-shot cache to
+    // the fixed slots request (limit=2, first slot event id) so Predict feed
+    // tabs fetch normally.
+    url: PREDICT_HOMEPAGE_SLOTS_URL,
+    urlPrefix: 'https://gamma-api.polymarket.com/events/keyset',
+    urlIncludes: ['limit=2&', 'id=659518'],
+    key: 'predict-homepage-slots',
     prefetchCacheTtlMs: HOMEPAGE_PREFETCH_TTL_MS,
   },
 ];

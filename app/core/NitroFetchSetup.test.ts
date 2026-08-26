@@ -70,11 +70,12 @@ const PREDICT_TRENDING_MARKETS_URL = `${PREDICT_TRENDING_MARKETS_PREFIX}?${new U
     order: 'volume24hr',
   },
 )}`;
+const PREDICT_HOMEPAGE_SLOTS_URL = `${PREDICT_TRENDING_MARKETS_PREFIX}?limit=2&active=true&archived=false&closed=false&id=659518&id=478277`;
 
 describe('NitroFetchSetup', () => {
   describe('startup prefetch registration', () => {
-    it('registers all five startup prefetch endpoints on module load', () => {
-      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(5);
+    it('registers all six startup prefetch endpoints on module load', () => {
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(6);
       expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
         expect.stringContaining(FEATURE_FLAGS_PREFIX),
         { prefetchKey: 'feature-flags' },
@@ -102,6 +103,13 @@ describe('NitroFetchSetup', () => {
         PREDICT_TRENDING_MARKETS_URL,
         {
           prefetchKey: 'predict-trending-markets',
+          prefetchCacheTtlMs: 120_000,
+        },
+      );
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
+        PREDICT_HOMEPAGE_SLOTS_URL,
+        {
+          prefetchKey: 'predict-homepage-slots',
           prefetchCacheTtlMs: 120_000,
         },
       );
@@ -326,6 +334,27 @@ describe('NitroFetchSetup', () => {
           (init as RequestInit & { prefetchCacheTtlMs?: number })
             ?.prefetchCacheTtlMs,
         ).toBe(120_000);
+      });
+
+      it('injects prefetchKey for the homepage predict discovery slots URL', async () => {
+        await global.fetch(PREDICT_HOMEPAGE_SLOTS_URL);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect((init?.headers as Headers).get('prefetchKey')).toBe(
+          'predict-homepage-slots',
+        );
+        expect(
+          (init as RequestInit & { prefetchCacheTtlMs?: number })
+            ?.prefetchCacheTtlMs,
+        ).toBe(120_000);
+      });
+
+      it('does not inject prefetchKey for other limit=2 keyset requests without the slot event ids', async () => {
+        const otherUrl = `${PREDICT_TRENDING_MARKETS_PREFIX}?limit=2&active=true&archived=false&closed=false&id=111111&id=222222`;
+
+        await global.fetch(otherUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(otherUrl, undefined);
       });
 
       it('does not inject prefetchKey for predict feed requests with a different page size', async () => {
