@@ -25,7 +25,6 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import ToastService from '../../../core/ToastService/ToastService';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -86,7 +85,8 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
-import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { resolveTransactionUpdateErrorMessage } from '../../../util/confirmation/transactions';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
@@ -463,7 +463,14 @@ const Transactions = (props) => {
   );
 
   const showTransactionUpdateErrorToast = (error) => {
-    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
+    toast({
+      title:
+        strings('transaction_update_toast.title') ||
+        'Transaction update failed',
+      description: resolveTransactionUpdateErrorMessage(error),
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+    });
   };
 
   const handleSpeedUpTransactionFailure = (error) => {

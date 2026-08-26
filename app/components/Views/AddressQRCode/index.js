@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -18,11 +18,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { isEthAddress } from '../../../util/address';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -88,7 +84,6 @@ const AddressQRCode = ({ closeQrModal }) => {
   const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const dispatch = useDispatch();
-  const { toastRef } = useContext(ToastContext);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -114,16 +109,12 @@ const AddressQRCode = ({ closeQrModal }) => {
 
   const copyAccountToClipboard = useCallback(async () => {
     await ClipboardManager.setString(selectedAddress);
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Confirmation,
-      iconColor: colors.success.default,
-      labelOptions: [
-        { label: strings('account_details.account_copied_to_clipboard') },
-      ],
+    toast({
+      title: strings('account_details.account_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
     });
-  }, [colors.success.default, selectedAddress, toastRef]);
+  }, [selectedAddress]);
 
   const processAddress = useCallback(() => {
     const processedAddress = `${selectedAddress.slice(0, 2)} ${selectedAddress

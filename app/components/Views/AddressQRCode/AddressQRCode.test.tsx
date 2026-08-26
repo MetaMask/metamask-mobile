@@ -4,7 +4,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 import AddressQRCode from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { ToastContext } from '../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -14,16 +14,19 @@ jest.mock('../../../core/ClipboardManager', () => ({
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
 }));
-
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
-};
 
 const mockCloseQrModal = jest.fn();
 
@@ -54,12 +57,9 @@ const mockInitialState = {
 };
 
 const renderComponent = (state = mockInitialState) =>
-  renderWithProvider(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <AddressQRCode closeQrModal={mockCloseQrModal} />
-    </ToastContext.Provider>,
-    { state },
-  );
+  renderWithProvider(<AddressQRCode closeQrModal={mockCloseQrModal} />, {
+    state,
+  });
 
 describe('AddressQRCode', () => {
   beforeEach(() => {
@@ -95,12 +95,11 @@ describe('AddressQRCode', () => {
     });
 
     await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: 'Icon',
-          hasNoTimeout: false,
-        }),
-      );
+      expect(toast).toHaveBeenCalledWith({
+        title: expect.any(String),
+        severity: ToastSeverity.Success,
+        hasNoTimeout: false,
+      });
     });
   });
 

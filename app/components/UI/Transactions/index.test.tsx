@@ -189,10 +189,6 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
-}));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
