@@ -115,7 +115,7 @@ export const useQuoteRequest = ({
       srcTokenAmount: normalizedSourceAmount,
       slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
       walletAddress,
-      destWalletAddress,
+      destWalletAddress: destWalletAddress ?? walletAddress,
       gasIncluded,
       gasIncluded7702,
       insufficientBal,
