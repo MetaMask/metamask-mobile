@@ -173,47 +173,15 @@ describe('classifyPooledStakingActivity', () => {
     expect(result.type).toBe('stake');
   });
 
-  // `enterExitQueue` transfers no ETH, so the API reports no value transfer.
-  it.each([
-    [1, 'eip155:1/slip44:60'],
-    [560048, 'eip155:560048/slip44:60'],
-  ])(
-    'names the staked asset on chain %s when no transfer was reported',
-    (chainId, assetId) => {
-      const result = classifyPooledStakingActivity(
-        buildApiTransaction({
-          chainId,
-          to:
-            chainId === 1
-              ? MAINNET_POOL
-              : '0xe96ac18cfe5a7af8fe1fe7bc37ff110d88bc67ff',
-          methodId: ENTER_EXIT_QUEUE_METHOD_ID,
-        }),
-        buildContractInteraction({ token: undefined }),
-      );
-
-      expect(result.type).toBe('unstake');
-      // Strict equality also pins the absent amount.
-      expect(result.data).toStrictEqual({
-        from: sender,
-        token: {
-          symbol: 'ETH',
-          decimals: 18,
-          assetType: 'native',
-          direction: 'in',
-          assetId,
-        },
-      });
-    },
-  );
-
-  it('prefers a reported transfer over the named asset', () => {
+  // `enterExitQueue` transfers no ETH, so no amount can be shown.
+  it('leaves an unstake without an amount rather than inventing one', () => {
     const result = classifyPooledStakingActivity(
-      buildApiTransaction(),
-      buildContractInteraction(),
+      buildApiTransaction({ methodId: ENTER_EXIT_QUEUE_METHOD_ID }),
+      buildContractInteraction({ token: undefined }),
     );
 
-    expect(result.data).toStrictEqual({ from: sender, token: nativeToken });
+    expect(result.type).toBe('unstake');
+    expect(result.data).toStrictEqual({ from: sender });
   });
 
   it('leaves an unrecognized selector on the pool contract untouched', () => {

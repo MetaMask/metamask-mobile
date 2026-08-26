@@ -12,11 +12,6 @@ import {
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { ActivityFee, ActivityListItem, TokenAmount } from '../types';
 
-interface PooledStakingChain {
-  contractAddress: string;
-  nativeAsset: { symbol: string; decimals: number; assetId: string };
-}
-
 type StakingKind = 'stake' | 'unstake' | 'claim';
 
 interface StakingActivityData {
@@ -25,37 +20,14 @@ interface StakingActivityData {
   fees?: ActivityFee[];
 }
 
-const ETH_DECIMALS = 18;
-
 /**
- * Pool contract and staked asset per chain, keyed by decimal chain id to match
- * the accounts API payload. Mirrors `contractMap` in `@metamask/stake-sdk`,
- * which the package does not re-export; the asset is inlined because
- * `getNativeAssetForChainId` has no Hoodi entry.
+ * Pool contract per chain, keyed by decimal chain id to match the accounts API
+ * payload. Mirrors `contractMap` in `@metamask/stake-sdk`, which the package
+ * does not re-export.
  */
-const POOLED_STAKING_BY_CHAIN_ID = new Map<number, PooledStakingChain>([
-  [
-    1,
-    {
-      contractAddress: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-      nativeAsset: {
-        symbol: 'ETH',
-        decimals: ETH_DECIMALS,
-        assetId: 'eip155:1/slip44:60',
-      },
-    },
-  ],
-  [
-    560048,
-    {
-      contractAddress: '0xe96ac18cfe5a7af8fe1fe7bc37ff110d88bc67ff',
-      nativeAsset: {
-        symbol: 'ETH',
-        decimals: ETH_DECIMALS,
-        assetId: 'eip155:560048/slip44:60',
-      },
-    },
-  ],
+const POOLED_STAKING_CONTRACT_BY_CHAIN_ID = new Map<number, string>([
+  [1, '0x4fef9d741011476750a243ac70b9789a63dd47df'],
+  [560048, '0xe96ac18cfe5a7af8fe1fe7bc37ff110d88bc67ff'],
 ]);
 
 /** Pool selectors, derived from the SDK's `PooledStakingABI`. */
@@ -93,11 +65,10 @@ function getStakingToken(
 function getStakingActivityData(
   activity: ActivityListItem,
   kind: StakingKind,
-  fallbackToken?: TokenAmount,
 ): StakingActivityData {
   const { data } = activity;
   const from = 'from' in data ? data.from : undefined;
-  const token = getStakingToken(data, kind) ?? fallbackToken;
+  const token = getStakingToken(data, kind);
 
   return {
     ...(from ? { from } : {}),
@@ -127,9 +98,8 @@ function getMovementToken(
  * Re-classifies an API-sourced activity as stake/unstake/claim when it targets
  * the pooled staking contract with a known selector.
  *
- * `enterExitQueue` transfers no ETH — it queues shares, and the ETH arrives on
- * the later claim — so the staked asset is named without an amount, which keeps
- * the row's asset avatar without inventing a value.
+ * An unstake carries no amount: `enterExitQueue` transfers no ETH, it queues
+ * shares, and the ETH arrives on the later claim.
  *
  * @param transaction - Raw accounts API transaction behind the activity.
  * @param activity - The activity as mapped by `mapApiTransaction`.
@@ -140,9 +110,11 @@ export function classifyPooledStakingActivity(
   transaction: Pick<V1TransactionByHashResponse, 'chainId' | 'to' | 'methodId'>,
   activity: ActivityListItem,
 ): ActivityListItem {
-  const chain = POOLED_STAKING_BY_CHAIN_ID.get(transaction.chainId);
+  const contractAddress = POOLED_STAKING_CONTRACT_BY_CHAIN_ID.get(
+    transaction.chainId,
+  );
 
-  if (!chain || transaction.to?.toLowerCase() !== chain.contractAddress) {
+  if (!contractAddress || transaction.to?.toLowerCase() !== contractAddress) {
     return activity;
   }
 
@@ -154,11 +126,7 @@ export function classifyPooledStakingActivity(
     return activity;
   }
 
-  const data = getStakingActivityData(activity, kind, {
-    ...chain.nativeAsset,
-    assetType: 'native',
-    direction: kind === 'stake' ? 'out' : 'in',
-  });
+  const data = getStakingActivityData(activity, kind);
 
   if (kind === 'stake') {
     return { ...activity, type: 'stake', data };

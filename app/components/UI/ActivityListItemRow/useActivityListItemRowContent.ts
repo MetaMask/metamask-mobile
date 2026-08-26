@@ -470,7 +470,7 @@ function resolveAvatarTokens(
   }
 
   const { data } = item;
-  return uniqueTokens([
+  const tokens = uniqueTokens([
     'sourceToken' in data
       ? enrichStablecoinTokenMetadata(data.sourceToken, item.chainId)
       : undefined,
@@ -481,10 +481,24 @@ function resolveAvatarTokens(
       ? enrichStablecoinTokenMetadata(data.token, item.chainId)
       : undefined,
   ]);
+
+  return tokens.length === 0 && isEvmStakingKind(item)
+    ? [{ direction: 'in', symbol: 'ETH', assetId: `${item.chainId}/slip44:60` }]
+    : tokens;
 }
 
 function isNamelessNftToken(token: TokenAmount | undefined): boolean {
   return Boolean(token?.amount && !token.symbol && !token.assetId);
+}
+
+/** EVM pooled staking is ETH-only; other chains stake their own asset. */
+function isEvmStakingKind(item: ActivityListItem): boolean {
+  return (
+    (item.type === 'stake' ||
+      item.type === 'unstake' ||
+      item.type === 'claim') &&
+    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+  );
 }
 
 function resolveCoreContent(
@@ -642,13 +656,10 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      const isEvmStakingKind =
-        item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`) &&
-        (item.type === 'stake' ||
-          item.type === 'unstake' ||
-          (item.type === 'claim' && symbol === 'ETH'));
+      const readsEthAssetName =
+        isEvmStakingKind(item) && (item.type !== 'claim' || symbol === 'ETH');
       let displayNoun = symbol;
-      if (isEvmStakingKind) {
+      if (readsEthAssetName) {
         displayNoun = 'Ethereum';
       } else if (isNamelessNftBuy) {
         displayNoun = 'NFT';

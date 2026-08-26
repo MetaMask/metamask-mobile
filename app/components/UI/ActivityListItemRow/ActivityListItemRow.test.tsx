@@ -2217,6 +2217,31 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
   });
 
+  it('names the staked asset for the avatar when an unstake moves no token', () => {
+    const item = makeItem({ type: 'unstake', status: 'success' });
+    const { getByTestId, getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByText('Unstaked Ethereum')).toBeOnTheScreen();
+    // The asset is named for the avatar only — no amount is invented.
+    expect(queryByText('+0 ETH')).toBeNull();
+  });
+
+  it('does not name an asset for non-EVM staking without a token', () => {
+    const item = makeItem({
+      type: 'unstake',
+      status: 'success',
+      chainId: 'tron:728126428',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('avatar-token-ETH')).toBeNull();
+  });
+
   it('reads the full asset name for an EVM ETH claim', () => {
     const item = makeItem({
       type: 'claim',
