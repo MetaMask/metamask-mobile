@@ -4580,7 +4580,17 @@
       "description": "Chat with the MetaMask wallet agent (dev).",
       "placeholder": "Ask about your wallet",
       "send": "Send",
-      "stop": "Stop"
+      "stop": "Stop",
+      "landing_title": "Where should we start?",
+      "chip_wallet": "What's in my wallet?",
+      "chip_price": "Check a token's price",
+      "chip_activity": "Show my recent activity",
+      "disclaimer": "AI-generated content is not financial advice.",
+      "new_conversation": "New conversation",
+      "thinking": "Thinking",
+      "copy": "Copy",
+      "copied": "Copied",
+      "retry": "Retry"
     },
     "add_device": {
       "title": "Add device",

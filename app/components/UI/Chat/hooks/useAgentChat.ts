@@ -21,6 +21,7 @@ export interface UseAgentChatResult {
   messages: ChatMessage[];
   sendMessage: (text: string) => void;
   cancel: () => void;
+  newConversation: () => void;
   isRunning: boolean;
   error?: string;
 }
@@ -50,6 +51,12 @@ export const useAgentChat = (): UseAgentChatResult => {
         if (message.id !== assistantId) return message;
         const payload = chunk.payload ?? {};
         switch (chunk.type) {
+          // New text segment after tool calls — keep a paragraph break so
+          // pre-tool and post-tool prose don't concatenate mid-word.
+          case 'text-start':
+            return message.text === '' || message.text.endsWith('\n\n')
+              ? message
+              : { ...message, text: `${message.text}\n\n` };
           case 'text-delta':
             return {
               ...message,
@@ -178,5 +185,13 @@ export const useAgentChat = (): UseAgentChatResult => {
     abortRef.current?.abort();
   }, []);
 
-  return { messages, sendMessage, cancel, isRunning, error };
+  const newConversation = useCallback(() => {
+    abortRef.current?.abort();
+    threadIdRef.current = uuidv4();
+    setMessages([]);
+    setError(undefined);
+    setIsRunning(false);
+  }, []);
+
+  return { messages, sendMessage, cancel, newConversation, isRunning, error };
 };
