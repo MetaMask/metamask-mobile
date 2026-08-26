@@ -27,6 +27,8 @@ const transactionKeys = {
       fromDate,
       toDate,
     ] as const,
+  detail: (transactionId: string) =>
+    [...transactionKeys.all(), 'detail', transactionId] as const,
   /** Bounded Money Account enrichment index; scoped per provider/user. */
   index: (providerId: string | null, providerUserId: string) =>
     [...transactionKeys.all(), 'index', providerId, providerUserId] as const,
