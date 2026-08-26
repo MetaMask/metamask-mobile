@@ -1,17 +1,22 @@
 import { RampsOrderStatus } from '@metamask/ramps-controller';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import {
   buildV2OrderToastOptions,
   showV2OrderToast,
   V2OrderToastParams,
 } from './v2OrderToast';
-import ToastService from '../../../../core/ToastService';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 
-jest.mock('../../../../core/ToastService');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -22,8 +27,6 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('v2OrderToast', () => {
-  const mockToastService = ToastService as jest.Mocked<typeof ToastService>;
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,18 +48,14 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Plain);
       expect(result?.hasNoTimeout).toBe(false);
       expect(result?.startAccessory).toBeDefined();
-      expect(result?.labelOptions?.[0]?.label).toBe(
-        'Processing your purchase of ETH',
-      );
-      expect(result?.labelOptions?.[0]?.isBold).toBe(true);
-      expect(result?.descriptionOptions?.description).toBe(
+      expect(result?.title).toBe('Processing your purchase of ETH');
+      expect(result?.description).toBe(
         'This should only take a few minutes...',
       );
-      expect(result?.linkButtonOptions?.label).toBe('Track');
-      expect(result?.linkButtonOptions?.onPress).toBeDefined();
+      expect(result?.actionButtonLabel).toBe('Track');
+      expect(result?.actionButtonOnPress).toBeDefined();
     });
 
     it('navigates to order details when Track button is pressed', () => {
@@ -72,16 +71,16 @@ describe('v2OrderToast', () => {
       };
 
       const result = buildV2OrderToastOptions(params);
-      result?.linkButtonOptions?.onPress();
+      result?.actionButtonOnPress?.();
 
-      expect(mockToastService.closeToast).toHaveBeenCalled();
+      expect(toast.dismiss).toHaveBeenCalled();
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         Routes.RAMP.RAMPS_ORDER_DETAILS,
         { orderId: 'test-order-id', showCloseButton: true },
       );
     });
 
-    it('returns toast options for COMPLETED state with success icon', () => {
+    it('returns toast options for COMPLETED state with success severity', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Your purchase of 100.5 USDC was successful')
         .mockReturnValueOnce('Your USDC is now available');
@@ -96,22 +95,14 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Icon);
+      expect(result?.severity).toBe(ToastSeverity.Success);
       expect(result?.hasNoTimeout).toBe(false);
-      if (result?.variant === ToastVariants.Icon) {
-        expect(result.iconName).toBe(IconName.Confirmation);
-      }
-      expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of 100.5 USDC was successful',
-      );
-      expect(result?.labelOptions?.[0]?.isBold).toBe(true);
-      expect(result?.descriptionOptions?.description).toBe(
-        'Your USDC is now available',
-      );
-      expect(result?.linkButtonOptions).toBeUndefined();
+      expect(result?.title).toBe('Your purchase of 100.5 USDC was successful');
+      expect(result?.description).toBe('Your USDC is now available');
+      expect(result?.actionButtonLabel).toBeUndefined();
     });
 
-    it('returns toast options for Failed status with error icon', () => {
+    it('returns toast options for Failed status with danger severity', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Purchase of BTC failed')
         .mockReturnValueOnce('Please try again momentarily');
@@ -125,19 +116,13 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Icon);
+      expect(result?.severity).toBe(ToastSeverity.Danger);
       expect(result?.hasNoTimeout).toBe(false);
-      if (result?.variant === ToastVariants.Icon) {
-        expect(result.iconName).toBe(IconName.Warning);
-      }
-      expect(result?.labelOptions?.[0]?.label).toBe('Purchase of BTC failed');
-      expect(result?.labelOptions?.[0]?.isBold).toBe(true);
-      expect(result?.descriptionOptions?.description).toBe(
-        'Please try again momentarily',
-      );
+      expect(result?.title).toBe('Purchase of BTC failed');
+      expect(result?.description).toBe('Please try again momentarily');
     });
 
-    it('returns toast options for Cancelled status with warning icon', () => {
+    it('returns toast options for Cancelled status with warning severity', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Your purchase was cancelled')
         .mockReturnValueOnce('Your purchase of DAI has been cancelled');
@@ -151,16 +136,10 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Icon);
+      expect(result?.severity).toBe(ToastSeverity.Warning);
       expect(result?.hasNoTimeout).toBe(false);
-      if (result?.variant === ToastVariants.Icon) {
-        expect(result.iconName).toBe(IconName.Warning);
-      }
-      expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase was cancelled',
-      );
-      expect(result?.labelOptions?.[0]?.isBold).toBe(true);
-      expect(result?.descriptionOptions?.description).toBe(
+      expect(result?.title).toBe('Your purchase was cancelled');
+      expect(result?.description).toBe(
         'Your purchase of DAI has been cancelled',
       );
     });
@@ -191,14 +170,12 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of  ETH was successful',
-      );
+      expect(result?.title).toBe('Your purchase of  ETH was successful');
     });
   });
 
   describe('showV2OrderToast', () => {
-    it('calls ToastService.showToast with valid toast options', () => {
+    it('calls toast with valid toast options', () => {
       (strings as jest.Mock)
         .mockReturnValueOnce('Your purchase of 1.5 ETH was successful')
         .mockReturnValueOnce('Your ETH is now available');
@@ -212,15 +189,13 @@ describe('v2OrderToast', () => {
 
       showV2OrderToast(params);
 
-      expect(mockToastService.showToast).toHaveBeenCalledTimes(1);
-      const callArg = mockToastService.showToast.mock.calls[0][0];
-      expect(callArg.variant).toBe(ToastVariants.Icon);
-      if (callArg.variant === ToastVariants.Icon) {
-        expect(callArg.iconName).toBe(IconName.Confirmation);
-      }
+      expect(toast).toHaveBeenCalledTimes(1);
+      const callArg = jest.mocked(toast).mock.calls[0][0];
+      expect(callArg.severity).toBe(ToastSeverity.Success);
+      expect(callArg.title).toBe('Your purchase of 1.5 ETH was successful');
     });
 
-    it('does not call ToastService.showToast for Created status', () => {
+    it('does not call toast for Created status', () => {
       const params: V2OrderToastParams = {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
@@ -229,7 +204,7 @@ describe('v2OrderToast', () => {
 
       showV2OrderToast(params);
 
-      expect(mockToastService.showToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
   });
 });

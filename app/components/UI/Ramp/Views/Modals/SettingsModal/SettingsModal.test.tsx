@@ -1,15 +1,11 @@
 import React from 'react';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import {
   getProviderToken,
   resetProviderToken,
@@ -87,13 +83,34 @@ const mockResetProviderToken = resetProviderToken as jest.MockedFunction<
   typeof resetProviderToken
 >;
 
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: jest.fn(),
-  },
-};
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      props: { children?: unknown; goBack?: () => void },
+      ref: ReactActual.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          if (cb) {
+            cb();
+            return;
+          }
+          props.goBack?.();
+        },
+      }));
+      return ReactActual.createElement(View, null, props.children);
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  return {
+    ...actual,
+    BottomSheet,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -132,27 +149,10 @@ jest.mock('../../../hooks/useRampsProviders', () => ({
   }),
 }));
 
-jest.mock('../../../../../../component-library/components/Toast', () => {
-  const actualToast = jest.requireActual(
-    '../../../../../../component-library/components/Toast',
-  );
-
-  return {
-    ...actualToast,
-    ToastVariants: {
-      Icon: 'Icon',
-    },
-  };
-});
-
 function renderWithProvider(component: React.ComponentType) {
   const WrappedComponent = () => {
     const Component = component;
-    return (
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <Component />
-      </ToastContext.Provider>
-    );
+    return <Component />;
   };
 
   return renderScreen(
@@ -286,11 +286,9 @@ describe('SettingsModal', () => {
       });
 
       expect(mockSetSelectedProvider).toHaveBeenCalledWith(null);
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: 'Icon',
-        labelOptions: [{ label: 'Successfully logged out' }],
-        iconName: IconName.Confirmation,
-        iconColor: IconColor.Success,
+      expect(toast).toHaveBeenCalledWith({
+        title: 'Successfully logged out',
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
       });
     });
@@ -310,11 +308,9 @@ describe('SettingsModal', () => {
         expect(mockResetProviderToken).toHaveBeenCalled();
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: 'Icon',
-        labelOptions: [{ label: 'Error logging out' }],
-        iconName: 'CircleX',
-        iconColor: IconColor.Error,
+      expect(toast).toHaveBeenCalledWith({
+        title: 'Error logging out',
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
       });
     });

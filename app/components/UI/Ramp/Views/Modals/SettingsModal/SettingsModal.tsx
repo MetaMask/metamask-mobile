@@ -1,30 +1,18 @@
-import React, {
-  useCallback,
-  useRef,
-  useContext,
-  useState,
-  useEffect,
-} from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
   HeaderStandard,
   IconName,
+  toast,
+  ToastSeverity,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import {
-  IconName as ComponentLibraryIconName,
-  IconColor as ComponentLibraryIconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
@@ -55,7 +43,6 @@ function SettingsModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
@@ -161,37 +148,24 @@ function SettingsModal() {
       setSelectedProvider(null);
 
       sheetRef.current?.onCloseBottomSheet();
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings(
-              'fiat_on_ramp.build_quote_settings_modal.logged_out_success',
-            ),
-          },
-        ],
-        iconName: ComponentLibraryIconName.Confirmation,
-        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
-        iconColor: ComponentLibraryIconColor.Success,
+      toast({
+        title: strings(
+          'fiat_on_ramp.build_quote_settings_modal.logged_out_success',
+        ),
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
       Logger.error(error as Error, 'Error logging out from provider:');
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings(
-              'fiat_on_ramp.build_quote_settings_modal.logged_out_error',
-            ),
-          },
-        ],
-        iconName: ComponentLibraryIconName.CircleX,
-        iconColor: ComponentLibraryIconColor.Error,
+      toast({
+        title: strings(
+          'fiat_on_ramp.build_quote_settings_modal.logged_out_error',
+        ),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
+  }, [setSelectedProvider, trackEvent, createEventBuilder]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
