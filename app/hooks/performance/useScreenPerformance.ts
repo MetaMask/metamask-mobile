@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import {
@@ -31,6 +31,10 @@ export const useScreenPerformance = ({
   fullyDisplayed,
   enabled = true,
 }: UseScreenPerformanceConfig): void => {
+  // Capture a single mount timestamp so TTC and TTFD share the same start,
+  // guaranteeing TTFD duration >= TTC duration (both measure from mount).
+  const [mountTime] = useState(() => Date.now());
+
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
   const ttcEnded = useRef(false);
@@ -66,6 +70,7 @@ export const useScreenPerformance = ({
       name: TraceName.OnboardingScreenTimeToContent,
       op: TraceOperation.OnboardingScreenPerformance,
       id: ttcTraceId.current,
+      startTime: mountTime,
       tags: getOnboardingPerformanceTags({ screen_id: screenId }),
     });
     ttcStarted.current = true;
@@ -76,6 +81,7 @@ export const useScreenPerformance = ({
       name: TraceName.OnboardingScreenFullyDisplayed,
       op: TraceOperation.OnboardingScreenPerformance,
       id: ttfdTraceId.current,
+      startTime: mountTime,
       tags: getOnboardingPerformanceTags({ screen_id: screenId }),
       data: { perf_fix: 'ttfd-v1' },
     });
@@ -119,7 +125,7 @@ export const useScreenPerformance = ({
         fetchStarted.current = false;
       }
     };
-  }, [enabled, screenId]);
+  }, [enabled, screenId, mountTime]);
 
   useEffect(() => {
     if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {

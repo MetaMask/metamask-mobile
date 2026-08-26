@@ -22,6 +22,7 @@ jest.mock('../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
     OnboardingScreenTimeToContent: 'ttc',
+    OnboardingScreenFullyDisplayed: 'ttfd',
     OnboardingScreenDataFetch: 'fetch',
     OnboardingRiveReady: 'rive',
     OnboardingCtaNavigation: 'nav',
@@ -109,6 +110,81 @@ describe('onboarding performance hooks', () => {
       );
       expectEnd({
         name: TraceName.OnboardingScreenDataFetch,
+        data: expect.objectContaining({ success: true }),
+      });
+    });
+
+    it('starts TTC and TTFD from the same mount timestamp and TTFD ends at or after TTC', () => {
+      const { rerender } = renderHook(
+        ({ contentReady, fullyDisplayed }) =>
+          useScreenPerformance({
+            screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+            contentReady,
+            isEmpty: false,
+            fullyDisplayed,
+          }),
+        { initialProps: { contentReady: false, fullyDisplayed: false } },
+      );
+
+      // Both traces should start with the same startTime
+      const ttcCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenTimeToContent,
+      );
+      const ttfdCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenFullyDisplayed,
+      );
+
+      expect(ttcCall).toBeDefined();
+      expect(ttfdCall).toBeDefined();
+      expect(ttcCall[0].startTime).toBeDefined();
+      expect(ttfdCall[0].startTime).toBeDefined();
+      expect(ttcCall[0].startTime).toBe(ttfdCall[0].startTime);
+
+      // End TTC first (contentReady fires before fullyDisplayed)
+      rerender({ contentReady: true, fullyDisplayed: false });
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: true }),
+      });
+
+      // TTFD should still be open
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingScreenFullyDisplayed,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+
+      // Now fullyDisplayed fires → TTFD ends after TTC
+      rerender({ contentReady: true, fullyDisplayed: true });
+      expectEnd({
+        name: TraceName.OnboardingScreenFullyDisplayed,
+        data: expect.objectContaining({ success: true }),
+      });
+    });
+
+    it('defaults fullyDisplayed to contentReady when omitted', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useScreenPerformance({
+            screenId: OnboardingScreenIds.IMPORT_SRP,
+            contentReady,
+            isEmpty: false,
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      // Both TTC and TTFD should end
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: true }),
+      });
+      expectEnd({
+        name: TraceName.OnboardingScreenFullyDisplayed,
         data: expect.objectContaining({ success: true }),
       });
     });
