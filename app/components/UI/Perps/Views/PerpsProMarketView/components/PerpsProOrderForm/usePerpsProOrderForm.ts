@@ -460,6 +460,8 @@ export const usePerpsProOrderForm = ({
     };
   }, [currentPrice]);
   const latestMidPriceRef = useRef(assetData.price);
+  // Intentionally sync during render so post-await validation sees the latest
+  // committed mid price; an effect would lag and could allow a stale submit.
   latestMidPriceRef.current = assetData.price;
 
   const isMarketDataBlocking =
@@ -800,6 +802,21 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    const reportValidationFailure = (message: string) => {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(message),
+      );
+      track(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+          PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: message,
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      });
+    };
+
     const currentFieldIssues = getOrderFormFieldIssues({
       orderType: orderForm.type,
       direction: orderForm.direction,
@@ -811,9 +828,7 @@ export const usePerpsProOrderForm = ({
     if (currentFieldIssues.length > 0) {
       const firstIssue = currentFieldIssues[0];
       const message = getOrderFormFieldIssueMessage(firstIssue);
-      showToast(
-        PerpsToastOptions.formValidation.orderForm.validationError(message),
-      );
+      reportValidationFailure(message);
       return;
     }
 
@@ -853,21 +868,6 @@ export const usePerpsProOrderForm = ({
     isSubmittingRef.current = true;
 
     try {
-      const reportValidationFailure = (message: string) => {
-        showToast(
-          PerpsToastOptions.formValidation.orderForm.validationError(message),
-        );
-        track(MetaMetricsEvents.PERPS_ERROR, {
-          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: message,
-          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-        });
-      };
-
       const validationResult = await validateNow();
       if (!validationResult.isValid) {
         const firstFieldIssue = validationResult.fieldIssues[0];

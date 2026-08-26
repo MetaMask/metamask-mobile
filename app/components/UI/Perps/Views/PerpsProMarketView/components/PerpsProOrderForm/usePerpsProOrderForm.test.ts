@@ -1742,6 +1742,15 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).toHaveBeenCalledWith(
         'Please set a trigger price',
       );
+      expect(mockTrack).toHaveBeenCalledWith(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+          PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Please set a trigger price',
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      });
       expect(result.current.priceCardMessage).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
