@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
@@ -11,6 +11,9 @@ import {
   Box,
   Button,
   ButtonVariant,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonVariant,
   HeaderStandard,
   Text,
   TextVariant,
@@ -25,12 +28,25 @@ import type { PredictNextStackParamList } from '../../navigation/types';
 import type { PredictMarket } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import {
+  PredictGameMarketHistory,
+  PredictMarketHistory,
+} from './internal/PredictMarketHistory';
+import {
   EventLoadingHeader,
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
+
+const styles = StyleSheet.create({
+  marketFilter: {
+    height: 'auto',
+    minHeight: 32,
+    maxWidth: 240,
+    paddingVertical: 8,
+  },
+});
 
 type RulesTarget =
   | { type: 'event' }
@@ -70,6 +86,7 @@ export const PredictEventScreen = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
+  const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
@@ -104,28 +121,89 @@ export const PredictEventScreen = () => {
   }, []);
 
   if (query.data) {
-    const eventRules = query.data.rules?.trim();
-    const selectedMarket =
+    const event = query.data;
+    const eventRules = event.rules?.trim();
+    const historyMarket =
+      event.markets.find((market) => market.id === selectedMarketId) ??
+      event.markets[0];
+    const rulesMarket =
       rulesTarget?.type === 'market'
-        ? query.data.markets.find(
-            (market) => market.id === rulesTarget.marketId,
-          )
+        ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
+    const game = getEventGame(event);
+    const homeMarket = event.markets.find((market) =>
+      market.outcomes.some(
+        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'home',
+      ),
+    );
+    const awayMarket = event.markets.find((market) =>
+      market.outcomes.some(
+        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'away',
+      ),
+    );
+
+    const renderMarketHistory = () => {
+      if (game && homeMarket && awayMarket) {
+        return (
+          <PredictGameMarketHistory
+            venueId={event.venueId}
+            home={{ market: homeMarket, team: game.homeTeam }}
+            away={{ market: awayMarket, team: game.awayTeam }}
+          />
+        );
+      }
+
+      if (historyMarket) {
+        return (
+          <PredictMarketHistory
+            venueId={event.venueId}
+            market={historyMarket}
+          />
+        );
+      }
+
+      return null;
+    };
 
     return (
       <>
         <EventScreenLayout onBack={handleBack}>
-          {getEventGame(query.data) ? (
+          {game ? (
             <GameEventHeader
-              event={query.data}
+              event={event}
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           ) : (
             <StandardEventHeader
-              event={query.data}
+              event={event}
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           )}
+          {event.markets.length > 1 && !(game && homeMarket && awayMarket) ? (
+            <FilterButtonGroup
+              value={historyMarket?.id ?? ''}
+              onChange={setSelectedMarketId}
+              variant={FilterButtonVariant.Secondary}
+              testID={PredictEventScreenTestIds.MARKETS}
+            >
+              {event.markets.map((market) => (
+                <FilterButton
+                  key={market.id}
+                  value={market.id}
+                  accessibilityRole="tab"
+                  accessibilityState={{
+                    selected: historyMarket?.id === market.id,
+                  }}
+                  style={styles.marketFilter}
+                  textProps={{ numberOfLines: 3, ellipsizeMode: 'tail' }}
+                  testID={PredictEventScreenTestIds.market(market.id)}
+                >
+                  {market.question}
+                </FilterButton>
+              ))}
+            </FilterButtonGroup>
+          ) : null}
+          {renderMarketHistory()}
           <Box
             testID={PredictEventScreenTestIds.PREDICT_SECTION}
             twClassName="mt-8 gap-[14px]"
@@ -134,7 +212,7 @@ export const PredictEventScreen = () => {
               {strings('wallet.predict')}
             </Text>
             <MarketList>
-              {query.data.markets.map((market) => (
+              {event.markets.map((market) => (
                 <MarketStandardCard
                   key={market.id}
                   market={market}
@@ -147,8 +225,8 @@ export const PredictEventScreen = () => {
         <RulesBottomSheet
           isVisible={rulesTarget !== null}
           eventRules={eventRules}
-          market={selectedMarket}
-          settlementSources={query.data.settlementSources}
+          market={rulesMarket}
+          settlementSources={event.settlementSources}
           onClose={handleRulesClose}
         />
       </>
