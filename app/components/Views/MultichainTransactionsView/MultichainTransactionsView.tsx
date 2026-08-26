@@ -41,6 +41,7 @@ import {
 } from '../../../selectors/featureFlagController/activityRedesign';
 import { mapKeyringTransaction } from '@metamask/client-utils';
 import {
+  classifyKeyringStakingActivity,
   getGroupedActivityListItemKey,
   groupActivityListItems,
   type ActivityListItem,
@@ -232,14 +233,17 @@ const MultichainTransactionsView = ({
                   !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
               )
               .map((transaction) => {
-                const activity = mapKeyringTransaction({
-                  transaction: {
-                    ...transaction,
-                    chain: transaction.chain ?? chainId,
-                    fees: transaction.fees ?? [],
-                  },
-                  subjectAddress: address,
-                }) as ActivityListItem;
+                const activity = classifyKeyringStakingActivity(
+                  transaction,
+                  mapKeyringTransaction({
+                    transaction: {
+                      ...transaction,
+                      chain: transaction.chain ?? chainId,
+                      fees: transaction.fees ?? [],
+                    },
+                    subjectAddress: address,
+                  }) as ActivityListItem,
+                );
                 const bridgeHistoryItem =
                   bridgeHistoryItemsBySrcTxHash[transaction.id] ??
                   bridgeHistoryItemsByDestTxHash[transaction.id];

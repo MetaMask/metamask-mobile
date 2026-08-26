@@ -2217,6 +2217,58 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
   });
 
+  it('reads the full asset name for an EVM ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: { amount: '1045000000000000', direction: 'in', symbol: 'ETH' },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed Ethereum')).toBeOnTheScreen();
+  });
+
+  it('keeps the symbol for a non-ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'USDC',
+      },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed USDC')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['stake', 'Staked TRX'],
+    ['unstake', 'Unstaked TRX'],
+  ] as const)(
+    'reads the moved token symbol for non-EVM %s rows',
+    (type, expectedTitle) => {
+      const item = makeItem({
+        type,
+        status: 'success',
+        chainId: 'tron:728126428',
+        token: {
+          amount: '100',
+          decimals: 6,
+          direction: type === 'stake' ? 'out' : 'in',
+          symbol: 'TRX',
+        },
+      });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(getByText(expectedTitle)).toBeOnTheScreen();
+    },
+  );
+
   it('prefers the title override when provided (legacy swap/bridge contract)', () => {
     const item = makeItem({ type: 'swap', status: 'success' });
     const { getByText, queryByText } = render(

@@ -12,6 +12,12 @@ const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
 
 const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
 
+const STAKING_KINDS = new Set<ActivityListItem['type']>([
+  'stake',
+  'unstake',
+  'claim',
+]);
+
 /**
  * True when a spending-cap item carries a cap amount — an explicit `amount` or
  * an unlimited approval.
@@ -37,6 +43,13 @@ function hasNonZeroFeeAmount(amount: string | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+function isStakingWithNetworkFee(item: ActivityListItem): boolean {
+  if (!STAKING_KINDS.has(item.type) || !('fees' in item.data)) {
+    return false;
+  }
+  return Boolean(item.data.fees?.length);
 }
 
 /**
@@ -78,8 +91,16 @@ function shouldPreferLocalActivityItem(
     isGasTokenFeeWithAmount(localItem) &&
     !isGasTokenFeeWithAmount(apiItem);
 
+  const localHasStakingNetworkFee =
+    apiItem.type === localItem.type &&
+    isStakingWithNetworkFee(localItem) &&
+    !isStakingWithNetworkFee(apiItem);
+
   return (
-    localOutCategorizesApi || localHasRicherSpendingCap || localHasGasTokenFee
+    localOutCategorizesApi ||
+    localHasRicherSpendingCap ||
+    localHasGasTokenFee ||
+    localHasStakingNetworkFee
   );
 }
 

@@ -1,6 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
@@ -642,11 +642,13 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      // Pooled staking is ETH-only, so stake/unstake read the full asset name
-      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
-      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
+      const isEvmStakingKind =
+        item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`) &&
+        (item.type === 'stake' ||
+          item.type === 'unstake' ||
+          (item.type === 'claim' && symbol === 'ETH'));
       let displayNoun = symbol;
-      if (isStakingKind) {
+      if (isEvmStakingKind) {
         displayNoun = 'Ethereum';
       } else if (isNamelessNftBuy) {
         displayNoun = 'NFT';
