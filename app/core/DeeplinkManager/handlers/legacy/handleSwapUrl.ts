@@ -14,6 +14,7 @@ import {
 } from '../../../../components/UI/Bridge/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
+import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
 import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -179,14 +180,18 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
  *
  * All parameters are optional, allows partial deep linking
  */
-const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
-  type: 'main-stack',
-  routeName: Routes.BRIDGE.ROOT,
-  params: {
-    screen: Routes.BRIDGE.BRIDGE_VIEW,
-    params,
-  },
-});
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => {
+  const tracedParams = startSwapBridgePageLoadTrace(params);
+
+  return {
+    type: 'main-stack',
+    routeName: Routes.BRIDGE.ROOT,
+    params: {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: tracedParams,
+    },
+  };
+};
 
 /**
  * Resolve the navigation target for a swap deeplink. Token metadata lookup and
@@ -258,11 +263,11 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
-    const params: BridgeRouteParams = {
+    const params = startSwapBridgePageLoadTrace({
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
-    };
+    });
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,

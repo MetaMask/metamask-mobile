@@ -345,6 +345,27 @@ describe('QrScanner', () => {
     });
   });
 
+  it('navigates back when camera permission is denied', async () => {
+    const mockRequestPermission = jest.fn().mockResolvedValue('denied');
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: false,
+      requestPermission: mockRequestPermission,
+    });
+
+    const alertModule = jest.requireMock(
+      'react-native/Libraries/Alert/Alert',
+    ).default;
+
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(alertModule.alert).toHaveBeenCalled();
+    });
+  });
+
   it('marks permission check complete when requestPermission throws', async () => {
     const mockRequestPermission = jest
       .fn()

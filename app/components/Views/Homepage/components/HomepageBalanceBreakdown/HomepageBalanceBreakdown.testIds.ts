@@ -15,6 +15,7 @@ export const HomepageBalanceBreakdownTestIds = {
     `homepage-balance-breakdown-allocation-segment-${key}`,
   ROW: (key: SliceKey) => `homepage-balance-breakdown-row-${key}`,
   ICON: (key: SliceKey) => `homepage-balance-breakdown-icon-${key}`,
+  ARROW: (key: SliceKey) => `homepage-balance-breakdown-arrow-${key}`,
   DOT: (key: SliceKey) => `homepage-balance-breakdown-dot-${key}`,
   PERCENTAGE: (key: SliceKey) => `homepage-balance-breakdown-percentage-${key}`,
   VALUE: (key: SliceKey) => `homepage-balance-breakdown-value-${key}`,

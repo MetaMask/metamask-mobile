@@ -24,9 +24,9 @@ import { createActiveABTestAssignment } from '../../../../../util/analytics/acti
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockHandleViewAllPerps = jest.fn();
+const mockNavigateToPerpsHome = jest.fn();
 const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
-  handleViewAllPerps: mockHandleViewAllPerps,
+  navigateToPerpsHome: mockNavigateToPerpsHome,
 }));
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'Home Viewed' }));
@@ -186,7 +186,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByTestId, getAllByRole } = render(
+    const { getByTestId, getAllByRole, queryByTestId } = render(
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
@@ -236,6 +236,9 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
     expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ARROW('money')),
+    ).not.toBeOnTheScreen();
+    expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
     ).toContain('USD 50.00');
@@ -257,6 +260,23 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('perps')).props
         .accessibilityLabel,
     ).toBe('Perps, USD 10.00, 20%');
+  });
+
+  it('renders a right arrow on every icon row when enabled', () => {
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" showRowArrows />,
+    );
+
+    (['money', 'tokens', 'perps', 'predict', 'defi'] as const).forEach(
+      (key) => {
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ARROW(key)).props.name,
+        ).toBe('ArrowRight');
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ICON(key)),
+        ).toBeOnTheScreen();
+      },
+    );
   });
 
   it('localizes allocation percentages and APY numbers', () => {
@@ -536,18 +556,31 @@ describe('HomepageBalanceBreakdown', () => {
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')));
 
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith(
-      'homescreen_balance_breakdown',
+      expect.objectContaining({
+        attribution: 'homescreen_balance_breakdown',
+        id: expect.any(String),
+      }),
     );
     expect(mockNavigate).toHaveBeenNthCalledWith(
       1,
       Routes.WALLET.TOKENS_FULL_VIEW,
-      { source: 'homescreen_balance_breakdown' },
+      {
+        analyticsContext: expect.objectContaining({
+          attribution: 'homescreen_balance_breakdown',
+          id: expect.any(String),
+        }),
+      },
     );
     expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
-      source: 'homescreen_balance_breakdown',
       transactionActiveAbTests,
     });
-    expect(mockHandleViewAllPerps).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToPerpsHome).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToPerpsHome).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attribution: 'homescreen_balance_breakdown',
+        id: expect.any(String),
+      }),
+    );
     expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
@@ -558,7 +591,12 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(
       3,
       Routes.WALLET.DEFI_FULL_VIEW,
-      { source: 'homescreen_balance_breakdown' },
+      {
+        analyticsContext: expect.objectContaining({
+          attribution: 'homescreen_balance_breakdown',
+          id: expect.any(String),
+        }),
+      },
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledTimes(5);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

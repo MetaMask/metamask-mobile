@@ -85,6 +85,7 @@ export const PerpsPositionCardSelectorsIDs = {
   DIRECTION_VALUE: 'position-card-direction-value',
   ENTRY_VALUE: 'position-card-entry-value',
   LIQUIDATION_PRICE_VALUE: 'position-card-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'position-card-liquidation-distance-value',
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
@@ -312,6 +313,14 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
 } as const;
 
+export const PerpsCancelAllOrdersViewSelectorsIDs = {
+  SHEET: 'perps-cancel-all-orders-sheet',
+  TITLE: 'perps-cancel-all-orders-title',
+  DESCRIPTION: 'perps-cancel-all-orders-description',
+  KEEP_BUTTON: 'perps-cancel-all-orders-keep-button',
+  CANCEL_ALL_BUTTON: 'perps-cancel-all-orders-cancel-all-button',
+} as const;
+
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
   TRADINGVIEW_CHART: 'tradingview-chart',
@@ -415,6 +424,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   HEADER: 'perps-market-header',
   MARKET_SUMMARY: 'perps-market-details-market-summary',
   FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
+  CHART_EDGE_GUARD: 'perps-market-details-chart-edge-guard',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
   STATISTICS_VOLUME_24H: 'perps-statistics-volume-24h',
@@ -519,8 +529,11 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
+  POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
+  ORDERS_CANCEL_ALL: 'perps-pro-market-orders-cancel-all',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_EDIT: 'perps-pro-market-order-edit',
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
@@ -528,6 +541,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_ROW: 'perps-pro-market-order-row',
   ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
+  GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -548,6 +562,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  TRIGGER_PRICE_INPUT: 'perps-pro-order-form-trigger-price-input',
+  TRIGGER_PRICE_PREFIX: 'perps-pro-order-form-trigger-price-prefix',
+  PRICE_CARD_MESSAGE: 'perps-pro-order-form-price-card-message',
   MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
   SIZE_CARD: 'perps-pro-order-form-size-card',
   SIZE_FIELD: 'perps-pro-order-form-size-field',
@@ -560,6 +577,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
   REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',

@@ -11,6 +11,7 @@ import {
 export interface CardTransactionHeroToken {
   symbol: string;
   iconSource: ImageSourcePropType;
+  isMoneyAccount?: boolean;
 }
 
 const MONEY_ACCOUNT_CURRENCIES = new Set([
@@ -19,17 +20,24 @@ const MONEY_ACCOUNT_CURRENCIES = new Set([
   MONEY_ACCOUNT_DISPLAY_SYMBOL.toLowerCase(),
 ]);
 
+function asMoneyAccountHero(
+  display: ReturnType<typeof getCardTokenDisplay>,
+): CardTransactionHeroToken {
+  return { ...display, isMoneyAccount: true };
+}
+
 export function getCardTransactionHeroToken(
   transaction?: CardTransaction,
   fallbackToken?: CardFundingToken | null,
 ): CardTransactionHeroToken {
-  const source = transaction?.fundingSources.find(
-    (item) => item.currency || item.address,
-  );
+  const source = transaction?.fundingSources.find((item) => item.currency);
 
   if (!source) {
     if (fallbackToken) {
-      return getCardTokenDisplay(fallbackToken);
+      const display = getCardTokenDisplay(fallbackToken);
+      return fallbackToken.isMoneyAccountEntry
+        ? asMoneyAccountHero(display)
+        : display;
     }
     return {
       symbol: MUSD_TOKEN.symbol,
@@ -39,22 +47,19 @@ export function getCardTransactionHeroToken(
 
   const currency = source.currency?.toLowerCase() ?? '';
   if (MONEY_ACCOUNT_CURRENCIES.has(currency)) {
-    return getCardTokenDisplay({
-      displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
-      isMoneyAccountEntry: true,
-    });
-  }
-
-  if (source.address && source.chainId) {
-    return getCardTokenDisplay({
-      address: source.address,
-      caipChainId: source.chainId,
-      symbol: source.currency?.toUpperCase() ?? '',
-    });
+    return asMoneyAccountHero(
+      getCardTokenDisplay({
+        displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+        isMoneyAccountEntry: true,
+      }),
+    );
   }
 
   if (fallbackToken) {
-    return getCardTokenDisplay(fallbackToken);
+    const display = getCardTokenDisplay(fallbackToken);
+    return fallbackToken.isMoneyAccountEntry
+      ? asMoneyAccountHero(display)
+      : display;
   }
 
   return {

@@ -360,7 +360,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     const requestAgeMs =
       Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
       new Date(chartOptions.historicalWindow.startDate).getTime();
-    expect(requestAgeMs).toBe(2 * 60 * 60 * 1000);
+    expect(requestAgeMs).toBe(5 * 60 * 1000);
     expect(mockUsePredictSeries).toHaveBeenCalledWith(
       expect.objectContaining({ seriesId: SERIES.id }),
     );
@@ -388,7 +388,49 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
   });
 
-  it('uses a trailing 24-hour coin-history window for daily markets', () => {
+  it('fetches the target price using the market TWAP window', () => {
+    const twapMarket = createMarket({ twapWindowSeconds: 60 });
+    mockUsePredictSeries.mockReturnValue({
+      data: [twapMarket],
+      isLoading: false,
+    });
+
+    renderCard(twapMarket);
+
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({ twapWindowSeconds: 60 }),
+    );
+  });
+
+  it.each([
+    ['15m', 15 * 60 * 1000, 15 * 60 * 1000],
+    ['hourly', 60 * 60 * 1000, 60 * 60 * 1000],
+    ['4h', 4 * 60 * 60 * 1000, 4 * 60 * 60 * 1000],
+  ])(
+    'requests recent %s history that ends at the current chart bucket',
+    (recurrence, sourceDurationMs, displayDurationMs) => {
+      const series = {
+        ...SERIES,
+        recurrence,
+      };
+      const market = createMarket({ series });
+      mockUsePredictSeries.mockReturnValue({
+        data: [market],
+        isLoading: false,
+      });
+
+      renderCard(market);
+
+      const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
+      const bucketMs = Math.max(60_000, Math.floor(displayDurationMs / 12));
+      const requestAgeMs =
+        Math.floor(Date.now() / bucketMs) * bucketMs -
+        new Date(chartOptions.historicalWindow.startDate).getTime();
+      expect(requestAgeMs).toBe(sourceDurationMs);
+    },
+  );
+
+  it('requests recent 24-hour coin history for daily markets', () => {
     const dailySeries = {
       ...SERIES,
       title: 'BTC Up or Down - Daily',
@@ -412,7 +454,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     const requestAgeMs =
       Math.floor(Date.now() / dailyBucketMs) * dailyBucketMs -
       new Date(chartOptions.historicalWindow.startDate).getTime();
-    expect(requestAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
+    expect(requestAgeMs).toBe(24 * 60 * 60 * 1000);
   });
 
   it('formats longer recurrence countdown and reset copy with hours', () => {

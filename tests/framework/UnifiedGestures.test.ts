@@ -3,7 +3,7 @@
  *
  * Verifies the two execution paths for each gesture method:
  * 1. Raw Selector - resolve(elem) is called, strategy receives the resolved element
- * 2. EncapsulatedElementType - passed straight through, resolve is never called
+ * 2. Promise<AppiumElement> - passed straight through, resolve is never called
  */
 
 // ── Mocks (must be declared before imports) ─────────────────────────────────
@@ -22,11 +22,12 @@ const mockStrategy = {
 };
 
 jest.mock('./GestureStrategy.ts', () => ({
-  DetoxGestureStrategy: jest.fn(() => mockStrategy),
   AppiumGestureStrategy: jest.fn(() => mockStrategy),
 }));
 
-const mockResolvedElement = { tap: jest.fn() } as unknown as DetoxElement;
+const mockResolvedElement = {
+  tap: jest.fn(),
+} as unknown as Promise<AppiumElement>;
 const mockResolve = jest.fn().mockReturnValue(mockResolvedElement);
 
 jest.mock('./Selector.ts', () => {
@@ -41,16 +42,16 @@ jest.mock('./Selector.ts', () => {
 
 import UnifiedGestures from './UnifiedGestures.ts';
 import { type Selector } from './Selector.ts';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const selector: Selector = { testID: 'my-button' };
 
-/** A mock EncapsulatedElementType — isSelector returns false for this */
+/** A mock Promise<AppiumElement> — isSelector returns false for this */
 const encapsulatedElem = {
   __isElement: true,
-} as unknown as EncapsulatedElementType;
+} as unknown as Promise<AppiumElement>;
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -70,7 +71,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.tap', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.tap', async () => {
       await UnifiedGestures.tap(encapsulatedElem);
       expect(mockResolve).not.toHaveBeenCalled();
       expect(mockStrategy.tap).toHaveBeenCalledWith(
@@ -96,7 +97,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.waitAndTap', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.waitAndTap', async () => {
       await UnifiedGestures.waitAndTap(encapsulatedElem);
       expect(mockResolve).not.toHaveBeenCalled();
       expect(mockStrategy.waitAndTap).toHaveBeenCalledWith(
@@ -117,7 +118,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.typeText', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.typeText', async () => {
       await UnifiedGestures.typeText(encapsulatedElem, 'hello');
       expect(mockResolve).not.toHaveBeenCalled();
       expect(mockStrategy.typeText).toHaveBeenCalledWith(
@@ -150,7 +151,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.replaceText', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.replaceText', async () => {
       await UnifiedGestures.replaceText(encapsulatedElem, 'new');
       expect(mockResolve).not.toHaveBeenCalled();
     });
@@ -167,7 +168,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.swipe', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.swipe', async () => {
       await UnifiedGestures.swipe(encapsulatedElem, 'down');
       expect(mockResolve).not.toHaveBeenCalled();
       expect(mockStrategy.swipe).toHaveBeenCalledWith(
@@ -180,7 +181,7 @@ describe('UnifiedGestures', () => {
 
   describe('scrollToElement', () => {
     it('resolves a Selector before calling strategy.scrollToElement', async () => {
-      const scrollView = Promise.resolve({} as Detox.NativeMatcher);
+      const scrollView = 'scroll-view-id';
       await UnifiedGestures.scrollToElement(selector, scrollView);
       expect(mockResolve).toHaveBeenCalledWith(selector);
       expect(mockStrategy.scrollToElement).toHaveBeenCalledWith(
@@ -190,8 +191,8 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.scrollToElement', async () => {
-      const scrollView = Promise.resolve({} as Detox.NativeMatcher);
+    it('passes Promise<AppiumElement> directly to strategy.scrollToElement', async () => {
+      const scrollView = 'scroll-view-id';
       await UnifiedGestures.scrollToElement(encapsulatedElem, scrollView);
       expect(mockResolve).not.toHaveBeenCalled();
     });
@@ -207,7 +208,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.longPress', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.longPress', async () => {
       await UnifiedGestures.longPress(encapsulatedElem);
       expect(mockResolve).not.toHaveBeenCalled();
     });
@@ -223,7 +224,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.dblTap', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.dblTap', async () => {
       await UnifiedGestures.dblTap(encapsulatedElem);
       expect(mockResolve).not.toHaveBeenCalled();
     });
@@ -242,7 +243,7 @@ describe('UnifiedGestures', () => {
       );
     });
 
-    it('passes EncapsulatedElementType directly to strategy.tapAtPoint', async () => {
+    it('passes Promise<AppiumElement> directly to strategy.tapAtPoint', async () => {
       await UnifiedGestures.tapAtPoint(encapsulatedElem, point);
       expect(mockResolve).not.toHaveBeenCalled();
     });

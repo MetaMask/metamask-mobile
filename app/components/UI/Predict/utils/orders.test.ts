@@ -25,72 +25,92 @@ describe('orders utils', () => {
   });
 
   describe('calculateMaxBetAmount', () => {
-    it('returns the original amount when totalFeePercentage is 0', () => {
-      const result = calculateMaxBetAmount(100, 0);
+    const createPreview = ({
+      stake = 100,
+      serviceFeePercentage = 0,
+      marketFee = 0,
+    }: {
+      stake?: number;
+      serviceFeePercentage?: number;
+      marketFee?: number;
+    } = {}): OrderPreview => ({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      timestamp: 1,
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: stake,
+      minAmountReceived: 200,
+      slippage: 0.03,
+      tickSize: 0.01,
+      minOrderSize: 1,
+      negRisk: false,
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0,
+        marketFee,
+        totalFee: 0,
+        totalFeePercentage: serviceFeePercentage,
+        collector: '0x0',
+      },
+    });
+
+    it('returns the balance when the preview has no fees', () => {
+      const result = calculateMaxBetAmount(100, createPreview());
 
       expect(result).toBe(100);
     });
 
-    it('returns reduced amount when totalFeePercentage is applied', () => {
-      const result = calculateMaxBetAmount(100, 4);
+    it('divides the balance by one plus the service fee rate', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
-      expect(result).toBe(96);
+      expect(result).toBe(96.15);
     });
 
-    it('rounds result to 4 decimal places', () => {
-      const result = calculateMaxBetAmount(100, 3.333);
+    it('includes the odds-dependent market fee rate', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ serviceFeePercentage: 4, marketFee: 1 }),
+      );
 
-      // 100 * (1 - 3.333/100) = 100 * 0.96667 = 96.667
-      // Rounded to 4 decimals = 96.667
-      expect(result).toBe(96.667);
+      expect(result).toBe(95.23);
     });
 
-    it('handles small amounts correctly', () => {
-      const result = calculateMaxBetAmount(1, 4);
+    it('derives the market fee rate from the preview stake', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ stake: 50, marketFee: 1 }),
+      );
 
-      // 1 * (1 - 4/100) = 1 * 0.96 = 0.96
-      expect(result).toBe(0.96);
+      expect(result).toBe(98.03);
     });
 
-    it('handles very small fee percentages', () => {
-      const result = calculateMaxBetAmount(100, 0.1);
+    it('floors the maximum to cents', () => {
+      const result = calculateMaxBetAmount(
+        10,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
-      // 100 * (1 - 0.1/100) = 100 * 0.999 = 99.9
-      expect(result).toBe(99.9);
+      expect(result).toBe(9.61);
     });
 
-    it('handles large fee percentages', () => {
-      const result = calculateMaxBetAmount(100, 50);
+    it('returns the balance when no fee preview is available', () => {
+      const result = calculateMaxBetAmount(50.5);
 
-      // 100 * (1 - 50/100) = 100 * 0.5 = 50
-      expect(result).toBe(50);
+      expect(result).toBe(50.5);
     });
 
-    it('handles decimal amounts', () => {
-      const result = calculateMaxBetAmount(50.5, 4);
-
-      // 50.5 * (1 - 4/100) = 50.5 * 0.96 = 48.48
-      expect(result).toBe(48.48);
-    });
-
-    it('handles edge case with 100% fee', () => {
-      const result = calculateMaxBetAmount(100, 100);
-
-      // 100 * (1 - 100/100) = 100 * 0 = 0
-      expect(result).toBe(0);
-    });
-
-    it('handles zero amount', () => {
-      const result = calculateMaxBetAmount(0, 4);
+    it('returns zero for a non-positive balance', () => {
+      const result = calculateMaxBetAmount(
+        -1,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
       expect(result).toBe(0);
-    });
-
-    it('preserves precision for amounts with many decimal places', () => {
-      const result = calculateMaxBetAmount(100.123456, 4);
-
-      // 100.123456 * 0.96 = 96.11851776, rounded to 4 decimals = 96.1185
-      expect(result).toBe(96.1185);
     });
   });
 

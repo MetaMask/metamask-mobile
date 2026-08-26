@@ -42,13 +42,7 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
-          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
-          await Assertions.expectTextDisplayed('dialog-example-snap', {
-            timeout: 30_000,
-          });
-          await Assertions.expectTextDisplayed('disabled', {
-            timeout: 30_000,
-          });
+          await TestSnaps.expectDisabledSnapAlert();
           await TestSnaps.dismissAlert();
         },
       );

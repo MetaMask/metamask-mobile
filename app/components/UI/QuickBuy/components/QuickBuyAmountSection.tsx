@@ -158,7 +158,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           justifyContent={BoxJustifyContent.Center}
         >
           <Text
-            variant={TextVariant.DisplayMd}
+            variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
           >
@@ -167,7 +167,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           {cursor}
           {sourceSymbol ? (
             <Text
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.DisplayLg}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
             >
@@ -193,7 +193,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       >
         {symbol && symbolIsPrefix ? (
           <Text
-            variant={TextVariant.DisplayMd}
+            variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
           >
@@ -201,7 +201,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           </Text>
         ) : null}
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
         >
@@ -210,7 +210,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         {cursor}
         {symbol && !symbolIsPrefix ? (
           <Text
-            variant={TextVariant.DisplayMd}
+            variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
           >
@@ -241,7 +241,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     >
       {editingPrimary ?? (
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
         >
