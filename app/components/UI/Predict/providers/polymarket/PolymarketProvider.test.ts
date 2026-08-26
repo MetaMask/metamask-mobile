@@ -68,6 +68,10 @@ import {
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
 import {
+  PolymarketRequestCancelledError,
+  PolymarketRequestTimeoutError,
+} from './fetchWithTimeout';
+import {
   buildClaimTransaction,
   planDepositWalletClaim,
 } from './preflight/claim';
@@ -729,6 +733,38 @@ describe('PolymarketProvider', () => {
       ).rejects.toThrow('Failed');
     });
 
+    it('does not report expected market request timeouts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(timeoutError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(timeoutError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict markets request ended by expected timeout/cancellation:',
+        timeoutError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports unowned native market aborts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(abortError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(abortError);
+
+      expect(Logger.error).toHaveBeenCalledWith(abortError, expect.any(Object));
+    });
+
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
       const provider = createProvider();
       const moneylineOutcome = {
@@ -1017,6 +1053,42 @@ describe('PolymarketProvider', () => {
       json: jest.fn().mockResolvedValue([{}]),
     });
     signer.signTypedMessage.mockResolvedValue('0xsigned-order');
+  });
+
+  describe('eligibility request errors', () => {
+    it('does not report expected caller cancellation to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const cancellationError = new PolymarketRequestCancelledError(
+        new Error('The operation was aborted'),
+      );
+      global.fetch = jest.fn().mockRejectedValue(cancellationError);
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict geoblock request ended by expected timeout/cancellation:',
+        cancellationError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports genuine geoblock connectivity failures to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new TypeError('Network request failed');
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        networkError,
+        expect.any(Object),
+      );
+    });
   });
 
   it('exposes the Polymarket provider id', () => {
