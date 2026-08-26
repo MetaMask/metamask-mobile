@@ -1088,6 +1088,48 @@ describe('transactionTransforms', () => {
       triggerPrice?: string;
     }[];
 
+    const legacyTriggerOrderCases = [
+      {
+        orderType: 'stop_market',
+        executionType: 'market',
+        detailedOrderType: 'Stop Market',
+        price: '50500',
+        triggerPrice: '50000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Stop Limit',
+        price: '49500',
+        triggerPrice: '50000',
+        limitPrice: '49500',
+      },
+      {
+        orderType: 'take_profit_market',
+        executionType: 'market',
+        detailedOrderType: 'Take Profit Market',
+        price: '50500',
+        triggerPrice: '51000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Take Profit Limit',
+        price: '51500',
+        triggerPrice: '51000',
+        limitPrice: '51500',
+      },
+    ] as const satisfies readonly {
+      orderType: TriggerOrderType;
+      executionType: 'market' | 'limit';
+      detailedOrderType: string;
+      price: string;
+      triggerPrice: string;
+      limitPrice: string | undefined;
+    }[];
+
     it.each(orderTypeCases)(
       'preserves $orderType price fields in transaction history',
       ({
@@ -1125,6 +1167,40 @@ describe('transactionTransforms', () => {
               ? undefined
               : price,
         });
+      },
+    );
+
+    it.each(legacyTriggerOrderCases)(
+      'recovers $orderType from legacy order metadata',
+      ({
+        orderType,
+        executionType,
+        detailedOrderType,
+        price,
+        triggerPrice,
+        limitPrice,
+      }) => {
+        const sourceOrder = {
+          ...mockOrder,
+          orderType: executionType,
+          isTrigger: true,
+          detailedOrderType,
+          price,
+          triggerPrice,
+        };
+
+        const result = transformOrdersToTransactions([sourceOrder]);
+
+        expect(result[0]?.order).toEqual(
+          expect.objectContaining({
+            orderType,
+            type: executionType,
+            isTrigger: true,
+            detailedOrderType,
+            triggerPrice,
+            limitPrice,
+          }),
+        );
       },
     );
 
