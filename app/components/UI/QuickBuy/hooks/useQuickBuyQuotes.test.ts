@@ -24,7 +24,6 @@ import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
 } from '../../../../selectors/bridge';
-import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -59,13 +58,6 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 jest.mock('../../../../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(() => ({ bridgeConfig: {} })),
 }));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/socialLeaderboard',
-  () => ({
-    selectSocialAIQuickBuyStreamQuotesEnabled: jest.fn(() => true),
-  }),
-);
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
@@ -115,8 +107,6 @@ const fetchQuotesMock = Engine.context.BridgeController
 const useSelectorMock = useSelector as jest.Mock;
 const isQuoteStreamingEnabledMock = isQuoteStreamingEnabled as jest.Mock;
 const streamQuickBuyQuotesMock = streamQuickBuyQuotes as jest.Mock;
-const isStreamQuotesFlagEnabledMock =
-  selectSocialAIQuickBuyStreamQuotesEnabled as unknown as jest.Mock;
 
 const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
   ({
@@ -238,10 +228,8 @@ describe('useQuickBuyQuotes', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     setupSelectors();
-    // The QuickBuy stream flag is on by default, so `isQuoteStreamingEnabled`
-    // (bridge SSE) is the effective switch: default to the one-shot path; the
-    // streaming suite opts in explicitly.
-    isStreamQuotesFlagEnabledMock.mockReturnValue(true);
+    // `isQuoteStreamingEnabled` (bridge SSE) is the stream switch: default to
+    // the one-shot path; the streaming suite opts in explicitly.
     isQuoteStreamingEnabledMock.mockReturnValue(false);
     mockSelectBridgeQuotesBase.mockReturnValue({
       sortedQuotes: [],
@@ -840,29 +828,6 @@ describe('useQuickBuyQuotes', () => {
 
     expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
     expect(result.current.isQuoteRequestStale).toBe(false);
-  });
-
-  it('uses the one-shot fetch when the QuickBuy stream flag is off, even with bridge SSE on', async () => {
-    isStreamQuotesFlagEnabledMock.mockReturnValue(false);
-    isQuoteStreamingEnabledMock.mockReturnValue(true);
-    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
-
-    renderHook(() =>
-      useQuickBuyQuotes(
-        quotesParams({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: '0.001',
-        }),
-      ),
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
-    });
-
-    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
-    expect(streamQuickBuyQuotesMock).not.toHaveBeenCalled();
   });
 
   describe('streaming path', () => {

@@ -38,10 +38,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  usePureBlack,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PerpsMode } from '@metamask/perps-controller';
 import {
@@ -129,10 +126,7 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
-  const isPureBlack = usePureBlack();
-  // Match the elevated surface MMDS BottomSheet applies internally; this
-  // custom sheet renders its own background so it needs the same class.
-  const surfaceClass = isPureBlack ? 'bg-alternative' : 'bg-default';
+  const surfaceClass = 'bg-elevated1';
   const { colors } = useTheme();
 
   const backdropOpacity = useSharedValue(0);
@@ -457,7 +451,7 @@ function TradeWalletActions() {
           testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
           style={tw.style(
             `${surfaceClass} p-4 rounded-t-2xl px-0`,
-            isPureBlack && 'border-t border-l border-r border-muted',
+            'border-t border-l border-r border-alternative',
           )}
         >
           {actionList}
@@ -468,7 +462,7 @@ function TradeWalletActions() {
           <View
             style={tw.style(
               `${surfaceClass} flex-1 rounded-bl-2xl`,
-              isPureBlack && 'border-l border-b border-muted',
+              'border-l border-b border-alternative',
             )}
           />
           <BottomShape
@@ -482,29 +476,27 @@ function TradeWalletActions() {
           <View
             style={tw.style(
               `${surfaceClass} flex-1 rounded-br-2xl`,
-              isPureBlack && 'border-r border-b border-muted',
+              'border-r border-b border-alternative',
             )}
           />
-          {isPureBlack ? (
-            <View
-              pointerEvents="none"
-              style={tw.style('absolute bottom-0 inset-x-0 items-center')}
-              testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
-            >
-              <BottomShape
-                width={bottomShapeMaskWidth + 4}
-                height={bottomMaskHeight}
-                peakHeight={16}
-                peakBezierLength={25}
-                baseBezierLength={55}
-                strokeOnly
-                pathProps={{
-                  stroke: colors.border.muted,
-                  strokeWidth: 2,
-                }}
-              />
-            </View>
-          ) : null}
+          <View
+            pointerEvents="none"
+            style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+          >
+            <BottomShape
+              width={bottomShapeMaskWidth + 4}
+              height={bottomMaskHeight}
+              peakHeight={16}
+              peakBezierLength={25}
+              baseBezierLength={55}
+              strokeOnly
+              pathProps={{
+                stroke: colors.border.alternative,
+                strokeWidth: 2,
+              }}
+            />
+          </View>
         </View>
       </View>
     </Animated.View>
