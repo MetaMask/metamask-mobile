@@ -99,14 +99,14 @@ export default new LoginPage();
 
 ### Edge Case: different selector per platform
 
-When the same element needs a different testID or selector strategy between iOS and Android Appium, use `resolve()` from the framework. Legacy dual-runner branches (`detoxTestID`, `appiumTestID`) remain for remaining Detox suites; new work should only need Appium / platform variants.
+When the same element needs a different testID or selector strategy between iOS and Android Appium, use `resolve()` from the framework.
 
 ```typescript
 import { resolve } from '../framework';
 import { encapsulated } from '../framework/EncapsulatedElement';
 import AppiumMatchers from '../framework/AppiumMatchers';
 
-// Different testID on iOS vs Android Appium (Appium-only — no Detox branch)
+// Different testID on iOS vs Android Appium
 get actionButton() {
   return encapsulated({
     appium: {
@@ -130,28 +130,27 @@ get container() {
   });
 }
 
-// Legacy dual-runner: Detox + per-platform Appium testIDs
-get legacyActionButton() {
+// Android testID + iOS XPath
+get seedPhraseInput() {
   return resolve({
-    detoxTestID: TabBarSelectorIDs.TRADE,
-    androidAppiumTestID: TabBarSelectorIDs.TRADE,
-    iosAppiumTestID: TabBarSelectorIDs.ACTIONS,
+    androidAppiumTestID: ImportSRPIDs.SEED_PHRASE_INPUT_ID,
+    iosAppiumXPath: '//XCUIElementTypeOther[@name="textfield"]',
   });
 }
 ```
 
 Available `resolve()` shapes:
 
-| Shape                                                   | When to use                                             |
-| ------------------------------------------------------- | ------------------------------------------------------- |
-| `{ testID }`                                            | Same testID works on iOS and Android Appium             |
-| `{ testID, iosAppiumTestID }`                           | Android Appium shares testID; iOS Appium differs        |
-| `{ detoxTestID, appiumTestID }`                         | Legacy: different testID between Detox and Appium       |
-| `{ detoxTestID, androidAppiumTestID, iosAppiumTestID }` | Legacy dual-runner: Detox + per-platform Appium testIDs |
-| `{ label }`                                             | Match by accessibility label                            |
-| `{ text }`                                              | Match by visible text                                   |
+| Shape                                      | When to use                                      |
+| ------------------------------------------ | ------------------------------------------------ |
+| `{ testID }`                               | Same testID works on iOS and Android Appium      |
+| `{ testID, iosAppiumTestID }`              | Android Appium shares testID; iOS Appium differs |
+| `{ androidAppiumTestID, iosAppiumTestID }` | Different testIDs on Android vs iOS Appium       |
+| `{ androidAppiumTestID, iosAppiumXPath }`  | Android testID; iOS XPath                        |
+| `{ label }`                                | Match by accessibility label                     |
+| `{ text }`                                 | Match by visible text                            |
 
-For Appium-only iOS vs Android testID differences (no Detox), use `encapsulated({ appium: { android: () => ..., ios: () => ... } })` instead of `resolve()`.
+For Appium-only iOS vs Android testID differences, use `encapsulated({ appium: { android: () => ..., ios: () => ... } })` instead of `resolve()` when the locator strategy itself differs.
 
 ### Edge Case: different selector type per platform
 
@@ -163,17 +162,6 @@ import AppiumMatchers from '../framework/AppiumMatchers';
 
 getAccountElementByName(accountName: string) {
   return encapsulated({
-    appium: () => AppiumMatchers.getElementByText(accountName),
-  });
-}
-```
-
-Legacy dual-runner branches remain for remaining Detox suites; new work should only need Appium / platform variants:
-
-```typescript
-getAccountElementByName(accountName: string) {
-  return encapsulated({
-    detox: () => Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
     appium: () => AppiumMatchers.getElementByText(accountName),
   });
 }
@@ -197,22 +185,6 @@ async enterPassword(password: string): Promise<void> {
 }
 ```
 
-Legacy dual-runner branches remain for remaining Detox suites; new work should only need Appium / platform variants:
-
-```typescript
-async enterPassword(password: string): Promise<void> {
-  await encapsulatedAction({
-    detox: async () => {
-      await Gestures.typeText(this.passwordInput, password);
-    },
-    appium: async () => {
-      await Gestures.typeText(this.passwordInput, password);
-      await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
-    },
-  });
-}
-```
-
 **Only use `encapsulatedAction` when the flow genuinely differs.** If the same `Gestures.*` or `Assertions.*` call works on both platforms, there is no need to branch.
 
 ### Selector decision tree
@@ -223,14 +195,14 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
 
   NO → Does only the testID value differ per platform?
     YES → resolve({ testID, iosAppiumTestID }) when Android shares testID
-          OR encapsulated({ appium: { android: () => ..., ios: () => ... } }) for Appium-only
-          OR legacy resolve({ detoxTestID, androidAppiumTestID, iosAppiumTestID }) if Detox still runs
+          OR resolve({ androidAppiumTestID, iosAppiumTestID | iosAppiumXPath })
+          OR encapsulated({ appium: { android: () => ..., ios: () => ... } })
 
     NO → Does only the selector type differ (ID vs text vs label)?
-      YES → encapsulated({ appium: ... }) — or legacy detox/appium branches if migrating
+      YES → encapsulated({ appium: ... })
 
       NO → Does the action flow itself differ?
-        YES → encapsulatedAction({ appium: ... }) — or legacy detox/appium branches if migrating
+        YES → encapsulatedAction({ appium: ... })
 ```
 
 ## Test Organization — Appium Specs

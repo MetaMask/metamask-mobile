@@ -78,7 +78,7 @@ export default class Gestures {
 
   /**
    * Tap an element at specific point with stability checking
-   * This method is specifically designed for detox elements and should not be used with web elements.
+   * This method is for native elements and should not be used with web elements.
    * @returns A Promise that resolves when the tap is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */

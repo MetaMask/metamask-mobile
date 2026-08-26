@@ -8,17 +8,8 @@ export type Selector =
   | { label: string; index?: number }
   | { text: string; index?: number }
   | { textPattern: RegExp; index?: number }
-  | { detoxTestID: string; appiumTestID: string }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumTestID: string;
-    }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumXPath: string;
-    }
+  | { androidAppiumTestID: string; iosAppiumTestID: string }
+  | { androidAppiumTestID: string; iosAppiumXPath: string }
   | { testID: string; iosAppiumTestID: string; index?: number };
 
 /**
@@ -46,19 +37,6 @@ export function resolve(selector: Selector): Promise<AppiumElement> {
           }),
         ios: () =>
           AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
-      },
-    });
-  }
-
-  if ('detoxTestID' in selector) {
-    return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.appiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.appiumTestID),
       },
     });
   }
@@ -150,7 +128,6 @@ export function isSelector(value: unknown): value is Selector {
     'label' in v ||
     'text' in v ||
     'textPattern' in v ||
-    'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
     'iosAppiumTestID' in v ||
     'iosAppiumXPath' in v

@@ -6,7 +6,7 @@ const dualFrameworkRestrictedImportOptions = {
     {
       group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
       message:
-        'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+        'Use Gestures from tests/framework (canonical). UnifiedGestures is an internal Appium facade.',
     },
     {
       group: [

@@ -36,7 +36,7 @@ ESLint **errors** on dual-framework debt in POs, flows, and Appium specs (no war
 | `encapsulated` / `encapsulatedAction`                                          | `Matchers` + `Gestures` / `Assertions`             |
 | `AppiumMatchers` / `AppiumGestures` / `AppiumAssertions` / `AppiumWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
 
-Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
+Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Page objects use `AppiumElement` from `tests/framework` — there are no Detox ambient types. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
 ## Canonical Sources (read these, do not duplicate)
 
