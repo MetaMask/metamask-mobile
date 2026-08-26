@@ -1,6 +1,6 @@
 import React from 'react';
-import { BridgeQuotesProvider } from './BridgeQuotesContext';
-import { useBridgeQuotes } from './index';
+import { SwapQuotesProvider } from './SwapQuotesContext';
+import { useSwapQuotes } from './index';
 import {
   mockContext,
   runQuoteRequestCases,
@@ -121,7 +121,7 @@ const Wrapper = ({
   const destAddress = useSelector(selectDestAddress);
 
   return (
-    <BridgeQuotesProvider
+    <SwapQuotesProvider
       featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
       traceName={TraceName.SwapQuoteFetch}
       debounceWait={mockDebounceMs}
@@ -138,7 +138,7 @@ const Wrapper = ({
         : {})}
     >
       {children}
-    </BridgeQuotesProvider>
+    </SwapQuotesProvider>
   );
 };
 
@@ -146,7 +146,7 @@ runQuoteRequestCases({
   name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
-    renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
+    renderHook(() => useSwapQuotes().debouncedUpdateQuoteParams, {
       wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
 });
@@ -155,7 +155,7 @@ runQuoteDataCases({
   name: 'useQuoteData',
   mockDispatch,
   renderHook: (options) =>
-    renderHook(() => useBridgeQuotes(), {
+    renderHook(() => useSwapQuotes(), {
       wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
 });

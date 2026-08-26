@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { BridgeQuotesProvider } from './BridgeQuotesContext';
-import { useBridgeQuotes } from './index';
+import { SwapQuotesProvider } from './SwapQuotesContext';
+import { useSwapQuotes } from './index';
 import { runQuoteProviderCases } from '../useBridgeQuoteData/runQuoteProviderCases';
 import { FeatureId } from '@metamask/bridge-controller';
 import { mockContext } from '../useBridgeQuoteRequest/runQuoteRequestCases';
@@ -64,17 +64,16 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 const Consumer = () => {
-  useBridgeQuotes();
+  useSwapQuotes();
   return null;
 };
 
 runQuoteProviderCases({
-  name: 'BridgeQuotesContext',
-  missingProviderError:
-    'useBridgeQuotes must be used within BridgeQuotesProvider',
+  name: 'SwapQuotesContext',
+  missingProviderError: 'useSwapQuotes must be used within SwapQuotesProvider',
   renderProvider: (state) =>
     renderWithProvider(
-      <BridgeQuotesProvider
+      <SwapQuotesProvider
         featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
         debounceWait={1000}
         quoteParams={{
@@ -102,7 +101,7 @@ runQuoteProviderCases({
         <Consumer />
         <Consumer />
         <Consumer />
-      </BridgeQuotesProvider>,
+      </SwapQuotesProvider>,
       { state },
     ),
   renderWithoutProvider: () => renderWithProvider(<Consumer />),

@@ -2,22 +2,23 @@ import React, { createContext, useMemo } from 'react';
 import { type UseQuoteRequestParams, useQuoteRequest } from './useQuoteRequest';
 import { useQuoteData, type UseQuoteDataParams } from './useQuoteData';
 
-export type BridgeQuotesContextValue = ReturnType<typeof useQuoteRequest> &
+export type SwapQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
 
-export const BridgeQuotesContext =
-  createContext<BridgeQuotesContextValue | null>(null);
+export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
+  null,
+);
 
-interface BridgeQuotesProviderProps
+interface SwapQuotesProviderProps
   extends UseQuoteRequestParams,
     UseQuoteDataParams {
   children: React.ReactNode;
 }
 
-export function BridgeQuotesProvider({
+export function SwapQuotesProvider({
   children,
   ...params
-}: BridgeQuotesProviderProps) {
+}: SwapQuotesProviderProps) {
   const requestData = useQuoteRequest(params);
   const quoteData = useQuoteData(params);
 
@@ -27,8 +28,8 @@ export function BridgeQuotesProvider({
   );
 
   return (
-    <BridgeQuotesContext.Provider value={value}>
+    <SwapQuotesContext.Provider value={value}>
       {children}
-    </BridgeQuotesContext.Provider>
+    </SwapQuotesContext.Provider>
   );
 }
