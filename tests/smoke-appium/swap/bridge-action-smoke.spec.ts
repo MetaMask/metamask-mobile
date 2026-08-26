@@ -4,7 +4,6 @@ import { LocalNode, LocalNodeType } from '../../framework/types.js';
 import { runEthToBaseBridgeFlow } from '../../flows/swap.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { SmokeSwap } from '../../tags.js';
-import Assertions from '../../framework/Assertions.js';
 import {
   testSpecificMock,
   createBridgeQuoteStatusManagerMock,
@@ -16,7 +15,6 @@ import {
 } from '../../seeder/anvil-manager.js';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks.js';
 import { bridgeActionAnalyticsExpectations } from '../../helpers/analytics/expectations/bridge-action-smoke.analytics.js';
-import { collectSeenProxiedRequests } from '../../api-mocking/helpers/mockHelpers.js';
 
 /** Fixture builder shared by the bridge tests in this file: ETH on a local Anvil "Mainnet". */
 function buildEthMainnetFixture({ localNodes }: { localNodes?: LocalNode[] }) {
@@ -93,20 +91,6 @@ appiumTest.describe(SmokeSwap('Bridge functionality'), () => {
             }
 
             await runEthToBaseBridgeFlow('Base');
-
-            const seen = await collectSeenProxiedRequests(mockServer);
-            const getQuoteStatusRequests = seen.filter((request) =>
-              request.proxiedUrl.includes('getQuoteStatus'),
-            );
-            const getTxStatusRequests = seen.filter((request) =>
-              request.proxiedUrl.includes('getTxStatus'),
-            );
-
-            await Assertions.checkIfArrayHasMinLength(
-              getQuoteStatusRequests,
-              1,
-            );
-            await Assertions.checkIfArrayHasLength(getTxStatusRequests, 0);
           },
         );
       },

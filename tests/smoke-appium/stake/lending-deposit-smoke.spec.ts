@@ -84,6 +84,7 @@ appiumTest.describe(SmokeStake('Lending Deposit from Wallet'), () => {
                 'Lending deposit activity should appear after deposit',
             },
           );
+          await ActivitiesView.waitForTransactionConfirmed(0, 120000);
         },
       );
     },

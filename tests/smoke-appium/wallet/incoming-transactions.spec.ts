@@ -16,6 +16,7 @@ import type {
   AccountTreeControllerState,
   Fixture,
 } from '../../framework/fixtures/types.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types.js';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
@@ -195,6 +196,8 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           await NetworkManager.openNetworkManager();
           await NetworkManager.tapSelectAllPopularNetworks();
           await NetworkManager.navigateBackFromTokensFullView();
+
+          await TabBarComponent.tapActivity();
         },
       );
     },
@@ -232,6 +235,7 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
+          await TabBarComponent.tapActivity();
         },
       );
     },
@@ -261,6 +265,8 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           await NetworkManager.openNetworkManager();
           await NetworkManager.tapSelectAllPopularNetworks();
           await NetworkManager.navigateBackFromTokensFullView();
+
+          await TabBarComponent.tapActivity();
         },
       );
     },
@@ -294,6 +300,7 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
+          await TabBarComponent.tapActivity();
         },
       );
     },

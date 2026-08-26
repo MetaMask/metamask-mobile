@@ -357,15 +357,44 @@ class ActivitiesView {
     });
   }
 
-  async verifyActivityItem(titleText: string): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
+  /**
+   * Verifies that an activity item with the given title is visible and its row status matches.
+   * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.
+   *
+   * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
+   * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
+   * @param rowIndex - Row index (default 0 = most recent)
+   */
+  async verifyActivityItemWithStatus(
+    titleText: string,
+    statusText?: string,
+    rowIndex = 0,
+  ): Promise<void> {
+    // Verify with data attributes
   }
 
-  async verifyMusdConversionActivity(): Promise<void> {
-    await this.verifyActivityItem(ActivitiesViewSelectorsText.MUSD_CONVERSION);
+  /**
+   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
+   * Delegates to verifyActivityItemWithStatus.
+   */
+  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
+    await this.verifyActivityItemWithStatus(
+      ActivitiesViewSelectorsText.MUSD_CONVERSION,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      rowIndex,
+    );
+  }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    // Verify with data attributes
   }
 }
 

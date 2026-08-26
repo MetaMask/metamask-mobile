@@ -34,6 +34,8 @@ test.describe(`${System}`, () => {
       await FooterActions.tapConfirmButton();
 
       await TabBarComponent.tapActivity();
+
+      await ActivitiesView.waitForTransactionConfirmed();
     },
   );
 });
