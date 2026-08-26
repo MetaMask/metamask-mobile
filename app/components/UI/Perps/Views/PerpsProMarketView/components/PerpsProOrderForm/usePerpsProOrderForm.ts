@@ -459,6 +459,9 @@ export const usePerpsProOrderForm = ({
       change: Number.isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
+  const latestMidPriceRef = useRef(assetData.price);
+  latestMidPriceRef.current = assetData.price;
+
   const isMarketDataBlocking =
     isLoadingMarketData || Boolean(marketDataError) || !(assetData.price > 0);
 
@@ -850,6 +853,21 @@ export const usePerpsProOrderForm = ({
     isSubmittingRef.current = true;
 
     try {
+      const reportValidationFailure = (message: string) => {
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(message),
+        );
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: message,
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+        });
+      };
+
       const validationResult = await validateNow();
       if (!validationResult.isValid) {
         const firstFieldIssue = validationResult.fieldIssues[0];
@@ -858,20 +876,22 @@ export const usePerpsProOrderForm = ({
           (firstFieldIssue
             ? getOrderFormFieldIssueMessage(firstFieldIssue)
             : strings('perps.order.validation.error'));
-        showToast(
-          PerpsToastOptions.formValidation.orderForm.validationError(
-            firstError,
-          ),
+        reportValidationFailure(firstError);
+        return;
+      }
+
+      const latestFieldIssues = getOrderFormFieldIssues({
+        orderType: orderForm.type,
+        direction: orderForm.direction,
+        triggerPrice: normalizedTriggerPrice,
+        limitPrice: normalizedLimitPrice,
+        midPrice: latestMidPriceRef.current,
+        szDecimals,
+      });
+      if (latestFieldIssues.length > 0) {
+        reportValidationFailure(
+          getOrderFormFieldIssueMessage(latestFieldIssues[0]),
         );
-        track(MetaMetricsEvents.PERPS_ERROR, {
-          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
-          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-        });
         return;
       }
 

@@ -1063,6 +1063,53 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
+    it('blocks a pending trigger order when the live mid crosses the trigger', async () => {
+      // Arrange
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const { result, rerender } = renderProForm();
+
+      // Act
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      mockLivePrice = '92000';
+      rerender(undefined);
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(validationError).toHaveBeenCalledWith(
+        'Trigger price must be higher than mid price',
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+      expect(submitted).not.toHaveBeenCalled();
+    });
+
     it('navigates to the cross-margin warning and aborts', async () => {
       // Arrange
       mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
