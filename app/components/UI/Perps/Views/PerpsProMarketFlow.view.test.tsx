@@ -178,14 +178,18 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         {},
         { timeout: TIMEOUT_MS },
       );
-      const btcRow = screen.getByTestId(getPerpsProPositionRowSelector('BTC'));
+      const btcRow = await screen.findByTestId(
+        getPerpsProPositionRowSelector('BTC'),
+        {},
+        { timeout: TIMEOUT_MS },
+      );
 
       const ethScope = within(ethRow);
       expect(ethScope.getByText('ETH')).toBeOnTheScreen();
       expect(ethScope.getByText(/3x/)).toBeOnTheScreen();
       expect(
         ethScope.getByTestId(panelIds.POSITION_PNL_TEXT),
-      ).toHaveTextContent(/\+/);
+      ).toHaveTextContent('+$100.00');
       expect(ethScope.getByText(/\$2,400/)).toBeOnTheScreen();
 
       const btcScope = within(btcRow);
@@ -193,7 +197,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       expect(btcScope.getByText(/5x/)).toBeOnTheScreen();
       expect(
         btcScope.getByTestId(panelIds.POSITION_PNL_TEXT),
-      ).toHaveTextContent(/\+/);
+      ).toHaveTextContent('+$1,000.00');
       expect(btcScope.getByText(/\$52,000/)).toBeOnTheScreen();
 
       await applySideFilter('long');
@@ -266,7 +270,11 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       );
       expect(within(ethOrderRow).getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByTestId(getPerpsProOrderRowSelector('BTC', 1)),
+        await screen.findByTestId(
+          getPerpsProOrderRowSelector('BTC', 1),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
 
       fireEvent.press(within(ethOrderRow).getByTestId(panelIds.ORDER_CANCEL));
@@ -294,7 +302,7 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         ),
       ).toBeOnTheScreen();
       await act(async () => {
-        await fireEvent.press(
+        fireEvent.press(
           screen.getByTestId(
             PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
           ),
@@ -357,7 +365,6 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       fireEvent.changeText(sizeInput, '100');
       fireEvent(sizeInput, 'blur');
 
-      const placeOrderButton = screen.getByTestId(formIds.PLACE_ORDER_BUTTON);
       let finalValidation: Promise<unknown> | undefined;
       await waitFor(
         () => {
@@ -376,13 +383,15 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       });
       await waitFor(
         () => {
-          expect(placeOrderButton).not.toBeDisabled();
+          expect(
+            screen.getByTestId(formIds.PLACE_ORDER_BUTTON),
+          ).not.toBeDisabled();
         },
         { timeout: TIMEOUT_MS },
       );
 
       await act(async () => {
-        await fireEvent.press(placeOrderButton);
+        fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
       });
 
       await waitFor(
