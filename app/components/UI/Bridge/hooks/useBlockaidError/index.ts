@@ -13,6 +13,10 @@ interface UseBlockaidErrorParams {
 
 /**
  * Hook for resolving the blockaid error for the active quote
+ *
+ * @param params - The parameters for the hook
+ * @param params.activeQuote - The active quote
+ * @returns The blockaid error
  */
 export const useBlockaidError = ({
   activeQuote,

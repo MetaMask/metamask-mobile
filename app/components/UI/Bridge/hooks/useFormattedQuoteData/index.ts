@@ -14,6 +14,15 @@ import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import I18n from '../../../../../../locales/i18n';
 
+/**
+ * Hook for formatting quote-related data
+ *
+ * @param params - The parameters for the hook
+ * @param params.activeQuote - The active quote
+ * @param params.isActiveQuoteForCurrentTokenPair - Whether the active quote is for the current token pair
+ * @param params.quoteParams - The quote parameters
+ * @returns The formatted quote data and whether to show a price impact warning
+ */
 export const useFormattedQuoteData = ({
   activeQuote,
   isActiveQuoteForCurrentTokenPair,

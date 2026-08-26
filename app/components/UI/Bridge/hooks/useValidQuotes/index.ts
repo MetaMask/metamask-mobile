@@ -40,6 +40,14 @@ interface UseValidQuotesParams {
     slippage?: string;
   };
 }
+/**
+ * Hook for validating quotes and determining the active quote
+ *
+ * @param params - The parameters for the hook
+ * @param params.latestSourceAtomicBalance - The latest source atomic balance
+ * @param params.quoteParams - The quote parameters
+ * @returns The valid quotes and whether they need to be refreshed
+ */
 export const useValidQuotes = ({
   latestSourceAtomicBalance,
   quoteParams,

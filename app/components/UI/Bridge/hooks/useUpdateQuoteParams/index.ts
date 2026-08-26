@@ -29,7 +29,7 @@ interface UpdateQuoteParamsOptions {
 
 /**
  * Hook for handling bridge quote request updates
- * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
+ * @returns A debounced function to update quote parameters
  */
 export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
   const {
