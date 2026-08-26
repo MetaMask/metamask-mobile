@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -15,6 +16,7 @@ import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -104,6 +106,14 @@ jest.mock('@metamask/controller-utils', () => ({
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 // Pressing buy mounts TraderPositionQuickBuy (`QuickBuy.Root`). Jest's global mock
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
@@ -979,6 +989,11 @@ describe('TraderPositionView', () => {
       expect(ClipboardManager.setString).toHaveBeenCalledWith(
         '0x1234567890123456789012345678901234567890',
       );
+    });
+    expect(toast).toHaveBeenCalledWith({
+      title: strings('detected_tokens.address_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
     });
   });
 

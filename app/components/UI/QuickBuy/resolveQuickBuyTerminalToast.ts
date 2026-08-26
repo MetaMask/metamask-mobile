@@ -1,12 +1,11 @@
 import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
-import type { ToastRef } from '../../../component-library/components/Toast/Toast.types';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
 import {
   playErrorNotification,
   playSuccessNotification,
 } from '../../../util/haptics';
-import type { Theme } from '../../../util/theme/models';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -77,18 +76,11 @@ function emitTerminalToast(
   txMetaId: string,
   trade: TrackedQuickBuyTrade,
   outcome: TerminalOutcome,
-  showToast: ToastRef['showToast'],
-  theme: Theme,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  showToast(
-    buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
-      trade,
-      theme,
-    }),
-  );
+  toast(buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', trade));
   // Terminal feedback pairs with the toast: success buzz on settlement, error
   // buzz on failure — fires even if the user navigated away.
   if (isComplete) {
@@ -114,11 +106,7 @@ function emitTerminalToast(
  * @returns `true` when a terminal toast was shown, `false` otherwise (untracked,
  * still pending, or no history yet).
  */
-export function resolveQuickBuyTerminalToast(
-  txMetaId: string,
-  showToast: ToastRef['showToast'],
-  theme: Theme,
-): boolean {
+export function resolveQuickBuyTerminalToast(txMetaId: string): boolean {
   const trade = getTrackedQuickBuyTrade(txMetaId);
   if (!trade) {
     return false;
@@ -132,5 +120,5 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  return emitTerminalToast(txMetaId, trade, outcome, showToast, theme);
+  return emitTerminalToast(txMetaId, trade, outcome);
 }

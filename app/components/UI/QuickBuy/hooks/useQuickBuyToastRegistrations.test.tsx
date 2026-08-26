@@ -1,4 +1,5 @@
 import { StatusTypes } from '@metamask/bridge-controller';
+import { toast } from '@metamask/design-system-react-native';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
@@ -23,6 +24,14 @@ jest.mock('../../../../core/notificationSkipPredicates', () => ({
   registerNotificationSkipPredicate: jest.fn(() => jest.fn()),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 jest.mock('../quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
 }));
@@ -30,15 +39,6 @@ jest.mock('../quickBuyToastOptions', () => ({
 jest.mock('../../../../util/haptics', () => ({
   playSuccessNotification: jest.fn(),
   playErrorNotification: jest.fn(),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: () => ({
-    colors: {
-      success: { default: 'green' },
-      error: { default: 'red' },
-    },
-  }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -146,15 +146,13 @@ describe('useQuickBuyToastRegistrations', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
+    renderHandler().handler({}, jest.fn());
 
-    renderHandler().handler({}, showToast);
-
-    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
-      trade: buyTrade,
-      theme: expect.any(Object),
-    });
-    expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
+      'complete',
+      buyTrade,
+    );
+    expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(playErrorNotification).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
@@ -165,15 +163,10 @@ describe('useQuickBuyToastRegistrations', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.FAILED),
     );
-    const showToast = jest.fn();
+    renderHandler().handler({}, jest.fn());
 
-    renderHandler().handler({}, showToast);
-
-    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
-      trade: sellTrade,
-      theme: expect.any(Object),
-    });
-    expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', sellTrade);
+    expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
     expect(playErrorNotification).toHaveBeenCalledTimes(1);
     expect(playSuccessNotification).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
@@ -184,11 +177,9 @@ describe('useQuickBuyToastRegistrations', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.PENDING),
     );
-    const showToast = jest.fn();
+    renderHandler().handler({}, jest.fn());
 
-    renderHandler().handler({}, showToast);
-
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
   });
 
@@ -196,12 +187,10 @@ describe('useQuickBuyToastRegistrations', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
-
-    renderHandler().handler({}, showToast);
+    renderHandler().handler({}, jest.fn());
 
     expect(mockGetHistoryItem).not.toHaveBeenCalled();
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('dedupes repeated state changes for the same terminal status', () => {
@@ -209,25 +198,21 @@ describe('useQuickBuyToastRegistrations', () => {
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
-    const showToast = jest.fn();
-
     const registration = renderHandler();
-    registration.handler({}, showToast);
-    registration.handler({}, showToast);
+    registration.handler({}, jest.fn());
+    registration.handler({}, jest.fn());
 
-    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledTimes(1);
   });
 
   it('resolves a Solana swap from the multichain controller when bridge status is not terminal', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Confirmed);
-    const showToast = jest.fn();
-
     const { result } = renderHook(() => useQuickBuyToastRegistrations());
-    result.current[1].handler({}, showToast);
+    result.current[1].handler({}, jest.fn());
 
-    expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
@@ -236,11 +221,9 @@ describe('useQuickBuyToastRegistrations', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Failed);
-    const showToast = jest.fn();
+    renderHandler().handler({}, jest.fn());
 
-    renderHandler().handler({}, showToast);
-
-    expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
     expect(playErrorNotification).toHaveBeenCalledTimes(1);
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
@@ -249,11 +232,9 @@ describe('useQuickBuyToastRegistrations', () => {
     trackQuickBuyTrade('sig-1', solanaTrade);
     mockGetHistoryItem.mockReturnValue(undefined);
     setMultichainTransaction('sig-1', KeyringTransactionStatus.Submitted);
-    const showToast = jest.fn();
+    renderHandler().handler({}, jest.fn());
 
-    renderHandler().handler({}, showToast);
-
-    expect(showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['sig-1']);
   });
 });

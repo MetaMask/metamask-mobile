@@ -6,6 +6,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import type { Json } from '@metamask/utils';
+import { Toaster } from '@metamask/design-system-react-native';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
@@ -64,11 +65,22 @@ function QueryClientBoundary({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function ToasterBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  );
+}
+
 function withQueryClient(Component: React.ComponentType): React.ComponentType {
   return function WrappedWithQueryClient(props) {
     return (
       <QueryClientBoundary>
-        <Component {...props} />
+        <ToasterBoundary>
+          <Component {...props} />
+        </ToasterBoundary>
       </QueryClientBoundary>
     );
   };
@@ -127,20 +139,22 @@ export function renderScreenWithRoutes(
 
   const stackTree = (
     <QueryClientBoundary>
-      <Stack.Navigator>
-        <Stack.Screen
-          name={options.name}
-          component={Component}
-          initialParams={initialParams}
-        />
-        {extraRoutes.map(({ name, Component: Extra }) => (
+      <ToasterBoundary>
+        <Stack.Navigator>
           <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            name={options.name}
+            component={Component}
+            initialParams={initialParams}
           />
-        ))}
-      </Stack.Navigator>
+          {extraRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={name}
+              name={name}
+              component={Extra ?? DefaultRouteProbe(name)}
+            />
+          ))}
+        </Stack.Navigator>
+      </ToasterBoundary>
     </QueryClientBoundary>
   );
 
