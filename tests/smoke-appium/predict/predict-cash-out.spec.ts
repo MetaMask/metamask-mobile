@@ -21,6 +21,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import {
   loginForPredictTests,
@@ -132,6 +133,8 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await PredictMarketList.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await TabBarComponent.tapActivity();
+
+          await ActivitiesView.tapOnPredictionsTab();
         },
       );
     },

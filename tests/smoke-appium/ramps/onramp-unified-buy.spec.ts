@@ -19,6 +19,7 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import KYCScreen from '../../page-objects/Ramps/KYCScreen.js';
 import {
   onrampNewUserDepositExpectations,
@@ -120,6 +121,10 @@ appiumTest.describe(SmokeMoney('Onramp Unified Buy'), () => {
           }
 
           await OrderDetailsView.tapCloseButton();
+
+          // Verify order in transfers list
+          await TabBarComponent.tapActivity();
+          await ActivitiesView.tapOnTransfersTab();
         },
       );
     },

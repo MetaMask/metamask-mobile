@@ -5,8 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
-import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import {
   loginForPredictTests,
@@ -52,6 +52,10 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           // Claim confirm `goBack` can leave a Predict stack on top after RN v7.
           // Reach wallet home before Activity so details open on a clean stack.
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+
+          await TabBarComponent.tapActivity();
+
+          await ActivitiesView.tapOnPredictionsTab();
 
           await TabBarComponent.tapWallet();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
