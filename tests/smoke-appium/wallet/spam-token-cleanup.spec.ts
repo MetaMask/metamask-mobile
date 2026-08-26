@@ -1,0 +1,174 @@
+import type { Mockttp } from 'mockttp';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeWalletPlatform } from '../../tags.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import {
+  CUSTOM_ASSET,
+  LEGITIMATE_ASSET,
+  mockOccurrenceApis,
+  SPAM_ASSETS,
+  TRACKED_ASSETS,
+  type TrackedAsset,
+} from '../../api-mocking/mock-responses/spam-token-cleanup-mocks.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
+import TokensFullView from '../../page-objects/wallet/HomeSections.js';
+import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
+
+const ENABLED_NETWORKS = {
+  eip155: {
+    '0x1': true,
+    '0x38': true,
+    '0x89': true,
+  },
+};
+
+/**
+ * The cleanup fires off two Token API round trips after `KeyringController:unlock`,
+ * so give the rows time to disappear before failing.
+ */
+const CLEANUP_TIMEOUT_MS = 30_000;
+
+/** One spam token per chain, used as the negative control. */
+const SPAM_SAMPLE_SYMBOLS = ['KICK', 'MGRT', 'PKT'];
+
+/**
+ * Writes the tracked assets straight into `AssetsController` — the slice the
+ * cleanup reads and rewrites. `FixtureBuilder.withTokenHoldings` cannot be used
+ * here because it registers every ERC-20 as a custom asset, and custom assets
+ * are exempt from cleanup.
+ *
+ * @param fixture - The built fixture to mutate.
+ */
+function seedTrackedAssets(fixture: ReturnType<FixtureBuilder['build']>) {
+  const backgroundState = fixture.state.engine.backgroundState;
+  const accountId =
+    backgroundState.AccountsController.internalAccounts.selectedAccount;
+  const existing = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
+  const now = Date.now();
+
+  const byAssetId = <Value>(map: (asset: TrackedAsset) => Value) =>
+    Object.fromEntries(
+      TRACKED_ASSETS.map((asset) => [asset.assetId, map(asset)]),
+    );
+
+  backgroundState.AssetsController = {
+    ...existing,
+    selectedCurrency: 'usd',
+    assetsInfo: {
+      ...existing.assetsInfo,
+      ...byAssetId(({ name, symbol, decimals }) => ({
+        type: 'erc20' as const,
+        name,
+        symbol,
+        decimals,
+      })),
+    },
+    assetsBalance: {
+      ...existing.assetsBalance,
+      [accountId]: {
+        ...existing.assetsBalance?.[accountId],
+        ...byAssetId(({ amount }) => ({ amount })),
+      },
+    },
+    assetsPrice: {
+      ...existing.assetsPrice,
+      ...byAssetId(() => ({
+        assetPriceType: 'fungible' as const,
+        price: 1,
+        usdPrice: 1,
+        lastUpdated: now,
+      })),
+    },
+    customAssets: {
+      ...existing.customAssets,
+      [accountId]: [
+        ...new Set([
+          ...(existing.customAssets?.[accountId] ?? []),
+          CUSTOM_ASSET.assetId,
+        ]),
+      ],
+    },
+  };
+}
+
+function buildFixture() {
+  const fixture = new FixtureBuilder()
+    .withPopularNetworks()
+    .withNetworkEnabledMap(ENABLED_NETWORKS)
+    .build();
+
+  seedTrackedAssets(fixture);
+
+  return fixture;
+}
+
+appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
+  appiumTest(
+    'removes below-floor spam tokens from the token list on unlock',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(mockServer, {});
+            await mockOccurrenceApis(mockServer);
+          },
+        },
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+          await WalletView.tapOnNewTokensSection();
+          await TokensFullView.waitForVisible();
+
+          for (const { symbol } of SPAM_ASSETS) {
+            await NetworkManager.checkTokenIsNotVisible(symbol, {
+              timeout: CLEANUP_TIMEOUT_MS,
+            });
+          }
+
+          // The widely-listed token and the hand-imported one must survive, so
+          // that an empty list cannot make the assertions above pass.
+          await NetworkManager.checkTokenIsVisible(LEGITIMATE_ASSET.symbol);
+          await NetworkManager.checkTokenIsVisible(CUSTOM_ASSET.symbol);
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'keeps spam tokens when the occurrence floor API fails',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(mockServer, {});
+            await mockOccurrenceApis(mockServer, {
+              failOccurrenceFloors: true,
+            });
+          },
+        },
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+          await WalletView.tapOnNewTokensSection();
+          await TokensFullView.waitForVisible();
+
+          for (const symbol of SPAM_SAMPLE_SYMBOLS) {
+            await WalletView.scrollToToken(symbol);
+            await NetworkManager.checkTokenIsVisible(symbol);
+          }
+        },
+      );
+    },
+  );
+});

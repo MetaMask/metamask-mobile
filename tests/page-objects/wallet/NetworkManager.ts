@@ -144,12 +144,18 @@ class NetworkManager {
 
   /**
    * Check if a specific token is not visible
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to go away.
+   * Raise it when the row is expected to disappear as the result of async work
+   * (for example the spam cleanup that runs after unlock).
    */
-  async checkTokenIsNotVisible(symbol: string) {
+  async checkTokenIsNotVisible(symbol: string, { timeout = 3000 } = {}) {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
-      timeout: 3000,
+      timeout,
     });
   }
 
