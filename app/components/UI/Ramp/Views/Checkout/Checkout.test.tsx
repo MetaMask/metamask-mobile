@@ -481,6 +481,22 @@ describe('Checkout', () => {
         });
       });
     });
+
+    it('does not register when network/chainId is missing', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'MoonPay',
+        providerCode: 'moonpay',
+        walletAddress: '0xabcdef1234567890',
+        orderId: 'mp-order-99',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      await waitFor(() => {
+        expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('missing checkout URL', () => {
