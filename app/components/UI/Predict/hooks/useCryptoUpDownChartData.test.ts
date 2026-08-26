@@ -34,13 +34,24 @@ const mockLastUseQueryConfig: { current: Record<string, unknown> | undefined } =
     current: undefined,
   };
 
+const mockQueryOverrides: { error: Error | null; data: unknown } = {
+  error: null,
+  data: undefined,
+};
+
 jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
     useQuery: (config: Record<string, unknown>) => {
       mockLastUseQueryConfig.current = config;
-      return actual.useQuery(config);
+      const realResult = actual.useQuery(config);
+      const { error, data } = mockQueryOverrides;
+      return {
+        ...realResult,
+        ...(error !== null && { error, isError: true }),
+        ...(data !== undefined && { data }),
+      };
     },
   };
 });
@@ -110,6 +121,9 @@ describe('useCryptoUpDownChartData', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
 
+    mockQueryOverrides.error = null;
+    mockQueryOverrides.data = undefined;
+
     liveUpdateHandler = undefined;
     historicalData = [
       { time: 100, value: 50000 },
@@ -169,15 +183,17 @@ describe('useCryptoUpDownChartData', () => {
       return refetchInterval();
     };
 
-    const recordFailures = (count: number): void => {
-      const onError = mockLastUseQueryConfig.current?.onError as () => void;
+    const recordFailures = (rerender: () => void, count: number): void => {
       for (let i = 0; i < count; i += 1) {
-        onError();
+        mockQueryOverrides.error = new Error('foo');
+        act(() => rerender());
       }
     };
 
-    const recordSuccess = (): void => {
-      (mockLastUseQueryConfig.current?.onSuccess as () => void)();
+    const recordSuccess = (rerender: () => void): void => {
+      mockQueryOverrides.error = null;
+      mockQueryOverrides.data = [{ time: 1, value: 100 }];
+      act(() => rerender());
     };
 
     const sendLiveTick = (price = 51000, timestamp = 100): void => {
@@ -239,17 +255,19 @@ describe('useCryptoUpDownChartData', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
-      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+      const { rerender } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       expect(evaluateRefetchInterval()).toBe(10000);
-      recordFailures(3);
+      recordFailures(rerender, 3);
       expect(evaluateRefetchInterval()).toBe(30000);
-      recordFailures(2); // 5 total
+      recordFailures(rerender, 2); // 5 total
       expect(evaluateRefetchInterval()).toBe(60000);
-      recordFailures(2); // 7 total
+      recordFailures(rerender, 2); // 7 total
       expect(evaluateRefetchInterval()).toBe(false);
       // A successful fetch resets the count and restores the base cadence.
-      recordSuccess();
+      recordSuccess(rerender);
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
@@ -257,10 +275,12 @@ describe('useCryptoUpDownChartData', () => {
       const { Wrapper } = createWrapper();
       const market = createLiveMarket();
 
-      renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
+      const { rerender } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       // Polling keeps failing until it disables itself.
-      recordFailures(7);
+      recordFailures(rerender, 7);
       expect(evaluateRefetchInterval()).toBe(false);
 
       // The socket recovers and delivers a tick -> breaker resets, polling paused.
@@ -277,7 +297,7 @@ describe('useCryptoUpDownChartData', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
-      renderHook(
+      const { rerender } = renderHook(
         () =>
           useCryptoUpDownChartData(market, undefined, {
             liveUpdatesEnabled: false,
@@ -287,7 +307,7 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(evaluateRefetchInterval()).toBe(false);
       // Even with many failures recorded, a disabled poll stays disabled.
-      recordFailures(99);
+      recordFailures(rerender, 99);
       expect(evaluateRefetchInterval()).toBe(false);
     });
   });
