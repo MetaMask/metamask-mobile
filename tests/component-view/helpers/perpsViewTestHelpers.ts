@@ -43,17 +43,16 @@ export function wirePerpsControllerForStore(store: Store): void {
     setPerpsMode: (mode: PerpsMode) => void;
   };
 
-  const syncPerpsControllerState = (
-    patch: Record<string, unknown>,
-  ): void => {
+  const syncPerpsControllerState = (patch: Record<string, unknown>): void => {
     const engineWithState = Engine as unknown as EngineWithState;
     const backgroundState = store.getState().engine.backgroundState as Record<
       string,
       unknown
     >;
     const existingPerps =
-      (backgroundState.PerpsController as Record<string, unknown> | undefined) ??
-      {};
+      (backgroundState.PerpsController as
+        | Record<string, unknown>
+        | undefined) ?? {};
     const existingEnginePerps =
       (engineWithState.state?.PerpsController as
         | Record<string, unknown>
@@ -77,8 +76,9 @@ export function wirePerpsControllerForStore(store: Store): void {
       unknown
     >;
     const existingPerps =
-      (backgroundState.PerpsController as Record<string, unknown> | undefined) ??
-      {};
+      (backgroundState.PerpsController as
+        | Record<string, unknown>
+        | undefined) ?? {};
     const existingPrefs =
       (existingPerps.proLayoutPreferences as
         | Record<string, unknown>

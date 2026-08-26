@@ -239,7 +239,8 @@ describeForPlatforms('Perps Pro Market Flow', () => {
   itForPlatforms(
     'trader cancels one open order then cancels the rest from Cancel all',
     async () => {
-      const cancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
       const cancelOrders = Engine.context.PerpsController
         .cancelOrders as jest.Mock;
       cancelOrder.mockClear();

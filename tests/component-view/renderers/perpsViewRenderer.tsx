@@ -304,10 +304,7 @@ const createOrdersChannel = (orders: unknown[]) => {
   return {
     ...channel,
     /** Optimistic patch used by Pro open-order edit (price/size). */
-    updateOrderOptimistic: (
-      orderId: string,
-      patch: Partial<Order>,
-    ): void => {
+    updateOrderOptimistic: (orderId: string, patch: Partial<Order>): void => {
       const snapshot = channel.getSnapshot() ?? [];
       channel.emit(
         snapshot.map((order) =>
