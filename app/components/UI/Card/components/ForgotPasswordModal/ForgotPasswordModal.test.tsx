@@ -3,7 +3,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import ForgotPasswordModal from './ForgotPasswordModal';
 import { mockTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { ToastContext } from '../../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
 
@@ -36,21 +36,6 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardUserLocation: jest.fn(),
 }));
-
-// Toast
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: mockCloseToast },
-};
-
-jest.mock('../../../../../component-library/components/Toast', () => {
-  const ActualReact = jest.requireActual('react');
-  return {
-    ToastContext: ActualReact.createContext({ toastRef: undefined }),
-    ToastVariants: { Icon: 'Icon' },
-  };
-});
 
 // Safe area insets
 jest.mock('react-native-safe-area-context', () => ({
@@ -133,6 +118,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
     TextVariant: { BodyMd: 'BodyMd' },
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+    ToastSeverity: {
+      Success: 'success',
+      Warning: 'warning',
+      Danger: 'danger',
+      Default: 'default',
+    },
   };
 });
 
@@ -193,12 +185,7 @@ jest.mock('@metamask/react-native-webview', () => {
 
 const CARD_LOGIN_URL = 'https://card.metamask.io/account/login';
 
-const renderComponent = () =>
-  render(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <ForgotPasswordModal />
-    </ToastContext.Provider>,
-  );
+const renderComponent = () => render(<ForgotPasswordModal />);
 
 describe('ForgotPasswordModal', () => {
   beforeEach(() => {
@@ -492,7 +479,7 @@ describe('ForgotPasswordModal', () => {
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not throw on non-JSON message data', () => {
@@ -519,10 +506,13 @@ describe('ForgotPasswordModal', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'card.card_forgot_password.reset_success' }],
+          title: 'card.card_forgot_password.reset_success',
+          severity: 'success',
+          hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });
@@ -542,7 +532,7 @@ describe('ForgotPasswordModal', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('does not show a toast when the user closes the WebView with the back button', () => {
@@ -551,7 +541,7 @@ describe('ForgotPasswordModal', () => {
       fireEvent.press(getByTestId('forgot-password-back-button'));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('shows the success toast only once when both detection layers fire', () => {
@@ -572,7 +562,7 @@ describe('ForgotPasswordModal', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('does not show a toast for the reset page URL', () => {
@@ -584,7 +574,7 @@ describe('ForgotPasswordModal', () => {
         });
       });
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
   });
 

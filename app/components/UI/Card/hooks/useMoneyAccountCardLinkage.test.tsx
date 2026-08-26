@@ -1,7 +1,6 @@
-import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -125,6 +124,14 @@ jest.mock('../../../../util/theme', () => {
   return {
     ...actual,
     useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -254,8 +261,6 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
 };
 
 describe('useMoneyAccountCardLinkage', () => {
-  let mockShowToast: jest.Mock;
-  let mockToastRef: { current: { showToast: jest.Mock } };
   const expectedLinkCardSheetRoute = (
     entrypoint: CardEntryPoint | string = CardEntryPoint.MONEY_LINK_CARD_SHEET,
   ) => ({
@@ -264,18 +269,10 @@ describe('useMoneyAccountCardLinkage', () => {
   });
 
   const renderLinkageHook = () =>
-    renderHook(() => useMoneyAccountCardLinkage(), {
-      wrapper: ({ children }: { children: React.ReactNode }) => (
-        <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-          {children}
-        </ToastContext.Provider>
-      ),
-    });
+    renderHook(() => useMoneyAccountCardLinkage());
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowToast = jest.fn();
-    mockToastRef = { current: { showToast: mockShowToast } };
 
     mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
     applySelectorMocks(buildSelectors());
@@ -517,7 +514,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not navigate from startLinkFlow when linkage is in progress', () => {
@@ -531,7 +528,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
@@ -549,7 +546,7 @@ describe('useMoneyAccountCardLinkage', () => {
         ...expectedLinkCardSheetRoute(),
       });
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(result.current.status).toBe('idle');
     });
 
@@ -563,9 +560,9 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast.mock.calls[0][0]).toMatchObject({
+        title: 'Something went wrong linking your card',
       });
     });
 
@@ -578,7 +575,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('fails closed when there is no primary Money account', () => {
@@ -590,7 +587,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('fails closed when the Money Account is already delegated (defensive guard for direct callers)', () => {
@@ -603,7 +600,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('tracks RESIDENCY_BLOCKED and fails closed when residency is blocked', () => {
@@ -615,7 +612,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'built-event' }),
       );
@@ -647,7 +644,7 @@ describe('useMoneyAccountCardLinkage', () => {
         ...expectedLinkCardSheetRoute(),
       });
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('no-ops when the user is authenticated but not VERIFIED', () => {
@@ -659,7 +656,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
@@ -672,7 +669,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
@@ -686,7 +683,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('tracks RESIDENCY_BLOCKED and fails closed when residency is blocked', () => {
@@ -702,7 +699,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
@@ -722,7 +719,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
     });
 
     it('routes a not-authenticated cardholder to CardAuthentication with postAuthRedirect and sets the pending flag', () => {
@@ -747,7 +744,7 @@ describe('useMoneyAccountCardLinkage', () => {
           params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
         },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('routes an unauthenticated cardholder to CardAuthentication when base requirements are met but VEDA is not allowlisted', () => {
@@ -791,7 +788,7 @@ describe('useMoneyAccountCardLinkage', () => {
           params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
         },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('stores the origin entrypoint for the post-auth sheet resume', () => {
@@ -833,7 +830,7 @@ describe('useMoneyAccountCardLinkage', () => {
           params: { postAuthRedirect: ORIGIN },
         },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('still routes a not-authenticated cardholder to CardAuthentication when the funding token is null (token resolves after login)', () => {
@@ -857,7 +854,7 @@ describe('useMoneyAccountCardLinkage', () => {
           params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
         },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('still routes a not-authenticated non-cardholder to onboarding without arming the sheet-resume flag when the funding token is null (token resolves after login)', () => {
@@ -879,7 +876,7 @@ describe('useMoneyAccountCardLinkage', () => {
           params: { postAuthRedirect: ORIGIN },
         },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
   });
 
@@ -965,7 +962,7 @@ describe('useMoneyAccountCardLinkage', () => {
         setPendingMoneyAccountCardLink(null),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('tracks RESIDENCY_BLOCKED, shows error toast, and clears the flag when residency is blocked after auth', () => {
@@ -981,7 +978,7 @@ describe('useMoneyAccountCardLinkage', () => {
         setPendingMoneyAccountCardLink(null),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
@@ -1004,7 +1001,7 @@ describe('useMoneyAccountCardLinkage', () => {
         setPendingMoneyAccountCardLink(null),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does nothing while the user is not yet authenticated', () => {
@@ -1034,7 +1031,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
         expect(mockDispatch).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockShowToast).not.toHaveBeenCalled();
+        expect(toast).not.toHaveBeenCalled();
       },
     );
 
@@ -1054,7 +1051,7 @@ describe('useMoneyAccountCardLinkage', () => {
           setPendingMoneyAccountCardLink(null),
         );
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockShowToast).not.toHaveBeenCalled();
+        expect(toast).not.toHaveBeenCalled();
       },
     );
 
@@ -1100,7 +1097,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('keeps the flag set when the funding token is null and card home data is still idle', () => {
@@ -1115,7 +1112,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('clears the flag silently once card home data has loaded but the funding token is still unresolved', () => {
@@ -1132,7 +1129,7 @@ describe('useMoneyAccountCardLinkage', () => {
         setPendingMoneyAccountCardLink(null),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('clears the flag silently when card home data fetch errors and the funding token cannot be resolved', () => {
@@ -1149,7 +1146,7 @@ describe('useMoneyAccountCardLinkage', () => {
         setPendingMoneyAccountCardLink(null),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('opens the sheet on rerender once the funding token resolves after card home data succeeds', () => {
@@ -1243,10 +1240,10 @@ describe('useMoneyAccountCardLinkage', () => {
         linkPromise = result.current.confirmLinkInBackground();
       });
 
-      const pendingCall = mockShowToast.mock.calls[0]?.[0];
+      const pendingCall = toast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
-        labelOptions: [{ label: 'Linking your card' }],
+        title: 'Linking your card',
       });
       expect(pendingCall?.startAccessory).toBeDefined();
 
@@ -1255,9 +1252,9 @@ describe('useMoneyAccountCardLinkage', () => {
         await linkPromise;
       });
 
-      const successCall = mockShowToast.mock.calls[1]?.[0];
+      const successCall = toast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
-        labelOptions: [{ label: 'Your card is ready to use' }],
+        title: 'Your card is ready to use',
         hasNoTimeout: false,
       });
     });
@@ -1322,9 +1319,9 @@ describe('useMoneyAccountCardLinkage', () => {
         is_revoke: false,
       });
 
-      const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
+      const errorCall = toast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        title: 'Something went wrong linking your card',
         hasNoTimeout: false,
       });
     });
@@ -1349,14 +1346,9 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(returned).toBe(false);
       expect(result.current.status).toBe('error');
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [
-            {
-              label:
-                'This wallet is already linked to a different MetaMask Card',
-            },
-          ],
+          title: 'This wallet is already linked to a different MetaMask Card',
           hasNoTimeout: false,
         }),
       );
@@ -1389,7 +1381,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       // Only the pending toast should have fired — no error toast.
-      const lastCall = mockShowToast.mock.calls.at(-1)?.[0];
+      const lastCall = toast.mock.calls.at(-1)?.[0];
       expect(lastCall).toMatchObject({ hasNoTimeout: true });
       expect(Logger.error).not.toHaveBeenCalled();
     });
@@ -1418,9 +1410,9 @@ describe('useMoneyAccountCardLinkage', () => {
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,
         is_revoke: false,
       });
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast.mock.calls[0][0]).toMatchObject({
+        title: 'Something went wrong linking your card',
       });
     });
 
@@ -1464,9 +1456,9 @@ describe('useMoneyAccountCardLinkage', () => {
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,
         is_revoke: true,
       });
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast.mock.calls[0][0]).toMatchObject({
+        title: 'Something went wrong unlinking your card',
       });
     });
 
@@ -1511,9 +1503,9 @@ describe('useMoneyAccountCardLinkage', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Unlinking your card' }],
+          title: 'Unlinking your card',
         }),
       );
 
@@ -1522,9 +1514,9 @@ describe('useMoneyAccountCardLinkage', () => {
         await linkPromise;
       });
 
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Your card was unlinked' }],
+          title: 'Your card was unlinked',
         }),
       );
     });
@@ -1543,9 +1535,9 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(returned).toBe(false);
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+          title: 'Something went wrong unlinking your card',
         }),
       );
     });
@@ -1571,9 +1563,9 @@ describe('useMoneyAccountCardLinkage', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Updating your spending limit' }],
+          title: 'Updating your spending limit',
         }),
       );
 
@@ -1582,9 +1574,9 @@ describe('useMoneyAccountCardLinkage', () => {
         await linkPromise;
       });
 
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Your spending limit was updated' }],
+          title: 'Your spending limit was updated',
         }),
       );
     });
@@ -1603,11 +1595,9 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(returned).toBe(false);
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [
-            { label: 'Something went wrong updating your spending limit' },
-          ],
+          title: 'Something went wrong updating your spending limit',
         }),
       );
     });
@@ -1624,9 +1614,9 @@ describe('useMoneyAccountCardLinkage', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect(toast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Your card is ready to use' }],
+          title: 'Your card is ready to use',
         }),
       );
     });
@@ -1665,7 +1655,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(returned).toBe(false);
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockCreateEventBuilder).not.toHaveBeenCalled();
       expect(result.current.status).toBe('idle');
@@ -1693,8 +1683,8 @@ describe('useMoneyAccountCardLinkage', () => {
       // The pending toast WAS shown — we cleared the sync gate, so the
       // UI side-effect ran. But the in-progress catch branch must NOT
       // surface a success or error toast.
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      const onlyToast = mockShowToast.mock.calls[0]?.[0];
+      expect(toast).toHaveBeenCalledTimes(1);
+      const onlyToast = toast.mock.calls[0]?.[0];
       expect(onlyToast).toMatchObject({ hasNoTimeout: true });
       // Not an error: must not be logged or transitioned to error state.
       expect(Logger.error).not.toHaveBeenCalled();

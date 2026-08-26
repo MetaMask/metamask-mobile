@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useContext } from 'react';
+import { toast } from '@metamask/design-system-react-native';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 import Routes from '../../../../constants/navigation/Routes';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
@@ -9,14 +9,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { success: { default: 'mock-success' } } }),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -33,7 +32,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
-const mockShowToast = jest.fn();
 
 const getRoute = () => {
   const { result } = renderHook(() => useImmersveOnboardingRouter());
@@ -46,9 +44,6 @@ describe('useImmersveOnboardingRouter', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
-    });
-    (useContext as jest.Mock).mockReturnValue({
-      toastRef: { current: { showToast: mockShowToast } },
     });
   });
 
@@ -122,11 +117,12 @@ describe('useImmersveOnboardingRouter', () => {
   it('shows a toast and resets to Card Home when active', () => {
     getRoute()({ type: 'active' });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [
-          { label: 'card.card_onboarding.sign_up.account_exists_toast' },
-        ],
+        title: 'card.card_onboarding.sign_up.account_exists_toast',
+        severity: 'success',
+        hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
     expect(mockReset).toHaveBeenCalledWith({
@@ -138,7 +134,7 @@ describe('useImmersveOnboardingRouter', () => {
   it('suppresses the toast when active but showAccountExistsToast is false', () => {
     getRoute()({ type: 'active' }, { showAccountExistsToast: false });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { ActivityIndicator, type ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
@@ -17,14 +17,11 @@ import {
   TextColor,
   TextVariant,
   type BottomSheetRef,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, withCardProvider } from '../../util/metrics';
@@ -71,7 +68,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
   const theme = useTheme();
   const tw = useTailwind();
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
 
@@ -162,24 +158,22 @@ const AssetSelectionBottomSheet: React.FC = () => {
   );
 
   const showSuccessToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [{ label: strings('card.asset_selection.update_success') }],
-      iconName: IconName.Confirmation,
-      iconColor: theme.colors.success.default,
+    toast({
+      title: strings('card.asset_selection.update_success'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, theme]);
+  }, []);
 
   const showErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [{ label: strings('card.asset_selection.update_error') }],
-      iconName: IconName.Danger,
-      iconColor: theme.colors.error.default,
+    toast({
+      title: strings('card.asset_selection.update_error'),
+      severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, theme]);
+  }, []);
 
   const { updateFundingPriority } = useUpdateFundingPriority({
     onSuccess: () => {

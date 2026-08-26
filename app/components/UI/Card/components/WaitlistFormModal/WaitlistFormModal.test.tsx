@@ -19,31 +19,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({ url: 'https://share.hsforms.com/test-form' }),
 }));
 
-// Theme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: { default: 'colors.success.default' },
-    },
-  }),
-}));
-
-// Toast
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: mockCloseToast },
-};
-
-jest.mock('../../../../../component-library/components/Toast', () => {
-  const ActualReact = jest.requireActual('react');
-  return {
-    ToastContext: ActualReact.createContext({ toastRef: undefined }),
-    ToastVariants: { Icon: 'Icon' },
-    ButtonIconVariant: { Icon: 'Icon' },
-  };
-});
-
 // Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
@@ -93,6 +68,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       Confirmation: 'Confirmation',
       Close: 'Close',
     },
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+    ToastSeverity: {
+      Success: 'success',
+      Warning: 'warning',
+      Danger: 'danger',
+      Default: 'default',
+    },
   };
 });
 
@@ -135,15 +117,9 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-// Helper: render with ToastContext provided
-import { ToastContext } from '../../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 
-const renderComponent = () =>
-  render(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <WaitlistFormModal />
-    </ToastContext.Provider>,
-  );
+const renderComponent = () => render(<WaitlistFormModal />);
 
 describe('WaitlistFormModal', () => {
   beforeEach(() => {
@@ -262,8 +238,8 @@ describe('WaitlistFormModal', () => {
         });
       });
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
           hasNoTimeout: true,
         }),
@@ -295,7 +271,7 @@ describe('WaitlistFormModal', () => {
         });
       });
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

@@ -6,8 +6,7 @@ import {
   CardProviderError,
   CardProviderErrorCode,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { ToastContext } from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { toast } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { SetCardPinSelectors } from './SetCardPin.testIds';
 import { clearPinDraft, getPinDraft, setPinDraft } from './pinDraftStore';
@@ -16,8 +15,6 @@ import { PIN_ERROR_RESET_DELAY_MS } from './constants';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -25,9 +22,6 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 const mockSetCardPin = jest.fn();
 const mockLogout = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: mockCloseToast },
-};
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -199,6 +193,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Lg: 'Lg' },
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+    ToastSeverity: {
+      Success: 'success',
+      Warning: 'warning',
+      Danger: 'danger',
+      Default: 'default',
+    },
   };
 });
 
@@ -210,12 +211,7 @@ const enterPin = (pressKey: (testID: string) => void, digits: string) => {
   }
 };
 
-const renderConfirmCardPin = () =>
-  renderWithProvider(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <ConfirmCardPin />
-    </ToastContext.Provider>,
-  );
+const renderConfirmCardPin = () => renderWithProvider(<ConfirmCardPin />);
 
 describe('ConfirmCardPin', () => {
   beforeEach(() => {
@@ -225,10 +221,6 @@ describe('ConfirmCardPin', () => {
     setPinDraft('1337');
     mockSetCardPin.mockResolvedValue(undefined);
     mockLogout.mockResolvedValue(undefined);
-    mockToastRef.current = {
-      showToast: mockShowToast,
-      closeToast: mockCloseToast,
-    };
   });
 
   afterEach(() => {
@@ -268,17 +260,12 @@ describe('ConfirmCardPin', () => {
 
     await waitFor(() => {
       expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: strings('card.set_pin.success_title') }],
-          descriptionOptions: {
-            description: strings('card.set_pin.success_description'),
-          },
-          iconName: IconName.Confirmation,
+          title: strings('card.set_pin.success_title'),
+          description: strings('card.set_pin.success_description'),
+          severity: 'success',
           hasNoTimeout: false,
-          closeButtonOptions: expect.objectContaining({
-            iconName: IconName.Close,
-          }),
         }),
       );
       expect(mockReset).toHaveBeenCalledWith({
@@ -286,23 +273,16 @@ describe('ConfirmCardPin', () => {
         routes: [{ name: Routes.CARD.HOME }],
       });
     });
-
-    const toastOptions = mockShowToast.mock.calls[0][0] as {
-      closeButtonOptions: { onPress: () => void };
-    };
-    toastOptions.closeButtonOptions.onPress();
-    expect(mockCloseToast).toHaveBeenCalled();
   });
 
-  it('still resets to Card Home when toast ref is unavailable', async () => {
-    mockToastRef.current = null as unknown as typeof mockToastRef.current;
+  it('still resets to Card Home after a successful pin set', async () => {
     const { getByTestId } = renderConfirmCardPin();
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
     await waitFor(() => {
       expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
@@ -365,7 +345,7 @@ describe('ConfirmCardPin', () => {
     });
 
     await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],

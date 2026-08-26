@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -23,6 +22,8 @@ import {
   Text,
   TextVariant,
   HeaderStandard,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
@@ -37,11 +38,6 @@ import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
 import { useSelector } from 'react-redux';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import type { CardLocation } from '../../types';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 // Single document-end injection. We intentionally do NOT use
 // `injectedJavaScriptBeforeContentLoaded`, which blanks the page on iOS WKWebView.
@@ -143,8 +139,7 @@ const ForgotPasswordModal: React.FC = () => {
     useRoute<RouteProp<ForgotPasswordModalParams, 'CardForgotPasswordModal'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
-  const { themeAppearance, colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
+  const { themeAppearance } = useTheme();
   const persistedLocation = useSelector(selectCardUserLocation);
   const isUs =
     (route.params?.location ?? persistedLocation ?? 'international') === 'us';
@@ -197,17 +192,14 @@ const ForgotPasswordModal: React.FC = () => {
         )
         .build(),
     );
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('card.card_forgot_password.reset_success') },
-      ],
-      iconName: IconName.Confirmation,
-      iconColor: colors.success.default,
+    toast({
+      title: strings('card.card_forgot_password.reset_success'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
     navigation.goBack();
-  }, [navigation, toastRef, colors, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleRetry = useCallback(() => {
     setStatus('loading');

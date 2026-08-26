@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -16,6 +15,8 @@ import {
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -68,10 +69,6 @@ import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import MoneyCardTiltAnimation from '../../../Money/components/MoneyCardTiltAnimation';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
@@ -130,7 +127,6 @@ const CardHome = () => {
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();
   const tw = useTailwind();
-  const { toastRef } = useContext(ToastContext);
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
     data?.primaryFundingAsset?.walletAddress,
@@ -276,15 +272,11 @@ const CardHome = () => {
     }
 
     hasHandledOnboardingTokenRevocation.current = true;
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: strings('card.card_home.onboarding_token_revoked'),
-        },
-      ],
+    toast({
+      title: strings('card.card_home.onboarding_token_revoked'),
+      severity: ToastSeverity.Warning,
       hasNoTimeout: false,
-      iconName: IconName.Warning,
+      showCloseButton: false,
     });
     navigation.dispatch(
       CommonActions.reset({
@@ -293,43 +285,33 @@ const CardHome = () => {
       }),
     );
     Engine.context.CardController.clearLastUnauthenticatedReason();
-  }, [lastUnauthenticatedReason, navigation, toastRef]);
+  }, [lastUnauthenticatedReason, navigation]);
 
   // --- Deeplink toast ---
   const hasShownDeeplinkToast = useRef(false);
   useEffect(() => {
-    if (
-      route.params?.showDeeplinkToast &&
-      !hasShownDeeplinkToast.current &&
-      toastRef?.current
-    ) {
+    if (route.params?.showDeeplinkToast && !hasShownDeeplinkToast.current) {
       hasShownDeeplinkToast.current = true;
-      toastRef.current.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('card.card_button_already_enabled_toast') },
-        ],
+      toast({
+        title: strings('card.card_button_already_enabled_toast'),
+        severity: ToastSeverity.Default,
         hasNoTimeout: false,
-        iconName: IconName.Info,
+        showCloseButton: false,
       });
     }
-  }, [route.params?.showDeeplinkToast, toastRef]);
+  }, [route.params?.showDeeplinkToast]);
 
   // --- Freeze error toast ---
   useEffect(() => {
-    if ((actions.freeze.error || actions.unfreeze.error) && toastRef?.current) {
-      toastRef.current.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('card.card_home.manage_card_options.freeze_error'),
-          },
-        ],
+    if (actions.freeze.error || actions.unfreeze.error) {
+      toast({
+        title: strings('card.card_home.manage_card_options.freeze_error'),
+        severity: ToastSeverity.Warning,
         hasNoTimeout: false,
-        iconName: IconName.Warning,
+        showCloseButton: false,
       });
     }
-  }, [actions.freeze.error, actions.unfreeze.error, toastRef]);
+  }, [actions.freeze.error, actions.unfreeze.error]);
 
   // --- Derived state ---
   const hasPrimaryFiat =
