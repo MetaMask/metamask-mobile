@@ -2,10 +2,10 @@ import { renderHook } from '@testing-library/react-hooks';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
+import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 
 jest.mock('./useTransactionPayData');
-jest.mock('../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 
 const PAYMENT_METHOD_MOCK = {
   id: 'pm-123',
@@ -16,17 +16,15 @@ describe('useTransactionPaySelectedFiatPaymentMethod', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
-  const useFiatDepositPaymentMethodsMock = jest.mocked(
-    useFiatDepositPaymentMethods,
-  );
+  const useRampsPaymentMethodsMock = jest.mocked(useRampsPaymentMethods);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-    useFiatDepositPaymentMethodsMock.mockReturnValue({
+    useRampsPaymentMethodsMock.mockReturnValue({
       paymentMethods: [PAYMENT_METHOD_MOCK],
-    } as ReturnType<typeof useFiatDepositPaymentMethods>);
+    } as ReturnType<typeof useRampsPaymentMethods>);
   });
 
   it('returns undefined when no fiat payment is selected', () => {

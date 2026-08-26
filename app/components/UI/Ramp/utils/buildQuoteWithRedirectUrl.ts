@@ -77,8 +77,12 @@ export function getCheckoutContext(
   effectiveOrderId: string | null;
 } {
   const chainId = selectedToken?.chainId;
+  // RampsController rejects an empty chainId, and it accepts decimal, hex or
+  // CAIP-2. Fall back to the whole chainId when the CAIP reference is missing
+  // (e.g. a malformed `eip155:`) so callers can still register the order
+  // instead of dropping it.
   const network = chainId?.includes(':')
-    ? chainId.split(':')[1] || ''
+    ? chainId.split(':')[1] || chainId
     : chainId || '';
   return {
     network,

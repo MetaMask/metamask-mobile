@@ -101,13 +101,6 @@ export interface PayPostQuoteFlags {
 export interface MetaMaskPayFiatFlags {
   enabledTransactionTypes: TransactionType[];
   maxDelayMinutesForPaymentMethods: number;
-  /**
-   * Per-transaction-type fiat deposit assets, same shape TPC reads from
-   * `confirmations_pay_fiat.assetPerTransactionType` when quoting.
-   */
-  assetPerTransactionType?: Partial<
-    Record<TransactionType, { address: Hex; chainId: Hex }>
-  >;
 }
 
 export interface PayHardwareConfig {
@@ -349,8 +342,6 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       maxDelayMinutesForPaymentMethods:
         (raw?.maxDelayMinutesForPaymentMethods as number) ??
         PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
-      assetPerTransactionType:
-        raw?.assetPerTransactionType as MetaMaskPayFiatFlags['assetPerTransactionType'],
     };
   },
 );

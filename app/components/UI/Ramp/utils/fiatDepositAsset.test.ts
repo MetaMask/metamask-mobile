@@ -45,10 +45,31 @@ describe('deriveFiatDepositAssetId', () => {
     ).toBe('eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48');
   });
 
-  it('falls back to native ETH mainnet for an unmapped or missing type', () => {
-    expect(deriveFiatDepositAssetId(undefined, [])).toBe('eip155:1/slip44:60');
+  it('resolves nothing when the transaction is not a fiat deposit', () => {
+    // An empty asset id leaves the payment-methods query idle, so a plain send
+    // or a signature never fetches a catalog nobody asked for.
+    expect(deriveFiatDepositAssetId(undefined, [])).toBe('');
     expect(
-      deriveFiatDepositAssetId(tx({ type: TransactionType.swap }), []),
+      deriveFiatDepositAssetId(tx({ type: TransactionType.swap }), [
+        TransactionType.moneyAccountDeposit,
+      ]),
+    ).toBe('');
+    expect(
+      deriveFiatDepositAssetId(
+        tx({
+          type: TransactionType.batch,
+          nestedTransactions: [{ type: TransactionType.tokenMethodApprove }],
+        }),
+        [TransactionType.moneyAccountDeposit],
+      ),
+    ).toBe('');
+  });
+
+  it('falls back to native ETH mainnet for an enabled but unmapped type', () => {
+    expect(
+      deriveFiatDepositAssetId(tx({ type: TransactionType.swap }), [
+        TransactionType.swap,
+      ]),
     ).toBe('eip155:1/slip44:60');
   });
 

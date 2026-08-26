@@ -4,9 +4,13 @@ import { notifyManager } from '@tanstack/query-core';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { rampsPaymentMethodsOptions } from '../queries/paymentMethods';
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -25,8 +29,21 @@ jest.mock('../../../../core/Engine', () => ({
       getPaymentMethodsForContext: jest.fn(),
       setSelectedPaymentMethod: jest.fn(),
     },
+    TransactionPayController: { updateFiatPayment: jest.fn() },
   },
 }));
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+);
+jest.mock('../../../Views/confirmations/hooks/pay/useMMPayFiatConfig');
+jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayData');
+jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
+  selectFiatDepositAssetOverride: () => undefined,
+}));
+
+/** The Buy catalog binding, pinned the way every Buy surface pins itself. */
+const useBuyPaymentMethods = () => useRampsPaymentMethods({ catalog: 'buy' });
 
 const mockPaymentMethods: PaymentMethod[] = [
   {
@@ -195,10 +212,36 @@ const getPaymentMethodsForContextMock = jest.mocked(
 const setSelectedPaymentMethodMock = jest.mocked(
   Engine.context.RampsController.setSelectedPaymentMethod,
 );
+const updateFiatPaymentMock = jest.mocked(
+  Engine.context.TransactionPayController.updateFiatPayment,
+);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
+const useTransactionPayFiatPaymentMock = jest.mocked(
+  useTransactionPayFiatPayment,
+);
+
+const FIAT_ENABLED_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 describe('useRampsPaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // No pending fiat deposit by default, so the Buy tests below are unaffected
+    // by the active-fiat-context branch.
+    useTransactionMetadataRequestMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof useTransactionMetadataRequest>,
+    );
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: FIAT_ENABLED_TYPES,
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
   afterEach(async () => {
@@ -216,7 +259,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -241,7 +284,7 @@ describe('useRampsPaymentMethods', () => {
       Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock
     ).mockImplementation(() => new Promise(() => undefined));
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -260,7 +303,7 @@ describe('useRampsPaymentMethods', () => {
 
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -282,7 +325,7 @@ describe('useRampsPaymentMethods', () => {
       contextResponse([], null),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -304,7 +347,7 @@ describe('useRampsPaymentMethods', () => {
       new Error('Network error'),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -328,7 +371,7 @@ describe('useRampsPaymentMethods', () => {
       ),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -345,7 +388,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -364,7 +407,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -398,7 +441,7 @@ describe('useRampsPaymentMethods', () => {
 
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    renderHook(() => useRampsPaymentMethods(), {
+    renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -435,7 +478,7 @@ describe('useRampsPaymentMethods', () => {
 
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    renderHook(() => useRampsPaymentMethods(), {
+    renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -450,7 +493,7 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useRampsPaymentMethods(), { wrapper: Wrapper });
+    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
     await waitFor(() =>
       expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
     );
@@ -476,7 +519,7 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useRampsPaymentMethods(), { wrapper: Wrapper });
+    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
     await waitFor(() =>
       expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
     );
@@ -499,7 +542,7 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useRampsPaymentMethods(), { wrapper: Wrapper });
+    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
     await waitFor(() =>
       expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
     );
@@ -543,7 +586,7 @@ describe('useRampsPaymentMethods', () => {
     const deferred = createDeferred<ContextResponse>();
     getPaymentMethodsForContextMock.mockReturnValue(deferred.promise);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -585,7 +628,7 @@ describe('useRampsPaymentMethods', () => {
       },
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
     await waitFor(() => expect(result.current.status).toBe('success'));
@@ -624,7 +667,7 @@ describe('useRampsPaymentMethods', () => {
         : contextBDeferred.promise,
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
     await waitFor(() =>
@@ -661,10 +704,10 @@ describe('useRampsPaymentMethods', () => {
     const { Wrapper } = createWrapper(store);
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const first = renderHook(() => useRampsPaymentMethods(), {
+    const first = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
-    const second = renderHook(() => useRampsPaymentMethods(), {
+    const second = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -689,7 +732,7 @@ describe('useRampsPaymentMethods', () => {
         }),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -731,7 +774,7 @@ describe('useRampsPaymentMethods', () => {
 
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -748,7 +791,7 @@ describe('useRampsPaymentMethods', () => {
 
     getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result, rerender } = renderHook(() => useRampsPaymentMethods(), {
+    const { result, rerender } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -769,7 +812,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -786,7 +829,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -802,7 +845,7 @@ describe('useRampsPaymentMethods', () => {
 
       getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -829,7 +872,7 @@ describe('useRampsPaymentMethods', () => {
 
       getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -853,7 +896,7 @@ describe('useRampsPaymentMethods', () => {
         contextResponse([], null),
       );
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -885,7 +928,7 @@ describe('useRampsPaymentMethods', () => {
 
       getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -919,7 +962,7 @@ describe('useRampsPaymentMethods', () => {
 
       getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -930,6 +973,177 @@ describe('useRampsPaymentMethods', () => {
       // The controller commits catalog and selection together, so there is no
       // manual fallback window left to hold isLoading open for.
       expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  // The default catalog, and the only one confirmations ever asks for.
+  describe('active fiat context', () => {
+    const depositTx = (
+      type: TransactionType = TransactionType.moneyAccountDeposit,
+    ) =>
+      ({ id: 'tx-1', type }) as unknown as ReturnType<
+        typeof useTransactionMetadataRequest
+      >;
+
+    const renderDeposit = (store = createMockStore()) => {
+      const { Wrapper } = createWrapper(store);
+      return renderHook(() => useRampsPaymentMethods(), { wrapper: Wrapper });
+    };
+
+    it('stays idle when the pending approval is not a fiat deposit', () => {
+      const { result } = renderDeposit();
+
+      expect(result.current.status).toBe('idle');
+      expect(result.current.paymentMethods).toEqual([]);
+      expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
+    });
+
+    it('stays idle when the region is unknown', () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+
+      const { result } = renderDeposit(
+        createMockStore({
+          userRegion: { ...baseRampsState.userRegion, regionCode: null },
+        }),
+      );
+
+      expect(result.current.status).toBe('idle');
+      expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
+    });
+
+    it('requests the deposit asset read-only, ignoring the Buy token and provider', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(
+        depositTx(TransactionType.predictDeposit),
+      );
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit(
+        createMockStore({
+          tokens: {
+            ...baseRampsState.tokens,
+            selected: {
+              ...baseRampsState.tokens.selected,
+              assetId: 'eip155:1/erc20:0xdead',
+            },
+          },
+          providers: {
+            ...baseRampsState.providers,
+            selected: { id: '/providers/revolut', name: 'Revolut' },
+          },
+        }),
+      );
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(getPaymentMethodsForContextMock).toHaveBeenCalledWith({
+        region: 'us',
+        // The Predict deposit asset, not the token Buy happens to have selected.
+        assetId: 'eip155:137/slip44:966',
+        autoSelectProvider: true,
+        restrictToKnownOrNativeProviders: true,
+        updateState: false,
+      });
+      expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+    });
+
+    it('never writes the Buy selection', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit(
+        createMockStore({
+          paymentMethods: {
+            ...baseRampsState.paymentMethods,
+            selected: staleMethod,
+          },
+        }),
+      );
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(setSelectedPaymentMethodMock).not.toHaveBeenCalled();
+      // Buy's Redux selection must not leak into the deposit result.
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+
+    it('resolves the selected method from the TPC fiat payment', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: mockPaymentMethods[1].id,
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[1],
+      );
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('clears a selected method the deposit asset cannot be served with', async () => {
+      // The Revolut Pay case: picked through the previously leaked Buy catalog,
+      // it is absent once methods are scoped to the deposit asset.
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/revolut-pay',
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit();
+
+      await waitFor(() =>
+        expect(updateFiatPaymentMock).toHaveBeenCalledTimes(1),
+      );
+
+      const { transactionId, callback } =
+        updateFiatPaymentMock.mock.calls[0][0];
+      expect(transactionId).toBe('tx-1');
+      const fiatPayment = { selectedPaymentMethodId: '/payments/revolut-pay' };
+      callback(fiatPayment);
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+
+    it('does not clear the selection on a transient empty result', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: mockPaymentMethods[0].id,
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(
+        contextResponse([], null),
+      );
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('does not clear the selection while the request is still in flight', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/revolut-pay',
+      });
+      const deferred = createDeferred<ContextResponse>();
+      getPaymentMethodsForContextMock.mockReturnValue(deferred.promise);
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.isFetching).toBe(true));
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+
+      await act(async () => {
+        deferred.resolve(contextResponse());
+        await deferred.promise;
+      });
+
+      await waitFor(() =>
+        expect(updateFiatPaymentMock).toHaveBeenCalledTimes(1),
+      );
     });
   });
 });
