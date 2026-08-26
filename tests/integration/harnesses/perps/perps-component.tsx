@@ -18,7 +18,8 @@
  * MOCKED:
  *   - Shape A/B I/O boundary mocks (SDK, wallet, subscriptions, readiness)
  *   - React Native runtime modules that do not affect perps logic
- *   - Toast ref implementation, captured for assertions
+ *   - MMDS `toast()` implementation, captured for assertions
+ *   - ToastContext ref (legacy CL toasts, if any remain)
  */
 
 jest.mock('react-native-reanimated', () => {
@@ -97,6 +98,13 @@ jest.mock('../../../../app/util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
 }));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 import React from 'react';
 import { View } from 'react-native';
@@ -105,6 +113,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { type PriceUpdate } from '@metamask/perps-controller';
+import {
+  toast,
+  type ToastOptions as MmdsToastOptions,
+} from '@metamask/design-system-react-native';
 
 import { buildPerpsFlowHarness, type PerpsFlowHarness } from './perps-flow';
 import type { PerpsHarnessOptions } from './perps';
@@ -121,10 +133,7 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../../app/components/UI/Perps/providers/PerpsStreamManager';
-import type {
-  ToastOptions,
-  ToastRef,
-} from '../../../../app/component-library/components/Toast/Toast.types';
+import type { ToastRef } from '../../../../app/component-library/components/Toast/Toast.types';
 import { AccessRestrictedProvider } from '../../../../app/components/UI/Compliance';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { initialStatePerps } from '../../../component-view/presets/perpsStatePreset';
@@ -132,7 +141,7 @@ import HardwareWalletContext, {
   type HardwareWalletContextValue,
 } from '../../../../app/core/HardwareWallet/contexts/HardwareWalletContext';
 
-type ToastOptionsForHarness = ToastOptions;
+type ToastOptionsForHarness = MmdsToastOptions;
 
 interface PerpsComponentRenderOptions {
   stateOverrides?: DeepPartial<RootState>;
@@ -327,10 +336,16 @@ export function buildPerpsComponentHarness(
   options: PerpsHarnessOptions = {},
 ): PerpsComponentHarness {
   const flowHarness = buildPerpsFlowHarness(options);
-  const showToast = jest.fn<void, [ToastOptionsForHarness]>();
-  const closeToast = jest.fn<void, []>();
+  const showToast = toast as unknown as jest.Mock<
+    void,
+    [ToastOptionsForHarness]
+  >;
+  const closeToast = toast.dismiss as unknown as jest.Mock<void, []>;
   const toastRef: React.RefObject<ToastRef | null> = {
-    current: { showToast, closeToast },
+    current: {
+      showToast: showToast as unknown as ToastRef['showToast'],
+      closeToast,
+    },
   };
 
   const renderWithFlow = (
@@ -406,6 +421,8 @@ export function buildPerpsComponentHarness(
     },
     teardown: () => {
       flowHarness.harness.mocks.subscription.clearAll();
+      showToast.mockClear();
+      closeToast.mockClear();
     },
   };
 }

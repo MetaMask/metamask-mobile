@@ -1,14 +1,6 @@
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../hooks/useStyles';
 import { usePerpsNetworkConfig, usePerpsNetwork } from '../../hooks';
 import { PerpsTestnetToggleSelectorsIDs } from '../../Perps.testIds';
@@ -16,6 +8,8 @@ import {
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 
 const PerpsTestnetToggleStyles = () =>
@@ -40,8 +34,6 @@ export const PerpsTestnetToggle = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { toastRef } = useContext(ToastContext);
-
   const handleTestnetToggle = async () => {
     setIsLoading(true);
 
@@ -53,15 +45,9 @@ export const PerpsTestnetToggle = () => {
       return;
     }
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Warning,
-      iconColor: IconColor.Error,
-      labelOptions: [
-        {
-          label: strings('perps.errors.failed_to_toggle_network'),
-        },
-      ],
+    toast({
+      title: strings('perps.errors.failed_to_toggle_network'),
+      severity: ToastSeverity.Danger,
       hasNoTimeout: false,
     });
   };

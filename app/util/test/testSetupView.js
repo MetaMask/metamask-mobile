@@ -890,6 +890,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     BottomSheet,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 

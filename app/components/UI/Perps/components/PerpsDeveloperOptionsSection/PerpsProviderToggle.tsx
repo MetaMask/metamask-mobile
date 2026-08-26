@@ -1,15 +1,7 @@
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import React, { useState, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../hooks/useStyles';
 import { usePerpsNetworkConfig } from '../../hooks';
 import { selectPerpsProvider } from '../../selectors/perpsController';
@@ -18,6 +10,8 @@ import {
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 
 const PerpsProviderToggleStyles = () =>
@@ -42,8 +36,6 @@ const PerpsProviderToggleContent = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { toastRef } = useContext(ToastContext);
-
   const handleProviderToggle = useCallback(async () => {
     if (!currentProvider) return;
 
@@ -57,21 +49,15 @@ const PerpsProviderToggleContent = () => {
         return;
       }
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Error,
-        labelOptions: [
-          {
-            label: strings('perps.errors.failed_to_switch_provider'),
-          },
-        ],
+      toast({
+        title: strings('perps.errors.failed_to_switch_provider'),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [currentProvider, isAggregated, switchProvider, toastRef]);
+  }, [currentProvider, isAggregated, switchProvider]);
 
   if (!currentProvider) {
     return null;

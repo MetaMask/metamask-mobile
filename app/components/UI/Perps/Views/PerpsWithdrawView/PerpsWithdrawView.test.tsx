@@ -176,6 +176,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       onPress?: () => void;
     }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
