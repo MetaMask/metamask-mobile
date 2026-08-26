@@ -94,16 +94,23 @@ const PerpsProCompactInput = ({
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [shouldFocusInput, setShouldFocusInput] = useState(false);
   const isInlineActive = isFocused || value.length > 0;
   const isInputVisible = variant !== 'inline' || isInlineActive;
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
   useEffect(() => {
     if (isHidden) {
+      setShouldFocusInput(false);
       setIsFocused(false);
       inputRef.current?.blur();
+      return;
     }
-  }, [isHidden]);
+    if (shouldFocusInput) {
+      setShouldFocusInput(false);
+      inputRef.current?.focus();
+    }
+  }, [isHidden, shouldFocusInput]);
 
   const hiddenProps = isHidden
     ? ({
@@ -126,8 +133,8 @@ const PerpsProCompactInput = ({
     onFieldPress?.();
   };
   const focusInput = () => {
-    inputRef.current?.focus();
     handleFieldPress();
+    setShouldFocusInput(true);
   };
 
   const input = (

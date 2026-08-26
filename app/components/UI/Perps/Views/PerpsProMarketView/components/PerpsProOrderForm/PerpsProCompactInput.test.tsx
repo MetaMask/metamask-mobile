@@ -19,7 +19,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     Input: MockReact.forwardRef(
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
         MockReact.useImperativeHandle(ref, () => ({
-          focus: mockInputFocus,
+          focus: () => mockInputFocus(props),
           blur: mockInputBlur,
         }));
         MockReact.useEffect(
@@ -136,6 +136,12 @@ describe('PerpsProCompactInput', () => {
       expect(label.props.style).not.toEqual(inactiveLabelStyle);
       expect(input).toHaveProp('placeholder', '0.00');
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputFocus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          placeholder: '0.00',
+          twClassName: 'flex-1 border-0 bg-transparent p-0',
+        }),
+      );
       expect(mockInputUnmount).not.toHaveBeenCalled();
     });
 
