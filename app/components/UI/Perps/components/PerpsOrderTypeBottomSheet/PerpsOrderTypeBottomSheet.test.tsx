@@ -425,7 +425,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
       const iconContainer = screen.getByTestId(
         `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon`,
       );
-      const graphIcon = within(iconContainer).UNSAFE_getByType('SvgMock');
+      const graphIcon = within(iconContainer).UNSAFE_getByProps({
+        name: 'perps-order-type-twap',
+      });
 
       expect(iconContainer).toHaveProp(
         'accessibilityLabel',
@@ -450,7 +452,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
       const iconContainer = screen.getByTestId(
         `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon`,
       );
-      const graphIcon = within(iconContainer).UNSAFE_getByType('SvgMock');
+      const graphIcon = within(iconContainer).UNSAFE_getByProps({
+        name: 'perps-order-type-twap',
+      });
 
       expect(iconContainer).toHaveProp(
         'accessibilityLabel',
