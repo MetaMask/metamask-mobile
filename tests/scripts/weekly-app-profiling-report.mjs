@@ -262,6 +262,9 @@ function parsePassedTests(body) {
 }
 
 function listMergedPrCandidates({ repo, days, maxPrs }) {
+  const since = isoDaysAgo(days);
+  const dateFilter = since.slice(0, 10); // YYYY-MM-DD
+
   // Search recently merged PRs that mention Performance Test Results in discussion,
   // then tighten by closed/merged date client-side.
   const raw = runGh([
@@ -272,12 +275,12 @@ function listMergedPrCandidates({ repo, days, maxPrs }) {
     '--merged',
     '--limit',
     String(maxPrs),
+    `merged:>=${dateFilter}`,
     'Performance Test Results',
     '--json',
     'number,title,url,closedAt',
   ]);
   const items = JSON.parse(raw || '[]');
-  const since = isoDaysAgo(days);
   return items
     .filter((p) => p.closedAt && p.closedAt >= since)
     .sort((a, b) => (a.closedAt < b.closedAt ? 1 : -1));
@@ -307,7 +310,9 @@ function loadPrComments(repo, number) {
 function downloadAggregatedReports({ repo, runId, destDir }) {
   fs.mkdirSync(destDir, { recursive: true });
   const marker = path.join(destDir, 'done');
-  if (fs.existsSync(marker)) return true;
+  if (fs.existsSync(marker) && fs.readFileSync(marker, 'utf8').trim() === 'ok') {
+    return true;
+  }
 
   let artifactsRaw;
   try {
@@ -508,6 +513,7 @@ function buildInvestigationLeads({ scenarioRows }) {
     const slow = s.profiling.slowFramesPct?.avg;
     const memMax = s.profiling.memMaxMb?.avg;
     const peaks = s.profiling.peakRecordings || {};
+    const samples = s.profiling.samples;
 
     if (slow != null && slow >= 25) {
       const peak = peaks.slowFrames || null;
@@ -515,7 +521,8 @@ function buildInvestigationLeads({ scenarioRows }) {
         severity: 'high',
         theme: 'ui-jank',
         scenario: s.scenario,
-        summary: `${s.scenario} averages ${slow}% slow frames (n=${s.profiling.samples}). Investigate list/render cost and recent merges touching this flow.`,
+        samples,
+        summary: `${s.scenario} averages ${slow}% slow frames (n=${samples}). Investigate list/render cost and recent merges touching this flow.`,
         recordingUrl: peak?.videoURL ?? null,
         recordingLabel: recordingLabelForLead('ui-jank', peak),
         peak,
@@ -526,6 +533,7 @@ function buildInvestigationLeads({ scenarioRows }) {
         severity: 'medium',
         theme: 'ui-jank',
         scenario: s.scenario,
+        samples,
         summary: `${s.scenario} shows elevated slow frames (${slow}%). Worth a trend check next week.`,
         recordingUrl: peak?.videoURL ?? null,
         recordingLabel: recordingLabelForLead('ui-jank', peak),
@@ -539,6 +547,7 @@ function buildInvestigationLeads({ scenarioRows }) {
         severity: 'high',
         theme: 'memory',
         scenario: s.scenario,
+        samples,
         summary: `${s.scenario} memory max avg is ${memMax} MB. Investigate retained objects / subscriptions in this flow.`,
         recordingUrl: peak?.videoURL ?? null,
         recordingLabel: recordingLabelForLead('memory', peak),
@@ -580,7 +589,7 @@ function selectFeaturedScenarios(scenarios) {
 
 function selectTopLeads(leads) {
   return [...leads]
-    .filter((lead) => lead.scenario !== 'n=1')
+    .filter((lead) => lead.peak?.value != null || lead.samples >= 2)
     .sort((a, b) => {
       const severity = { high: 3, medium: 2, low: 1 };
       return (severity[b.severity] ?? 0) - (severity[a.severity] ?? 0);

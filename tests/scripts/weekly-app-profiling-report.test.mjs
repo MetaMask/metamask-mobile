@@ -46,10 +46,10 @@ test('selects at most three high-confidence scenarios for Slack', () => {
 
 test('limits Slack leads to three and excludes low-confidence leads', () => {
   const selected = selectTopLeads([
-    { severity: 'high', theme: 'memory', scenario: 'memory' },
-    { severity: 'medium', theme: 'ui-jank', scenario: 'jank' },
-    { severity: 'medium', theme: 'ui-jank', scenario: 'trend' },
-    { severity: 'low', theme: 'ui-jank', scenario: 'watch' },
+    { severity: 'high', theme: 'memory', scenario: 'memory', samples: 5 },
+    { severity: 'medium', theme: 'ui-jank', scenario: 'jank', samples: 3 },
+    { severity: 'medium', theme: 'ui-jank', scenario: 'trend', samples: 2 },
+    { severity: 'low', theme: 'ui-jank', scenario: 'watch', samples: 1 },
   ]);
 
   assert.equal(selected.length, 3);
@@ -173,6 +173,7 @@ test('Slack leads include BrowserStack recording links for peaks', () => {
         severity: 'high',
         theme: 'ui-jank',
         scenario: 'Important flow',
+        samples: 4,
         summary: 'Important flow averages 30% slow frames (n=4).',
         recordingUrl:
           'https://app-automate.browserstack.com/builds/b/sessions/sf',

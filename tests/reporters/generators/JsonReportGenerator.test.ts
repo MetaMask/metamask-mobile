@@ -19,9 +19,9 @@ import path from 'path';
 import { JsonReportGenerator } from './JsonReportGenerator';
 import type { ReportData, MetricsEntry, FailedTestEntry } from '../types';
 
-const mockWriteFileSync = fs.writeFileSync as jest.Mock;
-const mockExistsSync = fs.existsSync as jest.Mock;
-const mockMkdirSync = fs.mkdirSync as jest.Mock;
+let mockWriteFileSync: jest.Mock;
+let mockExistsSync: jest.Mock;
+let mockMkdirSync: jest.Mock;
 
 function makeMetricsEntry(overrides: Partial<MetricsEntry> = {}): MetricsEntry {
   return {
@@ -54,6 +54,9 @@ describe('JsonReportGenerator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockWriteFileSync = fs.writeFileSync as jest.Mock;
+    mockExistsSync = fs.existsSync as jest.Mock;
+    mockMkdirSync = fs.mkdirSync as jest.Mock;
     mockExistsSync.mockReturnValue(true);
     generator = new JsonReportGenerator();
   });
