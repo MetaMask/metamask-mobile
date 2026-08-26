@@ -1673,7 +1673,9 @@ jobs:
       contents: read
       checks: write
       id-token: write
+      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
       actions: read
+      pull-requests: read
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
