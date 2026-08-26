@@ -9,7 +9,11 @@ import renderWithProvider, {
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import {
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+  ToasterBoundary,
+} from '../render';
 import {
   initialStatePerps,
   initialStatePerpsPro,
@@ -453,28 +457,30 @@ export function renderPerpsView(
       <InnerStack.Navigator>{nestedScreens}</InnerStack.Navigator>
     );
     const stackTree = (
-      <Stack.Navigator>
-        <Stack.Screen
-          name={routeName}
-          component={WrappedComponent as unknown as React.ComponentType}
-          initialParams={initialParams}
-        />
-        {rootRoutes.map(({ name, Component: Extra }) => (
+      <ToasterBoundary>
+        <Stack.Navigator>
           <Stack.Screen
-            key={`root-${name}`}
-            name={name}
-            component={wrapRouteWithPerpsProviders(
-              Extra ?? DefaultRouteProbe(name),
-            )}
+            name={routeName}
+            component={WrappedComponent as unknown as React.ComponentType}
+            initialParams={initialParams}
           />
-        ))}
-        {nestedPerpsRoutes.length ? (
-          <Stack.Screen
-            name={Routes.PERPS.ROOT}
-            component={NestedPerpsStack as unknown as React.ComponentType}
-          />
-        ) : null}
-      </Stack.Navigator>
+          {rootRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={`root-${name}`}
+              name={name}
+              component={wrapRouteWithPerpsProviders(
+                Extra ?? DefaultRouteProbe(name),
+              )}
+            />
+          ))}
+          {nestedPerpsRoutes.length ? (
+            <Stack.Screen
+              name={Routes.PERPS.ROOT}
+              component={NestedPerpsStack as unknown as React.ComponentType}
+            />
+          ) : null}
+        </Stack.Navigator>
+      </ToasterBoundary>
     );
     return withStreamControls(renderWithProvider(stackTree, { state }), stream);
   }
