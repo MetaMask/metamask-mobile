@@ -160,7 +160,7 @@ const getValidationPrerequisiteResult = ({
 }): ValidationPrerequisiteResult | undefined => {
   if (!(assetPrice > 0)) {
     return {
-      errors: [strings('perps.order.validation.market_data_loading')],
+      errors: EMPTY_ERRORS,
       protocolValid: false,
     };
   }

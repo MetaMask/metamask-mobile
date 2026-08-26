@@ -148,17 +148,15 @@ const getBlockingNotices = ({
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
   if (isMarketDataBlocking) {
-    return [
-      {
-        id: 'market-data',
-        variant: 'banner',
-        message: strings(
-          hasMarketDataError
-            ? 'perps.failed_to_load_market_data'
-            : 'perps.order.validation.market_data_loading',
-        ),
-      },
-    ];
+    return hasMarketDataError
+      ? [
+          {
+            id: 'market-data',
+            variant: 'banner',
+            message: strings('perps.failed_to_load_market_data'),
+          },
+        ]
+      : [];
   }
 
   // Position data is unresolved — skipValidation retains prior errors, so hide

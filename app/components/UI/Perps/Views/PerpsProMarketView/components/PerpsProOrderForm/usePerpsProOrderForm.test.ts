@@ -433,7 +433,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('shows a loading message while market data is loading', () => {
+    it('blocks silently while market data is loading', () => {
       // Arrange
       mockMarketData = null;
       mockMarketDataLoading = true;
@@ -442,15 +442,11 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
-      expect(result.current.notices).toContainEqual({
-        id: 'market-data',
-        variant: 'banner',
-        message: strings('perps.order.validation.market_data_loading'),
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('shows a loading message while the live market price is unavailable', () => {
+    it('blocks silently while the live market price is unavailable', () => {
       // Arrange
       mockLivePrice = '';
 
@@ -458,11 +454,7 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
-      expect(result.current.notices).toContainEqual({
-        id: 'market-data',
-        variant: 'banner',
-        message: strings('perps.order.validation.market_data_loading'),
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 

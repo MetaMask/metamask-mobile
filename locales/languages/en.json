@@ -1695,7 +1695,6 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
-        "market_data_loading": "Waiting for market data",
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
         "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",

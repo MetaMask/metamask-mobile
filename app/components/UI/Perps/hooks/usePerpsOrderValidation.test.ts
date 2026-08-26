@@ -35,7 +35,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.failed': 'Order validation failed',
       'perps.failed_to_load_market_data': 'Failed to load market data',
-      'perps.order.validation.market_data_loading': 'Waiting for market data',
       'perps.order.validation.error': 'Validation error',
       'perps.order.validation.please_set_a_trigger_price':
         'Please set a trigger price',
@@ -391,7 +390,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain('Order validation failed');
     });
 
-    it('reports unavailable market data before requesting protocol validation', async () => {
+    it('keeps unavailable market data invalid without requesting protocol validation', async () => {
       // Arrange
       const params = { ...defaultParams, assetPrice: 0 };
 
@@ -405,7 +404,8 @@ describe('usePerpsOrderValidation', () => {
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
-      expect(result.current.errors).toContain('Waiting for market data');
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.isValid).toBe(false);
       expect(mockValidateOrder).not.toHaveBeenCalled();
     });
   });
