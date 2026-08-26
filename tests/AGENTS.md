@@ -25,20 +25,18 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
 
-## Dual-framework lint freeze (MMQA-2230)
+## Dual-framework imports
 
-ESLint blocks **new** dual-framework debt in POs, flows, and Appium specs:
+ESLint **errors** on dual-framework debt in POs, flows, and Appium specs (no warn allowlist):
 
-| Banned                                                                                         | Prefer                                             |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `UnifiedGestures`                                                                              | `Gestures`                                         |
-| `FrameworkDetector`                                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
-| `encapsulated` / `encapsulatedAction` / `asPlaywrightElement` / `asDetoxElement`               | `Matchers` + `Gestures` / `Assertions`             |
-| `PlaywrightMatchers` / `PlaywrightGestures` / `PlaywrightAssertions` / `PlaywrightWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
+| Banned                                                                         | Prefer                                             |
+| ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `UnifiedGestures`                                                              | `Gestures`                                         |
+| `FrameworkDetector`                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
+| `encapsulated` / `encapsulatedAction`                                          | `Matchers` + `Gestures` / `Assertions`             |
+| `AppiumMatchers` / `AppiumGestures` / `AppiumAssertions` / `AppiumWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
 
-- **New files**: **error**
-- **Allowlisted existing debt**: **warn** — list in [`tests/framework/dual-framework-burndown.js`](framework/dual-framework-burndown.js). Do not add paths to that list; migrate instead.
-- Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
+Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
 ## Canonical Sources (read these, do not duplicate)
 
@@ -48,14 +46,13 @@ ESLint blocks **new** dual-framework debt in POs, flows, and Appium specs:
 - [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it, AI test selection logic.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
 - [tests/docs/UNIFIED_E2E_ARCHITECTURE.md](docs/UNIFIED_E2E_ARCHITECTURE.md) — Appium layered architecture.
-- [tests/docs/UNIFIED_GESTURES_MIGRATION.md](docs/UNIFIED_GESTURES_MIGRATION.md) — Migrate off UnifiedGestures → Gestures.
 - [tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md](docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — Local `buildPath` vs pre-installed app, `fullReset` / `noReset` for `EmulatorConfigBuilder`.
 - [tests/docs/MOCKING.md](docs/MOCKING.md) — API mocking, default and test-specific mocks.
 - [tests/docs/analytics-e2e.md](docs/analytics-e2e.md) — MetaMetrics E2E: `analyticsExpectations` on `withFixtures`, presets, `runAnalyticsExpectations`.
 - [tests/docs/CONTROLLER_MOCKING.md](docs/CONTROLLER_MOCKING.md) — Controller mocking.
 - [tests/docs/MODULE_MOCKING.md](docs/MODULE_MOCKING.md) — Module mocking.
 - [tests/integration/AGENTS.md](integration/AGENTS.md) — Integration test harnesses and rules.
-- [tests/framework/index.ts](framework/index.ts) — Assertions, Gestures, Matchers, Utilities, PlaywrightAdapter.
+- [tests/framework/index.ts](framework/index.ts) — Assertions, Gestures, Matchers, Utilities, AppiumElement.
 - [tests/framework/fixtures/FixtureHelper.ts](framework/fixtures/FixtureHelper.ts), [FixtureBuilder.ts](framework/fixtures/FixtureBuilder.ts) — Fixtures.
 - [AGENTS.md](../AGENTS.md) — Root index; commands, architecture.
 - [.github/guidelines/CODING_GUIDELINES.md](../.github/guidelines/CODING_GUIDELINES.md) — Coding standards.

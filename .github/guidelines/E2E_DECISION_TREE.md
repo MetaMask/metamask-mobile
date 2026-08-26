@@ -20,7 +20,7 @@ flowchart TD
     GR -->|Scheduled or Push to main/release/*| Full[Run all E2E Suites for Both]
 
     Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
-    LABEL -->|yes| AllTags[Run all E2E needed]
+    LABEL -->|yes| AllTags[Run all E2E tags on platforms selected by path filters]
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF{{Confidence >= 85% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
@@ -68,6 +68,12 @@ cherry-pick PRs use the same Android-first platform policy as main PRs: Android
 is selected by path filters and iOS is opt-in through the Appium iOS label or
 shared smoke/Appium infrastructure changes.
 
+When `skip-smart-e2e-selection` is present, Smart E2E is bypassed and the full
+`ALL` tag set runs on each platform already required by path filters — it does
+not add platforms that path filters would skip. On PRs where path filters
+require iOS, this label also enables Appium iOS smoke (otherwise opt-in via
+`run-appium-ios-tests`).
+
 ## (Exceptional) skip builds and all E2E tests
 
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
@@ -76,7 +82,7 @@ shared smoke/Appium infrastructure changes.
 ## Appium smoke platform policy
 
 - Pull requests targeting `main` or `release/*` run Appium Android when Android E2E is required. Smart E2E controls the selected tags.
-- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` is added or shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`), provided an iOS build is required by path filters.
+- Appium iOS is skipped on PRs by default. It runs when `run-appium-ios-tests` is added (also opts into the iOS native build on Android-only PRs), when `skip-smart-e2e-selection` is added and path filters already require iOS, or when shared smoke/Appium infrastructure changes (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`) and path filters require an iOS build.
 - Pushes to `main` and `release/*` run Appium Android and Appium iOS with the full `ALL` tag set.
 - PRs targeting `stable` from `release/*` are synchronization-only and run no E2E, including Appium.
 - Stable branch synchronization automation remains active; stable is not the release-build source.
@@ -94,7 +100,7 @@ Flakiness detection is applied to modified E2E test files in PRs:
 `release/*` branches are release candidates. Their E2E policy is:
 
 - Cherry-pick PRs from `main` use Smart E2E selection with the Android-first platform policy.
-- Release cherry-pick PRs do not automatically run iOS; use `run-appium-ios-tests` when an iOS build is required.
+- Release cherry-pick PRs do not automatically run iOS; use `run-appium-ios-tests` to opt into the iOS build and Appium iOS smoke when needed.
 - Every push to `release/*` runs Android and iOS Appium E2E with `ALL` tags.
 - PRs from `release/*` to `stable` are synchronization PRs and run no E2E.
 - The final release decision is based on the latest tested `release/*` SHA, which is also the source for the production build.

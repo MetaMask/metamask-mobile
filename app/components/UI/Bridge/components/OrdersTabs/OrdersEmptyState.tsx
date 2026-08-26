@@ -27,7 +27,7 @@ export function OrdersEmptyState({ description }: OrdersEmptyStateProps) {
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1"
+      twClassName="grow"
     >
       <TabEmptyState
         testID={OrdersTabsSelectorsIDs.EMPTY_STATE}

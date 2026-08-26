@@ -47,9 +47,15 @@ on:
         description: 'Runner provider (namespace or current)'
         required: false
         type: string
-        default: 'current'
+        default: 'namespace'
       android-tag:
-        description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
+        description: >-
+          Android system image tag. Stays on `default` (AOSP): `google_apis` is
+          baked into the runner image and would skip a ~9s dl.google.com pull,
+          but it ships Play Services and a different browser engine, which
+          breaks the browser-navigation suite (ENS resolution, cross-origin
+          redirect display, history isolation, safe-browsing interstitial).
+          Switching needs those assertions audited first.
         required: false
         type: string
         default: 'default'
@@ -84,6 +90,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
+
+      # This workflow mounted no cache volume, so every shard ran a cold
+      # `yarn install` (~51s vs 4.2s warm). `.metamask` is the foundryup
+      # download cache and lives in the workspace, so only a mount can serve it.
+      #
+      # node_modules is Android-only on purpose: nscloud-cache-action mounts
+      # paths as symlinks into the cache volume, which breaks Xcode projects
+      # that resolve $(SRCROOT) to a physical path (#34931). iOS Appium builds
+      # WebDriverAgent from node_modules, so it is exposed to that; Android
+      # runs no Xcode or Gradle and does not republish node_modules.
+      - name: Configure Namespace cache (Android)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+
+      # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
+      # never runs pod install.
+      - name: Configure Namespace cache (iOS)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            .yarn/cache
 
       - name: Setup E2E environment (Android)
         if: ${{ inputs.platform == 'android' }}

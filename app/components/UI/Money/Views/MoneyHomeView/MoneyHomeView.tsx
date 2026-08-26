@@ -7,14 +7,8 @@ import React, {
 } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  type RouteProp,
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import type { MoneyNavigationParamList } from '../../types/navigation';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -73,7 +67,7 @@ import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -112,7 +106,6 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<MoneyNavigationParamList, 'MoneyHome'>>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -150,24 +143,10 @@ const MoneyHomeView = () => {
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
-  const trackMoneyHomeViewed = useCallback(
-    () =>
-      trackScreenViewed({
-        entry_point: route.params?.entryPoint,
-      }),
-    [route.params?.entryPoint, trackScreenViewed],
-  );
-
   useFocusEffect(
     useCallback(() => {
-      trackMoneyHomeViewed();
-
-      return () => {
-        if (route.params?.entryPoint) {
-          navigation.setParams({ entryPoint: undefined });
-        }
-      };
-    }, [navigation, route.params?.entryPoint, trackMoneyHomeViewed]),
+      trackScreenViewed();
+    }, [trackScreenViewed]),
   );
 
   const handlePullRefresh = useCallback(async () => {
@@ -580,7 +559,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenButtonPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -613,7 +596,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenSurfaceClicked({
           component_name:

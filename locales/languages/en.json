@@ -1100,6 +1100,42 @@
       "see_more": "See more"
     }
   },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "Send funds directly to your Money account from any bank account.",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
+      "button": "Agree and continue"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
+      "step_upload_id": "Upload ID document",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm personal details",
+      "data_and_privacy_title": "Data and privacy",
+      "what_we_collect_title": "What we collect",
+      "what_we_collect_description": "We collect personal information as part of identity verification, including legal full name, address, and more.",
+      "how_we_store_data_title": "How we store data",
+      "how_we_store_data_description": "Verification info is securely stored on MetaMask-managed servers. It's encrypted with your Secret Recovery Phrase entropy and we can't access the data. Your consent will be required for future use with another provider.",
+      "how_to_delete_title": "How to delete",
+      "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask T&C",
+      "idos_privacy_policy": "idOS Privacy Policy",
+      "idos_terms": "idOS T&C",
+      "sumsub_privacy_policy": "Sumsub Privacy Policy",
+      "sumsub_terms": "Sumsub T&C",
+      "button": "Continue"
+    }
+  },
   "social_leaderboard": {
     "top_traders_view": {
       "notifications_banner": {
@@ -1548,6 +1584,11 @@
     "pro_positions_panel": {
       "order_history": "Order history",
       "close_count": "Close ({{count}})",
+      "cancel_all": "Cancel all",
+      "open_orders": {
+        "one": "{{count}} order",
+        "other": "{{count}} orders"
+      },
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
@@ -1650,6 +1691,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
@@ -1806,6 +1853,7 @@
       "use_custom_title": "Use custom slippage",
       "row_format": "Est: {{est}}% / Max: {{value}}%",
       "row_format_pending": "Est: -- / Max: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Max slippage percentage",
       "decrement_label": "Decrease slippage",
       "increment_label": "Increase slippage",
@@ -2413,13 +2461,17 @@
     },
     "close_all_modal": {
       "title": "Close all positions",
-      "description": "We'll close all your open positions at current market price.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "includes {{pnlAmount}}",
       "fees": "Fees",
       "you_will_receive": "You'll receive",
       "keep_positions": "Keep positions",
-      "close_all": "Close all",
+      "close_count": "Close ({{count}})",
       "closing": "Closing...",
       "success_title": "Positions closed",
       "success_message": "Successfully closed {{count}} position(s)",
@@ -2428,10 +2480,13 @@
       "error_message": "Failed to close {{count}} position(s)"
     },
     "cancel_all_modal": {
-      "title": "Cancel all orders",
-      "description": "We'll cancel all your open orders.",
+      "title": "Cancel orders",
+      "description": {
+        "one": "We'll cancel {{count}} pending order. Any unfilled orders will be removed immediately.",
+        "other": "We'll cancel {{count}} pending orders. Any unfilled orders will be removed immediately."
+      },
       "keep_orders": "Keep orders",
-      "confirm": "Confirm",
+      "confirm": "Cancel all",
       "canceling": "Canceling...",
       "success_title": "Orders canceled",
       "success_message": "Successfully canceled {{count}} order(s)",
@@ -2472,7 +2527,8 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply",
-      "clear": "Clear"
+      "clear": "Clear",
+      "reset": "Reset"
     },
     "provider_selector": {
       "title": "Select Provider"
@@ -2701,8 +2757,8 @@
     "card_footer_disclaimer": "AI generated",
     "footer_disclaimer": "AI summary for information only",
     "disclaimer_modal": {
-      "title": "AI generated content",
-      "body": "This summary is AI-generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Got it"
     },
     "swap_button": "Swap",
@@ -2768,6 +2824,35 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
+    "market": {
+      "volume": "{{value}} Vol."
+    },
+    "rules": {
+      "event_accessibility_label": "View event rules",
+      "market_accessibility_label": "View market rules",
+      "close_accessibility_label": "Close rules",
+      "event_title": "Event rules",
+      "market_title": "Market rules",
+      "title": "Rules",
+      "settlement_sources": {
+        "prefix": "Outcome verified from ",
+        "separator": ", ",
+        "last_separator": " and ",
+        "suffix": ".",
+        "open_hint": "Opens the source in your browser."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Loading event",
+      "unable_to_load": "Unable to load this event."
+    },
+    "history": {
+      "loading_accessibility_label": "Loading market history",
+      "unable_to_load": "Market history could not be loaded.",
+      "unavailable_for_range": "Market history is not available for this range.",
+      "chart_accessibility_label": "Market probability history. {{values}}",
+      "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
@@ -5425,7 +5510,7 @@
     "mint": "Mint",
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
-    "smart_contract_interaction": "Smart contract interaction",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Deposit to Money Account",
     "money_account_withdraw": "Transfer from Money Account",
     "swaps_transaction": "Swaps transaction",
@@ -7639,6 +7724,21 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "earn_module": {
+    "new_tag": "New",
+    "money_account": "Money account",
+    "get_started": "Get started",
+    "rate_apy": "{{percentage}}% APY",
+    "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Get {{percentage}}% APY",
+    "get_rate_apr": "Get {{percentage}}% APR",
+    "rate_unavailable": "Rate unavailable",
+    "balance_unavailable": "Balance unavailable",
+    "asset_unavailable": "Asset unavailable",
+    "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
+    "retry": "Retry",
+    "view_more": "View more"
+  },
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
@@ -7805,7 +7905,8 @@
       "bank_account": "Bank account",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
-      "coming_soon": "Coming soon"
+      "coming_soon": "Coming soon",
+      "new_badge": "New"
     },
     "more_sheet": {
       "title": "More",
@@ -8501,7 +8602,18 @@
         "history": "Order history appears here"
       }
     },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
     "recurring": {
+      "you_get": "You get",
       "every": "Every",
       "repeat": "Repeat",
       "times": "times",
@@ -8517,7 +8629,11 @@
         "hour": "Hour",
         "day": "Day",
         "week": "Week"
-      }
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
@@ -10176,10 +10292,12 @@
       "geo_locked_cta": "Check eligibility",
       "geo_loading": "Checking region...",
       "remind_me_success_toast": "We'll let you know when this campaign starts.",
-      "remind_me_save_error": "Could not save your reminder. Please try again."
+      "remind_me_save_error": "Could not save your reminder. Please try again.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mechanics"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",
@@ -10196,6 +10314,12 @@
       "swap_ondo_assets": "Swap Ondo Assets",
       "open_position": "Trade now",
       "how_it_works": "How it works",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
+      "last_checked_at": "Last checked at",
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
@@ -10484,8 +10608,8 @@
       "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Predictions Account 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Steps ({{count}} completed)",
       "summary": "Summary"
     },
@@ -10850,6 +10974,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",
@@ -10871,7 +10996,6 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
-    "ai_generated": "AI Generated",
     "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
@@ -10921,6 +11045,28 @@
     "title": "MetaMask Pro",
     "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
+    "manage_plan": "Manage plan",
+    "earned_with_pro": "Earned with Pro",
+    "saved_with_pro": "Saved with Pro",
+    "your_benefits": "Your benefits",
+    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "physical_card": {
+      "title": "Get your physical card.",
+      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
+      "cta": "Get card"
+    },
+    "earned": {
+      "total_label": "Earned since joining Pro",
+      "interest_title": "Interest",
+      "interest_subtitle": "Up to 7% APY on Money balance",
+      "card_cashback_title": "Card cashback",
+      "card_cashback_subtitle": "3% in mUSD on {{amount}}",
+      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
+      "grow_title": "Grow your balance",
+      "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
+      "add_money": "Add money"
+    },
     "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
@@ -10954,7 +11100,13 @@
       "reason_support": "Unhappy with customer support",
       "reason_other": "Other",
       "keep_membership": "Keep membership",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
     }
   },
   "pro_subscription": {

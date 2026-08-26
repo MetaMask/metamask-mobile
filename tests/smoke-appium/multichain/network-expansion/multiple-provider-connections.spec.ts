@@ -5,11 +5,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../framework/fixtures/FixtureBuilder.js';
-import {
-  DappVariants,
-  PlaywrightAssertions,
-  asPlaywrightElement,
-} from '../../../framework/index.js';
+import { DappVariants, Assertions } from '../../../framework/index.js';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -83,12 +79,12 @@ appiumTest.describe(
             await TestDApp.requestPermissions();
 
             // The account already permitted (Account 2) should be pre-selected
-            await PlaywrightAssertions.expectTextDisplayed('Account 2');
+            await Assertions.expectTextDisplayed('Account 2');
 
             await connectAndOpenConnectedAccounts();
 
             // Only the already-permitted EVM account should remain connected
-            await PlaywrightAssertions.expectTextDisplayed('Account 2');
+            await Assertions.expectTextDisplayed('Account 2');
           },
         );
       },
@@ -110,29 +106,25 @@ appiumTest.describe(
             await TestDApp.tapDappConnectButton();
 
             // Account 1 should be the default selection
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             await connectAndOpenConnectedAccounts();
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
             await DappConnectionModal.tapPermissionsTabButton();
             await DappConnectionModal.tapEditNetworksButton();
 
             // Both Solana and Ethereum Main Network should be visible as permitted
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                DappConnectionModal.getNetworkButton(
-                  NetworkNonPemittedBottomSheetSelectorsText.SOLANA_NETWORK_NAME,
-                ),
+            await Assertions.expectElementToBeVisible(
+              DappConnectionModal.getNetworkButton(
+                NetworkNonPemittedBottomSheetSelectorsText.SOLANA_NETWORK_NAME,
               ),
               { timeout: 10_000 },
             );
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                DappConnectionModal.getNetworkButton(
-                  NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
-                ),
+            await Assertions.expectElementToBeVisible(
+              DappConnectionModal.getNetworkButton(
+                NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
               ),
               { timeout: 10_000 },
             );
@@ -159,12 +151,12 @@ appiumTest.describe(
             });
 
             // Account 1 should be pre-selected
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             await connectAndOpenConnectedAccounts();
 
             // EVM account should be connected
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
           },
         );
       },
