@@ -6,11 +6,11 @@ import {
   BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
-  ButtonFilter,
   ButtonIcon,
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
+  Checkbox,
   FilterButton,
   FontWeight,
   HelpText,
@@ -415,10 +415,6 @@ const PerpsProOrderForm = ({
     [onReduceOnlyChange, playSelection],
   );
 
-  const handleReduceOnlyPress = useCallback(() => {
-    handleReduceOnlyChange(!reduceOnly);
-  }, [handleReduceOnlyChange, reduceOnly]);
-
   const handleExpandOrderBook = useCallback(() => {
     if (!onExpandOrderBook) {
       return;
@@ -583,16 +579,22 @@ const PerpsProOrderForm = ({
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />
-          <Box testID={ids.REDUCE_ONLY_CONTAINER} twClassName="items-start">
-            <ButtonFilter
-              isActive={reduceOnly}
-              accessibilityState={{ selected: reduceOnly }}
-              onPress={handleReduceOnlyPress}
-              size={ButtonBaseSize.Sm}
+          <Box
+            testID={ids.REDUCE_ONLY_CONTAINER}
+            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+          >
+            <Checkbox
+              label={strings('perps.order.reduce_only')}
+              labelProps={{
+                variant: TextVariant.BodySm,
+                fontWeight: FontWeight.Medium,
+                style: { marginLeft: 0, flex: 1 },
+              }}
+              isSelected={reduceOnly}
+              onChange={handleReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
-            >
-              {strings('perps.order.reduce_only')}
-            </ButtonFilter>
+              twClassName="w-full flex-row-reverse justify-between"
+            />
           </Box>
           {showsTpSl ? (
             <TPSLRow
