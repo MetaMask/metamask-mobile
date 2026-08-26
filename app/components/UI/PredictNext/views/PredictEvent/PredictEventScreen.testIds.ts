@@ -14,6 +14,8 @@ export const PredictEventScreenTestIds = {
   GAME_METADATA: 'predict-next-event-game-metadata',
   MARKETS: 'predict-next-event-markets',
   market: (marketId: string) => `predict-next-event-market-${marketId}`,
+  PREDICT_SECTION: 'predict-next-event-predict-section',
+  EVENT_RULES_BUTTON: 'predict-next-event-rules-button',
   team: (selection: 'away' | 'home') => `predict-next-event-team-${selection}`,
   teamLogo: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo`,

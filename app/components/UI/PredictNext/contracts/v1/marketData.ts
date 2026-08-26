@@ -68,6 +68,11 @@ const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
     return false;
   }
 });
+const settlementSourceName = refine(
+  string(),
+  'PredictSettlementSourceName',
+  (value) => value.trim().length > 0,
+);
 const status = enums([
   'initialized',
   'active',
@@ -127,6 +132,11 @@ const sportsContextSchema = object({
   game: optional(gameSchema),
 });
 
+const settlementSourceSchema = object({
+  name: settlementSourceName,
+  url: httpsUrl,
+});
+
 const outcomeSchema = object({
   id: entityId,
   side,
@@ -145,6 +155,7 @@ const binaryOutcomes = refine(
 const marketSchema = object({
   id: entityId,
   question: string(),
+  rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
   volume: optional(amount),
@@ -167,6 +178,7 @@ const eventSchema = object({
   id: entityId,
   title: string(),
   subtitle: optional(string()),
+  rules: optional(string()),
   startsAt: optional(timestamp),
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),
@@ -176,6 +188,7 @@ const eventSchema = object({
   volume24h: optional(amount),
   imageUrl: optional(httpsUrl),
   sports: optional(sportsContextSchema),
+  settlementSources: optional(array(settlementSourceSchema)),
   markets: nonEmptyMarkets,
 });
 

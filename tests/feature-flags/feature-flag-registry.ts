@@ -3841,6 +3841,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyMovementBrazilNeobank: {
+    name: 'moneyMovementBrazilNeobank',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountGeoBlockedCountries: {
     name: 'moneyAccountGeoBlockedCountries',
     type: FeatureFlagType.Remote,
@@ -5498,6 +5506,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'row2Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1276AbtestHeaderNavBar: {
+    name: 'homeTMCU1276AbtestHeaderNavBar',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
         scope: {
           type: 'percentage_rollout',
           value: 1,

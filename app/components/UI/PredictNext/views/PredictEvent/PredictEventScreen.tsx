@@ -18,11 +18,14 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { getEventGame } from '../../events/game';
+import { MarketList, MarketStandardCard } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
+import type { PredictMarket } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
@@ -33,6 +36,7 @@ import {
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
+import RulesBottomSheet from './internal/RulesBottomSheet';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const styles = StyleSheet.create({
@@ -43,6 +47,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 });
+
+type RulesTarget =
+  | { type: 'event' }
+  | { type: 'market'; marketId: PredictMarket['id'] }
+  | null;
 
 const EventScreenLayout = ({
   children,
@@ -78,6 +87,7 @@ export const PredictEventScreen = () => {
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
+  const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
@@ -100,35 +110,55 @@ export const PredictEventScreen = () => {
         : navigation.navigate(PredictNextRoutes.HOME),
     [navigation],
   );
+  const handleEventRulesPress = useCallback(() => {
+    setRulesTarget({ type: 'event' });
+  }, []);
+  const handleMarketRulesPress = useCallback((market: PredictMarket) => {
+    setRulesTarget({ type: 'market', marketId: market.id });
+  }, []);
+  const handleRulesClose = useCallback(() => {
+    setRulesTarget(null);
+  }, []);
 
-  const event = query.data;
-  const selectedMarket =
-    event?.markets.find((market) => market.id === selectedMarketId) ??
-    event?.markets[0];
-  const game = event ? getEventGame(event) : undefined;
-  const homeMarket = event?.markets.find((market) =>
-    market.outcomes.some(
-      (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'home',
-    ),
-  );
-  const awayMarket = event?.markets.find((market) =>
-    market.outcomes.some(
-      (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'away',
-    ),
-  );
+  if (query.data) {
+    const event = query.data;
+    const eventRules = event.rules?.trim();
+    const historyMarket =
+      event.markets.find((market) => market.id === selectedMarketId) ??
+      event.markets[0];
+    const rulesMarket =
+      rulesTarget?.type === 'market'
+        ? event.markets.find((market) => market.id === rulesTarget.marketId)
+        : undefined;
+    const game = getEventGame(event);
+    const homeMarket = event.markets.find((market) =>
+      market.outcomes.some(
+        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'home',
+      ),
+    );
+    const awayMarket = event.markets.find((market) =>
+      market.outcomes.some(
+        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'away',
+      ),
+    );
 
-  if (event) {
     return (
-      <EventScreenLayout onBack={handleBack}>
-        <Box twClassName="gap-6">
+      <>
+        <EventScreenLayout onBack={handleBack}>
           {game ? (
-            <GameEventHeader event={event} />
+            <GameEventHeader
+              event={event}
+              onRulesPress={eventRules ? handleEventRulesPress : undefined}
+            />
           ) : (
-            <StandardEventHeader event={event} />
+            <StandardEventHeader
+              event={event}
+              onRulesPress={eventRules ? handleEventRulesPress : undefined}
+            />
           )}
           {event.markets.length > 1 && !(game && homeMarket && awayMarket) ? (
             <FilterButtonGroup
-              value={selectedMarket?.id ?? ''}
+              value={historyMarket?.id ?? ''}
               onChange={setSelectedMarketId}
               variant={FilterButtonVariant.Secondary}
               testID={PredictEventScreenTestIds.MARKETS}
@@ -139,7 +169,7 @@ export const PredictEventScreen = () => {
                   value={market.id}
                   accessibilityRole="tab"
                   accessibilityState={{
-                    selected: selectedMarket?.id === market.id,
+                    selected: historyMarket?.id === market.id,
                   }}
                   style={styles.marketFilter}
                   textProps={{ numberOfLines: 3, ellipsizeMode: 'tail' }}
@@ -156,14 +186,38 @@ export const PredictEventScreen = () => {
               home={{ market: homeMarket, team: game.homeTeam }}
               away={{ market: awayMarket, team: game.awayTeam }}
             />
-          ) : selectedMarket ? (
+          ) : historyMarket ? (
             <PredictMarketHistory
               venueId={event.venueId}
-              market={selectedMarket}
+              market={historyMarket}
             />
           ) : null}
-        </Box>
-      </EventScreenLayout>
+          <Box
+            testID={PredictEventScreenTestIds.PREDICT_SECTION}
+            twClassName="mt-8 gap-[14px]"
+          >
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('wallet.predict')}
+            </Text>
+            <MarketList>
+              {event.markets.map((market) => (
+                <MarketStandardCard
+                  key={market.id}
+                  market={market}
+                  onRulesPress={handleMarketRulesPress}
+                />
+              ))}
+            </MarketList>
+          </Box>
+        </EventScreenLayout>
+        <RulesBottomSheet
+          isVisible={rulesTarget !== null}
+          eventRules={eventRules}
+          market={rulesMarket}
+          settlementSources={event.settlementSources}
+          onClose={handleRulesClose}
+        />
+      </>
     );
   }
 
@@ -186,7 +240,7 @@ export const PredictEventScreen = () => {
               testID={PredictEventScreenTestIds.ERROR_MESSAGE}
               variant={TextVariant.BodyMd}
             >
-              Unable to load this event.
+              {strings('predict.event.unable_to_load')}
             </Text>
             <Button
               testID={PredictEventScreenTestIds.RETRY}
@@ -195,7 +249,7 @@ export const PredictEventScreen = () => {
               isLoading={query.isFetching}
               onPress={() => query.refetch()}
             >
-              Retry
+              {strings('predict.error.retry')}
             </Button>
           </Box>
         </Box>

@@ -58,6 +58,98 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses market rules and removes raw venue rule fields', () => {
+    const input = createEvent({
+      settlementSources: [
+        { name: 'the Governing League', url: 'https://www.nfl.com/' },
+        { name: 'ESPN', url: 'https://www.espn.com/' },
+      ],
+      markets: [
+        createMarket({
+          rules: 'Primary rule.\n\nSecondary rule.',
+          rules_primary: 'Primary rule.',
+          rules_secondary: 'Secondary rule.',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.settlementSources).toEqual([
+      { name: 'the Governing League', url: 'https://www.nfl.com/' },
+      { name: 'ESPN', url: 'https://www.espn.com/' },
+    ]);
+    expect(result.markets[0].rules).toBe('Primary rule.\n\nSecondary rule.');
+    expect(result.markets[0]).not.toHaveProperty('rules_primary');
+    expect(result.markets[0]).not.toHaveProperty('rules_secondary');
+  });
+
+  it.each([
+    {
+      name: 'Event-only rules',
+      eventRules: 'Event rule.',
+      marketRules: undefined,
+    },
+    {
+      name: 'Market-only rules',
+      eventRules: undefined,
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'different Event and Market rules',
+      eventRules: 'Event rule.',
+      marketRules: 'Market rule.',
+    },
+    {
+      name: 'identical Event and Market rules',
+      eventRules: 'Shared rule.',
+      marketRules: 'Shared rule.',
+    },
+    {
+      name: 'absent rules',
+      eventRules: undefined,
+      marketRules: undefined,
+    },
+  ])(
+    'preserves $name in the canonical response',
+    ({ eventRules, marketRules }) => {
+      const input = createEvent({
+        rules: eventRules,
+        markets: [createMarket({ rules: marketRules })],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.rules).toBe(eventRules);
+      expect(result.markets[0].rules).toBe(marketRules);
+    },
+  );
+
+  it.each([
+    {
+      name: 'an empty source name',
+      source: { name: '', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'a whitespace-only source name',
+      source: { name: '   ', url: 'https://www.espn.com/' },
+    },
+    {
+      name: 'an insecure source URL',
+      source: { name: 'ESPN', url: 'http://www.espn.com/' },
+    },
+    {
+      name: 'a malformed source URL',
+      source: { name: 'ESPN', url: 'not-a-url' },
+    },
+  ])('rejects a settlement source with $name', ({ source }) => {
+    const input = createEvent({ settlementSources: [source] });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a closed Market', () => {
     const input = createEvent({
       markets: [createMarket({ status: 'closed' })],

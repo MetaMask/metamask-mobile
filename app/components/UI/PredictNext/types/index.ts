@@ -102,6 +102,7 @@ export interface PredictOutcome {
 export interface PredictMarket {
   id: PredictEntityId;
   question: string;
+  rules?: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   volume?: string;
@@ -113,11 +114,17 @@ export interface PredictMarket {
   resolvesAt?: PredictTimestamp;
 }
 
+export interface PredictSettlementSource {
+  name: string;
+  url: PredictHttpsUrl;
+}
+
 export interface PredictEvent {
   venueId: PredictVenueId;
   id: PredictEntityId;
   title: string;
   subtitle?: string;
+  rules?: string;
   startsAt?: PredictTimestamp;
   closesAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
@@ -127,6 +134,7 @@ export interface PredictEvent {
   volume24h?: string;
   imageUrl?: string;
   sports?: PredictSportsContext;
+  settlementSources?: readonly PredictSettlementSource[];
   markets: readonly PredictMarket[];
 }
 
