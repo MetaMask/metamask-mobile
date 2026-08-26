@@ -1,6 +1,7 @@
 # Appium Smoke Tests — Android
 #
-# Fans out one reusable job per Appium smoke tag. Add a matching job below.
+# One reusable job per Appium smoke tag (fixed total_splits by default).
+# With appium-dynamic-shards, run-appium-e2e-workflow plans shard count from timings.
 # Invoked from ci.yml when build-android-apks succeeds (PR + main).
 
 name: Appium Smoke Tests (Android)
@@ -33,6 +34,11 @@ on:
         required: false
         type: string
         default: ''
+      dynamic_shards:
+        description: 'When true (appium-dynamic-shards label), choose shard count from timings'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       build_type:
@@ -60,6 +66,11 @@ on:
         required: false
         type: string
         default: ''
+      dynamic_shards:
+        description: 'When true (appium-dynamic-shards label), choose shard count from timings'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -75,22 +86,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-accounts-android-smoke
       platform: android
       test_suite_tag: SmokeAccounts
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-perps-android-smoke:
@@ -100,22 +107,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokePerps'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-perps-android-smoke
       platform: android
       test_suite_tag: SmokePerps
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-predictions-android-smoke:
@@ -125,22 +128,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokePredictions'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-predictions-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-predictions-android-smoke
       platform: android
       test_suite_tag: SmokePredictions
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-seedless-onboarding-android-smoke:
@@ -150,22 +149,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-seedless-onboarding-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-seedless-onboarding-android-smoke
       platform: android
       test_suite_tag: SmokeSeedlessOnboarding
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-snaps-android-smoke:
@@ -175,16 +170,11 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2, 3, 4, 5, 6]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-snaps-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-snaps-android-smoke
       platform: android
       test_suite_tag: SmokeSnaps
-      split_number: ${{ matrix.split }}
       total_splits: 6
       # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
       test-timeout-minutes: 25
@@ -192,6 +182,7 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-network-abstractions-android-smoke:
@@ -201,21 +192,17 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-network-abstractions-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-network-abstractions-android-smoke
       platform: android
       test_suite_tag: SmokeNetworkAbstractions
-      split_number: ${{ matrix.split }}
       total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-wallet-platform-android-smoke:
@@ -225,22 +212,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-wallet-platform-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-wallet-platform-android-smoke
       platform: android
       test_suite_tag: SmokeWalletPlatform
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-swap-android-smoke:
@@ -250,22 +233,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSwap'))
       }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-swap-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-swap-android-smoke
       platform: android
       test_suite_tag: SmokeSwap
-      split_number: ${{ matrix.split }}
       total_splits: 1
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-stake-android-smoke:
@@ -275,22 +254,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeStake'))
       }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-stake-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-stake-android-smoke
       platform: android
       test_suite_tag: SmokeStake
-      split_number: ${{ matrix.split }}
       total_splits: 1
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   # appium-mmconnect-android-smoke:
@@ -306,7 +281,7 @@ jobs:
   #     fail-fast: false
   #   uses: ./.github/workflows/run-appium-e2e-workflow.yml
   #   with:
-  #     test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
+  #     test-suite-name: appium-mmconnect-android-smoke
   #     platform: android
   #     test_suite_tag: SmokeMMConnect
   #     split_number: ${{ matrix.split }}
@@ -325,22 +300,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeMoney'))
       }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-money-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-money-android-smoke
       platform: android
       test_suite_tag: SmokeMoney
-      split_number: ${{ matrix.split }}
       total_splits: 1
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-browser-android-smoke:
@@ -350,22 +321,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeBrowser'))
       }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-browser-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-browser-android-smoke
       platform: android
       test_suite_tag: SmokeBrowser
-      split_number: ${{ matrix.split }}
       total_splits: 1
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-confirmations-android-smoke:
@@ -375,22 +342,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeConfirmations'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-confirmations-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-confirmations-android-smoke
       platform: android
       test_suite_tag: SmokeConfirmations
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-multichain-api-android-smoke:
@@ -400,22 +363,18 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2, 3]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-multichain-api-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-multichain-api-android-smoke
       platform: android
       test_suite_tag: SmokeMultiChainAPI
-      split_number: ${{ matrix.split }}
       total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit
 
   appium-network-expansion-android-smoke:
@@ -425,20 +384,16 @@ jobs:
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion'))
       }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-network-expansion-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-network-expansion-android-smoke
       platform: android
       test_suite_tag: SmokeNetworkExpansion
-      split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
+      dynamic_shards: ${{ inputs.dynamic_shards }}
     secrets: inherit

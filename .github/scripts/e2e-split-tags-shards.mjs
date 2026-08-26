@@ -9,13 +9,17 @@
  * 4) On PRs, duplicate changed specs (*-retry-1.spec.*) for flakiness detection
  * 5) Write SPEC_FILES to GITHUB_OUTPUT for Playwright
  *
- * Also: `node e2e-split-tags-shards.mjs --write-shard-status [prevDir] [report] [out]`
- * merges pass/fail across re-runs into shard-status.json.
+ * Also:
+ *   `node e2e-split-tags-shards.mjs --plan-matrix` — plan all shards → GITHUB_OUTPUT matrix
+ *   `node e2e-split-tags-shards.mjs --write-shard-status [prevDir] [report] [out]`
+ *     merges pass/fail across re-runs into shard-status.json.
  *
  * Env (select mode):
  *   PLATFORM, TEST_SUITE_TAG, SPLIT_NUMBER, TOTAL_SPLITS, BASE_DIR
  *   E2E_TIMINGS_PATH, GITHUB_TOKEN, REPOSITORY
  *   PR_NUMBER, CHANGED_SPEC_FILES, RUN_ATTEMPT, PREVIOUS_RESULTS_PATH
+ *   PACKED_SPEC_FILES — optional; skip discover/pack (from --plan-matrix)
+ * Env (plan-matrix): DYNAMIC_SHARDS, TOTAL_SPLITS (when dynamic is false)
  */
 
 import fs from 'node:fs';
@@ -27,6 +31,11 @@ import {
   binPackShards,
   planShards,
   baseSpecPath,
+  chooseShardCount,
+  estimateTotalDurationSeconds,
+  assignShards,
+  shardsToGithubMatrix,
+  DYNAMIC_SHARD_DEFAULTS,
 } from './shared/e2e-timing-shards.mjs';
 
 const env = {
@@ -42,6 +51,11 @@ const env = {
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
   E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || './e2e-timings.json',
+  /** When set (space-separated), skip discover/pack and only apply re-run + flakiness. */
+  PACKED_SPEC_FILES: process.env.PACKED_SPEC_FILES || '',
+  DYNAMIC_SHARDS: ['1', 'true', 'yes'].includes(
+    String(process.env.DYNAMIC_SHARDS || '').toLowerCase(),
+  ),
 };
 
 const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
@@ -550,38 +564,54 @@ async function main() {
   if (env.PLATFORM !== 'android' && env.PLATFORM !== 'ios') {
     throw new Error(`❌ Invalid PLATFORM "${env.PLATFORM}" — expected android or ios`);
   }
-  if (!Number.isFinite(env.SPLIT_NUMBER) || env.SPLIT_NUMBER < 1) {
-    throw new Error(`❌ Invalid SPLIT_NUMBER: ${process.env.SPLIT_NUMBER}`);
-  }
-  if (!Number.isFinite(env.TOTAL_SPLITS) || env.TOTAL_SPLITS < 1) {
-    throw new Error(`❌ Invalid TOTAL_SPLITS: ${process.env.TOTAL_SPLITS}`);
+
+  const packedFromPlan = env.PACKED_SPEC_FILES.trim()
+    ? env.PACKED_SPEC_FILES.trim().split(/\s+/).filter(Boolean)
+    : null;
+
+  if (!packedFromPlan) {
+    if (!Number.isFinite(env.SPLIT_NUMBER) || env.SPLIT_NUMBER < 1) {
+      throw new Error(`❌ Invalid SPLIT_NUMBER: ${process.env.SPLIT_NUMBER}`);
+    }
+    if (!Number.isFinite(env.TOTAL_SPLITS) || env.TOTAL_SPLITS < 1) {
+      throw new Error(`❌ Invalid TOTAL_SPLITS: ${process.env.TOTAL_SPLITS}`);
+    }
   }
 
   console.log(
-    `Selecting Appium specs for ${env.TEST_SUITE_TAG} shard ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (${env.PLATFORM})`,
+    packedFromPlan
+      ? `Filtering planned Appium specs for ${env.TEST_SUITE_TAG} (${env.PLATFORM})`
+      : `Selecting Appium specs for ${env.TEST_SUITE_TAG} shard ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (${env.PLATFORM})`,
   );
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
 
-  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
-  console.log(
-    `Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`,
-  );
+  let splitFiles;
+  if (packedFromPlan) {
+    splitFiles = packedFromPlan;
+  } else {
+    const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
+    console.log(
+      `Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`,
+    );
 
-  if (allMatches.length === 0) {
-    throw new Error(`❌ No Appium specs found containing tag: ${env.TEST_SUITE_TAG}`);
+    if (allMatches.length === 0) {
+      throw new Error(`❌ No Appium specs found containing tag: ${env.TEST_SUITE_TAG}`);
+    }
+
+    splitFiles = await selectShardFiles(
+      allMatches,
+      env.SPLIT_NUMBER,
+      env.TOTAL_SPLITS,
+      env.PLATFORM,
+    );
   }
-
-  const splitFiles = await selectShardFiles(
-    allMatches,
-    env.SPLIT_NUMBER,
-    env.TOTAL_SPLITS,
-    env.PLATFORM,
-  );
   let runFiles = [...splitFiles];
 
   if (runFiles.length === 0) {
     console.log(
-      `⚠️  No specs for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} file(s), ${env.TOTAL_SPLITS} runners).`,
+      packedFromPlan
+        ? '⚠️  Planned spec list is empty for this shard.'
+        : `⚠️  No specs for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${splitFiles.length} file(s), ${env.TOTAL_SPLITS} runners).`,
     );
     appendGithubOutput('spec_files', '');
     appendGithubOutput('spec_count', '0');
@@ -659,6 +689,103 @@ async function main() {
   appendGithubOutput('spec_count', String(runFiles.length));
 }
 
+/**
+ * Plan all shards for a tag → GitHub Actions matrix JSON (`--plan-matrix`).
+ * DYNAMIC_SHARDS=true chooses N from timings; else uses TOTAL_SPLITS (35242 default).
+ */
+async function planMatrixMain() {
+  if (!fs.existsSync(env.BASE_DIR)) {
+    throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
+  }
+  if (!env.TEST_SUITE_TAG) {
+    throw new Error('❌ Missing TEST_SUITE_TAG env var');
+  }
+  if (env.PLATFORM !== 'android' && env.PLATFORM !== 'ios') {
+    throw new Error(`❌ Invalid PLATFORM "${env.PLATFORM}" — expected android or ios`);
+  }
+
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
+  console.log(
+    `Planning Appium shards for ${env.TEST_SUITE_TAG} (${env.PLATFORM}): ${allMatches.length} file(s)`,
+  );
+
+  if (allMatches.length === 0) {
+    throw new Error(`❌ No Appium specs found containing tag: ${env.TEST_SUITE_TAG}`);
+  }
+
+  const timings = await fetchE2ETestTimes();
+  const hasTimings = Boolean(timings && Object.keys(timings).length > 0);
+
+  let shardCount;
+  if (env.DYNAMIC_SHARDS) {
+    const totalSeconds = estimateTotalDurationSeconds(
+      allMatches,
+      timings || {},
+      env.PLATFORM,
+      DYNAMIC_SHARD_DEFAULTS.medianFallbackSeconds,
+    );
+    shardCount = chooseShardCount(
+      allMatches.length,
+      totalSeconds,
+      DYNAMIC_SHARD_DEFAULTS,
+    );
+    const budget =
+      DYNAMIC_SHARD_DEFAULTS.targetMinutes - DYNAMIC_SHARD_DEFAULTS.overheadMinutes;
+    console.log(
+      `🔀 Dynamic shards: N=${shardCount} (budget ${budget}m packed, max ${DYNAMIC_SHARD_DEFAULTS.maxShards}; est ${Math.round(totalSeconds)}s)`,
+    );
+  } else {
+    if (!Number.isFinite(env.TOTAL_SPLITS) || env.TOTAL_SPLITS < 1) {
+      throw new Error(`❌ Invalid TOTAL_SPLITS: ${process.env.TOTAL_SPLITS}`);
+    }
+    shardCount = Math.min(allMatches.length, env.TOTAL_SPLITS);
+    console.log(
+      `📌 Fixed shards: N=${shardCount} (from total_splits=${env.TOTAL_SPLITS})`,
+    );
+  }
+
+  const shards = assignShards(
+    allMatches,
+    hasTimings ? timings : null,
+    env.PLATFORM,
+    shardCount,
+  );
+  console.log(hasTimings ? '⏱️  LPT assignment' : '📦 Equal-count assignment');
+  for (const shard of shards) {
+    const totalSec = Math.round(shard.totalDuration);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const dur =
+      shard.totalDuration > 0
+        ? ` ~${mins}m${String(secs).padStart(2, '0')}s`
+        : '';
+    console.log(`   Shard ${shard.index}:${dur} (${shard.files.length} files)`);
+  }
+
+  const matrix = shardsToGithubMatrix(shards);
+  if (matrix.include.length === 0) {
+    appendGithubOutput('skip', 'true');
+    appendGithubOutput(
+      'matrix',
+      JSON.stringify({ include: [{ shard: 1, spec_files: '' }] }),
+    );
+    appendGithubOutput('shard_count', '0');
+    console.log('⚠️  No non-empty shards — skip tests');
+    return;
+  }
+
+  appendGithubOutput('skip', 'false');
+  appendGithubOutput('shard_count', String(matrix.include.length));
+  const outputPath = process.env.GITHUB_OUTPUT;
+  if (outputPath) {
+    fs.appendFileSync(
+      outputPath,
+      `matrix<<EOF_MATRIX\n${JSON.stringify(matrix)}\nEOF_MATRIX\n`,
+    );
+  }
+  console.log(`✅ Matrix ready: ${matrix.include.length} shard job(s)`);
+}
+
 if (process.argv[1]?.endsWith('e2e-split-tags-shards.mjs')) {
   if (process.argv[2] === '--write-shard-status') {
     try {
@@ -671,6 +798,11 @@ if (process.argv[1]?.endsWith('e2e-split-tags-shards.mjs')) {
       console.error('\n❌ Failed to write shard status:', error);
       process.exit(1);
     }
+  } else if (process.argv[2] === '--plan-matrix') {
+    planMatrixMain().catch((error) => {
+      console.error('\n❌ Unexpected error:', error);
+      process.exit(1);
+    });
   } else {
     main().catch((error) => {
       console.error('\n❌ Unexpected error:', error);

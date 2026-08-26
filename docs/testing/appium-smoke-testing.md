@@ -234,7 +234,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
 - **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
-- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — selects specs per fixed `split`/`total_splits` via `e2e-split-tags-shards.mjs` (qa-stats timing bin-pack when available), then runs Playwright with `--grep` and those files.
+- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — plans shards then runs Playwright with `--grep` and explicit `SPEC_FILES`. Default: fixed `total_splits` from the smoke YAML + LPT / equal-count packing. Opt-in label `appium-dynamic-shards`: choose N from timings (25m − 8m overhead, max 6) then the same packing.
 - **Seedless:** `SmokeSeedlessOnboarding` uses **2** shards per platform (thin keep list in `tests/smoke-appium/seedless/`). Smart E2E selects this tag from `tests/tags.js` — prefer CV/unit for Account Already Exists, attribution props, and Import SRP UI.
 
 ## Adding a new Appium smoke spec

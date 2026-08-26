@@ -1,7 +1,15 @@
 /**
  * Timing-aware and equal-count shard assignment for Appium E2E.
- * Used by e2e-split-tags-shards.mjs; kept separate so Jest can import it.
+ * Used by e2e-split-tags-shards.mjs; packing is not framework-specific.
  */
+
+/** Defaults for opt-in dynamic shard count (`appium-dynamic-shards` label). */
+export const DYNAMIC_SHARD_DEFAULTS = {
+  targetMinutes: 25,
+  overheadMinutes: 8,
+  maxShards: 6,
+  medianFallbackSeconds: 60,
+};
 
 /**
  * @param {string} filePath
@@ -118,4 +126,97 @@ export function binPackShards(files, timings, platform, splitNumber, totalSplits
   const shards = planShards(files, timings, platform, totalSplits);
   const thisShard = shards.find((s) => s.index === splitNumber);
   return thisShard ? thisShard.files : [];
+}
+
+/**
+ * @param {string[]} files
+ * @param {Record<string, { android?: number, ios?: number }>} timings
+ * @param {string} platform
+ * @param {number} [medianFallback]
+ * @returns {number}
+ */
+export function estimateTotalDurationSeconds(
+  files,
+  timings,
+  platform,
+  medianFallback = DYNAMIC_SHARD_DEFAULTS.medianFallbackSeconds,
+) {
+  const platformKey = platform === 'ios' ? 'ios' : 'android';
+  const getValidDuration = (file) => {
+    const value = timings[timingLookupKey(file)]?.[platformKey];
+    return typeof value === 'number' && Number.isFinite(value) && value > 0
+      ? value
+      : undefined;
+  };
+  const known = files.map(getValidDuration).filter((t) => t !== undefined);
+  const median = computeMedian(known, medianFallback);
+  return files.reduce((sum, file) => sum + (getValidDuration(file) ?? median), 0);
+}
+
+/**
+ * Choose shard count from packed duration budget (target − overhead), capped by maxShards.
+ * @param {number} filesLength
+ * @param {number} totalDurationSeconds
+ * @param {Partial<typeof DYNAMIC_SHARD_DEFAULTS>} [config]
+ * @returns {number}
+ */
+export function chooseShardCount(
+  filesLength,
+  totalDurationSeconds,
+  config = {},
+) {
+  const {
+    targetMinutes = DYNAMIC_SHARD_DEFAULTS.targetMinutes,
+    overheadMinutes = DYNAMIC_SHARD_DEFAULTS.overheadMinutes,
+    maxShards = DYNAMIC_SHARD_DEFAULTS.maxShards,
+  } = config;
+
+  if (filesLength <= 0) return 0;
+
+  const budgetSeconds = (targetMinutes - overheadMinutes) * 60;
+  if (budgetSeconds <= 0) return 1;
+
+  const total = Number.isFinite(totalDurationSeconds)
+    ? Math.max(0, totalDurationSeconds)
+    : 0;
+  const raw = total === 0 ? 1 : ceilDiv(total, budgetSeconds);
+  return Math.max(1, Math.min(filesLength, maxShards, raw));
+}
+
+/**
+ * Build all shards for a tag: LPT when timings exist, else equal-count.
+ * @param {string[]} files
+ * @param {Record<string, { android?: number, ios?: number }> | null | undefined} timings
+ * @param {string} platform
+ * @param {number} shardCount
+ * @returns {{ index: number, files: string[], totalDuration: number }[]}
+ */
+export function assignShards(files, timings, platform, shardCount) {
+  const count = Math.max(0, Math.min(files.length, shardCount));
+  if (count === 0) return [];
+
+  if (timings && Object.keys(timings).length > 0) {
+    return planShards(files, timings, platform, count);
+  }
+
+  return Array.from({ length: count }, (_, i) => {
+    const shardFiles = computeShardingSplit(files, i + 1, count);
+    return { index: i + 1, files: shardFiles, totalDuration: 0 };
+  });
+}
+
+/**
+ * GitHub Actions strategy.matrix payload: `{ include: [{ shard, spec_files }] }`.
+ * @param {{ index: number, files: string[] }[]} shards
+ * @returns {{ include: { shard: number, spec_files: string }[] }}
+ */
+export function shardsToGithubMatrix(shards) {
+  return {
+    include: shards
+      .filter((s) => s.files.length > 0)
+      .map((s) => ({
+        shard: s.index,
+        spec_files: s.files.join(' '),
+      })),
+  };
 }
