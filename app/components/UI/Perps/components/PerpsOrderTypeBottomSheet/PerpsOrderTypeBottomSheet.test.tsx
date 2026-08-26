@@ -412,6 +412,57 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(screen.queryByLabelText(/-icon-dark$/)).not.toBeOnTheScreen();
     });
 
+    it('renders the 32px TWAP graph asset in dark theme', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+          currentOrderType="twap"
+        />,
+        AppThemeKey.dark,
+      );
+
+      const iconContainer = screen.getByTestId(
+        `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon`,
+      );
+      const graphIcon = within(iconContainer).UNSAFE_getByType('SvgMock');
+
+      expect(iconContainer).toHaveProp(
+        'accessibilityLabel',
+        `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon-dark`,
+      );
+      expect(graphIcon).toHaveProp('name', 'perps-order-type-twap');
+      expect(graphIcon).toHaveProp('width', 32);
+      expect(graphIcon).toHaveProp('height', 32);
+      expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
+    });
+
+    it('renders the 32px TWAP graph asset in light theme', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+          currentOrderType="twap"
+        />,
+        AppThemeKey.light,
+      );
+
+      const iconContainer = screen.getByTestId(
+        `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon`,
+      );
+      const graphIcon = within(iconContainer).UNSAFE_getByType('SvgMock');
+
+      expect(iconContainer).toHaveProp(
+        'accessibilityLabel',
+        `${PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION}-icon-light`,
+      );
+
+      expect(graphIcon).toHaveProp('name', 'perps-order-type-twap');
+      expect(graphIcon).toHaveProp('width', 32);
+      expect(graphIcon).toHaveProp('height', 32);
+      expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
+    });
+
     it('forwards the Pro title and selected-icon presentation', () => {
       render(
         <PerpsOrderTypeBottomSheet

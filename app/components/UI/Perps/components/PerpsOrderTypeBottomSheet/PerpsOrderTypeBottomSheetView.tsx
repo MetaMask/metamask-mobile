@@ -5,10 +5,6 @@ import {
   BottomSheet,
   BottomSheetHeader,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   type BottomSheetRef,
   ListItemSelect,
 } from '@metamask/design-system-react-native';
@@ -37,6 +33,8 @@ import TakeLimitIconDark from '../../../../../images/perps/order-types/take-limi
 import TakeLimitIconLight from '../../../../../images/perps/order-types/take-limit-light.svg';
 import TakeMarketIconDark from '../../../../../images/perps/order-types/take-market.svg';
 import TakeMarketIconLight from '../../../../../images/perps/order-types/take-market-light.svg';
+import TwapIconDark from '../../../../../images/perps/order-types/twap.svg';
+import TwapIconLight from '../../../../../images/perps/order-types/twap-light.svg';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 type OrderTypeIcon = React.FC<SvgProps & { name: string }>;
@@ -53,14 +51,6 @@ interface OrderTypeOption {
 const DESCRIPTION_PROPS = {
   fontWeight: FontWeight.Regular,
 } as const;
-
-const TwapOrderTypeIcon: OrderTypeIcon = () => (
-  <Icon
-    name={IconName.Clock}
-    size={IconSize.Xl}
-    color={IconColor.IconDefault}
-  />
-);
 
 const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
   {
@@ -122,8 +112,8 @@ const TWAP_ORDER_TYPE: OrderTypeOption = {
   type: 'twap',
   titleKey: 'perps.order.type.twap.title',
   descriptionKey: 'perps.order.type.twap.description',
-  LightIcon: TwapOrderTypeIcon,
-  DarkIcon: TwapOrderTypeIcon,
+  LightIcon: TwapIconLight,
+  DarkIcon: TwapIconDark,
   testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
 };
 
