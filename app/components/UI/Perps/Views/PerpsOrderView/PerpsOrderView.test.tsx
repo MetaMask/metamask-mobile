@@ -513,7 +513,7 @@ jest.mock(
 
 // Live wallet balance for the selected pay token, independent of the stale
 // `payToken.balanceUsd` controller snapshot.
-let mockPayTokenAccountBalanceUsd = '0';
+let mockPayTokenAccountBalanceUsd: string | undefined = '1000';
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
   () => ({
@@ -1108,11 +1108,22 @@ describe('PerpsOrderView', () => {
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
     mockIsPaySubmitReady = true;
-    mockPayTokenAccountBalanceUsd = '0';
+    mockPayTokenAccountBalanceUsd = '1000';
     mockProviderEffectiveAvailableBalance = undefined;
     mockIsPayQuoteLoading = false;
     mockPayTotals = undefined;
     mockPayRequiredTokens = [];
+    mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: {
+        address: '0xeeee',
+        chainId: '0x1',
+        symbol: 'ETH',
+        balanceUsd: '1000',
+      },
+      setPayToken: jest.fn(),
+      isNative: true,
+    });
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -5013,7 +5024,7 @@ describe('PerpsOrderView', () => {
         setPayToken: jest.fn(),
         isNative: undefined,
       });
-      mockPayTokenAccountBalanceUsd = '0';
+      mockPayTokenAccountBalanceUsd = undefined;
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -5023,6 +5034,63 @@ describe('PerpsOrderView', () => {
       });
 
       expect(mockProviderEffectiveAvailableBalance).toBeUndefined();
+    });
+
+    it.each([
+      ['pay token', undefined, undefined],
+      ['live balance', PAY_TOKEN, undefined],
+    ])(
+      'disables Place Order while the %s is unresolved',
+      async (_, token, balance) => {
+        mockUseTransactionPayToken.mockReturnValue({
+          payToken: token,
+          setPayToken: jest.fn(),
+          isNative: false,
+        });
+        mockPayTokenAccountBalanceUsd = balance;
+        mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        const placeOrderButton = await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        );
+        expect(placeOrderButton).toBeDisabled();
+        expect(screen.queryByText('Insufficient funds')).toBeNull();
+      },
+    );
+
+    it('hides transient funding errors until the live balance resolves', async () => {
+      const transientError = 'Available: $0';
+      const transientAlert = 'Not enough funds available';
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: [transientError],
+        isValidating: false,
+      });
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'InsufficientPayTokenBalance',
+          message: transientAlert,
+          isBlocking: true,
+        },
+      ]);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: PAY_TOKEN,
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = undefined;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await screen.findByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON);
+      expect(screen.queryByText(transientError)).toBeNull();
+      expect(screen.queryByText(transientAlert)).toBeNull();
     });
 
     it('defers to the Perps balance when the Perps account is the payment method', async () => {
