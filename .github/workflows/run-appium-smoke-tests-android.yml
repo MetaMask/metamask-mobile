@@ -402,7 +402,9 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        # 3 shards: equal-count file fallback packs heavy invokeMethod* files onto
+        # shard 1/2 and times out the 25m step (see MMQA-2210 / run 32936214251).
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -410,7 +412,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeMultiChainAPI
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
