@@ -1,6 +1,10 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
+import {
+  KnownCaipNamespace,
+  parseCaipChainId,
+  type CaipChainId,
+} from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
@@ -70,8 +74,19 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  const preserveHumanReadableAmount =
+    parseCaipChainId(item.chainId).namespace !== KnownCaipNamespace.Eip155;
+  const enrichmentOptions = { preserveHumanReadableAmount };
+  const sourceToken = enrichTokenFromApi(
+    rawSourceToken,
+    tokenData,
+    enrichmentOptions,
+  );
+  const destinationToken = enrichTokenFromApi(
+    rawDestinationToken,
+    tokenData,
+    enrichmentOptions,
+  );
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,

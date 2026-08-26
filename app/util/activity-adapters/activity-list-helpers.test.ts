@@ -462,6 +462,23 @@ describe('enrichTokenFromApi', () => {
     expect(result?.decimals).toBe(8);
   });
 
+  it('does not add decimals to a human-readable amount', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '50',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(
+      enrichTokenFromApi(token, apiData, {
+        preserveHumanReadableAmount: true,
+      }),
+    ).toStrictEqual({
+      ...token,
+      symbol: 'USDT',
+    });
+  });
+
   it('preserves a zero-decimals value rather than treating it as missing', () => {
     const token: TokenAmount = {
       direction: 'out',

@@ -175,6 +175,7 @@ export const getActivityValue = (item: ActivityListItem) => {
 export function enrichTokenFromApi(
   token: TokenAmount | undefined,
   dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+  options: { preserveHumanReadableAmount?: boolean } = {},
 ): TokenAmount | undefined {
   if (!token?.assetId) {
     return token;
@@ -184,7 +185,13 @@ export function enrichTokenFromApi(
     return token;
   }
   const symbol = token.symbol ?? listToken.symbol;
-  const decimals = token.decimals ?? listToken.decimals;
+  // Keyring transactions expose non-EVM amounts as human-readable values.
+  // Adding API decimals later would make formatters reinterpret e.g. `50` SUN
+  // as 50 atomic units. Keep any decimals supplied by the transaction itself,
+  // but do not attach API decimals to those human-readable amounts.
+  const decimals = options.preserveHumanReadableAmount
+    ? token.decimals
+    : (token.decimals ?? listToken.decimals);
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
