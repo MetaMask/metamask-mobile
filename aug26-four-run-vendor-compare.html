@@ -410,8 +410,12 @@ function render(){
 
   document.getElementById('run-board').innerHTML = DATA.order.map(id=>{
     const r=DATA.runs[id];
-    const pills=Object.keys(DATA.laneMeta).map(lk=>{
+    // Only lanes that actually ran in Aug 26 A–D (TestMu HE is historical → separate board)
+    const pills=Object.keys(DATA.laneMeta).filter(lk => !DATA.laneMeta[lk].historical).map(lk=>{
       const lane=r.lanes[lk]; const meta=DATA.laneMeta[lk];
+      if(!lane){
+        return `<div class="lane-pill"><div><span class="dot" style="background:${meta.color}"></span>${meta.name}</div><div class="big">—</div><div class="muted">not in this run</div></div>`;
+      }
       return `<div class="lane-pill">
         <div><span class="dot" style="background:${meta.color}"></span>${meta.name}</div>
         <div class="big">${lane.pass}<span style="font-size:12px;color:var(--muted)">/23</span></div>
@@ -420,7 +424,7 @@ function render(){
     }).join('');
     return `<article class="run-card">
       <h3>${r.label} <a href="${r.url}" target="_blank">${id}</a></h3>
-      <div class="muted" style="font-size:11px;margin-bottom:6px">${r.createdAt.slice(0,16).replace('T',' ')} UTC · <code>${r.headSha}</code></div>
+      <div class="muted" style="font-size:11px;margin-bottom:6px">${r.createdAt.slice(0,16).replace('T',' ')} UTC · <code>${r.headSha}</code> · TestMu skipped</div>
       <div class="lane-row">${pills}</div>
     </article>`;
   }).join('');
