@@ -5,6 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { MoneyOnboardingParams } from '../types/navigation';
+import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -56,9 +57,11 @@ export const useMoneyNavigation = () => {
     useMoneyOnboardingNavigation();
 
   const navigateToMoneyHome = useCallback(
-    (entryPoint?: string) => {
+    (analyticsContext?: NavigationAnalyticsContext) => {
       if (
-        redirectToOnboardingIfNeeded(entryPoint ? { entryPoint } : undefined)
+        redirectToOnboardingIfNeeded(
+          analyticsContext ? { analyticsContext } : undefined,
+        )
       ) {
         return;
       }
@@ -69,7 +72,7 @@ export const useMoneyNavigation = () => {
           screen: Routes.MONEY.ROOT,
           params: {
             screen: Routes.MONEY.HOME,
-            ...(entryPoint ? { params: { entryPoint } } : {}),
+            ...(analyticsContext ? { params: { analyticsContext } } : {}),
           },
         },
         { pop: true },

@@ -85,6 +85,7 @@ export const PerpsPositionCardSelectorsIDs = {
   DIRECTION_VALUE: 'position-card-direction-value',
   ENTRY_VALUE: 'position-card-entry-value',
   LIQUIDATION_PRICE_VALUE: 'position-card-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'position-card-liquidation-distance-value',
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
@@ -312,6 +313,14 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
 } as const;
 
+export const PerpsCancelAllOrdersViewSelectorsIDs = {
+  SHEET: 'perps-cancel-all-orders-sheet',
+  TITLE: 'perps-cancel-all-orders-title',
+  DESCRIPTION: 'perps-cancel-all-orders-description',
+  KEEP_BUTTON: 'perps-cancel-all-orders-keep-button',
+  CANCEL_ALL_BUTTON: 'perps-cancel-all-orders-cancel-all-button',
+} as const;
+
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
   TRADINGVIEW_CHART: 'tradingview-chart',
@@ -522,6 +531,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
+  ORDERS_CANCEL_ALL: 'perps-pro-market-orders-cancel-all',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_EDIT: 'perps-pro-market-order-edit',
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
@@ -564,6 +575,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
   REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',

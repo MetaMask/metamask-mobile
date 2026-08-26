@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
 // Import types from their source files
@@ -554,6 +555,10 @@ export type RootStackParamList = {
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
   RampsServiceDisruptionModal: undefined;
 
+  // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampGetPixKey: undefined;
+  RampVbaVerifyIdentity: undefined;
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -854,9 +859,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: { source?: string } | undefined;
+  DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
-  TokensFullView: { source?: string } | undefined;
+  TokensFullView: NavigationAnalyticsRouteParams | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -1035,6 +1040,7 @@ export type RootStackParamList = {
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;
+  ProHubEarned: undefined;
   ProHubCancelMembership: undefined;
 
   // Notification routes

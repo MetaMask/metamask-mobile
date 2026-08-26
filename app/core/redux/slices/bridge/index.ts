@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { uniqBy } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
@@ -875,7 +875,14 @@ export const selectControllerFields = createSelector(
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (requiredControllerFields, selectedQuoteRequestId) => {
+  (readOnlyRequiredControllerFields, selectedQuoteRequestId) => {
+    // This is a workaround to enable adding metadata to intent
+    // quotes during QuoteResponse migration.
+    const clonedQuotes = cloneDeep(readOnlyRequiredControllerFields.quotes);
+    const requiredControllerFields = {
+      ...readOnlyRequiredControllerFields,
+      quotes: clonedQuotes,
+    };
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,

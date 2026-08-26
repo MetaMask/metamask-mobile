@@ -5,7 +5,6 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
 } from 'react';
 import { View } from 'react-native';
 import {
@@ -43,10 +42,7 @@ import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
-import {
-  useIsTransactionPayQuoteLoading,
-  useTransactionPayFiatPayment,
-} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionPayData';
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
@@ -182,15 +178,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     // Fiat was selected (explicitly or because no crypto tokens are available)
     // with no crypto pay token — deposit prefill has nothing to prefill from.
-    const skipDepositPrefill =
+    const isFiatPrefillSkip =
       Boolean(autoSelectFiatPayment) ||
-      (Boolean(selectedFiatPaymentMethodId) && !payToken) ||
-      (!hasAvailableTokens && !payToken);
+      (Boolean(selectedFiatPaymentMethodId) && !payToken);
+    const skipDepositPrefill =
+      isFiatPrefillSkip || (!hasAvailableTokens && !payToken);
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { stage, setStage } = useCustomAmountStage({
+    const { isAmountUpdating, stage, setStage } = useCustomAmountStage({
       amountFiat,
       disablePay,
       hasAccountNoFunds,
@@ -204,8 +201,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    const [isAmountUpdatePending, setIsAmountUpdatePending] = useState(false);
-    const isQuotesLoading = useIsTransactionPayQuoteLoading();
     useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
@@ -240,7 +235,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
 
       isAmountUpdateInProgressRef.current = true;
-      setIsAmountUpdatePending(true);
       // Enter the loading stage: keyboard hidden, totals skeletons shown.
       setStage(CustomAmountStage.Loading);
 
@@ -280,7 +274,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       } finally {
         isAmountUpdateInProgressRef.current = false;
-        setIsAmountUpdatePending(false);
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
@@ -387,14 +380,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
+    const canEditZeroAmount =
+      !isPrefillPending &&
+      !isDepositPrefillLoading &&
+      (amountFiat === '0' || amountFiat === '');
+
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
-    // Once a Money Account deposit quote is in flight, reopening either picker
-    // is safe and keeps the loading screen responsive.
-    const shouldBlockReviewRows =
-      stage === CustomAmountStage.Loading &&
-      (isAmountUpdatePending || !isMoneyAccountDeposit || !isQuotesLoading);
+    // Once quote loading takes over, reopening a picker is safe and keeps the
+    // loading screen responsive.
+    const shouldBlockReviewRows = isAmountUpdating;
 
     return (
       <Box style={styles.container}>
@@ -405,11 +401,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
-              !skipDepositPrefill &&
+              !isFiatPrefillSkip &&
               (isPrefillPending || isDepositPrefillLoading)
             }
+            preserveAmountOnMaxQuoteLoad={isMoneyAccountDeposit}
             onPress={
-              stage === CustomAmountStage.Loading
+              stage === CustomAmountStage.Loading && !canEditZeroAmount
                 ? undefined
                 : handleAmountPress
             }

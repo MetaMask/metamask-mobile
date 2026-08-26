@@ -68,7 +68,7 @@ const getStockMarketHoursNowMs = () => stockMarketHoursClock.nowMs;
  * Re-evaluates stock-RWA market status on a shared one-minute clock so
  * off-hours and fully-closed UI (banners, confirm gating) stay in lockstep
  * when a trading window opens or closes. A per-caller clock would diverge:
- * `SwapsConfirmButton` unmounts while quotes load, then remounts with a fresh
+ * `SwapsMarketOrderConfirmButton` unmounts while quotes load, then remounts with a fresh
  * `Date.now()`, while banners keep their last tick for up to a minute.
  */
 export function useStockMarketHours() {
