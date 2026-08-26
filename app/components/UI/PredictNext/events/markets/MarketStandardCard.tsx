@@ -1,4 +1,12 @@
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
 import {
   formatAskPrice,
@@ -10,6 +18,7 @@ import { MarketCard } from './internal/MarketCard';
 
 export interface MarketStandardCardProps {
   market: PredictMarket;
+  onRulesPress: (market: PredictMarket) => void;
 }
 
 const findOutcome = (
@@ -18,7 +27,11 @@ const findOutcome = (
 ): PredictOutcome | undefined =>
   market.outcomes.find((outcome) => outcome.side === side);
 
-export const MarketStandardCard = ({ market }: MarketStandardCardProps) => {
+export const MarketStandardCard = ({
+  market,
+  onRulesPress,
+}: MarketStandardCardProps) => {
+  const rules = market.rules?.trim();
   const yesOutcome = findOutcome(market, 'yes');
   const noOutcome = findOutcome(market, 'no');
 
@@ -35,9 +48,28 @@ export const MarketStandardCard = ({ market }: MarketStandardCardProps) => {
     <MarketCard.Root testID={MarketStandardCardTestIds.card(market.id)}>
       <MarketCard.Header>
         <MarketCard.Summary>
-          <MarketCard.Title testID={MarketStandardCardTestIds.title(market.id)}>
-            {yesOutcome.label}
-          </MarketCard.Title>
+          <Box twClassName="flex-row items-center gap-2.5 min-w-0">
+            <Box twClassName="min-w-0 shrink">
+              <MarketCard.Title
+                testID={MarketStandardCardTestIds.title(market.id)}
+              >
+                {yesOutcome.label}
+              </MarketCard.Title>
+            </Box>
+            {rules ? (
+              <ButtonIcon
+                iconName={IconName.Question}
+                size={ButtonIconSize.Sm}
+                iconProps={{ color: IconColor.IconAlternative }}
+                onPress={() => onRulesPress(market)}
+                testID={MarketStandardCardTestIds.rulesButton(market.id)}
+                accessibilityLabel={strings(
+                  'predict.rules.market_accessibility_label',
+                )}
+                accessibilityRole="button"
+              />
+            ) : null}
+          </Box>
           {volume ? (
             <MarketCard.Volume
               value={volume}
