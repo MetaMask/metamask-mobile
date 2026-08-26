@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: ''
+      performance_test_filter:
+        description: 'Optional Playwright grep regex to run a specific performance scenario'
+        required: false
+        type: string
+        default: ''
       pr_number:
         description: 'Pull request number for posting results as a PR comment (workflow_call only)'
         required: false
@@ -330,7 +335,7 @@ jobs:
       browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      grep_tags: ${{ inputs.performance_test_filter || needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-onboarding-tests:
@@ -356,7 +361,7 @@ jobs:
       browserstack_app_url: ${{ inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      grep_tags: ${{ inputs.performance_test_filter || needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
   # =============================================================================
@@ -388,7 +393,7 @@ jobs:
       browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      grep_tags: ${{ inputs.performance_test_filter || needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
@@ -414,7 +419,7 @@ jobs:
       browserstack_app_url: ${{ inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      grep_tags: ${{ inputs.performance_test_filter || needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
   aggregate-results:

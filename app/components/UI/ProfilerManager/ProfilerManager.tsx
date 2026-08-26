@@ -67,6 +67,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   const [profilerError, setProfilerError] = useState<string | null>(null);
   const appId = getBundleId();
   const tw = useTailwind();
+  const showE2EControls =
+    enabled &&
+    ['e2e', 'rc', 'exp'].includes(process.env.METAMASK_ENVIRONMENT ?? '');
 
   const handleShake = useCallback(() => {
     setIsVisible((prev) => !prev);
@@ -164,7 +167,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   return (
     <>
       <ShakeDetector onShake={handleShake} sensibility={3} />
-      {process.env.METAMASK_ENVIRONMENT === 'e2e' && (
+      {showE2EControls && (
         <>
           <Pressable
             testID="e2e-profiler-toggle"
