@@ -358,11 +358,18 @@ runs:
 
     - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}
-      shell: bash
-      run: |
-        echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
-        yarn install:foundryup
-        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        retry_wait_seconds: 30
+        on_retry_command: |
+          echo "Foundry download failed; retrying after cleaning the partial cache..."
+          rm -rf .metamask/cache
+        command: |
+          echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
+          yarn install:foundryup
+          echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
     ## iOS Setup ##
 

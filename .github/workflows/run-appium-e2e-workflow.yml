@@ -85,6 +85,17 @@ jobs:
         uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
 
+      # Foundry's anvil binary is downloaded into .metamask by setup-e2e-env.
+      # Restore it before setup so every Appium shard can reuse the same
+      # immutable download instead of fetching it independently.
+      - name: Restore Foundry download cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: foundry-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
+
       - name: Setup E2E environment (Android)
         if: ${{ inputs.platform == 'android' }}
         uses: ./.github/actions/setup-e2e-env
@@ -111,6 +122,17 @@ jobs:
           skip-pod-install: 'true'
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Save Foundry download cache
+        if: >-
+          ${{
+            inputs.runner_provider != 'namespace' &&
+            steps.foundry-cache.outputs.cache-hit != 'true'
+          }}
+        uses: actions/cache/save@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Cache ffmpeg (Homebrew)
         if: ${{ inputs.platform == 'ios' }}
