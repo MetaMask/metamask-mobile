@@ -19,6 +19,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
