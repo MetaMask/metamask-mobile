@@ -1,6 +1,6 @@
 import type { GenericQuoteRequest } from '@metamask/bridge-controller';
 import { calcTokenValue } from '../../../../../../util/transactions';
-import type { UseBridgeQuotesParams } from '../types';
+import type { UseSwapQuotesParams } from '../types';
 
 const normalizeSrcAmount = (
   srcAmount: string | undefined,
@@ -13,7 +13,7 @@ const normalizeSrcAmount = (
 };
 
 export const buildGenericQuoteRequest = (input: {
-  quoteParams: UseBridgeQuotesParams['quoteParams'];
+  quoteParams: UseSwapQuotesParams['quoteParams'];
   gasIncluded: boolean;
   gasIncluded7702: boolean;
   insufficientBalance: boolean;
