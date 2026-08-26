@@ -50,8 +50,28 @@ const POPULAR_TOKEN_ASSET_IDS = [
   'eip155:56/slip44:714',
 ] as const;
 
-/** Covers cold start → unlock → empty-wallet Tokens mount on mid-range devices. */
-const POPULAR_TOKENS_PREFETCH_TTL_MS = 120_000;
+/** Covers cold start → unlock → homepage section mount on mid-range devices. */
+const HOMEPAGE_PREFETCH_TTL_MS = 120_000;
+
+/**
+ * Must mirror the homepage Predictions section request:
+ * usePredictMarketsForHomepage (limit 5, category 'trending') →
+ * fetchEventsFromPolymarketApi in
+ * app/components/UI/Predict/providers/polymarket/utils.ts (param order matters
+ * for an exact URL match).
+ */
+const PREDICT_TRENDING_MARKETS_URL = `https://gamma-api.polymarket.com/events/keyset?${new URLSearchParams(
+  {
+    limit: '5',
+    active: 'true',
+    archived: 'false',
+    closed: 'false',
+    ascending: 'false',
+    liquidity_min: '10000',
+    volume_min: '10000',
+    order: 'volume24hr',
+  },
+)}`;
 
 interface StartupPrefetch {
   url: string;
@@ -107,7 +127,18 @@ const STARTUP_PREFETCHES: readonly StartupPrefetch[] = [
     urlPrefix: 'https://price.api.cx.metamask.io/v3/spot-prices',
     urlIncludes: [MUSD_TOKEN_ADDRESS, 'vsCurrency=usd'],
     key: 'popular-tokens-spot-prices',
-    prefetchCacheTtlMs: POPULAR_TOKENS_PREFETCH_TTL_MS,
+    prefetchCacheTtlMs: HOMEPAGE_PREFETCH_TTL_MS,
+  },
+  {
+    // Homepage Predictions section trending markets (usePredictMarketsForHomepage).
+    // urlIncludes pins the one-shot cache to the homepage request (limit=5,
+    // volume24hr order) so Predict feed tabs (limit=20, other orders/tags)
+    // fetch normally.
+    url: PREDICT_TRENDING_MARKETS_URL,
+    urlPrefix: 'https://gamma-api.polymarket.com/events/keyset',
+    urlIncludes: ['limit=5&', 'order=volume24hr'],
+    key: 'predict-trending-markets',
+    prefetchCacheTtlMs: HOMEPAGE_PREFETCH_TTL_MS,
   },
 ];
 
