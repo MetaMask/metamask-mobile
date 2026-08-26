@@ -439,6 +439,17 @@ describe('EarnSection', () => {
     );
   });
 
+  it('navigates funded assets to Earn strategy selection', () => {
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+
+    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+      screen: Routes.EARN.STRATEGY_SELECTION,
+      params: { assetId },
+    });
+  });
+
   it('displays a retryable error without hiding healthy asset cards', () => {
     mockSectionResult({
       hasError: true,
