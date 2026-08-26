@@ -44,11 +44,12 @@ p{margin:0;color:#ccfbf1}
 .chip-btn.lane-bs.active{outline-color:var(--blue)}
 .chip-btn.lane-sp.active{outline-color:var(--orange)}
 .chip-btn.lane-sc.active{outline-color:var(--teal)}
+.chip-btn.lane-he.active{outline-color:var(--purple)}
 .select{
   background:#0e1626;border:1px solid var(--line);color:var(--ink);
   border-radius:10px;padding:8px 10px;font-size:12px;
 }
-.score-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.score-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 @media(max-width:980px){.score-grid{grid-template-columns:1fr}}
 .score-card{
   background:linear-gradient(180deg,#0e1626,#121a2b); border:1px solid var(--line);
@@ -97,7 +98,7 @@ td:first-child,th:first-child{position:sticky;left:0;background:#121a2b;z-index:
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#0e1626}
 
-.pipe-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.pipe-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
 @media(max-width:980px){.pipe-grid{grid-template-columns:1fr}}
 .pipe-card{background:#0e1626;border:1px solid var(--line);border-radius:14px;padding:14px;border-top:3px solid var(--c,#60a5fa)}
 .pipe-card .title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
@@ -138,9 +139,9 @@ ul.analysis li{margin:7px 0}
     <div class="eyebrow">MetaMask Mobile · Performance E2E · Aug 26 morning</div>
     <h1>4-run vendor comparison + final score</h1>
     <p>
-      BrowserStack vs Sauce Private vs Sauce Cloud across four consecutive manual runs
+      BrowserStack vs Sauce Private vs Sauce Cloud (Aug 26 A–D) <strong>+ TestMu HyperExecute</strong> (4 prior same-branch runs)
       on <code>MMQA-TestMu-PoC-HyperExecute</code> · commit <code>3988319a</code> · Pixel 7 Pro / Android 13.
-      TestMu lanes were skipped. Interactive filters + head-to-head + composite final score.
+      TestMu was skipped on Aug 26 — HE metrics come from Aug 19–20 HE runs on this branch. Interactive filters + head-to-head + composite final score.
     </p>
     <div class="banner">
       <strong>Session fails ≠ app timings.</strong>
@@ -163,6 +164,16 @@ ul.analysis li{margin:7px 0}
     <div class="run-grid" id="run-board"></div>
   </section>
 
+
+
+  <section class="section">
+    <h2>TestMu HyperExecute · historical same-branch runs</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Not present in Aug 26 A–D (jobs skipped). Using 4 prior HE runs on
+      <code>MMQA-TestMu-PoC-HyperExecute</code> (Pixel 8 Pro / Android 14).
+    </p>
+    <div class="run-grid" id="he-run-board"></div>
+  </section>
 
   <section class="section">
     <h2>Pipeline job execution · best vs worst</h2>
@@ -230,9 +241,10 @@ ul.analysis li{margin:7px 0}
     <h2>Pass-rate heatmap · all runs × lanes</h2>
     <div class="table-wrap">
       <table class="heatmap">
-        <thead><tr><th>Lane</th><th>Run A</th><th>Run B</th><th>Run C</th><th>Run D</th><th>Avg</th><th>Best</th><th>Worst</th></tr></thead>
+        <thead><tr><th>Lane</th><th>#1</th><th>#2</th><th>#3</th><th>#4</th><th>Avg</th><th>Best</th><th>Worst</th></tr></thead>
         <tbody id="heat-body"></tbody>
       </table>
+      <p class="muted" style="margin-top:8px;font-size:12px">Columns #1–#4 = Runs A–D for BS/Sauce · HE-1–HE-4 for TestMu HyperExecute (historical).</p>
     </div>
   </section>
 
@@ -244,7 +256,7 @@ ul.analysis li{margin:7px 0}
   <p class="foot" id="foot"></p>
 </main>
 <script>
-const DATA = {"generatedAt": "2026-08-26T10:35:02Z", "branch": "MMQA-TestMu-PoC-HyperExecute", "headSha": "3988319a", "device": "Google Pixel 7 Pro · Android 13", "note": "Request listed 32948862510 twice — compared once as Run D. TestMu was skipped in all 4 runs.", "rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "labels": {"32948794353": "Run A", "32948816890": "Run B", "32948838611": "Run C", "32948862510": "Run D"}, "laneMeta": {"browserstack": {"name": "BrowserStack", "color": "#60a5fa"}, "sauce_private": {"name": "Sauce Private", "color": "#fb923c"}, "sauce_cloud": {"name": "Sauce Cloud", "color": "#2dd4bf"}}, "order": ["32948794353", "32948816890", "32948838611", "32948862510"], "runs": {"32948794353": {"id": "32948794353", "label": "Run A", "createdAt": "2026-08-26T08:38:28Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "conclusion": "success", "lanes": {"browserstack": {"pass": 19, "qgFail": 1, "sessionFail": 0, "noMetrics": 3, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.685, "P"], "Fresh SRP wallet creation": [7.361000000000001, "P"], "Import SRP onboarding +50": [5.159, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.399, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [10.502999999999998, "P"], "Seedless Apple": [8.847, "F"], "Seedless Google": [3.455, "P"], "Seedless Telegram": [7.5889999999999995, "P"], "Aggregated Balance": [420.002, "P"], "Cross-chain ETH→SOL": [4.888999999999999, "P"], "Asset View": [2.648, "P"], "Cold Start → Login": [4.23, "P"], "Swap ETH→LINK": [2.194, "P"], "Import SRP +50": [3.2039999999999997, "P"], "Warm Start → Wallet": [1.49, "P"], "Perps add funds": [8.495000000000001, "P"], "Warm Start → Login": [1.222, "P"], "Predict Avail. Balance": [2.057, "P"], "Predict Market Details": [3.8489999999999998, "P"], "Predict Deposit": [9.975999999999999, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1324, "importedSec": 1739, "testPhaseSumSec": 3063, "medianValidSec": 3.8489999999999998, "jobPhaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0}, "sauce_private": {"pass": 6, "qgFail": 0, "sessionFail": 14, "noMetrics": 3, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.375, "P"], "Fresh SRP wallet creation": [8.2, "P"], "Import SRP onboarding +50": [3.891, "P"], "Money Home · empty": [null, "N"], "Account creation": [300.28, "SF"], "Money Home · funded": [300.005, "SF"], "Perps open/close": [null, "N"], "Seedless Apple": [300.275, "SF"], "Seedless Google": [300.271, "SF"], "Seedless Telegram": [5.553, "P"], "Aggregated Balance": [300.316, "SF"], "Cross-chain ETH→SOL": [300.35, "SF"], "Asset View": [300.345, "SF"], "Cold Start → Login": [300.338, "SF"], "Swap ETH→LINK": [300.313, "SF"], "Import SRP +50": [300.375, "SF"], "Warm Start → Wallet": [1.892, "P"], "Perps add funds": [300.008, "SF"], "Warm Start → Login": [1.081, "P"], "Predict Avail. Balance": [300.008, "SF"], "Predict Market Details": [300.275, "SF"], "Predict Deposit": [null, "N"], "Rewards tab": [300.286, "SF"]}, "onboardingSec": 1344, "importedSec": 2035, "testPhaseSumSec": 3379, "medianValidSec": 3.891, "jobPhaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.542, "P"], "Fresh SRP wallet creation": [7.839, "P"], "Import SRP onboarding +50": [4.297, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.853, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.0200000000000005, "P"], "Seedless Google": [3.52, "P"], "Seedless Telegram": [7.017, "F"], "Aggregated Balance": [9.049, "P"], "Cross-chain ETH→SOL": [4.154, "P"], "Asset View": [2.603, "P"], "Cold Start → Login": [4.749, "P"], "Swap ETH→LINK": [1.7610000000000001, "P"], "Import SRP +50": [3.1740000000000004, "P"], "Warm Start → Wallet": [1.153, "P"], "Perps add funds": [5.8260000000000005, "P"], "Warm Start → Login": [0.421, "P"], "Predict Avail. Balance": [0.958, "P"], "Predict Market Details": [2.9759999999999995, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 795, "importedSec": 887, "testPhaseSumSec": 1682, "medianValidSec": 3.52, "jobPhaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8}}, "workflowWallSec": 3766}, "32948816890": {"id": "32948816890", "label": "Run B", "createdAt": "2026-08-26T08:38:43Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "conclusion": "success", "lanes": {"browserstack": {"pass": 18, "qgFail": 2, "sessionFail": 2, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.096, "P"], "Fresh SRP wallet creation": [7.136, "P"], "Import SRP onboarding +50": [4.639, "P"], "Money Home · empty": [420.002, "SF"], "Account creation": [3.5279999999999996, "P"], "Money Home · funded": [420.001, "SF"], "Perps open/close": [14.488000000000001, "P"], "Seedless Apple": [5.825000000000001, "P"], "Seedless Google": [3.541, "P"], "Seedless Telegram": [300.001, "P"], "Aggregated Balance": [8.291, "P"], "Cross-chain ETH→SOL": [7.432, "F"], "Asset View": [420.002, "P"], "Cold Start → Login": [7.349, "F"], "Swap ETH→LINK": [3.206, "P"], "Import SRP +50": [2.45, "P"], "Warm Start → Wallet": [1.177, "P"], "Perps add funds": [6.470000000000001, "P"], "Warm Start → Login": [0.864, "P"], "Predict Avail. Balance": [0.858, "P"], "Predict Market Details": [3.812, "P"], "Predict Deposit": [10.6, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 2095, "importedSec": 1724, "testPhaseSumSec": 3819, "medianValidSec": 4.639, "jobPhaseMin": 63.6, "onboardingMin": 34.9, "importedMin": 28.7}, "sauce_private": {"pass": 4, "qgFail": 0, "sessionFail": 18, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [1.154, "P"], "Fresh SRP wallet creation": [300.297, "SF"], "Import SRP onboarding +50": [5.4559999999999995, "P"], "Money Home · empty": [300.007, "SF"], "Account creation": [300.269, "SF"], "Money Home · funded": [300.009, "SF"], "Perps open/close": [300.272, "SF"], "Seedless Apple": [300.272, "SF"], "Seedless Google": [300.27, "SF"], "Seedless Telegram": [300.001, "SF"], "Aggregated Balance": [300.342, "SF"], "Cross-chain ETH→SOL": [300.357, "SF"], "Asset View": [300.352, "SF"], "Cold Start → Login": [300.318, "SF"], "Swap ETH→LINK": [300.314, "SF"], "Import SRP +50": [3.368, "P"], "Warm Start → Wallet": [300.284, "SF"], "Perps add funds": [300.315, "SF"], "Warm Start → Login": [300.008, "SF"], "Predict Avail. Balance": [1.853, "P"], "Predict Market Details": [300.271, "SF"], "Predict Deposit": [300.006, "SF"], "Rewards tab": [null, "N"]}, "onboardingSec": 1679, "importedSec": 2076, "testPhaseSumSec": 3755, "medianValidSec": 3.368, "jobPhaseMin": 62.6, "onboardingMin": 28.0, "importedMin": 34.6}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.571, "P"], "Fresh SRP wallet creation": [8.0, "P"], "Import SRP onboarding +50": [3.982, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.7559999999999998, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.501, "P"], "Seedless Google": [3.045, "P"], "Seedless Telegram": [4.329, "P"], "Aggregated Balance": [8.708, "P"], "Cross-chain ETH→SOL": [4.0760000000000005, "P"], "Asset View": [2.667, "P"], "Cold Start → Login": [4.095, "P"], "Swap ETH→LINK": [3.06, "P"], "Import SRP +50": [4.665, "P"], "Warm Start → Wallet": [3.461, "F"], "Perps add funds": [5.285, "P"], "Warm Start → Login": [0.865, "P"], "Predict Avail. Balance": [1.676, "P"], "Predict Market Details": [4.195, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 839, "importedSec": 1012, "testPhaseSumSec": 1851, "medianValidSec": 4.0760000000000005, "jobPhaseMin": 30.9, "onboardingMin": 14.0, "importedMin": 16.9}}, "workflowWallSec": 5024}, "32948838611": {"id": "32948838611", "label": "Run C", "createdAt": "2026-08-26T08:38:58Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "conclusion": "success", "lanes": {"browserstack": {"pass": 20, "qgFail": 0, "sessionFail": 1, "noMetrics": 2, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.269, "P"], "Fresh SRP wallet creation": [5.743, "P"], "Import SRP onboarding +50": [420.001, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.613, "P"], "Money Home · funded": [420.002, "SF"], "Perps open/close": [13.215, "P"], "Seedless Apple": [2.247, "P"], "Seedless Google": [2.312, "P"], "Seedless Telegram": [3.367, "P"], "Aggregated Balance": [8.58, "P"], "Cross-chain ETH→SOL": [4.986000000000001, "P"], "Asset View": [3.014, "P"], "Cold Start → Login": [0.0, "P"], "Swap ETH→LINK": [2.081, "P"], "Import SRP +50": [2.411, "P"], "Warm Start → Wallet": [0.0, "P"], "Perps add funds": [7.62, "P"], "Warm Start → Login": [0.355, "P"], "Predict Avail. Balance": [0.803, "P"], "Predict Market Details": [2.1350000000000002, "P"], "Predict Deposit": [8.584, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1784, "importedSec": 1504, "testPhaseSumSec": 3288, "medianValidSec": 2.411, "jobPhaseMin": 54.8, "onboardingMin": 29.7, "importedMin": 25.1}, "sauce_private": {"pass": 3, "qgFail": 0, "sessionFail": 19, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.006, "SF"], "Fresh SRP wallet creation": [9.018, "P"], "Import SRP onboarding +50": [3.7820000000000005, "P"], "Money Home · empty": [300.007, "SF"], "Account creation": [300.275, "SF"], "Money Home · funded": [300.271, "SF"], "Perps open/close": [300.273, "SF"], "Seedless Apple": [300.279, "SF"], "Seedless Google": [5.816, "P"], "Seedless Telegram": [300.001, "SF"], "Aggregated Balance": [300.339, "SF"], "Cross-chain ETH→SOL": [300.372, "SF"], "Asset View": [300.339, "SF"], "Cold Start → Login": [300.384, "SF"], "Swap ETH→LINK": [300.321, "SF"], "Import SRP +50": [300.334, "SF"], "Warm Start → Wallet": [300.345, "SF"], "Perps add funds": [300.387, "SF"], "Warm Start → Login": [300.355, "SF"], "Predict Avail. Balance": [300.335, "SF"], "Predict Market Details": [300.339, "SF"], "Predict Deposit": [300.386, "SF"], "Rewards tab": [null, "N"]}, "onboardingSec": 1470, "importedSec": 2090, "testPhaseSumSec": 3560, "medianValidSec": 5.816, "jobPhaseMin": 59.3, "onboardingMin": 24.5, "importedMin": 34.8}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.561, "P"], "Fresh SRP wallet creation": [10.219999999999999, "P"], "Import SRP onboarding +50": [3.9859999999999998, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.041, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.055, "P"], "Seedless Google": [3.0469999999999997, "P"], "Seedless Telegram": [2.971, "P"], "Aggregated Balance": [9.137, "P"], "Cross-chain ETH→SOL": [5.569, "P"], "Asset View": [2.32, "P"], "Cold Start → Login": [9.633, "F"], "Swap ETH→LINK": [2.824, "P"], "Import SRP +50": [3.7540000000000004, "P"], "Warm Start → Wallet": [1.185, "P"], "Perps add funds": [5.359999999999999, "P"], "Warm Start → Login": [0.52, "P"], "Predict Avail. Balance": [0.993, "P"], "Predict Market Details": [3.6470000000000002, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 875, "importedSec": 993, "testPhaseSumSec": 1868, "medianValidSec": 3.6470000000000002, "jobPhaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6}}, "workflowWallSec": 4710}, "32948862510": {"id": "32948862510", "label": "Run D", "createdAt": "2026-08-26T08:39:14Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "conclusion": "success", "lanes": {"browserstack": {"pass": 18, "qgFail": 0, "sessionFail": 1, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.39, "P"], "Fresh SRP wallet creation": [6.234999999999999, "P"], "Import SRP onboarding +50": [5.77, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.685, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [11.951, "P"], "Seedless Apple": [4.478, "P"], "Seedless Google": [360.001, "SF"], "Seedless Telegram": [null, "N"], "Aggregated Balance": [8.257, "P"], "Cross-chain ETH→SOL": [420.001, "P"], "Asset View": [3.524, "P"], "Cold Start → Login": [3.861, "P"], "Swap ETH→LINK": [0.0, "P"], "Import SRP +50": [3.2939999999999996, "P"], "Warm Start → Wallet": [1.272, "P"], "Perps add funds": [8.786999999999999, "P"], "Warm Start → Login": [1.933, "P"], "Predict Avail. Balance": [1.162, "P"], "Predict Market Details": [2.853, "P"], "Predict Deposit": [11.584, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 2521, "importedSec": 1589, "testPhaseSumSec": 4110, "medianValidSec": 3.524, "jobPhaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5}, "sauce_private": {"pass": 0, "qgFail": 0, "sessionFail": 23, "noMetrics": 0, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.304, "SF"], "Fresh SRP wallet creation": [300.31, "SF"], "Import SRP onboarding +50": [300.318, "SF"], "Money Home · empty": [300.287, "SF"], "Account creation": [300.278, "SF"], "Money Home · funded": [300.321, "SF"], "Perps open/close": [300.329, "SF"], "Seedless Apple": [300.286, "SF"], "Seedless Google": [300.302, "SF"], "Seedless Telegram": [300.002, "SF"], "Aggregated Balance": [300.323, "SF"], "Cross-chain ETH→SOL": [300.362, "SF"], "Asset View": [300.319, "SF"], "Cold Start → Login": [300.352, "SF"], "Swap ETH→LINK": [300.31, "SF"], "Import SRP +50": [300.345, "SF"], "Warm Start → Wallet": [300.353, "SF"], "Perps add funds": [300.374, "SF"], "Warm Start → Login": [300.297, "SF"], "Predict Avail. Balance": [300.314, "SF"], "Predict Market Details": [300.311, "SF"], "Predict Deposit": [300.349, "SF"], "Rewards tab": [300.268, "SF"]}, "onboardingSec": 1616, "importedSec": 2208, "testPhaseSumSec": 3824, "medianValidSec": null, "jobPhaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8}, "sauce_cloud": {"pass": 15, "qgFail": 3, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.227, "P"], "Fresh SRP wallet creation": [18.658, "F"], "Import SRP onboarding +50": [3.924, "P"], "Money Home · empty": [null, "N"], "Account creation": [5.0569999999999995, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.908, "P"], "Seedless Google": [3.3230000000000004, "P"], "Seedless Telegram": [3.473, "P"], "Aggregated Balance": [8.811, "P"], "Cross-chain ETH→SOL": [4.2459999999999996, "P"], "Asset View": [2.157, "P"], "Cold Start → Login": [5.391, "P"], "Swap ETH→LINK": [1.6549999999999998, "P"], "Import SRP +50": [3.8489999999999998, "P"], "Warm Start → Wallet": [4.208, "F"], "Perps add funds": [5.481, "P"], "Warm Start → Login": [1.698, "P"], "Predict Avail. Balance": [3.194, "P"], "Predict Market Details": [3.781, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 890, "importedSec": 936, "testPhaseSumSec": 1826, "medianValidSec": 3.924, "jobPhaseMin": 30.4, "onboardingMin": 14.8, "importedMin": 15.6}}, "workflowWallSec": 5372}}, "scoring": {"weights": {"passRate": 55, "sessionHealth": 25, "speed": 20}, "explain": "Final = 0.55×passRate + 0.25×sessionHealth + 0.20×speed. passRate=pass/23. sessionHealth=1−sessionFail/23. speed=normalized inverse of test-phase minutes vs best lane in batch."}, "pipeline": {"lanes": {"browserstack": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3063, "phaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0, "pass": 19}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 4110, "phaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5, "pass": 18}, "spreadMin": 17.5, "avgMin": 59.5, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3063, "phaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0, "pass": 19}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 3819, "phaseMin": 63.6, "onboardingMin": 34.9, "importedMin": 28.7, "pass": 18}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 3288, "phaseMin": 54.8, "onboardingMin": 29.7, "importedMin": 25.1, "pass": 20}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 4110, "phaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5, "pass": 18}]}, "sauce_private": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3379, "phaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9, "pass": 6}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 3824, "phaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8, "pass": 0}, "spreadMin": 7.4, "avgMin": 60.5, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3379, "phaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9, "pass": 6}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 3755, "phaseMin": 62.6, "onboardingMin": 28.0, "importedMin": 34.6, "pass": 4}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 3560, "phaseMin": 59.3, "onboardingMin": 24.5, "importedMin": 34.8, "pass": 3}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 3824, "phaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8, "pass": 0}]}, "sauce_cloud": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 1682, "phaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8, "pass": 17}, "worst": {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 1868, "phaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6, "pass": 17}, "spreadMin": 3.1, "avgMin": 30.1, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 1682, "phaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8, "pass": 17}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 1851, "phaseMin": 30.9, "onboardingMin": 14.0, "importedMin": 16.9, "pass": 17}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 1868, "phaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6, "pass": 17}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 1826, "phaseMin": 30.4, "onboardingMin": 14.8, "importedMin": 15.6, "pass": 15}]}}, "workflow": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "wallSec": 3766, "wallMin": 62.8}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "wallSec": 5372, "wallMin": 89.5}, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "wallSec": 3766, "wallMin": 62.8}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "wallSec": 4710, "wallMin": 78.5}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "wallSec": 5024, "wallMin": 83.7}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "wallSec": 5372, "wallMin": 89.5}], "spreadMin": 26.7}}};
+const DATA = {"generatedAt": "2026-08-26T10:47:50Z", "branch": "MMQA-TestMu-PoC-HyperExecute", "headSha": "3988319a", "device": "Google Pixel 7 Pro · Android 13", "note": "Aug 26 runs A–D: BrowserStack + Sauce only (TestMu skipped). TestMu HyperExecute columns/scores use 4 prior same-branch HE runs (32373754440, 32366480495, 32265974787, 32248728966 · Aug 19–20 · Pixel 8 Pro/14). 32948862510 was listed twice in the request and compared once as Run D.", "rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "labels": {"32948794353": "Run A", "32948816890": "Run B", "32948838611": "Run C", "32948862510": "Run D"}, "laneMeta": {"browserstack": {"name": "BrowserStack", "color": "#60a5fa", "short": "BrowserStack"}, "sauce_private": {"name": "Sauce Private", "color": "#fb923c", "short": "Sauce Priv"}, "sauce_cloud": {"name": "Sauce Cloud", "color": "#2dd4bf", "short": "Sauce Cloud"}, "testmu_he": {"name": "TestMu HyperExecute", "color": "#a78bfa", "historical": true, "note": "From prior same-branch runs (Aug 19–20); not in Aug 26 A–D dispatches (TestMu skipped).", "short": "TestMu HE"}}, "order": ["32948794353", "32948816890", "32948838611", "32948862510"], "runs": {"32948794353": {"id": "32948794353", "label": "Run A", "createdAt": "2026-08-26T08:38:28Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "conclusion": "success", "lanes": {"browserstack": {"pass": 19, "qgFail": 1, "sessionFail": 0, "noMetrics": 3, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.685, "P"], "Fresh SRP wallet creation": [7.361000000000001, "P"], "Import SRP onboarding +50": [5.159, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.399, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [10.502999999999998, "P"], "Seedless Apple": [8.847, "F"], "Seedless Google": [3.455, "P"], "Seedless Telegram": [7.5889999999999995, "P"], "Aggregated Balance": [420.002, "P"], "Cross-chain ETH→SOL": [4.888999999999999, "P"], "Asset View": [2.648, "P"], "Cold Start → Login": [4.23, "P"], "Swap ETH→LINK": [2.194, "P"], "Import SRP +50": [3.2039999999999997, "P"], "Warm Start → Wallet": [1.49, "P"], "Perps add funds": [8.495000000000001, "P"], "Warm Start → Login": [1.222, "P"], "Predict Avail. Balance": [2.057, "P"], "Predict Market Details": [3.8489999999999998, "P"], "Predict Deposit": [9.975999999999999, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1324, "importedSec": 1739, "testPhaseSumSec": 3063, "medianValidSec": 3.8489999999999998, "jobPhaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0}, "sauce_private": {"pass": 6, "qgFail": 0, "sessionFail": 14, "noMetrics": 3, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.375, "P"], "Fresh SRP wallet creation": [8.2, "P"], "Import SRP onboarding +50": [3.891, "P"], "Money Home · empty": [null, "N"], "Account creation": [300.28, "SF"], "Money Home · funded": [300.005, "SF"], "Perps open/close": [null, "N"], "Seedless Apple": [300.275, "SF"], "Seedless Google": [300.271, "SF"], "Seedless Telegram": [5.553, "P"], "Aggregated Balance": [300.316, "SF"], "Cross-chain ETH→SOL": [300.35, "SF"], "Asset View": [300.345, "SF"], "Cold Start → Login": [300.338, "SF"], "Swap ETH→LINK": [300.313, "SF"], "Import SRP +50": [300.375, "SF"], "Warm Start → Wallet": [1.892, "P"], "Perps add funds": [300.008, "SF"], "Warm Start → Login": [1.081, "P"], "Predict Avail. Balance": [300.008, "SF"], "Predict Market Details": [300.275, "SF"], "Predict Deposit": [null, "N"], "Rewards tab": [300.286, "SF"]}, "onboardingSec": 1344, "importedSec": 2035, "testPhaseSumSec": 3379, "medianValidSec": 3.891, "jobPhaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.542, "P"], "Fresh SRP wallet creation": [7.839, "P"], "Import SRP onboarding +50": [4.297, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.853, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.0200000000000005, "P"], "Seedless Google": [3.52, "P"], "Seedless Telegram": [7.017, "F"], "Aggregated Balance": [9.049, "P"], "Cross-chain ETH→SOL": [4.154, "P"], "Asset View": [2.603, "P"], "Cold Start → Login": [4.749, "P"], "Swap ETH→LINK": [1.7610000000000001, "P"], "Import SRP +50": [3.1740000000000004, "P"], "Warm Start → Wallet": [1.153, "P"], "Perps add funds": [5.8260000000000005, "P"], "Warm Start → Login": [0.421, "P"], "Predict Avail. Balance": [0.958, "P"], "Predict Market Details": [2.9759999999999995, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 795, "importedSec": 887, "testPhaseSumSec": 1682, "medianValidSec": 3.52, "jobPhaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8}}, "workflowWallSec": 3766}, "32948816890": {"id": "32948816890", "label": "Run B", "createdAt": "2026-08-26T08:38:43Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "conclusion": "success", "lanes": {"browserstack": {"pass": 18, "qgFail": 2, "sessionFail": 2, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.096, "P"], "Fresh SRP wallet creation": [7.136, "P"], "Import SRP onboarding +50": [4.639, "P"], "Money Home · empty": [420.002, "SF"], "Account creation": [3.5279999999999996, "P"], "Money Home · funded": [420.001, "SF"], "Perps open/close": [14.488000000000001, "P"], "Seedless Apple": [5.825000000000001, "P"], "Seedless Google": [3.541, "P"], "Seedless Telegram": [300.001, "P"], "Aggregated Balance": [8.291, "P"], "Cross-chain ETH→SOL": [7.432, "F"], "Asset View": [420.002, "P"], "Cold Start → Login": [7.349, "F"], "Swap ETH→LINK": [3.206, "P"], "Import SRP +50": [2.45, "P"], "Warm Start → Wallet": [1.177, "P"], "Perps add funds": [6.470000000000001, "P"], "Warm Start → Login": [0.864, "P"], "Predict Avail. Balance": [0.858, "P"], "Predict Market Details": [3.812, "P"], "Predict Deposit": [10.6, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 2095, "importedSec": 1724, "testPhaseSumSec": 3819, "medianValidSec": 4.639, "jobPhaseMin": 63.6, "onboardingMin": 34.9, "importedMin": 28.7}, "sauce_private": {"pass": 4, "qgFail": 0, "sessionFail": 18, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [1.154, "P"], "Fresh SRP wallet creation": [300.297, "SF"], "Import SRP onboarding +50": [5.4559999999999995, "P"], "Money Home · empty": [300.007, "SF"], "Account creation": [300.269, "SF"], "Money Home · funded": [300.009, "SF"], "Perps open/close": [300.272, "SF"], "Seedless Apple": [300.272, "SF"], "Seedless Google": [300.27, "SF"], "Seedless Telegram": [300.001, "SF"], "Aggregated Balance": [300.342, "SF"], "Cross-chain ETH→SOL": [300.357, "SF"], "Asset View": [300.352, "SF"], "Cold Start → Login": [300.318, "SF"], "Swap ETH→LINK": [300.314, "SF"], "Import SRP +50": [3.368, "P"], "Warm Start → Wallet": [300.284, "SF"], "Perps add funds": [300.315, "SF"], "Warm Start → Login": [300.008, "SF"], "Predict Avail. Balance": [1.853, "P"], "Predict Market Details": [300.271, "SF"], "Predict Deposit": [300.006, "SF"], "Rewards tab": [null, "N"]}, "onboardingSec": 1679, "importedSec": 2076, "testPhaseSumSec": 3755, "medianValidSec": 3.368, "jobPhaseMin": 62.6, "onboardingMin": 28.0, "importedMin": 34.6}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.571, "P"], "Fresh SRP wallet creation": [8.0, "P"], "Import SRP onboarding +50": [3.982, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.7559999999999998, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.501, "P"], "Seedless Google": [3.045, "P"], "Seedless Telegram": [4.329, "P"], "Aggregated Balance": [8.708, "P"], "Cross-chain ETH→SOL": [4.0760000000000005, "P"], "Asset View": [2.667, "P"], "Cold Start → Login": [4.095, "P"], "Swap ETH→LINK": [3.06, "P"], "Import SRP +50": [4.665, "P"], "Warm Start → Wallet": [3.461, "F"], "Perps add funds": [5.285, "P"], "Warm Start → Login": [0.865, "P"], "Predict Avail. Balance": [1.676, "P"], "Predict Market Details": [4.195, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 839, "importedSec": 1012, "testPhaseSumSec": 1851, "medianValidSec": 4.0760000000000005, "jobPhaseMin": 30.9, "onboardingMin": 14.0, "importedMin": 16.9}}, "workflowWallSec": 5024}, "32948838611": {"id": "32948838611", "label": "Run C", "createdAt": "2026-08-26T08:38:58Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "conclusion": "success", "lanes": {"browserstack": {"pass": 20, "qgFail": 0, "sessionFail": 1, "noMetrics": 2, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.269, "P"], "Fresh SRP wallet creation": [5.743, "P"], "Import SRP onboarding +50": [420.001, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.613, "P"], "Money Home · funded": [420.002, "SF"], "Perps open/close": [13.215, "P"], "Seedless Apple": [2.247, "P"], "Seedless Google": [2.312, "P"], "Seedless Telegram": [3.367, "P"], "Aggregated Balance": [8.58, "P"], "Cross-chain ETH→SOL": [4.986000000000001, "P"], "Asset View": [3.014, "P"], "Cold Start → Login": [0.0, "P"], "Swap ETH→LINK": [2.081, "P"], "Import SRP +50": [2.411, "P"], "Warm Start → Wallet": [0.0, "P"], "Perps add funds": [7.62, "P"], "Warm Start → Login": [0.355, "P"], "Predict Avail. Balance": [0.803, "P"], "Predict Market Details": [2.1350000000000002, "P"], "Predict Deposit": [8.584, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1784, "importedSec": 1504, "testPhaseSumSec": 3288, "medianValidSec": 2.411, "jobPhaseMin": 54.8, "onboardingMin": 29.7, "importedMin": 25.1}, "sauce_private": {"pass": 3, "qgFail": 0, "sessionFail": 19, "noMetrics": 1, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.006, "SF"], "Fresh SRP wallet creation": [9.018, "P"], "Import SRP onboarding +50": [3.7820000000000005, "P"], "Money Home · empty": [300.007, "SF"], "Account creation": [300.275, "SF"], "Money Home · funded": [300.271, "SF"], "Perps open/close": [300.273, "SF"], "Seedless Apple": [300.279, "SF"], "Seedless Google": [5.816, "P"], "Seedless Telegram": [300.001, "SF"], "Aggregated Balance": [300.339, "SF"], "Cross-chain ETH→SOL": [300.372, "SF"], "Asset View": [300.339, "SF"], "Cold Start → Login": [300.384, "SF"], "Swap ETH→LINK": [300.321, "SF"], "Import SRP +50": [300.334, "SF"], "Warm Start → Wallet": [300.345, "SF"], "Perps add funds": [300.387, "SF"], "Warm Start → Login": [300.355, "SF"], "Predict Avail. Balance": [300.335, "SF"], "Predict Market Details": [300.339, "SF"], "Predict Deposit": [300.386, "SF"], "Rewards tab": [null, "N"]}, "onboardingSec": 1470, "importedSec": 2090, "testPhaseSumSec": 3560, "medianValidSec": 5.816, "jobPhaseMin": 59.3, "onboardingMin": 24.5, "importedMin": 34.8}, "sauce_cloud": {"pass": 17, "qgFail": 1, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [0.561, "P"], "Fresh SRP wallet creation": [10.219999999999999, "P"], "Import SRP onboarding +50": [3.9859999999999998, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.041, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.055, "P"], "Seedless Google": [3.0469999999999997, "P"], "Seedless Telegram": [2.971, "P"], "Aggregated Balance": [9.137, "P"], "Cross-chain ETH→SOL": [5.569, "P"], "Asset View": [2.32, "P"], "Cold Start → Login": [9.633, "F"], "Swap ETH→LINK": [2.824, "P"], "Import SRP +50": [3.7540000000000004, "P"], "Warm Start → Wallet": [1.185, "P"], "Perps add funds": [5.359999999999999, "P"], "Warm Start → Login": [0.52, "P"], "Predict Avail. Balance": [0.993, "P"], "Predict Market Details": [3.6470000000000002, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 875, "importedSec": 993, "testPhaseSumSec": 1868, "medianValidSec": 3.6470000000000002, "jobPhaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6}}, "workflowWallSec": 4710}, "32948862510": {"id": "32948862510", "label": "Run D", "createdAt": "2026-08-26T08:39:14Z", "headSha": "3988319a", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "conclusion": "success", "lanes": {"browserstack": {"pass": 18, "qgFail": 0, "sessionFail": 1, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [3.39, "P"], "Fresh SRP wallet creation": [6.234999999999999, "P"], "Import SRP onboarding +50": [5.77, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.685, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [11.951, "P"], "Seedless Apple": [4.478, "P"], "Seedless Google": [360.001, "SF"], "Seedless Telegram": [null, "N"], "Aggregated Balance": [8.257, "P"], "Cross-chain ETH→SOL": [420.001, "P"], "Asset View": [3.524, "P"], "Cold Start → Login": [3.861, "P"], "Swap ETH→LINK": [0.0, "P"], "Import SRP +50": [3.2939999999999996, "P"], "Warm Start → Wallet": [1.272, "P"], "Perps add funds": [8.786999999999999, "P"], "Warm Start → Login": [1.933, "P"], "Predict Avail. Balance": [1.162, "P"], "Predict Market Details": [2.853, "P"], "Predict Deposit": [11.584, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 2521, "importedSec": 1589, "testPhaseSumSec": 4110, "medianValidSec": 3.524, "jobPhaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5}, "sauce_private": {"pass": 0, "qgFail": 0, "sessionFail": 23, "noMetrics": 0, "total": 23, "scenarios": {"Cold Start → Onboarding": [300.304, "SF"], "Fresh SRP wallet creation": [300.31, "SF"], "Import SRP onboarding +50": [300.318, "SF"], "Money Home · empty": [300.287, "SF"], "Account creation": [300.278, "SF"], "Money Home · funded": [300.321, "SF"], "Perps open/close": [300.329, "SF"], "Seedless Apple": [300.286, "SF"], "Seedless Google": [300.302, "SF"], "Seedless Telegram": [300.002, "SF"], "Aggregated Balance": [300.323, "SF"], "Cross-chain ETH→SOL": [300.362, "SF"], "Asset View": [300.319, "SF"], "Cold Start → Login": [300.352, "SF"], "Swap ETH→LINK": [300.31, "SF"], "Import SRP +50": [300.345, "SF"], "Warm Start → Wallet": [300.353, "SF"], "Perps add funds": [300.374, "SF"], "Warm Start → Login": [300.297, "SF"], "Predict Avail. Balance": [300.314, "SF"], "Predict Market Details": [300.311, "SF"], "Predict Deposit": [300.349, "SF"], "Rewards tab": [300.268, "SF"]}, "onboardingSec": 1616, "importedSec": 2208, "testPhaseSumSec": 3824, "medianValidSec": null, "jobPhaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8}, "sauce_cloud": {"pass": 15, "qgFail": 3, "sessionFail": 0, "noMetrics": 5, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.227, "P"], "Fresh SRP wallet creation": [18.658, "F"], "Import SRP onboarding +50": [3.924, "P"], "Money Home · empty": [null, "N"], "Account creation": [5.0569999999999995, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [4.908, "P"], "Seedless Google": [3.3230000000000004, "P"], "Seedless Telegram": [3.473, "P"], "Aggregated Balance": [8.811, "P"], "Cross-chain ETH→SOL": [4.2459999999999996, "P"], "Asset View": [2.157, "P"], "Cold Start → Login": [5.391, "P"], "Swap ETH→LINK": [1.6549999999999998, "P"], "Import SRP +50": [3.8489999999999998, "P"], "Warm Start → Wallet": [4.208, "F"], "Perps add funds": [5.481, "P"], "Warm Start → Login": [1.698, "P"], "Predict Avail. Balance": [3.194, "P"], "Predict Market Details": [3.781, "P"], "Predict Deposit": [null, "N"], "Rewards tab": [null, "N"]}, "onboardingSec": 890, "importedSec": 936, "testPhaseSumSec": 1826, "medianValidSec": 3.924, "jobPhaseMin": 30.4, "onboardingMin": 14.8, "importedMin": 15.6}}, "workflowWallSec": 5372}}, "scoring": {"weights": {"passRate": 55, "sessionHealth": 25, "speed": 20}, "explain": "Final = 0.55×passRate + 0.25×sessionHealth + 0.20×speed. passRate=pass/23. sessionHealth=1−sessionFail/23. speed=normalized inverse of test-phase minutes vs best lane in batch."}, "pipeline": {"lanes": {"browserstack": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3063, "phaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0, "pass": 19}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 4110, "phaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5, "pass": 18}, "spreadMin": 17.5, "avgMin": 59.5, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3063, "phaseMin": 51.0, "onboardingMin": 22.1, "importedMin": 29.0, "pass": 19}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 3819, "phaseMin": 63.6, "onboardingMin": 34.9, "importedMin": 28.7, "pass": 18}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 3288, "phaseMin": 54.8, "onboardingMin": 29.7, "importedMin": 25.1, "pass": 20}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 4110, "phaseMin": 68.5, "onboardingMin": 42.0, "importedMin": 26.5, "pass": 18}]}, "sauce_private": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3379, "phaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9, "pass": 6}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 3824, "phaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8, "pass": 0}, "spreadMin": 7.4, "avgMin": 60.5, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 3379, "phaseMin": 56.3, "onboardingMin": 22.4, "importedMin": 33.9, "pass": 6}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 3755, "phaseMin": 62.6, "onboardingMin": 28.0, "importedMin": 34.6, "pass": 4}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 3560, "phaseMin": 59.3, "onboardingMin": 24.5, "importedMin": 34.8, "pass": 3}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 3824, "phaseMin": 63.7, "onboardingMin": 26.9, "importedMin": 36.8, "pass": 0}]}, "sauce_cloud": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 1682, "phaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8, "pass": 17}, "worst": {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 1868, "phaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6, "pass": 17}, "spreadMin": 3.1, "avgMin": 30.1, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "phaseSec": 1682, "phaseMin": 28.0, "onboardingMin": 13.2, "importedMin": 14.8, "pass": 17}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "phaseSec": 1851, "phaseMin": 30.9, "onboardingMin": 14.0, "importedMin": 16.9, "pass": 17}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "phaseSec": 1868, "phaseMin": 31.1, "onboardingMin": 14.6, "importedMin": 16.6, "pass": 17}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "phaseSec": 1826, "phaseMin": 30.4, "onboardingMin": 14.8, "importedMin": 15.6, "pass": 15}]}, "testmu_he": {"best": {"runId": "32366480495", "label": "HE-2", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "phaseSec": 1844, "phaseMin": 30.7, "onboardingMin": 14.8, "importedMin": 15.9, "pass": 18}, "worst": {"runId": "32373754440", "label": "HE-1", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "phaseSec": 2166, "phaseMin": 36.1, "onboardingMin": 16.9, "importedMin": 19.2, "pass": 18}, "spreadMin": 5.4, "avgMin": 33.8, "all": [{"runId": "32373754440", "label": "HE-1", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "phaseSec": 2166, "phaseMin": 36.1, "onboardingMin": 16.9, "importedMin": 19.2, "pass": 18}, {"runId": "32366480495", "label": "HE-2", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "phaseSec": 1844, "phaseMin": 30.7, "onboardingMin": 14.8, "importedMin": 15.9, "pass": 18}, {"runId": "32265974787", "label": "HE-3", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "phaseSec": 2033, "phaseMin": 33.9, "onboardingMin": 17.1, "importedMin": 16.8, "pass": 18}, {"runId": "32248728966", "label": "HE-4", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "phaseSec": 2057, "phaseMin": 34.3, "onboardingMin": 15.9, "importedMin": 18.4, "pass": 18}]}}, "workflow": {"best": {"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "wallSec": 3766, "wallMin": 62.8}, "worst": {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "wallSec": 5372, "wallMin": 89.5}, "all": [{"runId": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "wallSec": 3766, "wallMin": 62.8}, {"runId": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "wallSec": 4710, "wallMin": 78.5}, {"runId": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "wallSec": 5024, "wallMin": 83.7}, {"runId": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "wallSec": 5372, "wallMin": 89.5}], "spreadMin": 26.7}}, "heOrder": ["32373754440", "32366480495", "32265974787", "32248728966"], "heLabels": {"32373754440": "HE-1", "32366480495": "HE-2", "32265974787": "HE-3", "32248728966": "HE-4"}, "heRuns": {"32373754440": {"id": "32373754440", "label": "HE-1", "createdAt": "2026-08-20T13:20:56Z", "headSha": "5ac34db0", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "conclusion": "success", "workflowWallSec": 2479, "device": "Pixel 8 Pro · Android 14", "lanes": {"testmu_he": {"pass": 18, "qgFail": 1, "sessionFail": 0, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [1.699, "P"], "Fresh SRP wallet creation": [10.272, "F"], "Import SRP onboarding +50": [3.8050000000000006, "P"], "Money Home · empty": [null, "N"], "Account creation": [2.826, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [8.368, "P"], "Seedless Google": [4.292, "P"], "Seedless Telegram": [3.1129999999999995, "P"], "Aggregated Balance": [8.914, "P"], "Cross-chain ETH→SOL": [5.812, "P"], "Asset View": [2.55, "P"], "Cold Start → Login": [2.787, "P"], "Swap ETH→LINK": [1.9049999999999998, "P"], "Import SRP +50": [3.1500000000000004, "P"], "Warm Start → Wallet": [3.115, "P"], "Perps add funds": [7.751, "P"], "Warm Start → Login": [0.424, "P"], "Predict Avail. Balance": [0.932, "P"], "Predict Market Details": [2.8259999999999996, "P"], "Predict Deposit": [9.312000000000001, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1013, "importedSec": 1153, "testPhaseSumSec": 2166, "jobPhaseMin": 36.1, "onboardingMin": 16.9, "importedMin": 19.2}}}, "32366480495": {"id": "32366480495", "label": "HE-2", "createdAt": "2026-08-20T11:58:58Z", "headSha": "5ac34db0", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "conclusion": "success", "workflowWallSec": 2135, "device": "Pixel 8 Pro · Android 14", "lanes": {"testmu_he": {"pass": 18, "qgFail": 1, "sessionFail": 0, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.152, "P"], "Fresh SRP wallet creation": [9.837, "P"], "Import SRP onboarding +50": [4.061999999999999, "P"], "Money Home · empty": [null, "N"], "Account creation": [3.3630000000000004, "F"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.343, "P"], "Seedless Google": [3.1690000000000005, "P"], "Seedless Telegram": [3.202, "P"], "Aggregated Balance": [8.527, "P"], "Cross-chain ETH→SOL": [6.906, "P"], "Asset View": [4.273, "P"], "Cold Start → Login": [0.349, "P"], "Swap ETH→LINK": [1.716, "P"], "Import SRP +50": [3.739, "P"], "Warm Start → Wallet": [1.114, "P"], "Perps add funds": [7.53, "P"], "Warm Start → Login": [0.477, "P"], "Predict Avail. Balance": [0.789, "P"], "Predict Market Details": [2.4530000000000003, "P"], "Predict Deposit": [6.171, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 891, "importedSec": 953, "testPhaseSumSec": 1844, "jobPhaseMin": 30.7, "onboardingMin": 14.8, "importedMin": 15.9}}}, "32265974787": {"id": "32265974787", "label": "HE-3", "createdAt": "2026-08-19T14:45:57Z", "headSha": "a59ac355", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "conclusion": "success", "workflowWallSec": 3288, "device": "Pixel 8 Pro · Android 14", "lanes": {"testmu_he": {"pass": 18, "qgFail": 1, "sessionFail": 0, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.643, "P"], "Fresh SRP wallet creation": [11.591000000000001, "F"], "Import SRP onboarding +50": [5.904, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.5910000000000002, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.3580000000000005, "P"], "Seedless Google": [3.451, "P"], "Seedless Telegram": [5.758, "P"], "Aggregated Balance": [8.724, "P"], "Cross-chain ETH→SOL": [5.917, "P"], "Asset View": [3.984, "P"], "Cold Start → Login": [0.387, "P"], "Swap ETH→LINK": [1.627, "P"], "Import SRP +50": [2.222, "P"], "Warm Start → Wallet": [0.926, "P"], "Perps add funds": [9.094999999999999, "P"], "Warm Start → Login": [0.463, "P"], "Predict Avail. Balance": [1.424, "P"], "Predict Market Details": [2.0820000000000003, "P"], "Predict Deposit": [7.586, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 1025, "importedSec": 1008, "testPhaseSumSec": 2033, "jobPhaseMin": 33.9, "onboardingMin": 17.1, "importedMin": 16.8}}}, "32248728966": {"id": "32248728966", "label": "HE-4", "createdAt": "2026-08-19T11:40:17Z", "headSha": "e8daf68f", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "conclusion": "success", "workflowWallSec": 2368, "device": "Pixel 8 Pro · Android 14", "lanes": {"testmu_he": {"pass": 18, "qgFail": 1, "sessionFail": 0, "noMetrics": 4, "total": 23, "scenarios": {"Cold Start → Onboarding": [2.143, "P"], "Fresh SRP wallet creation": [11.209, "F"], "Import SRP onboarding +50": [4.077, "P"], "Money Home · empty": [null, "N"], "Account creation": [1.362, "P"], "Money Home · funded": [null, "N"], "Perps open/close": [null, "N"], "Seedless Apple": [5.624, "P"], "Seedless Google": [3.302, "P"], "Seedless Telegram": [6.526, "P"], "Aggregated Balance": [9.463, "P"], "Cross-chain ETH→SOL": [5.726, "P"], "Asset View": [3.355, "P"], "Cold Start → Login": [0.926, "P"], "Swap ETH→LINK": [1.9140000000000001, "P"], "Import SRP +50": [3.2989999999999995, "P"], "Warm Start → Wallet": [0.986, "P"], "Perps add funds": [6.915, "P"], "Warm Start → Login": [0.977, "P"], "Predict Avail. Balance": [1.431, "P"], "Predict Market Details": [3.904, "P"], "Predict Deposit": [8.193, "P"], "Rewards tab": [null, "N"]}, "onboardingSec": 956, "importedSec": 1101, "testPhaseSumSec": 2057, "jobPhaseMin": 34.3, "onboardingMin": 15.9, "importedMin": 18.4}}}}};
 
 const W = DATA.scoring.weights;
 
@@ -279,12 +291,23 @@ function laneScore(lane){
   return {passRate, sessionHealth, phase: lane.testPhaseSumSec||null, pass: lane.pass, sf: lane.sessionFail};
 }
 
+function laneSourceIds(lk){
+  if(lk === 'testmu_he') return DATA.heOrder || [];
+  return DATA.order;
+}
+function getLane(lk, id){
+  if(lk === 'testmu_he') return DATA.heRuns[id].lanes.testmu_he;
+  return DATA.runs[id].lanes[lk];
+}
+function getRunMeta(lk, id){
+  if(lk === 'testmu_he') return DATA.heRuns[id];
+  return DATA.runs[id];
+}
 function computeVendorScores(){
-  // collect phases for normalization across all lane-runs
   const phases=[];
-  DATA.order.forEach(id=>{
-    Object.keys(DATA.laneMeta).forEach(lk=>{
-      const p=DATA.runs[id].lanes[lk].testPhaseSumSec;
+  Object.keys(DATA.laneMeta).forEach(lk=>{
+    laneSourceIds(lk).forEach(id=>{
+      const p=getLane(lk,id).testPhaseSumSec;
       if(p) phases.push(p);
     });
   });
@@ -295,10 +318,10 @@ function computeVendorScores(){
   Object.keys(DATA.laneMeta).forEach(lk=>{
     let pr=0, sh=0, sp=0, n=0;
     const perRun=[];
-    DATA.order.forEach(id=>{
-      const lane=DATA.runs[id].lanes[lk];
+    laneSourceIds(lk).forEach(id=>{
+      const lane=getLane(lk,id);
       const c=laneScore(lane);
-      const speed = c.phase==null ? 0 : (worst - c.phase)/span; // 1 = fastest
+      const speed = c.phase==null ? 0 : (worst - c.phase)/span;
       const final = 100*(W.passRate/100*c.passRate + W.sessionHealth/100*c.sessionHealth + W.speed/100*speed);
       pr+=c.passRate; sh+=c.sessionHealth; sp+=speed; n++;
       perRun.push({id, final, pass:lane.pass, sf:lane.sessionFail, phase:lane.testPhaseSumSec, speed, passRate:c.passRate, sessionHealth:c.sessionHealth});
@@ -309,6 +332,7 @@ function computeVendorScores(){
       perRun,
       avgPass: (pr/n)*23,
       avgSf: (1-(sh/n))*23,
+      historical: !!DATA.laneMeta[lk].historical,
     };
   });
   return vendors;
@@ -317,6 +341,9 @@ function computeVendorScores(){
 function render(){
   document.getElementById('links').innerHTML = DATA.order.map(id=>{
     const r=DATA.runs[id];
+    return `<a href="${r.url}" target="_blank">${r.label} · ${id}</a>`;
+  }).join('') + (DATA.heOrder||[]).map(id=>{
+    const r=DATA.heRuns[id];
     return `<a href="${r.url}" target="_blank">${r.label} · ${id}</a>`;
   }).join('') + `<a href="./sauce-aug25-triple-compare-2.html">Aug 25 Sauce batch 2</a><a href="./vendor-scoreboard.html">Vendor scoreboard</a>`;
 
@@ -327,11 +354,11 @@ function render(){
   const best=ranked[0];
   const bestRunLane = (()=>{
     let best=null;
-    DATA.order.forEach(id=>{
-      Object.keys(DATA.laneMeta).forEach(lk=>{
-        const lane=DATA.runs[id].lanes[lk];
+    Object.keys(DATA.laneMeta).forEach(lk=>{
+      laneSourceIds(lk).forEach(id=>{
+        const lane=getLane(lk,id);
         const score=lane.pass*1000 - lane.sessionFail*10 - (lane.testPhaseSumSec||99999)/100;
-        if(!best || score>best.score) best={id,lk,lane,score};
+        if(!best || score>best.score) best={id,lk,lane,score,label:getRunMeta(lk,id).label};
       });
     });
     return best;
@@ -339,7 +366,7 @@ function render(){
   document.getElementById('hero-kpis').innerHTML = `
     <div class="kpi"><label>Winner (avg)</label><strong style="color:${DATA.laneMeta[best[0]].color}">${DATA.laneMeta[best[0]].name}</strong></div>
     <div class="kpi"><label>Winner score</label><strong>${best[1].final.toFixed(1)}<span style="font-size:14px;color:var(--muted)">/100</span></strong></div>
-    <div class="kpi"><label>Best single lane-run</label><strong>${DATA.runs[bestRunLane.id].label} · ${DATA.laneMeta[bestRunLane.lk].name.split(' ').pop()}</strong></div>
+    <div class="kpi"><label>Best single lane-run</label><strong>${bestRunLane.label} · ${DATA.laneMeta[bestRunLane.lk].short || DATA.laneMeta[bestRunLane.lk].name}</strong></div>
     <div class="kpi"><label>That pass rate</label><strong>${bestRunLane.lane.pass}/23</strong></div>`;
 
   document.getElementById('formula').textContent = DATA.scoring.explain +
@@ -363,6 +390,24 @@ function render(){
   // per-run board
   renderPipeline();
 
+  document.getElementById('he-run-board').innerHTML = (DATA.heOrder||[]).map(id=>{
+    const r=DATA.heRuns[id];
+    const lane=r.lanes.testmu_he;
+    const meta=DATA.laneMeta.testmu_he;
+    return `<article class="run-card" style="border-top:3px solid ${meta.color}">
+      <h3>${r.label} <a href="${r.url}" target="_blank">${id}</a></h3>
+      <div class="muted" style="font-size:11px;margin-bottom:6px">${r.createdAt.slice(0,16).replace('T',' ')} UTC · <code>${r.headSha}</code> · ${r.device||''}</div>
+      <div class="lane-row">
+        <div class="lane-pill">
+          <div><span class="dot" style="background:${meta.color}"></span>${meta.name}</div>
+          <div class="big">${lane.pass}<span style="font-size:12px;color:var(--muted)">/23</span></div>
+          <div class="muted">SF ${lane.sessionFail} · QG ${lane.qgFail} · N ${lane.noMetrics}<br/>phase ${fmtMin(lane.testPhaseSumSec)}</div>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+
   document.getElementById('run-board').innerHTML = DATA.order.map(id=>{
     const r=DATA.runs[id];
     const pills=Object.keys(DATA.laneMeta).map(lk=>{
@@ -383,15 +428,18 @@ function render(){
   // heatmap
   document.getElementById('heat-body').innerHTML = Object.keys(DATA.laneMeta).map(lk=>{
     const meta=DATA.laneMeta[lk];
-    const vals=DATA.order.map(id=>DATA.runs[id].lanes[lk].pass);
+    const ids=laneSourceIds(lk);
+    const vals=ids.map(id=>getLane(lk,id).pass);
+    const labels=ids.map(id=>getRunMeta(lk,id).label);
     const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
     const best=Math.max(...vals), worst=Math.min(...vals);
-    const cells=vals.map(v=>{
+    const cells=vals.map((v,i)=>{
       const pct=v/23;
       const bg=`rgba(52,211,153,${0.08+pct*0.45})`;
-      return `<td class="heat" style="background:${bg}">${v}/23</td>`;
+      return `<td class="heat" style="background:${bg}" title="${labels[i]}">${v}/23</td>`;
     }).join('');
-    return `<tr><td><span class="dot" style="background:${meta.color}"></span>${meta.name}</td>${cells}<td class="heat">${avg.toFixed(1)}</td><td class="heat">${best}</td><td class="heat">${worst}</td></tr>`;
+    const hist=meta.historical?' <span class="chip" style="margin-left:6px">historical</span>':'';
+    return `<tr><td><span class="dot" style="background:${meta.color}"></span>${meta.name}${hist}</td>${cells}<td class="heat">${avg.toFixed(1)}</td><td class="heat">${best}</td><td class="heat">${worst}</td></tr>`;
   }).join('');
 
   // matrix controls
@@ -400,7 +448,11 @@ function render(){
     <span class="muted">Runs:</span>
     ${DATA.order.map(id=>`<button class="chip-btn active" data-run="${id}">${DATA.labels[id]}</button>`).join('')}
     <span class="muted" style="margin-left:8px">Lanes:</span>
-    ${Object.entries(DATA.laneMeta).map(([lk,m])=>`<button class="chip-btn active lane-${lk==='browserstack'?'bs':lk==='sauce_private'?'sp':'sc'}" data-lane="${lk}">${m.name}</button>`).join('')}
+    ${Object.entries(DATA.laneMeta).map(([lk,m])=>{
+      const cls = lk==='browserstack'?'bs':lk==='sauce_private'?'sp':lk==='sauce_cloud'?'sc':'he';
+      const hist = m.historical ? ' (hist)' : '';
+      return `<button class="chip-btn active lane-${cls}" data-lane="${lk}">${m.short||m.name}${hist}</button>`;
+    }).join('')}
   `;
   const activeRuns=new Set(DATA.order);
   const activeLanes=new Set(Object.keys(DATA.laneMeta));
@@ -413,26 +465,40 @@ function render(){
   renderMatrix(activeRuns, activeLanes);
 
   // compare selects
-  const laneOpts=Object.entries(DATA.laneMeta).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
-  const runOpts=DATA.order.map(id=>`<option value="${id}">${DATA.labels[id]} · ${id}</option>`).join('');
+  const laneOpts=Object.entries(DATA.laneMeta).map(([k,m])=>`<option value="${k}">${m.name}${m.historical?' (historical)':''}</option>`).join('');
   document.getElementById('cmp-left').innerHTML=laneOpts;
   document.getElementById('cmp-right').innerHTML=laneOpts;
-  document.getElementById('cmp-right').value='sauce_cloud';
-  document.getElementById('cmp-run').innerHTML=runOpts;
-  ['cmp-left','cmp-right','cmp-run'].forEach(id=>document.getElementById(id).onchange=renderCompare);
+  document.getElementById('cmp-right').value='testmu_he';
+  document.getElementById('cmp-left').value='browserstack';
+  function refreshCmpRuns(){
+    const left=document.getElementById('cmp-left').value;
+    const right=document.getElementById('cmp-right').value;
+    // If either side is HE, compare by index across HE vs Aug26 lists
+    const useHe = (left==='testmu_he' || right==='testmu_he');
+    const opts = DATA.order.map((id, idx)=>{
+      const heId = (DATA.heOrder||[])[idx];
+      const label = useHe
+        ? `${DATA.labels[id]} vs ${DATA.heLabels[heId]||'HE'} (#${idx+1})`
+        : `${DATA.labels[id]} · ${id}`;
+      return `<option value="${idx}">${label}</option>`;
+    }).join('');
+    document.getElementById('cmp-run').innerHTML=opts;
+  }
+  refreshCmpRuns();
+  ['cmp-left','cmp-right'].forEach(id=>document.getElementById(id).onchange=()=>{ refreshCmpRuns(); renderCompare(); });
+  document.getElementById('cmp-run').onchange=renderCompare;
   renderCompare();
 
   // analysis
   const bs=vendors.browserstack, sp=vendors.sauce_private, sc=vendors.sauce_cloud;
+  const he=vendors.testmu_he;
   document.getElementById('analysis').innerHTML = `
-    <li><strong>Overall winner:</strong> ${DATA.laneMeta[ranked[0][0]].name} at <strong>${ranked[0][1].final.toFixed(1)}/100</strong>, driven by pass rate + low session fails${ranked[0][0]==='sauce_cloud'?' and the fastest test phases (~28–31 min)':''}.</li>
-    <li><strong>BrowserStack</strong> is the most consistent quality floor (≈16–19/23) with few session fails. Slightly slower wall-clock than Sauce Cloud.</li>
-    <li><strong>Sauce Cloud</strong> is very close to BS on quality (15–17/23) and clearly wins on speed (test phase ~28–31 min vs BS ~51–69 min).</li>
-    <li><strong>Sauce Private</strong> collapses under session allocation failures (14→23 session fails across A→D). Pass rate 6→0. Still under evaluation for private devices.</li>
-    <li><strong>Trend:</strong> Run A strongest overall; Run D weakest for Sauce Private (0/23). Cloud stays stable.</li>
-    <li><strong>Pipeline jobs:</strong> Sauce Cloud wins wall-clock — best <strong>28.0 min</strong> (Run A), worst still only <strong>31.1 min</strong> (Run C). BrowserStack best <strong>51.0 min</strong> / worst <strong>68.5 min</strong>. Sauce Private best <strong>56.3 min</strong> / worst <strong>63.7 min</strong> (inflated by session fails).</li>
-    <li><strong>Full workflow:</strong> fastest dispatch→Aggregate = Run A (~62.8 min); slowest = Run D (~89.5 min).</li>
-    <li><strong>TestMu</strong> was not executed in this batch (jobs skipped).</li>
+    <li><strong>Overall winner:</strong> ${DATA.laneMeta[ranked[0][0]].name} at <strong>${ranked[0][1].final.toFixed(1)}/100</strong>.</li>
+    <li><strong>TestMu HyperExecute</strong> (historical Aug 19–20): rock-solid <strong>18/23</strong> on all 4 sampled HE runs, 0 session fails, job phase best <strong>${DATA.pipeline.lanes.testmu_he.best.phaseMin}m</strong> / worst <strong>${DATA.pipeline.lanes.testmu_he.worst.phaseMin}m</strong>. Best BS alternative in this set.</li>
+    <li><strong>BrowserStack</strong> (Aug 26): quality floor ≈18–20/23 but slower jobs (51–68.5m).</li>
+    <li><strong>Sauce Cloud</strong> (Aug 26): 15–17/23, fastest Aug-26 lane (~28–31m), still under evaluation.</li>
+    <li><strong>Sauce Private</strong> (Aug 26): collapses (6→0/23) on session fails — not competitive here.</li>
+    <li><strong>Caveat:</strong> HE used Pixel 8 Pro/14 on older commits; Aug 26 BS/Sauce used Pixel 7 Pro/13. Same branch, not same dispatch/build.</li>
   `;
 
   document.getElementById('foot').innerHTML = `${DATA.note} · Generated ${DATA.generatedAt} · Branch ${DATA.branch} · Device ${DATA.device}`;
@@ -499,24 +565,46 @@ function renderPipeline(){
 }
 
 function renderMatrix(activeRuns, activeLanes){
+  // Build column defs: for BS/Sauce use Aug26 runs; for HE use historical HE runs
+  const augLanes=[...Object.keys(DATA.laneMeta)].filter(lk=>activeLanes.has(lk) && lk!=='testmu_he');
+  const heOn = activeLanes.has('testmu_he');
   const runs=[...DATA.order].filter(id=>activeRuns.has(id));
-  const lanes=[...Object.keys(DATA.laneMeta)].filter(lk=>activeLanes.has(lk));
-  let head=`<tr><th>Scenario</th>`;
-  runs.forEach(id=>{ head+=`<th colspan="${lanes.length}">${DATA.labels[id]}<br><small>${id}</small></th>`; });
-  head+=`</tr><tr>`;
-  runs.forEach(()=>{ lanes.forEach(lk=>{ head+=`<th>${DATA.laneMeta[lk].name.replace('Sauce ','')}</th>`; }); });
-  head+=`</tr>`;
+  const cols=[];
+  runs.forEach(id=>{
+    augLanes.forEach(lk=>{
+      cols.push({lk, id, label: DATA.labels[id], sub: DATA.laneMeta[lk].short||DATA.laneMeta[lk].name, group: id});
+    });
+  });
+  if(heOn){
+    (DATA.heOrder||[]).forEach(id=>{
+      cols.push({lk:'testmu_he', id, label: DATA.heLabels[id], sub: 'HE', group: 'he'});
+    });
+  }
+
+  // header grouped
+  let head='<tr><th>Scenario</th>';
+  // group consecutive same group
+  let i=0;
+  while(i<cols.length){
+    let j=i;
+    while(j<cols.length && cols[j].group===cols[i].group) j++;
+    const span=j-i;
+    const c=cols[i];
+    const small = c.group==='he' ? c.id : (DATA.runs[c.id]?c.id:c.id);
+    head+=`<th colspan="${span}">${c.label}<br><small>${small}</small></th>`;
+    i=j;
+  }
+  head+='</tr><tr>';
+  cols.forEach(c=>{ head+=`<th>${c.sub}</th>`; });
+  head+='</tr>';
   document.getElementById('matrix-head').innerHTML=head;
 
   const body=document.getElementById('matrix-body');
   body.innerHTML='';
   DATA.rowOrder.forEach(name=>{
-    const vals=[];
-    runs.forEach(id=>{
-      lanes.forEach(lk=>{
-        const sc=DATA.runs[id].lanes[lk].scenarios[name] || [null,'N'];
-        vals.push(sc);
-      });
+    const vals=cols.map(c=>{
+      const lane=getLane(c.lk, c.id);
+      return (lane.scenarios&&lane.scenarios[name]) || [null,'N'];
     });
     const passed=vals.filter(v=>v[1]==='P' && typeof v[0]==='number' && v[0]<290).map(v=>v[0]);
     const fastest=passed.length?Math.min(...passed):null;
@@ -534,23 +622,26 @@ function renderMatrix(activeRuns, activeLanes){
 function renderCompare(){
   const left=document.getElementById('cmp-left').value;
   const right=document.getElementById('cmp-right').value;
-  const runId=document.getElementById('cmp-run').value;
-  const r=DATA.runs[runId];
-  const L=r.lanes[left], R=r.lanes[right];
+  const idx=Number(document.getElementById('cmp-run').value||0);
+  const leftId = left==='testmu_he' ? (DATA.heOrder||[])[idx] : DATA.order[idx];
+  const rightId = right==='testmu_he' ? (DATA.heOrder||[])[idx] : DATA.order[idx];
+  const L=getLane(left, leftId), R=getLane(right, rightId);
   const lm=DATA.laneMeta[left], rm=DATA.laneMeta[right];
-  document.getElementById('cmp-th-l').textContent=lm.name;
-  document.getElementById('cmp-th-r').textContent=rm.name;
+  const lMeta=getRunMeta(left, leftId), rMeta=getRunMeta(right, rightId);
+  document.getElementById('cmp-th-l').textContent=lm.name+' · '+lMeta.label;
+  document.getElementById('cmp-th-r').textContent=rm.name+' · '+rMeta.label;
 
-  function card(meta, lane){
+  function card(meta, lane, runMeta){
     return `<div class="score-card" style="border-top:3px solid ${meta.color}">
       <div class="name">${meta.name}</div>
+      <div class="muted" style="font-size:11px;margin-bottom:4px"><a href="${runMeta.url}" target="_blank">${runMeta.label} · ${runMeta.id}</a></div>
       <div class="score">${lane.pass}<span>/23</span></div>
       <div class="muted" style="font-size:12px">SF ${lane.sessionFail} · QG ${lane.qgFail} · N ${lane.noMetrics}</div>
       <div class="muted" style="font-size:12px;margin-top:6px">Phase ${fmtMin(lane.testPhaseSumSec)} (onb ${fmtMin(lane.onboardingSec)} · imp ${fmtMin(lane.importedSec)})</div>
     </div>`;
   }
-  document.getElementById('cmp-left-card').innerHTML=card(lm,L);
-  document.getElementById('cmp-right-card').innerHTML=card(rm,R);
+  document.getElementById('cmp-left-card').innerHTML=card(lm,L,lMeta);
+  document.getElementById('cmp-right-card').innerHTML=card(rm,R,rMeta);
 
   const tbody=document.getElementById('cmp-body');
   tbody.innerHTML='';
@@ -563,10 +654,10 @@ function renderCompare(){
       const d=a[0]-b[0];
       delta=(d>0?'+':'')+d.toFixed(2)+'s';
       if(Math.abs(d)<0.05){ winner='tie'; ties++; }
-      else if(d<0){ winner=lm.name; leftWins++; dcls='delta-better'; }
-      else { winner=rm.name; rightWins++; dcls='delta-worse'; }
-    } else if(a[1]==='P' && b[1]!=='P'){ winner=lm.name; leftWins++; delta='L only'; dcls='delta-better'; }
-    else if(b[1]==='P' && a[1]!=='P'){ winner=rm.name; rightWins++; delta='R only'; dcls='delta-worse'; }
+      else if(d<0){ winner=lm.short||lm.name; leftWins++; dcls='delta-better'; }
+      else { winner=rm.short||rm.name; rightWins++; dcls='delta-worse'; }
+    } else if(a[1]==='P' && b[1]!=='P'){ winner=lm.short||lm.name; leftWins++; delta='L only'; dcls='delta-better'; }
+    else if(b[1]==='P' && a[1]!=='P'){ winner=rm.short||rm.name; rightWins++; delta='R only'; dcls='delta-worse'; }
     else { ties++; }
     tbody.insertAdjacentHTML('beforeend', `<tr>
       <td>${name}</td>
