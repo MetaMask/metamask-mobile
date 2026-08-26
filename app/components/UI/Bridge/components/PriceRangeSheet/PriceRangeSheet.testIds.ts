@@ -10,6 +10,7 @@ export const PriceRangeSheetSelectorsIDs = {
   EXCHANGE_RATE: 'price-range-exchange-rate',
   MIN_INPUT: 'price-range-min-input',
   MAX_INPUT: 'price-range-max-input',
+  KEYPAD_DISMISS: 'price-range-keypad-dismiss',
   PERCENT: (bound: 'min' | 'max', percent: number) =>
     `price-range-${bound}-percent-${percent}`,
 } as const;

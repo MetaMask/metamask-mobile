@@ -145,6 +145,39 @@ async function openPriceRangeSheet(
   });
 }
 
+async function openPriceRangeKeypad(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  field: 'min' | 'max',
+) {
+  fireEvent(
+    renderResult.getByTestId(
+      field === 'min'
+        ? PriceRangeSheetSelectorsIDs.MIN_INPUT
+        : PriceRangeSheetSelectorsIDs.MAX_INPUT,
+    ),
+    'pressIn',
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+}
+
+async function typePriceRangeDigits(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  digits: string,
+) {
+  for (const digit of digits) {
+    fireEvent.press(
+      renderResult.getByTestId(
+        digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`,
+      ),
+    );
+  }
+}
+
 async function selectPriceRangeSourceToken(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
@@ -935,20 +968,59 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(confirmButton).toBeDisabled();
       expect(confirmButton.props.accessibilityState.disabled).toBe(true);
 
-      fireEvent.changeText(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
-        '2000',
-      );
-      fireEvent.changeText(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
-        '1000',
-      );
+      await openPriceRangeKeypad(renderResult, 'min');
+      typePriceRangeDigits(renderResult, '2000');
+      await openPriceRangeKeypad(renderResult, 'max');
+      typePriceRangeDigits(renderResult, '1000');
 
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+        ).toHaveDisplayValue('2000');
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue('1000');
       const stillDisabledConfirm = renderResult.getByTestId(
         PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
       );
       expect(stillDisabledConfirm).toBeDisabled();
       expect(stillDisabledConfirm.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('keeps the max field on screen while the keypad is open', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+      await openPriceRangeKeypad(renderResult, 'max');
+
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the keypad when the sheet is pressed outside it', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+      await openPriceRangeKeypad(renderResult, 'max');
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.KEYPAD_DISMISS),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
     });
 
     it('writes the confirmed range onto the row', async () => {
@@ -983,12 +1055,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
       ).toBeOnTheScreen();
-      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual({
-        tokenSide: 'dest',
-        currency: 'usd',
-        min,
-        max,
-      });
+      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
+        {
+          tokenSide: 'dest',
+          currency: 'usd',
+          min,
+          max,
+        },
+      );
     });
 
     it('treats a stored range as unset when the settings currency differs', async () => {

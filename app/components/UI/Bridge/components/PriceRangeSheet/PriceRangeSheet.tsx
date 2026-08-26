@@ -27,6 +27,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import type { KeypadChangeData } from '../../../../Base/Keypad';
 import { getCurrencySymbol } from '../../utils/currencyUtils';
 import {
   applyPercentToPrice,
@@ -36,12 +37,21 @@ import {
   isValidPriceRange,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
-  sanitizePriceInput,
   tokenPairRateFromFiatRates,
   type PriceRangeTokenSide,
 } from '../../utils/priceRange';
+import {
+  FIAT_INPUT_DECIMALS,
+  FIAT_KEYPAD_CURRENCY,
+} from '../../utils/sourceAmountInputMode';
+import { SwapsKeypad } from '../SwapsKeypad';
+import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
 import type { PriceRangeSheetProps } from './PriceRangeSheet.types';
+
+type PriceRangeField = 'min' | 'max';
+
+const PRICE_RANGE_KEYPAD_SCROLL_INSET = 360;
 
 function formatPercentLabel(percent: number): string {
   return `${percent > 0 ? '+' : ''}${percent}%`;
@@ -53,7 +63,7 @@ function PricePercentRow({
   isDisabled,
   onSelect,
 }: {
-  bound: 'min' | 'max';
+  bound: PriceRangeField;
   percents: readonly number[];
   isDisabled: boolean;
   onSelect: (percent: number) => void;
@@ -95,6 +105,41 @@ function PricePercentRow({
   );
 }
 
+function PriceRangeAmountField({
+  value,
+  placeholder,
+  currencySymbol,
+  testID,
+  onPress,
+}: {
+  value: string;
+  placeholder: string;
+  currencySymbol: string;
+  testID: string;
+  onPress: () => void;
+}) {
+  return (
+    <TextField
+      value={value}
+      placeholder={placeholder}
+      startAccessory={
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {currencySymbol}
+        </Text>
+      }
+      onFocus={onPress}
+      inputProps={{
+        showSoftInputOnFocus: false,
+        caretHidden: false,
+        testID,
+        accessibilityLabel: placeholder,
+        onPressIn: onPress,
+      }}
+      twClassName="w-full bg-default border-default"
+    />
+  );
+}
+
 const PriceRangeSheet = ({
   isVisible,
   sourceToken,
@@ -108,20 +153,39 @@ const PriceRangeSheet = ({
   onClose,
   onConfirm,
 }: PriceRangeSheetProps) => {
+  const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const keypadRef = useRef<SwapsKeypadRef>(null);
   const [pendingTokenSide, setPendingTokenSide] = useState<PriceRangeTokenSide>(
     initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   );
   const [pendingMin, setPendingMin] = useState(initialMin ?? '');
   const [pendingMax, setPendingMax] = useState(initialMax ?? '');
+  const [focusedField, setFocusedField] = useState<PriceRangeField | null>(
+    null,
+  );
 
   useEffect(() => {
     if (isVisible) {
       setPendingTokenSide(initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE);
       setPendingMin(initialMin ?? '');
       setPendingMax(initialMax ?? '');
+      setFocusedField(null);
     }
   }, [initialMax, initialMin, initialTokenSide, isVisible]);
+
+  useEffect(() => {
+    if (focusedField !== 'max') {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [focusedField]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
   const selectedFiatRate =
@@ -130,6 +194,7 @@ const PriceRangeSheet = ({
     selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const canConfirm = isValidPriceRange(pendingMin, pendingMax);
   const currencySymbol = getCurrencySymbol(currentCurrency);
+  const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
     () =>
@@ -157,8 +222,24 @@ const PriceRangeSheet = ({
     ],
   );
 
+  const closeKeypad = useCallback(() => {
+    keypadRef.current?.close();
+    setFocusedField(null);
+  }, []);
+
   const closeSheet = useCallback(() => {
+    closeKeypad();
     sheetRef.current?.onCloseBottomSheet();
+  }, [closeKeypad]);
+
+  const handleSheetClosed = useCallback(() => {
+    closeKeypad();
+    onClose();
+  }, [closeKeypad, onClose]);
+
+  const focusField = useCallback((field: PriceRangeField) => {
+    setFocusedField(field);
+    keypadRef.current?.open();
   }, []);
 
   const handleTokenSideChange = useCallback(
@@ -167,11 +248,12 @@ const PriceRangeSheet = ({
       if (nextSide === pendingTokenSide) {
         return;
       }
+      closeKeypad();
       setPendingTokenSide(nextSide);
       setPendingMin('');
       setPendingMax('');
     },
-    [pendingTokenSide],
+    [closeKeypad, pendingTokenSide],
   );
 
   const handleMinPercentPress = useCallback(
@@ -192,6 +274,20 @@ const PriceRangeSheet = ({
       setPendingMax(applyPercentToPrice(selectedFiatRate, percent));
     },
     [selectedFiatRate],
+  );
+
+  const handleKeypadChange = useCallback(
+    (data: KeypadChangeData) => {
+      if (focusedField === 'max') {
+        setPendingMax(data.value);
+        return;
+      }
+
+      if (focusedField === 'min') {
+        setPendingMin(data.value);
+      }
+    },
+    [focusedField],
   );
 
   const handleConfirm = useCallback(() => {
@@ -223,7 +319,7 @@ const PriceRangeSheet = ({
     <BottomSheet
       ref={sheetRef}
       testID={PriceRangeSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      onClose={handleSheetClosed}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -233,158 +329,149 @@ const PriceRangeSheet = ({
       >
         {strings('bridge.recurring.price_range.label')}
       </BottomSheetHeader>
-      <ScrollView>
-        <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3} gap={8}>
-          <Box>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="py-2"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+      <Box twClassName="relative">
+        <ScrollView
+          ref={scrollViewRef}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={closeKeypad}
+          contentContainerStyle={
+            isKeypadOpen
+              ? tw.style({ paddingBottom: PRICE_RANGE_KEYPAD_SCROLL_INSET })
+              : undefined
+          }
+        >
+          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3} gap={8}>
+            <Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="py-2"
               >
-                {strings('bridge.recurring.price_range.token')}
-              </Text>
-              <SegmentedControl
-                value={pendingTokenSide}
-                onChange={handleTokenSideChange}
-                size={SegmentedControlSize.Sm}
-                testID={PriceRangeSheetSelectorsIDs.TOKEN_CONTROL}
-              >
-                <FilterButton
-                  value="dest"
-                  testID={PriceRangeSheetSelectorsIDs.TOKEN_OPTION('dest')}
-                >
-                  {destToken?.symbol ?? ''}
-                </FilterButton>
-                <FilterButton
-                  value="source"
-                  testID={PriceRangeSheetSelectorsIDs.TOKEN_OPTION('source')}
-                >
-                  {sourceToken?.symbol ?? ''}
-                </FilterButton>
-              </SegmentedControl>
-            </Box>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="py-2"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('bridge.recurring.price_range.price')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                testID={PriceRangeSheetSelectorsIDs.PRICE}
-              >
-                {priceLabel}
-              </Text>
-            </Box>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="py-2"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('bridge.recurring.price_range.exchange_rate')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                testID={PriceRangeSheetSelectorsIDs.EXCHANGE_RATE}
-              >
-                {exchangeRateLabel}
-              </Text>
-            </Box>
-          </Box>
-
-          <Box gap={4}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('bridge.recurring.price_range.min_token_price', {
-                symbol: selectedToken?.symbol ?? '',
-              })}
-            </Text>
-            <PricePercentRow
-              bound="min"
-              percents={PRICE_RANGE_MIN_PERCENTS}
-              isDisabled={!hasLivePrice}
-              onSelect={handleMinPercentPress}
-            />
-            <TextField
-              value={pendingMin}
-              onChangeText={(text) => setPendingMin(sanitizePriceInput(text))}
-              placeholder={strings(
-                'bridge.recurring.price_range.min_placeholder',
-              )}
-              startAccessory={
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
                 >
-                  {currencySymbol}
+                  {strings('bridge.recurring.price_range.token')}
                 </Text>
-              }
-              inputProps={{
-                keyboardType: 'decimal-pad',
-                testID: PriceRangeSheetSelectorsIDs.MIN_INPUT,
-                accessibilityLabel: strings(
+                <SegmentedControl
+                  value={pendingTokenSide}
+                  onChange={handleTokenSideChange}
+                  size={SegmentedControlSize.Sm}
+                  testID={PriceRangeSheetSelectorsIDs.TOKEN_CONTROL}
+                >
+                  <FilterButton
+                    value="dest"
+                    testID={PriceRangeSheetSelectorsIDs.TOKEN_OPTION('dest')}
+                  >
+                    {destToken?.symbol ?? ''}
+                  </FilterButton>
+                  <FilterButton
+                    value="source"
+                    testID={PriceRangeSheetSelectorsIDs.TOKEN_OPTION('source')}
+                  >
+                    {sourceToken?.symbol ?? ''}
+                  </FilterButton>
+                </SegmentedControl>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="py-2"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('bridge.recurring.price_range.price')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  testID={PriceRangeSheetSelectorsIDs.PRICE}
+                >
+                  {priceLabel}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="py-2"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('bridge.recurring.price_range.exchange_rate')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  testID={PriceRangeSheetSelectorsIDs.EXCHANGE_RATE}
+                >
+                  {exchangeRateLabel}
+                </Text>
+              </Box>
+            </Box>
+
+            <Box gap={4}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('bridge.recurring.price_range.min_token_price', {
+                  symbol: selectedToken?.symbol ?? '',
+                })}
+              </Text>
+              <PricePercentRow
+                bound="min"
+                percents={PRICE_RANGE_MIN_PERCENTS}
+                isDisabled={!hasLivePrice}
+                onSelect={handleMinPercentPress}
+              />
+              <PriceRangeAmountField
+                value={pendingMin}
+                placeholder={strings(
                   'bridge.recurring.price_range.min_placeholder',
-                ),
-              }}
-              twClassName="w-full bg-default border-default"
-            />
-          </Box>
+                )}
+                currencySymbol={currencySymbol}
+                testID={PriceRangeSheetSelectorsIDs.MIN_INPUT}
+                onPress={() => focusField('min')}
+              />
+            </Box>
 
-          <Box gap={4}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('bridge.recurring.price_range.max_token_price', {
-                symbol: selectedToken?.symbol ?? '',
-              })}
-            </Text>
-            <PricePercentRow
-              bound="max"
-              percents={PRICE_RANGE_MAX_PERCENTS}
-              isDisabled={!hasLivePrice}
-              onSelect={handleMaxPercentPress}
-            />
-            <TextField
-              value={pendingMax}
-              onChangeText={(text) => setPendingMax(sanitizePriceInput(text))}
-              placeholder={strings(
-                'bridge.recurring.price_range.max_placeholder',
-              )}
-              startAccessory={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {currencySymbol}
-                </Text>
-              }
-              inputProps={{
-                keyboardType: 'decimal-pad',
-                testID: PriceRangeSheetSelectorsIDs.MAX_INPUT,
-                accessibilityLabel: strings(
+            <Box gap={4}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('bridge.recurring.price_range.max_token_price', {
+                  symbol: selectedToken?.symbol ?? '',
+                })}
+              </Text>
+              <PricePercentRow
+                bound="max"
+                percents={PRICE_RANGE_MAX_PERCENTS}
+                isDisabled={!hasLivePrice}
+                onSelect={handleMaxPercentPress}
+              />
+              <PriceRangeAmountField
+                value={pendingMax}
+                placeholder={strings(
                   'bridge.recurring.price_range.max_placeholder',
-                ),
-              }}
-              twClassName="w-full bg-default border-default"
-            />
+                )}
+                currencySymbol={currencySymbol}
+                testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
+                onPress={() => focusField('max')}
+              />
+            </Box>
           </Box>
-        </Box>
-      </ScrollView>
+        </ScrollView>
+        {isKeypadOpen ? (
+          <Pressable
+            accessibilityRole="button"
+            testID={PriceRangeSheetSelectorsIDs.KEYPAD_DISMISS}
+            onPress={closeKeypad}
+            style={tw.style('absolute inset-0')}
+          />
+        ) : null}
+      </Box>
       <BottomSheetFooter
         primaryButtonProps={{
           children: strings('bridge.recurring.confirm'),
@@ -392,6 +479,15 @@ const PriceRangeSheet = ({
           isDisabled: !canConfirm,
           testID: PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
+      />
+      <SwapsKeypad
+        ref={keypadRef}
+        value={focusedField === 'max' ? pendingMax : pendingMin}
+        currency={FIAT_KEYPAD_CURRENCY}
+        decimals={FIAT_INPUT_DECIMALS}
+        isInteractable
+        onChange={handleKeypadChange}
+        onClose={() => setFocusedField(null)}
       />
     </BottomSheet>
   );
