@@ -21,7 +21,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
+import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   usePerpsLiveOrders,
@@ -35,23 +38,24 @@ import {
 import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
+import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
+import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
+  DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
+  filterProOrdersBySide,
   filterProPositionsBySide,
+  getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
-  type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
-import {
-  DEFAULT_PRO_POSITION_SORT,
-  sortProPositions,
-  type ProPositionSortConfig,
-} from '../utils/proPositionSort';
+import { sortProOrders } from '../utils/proOrderSort';
+import { sortProPositions } from '../utils/proPositionSort';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -69,6 +73,8 @@ interface PerpsProPositionsPanelProps {
     market: PerpsMarketData | Partial<PerpsMarketData>,
     sourceSection: ProPositionsPanelSourceSection,
   ) => void;
+  /** Navigates to the order history screen. */
+  onHistoryPress?: () => void;
 }
 
 /**
@@ -77,8 +83,8 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows the user's open positions across all assets,
  * falling back to an empty state when there are none.
- * The `$TICKER only` checkbox filters positions (not orders) to the current
- * market. The Orders tab shows the user's open orders.
+ * Sort and side-filter preferences persist independently per tab via
+ * PerpsController. `$TICKER only` is still shared local UI state.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -87,16 +93,34 @@ interface PerpsProPositionsPanelProps {
 const PerpsProPositionsPanel = ({
   symbol,
   onSelectMarket,
+  onHistoryPress,
 }: PerpsProPositionsPanelProps) => {
+  const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
-  const [sideFilter, setSideFilter] = useState<ProPositionSideFilter>(
-    DEFAULT_PRO_POSITION_SIDE_FILTER,
-  );
-  const [sortConfig, setSortConfig] = useState<ProPositionSortConfig>(
-    DEFAULT_PRO_POSITION_SORT,
+  const {
+    sideFilter: positionsSideFilter,
+    sortConfig,
+    setSideFilter: setPositionsSideFilter,
+    setSortConfig,
+  } = usePerpsProPositionsPreferences();
+  const {
+    sideFilter: ordersSideFilter,
+    sortConfig: orderSortConfig,
+    setSideFilter: setOrdersSideFilter,
+    setSortConfig: setOrderSortConfig,
+  } = usePerpsProOrdersPreferences();
+  const handleTickerOnlyChange = useCallback(
+    (nextIsTickerOnly: boolean) => {
+      if (nextIsTickerOnly === isTickerOnly) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setIsTickerOnly(nextIsTickerOnly);
+    },
+    [isTickerOnly, playSelection],
   );
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
@@ -111,9 +135,15 @@ const PerpsProPositionsPanel = ({
     handleEditPositionTpSl,
     handleEditPositionMargin,
     handleCancelOrder,
+    handleEditOrderPrice,
+    handleEditOrderSize,
     handleCloseAllPress,
+    handleCancelAllPress,
     cancelingOrderId,
+    editingOrderId,
     isOrderCancelable,
+    isOrderEditable,
+    isOrderSizeEditable,
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
@@ -169,15 +199,43 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, positions, symbol],
   );
 
-  const sideFilteredPositions = useMemo(
-    () => filterProPositionsBySide(visiblePositions, sideFilter),
-    [sideFilter, visiblePositions],
+  const visibleOrders = useMemo(
+    () =>
+      isTickerOnly ? orders.filter((order) => order.symbol === symbol) : orders,
+    [isTickerOnly, orders, symbol],
   );
+
+  const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
+  const activeSideFilter = isOrdersTab ? ordersSideFilter : positionsSideFilter;
+  const setActiveSideFilter = isOrdersTab
+    ? setOrdersSideFilter
+    : setPositionsSideFilter;
+
+  const sideFilteredPositions = useMemo(
+    () => filterProPositionsBySide(visiblePositions, positionsSideFilter),
+    [positionsSideFilter, visiblePositions],
+  );
+
+  const isPositionsFiltered =
+    isTickerOnly || positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER;
+
+  const sideFilteredOrders = useMemo(
+    () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
+    [ordersSideFilter, visibleOrders],
+  );
+
+  const areOrdersFiltered =
+    isTickerOnly || ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER;
 
   const sortedVisiblePositions = useMemo(
     () =>
       sortProPositions(sideFilteredPositions, sortConfig, fundingRatesBySymbol),
     [fundingRatesBySymbol, sideFilteredPositions, sortConfig],
+  );
+
+  const sortedVisibleOrders = useMemo(
+    () => sortProOrders(sideFilteredOrders, orderSortConfig),
+    [orderSortConfig, sideFilteredOrders],
   );
 
   const aggregateTotals = useMemo(
@@ -193,7 +251,7 @@ const PerpsProPositionsPanel = ({
         })
       : strings('perps.pro_positions_panel.positions');
 
-  const openOrdersCount = orders.length;
+  const openOrdersCount = sideFilteredOrders.length;
   const ordersTabLabel =
     openOrdersCount > 0
       ? strings('perps.pro_positions_panel.orders_with_count', {
@@ -219,17 +277,33 @@ const PerpsProPositionsPanel = ({
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
   const isSideFilterEmpty =
-    sideFilter !== 'all' &&
+    positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER &&
     sideFilteredPositions.length === 0 &&
     visiblePositions.length > 0;
   const sideFilterEmptyDescriptionKey = isSideFilterEmpty
-    ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+    ? getProPositionSideFilterEmptyDescriptionKey(positionsSideFilter)
     : undefined;
   const filteredTicker =
     isTickerOnly &&
     hasAnyPositions &&
     visiblePositions.length === 0 &&
     !isSideFilterEmpty
+      ? displaySymbol
+      : undefined;
+
+  const hasAnyOrders = orders.length > 0;
+  const isOrderSideFilterEmpty =
+    ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
+    sideFilteredOrders.length === 0 &&
+    visibleOrders.length > 0;
+  const orderSideFilterEmptyDescriptionKey = isOrderSideFilterEmpty
+    ? getProOrderSideFilterEmptyDescriptionKey(ordersSideFilter)
+    : undefined;
+  const filteredOrdersTicker =
+    isTickerOnly &&
+    hasAnyOrders &&
+    visibleOrders.length === 0 &&
+    !isOrderSideFilterEmpty
       ? displaySymbol
       : undefined;
 
@@ -240,6 +314,8 @@ const PerpsProPositionsPanel = ({
           <PerpsProUnrealizedPnl
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
+            positionCount={sideFilteredPositions.length}
+            isFiltered={isPositionsFiltered}
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -276,18 +352,36 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderOrdersTab = () => {
-    if (orders.length > 0) {
+    if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
-          {orders.map((order, index) => (
+          <PerpsProOrdersSummary
+            orderCount={sideFilteredOrders.length}
+            onCancelAll={handleCancelAllPress}
+          />
+          {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
               order={order}
               testID={getPerpsProOrderRowSelector(order.symbol, index)}
               onPress={onSelectMarket ? handleSelectOrderMarket : undefined}
               onCancel={handleCancelOrder}
+              onEditPrice={handleEditOrderPrice}
+              onEditSize={handleEditOrderSize}
               isCancelDisabled={
-                !isOrderCancelable(order) || cancelingOrderId !== null
+                !isOrderCancelable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditPriceDisabled={
+                !isOrderEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditSizeDisabled={
+                !isOrderSizeEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
               }
             />
           ))}
@@ -301,10 +395,24 @@ const PerpsProPositionsPanel = ({
 
     return (
       <Box twClassName="items-center justify-center px-2 pt-6">
-        <PerpsProOrdersEmptyState />
+        <PerpsProOrdersEmptyState
+          filteredTicker={filteredOrdersTicker}
+          filteredSideDescriptionKey={orderSideFilterEmptyDescriptionKey}
+        />
       </Box>
     );
   };
+
+  const renderTickerOnlyCheckbox = () => (
+    <Checkbox
+      label={strings('perps.pro_positions_panel.ticker_only', {
+        ticker: displaySymbol,
+      })}
+      isSelected={isTickerOnly}
+      onChange={handleTickerOnlyChange}
+      testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
+    />
+  );
 
   return (
     <Box
@@ -316,62 +424,94 @@ const PerpsProPositionsPanel = ({
           reads as extra padding on the tab labels. Pull it back in with a
           matching negative margin instead of touching the shared component's
           own padding (used by other tab bars across the app). */}
-      <TabsBar
-        tabs={tabs}
-        activeIndex={activeIndex}
-        onTabPress={setActiveIndex}
-        twClassName="-mx-2"
-        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
-      />
-      {activeIndex === POSITIONS_TAB_INDEX && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-2 pt-3"
-        >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="pr-2"
+      >
+        <Box twClassName="flex-1">
+          <TabsBar
+            tabs={tabs}
+            activeIndex={activeIndex}
+            onTabPress={setActiveIndex}
+            twClassName="-mx-2"
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
+          />
+        </Box>
+        {onHistoryPress ? (
+          <ButtonIcon
+            iconName={IconName.Clock}
+            size={ButtonIconSize.Md}
+            onPress={onHistoryPress}
+            accessibilityLabel={strings(
+              'perps.pro_positions_panel.order_history',
+            )}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_HISTORY_BUTTON}
+          />
+        ) : null}
+      </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-2 pt-3"
+        accessible={false}
+      >
+        <Box twClassName="bg-muted rounded-lg">
           <ButtonIcon
             iconName={IconName.Customize}
             accessibilityLabel={strings(
-              'perps.pro_positions_panel.sort.settings_accessibility',
+              activeIndex === ORDERS_TAB_INDEX
+                ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
+                : 'perps.pro_positions_panel.sort.settings_accessibility',
             )}
             size={ButtonIconSize.Md}
             onPress={() => setIsSortSheetOpen(true)}
             testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
           />
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            endIconName={IconName.ArrowDown}
-            onPress={() => setIsSideFilterSheetOpen(true)}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
-          >
-            {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
-          </Button>
-          <Checkbox
-            label={strings('perps.pro_positions_panel.ticker_only', {
-              ticker: displaySymbol,
-            })}
-            isSelected={isTickerOnly}
-            onChange={setIsTickerOnly}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
-          />
         </Box>
-      )}
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          endIconName={IconName.ArrowDown}
+          onPress={() => setIsSideFilterSheetOpen(true)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
+        >
+          {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
+        </Button>
+        <Box twClassName="bg-muted rounded-lg px-2 py-1">
+          {renderTickerOnlyCheckbox()}
+        </Box>
+      </Box>
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets()}
-      <PerpsProPositionsSortSheet
-        isVisible={isSortSheetOpen}
-        sortConfig={sortConfig}
-        onApply={setSortConfig}
-        onClose={() => setIsSortSheetOpen(false)}
-        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
-      />
+      {renderActionSheets(
+        sideFilteredPositions,
+        isPositionsFiltered,
+        sideFilteredOrders,
+        areOrdersFiltered,
+      )}
+      {activeIndex === ORDERS_TAB_INDEX ? (
+        <PerpsProOrdersSortSheet
+          isVisible={isSortSheetOpen}
+          sortConfig={orderSortConfig}
+          onApply={setOrderSortConfig}
+          onClose={() => setIsSortSheetOpen(false)}
+          testID={PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}
+        />
+      ) : (
+        <PerpsProPositionsSortSheet
+          isVisible={isSortSheetOpen}
+          sortConfig={sortConfig}
+          onApply={setSortConfig}
+          onClose={() => setIsSortSheetOpen(false)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
+        />
+      )}
       <PerpsProPositionsSideFilterSheet
         isVisible={isSideFilterSheetOpen}
-        sideFilter={sideFilter}
-        onApply={setSideFilter}
+        sideFilter={activeSideFilter}
+        onApply={setActiveSideFilter}
         onClose={() => setIsSideFilterSheetOpen(false)}
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}
       />

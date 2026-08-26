@@ -164,6 +164,7 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
           await SendView.inputRecipientAddress(RECIPIENT);
           await SendView.pressReviewButton();
           await FooterActions.tapConfirmButton();
+          await FooterActions.waitForConfirmButtonGone();
           await TabBarComponent.tapActivity();
           await Assertions.expectTextDisplayed('Confirmed');
 

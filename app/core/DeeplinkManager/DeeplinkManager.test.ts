@@ -1,6 +1,13 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
-import FCMService from '../../util/notifications/services/FCMService';
+import {
+  EventType,
+  type Notification as NotifeeNotification,
+} from '@notifee/react-native';
+import FCMService, {
+  toPushTapResult,
+} from '../../util/notifications/services/FCMService';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 import NavigationService from '../NavigationService';
 import SharedDeeplinkManager, {
   DeeplinkManager,
@@ -34,6 +41,7 @@ jest.mock('./handlers/legacy/handleRewardsUrl');
 jest.mock('./handlers/legacy/handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
+jest.mock('../../util/notifications/services/NotificationService');
 jest.mock('../Braze/BrazeDeeplinks');
 jest.mock('../AppStateEventListener', () => ({
   AppOpenedPushProvider: { Braze: 'braze', Wallet: 'wallet' },
@@ -157,10 +165,23 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       FCMService.onClickPushNotificationWhenAppSuspended,
     );
     const mockHandleDeeplink = jest.mocked(handleDeeplink);
+    const mockToPushTapResult = jest.mocked(toPushTapResult);
+    const mockOnForegroundEvent = jest.mocked(
+      NotificationsService.onForegroundEvent,
+    );
+    const mockHandleNotificationEvent = jest.mocked(
+      NotificationsService.handleNotificationEvent,
+    );
     const mockGetBrazeInitialPush = jest.mocked(getBrazeInitialPush);
     const mockSubscribeToBrazePushOpens = jest.mocked(
       subscribeToBrazePushOpens,
     );
+
+    mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockOnClickPushNotificationWhenAppSuspended.mockImplementation(() => null);
 
     // Mock Braze to prevent errors during DeeplinkManager.start()
     mockGetBrazeInitialPush.mockResolvedValue({
@@ -173,6 +194,9 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       mockOnClickPushNotificationWhenAppClosed,
       mockOnClickPushNotificationWhenAppSuspended,
       mockHandleDeeplink,
+      mockToPushTapResult,
+      mockOnForegroundEvent,
+      mockHandleNotificationEvent,
     };
   };
 
@@ -257,6 +281,79 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       expect(
         mocks.mockOnClickPushNotificationWhenAppSuspended,
       ).toHaveBeenCalledWith(expect.any(Function));
+      expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Notifee Push Notification', () => {
+    const triggerNotifeePress = async (
+      mocks: ReturnType<typeof arrangeMocks>,
+      notification: NotifeeNotification,
+    ) => {
+      DeeplinkManager.start();
+      const foregroundEventHandler =
+        mocks.mockOnForegroundEvent.mock.calls[0][0];
+      await foregroundEventHandler({
+        type: EventType.PRESS,
+        detail: { notification },
+      });
+      const notificationCallback =
+        mocks.mockHandleNotificationEvent.mock.calls[0][0].callback;
+      notificationCallback?.(notification);
+    };
+
+    it('routes a Notifee press through wallet push attribution', async () => {
+      const deeplink = 'https://link.metamask.io/rewards';
+      const notification = {
+        data: {
+          dataStr: JSON.stringify({
+            deeplink,
+            notification_type: 'platform',
+            notification_subtype: 'take_profit_executed',
+          }),
+        },
+      } as NotifeeNotification;
+      const tapResult = {
+        opened: true,
+        deeplink,
+        notificationType: 'platform',
+        notificationSubtype: 'take_profit_executed',
+      };
+      const mocks = arrangeMocks();
+      mocks.mockToPushTapResult.mockReturnValue(tapResult);
+
+      await triggerNotifeePress(mocks, notification);
+
+      expect(mocks.mockToPushTapResult).toHaveBeenCalledWith(
+        notification.data,
+        true,
+      );
+      expect(AppStateEventProcessor.markOpenedFromPush).toHaveBeenCalledWith({
+        provider: 'wallet',
+        notificationType: 'platform',
+        notificationSubtype: 'take_profit_executed',
+      });
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: deeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+      });
+    });
+
+    it('ignores a Notifee press without wallet push fields', async () => {
+      const notification = {
+        data: {
+          dataStr: JSON.stringify({ action: 'tx' }),
+        },
+      } as NotifeeNotification;
+      const mocks = arrangeMocks();
+      mocks.mockToPushTapResult.mockReturnValue({
+        opened: true,
+        deeplink: null,
+      });
+
+      await triggerNotifeePress(mocks, notification);
+
+      expect(AppStateEventProcessor.markOpenedFromPush).not.toHaveBeenCalled();
       expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
   });

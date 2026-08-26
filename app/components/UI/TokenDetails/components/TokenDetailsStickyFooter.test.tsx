@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { useABTest } from '../../../../hooks/useABTest';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
@@ -11,6 +12,10 @@ import { strings } from '../../../../../locales/i18n';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -111,6 +116,8 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
+const mockUseABTest = jest.mocked(useABTest);
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -142,8 +149,14 @@ describe('TokenDetailsStickyFooter', () => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
     setupSelectorMock();
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: true },
+      variantName: 'treatment',
+      isActive: true,
+    });
   });
 
   describe('button visibility', () => {
@@ -248,6 +261,38 @@ describe('TokenDetailsStickyFooter', () => {
       label: 'Earn 6% APY',
       onPress: jest.fn(),
     };
+
+    it('hides Money Earn CTA for the control variant', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { showMoneyDepositFooterCta: false },
+        variantName: 'control',
+        isActive: true,
+      });
+
+      const { queryByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(queryByTestId('money-asset-overview-footer-cta')).toBeNull();
+      expect(queryByText('Earn 6% APY')).toBeNull();
+    });
+
+    it('shows Money Earn CTA for the treatment variant', () => {
+      const { getByTestId, getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+    });
 
     it('renders Swap and primary Earn actions for a held token', () => {
       const { getByText, queryByText } = render(
@@ -977,10 +1022,10 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
 
-    it('hides the quick buy button when the account has no eligible swap source', () => {
+    it('renders the quick buy button when the account has no eligible swap source', () => {
       mockHasEligibleSwapTokens = false;
       const onQuickBuyPress = jest.fn();
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           onQuickBuyPress={onQuickBuyPress}
@@ -988,7 +1033,9 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      expect(queryByTestId(quickBuyTestID)).toBeNull();
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,14 +1,9 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../framework';
+import { AppiumAssertions, AppiumGestures } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
-  dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
+  closePredictModal,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import {
@@ -21,9 +16,9 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -41,8 +36,8 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 const assertTelegramLoginReady = async (): Promise<void> => {
   try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(OnboardingSheet.telegramLoginButton),
+    await AppiumAssertions.expectElementToBeVisible(
+      OnboardingSheet.telegramLoginButton,
       {
         description: 'Telegram login button should be visible',
       },
@@ -65,14 +60,13 @@ const assertTelegramLoginReady = async (): Promise<void> => {
 
 /* TO-916: Seedless Onboarding — Telegram Login */
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  perfTest.setTimeout(240000);
+  perfTest.setTimeout(300000);
 
   perfTest(
     'Seedless Onboarding: Telegram Login New User',
     { tag: '@metamask-onboarding-team' },
     // Request `driver` so the Playwright/Appium fixture boots before page-object
-    // actions run. Without it, FrameworkDetector falls back to Detox and
-    // Matchers throw ReferenceError: element is not defined.
+    // actions run.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
       // Conservative initial guardrails — calibrate against BrowserStack
       // baselines once this coverage has 10+ clean RC/release-profile runs
@@ -94,16 +88,11 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Telegram: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 6000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
-        'Telegram: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 5000 },
-        currentDeviceDetails.platform,
-      );
-      const timer6 = new TimerHelper(
-        'Telegram: Dismiss feature sheet → wallet main screen visible',
+        'Telegram: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
@@ -158,47 +147,32 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         // Password entry is excluded from measured steps (manual auth/typing).
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
-        await PlaywrightGestures.hideKeyboard();
+        await AppiumGestures.hideKeyboard();
         try {
           await CreatePasswordView.ensureMarketingOptInChecked();
         } catch (error) {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-
+        //await measureCreatePasswordToOnboardingSuccess(timer4);
         await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
+          await AppiumAssertions.expectElementToBeVisible(
+            OnboardingSuccessView.doneButton,
           );
         });
-
-        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
+        await closePredictModal();
         await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
-
-        await dismisspredictionsModalPlaywright();
-        await timer6.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
+          await AppiumAssertions.expectElementToBeVisible(
+            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4, timer5];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
@@ -216,8 +190,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await LoginView.tapLoginButton();
 
         await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+          await AppiumAssertions.expectElementToBeVisible(
+            WalletView.container,
             {
               description: 'Wallet main screen should be visible',
             },

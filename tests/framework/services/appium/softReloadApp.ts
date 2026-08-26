@@ -4,12 +4,18 @@ import {
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../../Constants.ts';
-import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
+import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
+import AppiumUtilities from '../../AppiumUtilities.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import { switchToNativeContext } from './sessionHealth.ts';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from './sessionRecovery.ts';
 
-const logger = createPlaywrightLogger('softReloadApp');
+const logger = createAppiumLogger('softReloadApp');
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -82,9 +88,28 @@ export async function softReloadAppForFixtures(
     drv = globalThis.driver,
   } = options;
 
+  // Both caches key on the WebView socket, whose name embeds the app pid.
+  AndroidWebViewCdpHelpers.resetCache();
+  ChromeCdpHelpers.resetMetaMaskWebViewCache();
+
   let clearAppDataMs = 0;
   if (deviceCommands) {
-    clearAppDataMs = await measureMs(() => deviceCommands.clearAppData());
+    try {
+      clearAppDataMs = await measureMs(async () => {
+        try {
+          await deviceCommands.clearAppData();
+        } catch (firstError) {
+          logger.warn('clearAppData failed; retrying once:', firstError);
+          await sleep(1000);
+          await deviceCommands.clearAppData();
+        }
+      });
+    } catch (error) {
+      if (isDeviceHealthError(error)) {
+        requestSharedSessionRecreate();
+      }
+      throw error;
+    }
   }
 
   const contextResetMs = await measureMs(async () => {
@@ -104,7 +129,7 @@ export async function softReloadAppForFixtures(
 
   try {
     launchAppMs = await measureMs(() =>
-      PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+      AppiumUtilities.launchApp(currentDeviceDetails, { launchArgs }),
     );
 
     const bootstrapStart = Date.now();
@@ -131,6 +156,9 @@ export async function softReloadAppForFixtures(
     fixtureBootstrapMs = Date.now() - bootstrapStart;
   } catch (error) {
     appStateRequest.catch(() => undefined);
+    if (isDeviceHealthError(error)) {
+      requestSharedSessionRecreate();
+    }
     throw error;
   }
 

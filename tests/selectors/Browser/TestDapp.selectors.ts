@@ -29,7 +29,6 @@ export const TestDappSelectorsWebIDs = {
   ERC_721_REVOKE_APPROVAL_BUTTON_ID: 'revokeButton',
   ERC_1155_REVOKE_APPROVAL_BUTTON_ID: 'revokeERC1155Button',
   REVOKE_ACCOUNTS_PERMISSIONS: 'revokeAccountsPermission',
-  REQUEST_PERMISSIONS: 'requestPermissions',
   OPEN_NETWORK_PICKER: 'openNetworkPicker',
 } as const;
 

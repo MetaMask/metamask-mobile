@@ -9,8 +9,16 @@ import {
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
+import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
+
+const mockPerpsConnectionProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
+const mockPerpsStreamProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -28,16 +36,31 @@ jest.mock(
   },
 );
 
+jest.mock('../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsConnectionProvider({ children }),
+}));
+
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsStreamProvider({ children }),
+}));
+
 jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: jest.fn(() => ({
     totalFee: 2.345,
-    protocolFee: 0.005,
-    metamaskFee: 1.229,
-  }),
+    isLoading: false,
+    hasError: false,
+  })),
 }));
+
+const mockUsePerpsRecordedOrderFees =
+  usePerpsRecordedOrderFees as jest.MockedFunction<
+    typeof usePerpsRecordedOrderFees
+  >;
 
 const baseTransaction: Pick<
   PerpsTransaction,
@@ -51,6 +74,12 @@ const baseTransaction: Pick<
   asset: 'BTC',
 };
 
+/**
+ * @param type - Activity kind the row maps to.
+ * @param transaction - Source perps transaction the row wraps.
+ * @param status - Activity status to render.
+ * @returns A feed-backed perps row, on the injected Arbitrum chain id.
+ */
 function perpsItem(
   type: ActivityListItem['type'],
   transaction: PerpsTransaction,
@@ -74,7 +103,10 @@ const PAY_METADATA = {
   totalFiat: '1001.24',
 } as const;
 
-/** State where the deposit's local transaction carries MetaMask Pay fees. */
+/**
+ * @param hash - Hash the activity row is matched by.
+ * @returns State where the deposit's local transaction carries Pay fees.
+ */
 function stateWithPayTransaction(hash: string) {
   return {
     engine: {
@@ -96,9 +128,16 @@ function stateWithPayTransaction(hash: string) {
   };
 }
 
+/** Real network configurations, so chain ids resolve to display names. */
+const stateWithNetworks = { engine: { backgroundState } };
+
 /**
- * A deposit that only exists locally — the state the funding toast's "Track"
- * opens into, before the HyperLiquid feed returns the row.
+ * A funds movement that only exists locally — the state the funding toast's
+ * "Track" opens into, before the HyperLiquid feed returns the row.
+ *
+ * @param type - Whether the row is a deposit or a withdrawal.
+ * @param status - Activity status to render.
+ * @returns The activity row.
  */
 function localPerpsFundsItem(
   type: 'perpsAddFunds' | 'perpsWithdraw' = 'perpsAddFunds',
@@ -134,6 +173,10 @@ function localPerpsFundsItem(
 }
 
 describe('PerpsDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -170,6 +213,34 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
+  it('renders trade details without Perps provider contexts', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      type: 'trade',
+      fill: {
+        shortTitle: 'Closed short',
+        amount: '-$0.02',
+        amountNumber: -0.02,
+        isPositive: false,
+        size: '0.0001',
+        entryPrice: '92113',
+        points: '0',
+        pnl: '-$0.02',
+        fee: '0.02',
+        action: 'Closed',
+        feeToken: 'USDC',
+        fillType: FillType.Standard,
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).not.toHaveBeenCalled();
+    expect(mockPerpsStreamProvider).not.toHaveBeenCalled();
+  });
+
   it('renders canceled order rows and try-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -178,6 +249,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Take profit close short',
       order: {
+        orderId: 'order-1',
         text: PerpsOrderTransactionStatus.Canceled,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'limit',
@@ -194,10 +266,70 @@ describe('PerpsDetails', () => {
     );
 
     expect(getByText('Limit price')).toBeOnTheScreen();
-    expect(getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(getByText('0%')).toBeOnTheScreen();
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('provides connection and stream contexts for order details', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'provider-backed-order',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Limit order',
+      order: {
+        orderId: 'provider-backed-order',
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'limit',
+        size: '10',
+        limitPrice: '98023',
+        filled: '100%',
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the recorded fee for a partially filled canceled order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-partially-filled',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Take profit close short',
+      order: {
+        orderId: 'order-partially-filled',
+        text: PerpsOrderTransactionStatus.Canceled,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'limit',
+        size: '10.23',
+        limitPrice: '98023',
+        filled: '45%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails
+        item={perpsItem('marketCloseShort', transaction, 'cancelled')}
+      />,
+    );
+
+    expect(getByText('45%')).toBeOnTheScreen();
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenLastCalledWith(
+      'order-partially-filled',
+      'BTC',
+      1_765_361_640_000,
+    );
   });
 
   it('renders funding rate and signed funding fee', () => {
@@ -234,6 +366,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-2',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'limit',
@@ -243,15 +376,15 @@ describe('PerpsDetails', () => {
       },
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <PerpsDetails item={perpsItem('marketShort', transaction)} />,
     );
 
     expect(getByText('$10.239')).toBeOnTheScreen();
     expect(getByText('$98,023')).toBeOnTheScreen();
-    expect(getByText('$1.229')).toBeOnTheScreen();
     expect(getByText('$2.345')).toBeOnTheScreen();
-    expect(getByText('$0.005')).toBeOnTheScreen();
+    expect(queryByText('MetaMask fee')).toBeNull();
+    expect(queryByText('Hyperliquid fee')).toBeNull();
   });
 
   it('shows a filled order as "Filled" in the status row, not "Confirmed"', () => {
@@ -262,6 +395,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-filled',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'market',
@@ -280,6 +414,32 @@ describe('PerpsDetails', () => {
     expect(statusPill).not.toHaveTextContent('Confirmed');
   });
 
+  it('renders the recorded fee for a triggered order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-triggered',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Stop market close short',
+      order: {
+        orderId: 'order-triggered',
+        text: PerpsOrderTransactionStatus.Triggered,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '100%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketCloseShort', transaction)} />,
+    );
+
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+  });
+
   it('labels a rejected order "Rejected" in the status row (not "Failed")', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -288,6 +448,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-rejected',
         text: PerpsOrderTransactionStatus.Rejected,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'market',
@@ -355,6 +516,7 @@ describe('PerpsDetails', () => {
       },
     };
 
+    /** @returns The feed row, hash-matched to the local Pay transaction. */
     function feedItem(): ActivityListItem {
       return {
         ...perpsItem('perpsAddFunds', fundsTransaction),
@@ -425,6 +587,102 @@ describe('PerpsDetails', () => {
       expect(queryByText('Transaction fee')).toBeNull();
       expect(queryByText('Total amount')).toBeNull();
       expect(getByText('Initiate withdrawal')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Network row', () => {
+    // Every perps row carries the same injected chain id (Arbitrum), which the
+    // Network row must never present as where the user transacted.
+    const withdrawalTransaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'wallet-withdrawal-1',
+      type: 'withdrawal',
+      category: 'withdrawal',
+      title: 'Withdrawal',
+      asset: 'USDC',
+      depositWithdrawal: {
+        amount: '-$1,000',
+        amountNumber: 1000,
+        isPositive: false,
+        asset: 'USDC',
+        txHash: '0xperpswithdrawal',
+        status: 'completed',
+        type: 'withdrawal',
+      },
+    };
+
+    const depositTransaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'wallet-deposit-network',
+      type: 'deposit',
+      category: 'deposit',
+      title: 'Account funded',
+      asset: 'USDC',
+      depositWithdrawal: {
+        amount: '+$1,000',
+        amountNumber: 1000,
+        isPositive: true,
+        asset: 'USDC',
+        txHash: '0xperpsdeposit',
+        status: 'completed',
+        type: 'deposit',
+      },
+    };
+
+    it('omits the row entirely for a feed-backed deposit', () => {
+      const item = {
+        ...perpsItem('perpsAddFunds', depositTransaction),
+        hash: '0xperpsdeposit',
+      } as ActivityListItem;
+
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PerpsDetails item={item} />,
+        { state: stateWithPayTransaction('0xperpsdeposit') },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it('omits the row entirely for a local-only deposit', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem()} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it('names the payment chain on a withdrawal, not the injected perps chain', () => {
+      // PAY_METADATA pays from Ethereum while the row's chainId is Arbitrum.
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem('perpsWithdraw')} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it("falls back to the row's chain on a withdrawal Pay did not route", () => {
+      const item = {
+        ...perpsItem('perpsWithdraw', withdrawalTransaction),
+        hash: '0xperpswithdrawal',
+      } as ActivityListItem;
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsDetails item={item} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Arbitrum')).toBeOnTheScreen();
     });
   });
 });

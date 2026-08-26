@@ -83,7 +83,10 @@ jest.mock('./useRampsCountries', () => ({
   }),
   default: () => ({ countries: mockCountries, isLoading: false, error: null }),
 }));
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Views/TokenSelection/TokenSelection', () => {
   const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
@@ -108,6 +111,14 @@ jest.mock('../../../../core/Engine', () => ({
         mockRefreshGeolocation(...args),
     },
   },
+}));
+
+const mockStartRampsBuyCufTrace = jest.fn();
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  startRampsBuyCufTrace: (...args: unknown[]) =>
+    mockStartRampsBuyCufTrace(...args),
+  surfaceFromBuyFlowOrigin: jest.requireActual('../utils/rampsBuyCufTrace')
+    .surfaceFromBuyFlowOrigin,
 }));
 
 const mockNavigate = jest.fn();
@@ -223,6 +234,9 @@ describe('useRampNavigation', () => {
       });
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'unknown',
+      });
     });
 
     it('passes buyFlowOrigin through to BuildQuote params', () => {
@@ -236,6 +250,9 @@ describe('useRampNavigation', () => {
         assetId: intent.assetId,
         buyFlowOrigin: 'tokenInfo',
       });
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'token_buy',
+      });
     });
 
     it('passes homeTokenList buyFlowOrigin through to BuildQuote params', () => {
@@ -248,6 +265,24 @@ describe('useRampNavigation', () => {
       expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
         assetId: intent.assetId,
         buyFlowOrigin: 'homeTokenList',
+      });
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'home_token_list',
+      });
+    });
+
+    it('starts Buy E2E CUF with an explicit surface tag', () => {
+      const intent = { assetId: 'eip155:1/erc20:0x123' };
+      mockCreateBuildQuoteNavDetails.mockReturnValue([
+        Routes.RAMP.AMOUNT_INPUT,
+      ] as never);
+
+      const { result } = renderUseRampNavigation();
+
+      result.current.goToBuy(intent, { surface: 'fund_menu' });
+
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'fund_menu',
       });
     });
 
@@ -264,6 +299,9 @@ describe('useRampNavigation', () => {
       expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'unknown',
+      });
     });
 
     it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
@@ -277,6 +315,7 @@ describe('useRampNavigation', () => {
 
       expect(mockSetSelectedToken).not.toHaveBeenCalled();
       expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).not.toHaveBeenCalled();
       expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
         AggregatorRampType.BUY,
         intent,

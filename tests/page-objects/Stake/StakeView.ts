@@ -3,28 +3,25 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import {
-  EncapsulatedElementType,
-  encapsulatedAction,
+  Assertions,
+  type AppiumElement,
   PlatformDetector,
 } from '../../framework';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class StakeView {
-  get stakeContainer(): EncapsulatedElementType {
+  get stakeContainer(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer(): EncapsulatedElementType {
+  get unstakeContainer(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton(): EncapsulatedElementType {
+  get reviewButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
@@ -34,40 +31,26 @@ class StakeView {
   }
 
   async enterAmount(amount: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        for (const digit of amount) {
-          const button = Matchers.getElementByText(digit);
-          await Gestures.waitAndTap(button, {
-            elemDescription: `Digit ${digit} in Stake Amount`,
-          });
-        }
-      },
-      appium: async () => {
-        // Text match for "1"/"0" hits balances on Android; use keypad testIDs.
-        const isAndroid = PlatformDetector.isAndroid();
-        for (const digit of amount.split('')) {
-          const keyName =
-            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-          const el = isAndroid
-            ? await PlaywrightMatchers.getElementById(keyName, {
-                exact: true,
-              })
-            : await PlaywrightMatchers.getElementByXPath(
-                `//*[contains(@name,'${keyName}')]`,
-              );
-          await PlaywrightAssertions.expectElementToBeVisible(el, {
-            timeout: 10000,
-            description: `Keypad digit ${digit} should be visible`,
-          });
-          await PlaywrightGestures.waitAndTap(el, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 500,
-          });
-        }
-      },
-    });
+    // Text match for "1"/"0" hits balances; use keypad testIDs.
+    // iOS: accessibility-id matching for these keys is unreliable — use name XPath
+    // (same pattern as QuoteView.enterAmount / RedesignedSendView.enterAmountViaNumpad).
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount.split('')) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const el = isAndroid
+        ? Matchers.getElementByID(keyName)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Assertions.expectElementToBeVisible(el, {
+        timeout: 10000,
+        description: `Keypad digit ${digit} should be visible`,
+      });
+      await Gestures.waitAndTap(el, {
+        elemDescription: `Digit ${digit} in Stake Amount`,
+        checkForDisplayed: true,
+        checkEnabled: true,
+        delay: 500,
+      });
+    }
   }
 
   async tapReview(timeout?: number): Promise<void> {

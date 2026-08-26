@@ -8,6 +8,7 @@ import {
 import React, { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { FilterOptionSheetSelectorsIDs } from './Filters.testIds';
@@ -77,50 +78,61 @@ function FilterOptionSheetInner<T extends string>({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <GestureHandlerRootView style={styles.root}>
-        <Box twClassName="absolute inset-0">
-          <Pressable
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: colors.overlay.default },
-            ]}
-            onPress={onClose}
-            accessibilityRole="button"
-            testID={backdropTestID}
-          />
+      {/*
+        On Android a Modal is its own window, and `statusBarTranslucent` makes it
+        draw under the system bars. The root SafeAreaProvider measures the
+        activity window, which is not edge-to-edge below Android 15, so it
+        reports a bottom inset of 0 here and BottomSheetDialog's bottom padding
+        collapses — hiding the last option behind the navigation bar. A nested
+        provider measures this window instead, so the inset is right on every
+        Android version. Same approach as the scam questionnaire modal.
+      */}
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={styles.root}>
+          <Box twClassName="absolute inset-0">
+            <Pressable
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.overlay.default },
+              ]}
+              onPress={onClose}
+              accessibilityRole="button"
+              testID={backdropTestID}
+            />
 
-          <BottomSheetDialog onClose={onClose} testID={sheetTestID}>
-            <BottomSheetHeader
-              onClose={onClose}
-              closeButtonProps={{
-                testID: FilterOptionSheetSelectorsIDs.CLOSE_BUTTON,
-              }}
-            >
-              {title}
-            </BottomSheetHeader>
-            <Box twClassName="pb-4">
-              {options.map((option) => {
-                const isSelected = option === value;
-                return (
-                  <ActionListItem
-                    key={option}
-                    label={getLabel(option)}
-                    onPress={() => handleSelect(option)}
-                    endAccessory={
-                      <RadioButton
-                        isChecked={isSelected}
-                        onPress={() => handleSelect(option)}
-                      />
-                    }
-                    accessibilityState={{ selected: isSelected }}
-                    testID={getOptionTestID(option)}
-                  />
-                );
-              })}
-            </Box>
-          </BottomSheetDialog>
-        </Box>
-      </GestureHandlerRootView>
+            <BottomSheetDialog onClose={onClose} testID={sheetTestID}>
+              <BottomSheetHeader
+                onClose={onClose}
+                closeButtonProps={{
+                  testID: FilterOptionSheetSelectorsIDs.CLOSE_BUTTON,
+                }}
+              >
+                {title}
+              </BottomSheetHeader>
+              <Box twClassName="pb-4">
+                {options.map((option) => {
+                  const isSelected = option === value;
+                  return (
+                    <ActionListItem
+                      key={option}
+                      label={getLabel(option)}
+                      onPress={() => handleSelect(option)}
+                      endAccessory={
+                        <RadioButton
+                          isChecked={isSelected}
+                          onPress={() => handleSelect(option)}
+                        />
+                      }
+                      accessibilityState={{ selected: isSelected }}
+                      testID={getOptionTestID(option)}
+                    />
+                  );
+                })}
+              </Box>
+            </BottomSheetDialog>
+          </Box>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

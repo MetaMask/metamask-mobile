@@ -82,7 +82,11 @@ const mockStreamManagerInstance = {
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  candles: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
   resetDiskCacheThrottles: jest.fn(),
   clearAllChannels: jest.fn(),
 };
@@ -130,10 +134,15 @@ const mockClearPendingPerpsCufTraces =
 const mockEndPerpsCufTrace = endPerpsCufTrace as jest.MockedFunction<
   typeof endPerpsCufTrace
 >;
-import { TradingReadinessCache } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  TradingReadinessCache,
+} from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
+import { AppState } from 'react-native';
+import Device from '../../../../util/device';
 import { PerpsConnectionManager } from './PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
@@ -165,6 +174,8 @@ const resetManager = (manager: unknown) => {
     prewarmCleanups: (() => void)[];
     netInfoUnsubscribe: (() => void) | null;
     wasOffline: boolean;
+    stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
+    pendingSkipMarketNotify: boolean;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -175,6 +186,11 @@ const resetManager = (manager: unknown) => {
     m.netInfoUnsubscribe = null;
   }
   m.wasOffline = false;
+  if (m.stateChangeDebounceTimer) {
+    clearTimeout(m.stateChangeDebounceTimer);
+  }
+  m.stateChangeDebounceTimer = null;
+  m.pendingSkipMarketNotify = false;
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
@@ -685,9 +701,10 @@ describe('PerpsConnectionManager', () => {
         }),
       );
 
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(true);
+      ).not.toHaveBeenCalled();
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -726,7 +743,7 @@ describe('PerpsConnectionManager', () => {
 
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(false);
+      ).toHaveBeenCalledWith();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {
@@ -736,15 +753,15 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.getAccountState.mockResolvedValue({});
       await PerpsConnectionManager.connect();
 
-      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
 
       // Simulate two rapid state changes within 50ms
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
-      storeCallback();
+      latestStoreCallback();
       (
         selectSelectedInternalAccountByScope as unknown as jest.Mock
       ).mockReturnValue(() => ({ address: '0xnew' }));
-      storeCallback();
+      latestStoreCallback();
 
       // Advance past the 50ms debounce window
       jest.advanceTimersByTime(60);
@@ -784,10 +801,10 @@ describe('PerpsConnectionManager', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      // The second clearCache call inside performReconnection should use false
+      // The reconnection must perform a full market reset.
       const calls = mockStreamManagerInstance.marketData.clearCache.mock.calls;
       const lastCall = calls[calls.length - 1];
-      expect(lastCall[0]).toBe(false);
+      expect(lastCall).toEqual([]);
 
       jest.useRealTimers();
     });
@@ -799,9 +816,9 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.getAccountState.mockResolvedValue({});
       await PerpsConnectionManager.connect();
 
-      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
-      storeCallback();
+      latestStoreCallback();
 
       const m = PerpsConnectionManager as unknown as {
         stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
@@ -880,7 +897,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
     });
 
-    it('reinitializes controller with new account and network context', async () => {
+    it('reinitializes the controller and mounted candle subscriptions', async () => {
       mockPerpsController.init.mockResolvedValue();
 
       await (
@@ -892,6 +909,12 @@ describe('PerpsConnectionManager', () => {
       // Manager now calls initializeProviders directly (Controller.reconnectWithNewContext was removed as redundant)
       // Account data will be fetched via WebSocket subscriptions during preload, no explicit getAccountState() call
       expect(mockPerpsController.init).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.candles.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockPerpsController.init.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStreamManagerInstance.candles.reconnect.mock.invocationCallOrder[0],
+      );
     });
 
     it('waits for concurrent controller reinit before health-check ping', async () => {
@@ -938,6 +961,9 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+      expect(
+        mockStreamManagerInstance.candles.reconnect,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -997,6 +1023,10 @@ describe('PerpsConnectionManager', () => {
     describe('clearAllDexAbstractionCache (deprecated)', () => {
       it('delegates to clearAllSigningCache for backward compatibility', () => {
         // Act
+        // The deprecation warning is the point of this test: the deprecated
+        // alias must keep delegating until it is removed, so calling it here is
+        // unavoidable.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PerpsConnectionManager.clearAllDexAbstractionCache();
 
         // Assert - should still clear all, just with new log message
@@ -1325,6 +1355,110 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.positions.clearCache,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scheduleGracePeriodDisconnection — stale iOS timer (TAT-3645)', () => {
+    interface SchedulableManager {
+      connectionRefCount: number;
+      scheduleGracePeriodDisconnection: () => void;
+    }
+
+    const armGracePeriodWhileAppIs = (
+      appState: 'active' | 'inactive' | 'background',
+    ): void => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      AppState.currentState = appState;
+      manager.scheduleGracePeriodDisconnection();
+    };
+
+    beforeEach(async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      mockPerpsController.disconnect.mockClear();
+      jest.mocked(Device.isIos).mockReturnValue(true);
+      jest.mocked(Device.isAndroid).mockReturnValue(false);
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      // Device mock return values survive jest.clearAllMocks(), so reset them
+      // here or every later describe inherits isIos() === true.
+      jest.mocked(Device.isIos).mockReset();
+      jest.mocked(Device.isAndroid).mockReset();
+      AppState.currentState = 'active';
+    });
+
+    it('ignores a timer armed while backgrounded, because iOS can only run it once the app resumes', async () => {
+      armGracePeriodWhileAppIs('background');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        false,
+      );
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Ignoring stale grace period timer'),
+      );
+    });
+
+    it('ignores a timer armed on the inactive edge, which is what a real iOS lock arms on', async () => {
+      // PerpsAlwaysOnProvider disconnects on the `active -> inactive` edge and
+      // iOS backgrounding fires active -> inactive -> background, so `inactive`
+      // is the state production actually arms in.
+      armGracePeriodWhileAppIs('inactive');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        false,
+      );
+    });
+
+    it('ignores a backgrounded timer even for a lock barely longer than the grace period', async () => {
+      // A 20-25s lock overshoots the deadline by only a few seconds. Arm-time
+      // state still identifies it as a resume, so there is no blind band.
+      armGracePeriodWhileAppIs('background');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs + 1000);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the live connection usable after a stale timer is ignored', async () => {
+      armGracePeriodWhileAppIs('background');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      // Nothing was torn down, so a screen mounting right after unlock still
+      // reads market data instead of failing with CLIENT_NOT_INITIALIZED.
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true);
+      expect(state.isInitialized).toBe(true);
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('still disconnects when the grace period was armed while the app is active', async () => {
+      // In-app reference-count drop: the timer runs on schedule, so the normal
+      // grace-period disconnection must be preserved.
+      armGracePeriodWhileAppIs('active');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).toHaveBeenCalled();
     });
   });
 

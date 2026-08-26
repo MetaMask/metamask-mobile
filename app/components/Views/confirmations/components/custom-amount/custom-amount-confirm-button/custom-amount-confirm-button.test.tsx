@@ -31,14 +31,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 function render(props: {
-  alertTitle?: string;
   isDisabled?: boolean;
   onContinue?: () => void;
   stage?: CustomAmountStage;
 }) {
   return renderWithProvider(
     <CustomAmountConfirmButton
-      alertTitle={props.alertTitle}
       isDisabled={props.isDisabled ?? false}
       onContinue={props.onContinue}
       stage={props.stage ?? CustomAmountStage.ShowTotals}
@@ -94,8 +92,6 @@ describe('CustomAmountConfirmButton', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
-      isMaxDeposit: false,
-      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useConfirmActionsMock.mockReturnValue({
@@ -117,11 +113,10 @@ describe('CustomAmountConfirmButton', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the default label during loading even when alertTitle is set', () => {
+  it('always shows the default label regardless of stage', () => {
     // useTransactionMetadataRequest returns undefined → useButtonLabel returns the default 'done' string
-    const { getByTestId, queryByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmountConfirmButton
-        alertTitle="Test Alert Title"
         isDisabled={false}
         stage={CustomAmountStage.Loading}
       />,
@@ -129,7 +124,6 @@ describe('CustomAmountConfirmButton', () => {
     );
     const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
-    expect(queryByText('Test Alert Title')).toBeNull();
   });
 
   it('calls onConfirm and onContinue when pressed (enabled state)', async () => {

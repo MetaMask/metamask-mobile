@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from './TrendingQuickBuy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { QuickBuyEventProperties } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import { QuickBuyEventProperties } from '../../../QuickBuy/analytics';
 
 const mockTrack = jest.fn();
 jest.mock(
@@ -14,24 +14,18 @@ jest.mock(
 );
 
 const mockQuickBuyRoot = jest.fn();
-jest.mock(
-  '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy',
-  () => ({
-    QuickBuy: {
-      Root: (props: Record<string, unknown>) => {
-        mockQuickBuyRoot(props);
-        return null;
-      },
+jest.mock('../../../QuickBuy/quickBuy', () => ({
+  QuickBuy: {
+    Root: (props: Record<string, unknown>) => {
+      mockQuickBuyRoot(props);
+      return null;
     },
-  }),
-);
+  },
+}));
 
-jest.mock(
-  '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features',
-  () => ({
-    TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy', 'sell'] },
-  }),
-);
+jest.mock('../../../QuickBuy/features', () => ({
+  TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy', 'sell'] },
+}));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

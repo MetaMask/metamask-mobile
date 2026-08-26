@@ -15,6 +15,12 @@ export {
 } from './ScreenRecording.ts';
 export { isSessionAlive, switchToNativeContext } from './sessionHealth.ts';
 export {
+  consumeSharedSessionRecreate,
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+  resetSharedSessionRecreateState,
+} from './sessionRecovery.ts';
+export {
   softReloadAppForFixtures,
   type SoftReloadAppForFixturesOptions,
   type SoftReloadAppForFixturesResult,

@@ -1,4 +1,7 @@
-// Mock the logger module BEFORE importing EncapsulatedElement
+/**
+ * @jest-environment node
+ */
+
 jest.mock('./logger.ts', () => ({
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
@@ -18,67 +21,27 @@ jest.mock('./logger.ts', () => ({
 
 import {
   EncapsulatedElement,
-  PlatformDetector,
   LocatorStrategy,
   encapsulated,
-  asPlaywrightElement,
-  asDetoxElement,
-  resolve,
-  isSelector,
   type LocatorConfig,
-  type Selector,
-  FrameworkDetector,
-  TestFramework,
-} from './index.ts';
-import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+} from './EncapsulatedElement.ts';
+import { isSelector } from './Selector.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 import { resetDeviceInfo, setDeviceInfo } from './DeviceInfoCache.ts';
 
-// Type augmentation for test globals
-declare const global: typeof globalThis & {
-  device?: { getPlatform: () => string };
-  driver?: { capabilities: Promise<{ platformName?: string }> };
-  browser?: { capabilities: Promise<{ platformName?: string }> };
-};
-
 describe('EncapsulatedElement', () => {
-  // Store original globals
-  const originalDevice = global.device;
-  const originalDriver = global.driver;
-  const originalBrowser = global.browser;
-
-  // Mock factory helpers
-  const createMockDetoxElement = (): DetoxElement =>
-    ({
-      tap: jest.fn(),
-      typeText: jest.fn(),
-      clearText: jest.fn(),
-    }) as unknown as DetoxElement;
-
-  const createMockPlaywrightElement = (): PlaywrightElement =>
+  const createMockAppiumElement = (): AppiumElement =>
     ({
       click: jest.fn(),
       fill: jest.fn(),
       clear: jest.fn(),
-    }) as unknown as PlaywrightElement;
+    }) as unknown as AppiumElement;
+
+  const windowSize = { width: 390, height: 844 };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset FrameworkDetector FIRST to clear any cached framework
-    FrameworkDetector.reset();
-
-    // Reset globals to ensure clean state for each test
-    delete (global as Record<string, unknown>).device;
-    delete (global as Record<string, unknown>).driver;
-    delete (global as Record<string, unknown>).browser;
-  });
-
-  afterEach(() => {
-    // Reset framework detection after each test
-    FrameworkDetector.reset();
-    // Restore original globals
-    (global as Record<string, unknown>).device = originalDevice;
-    (global as Record<string, unknown>).driver = originalDriver;
-    (global as Record<string, unknown>).browser = originalBrowser;
+    resetDeviceInfo();
   });
 
   describe('LocatorStrategy', () => {
@@ -93,735 +56,91 @@ describe('EncapsulatedElement', () => {
     });
   });
 
-  describe('TestFramework', () => {
-    it('contains DETOX and APPIUM values', () => {
-      expect(TestFramework.DETOX).toBe('detox');
-      expect(TestFramework.APPIUM).toBe('appium');
-    });
-  });
-
-  describe('FrameworkDetector', () => {
-    describe('detect', () => {
-      it('returns DETOX when framework is set to DETOX', () => {
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.DETOX);
-      });
-
-      it('returns APPIUM when framework is set to APPIUM', () => {
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('returns DETOX when device global exists', () => {
-        FrameworkDetector.reset();
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.DETOX);
-      });
-
-      it('returns APPIUM when driver global exists', () => {
-        FrameworkDetector.reset();
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('returns APPIUM when browser global exists', () => {
-        FrameworkDetector.reset();
-        (global as Record<string, unknown>).browser = {
-          capabilities: Promise.resolve({ platformName: 'iOS' }),
-        };
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('prioritizes APPIUM when both driver and device globals exist', () => {
-        FrameworkDetector.reset();
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('returns DETOX as default when no globals are present', () => {
-        FrameworkDetector.reset();
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.DETOX);
-      });
-
-      it('caches the framework after first detection', () => {
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        FrameworkDetector.detect();
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('preserves cached framework across multiple detect calls', () => {
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        const firstResult = FrameworkDetector.detect();
-        const secondResult = FrameworkDetector.detect();
-        const thirdResult = FrameworkDetector.detect();
-
-        expect(firstResult).toBe(TestFramework.APPIUM);
-        expect(secondResult).toBe(TestFramework.APPIUM);
-        expect(thirdResult).toBe(TestFramework.APPIUM);
-      });
-    });
-
-    describe('setFramework', () => {
-      it('sets framework to DETOX', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.DETOX);
-      });
-
-      it('sets framework to APPIUM', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-
-      it('overrides global-based detection', () => {
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.APPIUM);
-      });
-    });
-
-    describe('reset', () => {
-      it('clears cached framework allowing re-detection', () => {
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
-        FrameworkDetector.detect();
-        FrameworkDetector.reset();
-        delete (global as Record<string, unknown>).driver;
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-
-        const result = FrameworkDetector.detect();
-
-        expect(result).toBe(TestFramework.DETOX);
-      });
-    });
-
-    describe('isDetox', () => {
-      it('returns true when framework is DETOX', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-
-        const result = FrameworkDetector.isDetox();
-
-        expect(result).toBe(true);
-      });
-
-      it('returns false when framework is APPIUM', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        const result = FrameworkDetector.isDetox();
-
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('isAppium', () => {
-      it('returns true when framework is APPIUM', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        const result = FrameworkDetector.isAppium();
-
-        expect(result).toBe(true);
-      });
-
-      it('returns false when framework is DETOX', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-
-        const result = FrameworkDetector.isAppium();
-
-        expect(result).toBe(false);
-      });
-    });
-  });
-
-  describe('PlatformDetector', () => {
-    beforeEach(() => {
-      resetDeviceInfo();
-    });
-
-    describe('getPlatform', () => {
-      it('returns platform from device.getPlatform() in Detox context', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('android'),
-        };
-
-        const result = PlatformDetector.getPlatform();
-
-        expect(result).toBe('android');
-      });
-
-      it('returns "android" when Appium device info cache was set to android', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        setDeviceInfo('android', { width: 400, height: 800 });
-
-        const result = PlatformDetector.getPlatform();
-
-        expect(result).toBe('android');
-      });
-
-      it('returns "ios" when Appium device info cache was set to ios', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        setDeviceInfo('ios', { width: 390, height: 844 });
-
-        const result = PlatformDetector.getPlatform();
-
-        expect(result).toBe('ios');
-      });
-
-      it('throws when Appium device info cache was reset and not repopulated', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-
-        expect(() => PlatformDetector.getPlatform()).toThrow(
-          /Device info cache is not initialized/,
-        );
-      });
-    });
-
-    describe('isAndroid', () => {
-      it('returns true when platform is android', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('android'),
-        };
-
-        const result = PlatformDetector.isAndroid();
-
-        expect(result).toBe(true);
-      });
-
-      it('returns false when platform is ios', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-
-        const result = PlatformDetector.isAndroid();
-
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('isIOS', () => {
-      it('returns true when platform is ios', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('ios'),
-        };
-
-        const result = PlatformDetector.isIOS();
-
-        expect(result).toBe(true);
-      });
-
-      it('returns false when platform is android', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        (global as Record<string, unknown>).device = {
-          getPlatform: jest.fn().mockReturnValue('android'),
-        };
-
-        const result = PlatformDetector.isIOS();
-
-        expect(result).toBe(false);
-      });
-    });
-  });
-
   describe('EncapsulatedElement.create', () => {
-    describe('Detox context', () => {
-      beforeEach(() => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-      });
+    it('uses a generic appium locator function', async () => {
+      const mockElement = createMockAppiumElement();
+      const config: LocatorConfig = {
+        appium: () => Promise.resolve(mockElement),
+      };
 
-      it('returns Detox element when in Detox context', () => {
-        const mockDetoxElement = createMockDetoxElement();
-        const config: LocatorConfig = {
-          detox: () => mockDetoxElement,
-        };
-
-        const result = EncapsulatedElement.create(config);
-
-        expect(result).toBe(mockDetoxElement);
-      });
-
-      it('throws error when Detox config is missing in Detox context', () => {
-        const config: LocatorConfig = {
-          appium: () => Promise.resolve(createMockPlaywrightElement()),
-        };
-
-        expect(() => EncapsulatedElement.create(config)).toThrow(
-          'Detox configuration is required when running in Detox context',
-        );
-      });
-
-      it('executes Detox locator function to get element', () => {
-        const mockDetoxElement = createMockDetoxElement();
-        const detoxFn = jest.fn().mockReturnValue(mockDetoxElement);
-        const config: LocatorConfig = {
-          detox: detoxFn,
-        };
-
-        EncapsulatedElement.create(config);
-
-        expect(detoxFn).toHaveBeenCalledTimes(1);
-      });
+      await expect(EncapsulatedElement.create(config)).resolves.toBe(
+        mockElement,
+      );
     });
 
-    describe('Appium context', () => {
-      beforeEach(() => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        resetDeviceInfo();
-        setDeviceInfo('android', { width: 400, height: 800 });
-      });
+    it('uses android-specific locator when platform is android', async () => {
+      setDeviceInfo('android', windowSize);
+      const androidElement = createMockAppiumElement();
+      const iosElement = createMockAppiumElement();
+      const config: LocatorConfig = {
+        appium: {
+          android: () => Promise.resolve(androidElement),
+          ios: () => Promise.resolve(iosElement),
+        },
+      };
 
-      it('returns Appium element when in Appium context with generic locator', async () => {
-        const mockPlaywrightElement = createMockPlaywrightElement();
-        const config: LocatorConfig = {
-          appium: () => Promise.resolve(mockPlaywrightElement),
-        };
+      await expect(EncapsulatedElement.create(config)).resolves.toBe(
+        androidElement,
+      );
+    });
 
-        const result = await EncapsulatedElement.create(config);
+    it('uses ios-specific locator when platform is ios', async () => {
+      setDeviceInfo('ios', windowSize);
+      const androidElement = createMockAppiumElement();
+      const iosElement = createMockAppiumElement();
+      const config: LocatorConfig = {
+        appium: {
+          android: () => Promise.resolve(androidElement),
+          ios: () => Promise.resolve(iosElement),
+        },
+      };
 
-        expect(result).toBe(mockPlaywrightElement);
-      });
+      await expect(EncapsulatedElement.create(config)).resolves.toBe(
+        iosElement,
+      );
+    });
 
-      it('throws error when Appium config is missing in Appium context', async () => {
-        const config: LocatorConfig = {
-          detox: () => createMockDetoxElement(),
-        };
+    it('throws when appium config is missing', async () => {
+      await expect(
+        EncapsulatedElement.create({} as LocatorConfig),
+      ).rejects.toThrow('Appium configuration is required');
+    });
 
-        await expect(EncapsulatedElement.create(config)).rejects.toThrow(
-          'Appium configuration is required when running in Appium context',
-        );
-      });
+    it('throws when platform locator is missing', async () => {
+      setDeviceInfo('ios', windowSize);
+      const config: LocatorConfig = {
+        appium: {
+          android: () => Promise.resolve(createMockAppiumElement()),
+        },
+      };
 
-      it('uses generic appium locator when provided as function', async () => {
-        const mockPlaywrightElement = createMockPlaywrightElement();
-        const appiumFn = jest.fn().mockResolvedValue(mockPlaywrightElement);
-        const config: LocatorConfig = {
-          appium: appiumFn,
-        };
-
-        await EncapsulatedElement.create(config);
-
-        expect(appiumFn).toHaveBeenCalledTimes(1);
-      });
-
-      it('uses platform-specific appium locator for android', async () => {
-        const mockPlaywrightElement = createMockPlaywrightElement();
-        const androidFn = jest.fn().mockResolvedValue(mockPlaywrightElement);
-        const iosFn = jest.fn();
-        const config: LocatorConfig = {
-          appium: {
-            android: androidFn,
-            ios: iosFn,
-          },
-        };
-
-        await EncapsulatedElement.create(config);
-
-        expect(androidFn).toHaveBeenCalledTimes(1);
-        expect(iosFn).not.toHaveBeenCalled();
-      });
-
-      it('uses platform-specific appium locator for ios', async () => {
-        setDeviceInfo('ios', { width: 390, height: 844 });
-        const mockPlaywrightElement = createMockPlaywrightElement();
-        const androidFn = jest.fn();
-        const iosFn = jest.fn().mockResolvedValue(mockPlaywrightElement);
-        const config: LocatorConfig = {
-          appium: {
-            android: androidFn,
-            ios: iosFn,
-          },
-        };
-
-        await EncapsulatedElement.create(config);
-
-        expect(iosFn).toHaveBeenCalledTimes(1);
-        expect(androidFn).not.toHaveBeenCalled();
-      });
-
-      it('throws error when platform-specific locator is missing for android', async () => {
-        const config: LocatorConfig = {
-          appium: {
-            ios: () => Promise.resolve(createMockPlaywrightElement()),
-          },
-        };
-
-        await expect(EncapsulatedElement.create(config)).rejects.toThrow(
-          "Appium locator for platform 'android' is not provided in the configuration",
-        );
-      });
-
-      it('throws error when platform-specific locator is missing for ios', async () => {
-        setDeviceInfo('ios', { width: 390, height: 844 });
-        const config: LocatorConfig = {
-          appium: {
-            android: () => Promise.resolve(createMockPlaywrightElement()),
-          },
-        };
-
-        await expect(EncapsulatedElement.create(config)).rejects.toThrow(
-          "Appium locator for platform 'ios' is not provided in the configuration",
-        );
-      });
+      await expect(EncapsulatedElement.create(config)).rejects.toThrow(
+        /Appium locator for platform 'ios'/,
+      );
     });
   });
 
-  describe('encapsulated helper function', () => {
-    it('creates element using EncapsulatedElement.create for Detox', () => {
-      FrameworkDetector.setFramework(TestFramework.DETOX);
-      const mockDetoxElement = createMockDetoxElement();
-      const config: LocatorConfig = {
-        detox: () => mockDetoxElement,
-      };
-
-      const result = encapsulated(config);
-
-      expect(result).toBe(mockDetoxElement);
-    });
-
-    it('creates element using EncapsulatedElement.create for Appium', async () => {
-      FrameworkDetector.setFramework(TestFramework.APPIUM);
-      const mockPlaywrightElement = createMockPlaywrightElement();
-      const config: LocatorConfig = {
-        appium: () => Promise.resolve(mockPlaywrightElement),
-      };
-
-      const result = await encapsulated(config);
-
-      expect(result).toBe(mockPlaywrightElement);
-    });
-  });
-
-  describe('asPlaywrightElement helper function', () => {
-    it('returns PlaywrightElement from promise-based EncapsulatedElementType', async () => {
-      const mockPlaywrightElement = createMockPlaywrightElement();
-      const promiseElement = Promise.resolve(mockPlaywrightElement);
-
-      const result = await asPlaywrightElement(promiseElement);
-
-      expect(result).toBe(mockPlaywrightElement);
-    });
-
-    it('awaits and returns element from EncapsulatedElement in Appium context', async () => {
-      FrameworkDetector.setFramework(TestFramework.APPIUM);
-      const mockPlaywrightElement = createMockPlaywrightElement();
-      const config: LocatorConfig = {
-        appium: () => Promise.resolve(mockPlaywrightElement),
-      };
-      const element = EncapsulatedElement.create(config);
-
-      const result = await asPlaywrightElement(element);
-
-      expect(result).toBe(mockPlaywrightElement);
-    });
-  });
-
-  describe('asDetoxElement helper function', () => {
-    it('returns DetoxElement from EncapsulatedElementType', () => {
-      const mockDetoxElement = createMockDetoxElement();
-
-      const result = asDetoxElement(mockDetoxElement);
-
-      expect(result).toBe(mockDetoxElement);
-    });
-
-    it('returns element from EncapsulatedElement in Detox context', () => {
-      FrameworkDetector.setFramework(TestFramework.DETOX);
-      const mockDetoxElement = createMockDetoxElement();
-      const config: LocatorConfig = {
-        detox: () => mockDetoxElement,
-      };
-      const element = EncapsulatedElement.create(config);
-
-      const result = asDetoxElement(element);
-
-      expect(result).toBe(mockDetoxElement);
+  describe('encapsulated helper', () => {
+    it('delegates to EncapsulatedElement.create', async () => {
+      const mockElement = createMockAppiumElement();
+      await expect(
+        encapsulated({ appium: () => Promise.resolve(mockElement) }),
+      ).resolves.toBe(mockElement);
     });
   });
 
   describe('isSelector', () => {
-    it('returns true for { testID }', () => {
+    it('returns true for declarative selectors', () => {
       expect(isSelector({ testID: 'foo' })).toBe(true);
+      expect(isSelector({ text: 'bar' })).toBe(true);
     });
 
-    it('returns true for { testID, index }', () => {
-      expect(isSelector({ testID: 'foo', index: 1 })).toBe(true);
-    });
-
-    it('returns true for { label }', () => {
-      expect(isSelector({ label: 'Submit' })).toBe(true);
-    });
-
-    it('returns true for { text }', () => {
-      expect(isSelector({ text: 'Cancel' })).toBe(true);
-    });
-
-    it('returns true for { detoxTestID, appiumTestID }', () => {
-      expect(
-        isSelector({ detoxTestID: 'trade', appiumTestID: 'actions' }),
-      ).toBe(true);
-    });
-
-    it('returns true for { detoxTestID, androidAppiumTestID, iosAppiumTestID }', () => {
-      expect(
-        isSelector({
-          detoxTestID: 'trade',
-          androidAppiumTestID: 'actions-android',
-          iosAppiumTestID: 'actions-ios',
-        }),
-      ).toBe(true);
-    });
-
-    it('returns true for { testID, iosAppiumTestID }', () => {
-      expect(
-        isSelector({
-          testID: 'wallet-container',
-          iosAppiumTestID: 'eye-slash-icon',
-        }),
-      ).toBe(true);
-    });
-
-    it('returns false for null', () => {
+    it('returns false for promises and plain objects', () => {
+      expect(isSelector(Promise.resolve(createMockAppiumElement()))).toBe(
+        false,
+      );
       expect(isSelector(null)).toBe(false);
-    });
-
-    it('returns false for a string', () => {
-      expect(isSelector('some-id')).toBe(false);
-    });
-
-    it('returns false for a Promise', () => {
-      expect(isSelector(Promise.resolve())).toBe(false);
-    });
-
-    it('returns false for a DetoxElement-like object', () => {
-      const mockDetoxElement = createMockDetoxElement();
-      expect(isSelector(mockDetoxElement)).toBe(false);
-    });
-
-    it('returns false for an empty object', () => {
-      expect(isSelector({})).toBe(false);
-    });
-  });
-
-  describe('resolve', () => {
-    const createSpyOnEncapsulatedCreate = () =>
-      jest.spyOn(EncapsulatedElement, 'create');
-
-    describe('{ testID } — Detox context', () => {
-      it('calls EncapsulatedElement.create with detox config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({ testID: 'my-button' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ testID } — Appium Android context', () => {
-      it('calls EncapsulatedElement.create with android appium config', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        setDeviceInfo('android', { width: 1080, height: 1920 });
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockResolvedValue(createMockPlaywrightElement());
-
-        resolve({ testID: 'my-button' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof (config.appium as Record<string, unknown>)?.android).toBe(
-          'function',
-        );
-        spy.mockRestore();
-        resetDeviceInfo();
-      });
-    });
-
-    describe('{ testID } — Appium iOS context', () => {
-      it('calls EncapsulatedElement.create with ios appium config', () => {
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
-        setDeviceInfo('ios', { width: 390, height: 844 });
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockResolvedValue(createMockPlaywrightElement());
-
-        resolve({ testID: 'my-button' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof (config.appium as Record<string, unknown>)?.ios).toBe(
-          'function',
-        );
-        spy.mockRestore();
-        resetDeviceInfo();
-      });
-    });
-
-    describe('{ label }', () => {
-      it('calls EncapsulatedElement.create with label config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({ label: 'Password Input' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ text }', () => {
-      it('calls EncapsulatedElement.create with text config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({ text: 'Cancel' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ detoxTestID, appiumTestID }', () => {
-      it('calls EncapsulatedElement.create with framework-split config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({ detoxTestID: 'trade', appiumTestID: 'actions' });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ detoxTestID, androidAppiumTestID, iosAppiumTestID }', () => {
-      it('calls EncapsulatedElement.create with three-way split config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({
-          detoxTestID: 'trade',
-          androidAppiumTestID: 'actions-android',
-          iosAppiumTestID: 'actions-ios',
-        });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        expect(
-          typeof (config.appium as { android: unknown; ios: unknown }).android,
-        ).toBe('function');
-        expect(
-          typeof (config.appium as { android: unknown; ios: unknown }).ios,
-        ).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ detoxTestID, androidAppiumTestID, iosAppiumXPath }', () => {
-      it('calls EncapsulatedElement.create with ios xpath config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({
-          detoxTestID: 'seed-phrase-input',
-          androidAppiumTestID: 'seed-phrase-input',
-          iosAppiumXPath: '//XCUIElementTypeOther[@name="textfield"]',
-        });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        expect(
-          typeof (config.appium as { android: unknown; ios: unknown }).android,
-        ).toBe('function');
-        expect(
-          typeof (config.appium as { android: unknown; ios: unknown }).ios,
-        ).toBe('function');
-        spy.mockRestore();
-      });
-    });
-
-    describe('{ testID, iosAppiumTestID }', () => {
-      it('calls EncapsulatedElement.create with ios-override config', () => {
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-        const spy = createSpyOnEncapsulatedCreate();
-        spy.mockReturnValue(createMockDetoxElement());
-
-        resolve({
-          testID: 'wallet-container',
-          iosAppiumTestID: 'eye-slash-icon',
-        });
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        const config = spy.mock.calls[0][0] as LocatorConfig;
-        expect(typeof config.detox).toBe('function');
-        spy.mockRestore();
-      });
+      expect(isSelector({ click: jest.fn() })).toBe(false);
     });
   });
 });

@@ -6,18 +6,24 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import enContent from '../../../locales/languages/en.json';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class PerpsHomeView {
-  get exploreCrypto(): EncapsulatedElementType {
+  get exploreCrypto(): Promise<AppiumElement> {
     return Matchers.getElementByText(enContent.perps.home.crypto);
   }
 
-  get backHome(): EncapsulatedElementType {
+  get backHome(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON);
   }
 
-  get withdrawButton(): EncapsulatedElementType {
+  get addFundsButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+    );
+  }
+
+  get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
     );
@@ -44,6 +50,12 @@ class PerpsHomeView {
   async tapBackHomeButton(): Promise<void> {
     await Gestures.waitAndTap(this.backHome, {
       elemDescription: 'Perps Back Home Button',
+    });
+  }
+
+  async tapAddFundsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addFundsButton, {
+      elemDescription: 'Add Funds button',
     });
   }
 

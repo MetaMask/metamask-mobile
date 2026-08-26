@@ -7,6 +7,7 @@ import {
   Scope,
   type Span,
   withIsolationScope,
+  startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import {
@@ -45,6 +46,8 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
+  startNewTrace: jest.fn((fn: () => unknown) => fn()),
+  SPAN_STATUS_ERROR: 2,
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
@@ -96,6 +99,7 @@ describe('Trace', () => {
   const startSpanManualMock = jest.mocked(startSpanManual);
   // mockImplementation doesn't choose the correct overload, so we ignore the types by casting to jest.Mock
   const withIsolationScopeMock = jest.mocked(withIsolationScope) as jest.Mock;
+  const startNewTraceMock = jest.mocked(startNewTrace) as jest.Mock;
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
 
@@ -120,6 +124,7 @@ describe('Trace', () => {
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
       fn({ setTag: setTagMock } as unknown as Scope),
     );
+    startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
     flushBufferedTraces();
     updateCachedConsent(false);
@@ -170,7 +175,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -204,7 +209,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -216,6 +221,25 @@ describe('Trace', () => {
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
+    });
+
+    it('uses data when tags and data contain the same attribute', () => {
+      updateCachedConsent(true);
+
+      trace(
+        {
+          name: NAME_MOCK,
+          tags: { shared: 'tag' },
+          data: { shared: 'data' },
+        },
+        () => true,
+      );
+
+      expect(startSpanMock).toHaveBeenCalledWith(
+        expect.objectContaining({ attributes: { shared: 'data' } }),
+        expect.any(Function),
+      );
+      expect(setTagMock).toHaveBeenCalledWith('shared', 'tag');
     });
 
     it('buffers traces when consent is not given', () => {
@@ -258,7 +282,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
           startTime: 123,
         },
@@ -271,6 +295,37 @@ describe('Trace', () => {
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
+    });
+
+    it('starts a new trace when forceTransaction is set without parentContext', () => {
+      updateCachedConsent(true);
+
+      trace({ id: ID_MOCK, name: NAME_MOCK, forceTransaction: true });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(startNewTraceMock).toHaveBeenCalledTimes(1);
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: NAME_MOCK,
+          forceTransaction: true,
+          parentSpan: null,
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('does not start a new trace when forceTransaction has parentContext', () => {
+      updateCachedConsent(true);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        forceTransaction: true,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(startNewTraceMock).not.toHaveBeenCalled();
     });
 
     it('falls back to Date.now when performance.timeOrigin is broken (RN Android)', () => {
@@ -360,6 +415,82 @@ describe('Trace', () => {
 
     it('returns undefined when no pending trace matches', () => {
       expect(getTraceContext({ name: NAME_MOCK })).toBeUndefined();
+    });
+
+    // perf_fix: trace-registry-v1 — verify trace registry parent linkage
+    it('enables child spans to look up parent by TraceName for parent linkage', () => {
+      updateCachedConsent(true);
+
+      const parentEnd = jest.fn();
+      const parentSpan = {
+        end: parentEnd,
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(parentSpan, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: TraceName.OnboardingJourneyOverall,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+
+      const lookedUp = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      expect(lookedUp).toBe(parentSpan);
+
+      const childEnd = jest.fn();
+      const childSpan = { end: childEnd } as unknown as Span;
+      startSpanManualMock.mockImplementationOnce((opts, fn) => {
+        expect(opts.parentSpan).toBe(parentSpan);
+        return fn(childSpan, () => {
+          // Intentionally empty
+        });
+      });
+
+      trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: lookedUp,
+      });
+
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+    });
+
+    it('returns undefined after the parent trace is ended', () => {
+      updateCachedConsent(true);
+
+      const parentEnd = jest.fn();
+      const parentSpan = {
+        end: parentEnd,
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(parentSpan, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: TraceName.OnboardingJourneyOverall,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+
+      expect(
+        getTraceContext({ name: TraceName.OnboardingJourneyOverall }),
+      ).toBe(parentSpan);
+
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expect(
+        getTraceContext({ name: TraceName.OnboardingJourneyOverall }),
+      ).toBeUndefined();
     });
   });
 
@@ -730,12 +861,13 @@ describe('Trace', () => {
         data: { success: true },
       });
       trace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
+        name: TraceName.OnboardingFetchSrps,
         startTime: 4_000,
       });
       endTrace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
+        name: TraceName.OnboardingFetchSrps,
         timestamp: 4_500,
+        data: { success: true },
       });
       endScreenTtc('choose_password', 5_000, 5_150);
       endTrace({ name: TraceName.OnboardingJourneyOverall });
@@ -885,6 +1017,58 @@ describe('Trace', () => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       expectMachineTime(journey, 1_500);
+    });
+
+    it('counts only the latest successful duration for a retried social login span', () => {
+      const journey = createSpanMock();
+      queueSpans([
+        journey,
+        createSpanMock(),
+        createSpanMock(),
+        createSpanMock(),
+        createSpanMock(),
+      ]);
+
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+      trace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        startTime: 1_000,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        timestamp: 1_505,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        startTime: 1_600,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        timestamp: 8_241,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        startTime: 10_000,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        timestamp: 10_535,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        startTime: 10_600,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        timestamp: 12_702,
+        data: { success: true },
+      });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expectMachineTime(journey, 535 + 2_102);
     });
 
     it('rounds machine time to whole milliseconds', () => {

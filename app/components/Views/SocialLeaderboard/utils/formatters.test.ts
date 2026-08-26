@@ -1,5 +1,6 @@
 import {
   formatUsd,
+  formatTradeUnitPrice,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
@@ -30,6 +31,22 @@ describe('formatUsd', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatTradeUnitPrice', () => {
+  it('formats sub-cent per-unit prices with perps precision', () => {
+    expect(formatTradeUnitPrice(0.002759)).toBe('$0.002759');
+  });
+
+  it('formats dollar-scale prices with tiered precision', () => {
+    expect(formatTradeUnitPrice(63_850)).toBe('$63,850');
+    expect(formatTradeUnitPrice(0.15)).toBe('$0.15');
+  });
+
+  it('returns an em dash for nullish values', () => {
+    expect(formatTradeUnitPrice(null)).toBe('\u2014');
+    expect(formatTradeUnitPrice(undefined)).toBe('\u2014');
   });
 });
 

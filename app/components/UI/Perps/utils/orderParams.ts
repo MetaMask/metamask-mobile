@@ -1,6 +1,9 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
   type InputMethod,
+  type Order,
   type OrderParams,
   type OrderType,
   type Position,
@@ -88,28 +91,36 @@ export const buildPerpsOrderTrackingData = ({
 export interface BuildPerpsOrderParamsInput {
   asset: string;
   isBuy: boolean;
-  /** Position size (token units) — kept for backward compat; provider recalculates from usdAmount. */
+  /** Position size (token units); exact full closes intentionally omit usdAmount. */
   size: string;
   orderType: OrderType;
   /** Effective price used for both `currentPrice` and `priceAtCalculation`. */
   effectivePrice: number;
   leverage: number;
-  usdAmount: string;
-  /** User-configured max slippage (bps); limit orders override to the fixed default. */
+  usdAmount?: string;
+  /** Effective max slippage (bps); limit-execution orders override to the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
+  /** Trigger price for stop/take placements; omitted for market and limit. */
+  triggerPrice?: string;
   takeProfitPrice?: string;
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  /**
+   * True when the order consumes the full open position.
+   * Enables the controller's minimum-notional exemption for dust closes.
+   */
+  isFullClose?: boolean;
   trackingData: OrderTrackingData;
 }
 
 /**
  * Pure assembly of the controller `OrderParams` shared by the lite
- * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit orders
- * use the fixed default slippage; TP/SL/limit price and `reduceOnly` are only
- * included when present. Mirrors the lite form's original inline object exactly.
+ * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit-execution
+ * orders use the fixed default slippage; TP/SL, limit price, trigger price, and
+ * `reduceOnly` are only included when present. TP/SL are never attached to
+ * reduce-only or trigger orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -124,26 +135,85 @@ export const buildPerpsOrderParams = ({
   usdAmount,
   maxSlippageBps,
   limitPrice,
+  triggerPrice,
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  isFullClose,
   trackingData,
-}: BuildPerpsOrderParamsInput): OrderParams => ({
-  symbol: asset,
-  isBuy,
-  size,
-  orderType,
-  currentPrice: effectivePrice,
-  leverage,
-  usdAmount,
-  priceAtCalculation: effectivePrice,
-  maxSlippageBps:
-    orderType === 'limit'
+}: BuildPerpsOrderParamsInput): OrderParams => {
+  const canAttachTpSl = !reduceOnly && !isTriggerOrderType(orderType);
+
+  return {
+    symbol: asset,
+    isBuy,
+    size,
+    orderType,
+    currentPrice: effectivePrice,
+    leverage,
+    ...(usdAmount !== undefined ? { usdAmount } : {}),
+    priceAtCalculation: effectivePrice,
+    maxSlippageBps: isLimitExecutionOrderType(orderType)
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
       : maxSlippageBps,
-  ...(reduceOnly !== undefined ? { reduceOnly } : {}),
-  ...(orderType === 'limit' && limitPrice ? { price: limitPrice } : {}),
-  ...(takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
-  ...(stopLossPrice?.trim() ? { stopLossPrice } : {}),
+    ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+    ...(isFullClose !== undefined ? { isFullClose } : {}),
+    ...(isLimitExecutionOrderType(orderType) && limitPrice
+      ? { price: limitPrice }
+      : {}),
+    ...(isTriggerOrderType(orderType) && triggerPrice?.trim()
+      ? { triggerPrice }
+      : {}),
+    ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
+    ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
+    trackingData,
+  };
+};
+
+export interface BuildEditOrderParamsInput {
+  order: Order;
+  newLimitPrice?: string;
+  newSize?: string;
+  leverage?: number;
+  trackingData: OrderTrackingData;
+}
+
+/**
+ * Builds controller `OrderParams` for editing an existing limit order.
+ * Unspecified fields are taken from the open order.
+ */
+export const buildEditOrderParamsFromOrder = ({
+  order,
+  newLimitPrice,
+  newSize,
+  leverage,
   trackingData,
-});
+}: BuildEditOrderParamsInput): OrderParams => {
+  const limitPrice = newLimitPrice ?? order.price ?? '';
+  const parsedPrice = Number.parseFloat(limitPrice);
+  const size =
+    newSize ?? order.remainingSize ?? order.originalSize ?? order.size;
+
+  return {
+    symbol: order.symbol,
+    isBuy: order.side === 'buy',
+    size,
+    orderType: 'limit',
+    currentPrice: parsedPrice,
+    priceAtCalculation: parsedPrice,
+    maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
+    price: limitPrice,
+    ...(typeof leverage === 'number' && leverage > 0 ? { leverage } : {}),
+    ...(order.reduceOnly ? { reduceOnly: true } : {}),
+    // Carry TP/SL prices through params for parity with placement flows. The
+    // HyperLiquid modify wire payload does not read these fields today; size
+    // edits on orders with attached TP/SL are blocked separately in the app.
+    ...(order.takeProfitPrice?.trim()
+      ? { takeProfitPrice: order.takeProfitPrice }
+      : {}),
+    ...(order.stopLossPrice?.trim()
+      ? { stopLossPrice: order.stopLossPrice }
+      : {}),
+    trackingData,
+  };
+};
