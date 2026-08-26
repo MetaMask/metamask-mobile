@@ -2,7 +2,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -44,6 +43,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import {
   Text as CustomText,
   TextColor,
+  toast,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -59,11 +59,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../component-library/components/Toast';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
@@ -353,7 +348,6 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
@@ -643,39 +637,22 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
-    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    toast?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.toast_message`),
-          isBold: true,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.toast_read_more`),
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
+    toast({
+      title: strings('privacy_policy.toast_message'),
       hasNoTimeout: true,
+      onClose: storePrivacyPolicyClickedOrClosed,
+      actionButtonLabel: strings('privacy_policy.toast_read_more'),
+      actionButtonOnPress: () => {
+        storePrivacyPolicyClickedOrClosed();
+        toast.dismiss();
+        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+      },
     });
   }, [
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    toastRef,
   ]);
 
   const isNotificationEnabled = useSelector(
