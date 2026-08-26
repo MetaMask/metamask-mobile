@@ -2185,17 +2185,23 @@ describe('Perps Feature Flag Selectors', () => {
   });
 
   describe('selectPerpsProTwapEnabledFlag', () => {
-    const createStateWithFlag = (flag?: Json) => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags:
-              flag === undefined ? {} : { perpsMobileTwap: flag },
-            cacheTimestamp: 0,
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileTwap = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
           },
         },
-      },
-    });
+      };
+    };
 
     it('returns true when the remote flag is enabled for the app version', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
