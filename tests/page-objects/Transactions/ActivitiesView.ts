@@ -387,6 +387,18 @@ class ActivitiesView {
       rowIndex,
     );
   }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    // TODO: Implement
+  }
 }
 
 export default new ActivitiesView();

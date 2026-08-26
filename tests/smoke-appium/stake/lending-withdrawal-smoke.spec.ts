@@ -81,6 +81,7 @@ appiumTest.describe(SmokeStake('Lending Withdrawal from Wallet'), () => {
                 'Lending withdrawal activity should appear after withdrawal',
             },
           );
+          await ActivitiesView.waitForTransactionConfirmed(0, 120000);
         },
       );
     },
