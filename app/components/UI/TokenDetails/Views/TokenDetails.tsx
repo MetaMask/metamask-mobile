@@ -290,10 +290,6 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
-  useEffect(() => {
-    endTrace({ name: TraceName.AssetDetails });
-  }, []);
-
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
@@ -315,7 +311,26 @@ const TokenDetails: React.FC<{
     setTimePeriod,
     chartNavigationButtons,
     hasInsufficientCoverage,
+    historicalPricesApiMs,
+    exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const hasEndedAssetDetailsTraceRef = useRef(false);
+
+  useEffect(() => {
+    if (hasEndedAssetDetailsTraceRef.current || isLoading) {
+      return;
+    }
+    hasEndedAssetDetailsTraceRef.current = true;
+    endTrace({
+      name: TraceName.AssetDetails,
+      data: {
+        asset_id: caip19AssetId ?? undefined,
+        historical_prices_api_ms: historicalPricesApiMs,
+        exchange_rate_api_ms: exchangeRateApiMs,
+      },
+    });
+  }, [isLoading, caip19AssetId, historicalPricesApiMs, exchangeRateApiMs]);
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {

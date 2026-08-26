@@ -19,6 +19,7 @@ import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
+import { TraceName } from '../../../../util/trace';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -102,6 +103,9 @@ const defaultUseTokenPriceReturn = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m'],
   currentCurrency: 'USD',
+  hasInsufficientCoverage: false,
+  historicalPricesApiMs: undefined,
+  exchangeRateApiMs: undefined,
 };
 const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
@@ -428,6 +432,14 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
+const mockEndTrace = jest.fn();
+const mockTrace = jest.fn();
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+  trace: (...args: unknown[]) => mockTrace(...args),
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -525,6 +537,91 @@ describe('TokenDetails', () => {
 
     expect(mockUseAddNetworkIfMissingQuery).toHaveBeenCalledWith({
       chainId: '0x1237',
+    });
+  });
+
+  describe('Asset Details performance trace', () => {
+    it('ends the AssetDetails trace once price finishes loading, with asset id and API timings', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+        historicalPricesApiMs: 120,
+        exchangeRateApiMs: 80,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.AssetDetails,
+        data: {
+          asset_id: expect.any(String),
+          historical_prices_api_ms: 120,
+          exchange_rate_api_ms: 80,
+        },
+      });
+    });
+
+    it('does not end the trace while price is still loading', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('only ends the trace once, even if isLoading toggles again later (e.g. chart time period change)', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+
+      const { rerender } = render(<TokenDetails />);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+      rerender(<TokenDetails />);
+
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+      rerender(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not end the trace if the screen unmounts before price finishes loading', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+
+      const { unmount } = render(<TokenDetails />);
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('does not end the trace a second time if it unmounts after already ending successfully', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+
+      const { unmount } = render(<TokenDetails />);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
   });
 

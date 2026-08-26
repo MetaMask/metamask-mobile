@@ -77,6 +77,7 @@ const useTokenHistoricalPrices = ({
   isLoading: boolean;
   error: Error | undefined;
   hasInsufficientCoverage: boolean;
+  apiDurationMs: number | undefined;
 } => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
@@ -84,11 +85,14 @@ const useTokenHistoricalPrices = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
   const [insufficientCoverage, setInsufficientCoverage] = useState(false);
+  const [apiDurationMs, setApiDurationMs] = useState<number>();
 
   useEffect(() => {
     const fetchPrices = async () => {
       setIsLoading(true);
       setInsufficientCoverage(false);
+      setApiDurationMs(undefined);
+      const fetchStart = Date.now();
 
       try {
         const baseUri = 'https://price.api.cx.metamask.io/v3';
@@ -165,6 +169,7 @@ const useTokenHistoricalPrices = ({
       } catch (e: unknown) {
         setError(e as Error);
       } finally {
+        setApiDurationMs(Date.now() - fetchStart);
         setIsLoading(false);
       }
     };
@@ -186,6 +191,7 @@ const useTokenHistoricalPrices = ({
     isLoading,
     error,
     hasInsufficientCoverage: insufficientCoverage,
+    apiDurationMs,
   };
 };
 

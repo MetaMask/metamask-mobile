@@ -128,6 +128,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = mockFetch;
     mockFetch.mockResolvedValue({
       status: 200,
       json: async () => ({
@@ -184,5 +185,103 @@ describe('useTokenHistoricalPrices fetch URL', () => {
     await waitFor(() => expect(mockFetch).toHaveBeenCalled());
     const url = mockFetch.mock.calls[0][0] as string;
     expect(url).toContain('/historical-prices/eip155:1/erc20:0x6B1754'); // legacy path uses `address` param verbatim
+  });
+});
+
+describe('useTokenHistoricalPrices apiDurationMs', () => {
+  const mockFetch = jest.fn();
+  global.fetch = mockFetch;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = mockFetch;
+    // testSetup mocks Date.now to a constant, and resetAllMocks() wipes that
+    // implementation — re-assert an incrementing one for real duration math.
+    let mockNow = 0;
+    jest.spyOn(Date, 'now').mockImplementation(() => mockNow++);
+    mockGetAssetId.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers').getAssetId,
+    );
+  });
+
+  afterEach(() => {
+    mockFetch.mockReset();
+    mockGetAssetId.mockReset();
+  });
+
+  const baseAsset = {
+    chainId: '0x1',
+    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    isETH: false,
+  } as unknown as TokenI;
+
+  const renderPrices = () =>
+    renderHookWithProvider(() =>
+      useTokenHistoricalPrices({
+        asset: baseAsset,
+        address: baseAsset.address,
+        chainId: '0x1',
+        timePeriod: '1d',
+        vsCurrency: 'usd',
+      }),
+    );
+
+  it('sets apiDurationMs on a successful fetch', async () => {
+    mockFetch.mockResolvedValue({
+      status: 200,
+      json: async () => ({ prices: [['1', 100], ['2', 101]] }),
+    });
+
+    const { result } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.apiDurationMs).not.toBeUndefined();
+    });
+    expect(result.current.apiDurationMs).toBeGreaterThanOrEqual(0);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('sets apiDurationMs on a 204 (insufficient coverage) response', async () => {
+    mockFetch.mockResolvedValue({ status: 204 });
+
+    const { result } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.apiDurationMs).not.toBeUndefined();
+    });
+    expect(result.current.apiDurationMs).toBeGreaterThanOrEqual(0);
+    expect(result.current.hasInsufficientCoverage).toBe(true);
+  });
+
+  it('sets apiDurationMs on a network error', async () => {
+    mockFetch.mockRejectedValue(new Error('network error'));
+
+    const { result } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.apiDurationMs).not.toBeUndefined();
+    });
+    expect(result.current.apiDurationMs).toBeGreaterThanOrEqual(0);
+    expect(result.current.error).toBeDefined();
+  });
+
+  it('sets apiDurationMs when the fetch times out', async () => {
+    jest.useFakeTimers();
+    mockFetch.mockReturnValue(new Promise(() => undefined)); // never resolves
+
+    const { result } = renderPrices();
+
+    jest.advanceTimersByTime(3000);
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.apiDurationMs).toBeGreaterThanOrEqual(3000);
+    expect(result.current.error?.message).toBe(
+      'Historical prices fetch timeout',
+    );
+
+    jest.useRealTimers();
   });
 });
