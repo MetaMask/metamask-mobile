@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../components/UI/Perps/constants/perpsConfig';
 import { ensureValidState } from './util';
 
@@ -47,7 +48,13 @@ export default function migrate(state: unknown): unknown {
   }
 
   if (!hasProperty(perpsController, 'proLayoutPreferences')) {
-    // Nothing persisted yet; controller init seeds the mobile defaults.
+    // Persisted state predates the field. Controller init only seeds the mobile
+    // defaults when the whole controller is absent, so write them here or these
+    // users would read the shared Extension defaults instead.
+    perpsController.proLayoutPreferences = {
+      ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+      ...MOBILE_PRO_LAYOUT_DEFAULTS,
+    };
     return state;
   }
 
