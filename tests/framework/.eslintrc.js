@@ -4,11 +4,6 @@
 const dualFrameworkRestrictedImportOptions = {
   patterns: [
     {
-      group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-      message:
-        'Use Gestures from tests/framework (canonical). UnifiedGestures is an internal Appium facade.',
-    },
-    {
       group: [
         '**/FrameworkDetector',
         '**/FrameworkDetector.ts',
@@ -49,7 +44,6 @@ const dualFrameworkRestrictedImportOptions = {
         '**/framework/index.js',
       ],
       importNames: [
-        'UnifiedGestures',
         'FrameworkDetector',
         'encapsulated',
         'AppiumMatchers',
@@ -70,7 +64,6 @@ const dualFrameworkRestrictedImportOptions = {
         '../../../../../framework',
       ],
       importNames: [
-        'UnifiedGestures',
         'FrameworkDetector',
         'encapsulated',
         'AppiumMatchers',

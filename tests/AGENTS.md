@@ -31,7 +31,6 @@ ESLint **errors** on dual-framework debt in POs, flows, and Appium specs (no war
 
 | Banned                                                                         | Prefer                                             |
 | ------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `UnifiedGestures`                                                              | `Gestures`                                         |
 | `FrameworkDetector`                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
 | `encapsulated`                                                                 | `Matchers` + `Gestures` / `Assertions`             |
 | `AppiumMatchers` / `AppiumGestures` / `AppiumAssertions` / `AppiumWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
@@ -61,7 +60,7 @@ Unit tests under `tests/` (e.g. framework tests): [docs/testing/unit-testing.md]
 
 ## Before working
 
-- **E2E (new work)** — Appium smoke only (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `UnifiedGestures`, `FrameworkDetector`, `encapsulated`, or `Playwright*` dual APIs. Runbook: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
+- **E2E (new work)** — Appium smoke only (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `FrameworkDetector`, `encapsulated`, or `Playwright*` dual APIs. Runbook: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
 - **tests/framework** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Yarn only.
 - **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See [docs/testing/component-view-tests.md](../docs/testing/component-view-tests.md).
 - **integration tests** — Use `tests/integration/harnesses/<domain>.ts`; no test-local `jest.mock(...)`; run with `yarn jest -c jest.config.integration.js`. See [tests/integration/AGENTS.md](integration/AGENTS.md).

@@ -71,10 +71,3 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './services/device-commands';
-export {
-  AppiumGestureStrategy,
-  type GestureStrategy,
-  type UnifiedGestureOptions,
-  type TapAtIndexElement,
-  type ScrollContainer,
-} from './GestureStrategy.ts';

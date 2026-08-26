@@ -54,12 +54,12 @@
 
 ### Gestures facade (canonical)
 
-Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `UnifiedGestures`, `FrameworkDetector`, `encapsulated`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `FrameworkDetector`, `encapsulated`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
 
 ```
 Page object calls Gestures.waitAndTap(elem)
         │
-        └── Appium run → AppiumGestureStrategy → AppiumGestures
+        └── Appium run → AppiumGestures
 ```
 
 ## Writing Page Objects
@@ -469,7 +469,7 @@ Before submitting E2E tests, ensure:
 - [ ] Element selectors defined once and reused
 - [ ] Framework configuration used appropriately
 - [ ] Error handling for expected failure scenarios
-- [ ] `Gestures` used for interactions — do **not** import or call `UnifiedGestures`
+- [ ] `Gestures` used for interactions
 - [ ] `Gestures`/`Assertions`/`Matchers` used directly — `AppiumAssertions` / `AppiumGestures` only imported when the flow genuinely requires platform-specific branching
 - [ ] Platform-different action flows use `PlatformDetector` in the page object — not a separate wrapper around the same `Gestures` / `Assertions` call
 

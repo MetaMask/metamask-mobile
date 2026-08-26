@@ -33,11 +33,6 @@ jest.mock('../framework/Gestures.ts', () => ({
   default: { waitAndTap: jest.fn(), typeText: jest.fn() },
 }));
 
-jest.mock('../framework/UnifiedGestures.ts', () => ({
-  __esModule: true,
-  default: { waitAndTap: jest.fn(), typeText: jest.fn() },
-}));
-
 import { discoverAndDescribeMigratedPageObjects } from '../framework/PageObjectMigrationTestUtils';
 
 describe('Migrated page objects', () => {

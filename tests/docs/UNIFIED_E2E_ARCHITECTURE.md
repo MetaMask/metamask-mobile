@@ -9,7 +9,7 @@ Page objects and smoke specs target **Appium + Playwright** (`tests/smoke-appium
 - `Assertions` — waits and expectations
 - `AppiumElement` — canonical matcher/gesture element type
 
-Do **not** import `UnifiedGestures` in page objects or specs. It is an internal Appium gesture facade used by `Gestures`.
+Do **not** import `AppiumGestures` in page objects or specs. Use `Gestures` from `tests/framework`.
 
 ## Layers
 
@@ -21,7 +21,7 @@ Do **not** import `UnifiedGestures` in page objects or specs. It is an internal 
 ↓
 Matchers / Gestures / Assertions
 ↓
-Appium (Playwright) adapters & strategies
+AppiumGestures / AppiumElement
 ↓
 Device / emulator APIs
 ```
