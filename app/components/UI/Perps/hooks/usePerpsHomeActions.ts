@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
@@ -24,6 +24,7 @@ import { RootState } from '../../../../reducers';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
 import { useComplianceGate } from '../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { createDepositConfirmationGuard } from '../utils/depositConfirmationGuard';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -97,6 +98,14 @@ export const usePerpsHomeActions = (
 
   const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
     options || {};
+  const confirmationGuardCancelRef = useRef<(() => void) | null>(null);
+
+  const clearConfirmationGuard = useCallback(() => {
+    confirmationGuardCancelRef.current?.();
+    confirmationGuardCancelRef.current = null;
+  }, []);
+
+  useEffect(() => clearConfirmationGuard, [clearConfirmationGuard]);
 
   const showEligibilityModal = useCallback(
     (source: string) => {
@@ -142,12 +151,17 @@ export const usePerpsHomeActions = (
         stack: Routes.PERPS.ROOT,
       });
 
+      clearConfirmationGuard();
+      const confirmationGuard = createDepositConfirmationGuard(navigation);
+      confirmationGuardCancelRef.current = confirmationGuard.cancel;
+
       // Do not await: preparing the unapproved tx must not block the skeleton.
       depositWithConfirmation()
         .then(() => {
           DevLogger.log(
             '[usePerpsHomeActions] Add funds flow completed successfully',
           );
+          clearConfirmationGuard();
           onAddFundsSuccess?.();
         })
         .catch((err: unknown) => {
@@ -164,7 +178,7 @@ export const usePerpsHomeActions = (
           });
 
           onError?.(errorObj, 'deposit');
-          navigation.goBack();
+          confirmationGuard.onDepositFailed();
         });
     });
   }, [
@@ -179,6 +193,7 @@ export const usePerpsHomeActions = (
     track,
     buttonLocation,
     showEligibilityModal,
+    clearConfirmationGuard,
   ]);
 
   const handleWithdraw = useCallback(async () => {

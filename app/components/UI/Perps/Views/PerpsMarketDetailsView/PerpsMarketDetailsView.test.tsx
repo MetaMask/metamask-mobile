@@ -243,6 +243,7 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -306,6 +307,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
       getState: mockGetState,
+      addListener: mockAddListener,
       reset: mockReset,
     }),
     useRoute: () => ({
@@ -972,6 +974,7 @@ describe('PerpsMarketDetailsView', () => {
         { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
       ],
     });
+    mockAddListener.mockReturnValue(jest.fn());
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -1907,6 +1910,15 @@ describe('PerpsMarketDetailsView', () => {
       mockDepositWithConfirmation.mockRejectedValueOnce(
         new Error('Deposit failed'),
       );
+      mockGetState.mockReturnValue({
+        index: 0,
+        routes: [
+          {
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            key: 'confirm-1',
+          },
+        ],
+      });
 
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1924,6 +1936,53 @@ describe('PerpsMarketDetailsView', () => {
       await waitFor(() => {
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not dismiss Perps when deposit prep fails before confirmation is shown', async () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '0.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '0',
+        },
+        isInitialLoading: false,
+      });
+      mockDepositWithConfirmation.mockRejectedValueOnce(
+        new Error('Deposit failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
+      await waitFor(() => {
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
       });
     });
 

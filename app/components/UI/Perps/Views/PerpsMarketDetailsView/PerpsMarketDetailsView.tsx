@@ -183,6 +183,7 @@ import {
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { createDepositConfirmationGuard } from '../../utils/depositConfirmationGuard';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -367,6 +368,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
+  const confirmationGuardCancelRef = useRef<(() => void) | null>(null);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -692,6 +694,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
+  const clearConfirmationGuard = useCallback(() => {
+    confirmationGuardCancelRef.current?.();
+    confirmationGuardCancelRef.current = null;
+  }, []);
+
+  useEffect(() => clearConfirmationGuard, [clearConfirmationGuard]);
+
   const handleAddFunds = useCallback(() => {
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
 
@@ -710,18 +719,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.PERPS.ROOT,
       });
+      clearConfirmationGuard();
+      const confirmationGuard = createDepositConfirmationGuard(navigation);
+      confirmationGuardCancelRef.current = confirmationGuard.cancel;
       // Do not await deposit prep — keep the skeleton on screen immediately.
       withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
         depositWithConfirmation(),
-      ).catch((err: unknown) => {
-        Logger.error(
-          ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-          },
-        );
-        navigation.goBack();
-      });
+      )
+        .then(() => {
+          clearConfirmationGuard();
+        })
+        .catch((err: unknown) => {
+          Logger.error(
+            ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+            },
+          );
+          confirmationGuard.onDepositFailed();
+        });
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -734,6 +750,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     depositWithConfirmation,
     navigation,
     transactionActiveAbTests,
+    clearConfirmationGuard,
   ]);
 
   // Keep current position ref in sync for callbacks stored in route params

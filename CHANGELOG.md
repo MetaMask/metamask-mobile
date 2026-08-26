@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a delay when tapping Add funds in Perps so the confirmation opens immediately (#35326)
+
 ## [8.9.1]
 
 ### Fixed

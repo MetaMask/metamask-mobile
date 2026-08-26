@@ -18,6 +18,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    getState: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
   })),
 }));
 
@@ -82,6 +84,8 @@ describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
+    getState: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
   };
 
   const mockDepositWithConfirmation = jest
@@ -106,6 +110,15 @@ describe('usePerpsHomeActions', () => {
     (useConfirmNavigation as jest.Mock).mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     });
+    mockNavigation.getState.mockReturnValue({
+      index: 0,
+      routes: [
+        {
+          name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        },
+      ],
+    });
+    mockNavigation.addListener.mockReturnValue(jest.fn());
   });
 
   describe('initialization', () => {
@@ -222,6 +235,26 @@ describe('usePerpsHomeActions', () => {
         expect(result.current.error).toEqual(depositError);
         expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
         expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not go back when confirmation was never presented', async () => {
+      mockNavigation.getState.mockReturnValue({
+        index: 0,
+        routes: [{ name: Routes.PERPS.PERPS_HOME }],
+      });
+      const depositError = new Error('Deposit failed');
+      mockDepositWithConfirmation.mockRejectedValueOnce(depositError);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toEqual(depositError);
+        expect(mockNavigation.goBack).not.toHaveBeenCalled();
       });
     });
   });
