@@ -348,6 +348,33 @@ describe('useRampsProviders', () => {
       );
     });
 
+    it('passes the backend-ranked provider id from sorted metadata', () => {
+      mockUseQuery.mockReturnValue({
+        data: {
+          providers: mockProviders,
+          sorted: [{ sortBy: '1', ids: [mockProviders[1].id] }],
+        },
+        error: null,
+        isLoading: false,
+      });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[1],
+        autoSelected: true,
+      });
+      const store = createMockStore({ data: mockProviders });
+
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
+        expect.any(Array),
+        mockProviders,
+        mockProviders[1].id,
+      );
+    });
+
     it('calls setSelectedProvider with result of determinePreferredProvider when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);

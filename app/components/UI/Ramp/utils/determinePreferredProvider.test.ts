@@ -207,6 +207,22 @@ describe('determinePreferredProvider', () => {
         autoSelected: true,
       });
     });
+
+    it('keeps the most recent completed provider when backend ranking prefers a different one', () => {
+      const completedOrders = [{ providerId: 'transak', completedAt: 1000 }];
+      const providers = [mockProvider1, mockTransakProvider];
+
+      const result = determinePreferredProvider(
+        completedOrders,
+        providers,
+        mockProvider1.id,
+      );
+
+      expect(result).toEqual({
+        provider: mockTransakProvider,
+        autoSelected: false,
+      });
+    });
   });
 
   describe('when user has no orders', () => {
@@ -244,6 +260,26 @@ describe('determinePreferredProvider', () => {
       const providers = [mockProvider1, mockProvider2];
 
       const result = determinePreferredProvider([], providers);
+
+      expect(result).toEqual({
+        provider: mockProvider1,
+        autoSelected: true,
+      });
+    });
+
+    it('selects the backend-ranked provider when Transak Native is last', () => {
+      const transakNative: Provider = {
+        ...mockTransakProvider,
+        id: '/providers/transak-native-staging',
+        name: 'Transak Native',
+      };
+      const providers = [mockProvider1, mockProvider2, transakNative];
+
+      const result = determinePreferredProvider(
+        [],
+        providers,
+        mockProvider1.id,
+      );
 
       expect(result).toEqual({
         provider: mockProvider1,
