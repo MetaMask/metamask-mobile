@@ -1,0 +1,206 @@
+diff --git a/dist/services/MarketDataService.cjs b/dist/services/MarketDataService.cjs
+index 83fc9cd4c9a93e718cd4aa8d31cdfc4c6dd7b3d2..4457a2abdd64eca558e0783838d6a2359520efec 100644
+--- a/dist/services/MarketDataService.cjs
++++ b/dist/services/MarketDataService.cjs
+@@ -728,10 +728,11 @@ class MarketDataService {
+                 },
+             });
+             // Prefer a separately configured atomic snapshot only for an exact,
+-            // still-current provider/network/DEX identity. A rejected snapshot has
+-            // one lexical fallback to the provider below and is not followed by a
+-            // second legacy Terminal request.
++            // still-current provider/network/DEX identity. When the snapshot is
++            // unavailable or empty, fall back to provider pricing plus legacy
++            // Terminal metadata so category data can override static mappings.
+             let snapshotAttempted = false;
++            let snapshotSucceeded = false;
+             if (globalSnapshot &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService?.fetchGlobalSnapshot) {
+                 snapshotAttempted = true;
+@@ -747,6 +748,7 @@ class MarketDataService {
+                         throw new Error('Terminal global snapshot expired');
+                     }
+                     if (snapshot.markets.length > 0) {
++                        snapshotSucceeded = true;
+                         traceData = { success: true };
+                         const allowedMarkets = snapshot.markets.filter((market) => globalSnapshot.isMarketAllowed(market.symbol));
+                         return (0, marketUtils_js_1.applyMarketFilters)(allowedMarkets, params);
+@@ -759,12 +761,11 @@ class MarketDataService {
+                     __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.logError(snapshotError, 'getMarketDataWithPrices.globalSnapshot');
+                 }
+             }
+-            // Fetch Terminal API metadata before provider data when enabled.
+-            // Terminal metadata enriches the provider result (name, keywords, tags,
+-            // categories) but never replaces live pricing / funding data.
++            // Fetch Terminal API metadata before provider data when enabled, or
++            // when a configured global snapshot failed and we need category data.
+             let terminalMetadata;
+-            if (!snapshotAttempted &&
+-                useTerminalApi &&
++            if (!snapshotSucceeded &&
++                (useTerminalApi || snapshotAttempted) &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService) {
+                 try {
+                     const result = await __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.fetchMarkets();
+diff --git a/dist/services/MarketDataService.mjs b/dist/services/MarketDataService.mjs
+index 93a12e15b60edf1942e197da3f0ea9e84eb50aae..1504ce6723a428a8cd3c1b0ee59382d6d29c2b3b 100644
+--- a/dist/services/MarketDataService.mjs
++++ b/dist/services/MarketDataService.mjs
+@@ -725,10 +725,11 @@ export class MarketDataService {
+                 },
+             });
+             // Prefer a separately configured atomic snapshot only for an exact,
+-            // still-current provider/network/DEX identity. A rejected snapshot has
+-            // one lexical fallback to the provider below and is not followed by a
+-            // second legacy Terminal request.
++            // still-current provider/network/DEX identity. When the snapshot is
++            // unavailable or empty, fall back to provider pricing plus legacy
++            // Terminal metadata so category data can override static mappings.
+             let snapshotAttempted = false;
++            let snapshotSucceeded = false;
+             if (globalSnapshot &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService?.fetchGlobalSnapshot) {
+                 snapshotAttempted = true;
+@@ -744,6 +745,7 @@ export class MarketDataService {
+                         throw new Error('Terminal global snapshot expired');
+                     }
+                     if (snapshot.markets.length > 0) {
++                        snapshotSucceeded = true;
+                         traceData = { success: true };
+                         const allowedMarkets = snapshot.markets.filter((market) => globalSnapshot.isMarketAllowed(market.symbol));
+                         return applyMarketFilters(allowedMarkets, params);
+@@ -756,12 +758,11 @@ export class MarketDataService {
+                     __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.logError(snapshotError, 'getMarketDataWithPrices.globalSnapshot');
+                 }
+             }
+-            // Fetch Terminal API metadata before provider data when enabled.
+-            // Terminal metadata enriches the provider result (name, keywords, tags,
+-            // categories) but never replaces live pricing / funding data.
++            // Fetch Terminal API metadata before provider data when enabled, or
++            // when a configured global snapshot failed and we need category data.
+             let terminalMetadata;
+-            if (!snapshotAttempted &&
+-                useTerminalApi &&
++            if (!snapshotSucceeded &&
++                (useTerminalApi || snapshotAttempted) &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService) {
+                 try {
+                     const result = await __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.fetchMarkets();
+diff --git a/dist/services/TerminalMarketService.cjs b/dist/services/TerminalMarketService.cjs
+index e0e1af306ade3cfcb8d5fd1971dc1876ed7a10c8..273ce9b77fac625de4326af9bd5a1a99c1861f30 100644
+--- a/dist/services/TerminalMarketService.cjs
++++ b/dist/services/TerminalMarketService.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
++var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_dexForSymbol, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TerminalMarketService = void 0;
+ const superstruct_1 = require("@metamask/superstruct");
+@@ -93,6 +93,7 @@ const TerminalPerpetualItemStruct = (0, superstruct_1.type)({
+     keywords: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
+     tags: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
+     categories: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
++    category: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.string)())),
+     marketType: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.string)())),
+     listedAt: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]))),
+ });
+@@ -532,6 +533,12 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         return category;
+     }
+     return undefined;
++}, _TerminalMarketService_dexForSymbol = function _TerminalMarketService_dexForSymbol(symbol) {
++    const separatorIndex = symbol.indexOf(':');
++    if (separatorIndex === -1) {
++        return 'main';
++    }
++    return symbol.slice(0, separatorIndex);
+ }, _TerminalMarketService_cloneGlobalSnapshotResult = function _TerminalMarketService_cloneGlobalSnapshotResult(result) {
+     return {
+         expiresAt: result.expiresAt,
+@@ -603,10 +610,20 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         if (Array.isArray(item.categories) && item.categories.length > 0) {
+             entry.categories = item.categories;
+         }
+-        if (typeof item.marketType === 'string' &&
+-            VALID_MARKET_TYPES.has(item.marketType)) {
+-            entry.marketType =
+-                item.marketType;
++        const terminalCategory = typeof item.category === 'string' && item.category.length > 0
++            ? item.category
++            : Array.isArray(item.categories) &&
++                item.categories.length > 0 &&
++                typeof item.categories[0] === 'string' &&
++                item.categories[0].length > 0
++                ? item.categories[0]
++                : undefined;
++        if (terminalCategory !== undefined) {
++            const dex = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_dexForSymbol).call(this, item.symbol);
++            const marketType = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_marketTypeFor).call(this, dex, terminalCategory);
++            if (marketType !== undefined) {
++                entry.marketType = marketType;
++            }
+         }
+         if (item.listedAt !== null && item.listedAt !== undefined) {
+             const listedAtMs = typeof item.listedAt === 'number'
+diff --git a/dist/services/TerminalMarketService.mjs b/dist/services/TerminalMarketService.mjs
+index 76d974e101214201595ac34c44327408c841d7c3..7f539268f0a6f450626c6963d85e952e59f394ab 100644
+--- a/dist/services/TerminalMarketService.mjs
++++ b/dist/services/TerminalMarketService.mjs
+@@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
++var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_dexForSymbol, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
+ import { array, boolean, is, nullable, number, object, optional, string, tuple, type, union } from "@metamask/superstruct";
+ import { bytesToHex, sha256, stringToBytes } from "@metamask/utils";
+ import { canonicalizeHyperLiquidDexes } from "../constants/hyperLiquidConfig.mjs";
+@@ -90,6 +90,7 @@ const TerminalPerpetualItemStruct = type({
+     keywords: optional(nullable(array(string()))),
+     tags: optional(nullable(array(string()))),
+     categories: optional(nullable(array(string()))),
++    category: optional(nullable(string())),
+     marketType: optional(nullable(string())),
+     listedAt: optional(nullable(union([number(), string()]))),
+ });
+@@ -528,6 +529,12 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         return category;
+     }
+     return undefined;
++}, _TerminalMarketService_dexForSymbol = function _TerminalMarketService_dexForSymbol(symbol) {
++    const separatorIndex = symbol.indexOf(':');
++    if (separatorIndex === -1) {
++        return 'main';
++    }
++    return symbol.slice(0, separatorIndex);
+ }, _TerminalMarketService_cloneGlobalSnapshotResult = function _TerminalMarketService_cloneGlobalSnapshotResult(result) {
+     return {
+         expiresAt: result.expiresAt,
+@@ -599,10 +606,20 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         if (Array.isArray(item.categories) && item.categories.length > 0) {
+             entry.categories = item.categories;
+         }
+-        if (typeof item.marketType === 'string' &&
+-            VALID_MARKET_TYPES.has(item.marketType)) {
+-            entry.marketType =
+-                item.marketType;
++        const terminalCategory = typeof item.category === 'string' && item.category.length > 0
++            ? item.category
++            : Array.isArray(item.categories) &&
++                item.categories.length > 0 &&
++                typeof item.categories[0] === 'string' &&
++                item.categories[0].length > 0
++                ? item.categories[0]
++                : undefined;
++        if (terminalCategory !== undefined) {
++            const dex = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_dexForSymbol).call(this, item.symbol);
++            const marketType = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_marketTypeFor).call(this, dex, terminalCategory);
++            if (marketType !== undefined) {
++                entry.marketType = marketType;
++            }
+         }
+         if (item.listedAt !== null && item.listedAt !== undefined) {
+             const listedAtMs = typeof item.listedAt === 'number'
