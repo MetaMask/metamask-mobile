@@ -401,14 +401,27 @@ export const useCryptoUpDownChartData = (
     }
   }, [liveStreamStale]);
 
+  const historicalQueryOptions = predictQueries.cryptoPriceHistory.options({
+    symbol: symbol ?? '',
+    eventStartTime: historyStartDate ?? '',
+    variant,
+    endDate: historyEndDate,
+    ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+  });
+
   const historicalQuery = useQuery({
-    ...predictQueries.cryptoPriceHistory.options({
-      symbol: symbol ?? '',
-      eventStartTime: historyStartDate ?? '',
-      variant,
-      endDate: historyEndDate,
-      ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
-    }),
+    ...historicalQueryOptions,
+    queryFn: async (context) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const result = await historicalQueryOptions.queryFn!(context);
+        consecutivePollFailuresRef.current = 0;
+        return result;
+      } catch (error) {
+        consecutivePollFailuresRef.current += 1;
+        throw error;
+      }
+    },
     enabled: enabled && !!symbol && !!historyStartDate,
     placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
@@ -425,18 +438,6 @@ export const useCryptoUpDownChartData = (
         ? getHistoricalPollInterval(consecutivePollFailuresRef.current)
         : false,
   });
-
-  useEffect(() => {
-    if (historicalQuery.error) {
-      consecutivePollFailuresRef.current += 1;
-    }
-  }, [historicalQuery.error]);
-
-  useEffect(() => {
-    if (historicalQuery.data) {
-      consecutivePollFailuresRef.current = 0;
-    }
-  }, [historicalQuery.data]);
 
   const historicalData = !hasPriceSourceChanged
     ? (historicalQuery.data ?? EMPTY_DATA)
