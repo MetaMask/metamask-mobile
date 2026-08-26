@@ -622,6 +622,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Position TP/SL/liq plus resting limit orders for the chart overlay.
+  // Limit lines are memoized off openOrders only so price ticks do not
+  // allocate a new array and tear down Advanced Chart overlays.
+  const limitOrders = useMemo(
+    () => getChartLimitOrderLines(openOrders),
+    [openOrders],
+  );
+
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       syncedChartCurrentPrice > 0
@@ -631,9 +638,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     return buildChartOverlayLines({
       currentPrice: chartPriceStr,
       existingPosition,
-      limitOrders: getChartLimitOrderLines(openOrders),
+      limitOrders,
     });
-  }, [existingPosition, syncedChartCurrentPrice, openOrders]);
+  }, [existingPosition, syncedChartCurrentPrice, limitOrders]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation

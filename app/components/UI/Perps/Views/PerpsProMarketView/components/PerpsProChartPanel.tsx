@@ -148,17 +148,21 @@ const PerpsProChartPanel = ({
     isLoading: isLoadingTradingHalted,
   } = useIsPriceDeviatedAboveThreshold(symbol);
 
+  const limitOrders = useMemo(() => {
+    const marketOrders = liveOrders.filter((order) => order.symbol === symbol);
+    return getChartLimitOrderLines(marketOrders);
+  }, [liveOrders, symbol]);
+
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       currentPrice > 0 ? currentPrice.toString() : undefined;
-    const marketOrders = liveOrders.filter((order) => order.symbol === symbol);
 
     return buildChartOverlayLines({
       currentPrice: chartPriceStr,
       existingPosition,
-      limitOrders: getChartLimitOrderLines(marketOrders),
+      limitOrders,
     });
-  }, [currentPrice, existingPosition, liveOrders, symbol]);
+  }, [currentPrice, existingPosition, limitOrders]);
 
   useEffect(() => {
     const hasIntervalChanged =

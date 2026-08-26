@@ -287,6 +287,50 @@ describe('PerpsProChartPanel', () => {
     expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBeUndefined();
   });
 
+  it('keeps the same limitOrders array when only currentPrice changes', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    const view = renderChartPanel({ currentPrice: 50500 });
+    const initialLimitOrders =
+      getLastAdvancedChartProps().tpslLines?.limitOrders;
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={51000}
+      />,
+    );
+
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBe(
+      initialLimitOrders,
+    );
+  });
+
   it('renders the Advanced Chart path when its feature flag is enabled', () => {
     renderChartPanel();
 
