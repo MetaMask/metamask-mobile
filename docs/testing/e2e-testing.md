@@ -54,7 +54,7 @@
 
 ### Gestures facade (canonical)
 
-Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `UnifiedGestures`, `FrameworkDetector`, `encapsulated` / `encapsulatedAction`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `UnifiedGestures`, `FrameworkDetector`, `encapsulated`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
 
 ```
 Page object calls Gestures.waitAndTap(elem)
@@ -165,21 +165,19 @@ getAccountElementByName(accountName: string) {
 
 ### Edge Case: different action flow per platform
 
-When the action itself must differ structurally between iOS and Android Appium (e.g. one platform must scroll before tapping, or must hide the keyboard after typing), use `encapsulatedAction()`:
+When the action itself must differ structurally between iOS and Android Appium (e.g. one platform must scroll before tapping, or must hide the keyboard after typing), branch in the page object with `PlatformDetector` and the same `Gestures` / `Assertions` APIs. Do not wrap the same call twice.
 
 ```typescript
-import { encapsulatedAction } from '../framework/encapsulatedAction';
-import AppiumGestures from '../framework/AppiumGestures';
+import { PlatformDetector } from '../framework/PlatformLocator';
 
 async enterPassword(password: string): Promise<void> {
-  await encapsulatedAction(async () => {
-    await Gestures.typeText(this.passwordInput, password);
-    await AppiumGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+  const text = PlatformDetector.isIOS() ? `${password}\n` : password;
+  await Gestures.typeText(this.passwordInput, text, {
+    elemDescription: 'password input',
+    hideKeyboard: false,
   });
 }
 ```
-
-**Only use `encapsulatedAction` when the flow genuinely differs.** If the same `Gestures.*` or `Assertions.*` call works on both platforms, there is no need to branch.
 
 ### Selector decision tree
 
@@ -196,7 +194,7 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
       YES → encapsulated(() => ...)
 
       NO → Does the action flow itself differ?
-        YES → encapsulatedAction(async () => ...)
+        YES → PlatformDetector + Gestures / Assertions in the page object
 ```
 
 ## Test Organization — Appium Specs
@@ -473,7 +471,7 @@ Before submitting E2E tests, ensure:
 - [ ] Error handling for expected failure scenarios
 - [ ] `Gestures` used for interactions — do **not** import or call `UnifiedGestures`
 - [ ] `Gestures`/`Assertions`/`Matchers` used directly — `AppiumAssertions` / `AppiumGestures` only imported when the flow genuinely requires platform-specific branching
-- [ ] `encapsulatedAction` only used when iOS and Android Appium flows structurally differ — not just to call the same method twice
+- [ ] Platform-different action flows use `PlatformDetector` in the page object — not a separate wrapper around the same `Gestures` / `Assertions` call
 
 ## Debugging Failed Tests
 
