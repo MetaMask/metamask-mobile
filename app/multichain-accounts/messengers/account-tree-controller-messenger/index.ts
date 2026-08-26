@@ -40,7 +40,6 @@ export function getAccountTreeControllerMessenger(
       'UserStorageController:performSetStorage',
       'UserStorageController:performBatchSetStorage',
       'AuthenticationController:getSessionProfile',
-      'MultichainAccountService:createMultichainAccountWallet',
       'MultichainAccountService:createMultichainAccountGroup',
       'MultichainAccountService:createMultichainAccountGroups',
       // account-tree-controller ^8.0.0: required for :{import,export}State
