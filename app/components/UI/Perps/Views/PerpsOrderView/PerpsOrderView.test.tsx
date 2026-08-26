@@ -269,6 +269,8 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
     errors: [],
+    warnings: [],
+    fieldIssues: [],
     isValidating: false,
   })),
   usePerpsOrderExecution: jest.fn(() => ({
@@ -1026,6 +1028,13 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+      isValid: true,
+      errors: [],
+      warnings: [],
+      fieldIssues: [],
+      isValidating: false,
+    });
     mockPerpsAdvancedChartEnabled = false;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
@@ -2080,6 +2089,7 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: false,
         errors: ['Insufficient balance'],
+        fieldIssues: [],
         isValidating: false,
       });
 
@@ -2095,7 +2105,7 @@ describe('PerpsOrderView', () => {
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
+      expect(placeOrderButton).toBeDisabled();
 
       // Verify validation errors are shown (indicating disabled state)
       // Wait for error to appear after isDataReady becomes true
@@ -2114,6 +2124,8 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        warnings: [],
+        fieldIssues: [],
         isValidating: false,
       });
 
@@ -2123,16 +2135,16 @@ describe('PerpsOrderView', () => {
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
-
-      // The button component exists when placing (it shows loading state)
+      expect(placeOrderButton).toBeDisabled();
+      expect(placeOrderButton.props.accessibilityState?.busy).toBe(true);
     });
 
-    it('shows loading state while order validation is pending', async () => {
+    it('keeps a previously valid CTA stable during active protocol validation', async () => {
       // Arrange
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: true,
       });
 
@@ -2152,15 +2164,17 @@ describe('PerpsOrderView', () => {
       );
       // Assert
       expect(placeOrderButton).toBeOnTheScreen();
-      expect(placeOrderButton).toBeDisabled();
-      expect(placeOrderButton.props.accessibilityState).toEqual(
-        expect.objectContaining({ busy: true, disabled: true }),
-      );
+      expect(placeOrderButton).toBeEnabled();
+      expect(placeOrderButton.props.accessibilityState?.busy).not.toBe(true);
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
       expect(mockPlaceOrder).not.toHaveBeenCalled();
 
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: false,
       });
       rerender(<PerpsOrderView />);
@@ -2168,11 +2182,28 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton).toBeEnabled();
     });
 
+    it('disables when synchronous field validation reports an issue', async () => {
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: [],
+        fieldIssues: [{ field: 'limitPrice', issue: { code: 'required' } }],
+        isValidating: false,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
     it('enables button when validation passes and not placing order', async () => {
       // Mock valid order state
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: false,
       });
 
@@ -4943,6 +4974,8 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        warnings: [],
+        fieldIssues: [],
         isValidating: false,
       });
     });

@@ -1151,7 +1151,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused,
-    originalUsdAmount: orderForm.amount, // Pass original USD input to prevent validation flash from price updates
+    originalUsdAmount: orderForm.amount,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -2136,8 +2136,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
-            currentPrice != null &&
-            !orderValidation.isValidating && (
+            currentPrice != null && (
               <View style={styles.validationContainer}>
                 {filteredErrors.map((error) => (
                   <Text
@@ -2183,7 +2182,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder || orderValidation.isValidating}
+              isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2203,7 +2202,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder || orderValidation.isValidating}
+              isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}

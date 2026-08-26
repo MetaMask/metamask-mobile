@@ -50,7 +50,7 @@ interface UsePerpsOrderValidationParams {
 }
 
 interface ValidationState {
-  errors: string[];
+  protocolErrors: string[];
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
@@ -112,7 +112,7 @@ interface ProtocolValidationResult {
 
 interface ProtocolValidationErrorsInput {
   protocolValidation: ProtocolValidationResult;
-  immediateErrors: string[];
+  localErrors: string[];
   requestFieldIssues: OrderFormFieldIssue[];
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
@@ -121,9 +121,10 @@ interface ProtocolValidationErrorsInput {
 
 interface BuildValidationOutcomeInput {
   requestFieldIssues: OrderFormFieldIssue[];
-  errors: string[];
+  requestLocalErrors: string[];
+  protocolErrors: string[];
   warnings: string[];
-  protocolValid?: boolean;
+  protocolValid: boolean;
 }
 
 interface ValidationOutcome {
@@ -262,13 +263,13 @@ const getProtocolErrorContext = ({
 
 const getProtocolValidationErrors = ({
   protocolValidation,
-  immediateErrors,
+  localErrors,
   requestFieldIssues,
   orderForm,
   existingPositionLeverage,
   minimumOrderSize,
 }: ProtocolValidationErrorsInput): string[] => {
-  const errors = [...immediateErrors];
+  const errors: string[] = [];
   const { error } = protocolValidation;
   const isFieldOwnedError =
     error !== undefined &&
@@ -285,7 +286,7 @@ const getProtocolValidationErrors = ({
         minimumOrderSize,
       }),
     );
-    const isDuplicate = immediateErrors.some((existingError) =>
+    const isDuplicate = localErrors.some((existingError) =>
       existingError.includes(translatedError),
     );
     if (!isDuplicate) {
@@ -310,26 +311,34 @@ const getValidationWarnings = (leverage: number): string[] => {
 
 const buildValidationOutcome = ({
   requestFieldIssues,
-  errors,
+  requestLocalErrors,
+  protocolErrors,
   warnings,
   protocolValid,
 }: BuildValidationOutcomeInput): ValidationOutcome => {
-  const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
+  const resolvedProtocolErrors =
+    protocolErrors.length > 0 ? protocolErrors : EMPTY_ERRORS;
+  const resolvedErrors =
+    requestLocalErrors.length > 0 || resolvedProtocolErrors.length > 0
+      ? [...requestLocalErrors, ...resolvedProtocolErrors]
+      : EMPTY_ERRORS;
   const resolvedWarnings = warnings.length > 0 ? warnings : EMPTY_WARNINGS;
-  const resolvedProtocolValid = protocolValid ?? resolvedErrors.length === 0;
   const attempt: ValidationAttempt = {
     errors: resolvedErrors,
     warnings: resolvedWarnings,
     fieldIssues: requestFieldIssues,
-    isValid: resolvedProtocolValid && requestFieldIssues.length === 0,
+    isValid:
+      protocolValid &&
+      requestLocalErrors.length === 0 &&
+      requestFieldIssues.length === 0,
   };
 
   return {
     attempt,
     state: {
-      errors: resolvedErrors,
+      protocolErrors: resolvedProtocolErrors,
       warnings: resolvedWarnings,
-      protocolValid: resolvedProtocolValid,
+      protocolValid,
       isValidating: false,
     },
   };
@@ -339,8 +348,8 @@ const buildValidationOutcome = ({
  * Hook to handle order validation combining protocol-specific and UI-specific rules
  * Uses the existing validateOrder method from the provider
  *
- * Note: Errors are preserved during validation to prevent UI flashing.
- * Errors are only cleared when validation confirms they're resolved.
+ * Note: Deterministic local errors are derived from the current inputs.
+ * Protocol errors are preserved until a newer protocol request completes.
  */
 export function usePerpsOrderValidation(
   params: UsePerpsOrderValidationParams,
@@ -381,15 +390,11 @@ export function usePerpsOrderValidation(
   );
 
   const [validation, setValidation] = useState<ValidationState>({
-    errors: EMPTY_ERRORS,
+    protocolErrors: EMPTY_ERRORS,
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
   });
-
-  // Use stable array references to prevent unnecessary re-renders
-  const stableErrors = useStableArray(validation.errors);
-  const stableWarnings = useStableArray(validation.warnings);
 
   const fieldIssues = useMemo(
     () =>
@@ -411,11 +416,47 @@ export function usePerpsOrderValidation(
     ],
   );
 
+  const minimumOrderSize = getMinimumOrderSize(network);
+  const localErrors = useMemo(
+    () =>
+      getImmediateValidationErrors({
+        marginRequired,
+        spendableBalance,
+        originalUsdAmount,
+        minimumOrderSize,
+        reduceOnly,
+        isFullClose,
+      }),
+    [
+      isFullClose,
+      marginRequired,
+      minimumOrderSize,
+      originalUsdAmount,
+      reduceOnly,
+      spendableBalance,
+    ],
+  );
+
+  const isLocallyValid = localErrors.length === 0 && fieldIssues.length === 0;
+
+  const combinedErrors = useMemo(
+    () =>
+      localErrors.length > 0 || validation.protocolErrors.length > 0
+        ? [...localErrors, ...validation.protocolErrors]
+        : EMPTY_ERRORS,
+    [localErrors, validation.protocolErrors],
+  );
+
+  // Use stable array references to prevent unnecessary re-renders
+  const stableErrors = useStableArray(combinedErrors);
+  const stableWarnings = useStableArray(validation.warnings);
+
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const validationRequestIdRef = useRef(0);
   // Track whether we've completed the first validation so we can skip the debounce for it
   const hasValidatedOnceRef = useRef(false);
+  const wasLocallyValidRef = useRef(isLocallyValid);
 
   const clearValidationTimer = useCallback(() => {
     if (validationTimerRef.current) {
@@ -428,6 +469,7 @@ export function usePerpsOrderValidation(
     async (
       requestId: number,
       requestFieldIssues: OrderFormFieldIssue[],
+      requestLocalErrors: string[],
     ): Promise<ValidationAttempt | undefined> => {
       if (requestId !== validationRequestIdRef.current) {
         return undefined;
@@ -457,21 +499,12 @@ export function usePerpsOrderValidation(
       if (!validationReady) {
         return finalizeValidation({
           requestFieldIssues,
-          errors: EMPTY_ERRORS,
+          requestLocalErrors,
+          protocolErrors: EMPTY_ERRORS,
           warnings: EMPTY_WARNINGS,
           protocolValid: false,
         });
       }
-
-      const minimumOrderSize = getMinimumOrderSize(network);
-      const immediateErrors = getImmediateValidationErrors({
-        marginRequired,
-        spendableBalance,
-        originalUsdAmount,
-        minimumOrderSize,
-        reduceOnly,
-        isFullClose,
-      });
 
       try {
         const orderParams = buildOrderParams({
@@ -499,15 +532,17 @@ export function usePerpsOrderValidation(
 
         return finalizeValidation({
           requestFieldIssues,
-          errors: getProtocolValidationErrors({
+          requestLocalErrors,
+          protocolErrors: getProtocolValidationErrors({
             protocolValidation,
-            immediateErrors,
+            localErrors: requestLocalErrors,
             requestFieldIssues,
             orderForm: orderFormValidationData,
             existingPositionLeverage,
             minimumOrderSize,
           }),
           warnings: getValidationWarnings(orderFormValidationData.leverage),
+          protocolValid: protocolValidation.isValid,
         });
       } catch (error) {
         DevLogger.log(
@@ -516,8 +551,10 @@ export function usePerpsOrderValidation(
         );
         return finalizeValidation({
           requestFieldIssues,
-          errors: [strings('perps.order.validation.error')],
+          requestLocalErrors,
+          protocolErrors: [strings('perps.order.validation.error')],
           warnings: EMPTY_WARNINGS,
+          protocolValid: false,
         });
       }
     },
@@ -525,13 +562,11 @@ export function usePerpsOrderValidation(
       assetPrice,
       existingPositionLeverage,
       isFullClose,
-      marginRequired,
-      network,
+      minimumOrderSize,
       orderFormValidationData,
       originalUsdAmount,
       positionSize,
       reduceOnly,
-      spendableBalance,
       szDecimals,
       triggerPrice,
       validateOrder,
@@ -540,6 +575,7 @@ export function usePerpsOrderValidation(
 
   useEffect(() => {
     const requestId = ++validationRequestIdRef.current;
+    const becameLocallyValid = !wasLocallyValidRef.current && isLocallyValid;
 
     clearValidationTimer();
 
@@ -555,17 +591,18 @@ export function usePerpsOrderValidation(
     if (skipValidation) {
       return;
     }
+    wasLocallyValidRef.current = isLocallyValid;
 
     // Run first validation immediately to enable the place-order button ASAP;
-    // subsequent changes are debounced to avoid excessive calls during input.
-    if (!hasValidatedOnceRef.current) {
+    // also skip the debounce whenever all deterministic local errors clear.
+    if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
-      performValidation(requestId, fieldIssues);
+      performValidation(requestId, fieldIssues, localErrors);
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
-      performValidation(requestId, fieldIssues);
+      performValidation(requestId, fieldIssues, localErrors);
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
@@ -581,6 +618,8 @@ export function usePerpsOrderValidation(
     orderForm.limitPrice,
     orderForm.type,
     fieldIssues,
+    isLocallyValid,
+    localErrors,
     performValidation,
     positionSize,
     skipValidation,
@@ -595,14 +634,18 @@ export function usePerpsOrderValidation(
 
     if (skipValidation) {
       return {
-        errors: EMPTY_ERRORS,
+        errors: localErrors,
         warnings: EMPTY_WARNINGS,
         fieldIssues,
         isValid: false,
       };
     }
 
-    const attempt = await performValidation(requestId, fieldIssues);
+    const attempt = await performValidation(
+      requestId,
+      fieldIssues,
+      localErrors,
+    );
     return (
       attempt ?? {
         errors: [strings('perps.order.validation.failed')],
@@ -611,14 +654,20 @@ export function usePerpsOrderValidation(
         isValid: false,
       }
     );
-  }, [clearValidationTimer, fieldIssues, performValidation, skipValidation]);
+  }, [
+    clearValidationTimer,
+    fieldIssues,
+    localErrors,
+    performValidation,
+    skipValidation,
+  ]);
 
   // Return validation with stable array references
   return {
     errors: stableErrors,
     warnings: stableWarnings,
     fieldIssues,
-    isValid: validation.protocolValid && fieldIssues.length === 0,
+    isValid: validation.protocolValid && isLocallyValid,
     isValidating: validation.isValidating,
     validateNow,
   };
