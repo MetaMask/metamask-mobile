@@ -12,7 +12,6 @@ import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -101,14 +100,12 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
   const { preferences } = useNotificationStoragePreferences();
   const { categories, isLoading: isLoadingCategories } =
     useNotificationCategories();
   const sections = getNotificationsSettingsSectionConfigs(categories, {
     isSocialLeaderboardEnabled,
-    isPriceAlertsEnabled,
   });
 
   const navigateToSection = (

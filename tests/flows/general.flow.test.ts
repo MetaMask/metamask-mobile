@@ -6,30 +6,28 @@ jest.mock('../framework/logger', () => ({
   })),
 }));
 
-jest.mock('../framework', () => ({
-  Gestures: {
+jest.mock('../framework/Gestures', () => ({
+  __esModule: true,
+  default: {
     tap: jest.fn(),
-  },
-  PlaywrightAssertions: {
-    expectElementToBeVisible: jest.fn(),
-    expectElementToNotBeVisible: jest.fn(),
-  },
-  PlaywrightGestures: {
     waitAndTap: jest.fn(),
-  },
-  PlaywrightMatchers: {
-    getElementById: jest.fn(),
-    getElementByText: jest.fn(),
   },
 }));
 
 jest.mock('../framework/Assertions', () => ({
-  expectElementToBeVisible: jest.fn(),
+  __esModule: true,
+  default: {
+    expectElementToBeVisible: jest.fn(),
+    expectElementToNotBeVisible: jest.fn(),
+  },
 }));
 
 jest.mock('../framework/Matchers', () => ({
-  getElementByID: jest.fn(),
-  getElementByText: jest.fn(),
+  __esModule: true,
+  default: {
+    getElementByID: jest.fn(),
+    getElementByText: jest.fn(),
+  },
 }));
 
 jest.mock('../framework/Utilities', () => ({
@@ -54,11 +52,9 @@ import {
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from './general.flow';
-import {
-  PlaywrightAssertions,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-} from '../framework';
+import Gestures from '../framework/Gestures';
+import Assertions from '../framework/Assertions';
+import Matchers from '../framework/Matchers';
 import { PlatformDetector } from '../framework/PlatformLocator';
 
 describe('general.flow Playwright dev screens', () => {
@@ -68,35 +64,33 @@ describe('general.flow Playwright dev screens', () => {
 
   it('dismisses only the development server picker before app bootstrap', async () => {
     const serverRow = { selector: 'metro-server-row' };
-    (PlaywrightMatchers.getElementByText as jest.Mock).mockResolvedValue(
-      serverRow,
-    );
+    (Matchers.getElementByText as jest.Mock).mockReturnValue(serverRow);
 
     await dismissDevelopmentServerPickerPlaywright();
 
-    expect(PlaywrightMatchers.getElementByText).toHaveBeenCalledWith(
+    expect(Matchers.getElementByText).toHaveBeenCalledWith(
       'http://localhost:8081',
     );
-    expect(PlaywrightAssertions.expectElementToBeVisible).toHaveBeenCalledWith(
+    expect(Assertions.expectElementToBeVisible).toHaveBeenCalledWith(
       serverRow,
       expect.objectContaining({
         timeout: 1500,
         description: 'Dev Server Row should be visible',
       }),
     );
-    expect(PlaywrightGestures.waitAndTap).toHaveBeenCalledWith(serverRow);
-    expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
+    expect(Gestures.waitAndTap).toHaveBeenCalledWith(serverRow);
+    expect(Matchers.getElementByID).not.toHaveBeenCalled();
   });
 
   it('uses 10.0.2.2 as the Metro host on Android', async () => {
     (PlatformDetector.isAndroid as jest.Mock).mockReturnValueOnce(true);
-    (PlaywrightMatchers.getElementByText as jest.Mock).mockResolvedValue({
+    (Matchers.getElementByText as jest.Mock).mockReturnValue({
       selector: 'metro-server-row',
     });
 
     await dismissDevelopmentServerPickerPlaywright();
 
-    expect(PlaywrightMatchers.getElementByText).toHaveBeenCalledWith(
+    expect(Matchers.getElementByText).toHaveBeenCalledWith(
       'http://10.0.2.2:8081',
     );
   });
@@ -107,40 +101,29 @@ describe('general.flow Playwright dev screens', () => {
 
   it('closes the developer menu directly without toggling Fast refresh', async () => {
     const closeButton = { selector: 'xmark' };
-    (PlaywrightMatchers.getElementByText as jest.Mock).mockRejectedValue(
-      new Error('Continue not visible'),
-    );
-    (PlaywrightMatchers.getElementById as jest.Mock).mockResolvedValue(
-      closeButton,
-    );
+    (Matchers.getElementByText as jest.Mock).mockImplementation(() => {
+      throw new Error('Continue not visible');
+    });
+    (Matchers.getElementByID as jest.Mock).mockReturnValue(closeButton);
 
     await dismissDeveloperMenuPlaywright();
 
-    expect(PlaywrightMatchers.getElementByText).toHaveBeenCalledWith(
-      'Continue',
-    );
-    expect(PlaywrightMatchers.getElementById).toHaveBeenCalledWith('xmark', {
-      exact: true,
-    });
-    expect(PlaywrightGestures.waitAndTap).toHaveBeenNthCalledWith(
-      1,
+    expect(Matchers.getElementByText).toHaveBeenCalledWith('Continue');
+    expect(Matchers.getElementByID).toHaveBeenCalledWith('xmark');
+    expect(Gestures.waitAndTap).toHaveBeenNthCalledWith(1, closeButton);
+    expect(Assertions.expectElementToNotBeVisible).toHaveBeenCalledWith(
       closeButton,
+      expect.objectContaining({
+        timeout: 2000,
+        description: 'Dev Menu Close Button should not be visible',
+      }),
     );
     expect(
-      PlaywrightAssertions.expectElementToNotBeVisible,
-    ).toHaveBeenCalledWith(
-      closeButton,
-      expect.objectContaining({ timeout: 5000 }),
-    );
-    expect(
-      (PlaywrightAssertions.expectElementToNotBeVisible as jest.Mock).mock
+      (Assertions.expectElementToNotBeVisible as jest.Mock).mock
         .invocationCallOrder[0],
     ).toBeGreaterThan(
-      (PlaywrightGestures.waitAndTap as jest.Mock).mock.invocationCallOrder[0],
+      (Gestures.waitAndTap as jest.Mock).mock.invocationCallOrder[0],
     );
-    expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalledWith(
-      'fast-refresh',
-      { exact: true },
-    );
+    expect(Matchers.getElementByID).not.toHaveBeenCalledWith('fast-refresh');
   });
 });

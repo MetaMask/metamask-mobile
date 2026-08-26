@@ -1,73 +1,79 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import type { AppiumElement } from '../../framework/AppiumElement';
+import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
   }
 
-  get generalSettingsButton(): EncapsulatedElementType {
+  get generalSettingsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  get advancedButton(): EncapsulatedElementType {
+  get advancedButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  get contactsSettingsButton(): EncapsulatedElementType {
+  get contactsSettingsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton(): EncapsulatedElementType {
+  get securityAndPrivacyButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get notificationsButton(): EncapsulatedElementType {
+  get notificationsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
 
-  get aesCryptoTestForm(): EncapsulatedElementType {
+  get aesCryptoTestForm(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
     );
   }
 
-  get lockSettingsButton(): EncapsulatedElementType {
+  get lockSettingsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
-  get contactSupportButton(): EncapsulatedElementType {
+  get contactSupportButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
   }
 
-  get contactSupportSectionTitle(): EncapsulatedElementType {
+  get contactSupportSectionTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
     );
   }
 
-  get backupAndSyncSectionButton(): EncapsulatedElementType {
+  get backupAndSyncSectionButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
-  get snapsSectionButton(): EncapsulatedElementType {
+  get snapsSectionButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
   }
 
-  get alertButton(): EncapsulatedElementType {
-    return PlatformDetector.isAndroid()
-      ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
-      : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
+  get alertButton(): Promise<AppiumElement> {
+    // Case-insensitive: Android AlertDialog may show "YES" vs locale "Yes".
+    const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&',
+    );
+    const yesPattern = new RegExp(`^${yes}$`, 'i');
+    return Matchers.getElementByText(yesPattern);
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
+      SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID,
+    );
   }
 
   async scrollToLockButton(): Promise<void> {
@@ -199,7 +205,7 @@ class SettingsView {
     });
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 

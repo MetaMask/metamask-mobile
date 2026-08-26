@@ -9,12 +9,18 @@ import {
   formatFeeRate,
   clearRewardsCaches,
 } from './usePerpsOrderFees';
-import { type FeeCalculationResult } from '@metamask/perps-controller';
+import {
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 
 // Import existing mocks
-import { createMockEngineContext, TEST_CONSTANTS } from '../__mocks__';
+import {
+  createMockEngineContext,
+  TEST_CONSTANTS,
+} from '../__mocks__/perpsMocks';
 
 // Use shared Engine context mock
 const mockEngineContext = createMockEngineContext();
@@ -74,7 +80,7 @@ const createWrapper = () => {
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -130,7 +136,7 @@ describe('usePerpsOrderFees', () => {
           selectorStr.includes('rewards') ||
           selectorStr.includes('Rewards')
         ) {
-          return true; // rewardsEnabled
+          return true; // rewards-related selectors default to enabled
         }
         if (
           selectorStr.includes('address') ||
@@ -148,6 +154,7 @@ describe('usePerpsOrderFees', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -774,7 +781,7 @@ describe('clearRewardsCaches', () => {
 describe('usePerpsOrderFees - Maker/Taker Determination', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -846,6 +853,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -1545,17 +1553,19 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
 describe('usePerpsOrderFees - Enhanced Error Handling', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearRewardsCaches();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),

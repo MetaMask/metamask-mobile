@@ -1,11 +1,7 @@
 import { OnboardingInterestQuestionnaireTestIds } from '../../../app/components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.testIds';
 import Matchers from '../../framework/Matchers';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import Gestures from '../../framework/Gestures';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 type InterestOptionId =
   | 'buy_and_sell_crypto'
@@ -16,50 +12,47 @@ type InterestOptionId =
   | 'connect_apps_sites';
 
 class OnboardingInterestQuestionnaireView {
-  get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingInterestQuestionnaireTestIds.SCREEN),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingInterestQuestionnaireTestIds.SCREEN,
-          { exact: true },
-        ),
-    });
+  get container(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingInterestQuestionnaireTestIds.SCREEN,
+    );
   }
 
-  get continueButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          { exact: true },
-        ),
-    });
+  get continueButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+    );
   }
 
-  getOptionById(id: InterestOptionId): EncapsulatedElementType {
-    const testID = `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${id}`;
-    return encapsulated({
-      detox: () => Matchers.getElementByID(testID),
-      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
-    });
+  get skipButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+    );
+  }
+
+  getOptionById(id: InterestOptionId): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${id}`,
+    );
   }
 
   async tapContinueButton(): Promise<void> {
-    await UnifiedGestures.tap(this.continueButton, {
-      description: 'Onboarding Interest Questionnaire Continue Button',
+    await Gestures.tap(this.continueButton, {
+      elemDescription: 'Onboarding Interest Questionnaire Continue Button',
+      timeout: 2000,
+    });
+  }
+
+  async tapSkipButton(): Promise<void> {
+    await Gestures.tap(this.skipButton, {
+      elemDescription: 'Onboarding Interest Questionnaire Skip Button',
       timeout: 2000,
     });
   }
 
   async tapOption(id: InterestOptionId): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getOptionById(id), {
-      description: `Onboarding Interest Questionnaire Option: ${id}`,
+    await Gestures.waitAndTap(this.getOptionById(id), {
+      elemDescription: `Onboarding Interest Questionnaire Option: ${id}`,
       timeout: 2000,
     });
   }

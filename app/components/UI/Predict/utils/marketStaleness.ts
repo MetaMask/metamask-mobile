@@ -7,15 +7,24 @@ import {
 } from '../types';
 import { isGameEnded } from './scoreboard';
 
-export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.95;
-export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.05;
+export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.99;
+export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.01;
 export const PREDICT_MIN_STALENESS_PENALTY = 0.1;
 export const PREDICT_LAST_HOUR_TIME_PENALTY = 0.5;
+export const PREDICT_MIN_GAME_OUTCOME_VOLUME = 1000;
 
 const HOUR_IN_MS = 60 * 60 * 1000;
+const MONEYLINE_MARKET_TYPE = 'moneyline';
+const PREDICT_GAMES_TAG = 'games';
 
 export interface PredictMarketStalenessOptions {
   now?: Date | number;
+  filterStaleGameMarkets?: boolean;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
 }
 
 const getNowMs = (options?: PredictMarketStalenessOptions): number => {
@@ -53,8 +62,35 @@ export const isPredictOutcomeDead = (outcome: PredictOutcome): boolean => {
   );
 };
 
+const getOutcomeVolume = (outcome: PredictOutcome): number => {
+  const volume: number | string = outcome.volume;
+  return typeof volume === 'string' ? parseFloat(volume) : volume;
+};
+
+const hasSufficientOutcomeVolume = (
+  outcome: PredictOutcome,
+  filterByVolume?: number,
+): boolean => {
+  if (typeof filterByVolume !== 'number' || !Number.isFinite(filterByVolume)) {
+    return true;
+  }
+
+  const volume = getOutcomeVolume(outcome);
+  return Number.isFinite(volume) && volume >= filterByVolume;
+};
+
 const isPredictOutcomeDisplayable = (outcome: PredictOutcome): boolean =>
   outcome.status === PredictMarketStatus.OPEN && !isPredictOutcomeDead(outcome);
+
+const isPredictGameOutcomeDisplayable = (
+  outcome: PredictOutcome,
+  filterByVolume?: number,
+): boolean =>
+  isPredictOutcomeDisplayable(outcome) &&
+  hasSufficientOutcomeVolume(outcome, filterByVolume);
+
+const isMoneylineOutcome = (outcome: PredictOutcome): boolean =>
+  outcome.sportsMarketType?.toLowerCase() === MONEYLINE_MARKET_TYPE;
 
 const filterOutcomeGroup = (
   group: PredictOutcomeGroup,
@@ -102,7 +138,26 @@ export const filterVisibleMarketOutcomes = (
 const isDailyMarket = (market: PredictMarket): boolean =>
   market.recurrence === Recurrence.DAILY;
 
-const isGameMarket = (market: PredictMarket): boolean => Boolean(market.game);
+const isGameMarket = (market: PredictMarket): boolean =>
+  Boolean(market.game) || market.tags.includes(PREDICT_GAMES_TAG);
+
+const hasVisibleGameOutcomes = (
+  market: PredictMarket,
+  filterByVolume?: number,
+): boolean => {
+  const outcomes = market.outcomes.filter((outcome) =>
+    isPredictGameOutcomeDisplayable(outcome, filterByVolume),
+  );
+  const moneylineOutcomes = market.outcomes.filter(isMoneylineOutcome);
+
+  return (
+    outcomes.length > 0 &&
+    (moneylineOutcomes.length === 0 ||
+      moneylineOutcomes.some((outcome) =>
+        isPredictGameOutcomeDisplayable(outcome, filterByVolume),
+      ))
+  );
+};
 
 /**
  * Whether the underlying game has finished. For game markets this is the
@@ -196,9 +251,13 @@ export const getPredictMarketProbabilityPenalty = (
     return 1;
   }
 
+  // Scale the penalty so a probability at the high threshold keeps a full score
+  // of 1 and a probability of 1 lands at 0.5, regardless of the threshold width.
+  const penaltySlope = 0.5 / (1 - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD);
+
   return Math.max(
     PREDICT_MIN_STALENESS_PENALTY,
-    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * 10,
+    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * penaltySlope,
   );
 };
 
@@ -233,6 +292,13 @@ export const getVisiblePredictMarket = (
   }
 
   if (isGameMarket(market)) {
+    if (
+      options?.filterStaleGameMarkets &&
+      !hasVisibleGameOutcomes(market, options.filterByVolume)
+    ) {
+      return null;
+    }
+
     return market;
   }
 

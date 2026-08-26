@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
@@ -10,6 +11,7 @@ import { type BridgeToken, BridgeViewMode } from '../../../UI/Bridge/types';
 import { useTokensWithBalance } from '../../../UI/Bridge/hooks/useTokensWithBalance';
 import { isSameBridgeToken } from '../../../UI/Bridge/utils/tokenUtils';
 /* eslint-enable import-x/no-restricted-paths */
+import { startSwapBridgePageLoadTrace } from '../../../UI/Bridge/utils/swapBridgePageLoadTrace';
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { toBridgeToken } from './activityDetailsDoItAgainUtils';
 
@@ -42,7 +44,7 @@ export function useActivityDetailsDoItAgain({
   destinationToken?: TokenAmount;
   fallbackCaipChainId: CaipChainId;
 }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sourceBridgeToken = useMemo(
     () => toBridgeToken(sourceToken, fallbackCaipChainId),
@@ -92,18 +94,20 @@ export function useActivityDetailsDoItAgain({
     // and useInitialSourceToken only sets the amount when a truthy one is passed.
     dispatch(setSourceAmount(undefined));
 
+    const params = startSwapBridgePageLoadTrace({
+      sourcePage: ACTIVITY_DETAILS_SOURCE_PAGE,
+      bridgeViewMode,
+      sourceToken: hydratedSourceToken,
+      destToken: hydratedDestinationToken,
+      // No sourceAmount: "swap again" opens with an empty amount so the user
+      // enters a fresh value instead of reusing the original swap's amount.
+      location: MetaMetricsSwapsEventSource.MainView,
+      scrollToTopOnNav: true,
+    });
+
     navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourcePage: ACTIVITY_DETAILS_SOURCE_PAGE,
-        bridgeViewMode,
-        sourceToken: hydratedSourceToken,
-        destToken: hydratedDestinationToken,
-        // No sourceAmount: "swap again" opens with an empty amount so the user
-        // enters a fresh value instead of reusing the original swap's amount.
-        location: MetaMetricsSwapsEventSource.MainView,
-        scrollToTopOnNav: true,
-      },
+      params,
     });
   }, [
     bridgeViewMode,

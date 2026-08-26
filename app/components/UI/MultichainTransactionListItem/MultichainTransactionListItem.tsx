@@ -16,7 +16,6 @@ import { strings } from '../../../../locales/i18n';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
@@ -27,9 +26,10 @@ import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
+import { selectAppTheme } from '../../../selectors/user';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -46,7 +46,7 @@ const MultichainTransactionListItem = ({
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
-  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const appTheme = useSelector(selectAppTheme);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
@@ -62,7 +62,7 @@ const MultichainTransactionListItem = ({
 
   const handlePress = useCallback(() => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
           transaction_status: transaction.status ?? 'unknown',

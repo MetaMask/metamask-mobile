@@ -1,16 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Card,
+  KeyValueRow,
+  Text,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
-import Avatar, {
-  AvatarVariant,
-  AvatarSize,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './AccountCard.styles';
 import images from '../../../../../../images/image-icons';
 import AccountTag from '../AccountTag/AccountTag';
@@ -20,6 +20,10 @@ import ContractTag from '../ContractTag/ContractTag';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
 import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import {
+  KEY_VALUE_ROW_CLASSNAME,
+  KEY_VALUE_ROW_KEY_TEXT_PROPS,
+} from '../keyValueRow';
 
 const AccountCard = ({
   contractName,
@@ -41,51 +45,53 @@ const AccountCard = ({
 
   return (
     <View>
-      <Card testID="account-card" style={styles.cardGroupTop} disabled>
+      <Card accessible testID="account-card" style={styles.cardGroupTop}>
         {selectedAccount && (
           <KeyValueRow
-            field={{ label: { text: primaryLabel } }}
-            value={{
-              label: (
-                <AccountTag
-                  accountAddress={selectedAccount?.address}
-                  accountName={selectedAccount.metadata.name}
-                  avatarAccountType={avatarAccountType}
-                />
-              ),
-            }}
+            twClassName={KEY_VALUE_ROW_CLASSNAME}
+            keyLabel={primaryLabel}
+            keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+            value={
+              <AccountTag
+                accountAddress={selectedAccount?.address}
+                accountName={selectedAccount.metadata.name}
+                avatarAccountType={avatarAccountType}
+              />
+            }
           />
         )}
         <KeyValueRow
-          field={{
-            label: { text: secondaryLabel },
-          }}
-          value={{
-            label: (
-              <ContractTag
-                contractAddress={vaultMetadata?.vaultAddress ?? contractName}
-                contractName={contractName}
-                avatarAccountType={avatarAccountType}
-              />
-            ),
-          }}
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={secondaryLabel}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          value={
+            <ContractTag
+              contractAddress={vaultMetadata?.vaultAddress ?? contractName}
+              contractName={contractName}
+              avatarAccountType={avatarAccountType}
+            />
+          }
         />
       </Card>
-      <Card style={styles.cardGroupBottom} disabled>
+      <Card accessible style={styles.cardGroupBottom}>
         <KeyValueRow
-          field={{ label: { text: strings('asset_details.network') } }}
-          value={{
-            label: (
-              <View style={styles.networkKeyValueRow}>
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  imageSource={images.ETHEREUM}
-                  size={AvatarSize.Xs}
-                />
-                <Text>{networkName}</Text>
-              </View>
-            ),
-          }}
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('asset_details.network')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          value={
+            <View style={styles.networkKeyValueRow}>
+              <AvatarNetwork
+                twClassName="rounded bg-default"
+                src={
+                  images.ETHEREUM as React.ComponentProps<
+                    typeof AvatarNetwork
+                  >['src']
+                }
+                size={AvatarNetworkSize.Xs}
+              />
+              <Text>{networkName}</Text>
+            </View>
+          }
         />
       </Card>
     </View>

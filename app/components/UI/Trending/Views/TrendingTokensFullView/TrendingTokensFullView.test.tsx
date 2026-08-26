@@ -47,12 +47,12 @@ const mockUseRoute = jest.fn<
 >(() => ({ params: undefined }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
   useRoute: () => mockUseRoute(),
-  createNavigatorFactory: () => ({}),
 }));
 
 jest.mock('../../hooks/useTrendingRequest/useTrendingRequest');
@@ -365,6 +365,21 @@ describe('TrendingTokensFullView', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       sortBy: 'h1_trending',
       chainIds: null,
+      searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial network filter from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialNetwork: ['eip155:4663'] },
+    });
+
+    renderTrendingFullView();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: undefined,
+      chainIds: ['eip155:4663'],
       searchQuery: undefined,
       filterLowQuality: true,
     });

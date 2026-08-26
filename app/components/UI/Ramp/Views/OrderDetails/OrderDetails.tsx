@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -15,10 +16,7 @@ import {
   ButtonSize,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import {
-  normalizeProviderCode,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
 import { extractOrderCode } from '../../utils/extractOrderCode';
 import {
@@ -31,15 +29,27 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
+  resetWithRoutes,
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { endRampsBuyCufTrace } from '../../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_BOUNDARY,
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -82,7 +92,7 @@ const OrderDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -103,7 +113,13 @@ const OrderDetails = () => {
           walletAddress,
         );
         if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
-          navigation.reset({
+          endRampsBuyCufTrace({
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.BAILED,
+            },
+          });
+          resetWithRoutes(navigation, {
             index: 0,
             routes: getNavigateAfterExternalBrowserRoutes({
               returnDestination: 'buildQuote',
@@ -112,6 +128,17 @@ const OrderDetails = () => {
           return;
         }
         addOrder(fetchedOrder);
+
+        // TRAM-3738: non-terminal callback orders emit Confirmed (payment
+        // submitted). Terminal orders skip Confirmed and emit Completed/Failed
+        // directly — see TRAM-3691.
+        if (isTerminalOrderStatus(fetchedOrder.status)) {
+          emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
+        } else {
+          emitOrderConfirmedAnalyticsFromCallback(fetchedOrder, {
+            rampType: 'UNIFIED_BUY_2',
+          });
+        }
 
         showV2OrderToast({
           orderId: fetchedOrder.providerOrderId,
@@ -178,6 +205,7 @@ const OrderDetails = () => {
   ]);
 
   const hasTrackedScreenView = useRef(false);
+  const hasEndedBuyCuf = useRef(false);
   useEffect(() => {
     if (order && !hasTrackedScreenView.current) {
       hasTrackedScreenView.current = true;
@@ -192,12 +220,26 @@ const OrderDetails = () => {
     }
   }, [order, createEventBuilder, trackEvent]);
 
+  useEffect(() => {
+    if (!order || hasEndedBuyCuf.current) {
+      return;
+    }
+    hasEndedBuyCuf.current = true;
+    endRampsBuyCufTrace({
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: order.providerOrderId,
+      },
+    });
+  }, [order]);
+
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = order.provider?.id ?? '';
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -221,12 +263,22 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run.
+  // Marking the ref before the condition matters — callback success clears
+  // callback params via setParams while the order may still be pending; if we
+  // only marked the ref when refreshing, that transition would spuriously
+  // call handleOnRefresh.
+  const hasAttemptedInitialPendingRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialPendingRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialPendingRefreshRef.current = true;
     if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isPending, hasCallbackParams, handleOnRefresh]);
 
   useEffect(() => {
     if (

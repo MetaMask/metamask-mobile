@@ -6,6 +6,7 @@ import {
   getActiveRouteNameFromNavigationState,
   exitRewardsFlow,
   navigateToRewardsRoute,
+  getBetaSupportUrl,
 } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
@@ -255,15 +256,15 @@ describe('Rewards Utils', () => {
 
       navigateToRewardsRoute(
         { navigate: mockNavigate },
-        'RewardsSettingsView',
+        'RewardsCampaignMechanics',
         {
-          foo: 'bar',
+          campaignId: 'campaign-1',
         },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: 'RewardsSettingsView',
-        params: { foo: 'bar' },
+        screen: 'RewardsCampaignMechanics',
+        params: { campaignId: 'campaign-1' },
       });
     });
   });
@@ -299,6 +300,16 @@ describe('Rewards Utils', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.REWARDS_VIEW,
       });
+    });
+  });
+
+  describe('getBetaSupportUrl', () => {
+    it('returns a string', () => {
+      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
+      // time only, so under Jest this always resolves to the beta URL; the
+      // empty-string (non-beta) branch is exercised via call-site mocking in
+      // the components that consume this helper.
+      expect(typeof getBetaSupportUrl()).toBe('string');
     });
   });
 

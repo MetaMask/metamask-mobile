@@ -30,6 +30,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   isNonEvmChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
 }));

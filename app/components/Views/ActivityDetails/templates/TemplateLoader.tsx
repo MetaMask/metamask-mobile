@@ -1,5 +1,8 @@
 import React from 'react';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityListItem,
+} from '../../../../util/activity-adapters';
 import { ApprovalDetails } from './ApprovalDetails';
 import { BridgeDetails } from './BridgeDetails';
 import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
@@ -27,6 +30,10 @@ export function TemplateLoader({
     return null;
   }
 
+  if (isPerpsOrderKind(item.type)) {
+    return <PerpsDetails item={item} />;
+  }
+
   switch (item.type) {
     case 'send':
     case 'receive':
@@ -34,7 +41,6 @@ export function TemplateLoader({
     case 'bridge':
       return <BridgeDetails item={item} />;
     case 'swap':
-    case 'swapIncomplete':
     case 'convert':
     case 'lendingDeposit':
     case 'lendingWithdrawal':
@@ -54,6 +60,7 @@ export function TemplateLoader({
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
     case 'claim':
+    case 'stake':
     case 'unstake':
       return <DepositDetails item={item} />;
     case 'smartAccountUpgrade':
@@ -66,6 +73,8 @@ export function TemplateLoader({
       );
     case 'buy':
     case 'sell':
+    case 'rampBuy':
+    case 'rampSell':
       return isRampActivityListItem(item) ? (
         <RampDetails item={item} />
       ) : (
@@ -91,11 +100,6 @@ export function TemplateLoader({
     case 'perpsReceivedFundingFees':
     case 'perpsCloseShortTakeProfit':
     case 'perpsCloseLongTakeProfit':
-    case 'marketShort':
-    case 'stopMarketCloseShort':
-    case 'marketCloseShort':
-    case 'limitShort':
-    case 'limitCloseShort':
       return <PerpsDetails item={item} />;
     default:
       return <DefaultDetails item={item} />;

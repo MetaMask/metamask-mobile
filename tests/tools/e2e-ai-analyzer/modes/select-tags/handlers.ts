@@ -19,6 +19,7 @@ import {
   getFrameworkInfraChanges,
   getChangedSpecFiles,
   getChangedSharedInfraFiles,
+  isIgnorableSharedInfraCompanion,
   isSpecFile,
   SPEC_PATH_PREFIXES,
 } from './test-infrastructure-paths';
@@ -208,8 +209,8 @@ const INTERMEDIATE_TEST_DIRS = [
 ] as const;
 
 /**
- * Finds smoke/regression spec files that import a given file, resolving up to
- * one level of indirection through intermediate utility/flow/page-object files.
+ * Finds E2E smoke spec files that import a given file,
+ * resolving up to one level of indirection through intermediate files.
  *
  * Example: wallet.flow.ts → imported by 30 spec files (direct)
  * Example: TokenSelectors.ts → imported by TokenPage.ts → imported by token specs
@@ -285,7 +286,7 @@ function findSpecFilesImporting(
 }
 
 /**
- * Extracts Detox tag names imported in a spec file.
+ * Extracts E2E smoke tag names imported in a spec file.
  * Tags are imported as named exports from the tags module.
  */
 function extractTagsFromSpecFile(
@@ -313,7 +314,47 @@ function extractTagsFromSpecFile(
   }
 }
 
+/** English locale file consumed by UI copy and by E2E text/label selectors (enContent). */
+const EN_LOCALE_FILE = 'locales/languages/en.json';
+
+const E2E_RELEVANT_WORKFLOW_EXACT_PATHS = new Set([
+  '.github/workflows/ci.yml',
+  '.github/workflows/get-requirements.yml',
+  '.github/workflows/build-android-e2e.yml',
+  '.github/workflows/build-ios-e2e.yml',
+  '.github/workflows/update-e2e-fixtures.yml',
+  '.github/workflows/build.yml',
+]);
+
+function isE2ERelevantWorkflow(file: string): boolean {
+  const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '');
+
+  return (
+    E2E_RELEVANT_WORKFLOW_EXACT_PATHS.has(normalizedFile) ||
+    (normalizedFile.startsWith('.github/workflows/run-e2e-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (normalizedFile.startsWith('.github/workflows/run-appium-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (normalizedFile.startsWith('.github/scripts/e2e-') &&
+      normalizedFile.endsWith('.mjs'))
+  );
+}
+
 const HARD_RULES: HardRule[] = [
+  {
+    name: 'e2e-relevant-workflow-change',
+    description:
+      'E2E-relevant workflow or E2E CI script changed; skip AI and run all E2E tags',
+    check: (changedFiles) => {
+      const matchingFiles = changedFiles.filter(isE2ERelevantWorkflow);
+      if (matchingFiles.length === 0) return null;
+
+      return makeConservativeResult(
+        'e2e-relevant-workflow-change',
+        `E2E-relevant workflow changed: ${matchingFiles.join(', ')}`,
+      );
+    },
+  },
   {
     name: 'controller-version-update',
     description: '@metamask controller package version updated in package.json',
@@ -345,6 +386,23 @@ const HARD_RULES: HardRule[] = [
     },
   },
   {
+    name: 'en-locale-change',
+    description:
+      'Changes to locales/languages/en.json — copy feeds UI and E2E text/label selectors; not cosmetic',
+    check: (changedFiles) => {
+      const localeChanged = changedFiles.some(
+        (file) =>
+          file.replace(/\\/g, '/').replace(/^\.\//, '') === EN_LOCALE_FILE,
+      );
+      if (!localeChanged) return null;
+
+      return makeConservativeResult(
+        'en-locale-change',
+        `${EN_LOCALE_FILE} changed — UI strings and E2E text/label selectors may diverge (including platform casing like Android textAllCaps)`,
+      );
+    },
+  },
+  {
     name: 'global-infrastructure-change',
     description:
       'Changes to globally-mounted hooks, contexts, Redux store, or Engine wiring',
@@ -369,16 +427,18 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-shared-infra-impact',
     description:
-      'Changes to flows, page-objects, selectors, or locators — find impacted smoke/regression specs and run their tags',
+      'Changes to flows, page-objects, selectors, or locators — find impacted smoke specs and run their tags',
     check: (changedFiles, context) => {
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
 
-      // Only apply when all changes are within tests/ — app changes go to AI
-      const hasNonTestChanges = changedFiles.some(
-        (f) => !f.startsWith('tests/'),
+      // App changes and E2E-relevant workflow changes go to AI so their wider
+      // impact is considered. Documentation, assets, locale files, and
+      // performance-only workflow changes do not affect smoke-tag reachability.
+      const hasNonIgnorableNonTestChanges = changedFiles.some(
+        (f) => !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
       );
-      if (hasNonTestChanges) return null;
+      if (hasNonIgnorableNonTestChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
 
@@ -411,9 +471,9 @@ const HARD_RULES: HardRule[] = [
 
       if (selectedTags.length === 0) {
         console.log(
-          '   No Detox spec files import these files — falling through to next rule.',
+          '   No E2E spec files import these files — falling through to next rule.',
         );
-        // Bug 4 fix: return null so test-spec-tag-extraction can handle directly-changed specs
+        // Return null so test-spec-tag-extraction can handle directly-changed specs
         return null;
       }
 
@@ -433,7 +493,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-spec-tag-extraction',
     description:
-      'Spec files in tests/smoke/ or tests/regression/ changed — extract their tags and run directly',
+      'Spec files in tests/smoke/ or tests/smoke-appium/ changed — extract their tags and run directly',
     check: (changedFiles, context) => {
       const specFiles = getChangedSpecFiles(changedFiles);
       if (specFiles.length === 0) return null;

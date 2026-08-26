@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -7,12 +7,13 @@ import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import { Text } from '@metamask/design-system-react-native';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -21,6 +22,13 @@ export interface CustomAmountProps {
   hasAlert?: boolean;
   isLoading?: boolean;
   onPress?: () => void;
+  /**
+   * When true, a Max quote fetch does not replace a visible amount with a
+   * skeleton. Money-account stablecoin prefills set isMaxAmount, so hiding
+   * the amount while quotes load caused it to flash then reappear.
+   */
+  preserveAmountOnMaxQuoteLoad?: boolean;
+  showCursor?: boolean;
 }
 
 export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
@@ -31,6 +39,8 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     hasAlert = false,
     isLoading,
     onPress,
+    preserveAmountOnMaxQuoteLoad = false,
+    showCursor = true,
   } = props;
 
   const { isHeadlessBuyInProgress } = useConfirmationContext();
@@ -49,7 +59,11 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     disabled,
   });
 
-  const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+  const showLoader =
+    isLoading ||
+    (isMaxAmount && isQuotesLoading && !preserveAmountOnMaxQuoteLoad);
+  const cursorVisible = showCursor && !disabled && !showLoader;
+  const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
     return <CustomAmountSkeleton />;
@@ -67,6 +81,12 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       >
         {formattedAmount}
       </Text>
+      {cursorVisible && (
+        <Animated.View
+          testID="custom-amount-cursor"
+          style={[styles.cursor, { opacity: cursorOpacity }]}
+        />
+      )}
     </View>
   );
 });

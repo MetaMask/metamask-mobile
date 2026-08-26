@@ -1,13 +1,11 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import {
-  PreferencesController,
-  PreferencesControllerMessenger,
-} from '@metamask/preferences-controller';
+import { PreferencesControllerMessenger } from '@metamask/preferences-controller';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { preferencesControllerInit } from '../controllers/preferences-controller-init';
+import type { PreferencesControllerWithSavedGasFees } from '../controllers/preferences-controller-types';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
 import { permissionControllerInit } from '../controllers/permission-controller-init';
@@ -63,7 +61,7 @@ describe('initMessengerClients', () => {
     jest.clearAllMocks();
 
     mockPreferencesControllerInit.mockReturnValue({
-      controller: {} as unknown as PreferencesController,
+      controller: {} as unknown as PreferencesControllerWithSavedGasFees,
     });
     mockPermissionControllerInit.mockReturnValue({
       controller: {} as unknown as PermissionController<
@@ -99,7 +97,7 @@ describe('initMessengerClients', () => {
     const request = buildModularizedControllerRequest({
       initFunctions: {
         PreferencesController: createMockMessengerClientInitFunction<
-          PreferencesController,
+          PreferencesControllerWithSavedGasFees,
           PreferencesControllerMessenger
         >('GasFeeController'),
       },

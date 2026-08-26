@@ -5,7 +5,9 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeDestToken,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -17,6 +19,8 @@ import reducer, {
   selectAllowedChainRanking,
   setTokenSelectorNetworkFilter,
   selectTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
+  selectOrdersNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
@@ -33,11 +37,19 @@ import reducer, {
   selectBatchSellDestStablecoinsByChain,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
+  selectBridgeQuotes,
   selectBatchSellQuotes,
+  selectBatchSellTrades,
+  selectControllerFields,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
   selectIsNonEvmSourced,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  selectRecurring,
+  selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -53,6 +65,7 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { RecurringScheduleErrorCode } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
@@ -119,7 +132,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -135,6 +149,12 @@ describe('bridge slice', () => {
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'hour',
+          repeatCount: '10',
+        },
+        ordersNetworkFilter: undefined,
       });
     });
   });
@@ -225,6 +245,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -272,6 +298,16 @@ describe('bridge slice', () => {
 
       expect(state.isDestTokenManuallySet).toBe(true);
     });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
   });
 
   describe('setSourceToken', () => {
@@ -281,6 +317,49 @@ describe('bridge slice', () => {
       expect(state.sourceToken?.address).toBe(
         '0x0000000000000000000000000000000000000000',
       );
+    });
+
+    it('clears slippage when the source token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setSourceToken(mockToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+
+    it('keeps slippage when the source token identity is unchanged', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
+
+    it('clears slippage when the token address is unchanged on another network', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({
+          ...mockToken,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
     });
   });
 
@@ -497,6 +576,8 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        slippage: '3.5',
+        isSlippageUserOverride: true,
         bridgeViewMode: BridgeViewMode.Bridge,
       };
 
@@ -515,6 +596,41 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithVisiblePills, resetBridgeState());
 
       expect(newState.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('resetBridgeDestToken', () => {
+    const stateWithDestSelection = {
+      ...initialState,
+      sourceToken: mockToken,
+      sourceAmount: '1.5',
+      destToken: mockDestToken,
+      selectedDestChainId: '0x89' as Hex,
+      isDestTokenManuallySet: true,
+      slippage: '3.5',
+      isSlippageUserOverride: true,
+    };
+
+    it('clears the destination token, its chain and the manual selection flag', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destToken).toBeUndefined();
+      expect(newState.selectedDestChainId).toBeUndefined();
+      expect(newState.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('clears slippage since it belonged to the cleared token pair', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.slippage).toBeUndefined();
+      expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('leaves the source selection and amount untouched', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.sourceAmount).toBe('1.5');
     });
   });
 
@@ -812,6 +928,48 @@ describe('bridge slice', () => {
         ),
       ).toBe(true);
     });
+
+    it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          { chainId: 'eip155:1', name: 'Ethereum' },
+          { chainId: 'eip155:137', name: 'Polygon' },
+          // Not in ALLOWED_BRIDGE_CHAIN_IDS, but included in enabledChainIds below.
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+        ['eip155:1' as CaipChainId, 'eip155:99999' as CaipChainId],
+      );
+
+      expect(result).toEqual([
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+      ]);
+    });
+
+    it('returns an empty array when enabledChainIds is an empty array', () => {
+      const result = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('falls back to the ALLOWED_BRIDGE_CHAIN_IDS filter when enabledChainIds is undefined', () => {
+      const withoutOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+      );
+      const withUndefinedOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(withUndefinedOverride).toEqual(withoutOverride);
+    });
   });
 
   describe('selectBatchSellDestStablecoins', () => {
@@ -936,6 +1094,38 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('setOrdersNetworkFilter', () => {
+    it('sets the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setOrdersNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.ordersNetworkFilter).toBe(chainId);
+    });
+
+    it('clears the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBeUndefined();
+    });
+
+    it('updates the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBe('eip155:137');
+    });
+  });
+
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
       const mockState = cloneDeep(mockRootState);
@@ -947,6 +1137,82 @@ describe('bridge slice', () => {
       const result = selectBatchSellQuotes(mockState as unknown as RootState);
 
       expect(result.recommendedQuotes).toHaveLength(2);
+    });
+  });
+
+  describe('bridge controller quote selectors', () => {
+    beforeEach(() => {
+      selectControllerFields.resetRecomputations();
+      selectBridgeQuotes.resetRecomputations();
+      selectBatchSellQuotes.resetRecomputations();
+      selectBatchSellTrades.resetRecomputations();
+    });
+
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
+    it('does not recompute when unrelated bridge UI state changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+
+      selectBridgeQuotes(mockState);
+      selectBatchSellQuotes(mockState);
+      selectBatchSellTrades(mockState);
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+      const bridgeQuotesRecomputations = selectBridgeQuotes.recomputations();
+      const batchSellQuotesRecomputations =
+        selectBatchSellQuotes.recomputations();
+      const batchSellTradesRecomputations =
+        selectBatchSellTrades.recomputations();
+
+      const unrelatedState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1',
+        },
+      } as RootState;
+
+      selectBridgeQuotes(unrelatedState);
+      selectBatchSellQuotes(unrelatedState);
+      selectBatchSellTrades(unrelatedState);
+
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations,
+      );
+      expect(selectBridgeQuotes.recomputations()).toBe(
+        bridgeQuotesRecomputations,
+      );
+      expect(selectBatchSellQuotes.recomputations()).toBe(
+        batchSellQuotesRecomputations,
+      );
+      expect(selectBatchSellTrades.recomputations()).toBe(
+        batchSellTradesRecomputations,
+      );
     });
   });
 
@@ -970,6 +1236,33 @@ describe('bridge slice', () => {
       };
 
       const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
+    });
+  });
+
+  describe('selectOrdersNetworkFilter', () => {
+    it('returns undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectOrdersNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectOrdersNetworkFilter(
         mockState as unknown as RootState,
       );
 
@@ -1279,6 +1572,101 @@ describe('bridge slice', () => {
     it('returns a falsy value when there is no source token', () => {
       const state = buildState(undefined);
       expect(selectIsNonEvmSourced(state)).toBeFalsy();
+    });
+  });
+
+  describe('recurring', () => {
+    it('sets the every value', () => {
+      const action = setRecurringEveryValue('6');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.everyValue).toBe('6');
+    });
+
+    it('sets the repeat count', () => {
+      const action = setRecurringRepeatCount('20');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.repeatCount).toBe('20');
+    });
+
+    it('resets the every value to 1 when the unit changes', () => {
+      const state = reducer(initialState, setRecurringEveryValue('2'));
+
+      const newState = reducer(state, setRecurringEveryUnit('day'));
+
+      expect(newState.recurring).toEqual({
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+      });
+    });
+
+    it('resets recurring fields when bridge state resets', () => {
+      const withValue = reducer(initialState, setRecurringEveryValue('8'));
+
+      const newState = reducer(withValue, resetBridgeState());
+
+      expect(newState.recurring).toEqual(initialState.recurring);
+    });
+
+    it('defaults to the initial recurring state when it is missing', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: undefined,
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual(initialState.recurring);
+    });
+
+    it('selects the recurring object from state', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '3',
+            everyUnit: 'day' as const,
+            repeatCount: '4',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual({
+        everyValue: '3',
+        everyUnit: 'day',
+        repeatCount: '4',
+      });
+    });
+
+    it('selects duration_exceeds_max when every times repeat is over 180 days', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '1',
+            everyUnit: 'day' as const,
+            repeatCount: '181',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringScheduleValidation(mockState);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain(
+        RecurringScheduleErrorCode.DurationExceedsMax,
+      );
     });
   });
 });

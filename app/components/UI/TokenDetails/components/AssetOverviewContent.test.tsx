@@ -92,7 +92,7 @@ jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
     mockUsePerpsPositionForAsset(...args),
 }));
 
-jest.mock('../../Perps/components/PerpsPositionCard', () => ({
+jest.mock('../../Perps/components/PerpsCard', () => ({
   __esModule: true,
   default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
 }));
@@ -114,13 +114,17 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
-    useFocusEffect: jest.fn((cb: () => void) => cb()),
+    // Defer via useEffect to match real useFocusEffect timing.
+    useFocusEffect: jest.fn((cb: () => void) => {
+      actualReact.useEffect(cb, []);
+    }),
   };
 });
 
@@ -184,7 +188,6 @@ const defaultProps: AssetOverviewContentProps = {
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: true,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
@@ -240,7 +243,6 @@ describe('AssetOverviewContent', () => {
   const defaultPerpsPositionResult = {
     position: null,
     hasFundsInPerps: false,
-    accountState: null,
     isLoading: false,
   };
 
@@ -335,11 +337,15 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        // Flush the gate().finally() microtask that releases the nav lock,
+        // so the next press below isn't blocked by it.
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -356,11 +362,13 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -531,7 +539,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
     });
@@ -540,7 +547,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -577,7 +583,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -837,7 +842,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
       tokenDetailsActionsSpy = jest.spyOn(

@@ -9,7 +9,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import {
   ALL_NOTIFICATIONS_CATEGORY_ID,
   getCategoryTitle,
@@ -47,7 +46,6 @@ const NotificationsCategory = ({
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
   const { categories, isLoading } = useNotificationCategories();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -69,7 +67,6 @@ const NotificationsCategory = ({
 
     const sectionConfigs = getNotificationsSettingsSectionConfigs(categories, {
       isSocialLeaderboardEnabled,
-      isPriceAlertsEnabled,
     });
 
     sectionConfigs.forEach((category) => {
@@ -81,12 +78,7 @@ const NotificationsCategory = ({
     });
 
     return items;
-  }, [
-    categories,
-    isMetamaskNotificationsEnabled,
-    isPriceAlertsEnabled,
-    isSocialLeaderboardEnabled,
-  ]);
+  }, [categories, isMetamaskNotificationsEnabled, isSocialLeaderboardEnabled]);
 
   const handleSelect = useCallback(
     (key: string) => {

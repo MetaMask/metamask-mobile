@@ -1,39 +1,64 @@
-import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
+import { Dimensions, StyleSheet } from 'react-native';
+import { AppThemeKey, Theme } from '../../../util/theme/models';
+const marginWidth = 16;
+const notificationWidth = Dimensions.get('window').width - marginWidth * 2;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, shadows } = theme;
 
   return StyleSheet.create({
-    floatingBackground: {
-      backgroundColor: colors.background.section,
-      marginHorizontal: 16,
-      borderRadius: 8,
+    base: {
+      position: 'absolute',
+      top: 0,
+      left: marginWidth,
+      width: notificationWidth,
+      backgroundColor:
+        theme.themeAppearance === AppThemeKey.light
+          ? colors.background.default
+          : colors.background.section,
+      ...(theme.themeAppearance === AppThemeKey.light ? shadows.size.md : {}),
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border.muted,
-    },
-    defaultFlashFloating: {
-      padding: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    baseTopAligned: {
+      alignItems: 'flex-start',
+    },
+    baseWithCloseIconButton: {
+      paddingRight: 8,
+    },
+    pressableContent: {
       flex: 1,
-      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    pressableContentTopAligned: {
+      alignItems: 'flex-start',
     },
     flashLabel: {
       flex: 1,
-      flexDirection: 'column',
+      justifyContent: 'center',
     },
-    flashText: {
-      flex: 1,
-      lineHeight: 18,
+    flashLabelTopAligned: {
+      justifyContent: 'flex-start',
     },
     flashTitle: {
-      flex: 1,
-      marginBottom: 2,
-      lineHeight: 18,
+      color: colors.text.default,
     },
-    flashIcon: {
-      marginRight: 15,
+    flashText: {
+      marginTop: 2,
+    },
+    closeButton: {
+      marginTop: -4,
     },
   });
 };

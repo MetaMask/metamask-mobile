@@ -1,5 +1,4 @@
-import { PlaywrightElement } from './PlaywrightAdapter.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
+import { AppiumElement } from './AppiumElement.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 
 /**
@@ -24,123 +23,36 @@ export interface PlatformLocator {
 }
 
 /**
- * Complete locator configuration for both Detox and Appium/WebdriverIO
- *
- * @example
- * Provide specific platform locators for appium
- * {
- *   detox: () => Matchers.getElementByID('MY_TEST_ID'),
- *   appium: {
- *     android: () => PlaywrightMatchers.getByXPath('//*[@resource-id="MY_TEST_ID"]'),
- *     ios: () => PlaywrightMatchers.getByAccessibilityId('MY_TEST_ID')
- *   }
- * }
- *
- * @example
- * Provide a generic locator for appium
- * {
- *   detox: () => Matchers.getElementByID('MY_TEST_ID'),
- *   appium: () => PlaywrightMatchers.getByXPath('//*[@resource-id="MY_TEST_ID"]')
- * }
+ * Locator configuration for Appium (platform-generic or per-platform).
  */
 export interface LocatorConfig {
-  detox?: () => EncapsulatedElementType;
-  appium?:
-    | (() => Promise<PlaywrightElement>)
+  appium:
+    | (() => Promise<AppiumElement>)
     | {
-        android?: () => Promise<PlaywrightElement>;
-        ios?: () => Promise<PlaywrightElement>;
+        android?: () => Promise<AppiumElement>;
+        ios?: () => Promise<AppiumElement>;
       };
 }
 
 /**
- * Unified element type that can be either DetoxElement or PlaywrightElement
- * Note: Both types are Promise-based
- */
-export type EncapsulatedElementType = DetoxElement | Promise<PlaywrightElement>;
-
-/**
- * Encapsulated element factory - creates appropriate element based on framework context
+ * Encapsulated element factory — resolves Appium locators.
  */
 export class EncapsulatedElement {
-  /**
-   * Create an encapsulated element from locator configuration
-   *
-   * @param config - Locator configuration for both Detox and Appium
-   * @returns DetoxElement or Promise<PlaywrightElement> based on current framework
-   *
-   * @example
-   * // Using existing Matchers helpers for Detox with generic Appium locator
-   * get passwordInput(): EncapsulatedElementType {
-   *   return EncapsulatedElement.create({
-   *     detox: () => Matchers.getElementByID('login-password-input'),
-   *     appium: () => PlaywrightMatchers.getByXPath('//*[@resource-id="login-password-input"]')
-   *   });
-   * }
-   *
-   * @example
-   * // Using text locator with generic Appium
-   * get unlockButton(): EncapsulatedElementType {
-   *   return EncapsulatedElement.create({
-   *     detox: () => Matchers.getElementByText('Unlock'),
-   *     appium: () => PlaywrightMatchers.getByText('Unlock')
-   *   });
-   * }
-   *
-   * @example
-   * // Using platform-specific Appium locators
-   * get submitButton(): EncapsulatedElementType {
-   *   return EncapsulatedElement.create({
-   *     detox: () => Matchers.getElementByID('submit-button'),
-   *     appium: {
-   *       android: () => PlaywrightMatchers.getByXPath('//*[@resource-id="submit-button"]'),
-   *       ios: () => PlaywrightMatchers.getByAccessibilityId('submit-button')
-   *     }
-   *   });
-   * }
-   */
-  static create(config: LocatorConfig): EncapsulatedElementType {
-    if (FrameworkDetector.isDetox()) {
-      return this.createDetoxElement(config);
-    }
-    if (FrameworkDetector.isAppium()) {
-      return this.createAppiumElement(config);
-    }
-    throw new Error('Unable to create encapsulated element');
+  static create(config: LocatorConfig): Promise<AppiumElement> {
+    return this.createAppiumElement(config);
   }
 
-  /**
-   * Create Detox element from configuration
-   */
-  private static createDetoxElement(config: LocatorConfig): DetoxElement {
-    if (!config.detox) {
-      throw new Error(
-        'Detox configuration is required when running in Detox context',
-      );
-    }
-
-    // Execute the function to get the DetoxElement
-    return config.detox() as unknown as DetoxElement;
-  }
-
-  /**
-   * Create Appium/WebdriverIO element from configuration
-   */
   private static async createAppiumElement(
     config: LocatorConfig,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     if (!config.appium) {
-      throw new Error(
-        'Appium configuration is required when running in Appium context',
-      );
+      throw new Error('Appium configuration is required');
     }
 
-    // If appium is a function, use it as a generic locator
     if (typeof config.appium === 'function') {
-      return config.appium() as Promise<PlaywrightElement>;
+      return config.appium();
     }
 
-    // Otherwise, it's a platform-specific configuration
     const platform = PlatformDetector.getPlatform();
     const platformLocator = config.appium[platform];
 
@@ -150,48 +62,13 @@ export class EncapsulatedElement {
       );
     }
 
-    // Execute the platform-specific function to get the Promise<PlaywrightElement>
-    return platformLocator() as Promise<PlaywrightElement>;
+    return platformLocator();
   }
 }
 
 /**
- * Helper function for creating encapsulated elements (shorthand)
+ * Helper for creating encapsulated elements (shorthand)
  */
-export function encapsulated(config: LocatorConfig): EncapsulatedElementType {
+export function encapsulated(config: LocatorConfig): Promise<AppiumElement> {
   return EncapsulatedElement.create(config);
-}
-
-/**
- * Type helper for WebdriverIO tests - returns the PlaywrightElement from the EncapsulatedElementType
- *
- * @example
- * const passwordInput = await asPlaywrightElement(EncapsulatedElement.create({
- *   detox: () => Matchers.getElementByID('login-password-input'),
- *   appium: () => PlaywrightMatchers.getByXPath('//*[@resource-id="login-password-input"]')
- * }));
- * await passwordInput.fill('my password');
- *
- * @returns PlaywrightElement
- */
-export async function asPlaywrightElement(
-  elem: EncapsulatedElementType,
-): Promise<PlaywrightElement> {
-  return (await elem) as PlaywrightElement;
-}
-
-/**
- * Type helper for Detox tests - returns the DetoxElement from the EncapsulatedElementType
- *
- * @example
- * const passwordInput = await asDetoxElement(EncapsulatedElement.create({
- *   detox: () => Matchers.getElementByID('login-password-input'),
- *   appium: () => PlaywrightMatchers.getByXPath('//*[@resource-id="login-password-input"]')
- * }));
- * await Gestures.typeText(passwordInput, 'my password');
- *
- * @returns DetoxElement
- */
-export function asDetoxElement(elem: EncapsulatedElementType): DetoxElement {
-  return elem as DetoxElement;
 }

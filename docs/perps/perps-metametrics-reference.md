@@ -6,6 +6,17 @@ MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
+### Global properties (all Perps events)
+
+These are attached automatically — do not pass them manually unless overriding:
+
+| Property     | Values              | Source                                                                                                                        |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `timestamp`  | number (ms)         | `usePerpsEventTracking`                                                                                                       |
+| `perps_mode` | `'lite'` \| `'pro'` | Current Perps interface mode via `enrichWithPerpsMode` in `analytics.trackEvent` (all `Perp *` events + Perps `Asset Viewed`) |
+
+`perps_mode` is the Lite/Pro interface mode. It is intentionally separate from `mode` (`PERPS_EVENT_PROPERTY.MODE`), which search already uses for query intent (`'discovery'` \| `'intent'` \| `'browse'`).
+
 ## Three Tracking Approaches
 
 ### 1. `usePerpsEventTracking` Hook (Components)
@@ -74,7 +85,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'` | `'mode_selection'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -113,8 +124,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `market_insights_displayed` (optional): Whether market insights content is displayed on the screen (boolean, used for asset_details screen)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
-- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -133,6 +143,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Discovery interactions:** `'related_market_clicked'`
   - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
+  - **Mode selection:** `'mode_selection_dismissed'` — Lite/Pro chooser closed without selecting _(local constant `PERPS_MODE_SELECTION_DISMISSED`, pending addition to `PERPS_EVENT_VALUE`)_. Includes `source`, `entry`, and `time_on_screen_ms`. Selection itself uses `button_clicked` with `perps_mode`. Header toggles also use `button_clicked` with `perps_mode`, but only after the mode is actually applied (not when the chooser opens instead).
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -154,7 +165,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Discovery section header values** _(`PERPS_EVENT_VALUE.BUTTON_CLICKED`)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
   - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
-  - **Discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — magnifying glass button on the asset details screen
+  - **Legacy discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — formerly the magnifying-glass button on the asset details screen. That button was replaced by the market-list arrow, which now reports `button_location = 'perp_market_details'` with `button_clicked = 'market_list'`.
 - `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -174,8 +185,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
-- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -357,47 +367,11 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ## Multiple Concurrent Tests
 
-### Flat Property Pattern
+### Canonical `active_ab_tests` Pattern
 
-To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
+Perps A/B tests (e.g., TAT-1937 button colors) follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
 
-**Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
-
-**Why no `_enabled` property?**
-
-- Events are only sent when test is enabled (`isEnabled === true`)
-- Including the property means the test is active
-- No need for redundant `_enabled` flag
-
-**Example with 3 concurrent tests:**
-
-```typescript
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
-
-usePerpsEventTracking({
-  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-  properties: {
-    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-      PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-    [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-    // Test 1: Button color test (TAT-1937) - only included when enabled
-    ...(isButtonColorTestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-    }),
-    // Test 2: Asset CTA test (TAT-1940) - future
-    ...(isAssetCTATestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_ASSET_CTA]: assetCTAVariant,
-    }),
-    // Test 3: Homepage CTA test (TAT-1827) - future
-    ...(isHomepageCTATestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
-    }),
-  },
-});
-```
+To run multiple concurrent tests, register each test's mapping in the registry; `enrichWithABTests()` appends an entry per active test to the shared `active_ab_tests` array on any event that matches one of the registered `eventNames`.
 
 ### Where to Track AB Tests
 
@@ -406,13 +380,12 @@ usePerpsEventTracking({
 **Dual Tracking Approach:**
 
 1. **PERPS_SCREEN_VIEWED** (baseline exposure):
-   - Include `ab_test_button_color` when test is enabled
+   - `active_ab_tests` is auto-injected when the test is active
    - Establishes how many users were exposed to each variant
    - Required to calculate engagement rate
 
 2. **PERPS_UI_INTERACTION** (engagement):
-   - Include `ab_test_button_color` when user taps Long/Short or Place Order button
-   - Only sent when test is enabled
+   - `active_ab_tests` is auto-injected when the test is active and user taps Long/Short or Place Order button
    - Measures which variant drives more button presses
 
 **Why Both Events?**
@@ -529,22 +502,22 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Location Values
 
-| Value                      | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| `'perps_home'`             | Perps home screen                              |
-| `'perps_tutorial'`         | Tutorial screen                                |
-| `'perps_home_empty_state'` | Perps home empty state (no balance)            |
-| `'perps_asset_screen'`     | Asset details screen                           |
-| `'perps_tab'`              | Positions tab                                  |
-| `'trade_menu_action'`      | Trade menu action button                       |
-| `'wallet_home'`            | Wallet home screen                             |
-| `'market_list'`            | Market list screen                             |
-| `'screen'`                 | Generic screen location                        |
-| `'tooltip'`                | Tooltip bottom sheet                           |
-| `'perp_market_details'`    | Market details screen                          |
-| `'order_book'`             | Order book screen                              |
-| `'full_screen_chart'`      | Full screen chart view                         |
-| `'asset_details'`          | Asset details screen — magnifying glass button |
+| Value                      | Description                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `'perps_home'`             | Perps home screen                                                                                                                         |
+| `'perps_tutorial'`         | Tutorial screen                                                                                                                           |
+| `'perps_home_empty_state'` | Perps home empty state (no balance)                                                                                                       |
+| `'perps_asset_screen'`     | Asset details screen                                                                                                                      |
+| `'perps_tab'`              | Positions tab                                                                                                                             |
+| `'trade_menu_action'`      | Trade menu action button                                                                                                                  |
+| `'wallet_home'`            | Wallet home screen                                                                                                                        |
+| `'market_list'`            | Market list screen                                                                                                                        |
+| `'screen'`                 | Generic screen location                                                                                                                   |
+| `'tooltip'`                | Tooltip bottom sheet                                                                                                                      |
+| `'perp_market_details'`    | Market details screen                                                                                                                     |
+| `'order_book'`             | Order book screen                                                                                                                         |
+| `'full_screen_chart'`      | Full screen chart view                                                                                                                    |
+| `'asset_details'`          | Legacy — former magnifying-glass button on the asset details screen (replaced by the market-list arrow reporting `'perp_market_details'`) |
 
 ### Usage Example
 
@@ -757,7 +730,7 @@ Section names used in impression events:
 2. **Track status** - Always include success/failure
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
-5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` adds `timestamp`. `analytics.trackEvent` (`enrichWithPerpsMode`) adds `perps_mode: 'lite' | 'pro'` on every `Perp *` event and on companion Perps `Asset Viewed` emissions (`trade_type: 'Perps'`). Explicit caller `perps_mode` wins (e.g. mode toggle emits the selected next mode **after** the parent confirms the switch applied — chooser-gated toggles return `false` and skip toggle analytics; the chooser emits its own selection/dismiss events). Search intent continues to use `mode` (`discovery` | `intent` | `browse`) for backwards compatibility.
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.
@@ -775,6 +748,7 @@ Section names used in impression events:
 ## Related Files
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
+- **Lite/Pro mode enrichment**: `app/util/analytics/enrichWithPerpsMode.ts`, `app/components/UI/Perps/utils/perpsModeAnalytics.ts` (`getPerpsModeAnalyticsProperties`)
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: Exported from `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo)
 - **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)

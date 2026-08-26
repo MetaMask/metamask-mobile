@@ -9,10 +9,11 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -26,6 +27,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -168,14 +170,140 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('SubscriptionController');
+    expect(engine.context).toHaveProperty('SubscriptionService');
+    expect(engine.context).toHaveProperty('ShieldController');
+    expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('exposes v8 subscription methods after the controller upgrade', () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCard,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.submitSubscriptionCryptoApproval,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.cacheLastSelectedPaymentMethod,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCrypto,
+    ).toEqual(expect.any(Function));
+    expect(engine.context.SubscriptionController.stopAllPolling).toEqual(
+      expect.any(Function),
+    );
+    expect(
+      'startShieldSubscriptionWithCard' in
+        engine.context.SubscriptionController,
+    ).toBe(false);
+  });
+
+  it('hydrates representative v7 subscription state without a migration', () => {
+    const v7SubscriptionControllerState = {
+      subscriptions: [
+        {
+          id: 'sub-shield',
+          products: [
+            {
+              name: 'shield',
+              currency: 'usd',
+              unitAmount: 800,
+              unitDecimals: 2,
+            },
+          ],
+          currentPeriodStart: '2026-01-01T00:00:00.000Z',
+          currentPeriodEnd: '2026-02-01T00:00:00.000Z',
+          status: 'active',
+          interval: 'month',
+          paymentMethod: {
+            type: 'card',
+            card: {
+              brand: 'visa',
+              displayBrand: 'visa',
+              last4: '4242',
+            },
+          },
+          cancelType: 'allowed_at_period_end',
+          isEligibleForSupport: true,
+        },
+      ],
+      trialedProducts: ['shield'],
+      lastSelectedPaymentMethod: {
+        shield: {
+          type: 'crypto',
+          plan: 'month',
+          paymentTokenSymbol: 'USDC',
+        },
+      },
+      pricing: {
+        products: [
+          {
+            name: 'shield',
+            prices: [
+              {
+                interval: 'month',
+                unitAmount: 800,
+                unitDecimals: 2,
+                currency: 'usd',
+                trialPeriodDays: 14,
+                minBillingCycles: 12,
+                minBillingCyclesForBalance: 1,
+              },
+            ],
+          },
+        ],
+        paymentMethods: [
+          { type: 'card' },
+          {
+            type: 'crypto',
+            chains: [
+              {
+                chainId: '0x1',
+                paymentAddress: '0x2222222222222222222222222222222222222222',
+                tokens: [
+                  {
+                    symbol: 'USDC',
+                    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    decimals: 6,
+                    conversionRate: { usd: '1.0' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as SubscriptionControllerState;
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      SubscriptionController: v7SubscriptionControllerState,
+    });
+
+    expect(engine.context.SubscriptionController.state.subscriptions).toEqual(
+      v7SubscriptionControllerState.subscriptions,
+    );
+    expect(engine.context.SubscriptionController.state.trialedProducts).toEqual(
+      ['shield'],
+    );
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.shield,
+    ).toEqual(v7SubscriptionControllerState.lastSelectedPaymentMethod?.shield);
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.money_account_plus,
+    ).toBeUndefined();
   });
 
   it('hydrates address poisoning known recipients from persisted address book state', () => {
@@ -1009,268 +1137,6 @@ describe('Engine', () => {
     );
   });
 
-  describe('lookupEnabledNetworks', () => {
-    it('should lookup all enabled networks successfully', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should only lookup enabled networks and skip disabled ones', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith('0x38');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle empty enabled networks list', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {},
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: undefined as unknown as Record<
-            string,
-            Record<string, boolean>
-          >,
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {},
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle network lookup failures gracefully', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockRejectedValueOnce(new Error('Network lookup failed'))
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle findNetworkClientIdByChainId returning undefined', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(undefined as unknown as string)
-        .mockReturnValueOnce('network-client-2');
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle mixed success and failure scenarios', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-      const mockNetworkClientId3 = 'network-client-3';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2)
-        .mockReturnValueOnce(mockNetworkClientId3);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockResolvedValueOnce(undefined)
-        .mockRejectedValueOnce(new Error('Network 2 failed'))
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0xa': true,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
-    });
-  });
-
   describe('BridgeStatusController:destinationTransactionCompleted', () => {
     const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
     const NON_EVM_CAIP_ASSET =
@@ -1369,7 +1235,7 @@ describe('Engine', () => {
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'MoneyAccountUpgradeController'),
+              controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1386,6 +1252,57 @@ describe('Engine', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls SubscriptionController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('stops subscription polling before clearing subscription state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const stopAllPollingSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'stopAllPolling')
+        .mockImplementation(() => undefined);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(stopAllPollingSpy).toHaveBeenCalled();
+      expect(clearStateSpy).toHaveBeenCalled();
+      expect(stopAllPollingSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearStateSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls ShieldController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ShieldController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ClaimsController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ClaimsController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();

@@ -1,10 +1,6 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../../framework';
+import { AppiumAssertions, AppiumGestures } from '../../../framework';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { getPasswordForScenario } from '../../../framework/utils/TestConstants.js';
 import LoginView from '../../../page-objects/wallet/LoginView';
@@ -38,18 +34,18 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.totalBalance),
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.totalBalance,
           {
             description:
               'Wallet account icon should be visible before warm start',
           },
         );
 
-        await PlaywrightGestures.backgroundApp(35);
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(LoginView.passwordInput),
+        await AppiumGestures.backgroundApp(35);
+        await AppiumGestures.activateApp(currentDeviceDetails);
+        await AppiumAssertions.expectElementToBeVisible(
+          LoginView.passwordInput,
           {
             description: 'Login title should be visible',
           },
@@ -65,8 +61,8 @@ perfTest.describe(
 
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+          await AppiumAssertions.expectElementToBeVisible(
+            WalletView.hamburgerMenuButton,
             {
               description: 'Wallet balance should be visible',
               timeout: 30 * 1000, // 30 seconds

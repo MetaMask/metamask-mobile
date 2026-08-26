@@ -5,7 +5,6 @@ import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
-  resolveLineChromeOptions,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
@@ -61,6 +60,16 @@ describe('AdvancedChart', () => {
   it('renders without crashing', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('serializes configured price decimals into the WebView template', () => {
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} priceDecimals={4} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
   });
 
   it('keeps loading overlay while isLoading until parent clears it', () => {
@@ -1359,30 +1368,6 @@ describe('AdvancedChart', () => {
     );
   });
 
-  it('sends SET_LINE_CHROME with resolved defaults after onLoadEnd and CHART_READY', () => {
-    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onLoadEnd();
-    });
-
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
-        },
-      });
-    });
-
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
-        type: 'SET_LINE_CHROME',
-        payload: resolveLineChromeOptions(),
-      }),
-    );
-  });
-
   it('sends SET_SUB_PANE_LAYOUT with null by default after CHART_READY', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
@@ -1805,6 +1790,62 @@ describe('AdvancedChart', () => {
         type: 'SET_OHLCV_DATA',
         payload: { data: freshBars },
       }),
+    );
+  });
+
+  it('replaces equal-sized history after a candle cache generation change', () => {
+    const oldBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+      { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
+    ];
+    const newBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={oldBars}
+        ohlcvSeriesKey="BTC|1h"
+        webViewInstanceKey="BTC|perps"
+      />,
+    );
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={[]}
+        ohlcvSeriesKey="BTC|1h|1"
+        webViewInstanceKey="BTC|perps"
+      />,
+    );
+    rerender(
+      <AdvancedChart
+        ohlcvData={newBars}
+        ohlcvSeriesKey="BTC|1h|1"
+        webViewInstanceKey="BTC|perps"
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: newBars },
+      }),
+    );
+    expect(mockPostMessage).not.toHaveBeenCalledWith(
+      expect.stringContaining('REALTIME_UPDATE'),
     );
   });
 

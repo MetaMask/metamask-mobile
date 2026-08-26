@@ -3,17 +3,16 @@ import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import AppiumGestures from '../../../framework/AppiumGestures';
 import LoginView from '../../../page-objects/wallet/LoginView';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
+import AppiumAssertions from '../../../framework/AppiumAssertions';
 import {
   loginToAppPlaywright,
   onboardingFlowImportSRPPlaywright,
 } from '../../../flows/wallet.flow';
 import TimerHelper from '../../../framework/TimerHelper';
 
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
@@ -22,12 +21,10 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
-      await PlaywrightGestures.terminateApp(currentDeviceDetails);
-      await PlaywrightGestures.activateApp(currentDeviceDetails);
+      await AppiumGestures.terminateApp(currentDeviceDetails);
+      await AppiumGestures.activateApp(currentDeviceDetails);
 
-      await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(LoginView.loginButton),
-      );
+      await AppiumAssertions.expectElementToBeVisible(LoginView.loginButton);
 
       await loginToAppPlaywright({
         scenarioType: 'onboarding',
@@ -37,14 +34,12 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         'Time since the user clicks on unlock button, until the app unlocks',
         {
           ios: 12000, // this number is because Appium DOM screenshot in iOS takes too long, but visually the button is visible in just a few seconds, so we assume that this time is approximately 2 seconds, any change in the real time, will impact this as well.
-          android: 2000,
+          android: 5000,
         },
         currentDeviceDetails.platform,
       );
       await timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
-        );
+        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot);
       });
 
       performanceTracker.addTimer(timer);

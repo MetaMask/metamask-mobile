@@ -66,6 +66,13 @@ jest.mock('../../hooks/alerts/useInsufficientBalanceAlert', () => ({
 }));
 
 jest.mock(
+  '../../../../../components/UI/Ramp/hooks/useEnsureCompatibleProvider',
+  () => ({
+    useEnsureCompatibleProvider: jest.fn(),
+  }),
+);
+
+jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: jest.fn().mockReturnValue({

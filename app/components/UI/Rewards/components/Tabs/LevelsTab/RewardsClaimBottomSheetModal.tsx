@@ -11,6 +11,7 @@ import {
   SeasonRewardType,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   BoxFlexDirection,
@@ -93,7 +94,7 @@ const RewardsClaimBottomSheetModal = ({
     showInput = false,
     inputPlaceholder,
   } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasTrackedRewardViewed = useRef(false);
 
   const handleModalClose = useCallback(() => {

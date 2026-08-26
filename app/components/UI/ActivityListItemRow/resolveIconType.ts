@@ -1,23 +1,33 @@
 import { IconName } from '@metamask/design-system-react-native';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 /**
  * Maps an activity kind to the transaction icon family used by
  * `getTransactionIcon`. Shared by the resolved and pending row variants.
  */
 export function resolveIconType(type: ActivityKind): string {
+  if (isPerpsOrderKind(type)) {
+    return 'interaction';
+  }
+
   switch (type) {
     case 'send':
     case 'sell':
+    case 'rampSell':
     case 'nftSell':
     case 'lendingDeposit':
     case 'deposit':
+    case 'stake':
     case 'wrap':
     case 'perpsAddFunds':
     case 'predictionsAddFunds':
       return 'send';
     case 'receive':
     case 'buy':
+    case 'rampBuy':
     case 'nftBuy':
     case 'claim':
     case 'unstake':
@@ -33,13 +43,14 @@ export function resolveIconType(type: ActivityKind): string {
     case 'perpsReceivedFundingFees':
       return 'receive';
     case 'swap':
-    case 'swapIncomplete':
     case 'bridge':
     case 'convert':
       return 'swap';
     case 'approveSpendingCap':
     case 'revokeSpendingCap':
     case 'increaseSpendingCap':
+    case 'assetActivation':
+    case 'assetDeactivation':
     case 'contractInteraction':
     case 'contractDeployment':
     case 'smartAccountUpgrade':
@@ -54,11 +65,6 @@ export function resolveIconType(type: ActivityKind): string {
     case 'perpsPaidFundingFees':
     case 'perpsCloseShortTakeProfit':
     case 'perpsCloseLongTakeProfit':
-    case 'marketShort':
-    case 'stopMarketCloseShort':
-    case 'marketCloseShort':
-    case 'limitShort':
-    case 'limitCloseShort':
       return 'interaction';
   }
 }

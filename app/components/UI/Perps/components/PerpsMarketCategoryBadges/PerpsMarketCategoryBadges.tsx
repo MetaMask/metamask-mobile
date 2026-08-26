@@ -11,6 +11,7 @@ import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges
 import { type MarketTypeFilter } from '@metamask/perps-controller';
 import {
   usePerpsCategories,
+  NEW_CATEGORY,
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
@@ -18,17 +19,12 @@ import { getCategoryIconName } from '../../constants/categoryIcons';
 
 const WATCHLIST_FILTER_VALUE = 'watchlist';
 
-const NEW_CATEGORY: PerpsCategory = {
-  id: 'new',
-  label: strings('perps.home.tabs.new'),
-};
-
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
  * Categories are derived from live market data via `usePerpsCategories`.
- * The `'new'` badge is automatically appended when any market has
- * `isNewMarket` set.
+ * The `'new'` badge is automatically appended when any market was listed
+ * within the last 30 days (see `useHasNewMarkets`).
  *
  * Uses MMDS FilterButtonGroup with an explicit "All" reset filter.
  */

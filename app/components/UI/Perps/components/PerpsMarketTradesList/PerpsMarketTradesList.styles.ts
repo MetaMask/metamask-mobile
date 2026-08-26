@@ -1,44 +1,24 @@
-import type { Theme } from '../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
-      width: '100%',
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      marginBottom: 16,
-    },
-    listContainer: {
-      gap: 1,
-    },
     tradeItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
-      backgroundColor: colors.background.section,
-    },
-    tradeItemFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-    },
-    tradeItemLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
     leftSection: {
-      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
+      flex: 1,
     },
     iconContainer: {
-      marginRight: 12,
+      marginRight: 16,
     },
     tradeInfo: {
       flex: 1,
@@ -47,7 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      marginBottom: 2,
+      marginBottom: 4,
     },
     tradeType: {},
     rightSection: {
@@ -56,6 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
     emptyText: {
       textAlign: 'center',
       paddingVertical: 24,
+      paddingHorizontal: 16,
     },
   });
 };

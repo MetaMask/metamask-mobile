@@ -15,6 +15,7 @@ import {
   AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import Icon, {
@@ -38,7 +39,11 @@ import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeDataStatus,
+  selectCardActiveProviderId,
+} from '../../../../../selectors/cardController';
+import { withCardProvider } from '../../util/metrics';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import {
@@ -66,12 +71,13 @@ interface RedeemWalletProps {
 const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const config = REDEEM_CONFIG[mode];
   const { testIds } = config;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -252,10 +258,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: config.analyticsAction,
-          type: 'withdraw',
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: config.analyticsAction,
+            type: 'withdraw',
+          }),
+        )
         .build(),
     );
     withdraw(balance);
@@ -264,6 +272,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     withdraw,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     needsSetup,
     isFundingStatusUnavailable,
     config,

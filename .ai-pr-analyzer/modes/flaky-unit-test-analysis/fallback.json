@@ -1,0 +1,14 @@
+{
+  "conservative": {
+    "analyzedFiles": [],
+    "findings": [],
+    "confidence": 0,
+    "reasoning": "AI analysis did not complete. Historical signal (if any) is still reported by the deterministic history check."
+  },
+  "empty": {
+    "analyzedFiles": [],
+    "findings": [],
+    "confidence": 100,
+    "reasoning": "No modified unit test files to analyze."
+  }
+}

@@ -71,7 +71,7 @@ describe('RewardsDataService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+    delete process.env.REWARDS_API_URL;
 
     // Allow env overrides by default (canChange = true).
     // getRewardsEnvUrl reads canChange from the tuple, so the second element
@@ -105,6 +105,10 @@ describe('RewardsDataService', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    // Only timers are restored here: resetting mock implementations would wipe
+    // the defaults set in the jest.mock factories (e.g. getVersion), and mocks
+    // that individual tests mutate are re-established in beforeEach.
+    jest.useRealTimers();
   });
 
   describe('initialization', () => {
@@ -210,7 +214,23 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactions',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:lookupVipTransaction',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipTransactionsLastUpdated',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1375,11 +1395,22 @@ describe('RewardsDataService', () => {
       next: null,
     };
 
+    // getDiscoverSeasons coerces an expired current season to previous by
+    // comparing against the wall clock, so pin it for every test here.
+    const NOW = new Date('2025-10-01T00:00:00.000Z');
+
+    const yearsFromNow = (years: number): Date => {
+      const date = new Date(NOW);
+      date.setFullYear(date.getFullYear() + years);
+      return date;
+    };
+
     beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(NOW);
+
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1396,6 +1427,10 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('fetches discover seasons from the correct public endpoint', async () => {
       const result = await service.getDiscoverSeasons();
 
@@ -1409,7 +1444,7 @@ describe('RewardsDataService', () => {
       );
       expect(result.current?.endDate).toBeInstanceOf(Date);
       // Verify end date is in the future (at least 6 months from now)
-      const minFutureDate = new Date();
+      const minFutureDate = new Date(NOW);
       minFutureDate.setMonth(minFutureDate.getMonth() + 6);
       expect(result.current?.endDate.getTime()).toBeGreaterThan(
         minFutureDate.getTime(),
@@ -1458,9 +1493,7 @@ describe('RewardsDataService', () => {
 
     it('converts date strings to Date objects for current season', async () => {
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1490,13 +1523,8 @@ describe('RewardsDataService', () => {
 
     it('handles response with previous, current and next seasons', async () => {
       // Use future dates to ensure seasons don't get moved
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
-
-      const futureNextEndDate = new Date();
-      futureNextEndDate.setFullYear(futureNextEndDate.getFullYear() + 2);
-      const futureNextEndDateString = futureNextEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
+      const futureNextEndDateString = yearsFromNow(2).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1599,7 +1627,6 @@ describe('RewardsDataService', () => {
     });
 
     it('coerces current season to previous when end date equals current time', async () => {
-      const now = new Date();
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -1607,7 +1634,7 @@ describe('RewardsDataService', () => {
           current: {
             id: '7444682d-9050-43b8-9038-28a6a62d6264',
             startDate: '2019-09-01T04:00:00.000Z',
-            endDate: now.toISOString(),
+            endDate: NOW.toISOString(),
           },
           next: null,
         }),
@@ -1622,8 +1649,7 @@ describe('RewardsDataService', () => {
     });
 
     it('does not coerce current season when end date is in the future', async () => {
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
+      const futureEndDate = yearsFromNow(1);
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -1903,17 +1929,13 @@ describe('RewardsDataService', () => {
     });
 
     it('handles timeout correctly', async () => {
-      // Mock fetch that never resolves (simulate timeout)
-      mockFetch.mockImplementation(
-        () =>
-          new Promise((_resolve, reject) => {
-            setTimeout(() => reject(new Error('AbortError')), 100);
-          }),
-      );
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
 
       await expect(
         service.getReferralDetails(mockSubscriptionId),
-      ).rejects.toThrow('AbortError');
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
   });
 
@@ -4427,6 +4449,7 @@ describe('RewardsDataService', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -4438,12 +4461,15 @@ describe('RewardsDataService', () => {
           swapsBps: 11,
           perpsBps: 7,
           referralCarryoverBps: 4242,
+          maintainPointsRequirement: null,
           status: 'current',
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
+        transactionsTitle: 'Transactions',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -4464,6 +4490,8 @@ describe('RewardsDataService', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
     };
 
@@ -4517,6 +4545,65 @@ describe('RewardsDataService', () => {
       await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
         'Get VIP dashboard failed: 500',
       );
+    });
+  });
+
+  describe('getVipEquityMultiplier', () => {
+    const mockSubscriptionId = 'sub-vip';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('POSTs holdingsUsd and returns the multiplier payload', async () => {
+      const payload = {
+        available: true as const,
+        multiplier: '1.0889',
+        state: 'active' as const,
+        progressPercent: 44.4,
+        tierNumber: 6,
+        tierName: 'VIP 6',
+        capUsd: '10000000',
+        computedAt: '2099-06-30T14:52:00.000Z',
+        localizedText: {
+          title: 'Estimated equity multiplier',
+          description: '1.09x active. Accumulate more mUSD to increase.',
+        },
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(payload),
+      } as unknown as Response);
+
+      const result = await service.getVipEquityMultiplier(
+        mockSubscriptionId,
+        '5000000',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/equity-multiplier',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ holdingsUsd: '5000000' }),
+        }),
+      );
+      expect(result).toEqual(payload);
+    });
+
+    it('returns null on 404', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(
+        service.getVipEquityMultiplier(mockSubscriptionId, '5000000'),
+      ).resolves.toBeNull();
     });
   });
 
@@ -4642,6 +4729,126 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('VIP transactions', () => {
+    const subscriptionId = 'sub-vip-transactions';
+    const token = 'vip-transactions-token';
+    const transaction = {
+      id: 'transaction-id',
+      type: 'PERPS' as const,
+      timestamp: '2026-07-20T12:00:00.000Z',
+      feeUsd: '1.00',
+      volumeUsd: '100.00',
+      perps: {
+        coin: 'ETH',
+        feeCoin: 'USDC',
+        rawFee: '1',
+        rawNotionalVolume: '100',
+        tradeId: '123',
+        orderId: '456',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token,
+      });
+    });
+
+    it('fetches an encoded page of VIP transactions', async () => {
+      const page = {
+        results: [transaction],
+        has_more: false,
+        cursor: null,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(page),
+      } as unknown as Response);
+
+      const result = await service.getVipTransactions(
+        subscriptionId,
+        'PERPS',
+        'next cursor',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions?type=PERPS&cursor=next%20cursor',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(page);
+    });
+
+    it('looks up a VIP transaction by encoded natural key', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(transaction),
+      } as unknown as Response);
+
+      await expect(
+        service.lookupVipTransaction(subscriptionId, 'quote/id?'),
+      ).resolves.toEqual(transaction);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/lookup?key=quote%2Fid%3F',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns the VIP transaction last-updated timestamp as a Date', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          lastUpdated: '2026-07-20T12:00:00.000Z',
+        }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'SWAP'),
+      ).resolves.toEqual(new Date('2026-07-20T12:00:00.000Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/transactions/last-updated?type=SWAP',
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns null when no VIP transaction has been recorded', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({ lastUpdated: null }),
+      } as unknown as Response);
+
+      await expect(
+        service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ).resolves.toBeNull();
+    });
+
+    it.each([
+      [
+        'getVipTransactions',
+        () => service.getVipTransactions(subscriptionId, 'PERPS', null),
+      ],
+      [
+        'lookupVipTransaction',
+        () => service.lookupVipTransaction(subscriptionId, '123'),
+      ],
+      [
+        'getVipTransactionsLastUpdated',
+        () => service.getVipTransactionsLastUpdated(subscriptionId, 'PERPS'),
+      ],
+    ])('throws when %s receives an unsuccessful response', async (_, call) => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(call()).rejects.toThrow('failed: 500');
+    });
+  });
+
   describe('postBenefitImpression', () => {
     const mockSubscriptionId = 'sub-benefits';
     const mockBenefitId = 42;
@@ -4682,6 +4889,41 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+
+    it('includes the wallet address in the payload when provided', async () => {
+      const mockWalletAddress = '0xabc';
+
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits/impression',
+        expect.objectContaining({
+          body: JSON.stringify({
+            benefitId: mockBenefitId,
+            benefitType: mockBenefitType,
+            walletAddress: mockWalletAddress,
+          }),
+        }),
+      );
+    });
+
+    it('omits the wallet address from the payload when not provided', async () => {
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      const requestBody = JSON.parse(
+        (mockFetch.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(requestBody).not.toHaveProperty('walletAddress');
     });
 
     it('throws when post benefit impression response is not ok', async () => {
@@ -5038,6 +5280,68 @@ describe('RewardsDataService', () => {
 
       await expect(service.getClientVersionRequirements()).rejects.toThrow(
         'Get client version requirements failed: 500',
+      );
+    });
+  });
+
+  describe('getFirstPredictOnUs', () => {
+    const mockFirstPredictOnUs = {
+      name: 'First Predict On Us',
+      image: {
+        lightModeUrl: 'https://images.example.com/light.png',
+        darkModeUrl: 'https://images.example.com/dark.png',
+      },
+      localizedText: {
+        cta: 'Predict now',
+        description: 'Your first prediction is on us.',
+      },
+      usdAmount: 5,
+      markets: [{ eventId: '30615', conditionId: '0xabc' }],
+      termsUrl: 'https://example.com/terms',
+    };
+
+    it('fetches first predict on us from the correct public endpoint', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockFirstPredictOnUs),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toEqual(mockFirstPredictOnUs);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/public/first-predict-on-us`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('returns null when no visible entry exists', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok and not 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(service.getFirstPredictOnUs()).rejects.toThrow(
+        'Get first predict on us failed: 500',
       );
     });
   });
@@ -5645,6 +5949,82 @@ describe('RewardsDataService', () => {
       await expect(
         service.getPredictThePitchPrizePool(mockCampaignId),
       ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('POSTs the money account address and returns bound on 201', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/wr/money-account/binding',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toBe('bound');
+    });
+
+    it('returns bound on 200 (idempotent re-assert)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('bound');
+    });
+
+    it('returns conflict on 409', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 409,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('conflict');
+    });
+
+    it('throws on other non-ok statuses', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as unknown as Response);
+
+      await expect(
+        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+      ).rejects.toThrow('Register Money Account binding failed: 500');
     });
   });
 });

@@ -54,6 +54,12 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
+      # Mint a short-lived token via the token-exchange service (OIDC). It needs:
+      # - contents: write       → push the changelog branch
+      # - pull_requests: write  → open/update the changelog PR
+      # - workflows: write      → workaround for a GitHub push-protection timeout bug on new
+      #                           branch pushes (see actions/checkout#2287); this step never
+      #                           actually touches workflow files.
       - name: Get token
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
@@ -62,6 +68,7 @@ jobs:
           permissions: |
             contents: write
             pull_requests: write
+            workflows: write
 
       - name: Checkout release branch
         uses: actions/checkout@v4

@@ -2,6 +2,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent, waitFor, screen } from '@testing-library/react-native';
+import { FlatList } from 'react-native';
+import type { FlashListProps } from '@shopify/flash-list';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -14,6 +16,32 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual<typeof import('react')>('react');
+  const { FlatList: MockFlashList } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    FlashList: ReactMock.forwardRef(
+      (
+        {
+          renderScrollComponent: _renderScrollComponent,
+          ...props
+        }: FlashListProps<unknown>,
+        ref: React.ForwardedRef<FlatList<unknown>>,
+      ) => {
+        const mockProps = {
+          ...props,
+          initialNumToRender: props.data?.length,
+          ref,
+        } as unknown as React.ComponentPropsWithRef<typeof MockFlashList>;
+
+        return ReactMock.createElement(MockFlashList, mockProps);
+      },
+    ),
+  };
+});
 
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
@@ -50,15 +78,12 @@ import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetwo
 
 const mockEngine = Engine;
 
-const setShowTestNetworksSpy = jest.spyOn(
-  Engine.context.PreferencesController,
-  'setShowTestNetworks',
-);
-
 // Mock the entire module
 jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
+
+jest.mock('./RpcSelectionModal/RpcSelectionModal', () => () => null);
 
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
@@ -91,6 +116,7 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
       updateNetwork: jest.fn(),
+      removeNetwork: jest.fn(),
       getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
       findNetworkClientIdByChainId: jest
         .fn()
@@ -329,6 +355,75 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Network Selector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Engine.context.PreferencesController, 'setShowTestNetworks');
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders heterogeneous network sections through a virtualized list', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { UNSAFE_getByType } = renderComponent(initialState);
+
+    const list = UNSAFE_getByType(FlatList);
+    const itemTypes = list.props.data.map(
+      (item: { type: string }) => item.type,
+    );
+
+    expect(itemTypes).toEqual(
+      expect.arrayContaining([
+        'enabledNetworksHeader',
+        'mainnet',
+        'lineaMainnet',
+        'rpcNetwork',
+        'popularNetworksHeader',
+        'additionalNetworks',
+        'testNetworksSwitch',
+      ]),
+    );
+    expect(list.props.getItemType(list.props.data[0])).toBe(
+      'enabledNetworksHeader',
+    );
+    expect(list.props.maintainVisibleContentPosition).toEqual({
+      disabled: true,
+    });
+  });
+
+  it('omits non-matching network rows from virtualized search data', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByPlaceholderText, UNSAFE_getByType } =
+      renderComponent(initialState);
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'Polygon');
+
+    const list = UNSAFE_getByType(FlatList);
+    const listItems = list.props.data as {
+      type: string;
+      networkConfiguration?: { name: string };
+    }[];
+    const rpcNetworkItems = listItems.filter(
+      (item) => item.type === 'rpcNetwork',
+    );
+
+    expect(listItems).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'mainnet' }),
+        expect.objectContaining({ type: 'lineaMainnet' }),
+      ]),
+    );
+    expect(rpcNetworkItems).toEqual([
+      expect.objectContaining({
+        networkConfiguration: expect.objectContaining({
+          name: 'Polygon Mainnet',
+        }),
+      }),
+    ]);
+  });
+
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     renderComponent(initialState);
@@ -365,7 +460,7 @@ describe('Network Selector', () => {
       expect(
         mockEngine.context.SelectedNetworkController
           .setNetworkClientIdForDomain,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
   });
 
@@ -386,7 +481,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -398,7 +493,9 @@ describe('Network Selector', () => {
 
     fireEvent(testNetworksSwitch, 'onValueChange', true);
 
-    expect(setShowTestNetworksSpy).toBeCalled();
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalled();
   });
 
   it('toggle test network is disabled and is on when a testnet is selected', () => {
@@ -469,7 +566,7 @@ describe('Network Selector', () => {
     fireEvent.press(gnosisCell);
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
@@ -542,7 +639,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('renders correctly with no network configurations', async () => {
@@ -593,10 +690,15 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    await waitFor(() => {
-      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
-      fireEvent.press(rpcOption);
+    const rpcOption = await waitFor(() => {
+      const option = getByText('polygon-mainnet.infura.io/v3');
+
+      expect(option).toBeOnTheScreen();
+
+      return option;
     });
+
+    fireEvent.press(rpcOption);
   });
 
   it('filters networks correctly when searching', () => {
@@ -650,11 +752,15 @@ describe('Network Selector', () => {
 
     // Toggle the switch on
     fireEvent(testNetworksSwitch, 'onValueChange', true);
-    expect(setShowTestNetworksSpy).toBeCalledWith(true);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(true);
 
     // Toggle the switch off
     fireEvent(testNetworksSwitch, 'onValueChange', false);
-    expect(setShowTestNetworksSpy).toBeCalledWith(false);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(false);
   });
 
   describe('renderLineaMainnet', () => {

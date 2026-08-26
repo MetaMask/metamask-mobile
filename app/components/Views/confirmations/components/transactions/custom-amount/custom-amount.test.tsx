@@ -96,6 +96,18 @@ describe('CustomAmount', () => {
     expect(getByText('123.45')).toBeOnTheScreen();
   });
 
+  it('renders amount when max amount and quotes are loading if preserveAmountOnMaxQuoteLoad', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
+    mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" preserveAmountOnMaxQuoteLoad />,
+    );
+
+    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+  });
+
   it('renders amount when quotes are loading but not max amount', () => {
     mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
     mockUseIsTransactionPayLoading.mockReturnValue(true);
@@ -105,5 +117,37 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
+  });
+
+  it('renders blinking cursor when showCursor is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" showCursor />,
+    );
+
+    expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('does not render cursor when showCursor is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" showCursor={false} />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  it('does not render cursor when disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" disabled showCursor />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  it('does not render cursor when loading', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" isLoading showCursor />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
 });

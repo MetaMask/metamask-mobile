@@ -15,8 +15,7 @@ import {
   isPositionOpen,
   resolvePerpsGtmOnboardingModalEnabled,
 } from '../../flows/perps.flow.js';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
+import AppiumAssertions from '../../framework/AppiumAssertions.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
@@ -72,25 +71,24 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       if (perpsGtmOnboardingModalEnabled) {
         await selectPerpsMainScreenTimer.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+          await AppiumAssertions.expectElementToBeVisible(
+            PerpsOnboarding.tutorialTitle,
           );
         });
+        await dismissPerpsOnboardingTutorialIfPresent();
       }
 
-      await dismissPerpsOnboardingTutorialIfPresent();
-
       await selectMarketTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketListView.header),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketListView.withdrawButton,
         );
       });
 
       await PerpsMarketListView.tapMarketRowItemBTC();
 
       await MarketDetailsScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.header),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketDetailsView.header,
         );
       });
       // Check if there's an existing position and close it before continuing
@@ -108,8 +106,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
       await openOrderScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOrderView.placeOrderButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsOrderView.placeOrderButton,
         );
       });
 
@@ -118,8 +116,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketDetailsView.closeButton,
           { timeout: 30000 },
         );
       });

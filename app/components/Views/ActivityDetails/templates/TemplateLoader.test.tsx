@@ -33,6 +33,11 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({ earnTokensByChainIdAndAddress: {} }),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
@@ -53,10 +58,10 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: () => ({
     totalFee: 0,
-    protocolFee: 0,
-    metamaskFee: 0,
+    isLoading: false,
+    hasError: false,
   }),
 }));
 
@@ -72,7 +77,7 @@ jest.mock('./RampDetails', () => {
   };
 });
 
-const rampItem = (type: 'buy' | 'deposit'): ActivityListItem =>
+const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
   ({
     type,
     chainId: 'eip155:1',
@@ -161,8 +166,8 @@ const bridgeItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
-const swapIncompleteItem: ActivityListItem = {
-  type: 'swapIncomplete',
+const swapWithoutDestinationItem: ActivityListItem = {
+  type: 'swap',
   chainId: 'eip155:1',
   status: 'success',
   timestamp: 1,
@@ -323,6 +328,22 @@ const unstakeItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
+const stakeItem: ActivityListItem = {
+  type: 'stake',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xstake',
+  data: {
+    token: {
+      amount: '1000000000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      direction: 'out',
+    },
+  },
+} as ActivityListItem;
+
 const smartAccountUpgradeItem: ActivityListItem = {
   type: 'smartAccountUpgrade',
   chainId: 'eip155:1',
@@ -433,6 +454,7 @@ describe('TemplateLoader', () => {
     ['contract interaction', contractItem],
     ['claim mUSD bonus', claimMusdBonusItem],
     ['earn/staking deposit', depositItem],
+    ['earn/staking stake', stakeItem],
     ['earn/staking claim', claimItem],
     ['earn/staking unstake', unstakeItem],
   ])('renders the %s details template', (_type, item) => {
@@ -443,9 +465,9 @@ describe('TemplateLoader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('routes a swapIncomplete tx to SwapDetails (source header + Swap again), not the generic fallback', () => {
+  it('routes a swap without destination to SwapDetails (source header + Swap again), not the generic fallback', () => {
     const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={swapIncompleteItem} />,
+      <TemplateLoader item={swapWithoutDestinationItem} />,
     );
 
     // The sent leg still renders even though the destination could not be resolved.
@@ -470,14 +492,6 @@ describe('TemplateLoader', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW),
     ).toBeOnTheScreen();
-  });
-
-  it('routes a ramp deposit to RampDetails (not the staking DepositDetails)', () => {
-    const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={rampItem('deposit')} />,
-    );
-
-    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
   it('routes a ramp buy to RampDetails', () => {

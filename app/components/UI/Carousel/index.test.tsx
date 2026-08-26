@@ -4,6 +4,7 @@ import {
   fireEvent,
   waitFor,
   renderHook,
+  act,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
@@ -25,6 +26,19 @@ import {
   type AnalyticsTrackingEvent,
 } from '../../../util/analytics/AnalyticsEventBuilder';
 import type { UseAnalyticsHook } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { dismissBanner } from '../../../reducers/banners';
+
+const mockExecuteTransitionToNextCard = jest.fn();
+const mockExecuteTransitionToEmpty = jest.fn();
+
+jest.mock('./animations', () => ({
+  useTransitionToNextCard: () => ({
+    executeTransition: mockExecuteTransitionToNextCard,
+  }),
+  useTransitionToEmpty: () => ({
+    executeTransition: mockExecuteTransitionToEmpty,
+  }),
+}));
 
 const makeMockState = () =>
   ({
@@ -123,6 +137,12 @@ beforeEach(() => {
   mockFetchCarouselSlides.mockResolvedValue({
     prioritySlides: [],
     regularSlides: [],
+  });
+  mockExecuteTransitionToNextCard.mockResolvedValue(undefined);
+  mockExecuteTransitionToEmpty.mockImplementation(async (callback) => {
+    if (typeof callback === 'function') {
+      callback();
+    }
   });
 });
 
@@ -379,6 +399,125 @@ describe('Carousel Analytics', () => {
         properties: { name: 'card' },
       }),
     );
+  });
+});
+
+describe('Carousel transition state', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const flushRequestAnimationFrame = async () => {
+    await act(async () => {
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+  };
+
+  it('dispatches dismissBanner after transitioning past the last slide', async () => {
+    const onlySlide = createMockSlide({ id: 'only-slide' });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [onlySlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    fireEvent.press(
+      await findByTestId('carousel-slide-only-slide-close-button'),
+    );
+
+    await waitFor(() => {
+      expect(mockExecuteTransitionToNextCard).toHaveBeenCalledWith('nextCard');
+      expect(mockDispatch).toHaveBeenCalledWith(dismissBanner('only-slide'));
+    });
+
+    await flushRequestAnimationFrame();
+  });
+
+  it('shows empty state card after dismissing the last slide', async () => {
+    const onlySlide = createMockSlide({ id: 'final-slide' });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [onlySlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    fireEvent.press(
+      await findByTestId('carousel-slide-final-slide-close-button'),
+    );
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(dismissBanner('final-slide'));
+    });
+
+    await flushRequestAnimationFrame();
+
+    await waitFor(async () => {
+      expect(await findByTestId('carousel-empty-state')).toBeOnTheScreen();
+    });
+  });
+
+  it('ignores dismiss while previous transition is in progress', async () => {
+    let resolveTransition: (() => void) | undefined;
+    mockExecuteTransitionToNextCard.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveTransition = resolve;
+        }),
+    );
+
+    const slides = [
+      createMockSlide({ id: 'slide-1' }),
+      createMockSlide({ id: 'slide-2' }),
+    ];
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: slides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    const closeButton = await findByTestId(
+      'carousel-slide-slide-1-close-button',
+    );
+
+    fireEvent.press(closeButton);
+    fireEvent.press(closeButton);
+
+    expect(mockExecuteTransitionToNextCard).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveTransition?.();
+      await Promise.resolve();
+    });
+    await flushRequestAnimationFrame();
+  });
+
+  it('resets animation flags when transition to next card fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    mockExecuteTransitionToNextCard.mockRejectedValueOnce(
+      new Error('transition failed'),
+    );
+
+    const onlySlide = createMockSlide({ id: 'failing-slide' });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [onlySlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    fireEvent.press(
+      await findByTestId('carousel-slide-failing-slide-close-button'),
+    );
+
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Transition to next card failed:',
+        expect.any(Error),
+      );
+    });
+
+    errorSpy.mockRestore();
   });
 });
 

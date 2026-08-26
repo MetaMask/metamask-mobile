@@ -2,7 +2,13 @@ import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,6 +17,7 @@ import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
+import { usePredictSectionImpressions } from '../../hooks/usePredictSectionImpressions';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
@@ -24,6 +31,10 @@ import PredictCategoriesSection from './components/PredictCategoriesSection';
 import PredictPopularTodaySection from './components/PredictPopularTodaySection';
 import PredictTrendingSection from './components/PredictTrendingSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import PredictOffline from '../../components/PredictOffline';
+import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -40,7 +51,7 @@ import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 const PredictHome: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -52,6 +63,41 @@ const PredictHome: React.FC = () => {
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
+
+  const handleSectionViewed = useCallback(
+    (sectionId: string) => {
+      Engine.context.PredictController.trackHomeSectionInteraction({
+        sectionId,
+        actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+        entryPoint,
+      });
+    },
+    [entryPoint],
+  );
+
+  const {
+    registerSection,
+    setViewportHeight,
+    reset: resetImpressions,
+  } = usePredictSectionImpressions({
+    scrollY,
+    onSectionViewed: handleSectionViewed,
+  });
+
+  // Fire "home viewed" once per focus, and reset section impressions so a
+  // return visit can re-fire section-viewed events.
+  useFocusEffect(
+    useCallback(() => {
+      Engine.context.PredictController.trackHomeViewed({ entryPoint });
+      resetImpressions();
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation, resetImpressions]),
+  );
 
   const {
     isSearchVisible,
@@ -88,13 +134,19 @@ const PredictHome: React.FC = () => {
 
   const withdrawUnavailableSheetRef =
     useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const {
+    error: homeError,
+    markets: homeMarkets,
+    refetch: retryHome,
+  } = usePredictTrendingSection();
+  const showHomeError = Boolean(homeError) && homeMarkets.length === 0;
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={{ bottom: 'off' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -109,35 +161,88 @@ const PredictHome: React.FC = () => {
           onSearchPress={handleShowSearch}
         />
 
-        <Animated.ScrollView
-          testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 pb-8')}
-        >
-          <Box
-            testID={PredictHomeSelectorsIDs.TITLE_SECTION}
-            onLayout={handleTitleLayout}
-            twClassName="pt-2 pb-2"
+        {showHomeError ? (
+          <PredictOffline onRetry={retryHome} />
+        ) : (
+          <Animated.ScrollView
+            testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
+            onScroll={onScroll}
+            onLayout={setViewportHeight}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-4 pb-8')}
           >
-            <Text
-              testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.DisplayMd}
+            <Box
+              testID={PredictHomeSelectorsIDs.TITLE_SECTION}
+              onLayout={handleTitleLayout}
+              twClassName="pt-2 pb-2"
             >
-              {strings('wallet.predict')}
-            </Text>
-          </Box>
+              <Text
+                testID={PredictHomeSelectorsIDs.TITLE}
+                variant={TextVariant.HeadingMd}
+              >
+                {strings('wallet.predict')}
+              </Text>
+            </Box>
 
-          <PredictPortfolioModule
-            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-          />
-          <PredictLiveNowSection />
-          <PredictCategoriesSection />
-          <PredictPopularTodaySection />
-          <PredictTrendingSection />
-        </Animated.ScrollView>
+            <Box twClassName="gap-8">
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.BeforePortfolio}
+              />
+              <PredictPortfolioModule
+                onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+              />
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPortfolio}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.LIVE_NOW,
+                )}
+              >
+                <PredictLiveNowSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterLiveNow}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.CATEGORIES,
+                )}
+              >
+                <PredictCategoriesSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterCategories}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.POPULAR_TODAY,
+                )}
+              >
+                <PredictPopularTodaySection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPopularToday}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.TRENDING,
+                )}
+              >
+                <PredictTrendingSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterTrending}
+              />
+            </Box>
+          </Animated.ScrollView>
+        )}
 
         <PredictSearchOverlay
           isVisible={isSearchVisible}

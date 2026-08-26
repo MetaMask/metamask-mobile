@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
+  Box,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
@@ -29,10 +30,16 @@ import { transformFillsToTransactions } from '../../utils/transactionTransforms'
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
-import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
+import {
+  PERPS_BALANCE_CHAIN_ID,
+  HOME_SCREEN_CONFIG,
+} from '../../constants/perpsConfig';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -41,10 +48,14 @@ interface PerpsMarketTradesListProps {
 
 const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   symbol,
-  iconSize = 36,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
@@ -73,7 +84,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
       trackEvent(
-        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
           .addProperties({
             transaction_type: `perps_${transaction.type}`,
             transaction_status: 'confirmed',
@@ -85,12 +96,20 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      // Navigate to the position transaction detail screen
-      navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
+      navigateToPerpsTransactionDetails(
+        navigation,
         transaction,
-      });
+        isTransactionsRedesignEnabled,
+        isTestnet,
+      );
     },
-    [navigation, trackEvent, createEventBuilder],
+    [
+      navigation,
+      isTransactionsRedesignEnabled,
+      isTestnet,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Render right content for trades
@@ -112,18 +131,12 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction; index: number }) => {
-      const { item, index } = props;
-      const isFirstItem = index === 0;
-      const isLastItem = index === trades.length - 1;
+    (props: { item: PerpsTransaction }) => {
+      const { item } = props;
 
       return (
         <TouchableOpacity
-          style={[
-            styles.tradeItem,
-            isFirstItem && styles.tradeItemFirst,
-            isLastItem && styles.tradeItemLast,
-          ]}
+          style={styles.tradeItem}
           onPress={() => handleTradePress(item)}
           activeOpacity={0.7}
         >
@@ -166,38 +179,12 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
         </TouchableOpacity>
       );
     },
-    [styles, handleTradePress, iconSize, renderRightContent, trades.length],
+    [styles, handleTradePress, iconSize, renderRightContent],
   );
 
-  // Render header section
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-        {strings('perps.market.recent_trades')}
-      </Text>
-      {!isLoading && (
-        <TouchableOpacity
-          testID="see-all-button"
-          onPress={handleSeeAll}
-          accessibilityRole="button"
-          accessibilityLabel={strings('perps.home.see_all')}
-        >
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  const recentTradesTitle = strings('perps.market.recent_trades');
 
-  // Render content based on state
   const renderContent = () => {
-    if (isLoading) {
-      return <PerpsRowSkeleton count={3} />;
-    }
-
     if (trades.length === 0) {
       return (
         <Text
@@ -211,22 +198,34 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     }
 
     return (
-      <View style={styles.listContainer}>
-        <FlatList
-          data={trades}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => `${item.id || index}`}
-          scrollEnabled={false}
-        />
-      </View>
+      <FlatList
+        data={trades}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item.id || index}`}
+        scrollEnabled={false}
+      />
     );
   };
 
+  if (isLoading) {
+    return (
+      <Box paddingBottom={3}>
+        <SectionHeader title={recentTradesTitle} />
+        <PerpsRowSkeleton count={3} />
+      </Box>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {renderHeader()}
+    <Box paddingBottom={3}>
+      <SectionHeader
+        title={recentTradesTitle}
+        isInteractive
+        onPress={handleSeeAll}
+        testID="see-all-button"
+      />
       {renderContent()}
-    </View>
+    </Box>
   );
 };
 

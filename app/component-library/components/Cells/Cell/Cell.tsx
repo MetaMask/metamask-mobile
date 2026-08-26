@@ -6,7 +6,6 @@ import CellDisplay from './variants/CellDisplay';
 import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
 import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
-import CellMultiSelectWithMenu from '../../../components-temp/CellSelectWithMenu/CellMultiSelectWithMenu';
 
 import { CellProps, CellVariant } from './Cell.types';
 import { CellComponentSelectorsIDs } from './CellComponent.testIds';
@@ -32,13 +31,6 @@ const Cell = ({ variant, ...props }: CellProps) => {
       return (
         <CellSelectWithMenu
           testID={CellComponentSelectorsIDs.SELECT_WITH_MENU}
-          {...props}
-        />
-      );
-    case CellVariant.MultiSelectWithMenu:
-      return (
-        <CellMultiSelectWithMenu
-          testID={CellComponentSelectorsIDs.MULTISELECT_WITH_MENU}
           {...props}
         />
       );

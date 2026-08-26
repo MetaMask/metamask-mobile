@@ -9,6 +9,7 @@ import { ExploreFeed } from '../../../app/components/Views/TrendingView/Trending
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
+import { TrendingQuickBuySheetProvider } from '../../../app/components/UI/Trending/contexts';
 import { initialStateTrending } from '../presets/trending';
 
 interface RenderTrendingViewOptions {
@@ -37,6 +38,24 @@ function withQueryClient(
   };
 }
 
+/**
+ * Mirrors HomeTabs: Crypto/RWAs tabs call `useTrendingQuickBuySheet()` and
+ * require the provider that hosts the shared Explore Quick Buy sheet.
+ */
+function withExploreFeedProviders(
+  Component: React.ComponentType<unknown>,
+): React.ComponentType<unknown> {
+  const WithQueryClient = withQueryClient(Component);
+
+  return function WrappedWithExploreFeedProviders(props: unknown) {
+    return React.createElement(
+      TrendingQuickBuySheetProvider,
+      null,
+      React.createElement(WithQueryClient, props as Record<string, unknown>),
+    );
+  };
+}
+
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
@@ -49,7 +68,9 @@ export function renderTrendingViewWithRoutes(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    withQueryClient(ExploreFeed as unknown as React.ComponentType<unknown>),
+    withExploreFeedProviders(
+      ExploreFeed as unknown as React.ComponentType<unknown>,
+    ),
     { name: Routes.TRENDING_FEED },
     [
       {
@@ -81,7 +102,7 @@ export function renderTrendingViewWithRoutes(
 export function renderExploreSearchScreenWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -94,5 +115,6 @@ export function renderExploreSearchScreenWithRoutes(
     { name: Routes.EXPLORE_SEARCH },
     [],
     { state },
+    initialParams,
   );
 }

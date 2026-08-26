@@ -10,7 +10,11 @@ This document defines all Sentry performance traces and measurements for the Per
 - API integration timing
 - Data fetch operations
 
-## Two Tracing Approaches
+## Three Tracing Approaches
+
+1. `usePerpsMeasurement` — single-component screen/render measurements.
+2. Direct `trace()` / `setMeasurement()` — controller/WebSocket/API operations.
+3. `perpsCufTrace` — cross-surface, stream-confirmed **user-perceived CUF** spans (gesture in one surface → live-data render in another). Added in TAT-3509.
 
 ### 1. `usePerpsMeasurement` Hook (UI Screens)
 
@@ -61,6 +65,13 @@ usePerpsMeasurement({
 - Completes when ALL `conditions`/`endConditions` are true
 - Auto-resets when ANY `resetConditions` become true
 - Uses unique trace IDs to prevent conflicts
+
+**Optional `tags` / `endData`:**
+
+- `tags` — filterable Sentry tags applied at span **start** (e.g. `feature`, `lifecycle_context`, flow variant). Queryable in Discover/dashboards.
+- `endData` — span attributes set at span **end**, for values only known once the flow completes (e.g. `variant: empty|position|order`, `funded|unfunded`).
+
+> ⚠️ **`conditions` vs `endConditions` — do not use the simple `conditions` API for readiness-gated spans whose duration matters.** The simple API adds a smart-default reset of `[!conditions[0]]`, meant for **visibility** toggles (bottom sheets). With a **readiness** flag as the first condition (e.g. `!isLoading`), the span resets on every render during loading (the effect re-runs each render because the arrays are fresh refs), so it restarts near readiness and **under-reports the true mount→ready latency**. Use the advanced API with only `endConditions: [...]` — it starts at mount, ends at readiness, and never resets. All three view CUF spans use `endConditions` for exactly this reason.
 
 ### 2. Direct `trace()` / `setMeasurement()` (Controllers)
 
@@ -133,7 +144,41 @@ setMeasurement(
 );
 ```
 
+### 3. `perpsCufTrace` Helper (Cross-Surface CUF Confirmations)
+
+**Use for:** User-perceived critical user flows whose start and end live in **different surfaces** — a gesture in a component (order view, home) that ends when the live WebSocket stream renders the effect in `PerpsStreamManager` (a non-React singleton). This is a different shape from `usePerpsMeasurement` (single component, boolean end-conditions), so it uses a small dedicated helper.
+
+**Location:** `app/components/UI/Perps/utils/perpsCufTrace.ts` (tags: `app/components/UI/Perps/constants/perpsCufTags.ts`)
+
+**How it works:**
+
+- `startPerpsCufTrace({ name, tags })` at the gesture mints a **unique per-operation id** and registers pending metadata (keyed by op id, not trace name — so overlapping same-flow ops each get their own span).
+- The starting surface arms a stream matcher (`watchPerpsCufOrderAbsent` / `watchPerpsCufPositionClosed` / `watchPerpsCufTpSlChanged` / `watchPerpsCufLimitRendered` / `watchPerpsCufAnyPositions`).
+- The stream dispatchers (`handlePerpsCufPositionsDelivered` / `handlePerpsCufOrdersDelivered`, called from `PerpsStreamManager`) end the matching op via `endPerpsCufTrace` when its watched condition renders; a 30s fallback (`endPerpsCufTraceAfter` / `endPerpsCufRequestAfter`) no-ops if it already ended.
+- **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
+- **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
+
+**Shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
+
 ## Event Catalog
+
+### User-Perceived CUF Spans (11 events, TAT-3509)
+
+**Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Op: `perps.operation`; differentiated by `span.description` (the TraceName).
+
+| TraceName                             | Boundary (gesture → render-complete with live data)                             | Approach                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `PerpsEntryToLiveMarketList`          | Home mount → live market list (positions + markets + orders loaded)             | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsMarketDetailLive`               | Market detail mount → stats + price + account loaded                            | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsTradePageRender`                | Order view mount → price + fresh account (`!isLoadingAccount`)                  | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsPlaceOrderToPositionRendered`   | Market submit → matching position stream-rendered (+ `toast_position_delta_ms`) | `perpsCufTrace` (single-flight resolver)        |
+| `PerpsPlaceLimitOrderToOrderRendered` | Limit submit → order rests in orders stream OR fills into a position            | `perpsCufTrace` (`watchPerpsCufLimitRendered`)  |
+| `PerpsClosePositionToConfirmation`    | Close submit → position size reduced/absent (gated on acceptance)               | `perpsCufTrace` (`watchPerpsCufPositionClosed`) |
+| `PerpsCancelOrderToConfirmation`      | Cancel submit → order absent from orders stream (gated on acceptance)           | `perpsCufTrace` (`watchPerpsCufOrderAbsent`)    |
+| `PerpsUpdateTPSLToConfirmation`       | TP/SL submit → position's TP/SL value changed (gated on acceptance)             | `perpsCufTrace` (`watchPerpsCufTpSlChanged`)    |
+| `PerpsWebSocketFirstPrice`            | Price channel connect → first price delivery                                    | direct `trace()` in `PerpsStreamManager`        |
+| `PerpsWebSocketFirstOrderBook`        | Top-of-book connect → first order-book delivery                                 | direct `trace()` in `PerpsStreamManager`        |
+| `PerpsWebSocketReconnectToFreshData`  | Reconnect → first fresh positions delivery                                      | `perpsCufTrace` (`watchPerpsCufAnyPositions`)   |
 
 ### UI Screen Measurements (16 events)
 
@@ -401,6 +446,17 @@ setMeasurement(
 );
 ```
 
+### Adding a Cross-Surface CUF Span
+
+**Step 1:** Add the TraceName to `app/util/trace.ts` (op stays `perps.operation`).
+
+**Step 2:** Choose the boundary.
+
+- **Single view, mount → data-ready?** Use `usePerpsMeasurement` with **`endConditions`** (never the simple `conditions` API for readiness gates — see the reset warning above), plus `tags: buildPerpsCufStartTags(...)` and `endData` for the variant. Add the span to `FOREGROUND_SETTLING_SPANS` in `perpsLifecycleContext.ts` if it is an entry surface.
+- **Cross-surface, stream-confirmed?** Use `perpsCufTrace`: `startPerpsCufTrace({ name, tags })` at the gesture, arm a matcher, and let `PerpsStreamManager`'s dispatchers end it. For request-then-confirm flows, gate success on `acceptPerpsCufRequest` and use `endPerpsCufRequestAfter` for the fallback. Add a matcher branch to `handlePerpsCufPositionsDelivered` / `handlePerpsCufOrdersDelivered` if a new watch kind is needed.
+
+**Step 3:** Add a row to the **User-Perceived CUF Spans** catalog table above, and unit-test the matcher/gate edge cases in `perpsCufTrace.test.ts`.
+
 ## Event Naming Conventions
 
 ### TraceName Format
@@ -611,6 +667,10 @@ Fires on initial `connect()` failures and programmatic `reconnectWithNewContext(
 
 - **Trace utilities**: `app/util/trace.ts`
 - **Measurement hook**: `app/components/UI/Perps/hooks/usePerpsMeasurement.ts`
+- **CUF helper**: `app/components/UI/Perps/utils/perpsCufTrace.ts`
+- **CUF tags/reasons**: `app/components/UI/Perps/constants/perpsCufTags.ts`
+- **Lifecycle context**: `app/components/UI/Perps/utils/perpsLifecycleContext.ts`
+- **Stream manager (CUF dispatch)**: `app/components/UI/Perps/providers/PerpsStreamManager.tsx`
 - **Measurement constants**: `app/components/UI/Perps/constants/performanceMetrics.ts`
 - **Config constants**: `app/components/UI/Perps/constants/perpsConfig.ts`
 - **Controller**: `app/controllers/perps/PerpsController.ts`

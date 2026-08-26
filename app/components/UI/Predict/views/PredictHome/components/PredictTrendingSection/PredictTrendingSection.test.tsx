@@ -17,6 +17,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+const mockTrackHomeSectionInteraction = jest.fn();
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackHomeSectionInteraction: (...args: unknown[]) =>
+          mockTrackHomeSectionInteraction(...args),
+      },
+    },
+  },
+}));
+
 // Mock only the data boundary: the section's own data hook. The hook's own
 // logic (params, display cap, loading/unavailable) is covered by
 // usePredictTrendingSection.test.ts. Here we exercise the real PredictMarket /
@@ -143,8 +157,9 @@ describe('PredictTrendingSection', () => {
     const header = getByTestId(PREDICT_TRENDING_SECTION_TEST_IDS.HEADER);
     expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.trending_title'))).toBeOnTheScreen();
-    // The chevron renders only when the header is pressable (onPress set).
-    expect(getByTestId('section-header-arrow-icon')).toBeOnTheScreen();
+    expect(
+      getByTestId(PREDICT_TRENDING_SECTION_TEST_IDS.HEADER_CHEVRON),
+    ).toBeOnTheScreen();
 
     fireEvent.press(header);
 
@@ -154,6 +169,11 @@ describe('PredictTrendingSection', () => {
         feedId: 'trending',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
+    });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.TRENDING,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
   });
 });

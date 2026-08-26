@@ -38,6 +38,10 @@ import {
   type PredictThePitchPositionsDto,
   type PredictThePitchCampaignParticipantOutcomeDto,
   type PredictThePitchPrizePoolDto,
+  type MoneyAccountSweepstakesStatsMeDto,
+  type MoneyAccountSweepstakesPrizePoolDto,
+  type MoneyAccountSweepstakesDrawProofDto,
+  type MoneyAccountSweepstakesOutcomeDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -51,15 +55,22 @@ import {
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
   type ClientVersionRequirementState,
+  type FirstPredictOnUsDto,
+  type FirstPredictOnUsCacheState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
+  type VipEquityMultiplierDto,
   type VipRefereeMeDto,
   type VipRefereeMeState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
+  type GetVipTransactionsDto,
+  type PaginatedVipTransactionsDto,
+  type VipTransactionDto,
+  type VipTransactionsState,
   CampaignType,
 } from './types';
 import {
@@ -74,6 +85,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
+import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -122,10 +134,16 @@ const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // VIP dashboard cache threshold — re-fetched on every dashboard screen focus,
 // so cache for 5 minutes to avoid redundant backend calls.
 const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+/** Holdings-keyed display cache for POST /vip/equity-multiplier (not program truth). */
+const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+
+// VIP transactions cache threshold (first page only).
+// Disabled so each first-page read checks the backend last-updated timestamp.
+const VIP_TRANSACTIONS_CACHE_THRESHOLD_MS = 0;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -187,8 +205,20 @@ const PREDICT_THE_PITCH_POSITIONS_CACHE_THRESHOLD_MS = 0;
 const PREDICT_THE_PITCH_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
+// Money Account Sweepstakes cache thresholds
+const MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+const MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
+const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_NULL_CACHE_THRESHOLD_MS =
+  1000 * 60 * 5; // 5 minutes (null/pending)
+const MONEY_ACCOUNT_SWEEPSTAKES_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS =
+  1000 * 60 * 10; // 10 minutes
+
 // Client version requirements cache threshold
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
+
+// First predict on us cache threshold — matches API Cache-Control max-age=60
+const FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -344,7 +374,31 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  moneyAccountSweepstakesStats: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  moneyAccountSweepstakesPrizePool: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  moneyAccountSweepstakesDrawProof: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   clientVersionRequirements: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  firstPredictOnUs: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -385,6 +439,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: false,
+  },
+  vipTransactions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
   },
 };
 
@@ -519,6 +579,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getCampaigns',
   'getCandidateSubscriptionId',
   'getClientVersionRequirements',
+  'getFirstPredictOnUs',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
   'getGeoRewardsMetadata',
@@ -540,8 +601,15 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPositions',
   'getPredictThePitchParticipantOutcome',
   'getPredictThePitchPrizePool',
+  'getMoneyAccountSweepstakesStatsMe',
+  'getMoneyAccountSweepstakesPrizePool',
+  'getMoneyAccountSweepstakesDrawProof',
+  'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
   'getVipTierForAccount',
+  'getVipTransactions',
+  'getVipTransactionsIfChanged',
+  'getVipTransactionsLastUpdated',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -552,11 +620,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonStatus',
   'getUnlockedRewards',
   'getVIPDashboard',
+  'getVipEquityMultiplier',
   'getVipRefereeDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
   'hasPointsEventsChanged',
+  'hasVipTransactionsChanged',
   'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
@@ -565,12 +635,15 @@ const MESSENGER_EXPOSED_METHODS = [
   'isVipFeatureEnabled',
   'linkAccountsToSubscriptionCandidate',
   'linkAccountToSubscriptionCandidate',
+  'lookupVipTransaction',
   'logout',
   'optIn',
   'optInToCampaign',
+  'optInToCampaigns',
   'optOut',
   'performSilentAuth',
   'postBenefitImpression',
+  'registerMoneyAccountBinding',
   'resetAll',
   'resetState',
   'setActiveAccountFromCandidate',
@@ -597,12 +670,25 @@ export class RewardsController extends BaseController<
   > = new Map();
   #isDisabled: () => boolean;
   #isVipDisabled: () => boolean;
+  #isFirstPredictOnUsDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
   // Cleared when the promise settles (success or failure).
   #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
     new Map();
+  /**
+   * In-memory display cache for equity multiplier. Keyed by
+   * `${subscriptionId}::${holdingsUsd}`. Not Redux / not program truth.
+   */
+  #vipEquityMultiplierCache: Map<
+    string,
+    { payload: VipEquityMultiplierDto; lastFetched: number }
+  > = new Map();
+  #vipEquityMultiplierInFlight: Map<
+    string,
+    Promise<VipEquityMultiplierDto | null>
+  > = new Map();
   #perpsTradingParticipantOutcomeCache: Map<
     string,
     {
@@ -617,6 +703,23 @@ export class RewardsController extends BaseController<
       lastFetched: number;
     }
   > = new Map();
+  #moneyAccountSweepstakesParticipantOutcomeCache: Map<
+    string,
+    {
+      payload: MoneyAccountSweepstakesOutcomeDto;
+      lastFetched: number;
+    }
+  > = new Map();
+  #moneyAccountSweepstakesDrawProofNullCache: Map<
+    string,
+    { lastFetched: number }
+  > = new Map();
+  /**
+   * Session cache for Money Account binding results keyed by
+   * `${subscriptionId}:${address.toLowerCase()}`. Avoids re-POSTing within a
+   * session and remembers conflicts for late-discovered-conflict UX.
+   */
+  #moneyAccountBindingResults: Map<string, 'bound' | 'conflict'> = new Map();
 
   /**
    * Calculate tier status and next tier information
@@ -760,16 +863,43 @@ export class RewardsController extends BaseController<
     };
   }
 
+  #convertVipTransactionsToState(
+    transactions: PaginatedVipTransactionsDto,
+  ): VipTransactionsState {
+    return {
+      results: transactions.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: transactions.has_more,
+      cursor: transactions.cursor,
+      lastFetched: Date.now(),
+    };
+  }
+
+  #convertVipTransactionsStateToDto(
+    state: VipTransactionsState,
+  ): PaginatedVipTransactionsDto {
+    return {
+      results: state.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: state.has_more,
+      cursor: state.cursor,
+    };
+  }
+
   constructor({
     messenger,
     state,
     isDisabled,
     isVipDisabled,
+    isFirstPredictOnUsDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isVipDisabled?: () => boolean;
+    isFirstPredictOnUsDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -783,6 +913,8 @@ export class RewardsController extends BaseController<
 
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isVipDisabled = isVipDisabled ?? (() => false);
+    this.#isFirstPredictOnUsDisabled =
+      isFirstPredictOnUsDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -815,6 +947,10 @@ export class RewardsController extends BaseController<
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
+    this.#vipEquityMultiplierCache.clear();
+    this.#vipEquityMultiplierInFlight.clear();
+    this.#moneyAccountSweepstakesParticipantOutcomeCache.clear();
+    this.#moneyAccountSweepstakesDrawProofNullCache.clear();
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
       rewardsEnvUrl,
@@ -916,6 +1052,16 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): string {
     return `${subscriptionId}:${campaignId}`;
+  }
+
+  /**
+   * Create VIP transactions composite key for state storage
+   */
+  #createVIPCompositeKey(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): string {
+    return `${subscriptionId}:${type}`;
   }
 
   #matchesSeasonSubscriptionCacheKey(
@@ -2373,6 +2519,18 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Check if the First Predict On Us feature is enabled.
+   * First Predict On Us is a sub-feature of rewards, so it requires both
+   * the rewards feature and the dedicated feature flag to be enabled.
+   * @returns boolean - True if the First Predict On Us feature is enabled
+   */
+  isFirstPredictOnUsFeatureEnabled(): boolean {
+    if (!this.isRewardsFeatureEnabled()) return false;
+    if (this.#isFirstPredictOnUsDisabled()) return false;
+    return true;
+  }
+
+  /**
    * Check if there is an active season.
    * Temporarily hardcoded to false while no season is configured. Callers
    * gate season-scoped flows (points estimates, rewards rows, dashboard
@@ -3823,6 +3981,188 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Opt a subscription into multiple campaigns in one batch.
+   * POSTs each opt-in sequentially (up to 3 attempts per campaign on throw or
+   * non-opted-in response), continues after exhausted failures, then invalidates
+   * once per campaign and publishes a single `campaignOptedIn` so UI listeners
+   * do not refetch after every intermediate opt-in (important for series campaigns).
+   * Participant-status cache entries are re-seeded from the POST responses so
+   * post-event status fetches hit cache instead of the network.
+   * @param campaignIds - Campaign IDs to opt into, in call order.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Per-campaign participant statuses after opting in.
+   */
+  async optInToCampaigns(
+    campaignIds: string[],
+    subscriptionId: string,
+  ): Promise<Record<string, CampaignParticipantStatusDto>> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return Object.fromEntries(
+        campaignIds.map((campaignId) => [
+          campaignId,
+          { optedIn: false, participantCount: 0 },
+        ]),
+      );
+    }
+
+    if (campaignIds.length === 0) {
+      return {};
+    }
+
+    const maxAttempts = 3;
+    const retryBaseDelayMs = 250;
+    const failedStatus: CampaignParticipantStatusDto = {
+      optedIn: false,
+      participantCount: 0,
+    };
+
+    const results: Record<string, CampaignParticipantStatusDto> = {};
+    const newlyOptedInIds: string[] = [];
+
+    for (const campaignId of campaignIds) {
+      const key = this.#createSubscriptionCampaignCompositeKey(
+        subscriptionId,
+        campaignId,
+      );
+      const wasAlreadyOptedIn =
+        this.state.campaignParticipantStatus[key]?.optedIn === true;
+
+      let result: CampaignParticipantStatusDto = failedStatus;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const attemptResult = await this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Opting into campaign (batch)',
+              campaignId,
+              `attempt ${attempt + 1}/${maxAttempts}`,
+            );
+            return (await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+            )) as CampaignParticipantStatusDto;
+          }, subscriptionId);
+
+          if (attemptResult?.optedIn) {
+            result = attemptResult;
+            break;
+          }
+
+          result = attemptResult ?? failedStatus;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Opt-in to campaign failed (batch)',
+            campaignId,
+            error,
+          );
+          result = failedStatus;
+        }
+
+        if (attempt < maxAttempts - 1) {
+          const delay = calculateExponentialRetryDelay(
+            attempt,
+            retryBaseDelayMs,
+            2000,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+
+      results[campaignId] = result;
+      if (result.optedIn && !wasAlreadyOptedIn) {
+        newlyOptedInIds.push(campaignId);
+      }
+    }
+
+    // Invalidate once per campaign after the whole batch, then re-seed status
+    // so campaignOptedIn listeners that refetch get cache hits.
+    for (const campaignId of campaignIds) {
+      this.invalidateSubscriptionCache({ subscriptionId, campaignId });
+    }
+
+    const now = Date.now();
+    this.update((state) => {
+      for (const campaignId of campaignIds) {
+        const status = results[campaignId];
+        if (!status) {
+          continue;
+        }
+        const key = this.#createSubscriptionCampaignCompositeKey(
+          subscriptionId,
+          campaignId,
+        );
+        state.campaignParticipantStatus[key] = {
+          optedIn: status.optedIn,
+          participantCount: status.participantCount,
+          lastFetched: now,
+        };
+      }
+    });
+
+    if (newlyOptedInIds.length > 0) {
+      const primaryCampaignId = newlyOptedInIds[0];
+      this.messenger.publish('RewardsController:campaignOptedIn', {
+        campaignId: primaryCampaignId,
+        subscriptionId,
+      });
+      for (const campaignId of newlyOptedInIds) {
+        this.messenger.publish(
+          'RewardsController:leaderboardPositionInvalidated',
+          {
+            campaignId,
+            subscriptionId,
+          },
+        );
+        this.messenger.publish(
+          'RewardsController:portfolioPositionInvalidated',
+          {
+            campaignId,
+            subscriptionId,
+          },
+        );
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Register (or re-assert) the Money Account holder address for a subscription.
+   * Results are memoized in-session so repeated re-asserts do not re-POST, and
+   * a discovered conflict is returned synchronously on subsequent calls.
+   * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns `'bound'` or `'conflict'`.
+   */
+  async registerMoneyAccountBinding(
+    moneyAccountAddress: string,
+    subscriptionId: string,
+  ): Promise<'bound' | 'conflict'> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return 'bound';
+    }
+
+    const cacheKey = `${subscriptionId}:${moneyAccountAddress.toLowerCase()}`;
+    const cached = this.#moneyAccountBindingResults.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.#withAuthRetry(async () => {
+      Logger.log('RewardsController: Registering Money Account binding');
+      return (await this.messenger.call(
+        'RewardsDataService:registerMoneyAccountBinding',
+        subscriptionId,
+        moneyAccountAddress,
+      )) as 'bound' | 'conflict';
+    }, subscriptionId);
+
+    this.#moneyAccountBindingResults.set(cacheKey, result);
+    return result;
+  }
+
+  /**
    * Get the campaign participant status, cached for 5 minutes.
    * @param campaignId - The campaign ID to check status for.
    * @param subscriptionId - The subscription ID for authentication.
@@ -4562,6 +4902,139 @@ export class RewardsController extends BaseController<
     });
   }
 
+  async getVipTransactions(
+    params: GetVipTransactionsDto,
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const { subscriptionId, type, cursor, forceFresh } = params;
+    if (cursor) {
+      return this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getVipTransactions',
+            subscriptionId,
+            type,
+            cursor,
+          ),
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getVipTransactionsIfChanged(subscriptionId, type),
+        subscriptionId,
+      );
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    return wrapWithCache<PaginatedVipTransactionsDto>({
+      key,
+      ttl: VIP_TRANSACTIONS_CACHE_THRESHOLD_MS,
+      readCache: (cacheKey) => {
+        const cached = this.state.vipTransactions[cacheKey];
+        return cached
+          ? {
+              payload: this.#convertVipTransactionsStateToDto(cached),
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
+      },
+      fetchFresh: () =>
+        this.#withAuthRetry(
+          () => this.getVipTransactionsIfChanged(subscriptionId, type),
+          subscriptionId,
+        ),
+      writeCache: (cacheKey, transactions) => {
+        this.update((state) => {
+          state.vipTransactions[cacheKey] =
+            this.#convertVipTransactionsToState(transactions);
+        });
+      },
+    });
+  }
+
+  async getVipTransactionsIfChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    if (!(await this.hasVipTransactionsChanged(subscriptionId, type))) {
+      const cached = this.state.vipTransactions[key];
+      return cached
+        ? this.#convertVipTransactionsStateToDto(cached)
+        : { results: [], has_more: false, cursor: null };
+    }
+
+    return this.messenger.call(
+      'RewardsDataService:getVipTransactions',
+      subscriptionId,
+      type,
+      null,
+    );
+  }
+
+  async getVipTransactionsLastUpdated(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<Date | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getVipTransactionsLastUpdated',
+          subscriptionId,
+          type,
+        ),
+      subscriptionId,
+    );
+  }
+
+  async hasVipTransactionsChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<boolean> {
+    if (!this.isVipFeatureEnabled()) return false;
+
+    const cached =
+      this.state.vipTransactions[
+        this.#createVIPCompositeKey(subscriptionId, type)
+      ];
+    const cachedLatestTimestamp = cached?.results[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getVipTransactionsLastUpdated(
+      subscriptionId,
+      type,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
+  }
+
+  async lookupVipTransaction(
+    subscriptionId: string,
+    key: string,
+  ): Promise<VipTransactionDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:lookupVipTransaction',
+          subscriptionId,
+          key,
+        ),
+      subscriptionId,
+    );
+  }
+
   /**
    * Get the VIP dashboard with caching.
    * @param subscriptionId - The subscription ID for authentication
@@ -4639,6 +5112,64 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Display-only equity multiplier estimate from client-supplied holdings.
+   * Must never be persisted as program truth or feed warrant settlement
+   * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+   */
+  async getVipEquityMultiplier(
+    subscriptionId: string,
+    holdingsUsd: string,
+  ): Promise<VipEquityMultiplierDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+
+    const cacheKey = `${subscriptionId}::${holdingsUsd}`;
+    const cached = this.#vipEquityMultiplierCache.get(cacheKey);
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS
+    ) {
+      return cached.payload;
+    }
+
+    const inFlight = this.#vipEquityMultiplierInFlight.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const fetchPromise = (async (): Promise<VipEquityMultiplierDto | null> => {
+      try {
+        const result = await this.#withAuthRetry(
+          () =>
+            this.messenger.call(
+              'RewardsDataService:getVipEquityMultiplier',
+              subscriptionId,
+              holdingsUsd,
+            ),
+          subscriptionId,
+        );
+        if (result) {
+          this.#vipEquityMultiplierCache.set(cacheKey, {
+            payload: result,
+            lastFetched: Date.now(),
+          });
+        }
+        return result;
+      } catch (error) {
+        Logger.log(
+          'RewardsController: Failed to get VIP equity multiplier:',
+          error instanceof Error ? error.message : String(error),
+        );
+        throw error;
+      } finally {
+        this.#vipEquityMultiplierInFlight.delete(cacheKey);
+      }
+    })();
+
+    this.#vipEquityMultiplierInFlight.set(cacheKey, fetchPromise);
+    return fetchPromise;
+  }
+
+  /**
    * Get the VIP referee stats with caching.
    * @param subscriptionId - The subscription ID for authentication
    * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
@@ -4707,12 +5238,14 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
    * @param benefitType - The type of the benefit that was impressed
+   * @param walletAddress - The wallet address that viewed the benefit (optional)
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async postBenefitImpression(
     subscriptionId: string,
     benefitId: number,
     benefitType: number,
+    walletAddress?: string,
   ): Promise<void> {
     try {
       Logger.log(
@@ -4726,6 +5259,7 @@ export class RewardsController extends BaseController<
             subscriptionId,
             benefitId,
             benefitType,
+            walletAddress,
           ),
         subscriptionId,
       );
@@ -4858,6 +5392,39 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Fetch the visible first predict on us content from the public API.
+   * Cached for 1 minute using controller state, matching the API Cache-Control header.
+   * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
+   */
+  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
+    if (!this.isFirstPredictOnUsFeatureEnabled()) return null;
+
+    const cached = this.state.firstPredictOnUs;
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS
+    ) {
+      return cached.data;
+    }
+
+    Logger.log(
+      'RewardsController: Fetching fresh first predict on us data via API call',
+    );
+    const result = (await this.messenger.call(
+      'RewardsDataService:getFirstPredictOnUs',
+    )) as FirstPredictOnUsDto | null;
+
+    this.update((state) => {
+      state.firstPredictOnUs = {
+        data: result,
+        lastFetched: Date.now(),
+      };
+    });
+
+    return result;
+  }
+
+  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
@@ -4911,6 +5478,11 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipRefereeDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
+        deleteMatchingCacheEntries(
+          state.vipTransactions,
+          (key) =>
+            key === subscriptionId || key.startsWith(`${subscriptionId}:`),
+        );
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
         delete state.subscriptionReferralDetails?.[subscriptionId];
       }
@@ -4935,6 +5507,7 @@ export class RewardsController extends BaseController<
           state.perpsTradingCampaignLeaderboardPositions,
           state.predictThePitchLeaderboardPositions,
           state.predictThePitchPositions,
+          state.moneyAccountSweepstakesStats,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, campaignCacheMatches),
         );
@@ -4952,6 +5525,10 @@ export class RewardsController extends BaseController<
       );
       deleteMatchingMapEntries(
         this.#predictThePitchParticipantOutcomeCache,
+        campaignCacheMatches,
+      );
+      deleteMatchingMapEntries(
+        this.#moneyAccountSweepstakesParticipantOutcomeCache,
         campaignCacheMatches,
       );
     }
@@ -5230,6 +5807,261 @@ export class RewardsController extends BaseController<
         });
       },
     });
+  }
+
+  /**
+   * Fetch the current user's Money Account Sweepstakes stats.
+   * Results are cached for 1 minute using controller state.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's sweepstakes stats.
+   */
+  async getMoneyAccountSweepstakesStatsMe(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesStatsMeDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        entryCount: 0,
+        currentBalanceUsd: 0,
+        yieldEarnedUsd: 0,
+        qualifyingDepositsUsd: 0,
+        qualifyingThresholdUsd: 0,
+        // No campaign is being scored when rewards is off. `not_yet_qualified`
+        // here paired with a zero threshold, which a shortfall-deriving caller
+        // renders as "add $0".
+        todayStatus: 'not_scored',
+        daysRemaining: 0,
+        dataAsOf: null,
+      };
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+
+    return await wrapWithCache<MoneyAccountSweepstakesStatsMeDto>({
+      key,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_STATS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesStats[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            entryCount: cached.entryCount,
+            currentBalanceUsd: cached.currentBalanceUsd,
+            yieldEarnedUsd: cached.yieldEarnedUsd,
+            qualifyingDepositsUsd: cached.qualifyingDepositsUsd,
+            qualifyingThresholdUsd: cached.qualifyingThresholdUsd,
+            todayStatus: cached.todayStatus,
+            daysRemaining: cached.daysRemaining,
+            dataAsOf: cached.dataAsOf,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh Money Account Sweepstakes stats via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
+            campaignId,
+            subscriptionId,
+          )) as MoneyAccountSweepstakesStatsMeDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesStats[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes prize pool.
+   * Public endpoint — results are cached for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The prize pool DTO.
+   */
+  async getMoneyAccountSweepstakesPrizePool(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesPrizePoolDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        numberOfWinners: 0,
+        minPrizeUsd: 0,
+        maxPrizeUsd: 0,
+      };
+    }
+
+    return await wrapWithCache<MoneyAccountSweepstakesPrizePoolDto>({
+      key: campaignId,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesPrizePool[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            unlockedPoolUsd: cached.unlockedPoolUsd,
+            thresholdsUsd: cached.thresholdsUsd,
+            poolScheduleUsd: cached.poolScheduleUsd,
+            numberOfWinners: cached.numberOfWinners,
+            minPrizeUsd: cached.minPrizeUsd,
+            maxPrizeUsd: cached.maxPrizeUsd,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Money Account Sweepstakes prize pool via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+          campaignId,
+        )) as MoneyAccountSweepstakesPrizePoolDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes draw proof.
+   * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
+   * null (pending) responses are cached in-memory for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The draw proof DTO, or null if the draw has not been published yet.
+   */
+  async getMoneyAccountSweepstakesDrawProof(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesDrawProofDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const cached = this.state.moneyAccountSweepstakesDrawProof?.[campaignId];
+    if (
+      cached &&
+      Date.now() - cached.lastFetched <
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_CACHE_THRESHOLD_MS
+    ) {
+      return {
+        explanation: cached.explanation,
+        originalDraw: cached.originalDraw,
+        finalWinners: cached.finalWinners,
+        adjustmentTrail: cached.adjustmentTrail,
+        addressProof: cached.addressProof,
+      };
+    }
+
+    const nullCached =
+      this.#moneyAccountSweepstakesDrawProofNullCache.get(campaignId);
+    if (
+      nullCached &&
+      Date.now() - nullCached.lastFetched <
+        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_PROOF_NULL_CACHE_THRESHOLD_MS
+    ) {
+      return null;
+    }
+
+    Logger.log(
+      'RewardsController: Fetching fresh Money Account Sweepstakes draw proof via API call',
+    );
+    const result = (await this.messenger.call(
+      'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
+      campaignId,
+    )) as MoneyAccountSweepstakesDrawProofDto | null;
+
+    if (result) {
+      this.#moneyAccountSweepstakesDrawProofNullCache.delete(campaignId);
+      this.update((state) => {
+        state.moneyAccountSweepstakesDrawProof = {
+          ...state.moneyAccountSweepstakesDrawProof,
+          [campaignId]: {
+            ...result,
+            lastFetched: Date.now(),
+          },
+        };
+      });
+    } else {
+      this.#moneyAccountSweepstakesDrawProofNullCache.set(campaignId, {
+        lastFetched: Date.now(),
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Fetch the participant outcome for the current user in a completed Money
+   * Account Sweepstakes campaign. Results are cached for 10 minutes using a
+   * private in-memory Map.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The participant outcome DTO, or null if unavailable.
+   */
+  async getMoneyAccountSweepstakesParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesOutcomeDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    try {
+      return await wrapWithCache<MoneyAccountSweepstakesOutcomeDto>({
+        key,
+        ttl: MONEY_ACCOUNT_SWEEPSTAKES_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+        readCache: (k) =>
+          this.#moneyAccountSweepstakesParticipantOutcomeCache.get(k) ??
+          undefined,
+        fetchFresh: async () =>
+          this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Fetching Money Account Sweepstakes participant outcome',
+            );
+            return (await this.messenger.call(
+              'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+              campaignId,
+              subscriptionId,
+            )) as MoneyAccountSweepstakesOutcomeDto;
+          }, subscriptionId),
+        writeCache: (k, payload) => {
+          this.#moneyAccountSweepstakesParticipantOutcomeCache.set(k, {
+            payload,
+            lastFetched: Date.now(),
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'RewardsController: Failed to fetch Money Account Sweepstakes participant outcome',
+      );
+      return null;
+    }
   }
 
   /**

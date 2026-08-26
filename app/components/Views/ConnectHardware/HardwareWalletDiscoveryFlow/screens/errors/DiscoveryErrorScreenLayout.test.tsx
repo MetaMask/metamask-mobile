@@ -4,10 +4,15 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import DiscoveryErrorScreenLayout from './DiscoveryErrorScreenLayout';
 import type { DiscoveryErrorScreenLayoutProps } from './DiscoveryErrorScreen.types';
 import {
-  __mockRiveFireState,
-  __resetAllMocks,
-} from '../../../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../../../__mocks__/rive-app-react-native';
 import Logger from '../../../../../../util/Logger';
+import {
+  LEDGER_ARTBOARD_NAME,
+  LEDGER_RIVE_STATE_TRIGGER,
+  LEDGER_STATE_MACHINE_NAME,
+} from '../../../ledgerRiveConstants';
 
 jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -30,14 +35,15 @@ const BASE_PROPS: DiscoveryErrorScreenLayoutProps = {
 
 const RIVE_PROPS: DiscoveryErrorScreenLayoutProps = {
   ...BASE_PROPS,
-  artboardName: 'Ledger',
-  stateMachineName: 'Ledger_states',
-  stateTrigger: 'error',
+  artboardName: LEDGER_ARTBOARD_NAME,
+  stateMachineName: LEDGER_STATE_MACHINE_NAME,
+  stateTrigger: LEDGER_RIVE_STATE_TRIGGER.Error,
 };
 
 describe('DiscoveryErrorScreenLayout', () => {
   beforeEach(() => {
-    __resetAllMocks();
+    jest.clearAllMocks();
+    __resetRiveMocks();
   });
 
   it('renders title and subtitle', () => {
@@ -69,9 +75,9 @@ describe('DiscoveryErrorScreenLayout', () => {
       },
       {
         overrideProps: {
-          artboardName: 'Ledger',
-          stateMachineName: 'Ledger_states',
-          stateTrigger: 'error',
+          artboardName: LEDGER_ARTBOARD_NAME,
+          stateMachineName: LEDGER_STATE_MACHINE_NAME,
+          stateTrigger: LEDGER_RIVE_STATE_TRIGGER.Error,
         },
         expectedTestID: DEFAULT_RIVE_TEST_ID,
       },
@@ -125,11 +131,10 @@ describe('DiscoveryErrorScreenLayout', () => {
   });
 
   describe('rive state triggering', () => {
-    it('fires state trigger on play', () => {
+    it('fires state trigger when the Rive view is ready', () => {
       renderLayout(RIVE_PROPS);
-      expect(__mockRiveFireState).toHaveBeenCalledWith(
-        'Ledger_states',
-        'error',
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
+        LEDGER_RIVE_STATE_TRIGGER.Error,
       );
     });
 
@@ -137,21 +142,24 @@ describe('DiscoveryErrorScreenLayout', () => {
       {
         label: 'stateTrigger',
         overrideProps: {
-          artboardName: 'Ledger',
-          stateMachineName: 'Ledger_states',
+          artboardName: LEDGER_ARTBOARD_NAME,
+          stateMachineName: LEDGER_STATE_MACHINE_NAME,
         },
       },
       {
         label: 'stateMachineName',
-        overrideProps: { artboardName: 'Ledger', stateTrigger: 'error' },
+        overrideProps: {
+          artboardName: LEDGER_ARTBOARD_NAME,
+          stateTrigger: LEDGER_RIVE_STATE_TRIGGER.Error,
+        },
       },
     ])('does not fire state when $label is missing', ({ overrideProps }) => {
       renderLayout({ ...BASE_PROPS, ...overrideProps });
-      expect(__mockRiveFireState).not.toHaveBeenCalled();
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
     });
 
-    it('logs error when fireState throws', () => {
-      __mockRiveFireState.mockImplementation(() => {
+    it('logs error when triggerInput throws', () => {
+      __mockRiveTriggerInput.mockImplementationOnce(() => {
         throw new Error('Rive error');
       });
 

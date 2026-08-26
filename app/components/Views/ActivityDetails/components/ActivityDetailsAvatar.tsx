@@ -10,16 +10,14 @@ import {
 import { getNetworkImageSource } from '../../../../util/networks';
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
-
-// Mirrors the extension's activity avatar: an unresolved/unknown token image
-// falls back to a "?" glyph — a clear "unknown token" state rather than a
-// partial letter or empty placeholder.
-const UNKNOWN_TOKEN_FALLBACK_TEXT = '?';
+import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 /**
  * Renders one or two overlapping token avatars for the details amount header,
  * optionally badged with the network icon. Mirrors the avatar rendering of the
- * redesigned activity list row.
+ * redesigned activity list row — when an image is missing, AvatarToken falls
+ * back to the first letter of `name` (token symbol), or "?" when there is no
+ * usable name.
  */
 export function ActivityDetailsAvatar({
   tokens,
@@ -52,13 +50,7 @@ export function ActivityDetailsAvatar({
       return null;
     }
 
-    const imageOnlyAvatar = (
-      <AvatarToken
-        src={{ uri: iconUrl }}
-        size={size}
-        fallbackText={UNKNOWN_TOKEN_FALLBACK_TEXT}
-      />
-    );
+    const imageOnlyAvatar = <AvatarToken src={{ uri: iconUrl }} size={size} />;
     return networkImage ? (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
@@ -73,26 +65,28 @@ export function ActivityDetailsAvatar({
 
   const avatar =
     tokens.length === 1 ? (
-      <AvatarToken
-        name={tokens[0].symbol}
-        src={imageSources[0]}
-        size={size}
-        fallbackText={UNKNOWN_TOKEN_FALLBACK_TEXT}
-      />
-    ) : (
-      <Box twClassName="flex-row">
+      <Box testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_SINGLE}>
         <AvatarToken
           name={tokens[0].symbol}
           src={imageSources[0]}
           size={size}
-          fallbackText={UNKNOWN_TOKEN_FALLBACK_TEXT}
+        />
+      </Box>
+    ) : (
+      <Box
+        twClassName="flex-row"
+        testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_DUAL}
+      >
+        <AvatarToken
+          name={tokens[0].symbol}
+          src={imageSources[0]}
+          size={size}
         />
         <Box twClassName="-ml-2">
           <AvatarToken
             name={tokens[1].symbol}
             src={imageSources[1]}
             size={size}
-            fallbackText={UNKNOWN_TOKEN_FALLBACK_TEXT}
           />
         </Box>
       </Box>

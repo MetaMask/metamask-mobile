@@ -11,8 +11,9 @@ import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   getPrimaryMoneylineOutcomes,
-  isDrawCapableLeague,
-} from '../../constants/sports';
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
@@ -81,27 +82,37 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     () => getPrimaryMoneylineOutcomes(market.outcomes),
     [market.outcomes],
   );
+  const drawButtonResolution = useMemo(() => {
+    if (!game || !isDrawCapableMarket({ game, outcomes: market.outcomes })) {
+      return null;
+    }
+
+    const resolution = resolvePredictSportCardButtons({
+      outcomes: market.outcomes,
+      game,
+      showDraw: true,
+    });
+
+    return resolution.home && resolution.draw && resolution.away
+      ? resolution
+      : null;
+  }, [game, market.outcomes]);
 
   const tokenIds = useMemo(() => {
-    if (
-      game?.league &&
-      isDrawCapableLeague(game.league) &&
-      moneylineOutcomes.length >= 3
-    ) {
-      return [...moneylineOutcomes]
-        .sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
-        .map((o) => o.tokens[0]?.id)
-        .filter((id): id is string => Boolean(id));
+    if (drawButtonResolution) {
+      return [
+        drawButtonResolution.home?.token.id,
+        drawButtonResolution.draw?.token.id,
+        drawButtonResolution.away?.token.id,
+      ].filter((id): id is string => Boolean(id));
     }
     const tokens = moneylineOutcomes[0]?.tokens ?? [];
     return tokens.map((t) => t.id);
-  }, [moneylineOutcomes, game?.league]);
+  }, [moneylineOutcomes, drawButtonResolution]);
 
   const seriesConfig: GameChartSeriesConfig[] | null = useMemo(() => {
     if (!game) return null;
-    if (isDrawCapableLeague(game.league) && moneylineOutcomes.length >= 3) {
+    if (drawButtonResolution) {
       return [
         { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
         { label: 'DRAW', color: colors.icon.muted },
@@ -117,7 +128,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       label: team.abbreviation,
       color: team.color,
     }));
-  }, [game, moneylineOutcomes.length, colors.icon.muted]);
+  }, [game, drawButtonResolution, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
     getDefaultTimeframe(gameStatus),

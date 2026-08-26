@@ -1,5 +1,6 @@
 import {
   formatUsd,
+  formatTradeUnitPrice,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
@@ -7,6 +8,8 @@ import {
   formatPercent,
   formatTradeDate,
   formatTradeTime,
+  formatTradeDayLabel,
+  formatFeedTimestamp,
 } from './formatters';
 
 describe('formatUsd', () => {
@@ -28,6 +31,22 @@ describe('formatUsd', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatTradeUnitPrice', () => {
+  it('formats sub-cent per-unit prices with perps precision', () => {
+    expect(formatTradeUnitPrice(0.002759)).toBe('$0.002759');
+  });
+
+  it('formats dollar-scale prices with tiered precision', () => {
+    expect(formatTradeUnitPrice(63_850)).toBe('$63,850');
+    expect(formatTradeUnitPrice(0.15)).toBe('$0.15');
+  });
+
+  it('returns an em dash for nullish values', () => {
+    expect(formatTradeUnitPrice(null)).toBe('\u2014');
+    expect(formatTradeUnitPrice(undefined)).toBe('\u2014');
   });
 });
 
@@ -272,5 +291,45 @@ describe('formatTradeTime', () => {
     const datePart = formatTradeDate(timestamp);
     const timePart = formatTradeTime(timestamp);
     expect(datePart.endsWith(timePart)).toBe(true);
+  });
+});
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+describe('formatFeedTimestamp', () => {
+  const now = new Date('2026-07-09T12:00:00Z').getTime();
+
+  it('formats seconds within the last minute', () => {
+    expect(formatFeedTimestamp(now - 21 * SECOND, now)).toBe('21s');
+  });
+
+  it('formats minutes within the last hour', () => {
+    expect(formatFeedTimestamp(now - 4 * MINUTE, now)).toBe('4m');
+  });
+
+  it('formats hours within the last day', () => {
+    expect(formatFeedTimestamp(now - 3 * HOUR, now)).toBe('3h');
+  });
+
+  it('clamps future timestamps to 0 seconds', () => {
+    expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('0s');
+  });
+
+  it('formats an absolute clock time for timestamps older than 24h', () => {
+    const result = formatFeedTimestamp(now - DAY - HOUR, now);
+    expect(result).toMatch(/^\d{1,2}:\d{2} (am|pm)$/);
+  });
+});
+
+describe('formatTradeDayLabel', () => {
+  it('formats a full date label with localized month', () => {
+    const label = formatTradeDayLabel(
+      new Date('2026-07-01T15:00:00Z').getTime(),
+    );
+    expect(label).toMatch(/2026/u);
+    expect(label).toMatch(/July|Jun|Jul/u);
   });
 });

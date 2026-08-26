@@ -5,8 +5,7 @@ import { NotificationsCategorySelectorsIDs } from './NotificationsCategory.testI
 
 let mockIsMetamaskNotificationsEnabled = true;
 let mockIsSocialLeaderboardEnabled = false;
-let mockIsPriceAlertsEnabled = false;
-let mockCategories: Array<{ categoryId: string; ausKeys: string[] }> = [
+let mockCategories: { categoryId: string; ausKeys: string[] }[] = [
   { categoryId: 'walletActivity', ausKeys: ['walletActivity'] },
   { categoryId: 'perps', ausKeys: ['perps'] },
   { categoryId: 'socialAI', ausKeys: ['socialAI'] },
@@ -30,10 +29,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
-  selectPriceAlertsEnabled: () => mockIsPriceAlertsEnabled,
-}));
-
 jest.mock('../../../../util/notifications/categories', () => ({
   ...jest.requireActual('../../../../util/notifications/categories'),
   useNotificationCategories: () => ({
@@ -46,7 +41,6 @@ describe('NotificationsCategory', () => {
   beforeEach(() => {
     mockIsMetamaskNotificationsEnabled = true;
     mockIsSocialLeaderboardEnabled = false;
-    mockIsPriceAlertsEnabled = false;
     mockIsLoading = false;
     mockCategories = [
       { categoryId: 'walletActivity', ausKeys: ['walletActivity'] },

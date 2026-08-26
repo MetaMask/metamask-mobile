@@ -1,13 +1,18 @@
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { useTheme } from '../../../../util/theme';
 import {
+  clearMoneyEarnBannerDismissedTokens,
   setMoneyOnboardingSeen,
   setOnboardingStepperStep,
 } from '../../../../actions/user';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
+import {
+  selectMoneyEarnBannerDismissedTokens,
+  selectMoneyOnboardingSeen,
+} from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -29,7 +34,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const isOnboardingEnabled = useSelector(
@@ -37,6 +42,12 @@ export const MoneyUiDeveloperOptionsSection = () => {
   );
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const moneyAccountAddress = primaryMoneyAccount?.address;
+  const earnBannerDismissedTokens = useSelector(
+    selectMoneyEarnBannerDismissedTokens,
+  );
+  const earnBannerDismissedCount = Object.keys(
+    earnBannerDismissedTokens,
+  ).length;
 
   const handleResetOnboardingSeenState = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(false));
@@ -55,6 +66,10 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const handlePreviewFirstTimeDepositAnimation = useCallback(() => {
     navigation.navigate(Routes.MONEY.FIRST_TIME_DEPOSIT);
   }, [navigation]);
+
+  const handleClearEarnBannerDismissals = useCallback(() => {
+    dispatch(clearMoneyEarnBannerDismissedTokens());
+  }, [dispatch]);
 
   return (
     <Box twClassName="gap-2">
@@ -139,6 +154,24 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'View animation'}
+        </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {`Earn banners dismissed: ${earnBannerDismissedCount}`}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleClearEarnBannerDismissals}
+          isFullWidth
+        >
+          {'Clear Earn banner dismissals'}
         </Button>
       </Box>
     </Box>

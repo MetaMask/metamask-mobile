@@ -12,7 +12,7 @@ export const useKeyringId = (account: InternalAccount) => {
     isMultichainWalletSnap(account.metadata.snap.id as SnapId);
 
   if (isFirstPartySnap && account.options.entropySource) {
-    return account.options.entropySource;
+    return account.options.entropySource as string;
   }
 
   const keyringId = keyrings.find((keyring) =>

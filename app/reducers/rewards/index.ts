@@ -24,12 +24,18 @@ import {
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
   VipDashboardState,
   VipRefereeMeState,
+  VipTransactionDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import {
   buildCampaignOutcomeToastCompositeKey,
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
 } from './compositeKeys';
 import {
   type CampaignResourceCacheEntry,
@@ -76,6 +82,43 @@ export interface BulkLinkState {
    */
   initialSubscriptionId: string | null;
 }
+
+/**
+ * Deferred Money Account Sweepstakes series opt-in resume.
+ * When some active/upcoming weeks fail after immediate retries, needsRetry is
+ * set so RewardsDashboard can re-run ensureOptedIn on focus. Targets are
+ * always re-derived from series + participant status (no campaign ID list).
+ */
+export interface PendingMasSeriesOptInState {
+  needsRetry: boolean;
+  subscriptionId: string | null;
+}
+
+export type FirstPredictionOnUsOrderStatus =
+  | 'confirmed'
+  | 'executed'
+  | 'failed';
+
+export interface FirstPredictionOnUsInteraction {
+  offerViewed: boolean;
+  skipped: boolean;
+  marketId: string | null;
+  outcome: string | null;
+  orderStatus: FirstPredictionOnUsOrderStatus | null;
+  predictAccountAddress: string | null;
+  transactionHash: string | null;
+}
+
+export const initialFirstPredictionOnUsInteraction: FirstPredictionOnUsInteraction =
+  {
+    offerViewed: false,
+    skipped: false,
+    marketId: null,
+    outcome: null,
+    orderStatus: null,
+    predictAccountAddress: null,
+    transactionHash: null,
+  };
 
 export interface RewardsState {
   activeTab: 'overview' | 'campaigns' | 'activity';
@@ -142,6 +185,9 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Pending Money Account Sweepstakes series opt-in (resume on dashboard focus)
+  pendingMasSeriesOptIn: PendingMasSeriesOptInState;
+
   // Benefits state
   benefits: SubscriptionBenefitDto[];
   benefitsLoading: boolean;
@@ -156,6 +202,8 @@ export interface RewardsState {
   vipRefereeDashboardError: boolean;
   vipSplashAccepted: Record<string, boolean>;
   vipRefereeSplashAccepted: Record<string, boolean>;
+  // VIP transactions (keyed by `${subscriptionId}:${type}`)
+  vipTransactions: Record<string, VipTransactionDto[] | null>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -231,6 +279,24 @@ export interface RewardsState {
     CampaignResourceCacheEntry<PredictThePitchPrizePoolDto>
   >;
 
+  // Money Account Sweepstakes stats (keyed by campaignId; auth-scoped via controller)
+  moneyAccountSweepstakesStats: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesStatsMeDto>
+  >;
+
+  // Money Account Sweepstakes prize pool (keyed by campaignId)
+  moneyAccountSweepstakesPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesPrizePoolDto>
+  >;
+
+  // Money Account Sweepstakes draw proof (keyed by campaignId)
+  moneyAccountSweepstakesDrawProofs: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesDrawProofDto>
+  >;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -240,6 +306,12 @@ export interface RewardsState {
 
   // Subscribed campaign start reminders (keyed by `${subscriptionId}:${campaignId}`)
   subscribedCampaignReminders: Record<string, boolean>;
+
+  // Customer-support trail for First Prediction On Us. Included in exported
+  // state logs so support can see whether the user viewed, skipped, or
+  // predicted — and the predict account / tx hash when a real order executes.
+  // `offerViewed` is also the one-time guard that prevents re-showing the splash.
+  firstPredictionOnUsInteraction: FirstPredictionOnUsInteraction;
 }
 
 /**
@@ -248,7 +320,7 @@ export interface RewardsState {
  */
 export interface PendingDeeplink {
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch' | 'money';
 }
 
 export const initialState: RewardsState = {
@@ -309,6 +381,11 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
+  pendingMasSeriesOptIn: {
+    needsRetry: false,
+    subscriptionId: null,
+  },
+
   // Benefits initial state
   benefits: [],
   benefitsLoading: false,
@@ -323,6 +400,7 @@ export const initialState: RewardsState = {
   vipRefereeDashboardError: false,
   vipSplashAccepted: {},
   vipRefereeSplashAccepted: {},
+  vipTransactions: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -361,12 +439,17 @@ export const initialState: RewardsState = {
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
   predictThePitchPrizePools: {},
+  moneyAccountSweepstakesStats: {},
+  moneyAccountSweepstakesPrizePools: {},
+  moneyAccountSweepstakesDrawProofs: {},
 
   pendingDeeplink: null,
 
   dismissedCampaignOutcomeToasts: {},
 
   subscribedCampaignReminders: {},
+
+  firstPredictionOnUsInteraction: initialFirstPredictionOnUsInteraction,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -487,6 +570,9 @@ const rewardsSlice = createSlice({
       state.predictThePitchLeaderboardPositions = {};
       state.predictThePitchPositions = {};
       state.predictThePitchPrizePools = {};
+      state.moneyAccountSweepstakesStats = {};
+      state.moneyAccountSweepstakesPrizePools = {};
+      state.moneyAccountSweepstakesDrawProofs = {};
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
@@ -495,6 +581,7 @@ const rewardsSlice = createSlice({
       state.vipRefereeDashboardError = false;
       state.vipSplashAccepted = {};
       state.vipRefereeSplashAccepted = {};
+      state.vipTransactions = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -546,6 +633,7 @@ const rewardsSlice = createSlice({
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           subscribedCampaignReminders: state.subscribedCampaignReminders,
+          firstPredictionOnUsInteraction: state.firstPredictionOnUsInteraction,
           vipSplashAccepted: state.vipSplashAccepted,
           vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
@@ -676,6 +764,20 @@ const rewardsSlice = createSlice({
         action.payload.campaignId,
       );
       state.campaignParticipantStatuses[key] = action.payload.status;
+    },
+
+    setPendingMasSeriesOptIn: (
+      state,
+      action: PayloadAction<PendingMasSeriesOptInState>,
+    ) => {
+      state.pendingMasSeriesOptIn = {
+        needsRetry: action.payload.needsRetry,
+        subscriptionId: action.payload.subscriptionId,
+      };
+    },
+
+    clearPendingMasSeriesOptIn: (state) => {
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
 
     // Version guard reducers
@@ -861,6 +963,21 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{ subscriptionId: string }>,
     ) => {
       state.vipRefereeSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
+    setVipTransactions: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        type: VipTransactionType;
+        transactions: VipTransactionDto[] | null;
+      }>,
+    ) => {
+      const key = buildSubscriptionVipTransactionCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.type,
+      );
+      state.vipTransactions[key] = action.payload.transactions;
     },
 
     setOndoCampaignActivity: (
@@ -1133,6 +1250,123 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Money Account Sweepstakes stats reducers
+    setMoneyAccountSweepstakesStats: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        stats: MoneyAccountSweepstakesStatsMeDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.stats;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesStatsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesStatsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes prize pool reducers
+    setMoneyAccountSweepstakesPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: MoneyAccountSweepstakesPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes draw proof reducers
+    setMoneyAccountSweepstakesDrawProof: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        drawProof: MoneyAccountSweepstakesDrawProofDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.drawProof;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesDrawProofLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesDrawProofError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -1179,6 +1413,7 @@ const rewardsSlice = createSlice({
       state.bulkLink.isRunning = false;
       state.bulkLink.wasInterrupted = false;
       state.bulkLink.initialSubscriptionId = null;
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
     bulkLinkReset: (state) => {
       state.bulkLink = initialState.bulkLink;
@@ -1230,6 +1465,67 @@ const rewardsSlice = createSlice({
       );
       state.subscribedCampaignReminders[key] = true;
     },
+
+    markFirstPredictionOnUsOfferViewed: (state) => {
+      state.firstPredictionOnUsInteraction.offerViewed = true;
+    },
+
+    markFirstPredictionOnUsSkipped: (state) => {
+      state.firstPredictionOnUsInteraction.skipped = true;
+    },
+
+    markFirstPredictionOnUsOutcomeOpened: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = null;
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
+    },
+
+    markFirstPredictionOnUsOrderConfirmed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'confirmed';
+    },
+
+    markFirstPredictionOnUsOrderExecuted: (
+      state,
+      action: PayloadAction<{
+        marketId: string;
+        outcome: string;
+        predictAccountAddress: string;
+        transactionHash: string;
+      }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'executed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress =
+        action.payload.predictAccountAddress;
+      state.firstPredictionOnUsInteraction.transactionHash =
+        action.payload.transactionHash;
+    },
+
+    markFirstPredictionOnUsOrderFailed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'failed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1276,6 +1572,7 @@ const rewardsSlice = createSlice({
               vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               vipRefereeSplashAccepted:
                 action.payload.rewards.vipRefereeSplashAccepted ?? {},
+              vipTransactions: action.payload.rewards.vipTransactions ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1300,6 +1597,11 @@ const rewardsSlice = createSlice({
               subscribedCampaignReminders:
                 action.payload.rewards.subscribedCampaignReminders ?? {},
 
+              firstPredictionOnUsInteraction: {
+                ...initialFirstPredictionOnUsInteraction,
+                ...action.payload.rewards.firstPredictionOnUsInteraction,
+              },
+
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
                 ...initialState.bulkLink,
@@ -1315,6 +1617,11 @@ const rewardsSlice = createSlice({
                 initialSubscriptionId: wasInterrupted
                   ? (previousBulkLink?.initialSubscriptionId ?? null)
                   : null,
+              },
+
+              pendingMasSeriesOptIn: {
+                ...initialState.pendingMasSeriesOptIn,
+                ...(action.payload.rewards.pendingMasSeriesOptIn ?? {}),
               },
             } as RewardsState;
           }
@@ -1361,11 +1668,14 @@ export const {
   setVipRefereeDashboardLoading,
   acceptVipInvite,
   acceptVipRefereeInvite,
+  setVipTransactions,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+  clearPendingMasSeriesOptIn,
   // Version guard actions
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
@@ -1398,6 +1708,15 @@ export const {
   setPredictThePitchPrizePool,
   setPredictThePitchPrizePoolLoading,
   setPredictThePitchPrizePoolError,
+  setMoneyAccountSweepstakesStats,
+  setMoneyAccountSweepstakesStatsLoading,
+  setMoneyAccountSweepstakesStatsError,
+  setMoneyAccountSweepstakesPrizePool,
+  setMoneyAccountSweepstakesPrizePoolLoading,
+  setMoneyAccountSweepstakesPrizePoolError,
+  setMoneyAccountSweepstakesDrawProof,
+  setMoneyAccountSweepstakesDrawProofLoading,
+  setMoneyAccountSweepstakesDrawProofError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
@@ -1409,6 +1728,12 @@ export const {
   setPendingDeeplink,
   dismissCampaignOutcomeToast,
   subscribeCampaignReminder,
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+  markFirstPredictionOnUsOutcomeOpened,
+  markFirstPredictionOnUsOrderConfirmed,
+  markFirstPredictionOnUsOrderExecuted,
+  markFirstPredictionOnUsOrderFailed,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, Image } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -109,15 +111,16 @@ const PredictMarketRowItem = ({
             <Image
               source={{ uri: market.image }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
+              recyclingKey={market.image}
             />
           ) : null)}
       </Box>
       <View style={tw.style('flex-1 pl-4')}>
         <Text
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
-          style={tw.style('font-medium')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >

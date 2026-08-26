@@ -7,10 +7,14 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
+import { mapKeyringTransaction } from '@metamask/client-utils';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { ActivityListItem } from '../../../util/activity-adapters';
 import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -44,6 +48,14 @@ jest.mock('../../hooks/useMultichainTransactionDisplay', () => ({
     to: { amount: '1', unit: 'SOL' },
     isRedeposit: false,
   })),
+}));
+
+jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
+  isBridgeTxHistoryItemBridge: jest.fn(
+    (item: { quote: { srcChainId: unknown; destChainId: unknown } }) =>
+      item.quote.srcChainId !== item.quote.destChainId,
+  ),
+  handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
 }));
 
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
@@ -95,23 +107,38 @@ const createTransaction = (
 
 const mockUseSelector = jest.mocked(useSelector);
 
+const mockSelectors = ({
+  redesignEnabled = false,
+  keyringTransactions = [] as Transaction[],
+} = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsTransactionsRedesignEnabled) {
+      return redesignEnabled;
+    }
+    if (selector === selectNonEvmTransactionsForSelectedAccountGroup) {
+      return { transactions: keyringTransactions };
+    }
+    return undefined;
+  });
+};
+
 describe('MultichainAssetDetailsActivityListItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Redesign disabled by default -> legacy bottom sheet.
-    mockUseSelector.mockImplementation(() => false);
+    mockSelectors();
   });
 
   it('routes to the ActivityDetails screen when the redesign is enabled', () => {
-    mockUseSelector.mockImplementation(
-      (selector) => selector === selectIsTransactionsRedesignEnabled,
-    );
     const navigation = createNavigation();
     const transaction = createTransaction();
+    mockSelectors({
+      redesignEnabled: true,
+      keyringTransactions: [transaction],
+    });
 
     const { getByTestId } = render(
       <MultichainAssetDetailsActivityListItem
-        transaction={transaction}
+        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
         index={0}
         chainId={SolScope.Mainnet}
         navigation={navigation}
@@ -129,13 +156,34 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     );
   });
 
+  it('does not override the row title, so it uses the shared redesign copy', () => {
+    const { ActivityListItemRow } = jest.requireMock(
+      '../../UI/ActivityListItemRow/ActivityListItemRow',
+    );
+    const navigation = createNavigation();
+    const transaction = createTransaction();
+    mockSelectors({ keyringTransactions: [transaction] });
+
+    render(
+      <MultichainAssetDetailsActivityListItem
+        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+        index={0}
+        chainId={SolScope.Mainnet}
+        navigation={navigation}
+      />,
+    );
+
+    expect(ActivityListItemRow.mock.calls[0][0]).not.toHaveProperty('title');
+  });
+
   it('opens multichain details when transaction has import insertion point', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
+    mockSelectors({ keyringTransactions: [transaction] });
 
     const { getByTestId, queryByTestId } = render(
       <MultichainAssetDetailsActivityListItem
-        transaction={transaction}
+        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
         index={0}
         chainId={SolScope.Mainnet}
         navigation={navigation}
@@ -153,5 +201,141 @@ describe('MultichainAssetDetailsActivityListItem', () => {
         screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
       }),
     );
+  });
+
+  describe('rows carrying a bridge-history entry', () => {
+    const createBridgeHistoryItem = (srcChainId: string, destChainId: string) =>
+      ({
+        status: { status: 'COMPLETE', srcChain: { txHash: 'tx-1' } },
+        quote: {
+          srcChainId,
+          destChainId,
+          srcTokenAmount: '1000000000',
+          destTokenAmount: '1000000',
+          srcAsset: {
+            chainId: srcChainId,
+            assetId: `${srcChainId}/slip44:501`,
+            decimals: 9,
+            symbol: 'SOL',
+          },
+          destAsset: {
+            chainId: destChainId,
+            assetId: `${destChainId}/slip44:60`,
+            decimals: 6,
+            symbol: 'USDC',
+          },
+        },
+      }) as never;
+
+    it('routes a same-chain swap to the redesigned ActivityDetails screen', () => {
+      const navigation = createNavigation();
+      const transaction = createTransaction({ type: TransactionType.Swap });
+      mockSelectors({
+        redesignEnabled: true,
+        keyringTransactions: [transaction],
+      });
+
+      const { getByTestId } = render(
+        <MultichainAssetDetailsActivityListItem
+          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          bridgeHistoryItem={createBridgeHistoryItem(
+            SolScope.Mainnet,
+            SolScope.Mainnet,
+          )}
+          index={0}
+          chainId={SolScope.Mainnet}
+          navigation={navigation}
+        />,
+      );
+
+      fireEvent.press(getByTestId('activity-list-item-row'));
+
+      expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+      expect(navigation.navigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({ txIdentifier: 'tx-1' }),
+      );
+    });
+
+    it('routes a cross-chain bridge to the redesigned ActivityDetails screen', () => {
+      const navigation = createNavigation();
+      const transaction = createTransaction({ type: TransactionType.Swap });
+      mockSelectors({
+        redesignEnabled: true,
+        keyringTransactions: [transaction],
+      });
+
+      const { getByTestId } = render(
+        <MultichainAssetDetailsActivityListItem
+          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          bridgeHistoryItem={createBridgeHistoryItem(
+            SolScope.Mainnet,
+            'eip155:1',
+          )}
+          index={0}
+          chainId={SolScope.Mainnet}
+          navigation={navigation}
+        />,
+      );
+
+      fireEvent.press(getByTestId('activity-list-item-row'));
+
+      expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+      expect(navigation.navigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({ txIdentifier: 'tx-1' }),
+      );
+    });
+
+    it('falls back to the bridge-status screen for a cross-chain bridge when the redesign is off', () => {
+      const navigation = createNavigation();
+      const transaction = createTransaction({ type: TransactionType.Swap });
+      mockSelectors({ keyringTransactions: [transaction] });
+
+      const { getByTestId } = render(
+        <MultichainAssetDetailsActivityListItem
+          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          bridgeHistoryItem={createBridgeHistoryItem(
+            SolScope.Mainnet,
+            'eip155:1',
+          )}
+          index={0}
+          chainId={SolScope.Mainnet}
+          navigation={navigation}
+        />,
+      );
+
+      fireEvent.press(getByTestId('activity-list-item-row'));
+
+      expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
+        expect.objectContaining({ multiChainTx: transaction }),
+      );
+    });
+
+    it('passes the bridge-history entry to the shared row for enrichment', () => {
+      const { ActivityListItemRow } = jest.requireMock(
+        '../../UI/ActivityListItemRow/ActivityListItemRow',
+      );
+      const transaction = createTransaction({ type: TransactionType.Swap });
+      mockSelectors({ keyringTransactions: [transaction] });
+      const bridgeHistoryItem = createBridgeHistoryItem(
+        SolScope.Mainnet,
+        SolScope.Mainnet,
+      );
+
+      render(
+        <MultichainAssetDetailsActivityListItem
+          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          bridgeHistoryItem={bridgeHistoryItem}
+          index={0}
+          chainId={SolScope.Mainnet}
+          navigation={createNavigation()}
+        />,
+      );
+
+      expect(ActivityListItemRow.mock.calls[0][0].bridgeHistoryItem).toBe(
+        bridgeHistoryItem,
+      );
+    });
   });
 });

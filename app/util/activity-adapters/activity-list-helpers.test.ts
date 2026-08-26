@@ -1,11 +1,13 @@
-import type { ActivityListItem } from './types';
+import type { ActivityListItem, TokenAmount } from './types';
+import { GAS_FEE_SPONSORED } from './fees';
 import {
-  activityMatchesAssetId,
+  enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  preferLocalOrApiActivityItem,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -51,32 +53,167 @@ describe('activity list helpers', () => {
     expect(shouldShowPlusSign('receive')).toBe(true);
   });
 
-  it('matches token, source token, and destination token asset ids case-insensitively', () => {
-    const item = makeItem({
-      hash: '0xhash',
-      data: {
-        sourceToken: {
-          assetId: 'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
-          direction: 'out',
-          symbol: 'USDC',
+  describe('preferLocalOrApiActivityItem', () => {
+    it('prefers matching-type local when only it has a gas-token fee', () => {
+      const local = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+          ],
         },
-        destinationToken: {
-          assetId: 'eip155:1/slip44:60',
-          direction: 'in',
-          symbol: 'ETH',
+      });
+      const api = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
         },
-      },
-      type: 'swap',
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
     });
 
-    expect(
-      activityMatchesAssetId(
-        item,
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      ),
-    ).toBe(true);
-    expect(activityMatchesAssetId(item, 'eip155:1/slip44:60')).toBe(true);
-    expect(activityMatchesAssetId(item, 'eip155:137/slip44:60')).toBe(false);
+    it('does not let a gas-token local contractInteraction beat an API send', () => {
+      const local = makeItem({
+        type: 'contractInteraction',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+          ],
+        },
+      });
+      const api = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
+    it('preserves sponsored local fees when an API item is preferred', () => {
+      const local = makeItem({
+        type: 'swap',
+        data: {
+          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
+          destinationToken: { direction: 'in', symbol: 'USDC' },
+          fees: [{ type: GAS_FEE_SPONSORED }],
+        },
+      });
+      const api = makeItem({
+        type: 'swap',
+        data: {
+          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
+          destinationToken: { amount: '2', direction: 'in', symbol: 'USDC' },
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'MON' },
+            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
+          ],
+        },
+      });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toStrictEqual({
+        ...api,
+        data: {
+          ...api.data,
+          fees: [
+            { type: GAS_FEE_SPONSORED },
+            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
+          ],
+        },
+      });
+    });
+
+    it('keeps the local item when there is no API counterpart', () => {
+      const local = makeItem({ type: 'send' });
+      expect(preferLocalOrApiActivityItem(local, undefined)).toBe(local);
+    });
+
+    it('prefers a local spending cap carrying a cap amount', () => {
+      const local = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { amount: '100000', direction: 'out' } },
+      });
+      const api = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { direction: 'out' } },
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
+    });
+
+    it('prefers a local unlimited approval over an API copy with no cap amount', () => {
+      const local = makeItem({
+        type: 'increaseSpendingCap',
+        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+      });
+      const api = makeItem({
+        type: 'increaseSpendingCap',
+        data: { token: { direction: 'out' } },
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
+    });
+
+    it('keeps the API item when neither copy has a cap amount', () => {
+      const local = makeItem({ type: 'revokeSpendingCap', data: {} });
+      const api = makeItem({
+        type: 'revokeSpendingCap',
+        data: { token: { direction: 'out' } },
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
+    it('keeps the API item when the local gas-token fee has no usable amount', () => {
+      for (const amount of ['0', '0x0', '', 'not-a-number', undefined]) {
+        const local = makeItem({
+          type: 'send',
+          data: {
+            from: '0xfrom',
+            to: '0xto',
+            fees: [{ type: 'gasToken', amount, decimals: 6, symbol: 'USDT' }],
+          },
+        });
+        const api = makeItem({
+          type: 'send',
+          data: {
+            from: '0xfrom',
+            to: '0xto',
+            fees: [
+              { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+            ],
+          },
+        });
+        expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+      }
+    });
+
+    it('keeps the API item when the local copy carries no fees at all', () => {
+      const local = makeItem({
+        type: 'send',
+        data: { from: '0xfrom', to: '0xto' },
+      });
+      const api = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
   });
 
   it('groups pending items before date-grouped historical items', () => {
@@ -149,7 +286,7 @@ describe('activity list helpers', () => {
           symbol: 'DAI',
         },
       },
-      type: 'swapIncomplete',
+      type: 'swap',
     });
 
     expect(getActivityValue(tokenItem)).toBe('1 ETH');
@@ -273,5 +410,84 @@ describe('activity list helpers', () => {
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: secondItem }, 0),
     ).toBe('eip155:137-contractInteraction-123-0');
+  });
+});
+
+describe('enrichTokenFromApi', () => {
+  const USDT_ASSET_ID =
+    'eip155:42161/erc20:0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9';
+  const apiData = {
+    [USDT_ASSET_ID]: { symbol: 'USDT', decimals: 6 },
+  };
+
+  it('fills missing decimals and symbol from the tokens API', () => {
+    // Raw base-unit amount with no decimals — without enrichment a formatter
+    // would render "10000" instead of 0.01.
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)).toStrictEqual({
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+      symbol: 'USDT',
+      decimals: 6,
+    });
+  });
+
+  it('matches the asset id case-insensitively', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID.toUpperCase(),
+    };
+
+    expect(enrichTokenFromApi(token, apiData)?.decimals).toBe(6);
+  });
+
+  it('keeps existing symbol and decimals (adapter values win)', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+      symbol: 'aUSDT',
+      decimals: 8,
+    };
+
+    const result = enrichTokenFromApi(token, apiData);
+    expect(result?.symbol).toBe('aUSDT');
+    expect(result?.decimals).toBe(8);
+  });
+
+  it('preserves a zero-decimals value rather than treating it as missing', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '5',
+      assetId: USDT_ASSET_ID,
+      decimals: 0,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)?.decimals).toBe(0);
+  });
+
+  it('returns the token unchanged when it has no asset id', () => {
+    const token: TokenAmount = { direction: 'out', amount: '10000' };
+    expect(enrichTokenFromApi(token, apiData)).toBe(token);
+  });
+
+  it('returns the token unchanged when the api has no matching entry', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: 'eip155:1/erc20:0xunknown',
+    };
+    expect(enrichTokenFromApi(token, apiData)).toBe(token);
+  });
+
+  it('returns undefined when given no token', () => {
+    expect(enrichTokenFromApi(undefined, apiData)).toBeUndefined();
   });
 });

@@ -344,6 +344,33 @@ describe('BrowserUrlBar', () => {
       });
     });
 
+    describe('dismissEditing method', () => {
+      it('unfocuses without calling onCancel', () => {
+        const onCancelMock = jest.fn();
+        const onBlurMock = jest.fn();
+        const setIsUrlBarFocusedMock = jest.fn();
+        const props = {
+          ...defaultProps,
+          onCancel: onCancelMock,
+          onBlur: onBlurMock,
+          setIsUrlBarFocused: setIsUrlBarFocusedMock,
+          isUrlBarFocused: true,
+        };
+
+        renderWithProvider(<BrowserUrlBar {...props} ref={urlBarRef} />, {
+          state: mockInitialState,
+        });
+
+        act(() => {
+          urlBarRef.current?.dismissEditing();
+        });
+
+        expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
+        expect(onBlurMock).toHaveBeenCalledTimes(1);
+        expect(onCancelMock).not.toHaveBeenCalled();
+      });
+    });
+
     describe('focus method', () => {
       it('exposes focus method through imperative handle', () => {
         // Arrange
@@ -624,6 +651,36 @@ describe('BrowserUrlBar', () => {
       });
 
       expect(getByText('https://example.com/page')).toBeDefined();
+    });
+
+    it('shows the committed activeUrl after leftover setNativeProps input', () => {
+      const urlBarRef = createRef<BrowserUrlBarRef>();
+
+      const { rerender, getByTestId, queryByText } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          ref={urlBarRef}
+          activeUrl="https://first.example/path"
+        />,
+        { state: mockInitialState },
+      );
+
+      act(() => {
+        urlBarRef.current?.setNativeProps({ text: 'https://first.example' });
+      });
+
+      rerender(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          ref={urlBarRef}
+          activeUrl="https://second.example/path"
+        />,
+      );
+
+      expect(
+        getByTestId(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT),
+      ).toHaveTextContent('https://second.example/path');
+      expect(queryByText('https://first.example')).toBeNull();
     });
   });
 

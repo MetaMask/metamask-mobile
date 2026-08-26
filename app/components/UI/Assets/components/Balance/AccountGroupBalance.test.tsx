@@ -35,11 +35,19 @@ jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  selectUnifiedBalanceBySelectedAccountGroup: jest.fn(() => () => null),
   // Factory: selectBalanceChangeBySelectedAccountGroup(period, popularChainIds?) -> (state) => value
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   // This selector is used to display the BalanceEmptyState
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
 
 // Mock onboarding selectors (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/onboarding', () => ({
@@ -186,5 +194,25 @@ describe('AccountGroupBalance', () => {
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
     );
     expect(el).toBeOnTheScreen();
+  });
+
+  it('does not recreate the balance selector on re-render when popularNetworks content is unchanged', () => {
+    // `useNetworkEnablement` is mocked to return a brand new `popularNetworks` array
+    // literal on every call (as the real hook does). If `chainIdsForBalance` were not
+    // stabilized by content, `groupBalanceSelector`'s useMemo would treat every render
+    // as a change and call this factory again on every render, discarding the
+    // selector's internal reselect cache each time (the root cause of the max update
+    // depth / infinite loop this hook was written to avoid).
+    const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+
+    const { rerender } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
+    rerender(<AccountGroupBalance suspendRiveForCurtain={false} />);
+    rerender(<AccountGroupBalance suspendRiveForCurtain />);
+
+    expect(selectBalanceBySelectedAccountGroup).toHaveBeenCalledTimes(1);
   });
 });

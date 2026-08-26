@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useMemo } from 'react';
 import { Image } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   ButtonVariant,
@@ -84,7 +85,7 @@ export type RewardsDashboardModalType =
   | 'not-supported';
 
 export const useRewardDashboardModals = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const sessionTracker = useRef(ModalSessionTracker.getInstance());

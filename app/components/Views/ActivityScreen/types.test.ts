@@ -5,6 +5,7 @@ import {
   PERPS_ACTIVITY_FILTER_KINDS,
   PERPS_ACTIVITY_FILTER_ORDER,
   PerpsActivityFilter,
+  activityKindMatchesTypeFilter,
   getPerpsSubFilterKinds,
   resolveInitialActivityTypeFilter,
 } from './types';
@@ -14,7 +15,7 @@ describe('Perps sub-filter buckets', () => {
     expect(PERPS_ACTIVITY_FILTER_ORDER[0]).toBe(PerpsActivityFilter.Trades);
     expect(PERPS_ACTIVITY_FILTER_ORDER).toEqual([
       PerpsActivityFilter.Trades,
-      PerpsActivityFilter.Order,
+      PerpsActivityFilter.Orders,
       PerpsActivityFilter.Fundings,
       PerpsActivityFilter.Deposits,
     ]);
@@ -56,7 +57,7 @@ describe('Perps sub-filter buckets', () => {
       ),
     ).toBe(true);
     expect(
-      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Order].has('limitShort'),
+      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Orders].has('limitShort'),
     ).toBe(true);
     expect(
       PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Fundings].has(
@@ -84,6 +85,33 @@ describe('getPerpsSubFilterKinds', () => {
         'trades' as unknown as PerpsActivityFilter,
       ),
     ).toBeUndefined();
+  });
+});
+
+describe('activityKindMatchesTypeFilter', () => {
+  it('groups lending and mUSD-bonus kinds under Transactions (the Money bucket is removed)', () => {
+    for (const kind of [
+      'lendingDeposit',
+      'lendingWithdrawal',
+      'claimMusdBonus',
+    ] as ActivityKind[]) {
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
+      ).toBe(true);
+    }
+  });
+
+  it('groups earn/staking kinds (incl. stake) under Transactions', () => {
+    for (const kind of [
+      'stake',
+      'deposit',
+      'claim',
+      'unstake',
+    ] as ActivityKind[]) {
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
+      ).toBe(true);
+    }
   });
 });
 
@@ -128,9 +156,9 @@ describe('resolveInitialActivityTypeFilter', () => {
   it('prefers an explicit initialTypeFilter over legacy redirect hints', () => {
     expect(
       resolveInitialActivityTypeFilter({
-        initialTypeFilter: ActivityTypeFilter.Money,
+        initialTypeFilter: ActivityTypeFilter.Predictions,
         redirectToPerpsTransactions: true,
       }),
-    ).toBe(ActivityTypeFilter.Money);
+    ).toBe(ActivityTypeFilter.Predictions);
   });
 });

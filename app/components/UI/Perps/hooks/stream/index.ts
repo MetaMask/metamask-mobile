@@ -8,6 +8,7 @@ export {
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
+export { usePerpsLiveFocusedPrice } from './usePerpsLiveFocusedPrice';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';
 export { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
 
@@ -24,6 +25,7 @@ export type {
   UsePerpsTopOfBookOptions,
   TopOfBookData,
 } from './usePerpsTopOfBook';
+export type { UsePerpsLiveFocusedPriceOptions } from './usePerpsLiveFocusedPrice';
 export type {
   UsePerpsLiveCandlesOptions,
   UsePerpsLiveCandlesReturn,
@@ -33,8 +35,8 @@ export type {
   UsePerpsLiveOrderBookReturn,
   OrderBookData,
   OrderBookLevel,
+  OrderBookConnectionStatus,
 } from './usePerpsLiveOrderBook';
-
 // Re-export types from controllers
 export {
   type PriceUpdate,

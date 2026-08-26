@@ -14,7 +14,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
+import { useAdvancedGasFeeModal } from '../../../hooks/gas/useAdvancedGasFeeModal';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import BottomModal from '../../UI/bottom-modal';
 import { GasModalHeader } from '../../../components/gas/gas-modal-header';
@@ -52,17 +52,26 @@ export const AdvancedEIP1559Modal = ({
     maxFeePerGas: false,
     maxPriorityFeePerGas: false,
   });
-  const hasError = Boolean(
-    errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas,
-  );
-
-  const handleSaveClick = useCallback(() => {
-    updateTransactionGasFees(transactionMeta.id, {
+  const savedGasFeePreferences = useMemo(
+    () => ({
       userFeeLevel: UserFeeLevel.CUSTOM,
-      ...pickBy(gasParams, Boolean),
-    });
-    handleCloseModals();
-  }, [transactionMeta.id, gasParams, handleCloseModals]);
+      ...pickBy(
+        {
+          maxBaseFee: gasParams.maxFeePerGas,
+          priorityFee: gasParams.maxPriorityFeePerGas,
+        },
+        Boolean,
+      ),
+    }),
+    [gasParams.maxFeePerGas, gasParams.maxPriorityFeePerGas],
+  );
+  const { hasError, handleSaveClick } = useAdvancedGasFeeModal({
+    transactionMeta,
+    gasParams,
+    savedGasFeePreferences,
+    errors,
+    handleCloseModals,
+  });
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);

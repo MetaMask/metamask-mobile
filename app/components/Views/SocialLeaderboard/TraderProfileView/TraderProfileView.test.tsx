@@ -13,6 +13,8 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
@@ -425,6 +427,24 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('safe area layout', () => {
+    it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER).props.edges,
+      ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
+    });
+
+    it('keeps the top inset on the header to prevent layout shift on push', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expectHeaderIncludesTopInset(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      );
+    });
+  });
+
   it('displays the trader name in the profile header and compact nav header', () => {
     renderWithProvider(<TraderProfileView />);
     expect(
@@ -687,8 +707,31 @@ describe('TraderProfileView', () => {
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
         isClosed: false,
       },
+    );
+  });
+
+  it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED,
+      expect.objectContaining({
+        trader_address: '0xabc',
+        asset_name: 'BTC',
+        chain_name: 'hyperliquid',
+        perps_market: 'BTC',
+        is_open: true,
+      }),
     );
   });
 
@@ -938,6 +981,7 @@ describe('TraderProfileView', () => {
           source: 'trader_profile',
           traderAddress: '0xabc',
           traderUsername: 'trader1',
+          traderAvatarUri: fixtureProfile.profile.imageUrl,
         }),
       );
     });

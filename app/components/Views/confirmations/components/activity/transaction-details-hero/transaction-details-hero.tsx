@@ -3,10 +3,6 @@ import { Image, StyleProp, StyleSheet, TextStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
@@ -14,11 +10,9 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
-} from '@metamask/transaction-controller';
-import {
   hasTransactionType,
-  parseStandardTokenTransactionData,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { Result } from '@ethersproject/abi';
 import { calcTokenAmount } from '../../../../../../util/transactions';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -51,10 +45,18 @@ import {
   MUSD_DECIMALS,
 } from '../../../../../UI/Earn/constants/musd';
 import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
-import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
+import {
+  ACTIVITY_FIAT_FRACTION_DIGITS,
+  RELAY_DEPOSIT_TYPES,
+} from '../../../constants/confirmations';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const iconStyles = StyleSheet.create({
   moneyIcon: { width: 32, height: 32, borderRadius: 16 },
@@ -128,7 +130,7 @@ function TwoAssetHero({
         labelStyle={styles.youReceivedLabel}
         sign="+"
         data={receivedData}
-        amountColor={TextColor.Success}
+        amountColor={TextColor.SuccessDefault}
         iconOverride={isMusdToken(receivedData.address) && moneyIcon}
       />
     </Box>
@@ -152,7 +154,7 @@ function AssetLine({
 }) {
   return (
     <>
-      <Text color={TextColor.Alternative} style={labelStyle}>
+      <Text color={TextColor.TextAlternative} style={labelStyle}>
         {label}
       </Text>
       <Box
@@ -167,7 +169,7 @@ function AssetLine({
             symbol={data.symbol}
           />
         )}
-        <Text variant={TextVariant.DisplayMD} color={amountColor}>
+        <Text variant={TextVariant.DisplayMd} color={amountColor}>
           {sign}
           {data.fiatAmount}
         </Text>
@@ -177,8 +179,13 @@ function AssetLine({
 }
 
 export function TransactionDetailsHero() {
-  const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
-  const formatFiatUser = useFiatFormatter();
+  const formatFiatPerps = useFiatFormatter({
+    currency: PERPS_CURRENCY,
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
+  const formatFiatUser = useFiatFormatter({
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
   const formatFiatPay = usePayFiatFormatter();
   const { styles } = useStyles(styleSheet, {});
   const decodedAmount = useDecodedAmount();
@@ -233,6 +240,12 @@ export function TransactionDetailsHero() {
     const isMusdWithdrawSingleRow =
       isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
 
+    // Same-token flows produce no MM Pay quotes, so the controller writes a
+    // literal '0' targetFiat — fall back to the decoded token amount.
+    const payTargetFiat = transactionMeta.metamaskPay?.targetFiat;
+    const heroAmount =
+      payTargetFiat && payTargetFiat !== '0' ? payTargetFiat : tokenMeta.amount;
+
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
         source={MoneyIcon}
@@ -258,15 +271,11 @@ export function TransactionDetailsHero() {
       >
         {icon}
         <Text
-          variant={TextVariant.DisplayMD}
-          color={showDepositPrefix ? TextColor.Success : undefined}
+          variant={TextVariant.DisplayMd}
+          color={showDepositPrefix ? TextColor.SuccessDefault : undefined}
         >
           {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
-          {formatFiatPay(
-            new BigNumber(
-              transactionMeta.metamaskPay?.targetFiat ?? tokenMeta.amount,
-            ),
-          )}
+          {formatFiatPay(new BigNumber(heroAmount))}
         </Text>
       </Box>
     );
@@ -288,7 +297,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
+      <Text variant={TextVariant.DisplayLg}>{formattedAmount}</Text>
     </Box>
   );
 }
@@ -344,13 +353,43 @@ function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
   return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
 }
 
+/**
+ * Fiat value of what actually left the account.
+ *
+ * `metamaskPay.totalFiat` is documented as the total cost "including gas, fees,
+ * and the funds themselves", which holds for deposits: the required token is the
+ * target and the fees are paid on top of it. Post-quote flows (withdrawals)
+ * invert that — the required token is the source, so the amount the user chose
+ * already covers the fees — yet the controller still adds them, inflating
+ * `totalFiat` by the fee amount.
+ *
+ * For those flows, rebuild the sent amount from what the user received plus the
+ * fees the details screen itself lists, so the hero reconciles with the rows
+ * below it. `targetFiat` is '0' for same-token flows that produce no quotes;
+ * those have no fees to double-count, so `totalFiat` stands.
+ */
+function resolveSentFiat(transactionMeta: TransactionMeta): string | undefined {
+  const { bridgeFeeFiat, isPostQuote, networkFeeFiat, targetFiat, totalFiat } =
+    transactionMeta.metamaskPay ?? {};
+
+  if (!isPostQuote || !targetFiat || targetFiat === '0') {
+    return totalFiat;
+  }
+
+  return new BigNumber(targetFiat)
+    .plus(bridgeFeeFiat ?? 0)
+    .plus(networkFeeFiat ?? 0)
+    .toString(10);
+}
+
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
   sentData: TokenData,
   receivedData: TokenData,
   formatFiat: (value: BigNumber) => string,
 ): { sent: TokenDisplayData; received: TokenDisplayData } {
-  const { totalFiat, targetFiat } = transactionMeta.metamaskPay ?? {};
+  const { targetFiat } = transactionMeta.metamaskPay ?? {};
+  const sentFiat = resolveSentFiat(transactionMeta);
 
   const isOutbound = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -360,7 +399,7 @@ function resolveTwoAssetData(
     return {
       sent: {
         ...receivedData,
-        fiatAmount: formatFiat(new BigNumber(totalFiat ?? receivedData.amount)),
+        fiatAmount: formatFiat(new BigNumber(sentFiat ?? receivedData.amount)),
       },
       received: {
         ...sentData,
@@ -369,7 +408,7 @@ function resolveTwoAssetData(
     };
   }
 
-  const fiatSent = formatFiat(new BigNumber(totalFiat ?? sentData.amount));
+  const fiatSent = formatFiat(new BigNumber(sentFiat ?? sentData.amount));
   const fiatReceived = formatFiat(
     new BigNumber(targetFiat ?? receivedData.amount),
   );

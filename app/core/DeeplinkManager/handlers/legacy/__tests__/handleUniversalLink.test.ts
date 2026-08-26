@@ -25,6 +25,7 @@ import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
 import { handleBatchSellUrl } from '../handleBatchSellUrl';
 import { handleAssetUrl } from '../handleAssetUrl';
+import { handlePrivacyUrl } from '../handlePrivacyUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -58,6 +59,7 @@ jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBatchSellUrl');
 jest.mock('../handleAssetUrl');
+jest.mock('../handlePrivacyUrl');
 jest.mock('../handleBrowserUrl');
 jest.mock('../handleDappUrl', () => {
   const actual = jest.requireActual('../handleDappUrl');
@@ -553,6 +555,30 @@ describe('handleUniversalLink', () => {
       expect(handleAssetUrl).toHaveBeenCalledWith({
         assetPath,
       });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.PRIVACY', () => {
+    it('calls handlePrivacyUrl with the path after the action', async () => {
+      const privacyPath = '?setting=data-collection';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PRIVACY}${privacyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.PRIVACY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -1308,7 +1334,32 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id: undefined });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards the id query param to _handleWhatsHappening', async () => {
+      const id = 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}?id=${id}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+        search: `?id=${id}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id });
       expect(handled).toHaveBeenCalled();
     });
   });

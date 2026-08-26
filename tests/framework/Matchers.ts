@@ -1,13 +1,13 @@
-import { web, system } from 'detox';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
+import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
+import type { AppiumElement } from './AppiumElement.ts';
 import { resolve } from './Selector.ts';
-import PlaywrightMatchers from './PlaywrightMatchers.ts';
-import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import AppiumMatchers from './AppiumMatchers.ts';
+import AppiumWebMatchers from './AppiumWebMatchers.ts';
 import type { ScrollContainer } from './types.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 /**
- * Utility class for matching (locating) UI elements
+ * Utility class for matching (locating) UI elements (Appium Element API).
  */
 export default class Matchers {
   /**
@@ -16,7 +16,7 @@ export default class Matchers {
   static getElementByID(
     elementId: string | RegExp,
     index?: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     if (typeof elementId === 'string') {
       return resolve({ testID: elementId, index });
     }
@@ -30,7 +30,7 @@ export default class Matchers {
   static getElementByText(
     text: string | RegExp,
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     if (typeof text === 'string') {
       return resolve({ text, index });
     }
@@ -39,32 +39,36 @@ export default class Matchers {
   }
 
   /**
-   * Get element by text (case-insensitive contains). Useful for ordered list checks.
+   * Get element by text (contains). Useful for ordered list checks.
    */
-  static async getElementByTextContains(
+  static getElementByTextContains(
     containsText: string,
     index = 0,
-  ): Promise<Detox.IndexableNativeElement> {
-    const escaped = containsText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pattern = new RegExp(escaped, 'i');
-    return element(by.text(pattern)).atIndex(
-      index,
-    ) as Detox.IndexableNativeElement;
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByText(containsText, false, { index });
   }
 
   /**
-   * Get element that matches by id and label
-   * This strategy matches elements by combining 2 matchers together.
-   * Elements returned match the provided ID and Label at the same time.
+   * Get element that matches by id and label.
    */
   static async getElementByIDAndLabel(
     id: string,
     label: string | RegExp,
     index = 0,
-  ): Promise<Detox.IndexableNativeElement> {
-    return element(by.id(id).and(by.label(label))).atIndex(
-      index,
-    ) as Detox.IndexableNativeElement;
+  ): Promise<AppiumElement> {
+    const labelText = typeof label === 'string' ? label : label.source;
+    if (PlatformDetector.isAndroid()) {
+      const escapedLabel = labelText.replace(/"/g, '\\"');
+      return AppiumMatchers.getElementByAndroidUIAutomator(
+        `.resourceId("${id}").description("${escapedLabel}")`,
+        { index },
+      );
+    }
+    const escapedId = id.replace(/"/g, '\\"');
+    const escapedLabel = labelText.replace(/"/g, '\\"');
+    return AppiumMatchers.getElementByIOSPredicate(
+      `name == "${escapedId}" AND (label == "${escapedLabel}" OR value == "${escapedLabel}")`,
+    );
   }
 
   /**
@@ -73,162 +77,250 @@ export default class Matchers {
   static getElementByLabel(
     label: string,
     index?: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return resolve({ label, index });
   }
 
   /**
-   * Get element by descendant relationship
+   * Get element by descendant relationship (parent contains child).
    */
-  static async getElementByDescendant(
+  static getElementByDescendant(
     parentElement: string,
     childElement: string,
-  ): Promise<Detox.IndexableNativeElement> {
-    return element(by.id(parentElement).withDescendant(by.id(childElement)));
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByXPath(
+      Matchers.buildDescendantXPath(parentElement, childElement),
+    );
   }
 
   /**
-   * Get element with ancestor relationship
+   * Get element with ancestor relationship (child under parent).
    */
-  static async getElementIDWithAncestor(
+  static getElementIDWithAncestor(
     childElement: string,
     parentElement: string,
-  ): Promise<Detox.IndexableNativeElement> {
-    return element(by.id(childElement).withAncestor(by.id(parentElement)));
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByXPath(
+      Matchers.buildAncestorXPath(childElement, parentElement),
+    );
   }
 
   /**
-   * Detox `replaceText` / `typeText` on Android require an `android.widget.EditText`.
-   * Design-system text fields often attach `testID` to a wrapper (`Pressable` /
-   * `ViewGroup`); match the inner `EditText` under that id (see also LoginView password).
+   * Design-system text fields often attach `testID` to a wrapper; match the
+   * inner `EditText` under that id on Android.
    */
   static async getEditTextWithAncestorTestId(
     ancestorTestId: string,
-  ): Promise<Detox.IndexableNativeElement> {
-    if (device.getPlatform() === 'android') {
-      return element(
-        by.type('android.widget.EditText').withAncestor(by.id(ancestorTestId)),
-      ) as Detox.IndexableNativeElement;
+  ): Promise<AppiumElement> {
+    if (PlatformDetector.isAndroid()) {
+      const escaped = ancestorTestId.replace(/"/g, '\\"');
+      return AppiumMatchers.getElementByAndroidUIAutomator(
+        `.className("android.widget.EditText").fromParent(new UiSelector().resourceId("${escaped}"))`,
+      );
     }
-    return (await this.getElementByID(
-      ancestorTestId,
-    )) as Detox.IndexableNativeElement;
-  }
-
-  /**
-   * Get Native WebView instance by elementId
-   * Because Android Webview might have more that one WebView instance present on the main activity,
-   * the correct element is selected based on its parent element id.
-   */
-  static getWebViewByID(elementId: string): Detox.WebViewElement {
-    if (process.env.CI) {
-      return device.getPlatform() === 'ios'
-        ? web(by.id(elementId))
-        : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
-    }
-    return web(by.id(elementId));
+    return this.getElementByID(ancestorTestId);
   }
 
   /**
    * Get element by web ID within a webview
    */
   static async getElementByWebID(
-    webviewID: string,
+    _webviewID: string,
     innerID: string,
-  ): WebElement {
-    const myWebView = this.getWebViewByID(webviewID);
-    return myWebView.element(by.web.id(innerID));
+    pageUrl?: string,
+  ): Promise<AppiumElement> {
+    if (!pageUrl) {
+      throw new Error(
+        'pageUrl is required for Appium WebView element lookup via getElementByWebID',
+      );
+    }
+    return AppiumWebMatchers.getElementByWebID(innerID, pageUrl);
   }
 
   /**
    * Get element by CSS selector within a webview
    */
   static async getElementByCSS(
-    webviewID: string,
+    _webviewID: string,
     selector: string,
-  ): Promise<Detox.IndexableWebElement> {
-    const myWebView = this.getWebViewByID(webviewID);
-    return myWebView
-      .element(by.web.cssSelector(selector))
-      .atIndex(0) as unknown as Detox.IndexableWebElement;
+    pageUrl?: string,
+  ): Promise<AppiumElement> {
+    if (!pageUrl) {
+      throw new Error(
+        'pageUrl is required for Appium WebView element lookup via getElementByCSS',
+      );
+    }
+    return AppiumWebMatchers.getElementByCSS(selector, pageUrl);
   }
 
   /**
    * Get element by XPath within a webview
    */
   static async getElementByXPath(
-    webviewID: string,
+    _webviewID: string,
     xpath: string,
-  ): Promise<DetoxElement | WebElement> {
-    const myWebView = this.getWebViewByID(webviewID);
-    return myWebView.element(by.web.xpath(xpath));
+    pageUrl?: string,
+  ): Promise<AppiumElement> {
+    if (!pageUrl) {
+      throw new Error(
+        'pageUrl is required for Appium WebView element lookup via getElementByXPath',
+      );
+    }
+    return AppiumWebMatchers.getElementByXPath(xpath, pageUrl);
+  }
+
+  /**
+   * Get a browser WebView test element by data-testid.
+   */
+  static getTestElement(
+    dataTestId: string,
+    options: { extraXPath?: string; tag?: string; pageUrl: string },
+  ): Promise<AppiumElement> {
+    const { tag = 'div', extraXPath = '', pageUrl } = options;
+    const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
+    return this.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      xpath,
+      pageUrl,
+    );
   }
 
   /**
    * Get element by href within a webview
    */
   static async getElementByHref(
-    webviewID: string,
+    _webviewID: string,
     url: string,
-  ): Promise<Detox.IndexableWebElement> {
-    const myWebView = this.getWebViewByID(webviewID);
-    return myWebView
-      .element(by.web.href(url))
-      .atIndex(0) as unknown as Detox.IndexableWebElement;
+    pageUrl?: string,
+  ): Promise<AppiumElement> {
+    if (!pageUrl) {
+      throw new Error(
+        'pageUrl is required for Appium WebView element lookup via getElementByHref',
+      );
+    }
+    return AppiumWebMatchers.getElementByHref(url, pageUrl);
   }
 
   /**
-   * Creates a Detox matcher for identifying an element by its ID
-   * This method does not create an element but instead generates only a matcher.
-   * The purpose is to create a matcher that can be used for identification purposes,
-   * without performing any actions on the element.
+   * Scroll container for Gestures.scrollToElement (testID string).
    */
-  static async getIdentifier(
-    selectorString: string,
-  ): Promise<Detox.NativeMatcher> {
-    if (FrameworkDetector.isAppium()) {
-      throw new Error(
-        'Matchers.getIdentifier is Detox-only. Use scrollContainer(testId) for cross-framework scroll.',
-      );
-    }
-    return by.id(selectorString);
+  static getIdentifier(selectorString: string): ScrollContainer {
+    return this.scrollContainer(selectorString);
   }
 
   /**
    * Scroll container for Gestures.scrollToElement.
-   * Detox: native matcher by testID. Appium: testID string (resolved in UnifiedGestures).
    */
   static scrollContainer(selectorString: string): ScrollContainer {
-    if (FrameworkDetector.isAppium()) {
-      return selectorString;
-    }
-    return this.getIdentifier(selectorString);
+    return selectorString;
   }
 
   /**
-   * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text
+   * Get system dialogs (permissions, alerts) by text.
    */
-  static async getSystemElementByText(
-    text: string,
-  ): Promise<Detox.IndexableSystemElement> {
-    return system.element(by.system.label(text));
+  static async getSystemElementByText(text: string): Promise<AppiumElement> {
+    if (PlatformDetector.isAndroid()) {
+      return AppiumMatchers.getElementByText(text, true);
+    }
+    const escaped = text.replace(/"/g, '\\"');
+    return AppiumMatchers.getElementByIOSPredicate(
+      `label == "${escaped}" OR name == "${escaped}"`,
+    );
   }
 
   /**
    * Get all elements matching an XPath selector (Appium-only).
-   * Returns an empty array when no element matches — use this when the count
-   * itself is meaningful (e.g. asserting a duplicate label appears N times).
-   * Detox has no direct equivalent; matched elements there are addressed via
-   * `.atIndex(N)` on a Detox matcher instead.
    */
-  static async getAllElementsByXPath(
+  static async getAllElementsByXPath(xpath: string): Promise<AppiumElement[]> {
+    return AppiumMatchers.getAllElementsByXPath(xpath);
+  }
+
+  /** Native app XPath (not WebView). */
+  static getElementByNativeXPath(
     xpath: string,
-  ): Promise<PlaywrightElement[]> {
-    if (!FrameworkDetector.isAppium()) {
-      throw new Error(
-        'Matchers.getAllElementsByXPath is Appium-only. On Detox, use the matcher returned by getElementByID/getElementByIDAndLabel and address indices via .atIndex(N).',
-      );
+    options?: Parameters<typeof AppiumMatchers.getElementByXPath>[1],
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByXPath(xpath, options);
+  }
+
+  /**
+   * Lazy native XPath — re-queries on each poll.
+   */
+  static getLazyElementByNativeXPath(xpath: string): Promise<AppiumElement> {
+    return AppiumMatchers.getLazyElementByXPath(xpath);
+  }
+
+  static getElementByIOSPredicate(predicate: string): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByIOSPredicate(predicate);
+  }
+
+  static getElementByAndroidUIAutomator(
+    selector: string,
+    options?: Parameters<
+      typeof AppiumMatchers.getElementByAndroidUIAutomator
+    >[1],
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByAndroidUIAutomator(selector, options);
+  }
+
+  /**
+   * Counts native elements matching text via a single snapshot (Appium).
+   */
+  static countElementsByText(
+    text: string,
+    exactMatch = false,
+  ): Promise<number> {
+    return AppiumMatchers.countElementsByText(text, exactMatch);
+  }
+
+  /**
+   * Native iOS name locator (Appium).
+   */
+  static getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByNameiOS(name, lazy);
+  }
+
+  /**
+   * Exact text match (Appium).
+   */
+  static getElementByExactText(text: string): Promise<AppiumElement> {
+    return AppiumMatchers.getElementByText(text, true);
+  }
+
+  private static escapeXPathLiteral(value: string): string {
+    if (!value.includes("'")) {
+      return `'${value}'`;
     }
-    return PlaywrightMatchers.getAllElementsByXPath(xpath);
+    if (!value.includes('"')) {
+      return `"${value}"`;
+    }
+    return `concat('${value.replace(/'/g, "',\"'\",'")}')`;
+  }
+
+  private static buildDescendantXPath(
+    parentElement: string,
+    childElement: string,
+  ): string {
+    const parent = Matchers.escapeXPathLiteral(parentElement);
+    const child = Matchers.escapeXPathLiteral(childElement);
+    if (PlatformDetector.isAndroid()) {
+      return `//*[@resource-id=${parent} or @content-desc=${parent}]//*[@resource-id=${child} or @content-desc=${child}]`;
+    }
+    return `//*[@name=${parent} or @label=${parent}]//*[@name=${child} or @label=${child}]`;
+  }
+
+  private static buildAncestorXPath(
+    childElement: string,
+    parentElement: string,
+  ): string {
+    const parent = Matchers.escapeXPathLiteral(parentElement);
+    const child = Matchers.escapeXPathLiteral(childElement);
+    if (PlatformDetector.isAndroid()) {
+      return `//*[@resource-id=${parent} or @content-desc=${parent}]//*[@resource-id=${child} or @content-desc=${child}]`;
+    }
+    return `//*[@name=${parent} or @label=${parent}]//*[@name=${child} or @label=${child}]`;
   }
 }

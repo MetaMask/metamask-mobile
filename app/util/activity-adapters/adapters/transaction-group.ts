@@ -4,7 +4,7 @@
  * TODO: Replace with shared @metamask/activity-adapters package when published.
  */
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import type { Status, TokenAmount } from '../types';
+import type { ActivityFee, Status, TokenAmount } from '../types';
 
 export interface TransactionGroup {
   hasCancelled?: boolean;
@@ -25,4 +25,8 @@ export interface TransactionGroup {
   nativeAssetSymbol?: string;
   /** Token metadata from TokensController for contract interactions. */
   contractTokenMetadata?: { symbol?: string; decimals?: number };
+  /** Whether the signing account cannot use gas sponsorship. */
+  isHardwareWalletAccount?: boolean;
+  /** Precomputed fees for `@metamask/client-utils` mapLocalTransaction. */
+  fees?: ActivityFee[];
 }

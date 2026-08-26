@@ -2,15 +2,13 @@ import type { Mockttp } from 'mockttp';
 
 import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
+import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions.js';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
 import { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
-} from '../../../framework/PlaywrightUtilities.js';
+} from '../../../framework/AppiumUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
@@ -30,6 +28,7 @@ import CreatePasswordView from '../../../page-objects/Onboarding/CreatePasswordV
 import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView.js';
 import MetaMetricsOptInView from '../../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import ExperienceEnhancerBottomSheet from '../../../page-objects/Onboarding/ExperienceEnhancerBottomSheet.js';
+import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
 import TermsOfUseModal from '../../../page-objects/Onboarding/TermsOfUseModal.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import LoginView from '../../../page-objects/wallet/LoginView.js';
@@ -57,14 +56,16 @@ const IOS_ONBOARDING_INDICATOR_IDS = [
   OnboardingSelectorIDs.SCREEN_TITLE,
 ] as const;
 
+interface AppiumElement {
+  isVisible: () => Promise<boolean>;
+}
+
 const isOnboardingIndicatorVisible = async (
   testId: string,
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -107,9 +108,7 @@ const isCreatePasswordIndicatorVisible = async (
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -188,7 +187,9 @@ export async function setupAppleExistingUserOAuthMock(
 }
 
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * Intermediate screen UI is covered by component-view / unit tests; this
+ * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
   provider: 'google' | 'apple',
@@ -245,6 +246,19 @@ export const completeSocialLoginOnboarding = async (
   }
 
   try {
+    await Assertions.expectElementToBeVisible(
+      OnboardingInterestQuestionnaireView.container,
+      {
+        description: 'Interest questionnaire may appear based on rollout',
+        timeout: 5000,
+      },
+    );
+    await OnboardingInterestQuestionnaireView.tapSkipButton();
+  } catch {
+    // Only appears for ~25% of users based on deterministic rollout
+  }
+
+  try {
     await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
       description: 'Onboarding success screen should be visible',
       timeout: 30000,
@@ -268,7 +282,7 @@ export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
 
 /**
- * Confirms the native lock alert. On iOS the YES button can go stale before
+ * Confirms the native lock alert. On iOS the confirm button can go stale before
  * XPath-based taps complete, so we use Appium's alert API when available.
  */
 const confirmLockAlert = async (): Promise<void> => {
@@ -296,13 +310,14 @@ const confirmLockAlert = async (): Promise<void> => {
       const buttons = (await appiumDriver.execute('mobile: alert', {
         action: 'getButtons',
       })) as string[];
-      const hasYes = buttons.some(
+      const matched = buttons.find(
         (label) => label.toUpperCase() === yesLabel.toUpperCase(),
       );
-      if (hasYes) {
-        // XCUITest driver supports accept/dismiss — accept maps to the
-        // confirmation button (YES) for RN Alert with cancel + OK ordering.
-        await appiumDriver.execute('mobile: alert', { action: 'accept' });
+      if (matched) {
+        await appiumDriver.execute('mobile: alert', {
+          action: 'accept',
+          buttonLabel: matched,
+        });
         return;
       }
     } catch {
@@ -339,13 +354,10 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login screen should be visible before unlock',
-      timeout: 30_000,
-    },
-  );
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login screen should be visible before unlock',
+    timeout: 30_000,
+  });
   await LoginView.enterPassword(password);
   await LoginView.tapLoginButton();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));

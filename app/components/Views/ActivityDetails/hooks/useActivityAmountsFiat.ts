@@ -8,21 +8,20 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
-import {
-  balanceToFiatNumber,
-  renderFiat,
-} from '../../../../util/number/bigint';
+import { balanceToFiatNumber } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import {
+  GAS_FEE_SPONSORED,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
   toMarketRateLookupToken,
   type ActivityFee,
   type ActivityListItem,
   type TokenAmount,
 } from '../../../../util/activity-adapters';
 
-type FiatCurrency = Parameters<typeof renderFiat>[1];
 type MultichainAssetRates = Record<
   string,
   { rate?: string | number | null } | undefined
@@ -38,8 +37,6 @@ export interface ActivityAmountsFiat {
   feeRows: ActivityFeeFiatRow[];
   totalFiat?: string;
 }
-
-const FIAT_DECIMALS = 2;
 
 /** A CAIP asset id refers to the chain's native token (e.g. `slip44`/`native`). */
 function isNativeAssetId(assetId: string | undefined): boolean {
@@ -126,7 +123,29 @@ function tokenToFiatNumber(
 function feeToFiatNumber(
   fee: ActivityFee,
   conversionRate: number | null | undefined,
+  hexChainId: Hex | undefined,
+  contractExchangeRates:
+    | Record<string, { price?: number | null } | undefined>
+    | undefined,
+  multichainAssetRates: MultichainAssetRates | undefined,
 ): number | undefined {
+  // ERC-20 gas payment: price via token market rates (same path as send amount).
+  if (fee.type === 'gasToken') {
+    return tokenToFiatNumber(
+      {
+        amount: fee.amount,
+        decimals: fee.decimals,
+        direction: 'out',
+        ...(fee.assetId ? { assetId: fee.assetId } : {}),
+        ...(fee.symbol ? { symbol: fee.symbol } : {}),
+      },
+      conversionRate,
+      hexChainId,
+      contractExchangeRates,
+      multichainAssetRates,
+    );
+  }
+
   if (!conversionRate || fee.amount === undefined) {
     return undefined;
   }
@@ -185,8 +204,12 @@ const RESOURCE_FEE_LABEL_BY_SYMBOL: Record<string, string> = {
  * in a recognized resource (Bandwidth/Energy) or, more generally, in a
  * non-native asset. Such fees get a distinct label so they don't duplicate the
  * native "Network fee" row, and are kept out of native-rate fiat conversion.
+ * ERC-20 `gasToken` fees are not resources — they use token market rates.
  */
 function isResourceFee(fee: ActivityFee): boolean {
+  if (fee.type === 'gasToken') {
+    return false;
+  }
   if (fee.symbol && fee.symbol.toUpperCase() in RESOURCE_FEE_LABEL_BY_SYMBOL) {
     return true;
   }
@@ -205,6 +228,10 @@ function getResourceFeeLabel(symbol: string): string {
 }
 
 function getFeeLabel(fee: ActivityFee): string {
+  if (fee.type === GAS_FEE_SPONSORED) {
+    return strings('activity_details.network_fee');
+  }
+
   switch (fee.type) {
     case 'base':
       if (fee.symbol && isResourceFee(fee)) {
@@ -213,6 +240,8 @@ function getFeeLabel(fee: ActivityFee): string {
       return strings('activity_details.network_fee');
     case 'bridge':
       return strings('activity_details.bridge_fee');
+    case 'gasToken':
+      return strings('activity_details.gas_token_fee');
     default:
       return strings('activity_details.transaction_fee');
   }
@@ -230,6 +259,7 @@ export function useActivityAmountsFiat(
 ): ActivityAmountsFiat {
   const hexChainId = getMaybeHexChainId(item.chainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { formatCurrencyWithMinThreshold } = useFormatters();
   const conversionRate = useSelector((state: RootState) =>
     hexChainId
       ? selectConversionRateByChainId(state, hexChainId, true)
@@ -242,11 +272,17 @@ export function useActivityAmountsFiat(
   );
   const multichainAssetRates = useSelector(selectMultichainAssetsRates);
 
-  const token =
-    totalToken ??
-    ('token' in item.data
+  const itemToken =
+    'token' in item.data
       ? (item.data.token as TokenAmount | undefined)
-      : undefined);
+      : undefined;
+
+  // A failed/cancelled send transferred nothing, so its token value must not
+  // count toward the total — only the gas that was actually spent (the fee
+  // rows) should. Drop the token so the total reflects what left the wallet.
+  const token = isFailedOrCancelledTransfer(item)
+    ? undefined
+    : (totalToken ?? itemToken);
   const fees: ActivityFee[] = 'fees' in item.data ? (item.data.fees ?? []) : [];
 
   const tokenFiat = tokenToFiatNumber(
@@ -262,7 +298,22 @@ export function useActivityAmountsFiat(
   let hasFee = false;
 
   for (const fee of fees) {
-    const feeFiat = feeToFiatNumber(fee, conversionRate);
+    if (fee.type === GAS_FEE_SPONSORED) {
+      feeRows.push({
+        label: getFeeLabel(fee),
+        value: strings('transactions.paid_by_metamask'),
+        fee,
+      });
+      continue;
+    }
+
+    const feeFiat = feeToFiatNumber(
+      fee,
+      conversionRate,
+      hexChainId,
+      contractExchangeRates,
+      multichainAssetRates,
+    );
     if (feeFiat !== undefined && currentCurrency) {
       hasFee = true;
       feeFiatTotal += feeFiat;
@@ -270,7 +321,7 @@ export function useActivityAmountsFiat(
 
     const feeValue =
       feeFiat !== undefined && currentCurrency
-        ? renderFiat(feeFiat, currentCurrency as FiatCurrency, FIAT_DECIMALS)
+        ? formatCurrencyWithMinThreshold(feeFiat, currentCurrency)
         : feeToTokenAmount(fee);
 
     if (feeValue) {
@@ -285,10 +336,9 @@ export function useActivityAmountsFiat(
   const canShowTotal =
     Boolean(currentCurrency) && (tokenFiat !== undefined || hasFee);
   const totalFiat = canShowTotal
-    ? renderFiat(
+    ? formatCurrencyWithMinThreshold(
         (tokenFiat ?? 0) + feeFiatTotal,
-        currentCurrency as FiatCurrency,
-        FIAT_DECIMALS,
+        currentCurrency,
       )
     : undefined;
 

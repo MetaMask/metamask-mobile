@@ -11,8 +11,10 @@ import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getBlockExplorerAddressUrl } from '../../../../../util/networks';
 
 const mockPush = jest.fn();
+const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
@@ -26,7 +28,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       push: mockPush,
       goBack: jest.fn(),
     }),
@@ -87,6 +89,7 @@ jest.mock('../../../../../util/networks', () => ({
 }));
 
 const mockIsSmartContractAddress = isSmartContractAddress as jest.Mock;
+const mockGetBlockExplorerAddressUrl = getBlockExplorerAddressUrl as jest.Mock;
 const mockToAssetId = jest.mocked(toAssetId);
 const mockSelectIsAssetsUnifyStateEnabled = jest.mocked(
   selectIsAssetsUnifyStateEnabled,
@@ -139,6 +142,10 @@ describe('AddCustomToken', () => {
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
     mockSelectInternalAccountByScope.mockReturnValue(null);
+    mockGetBlockExplorerAddressUrl.mockReturnValue({
+      title: 'Etherscan',
+      url: 'https://etherscan.io',
+    });
     mockToAssetId.mockReturnValue(MOCK_CAIP_ASSET);
     mockAddToken.mockResolvedValue(undefined);
     mockAddCustomAsset.mockResolvedValue(undefined);
@@ -260,6 +267,71 @@ describe('AddCustomToken', () => {
         ]),
       }),
     );
+  });
+
+  describe('block explorer link in the decimals warning', () => {
+    // The warning only renders once the decimals field is both empty and
+    // touched, so clear the auto-filled value and blur it.
+    const showDecimalsWarning = async (
+      renderResult: ReturnType<typeof renderComponent>,
+    ) => {
+      mockIsSmartContractAddress.mockResolvedValue(true);
+      await act(async () => {
+        fireEvent.changeText(
+          renderResult.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+          VALID_ADDRESS,
+        );
+      });
+
+      const decimalsInput = renderResult.getByTestId(
+        ImportTokenViewSelectorsIDs.DECIMAL_INPUT,
+      );
+      fireEvent.changeText(decimalsInput, '');
+      fireEvent(decimalsInput, 'blur');
+    };
+
+    it('opens the block explorer for the token address', async () => {
+      const utils = renderComponent();
+      await showDecimalsWarning(utils);
+
+      expect(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_MESSAGE,
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: 'https://etherscan.io', title: 'Etherscan' },
+      });
+    });
+
+    it('passes undefined when the network has no block explorer', async () => {
+      mockGetBlockExplorerAddressUrl.mockReturnValue({
+        title: null,
+        url: null,
+      });
+
+      const utils = renderComponent();
+      await showDecimalsWarning(utils);
+
+      fireEvent.press(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: undefined, title: undefined },
+      });
+    });
   });
 
   describe('addToken', () => {

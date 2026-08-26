@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { ImageSourcePropType } from 'react-native';
 
 export interface StepperCardCta {
@@ -20,6 +21,11 @@ export interface StepperCardStep {
    */
   descriptionTooltipAccessibilityLabel?: string;
   image: ImageSourcePropType;
+  /**
+   * Optional custom media rendered in the image slot in place of `image`
+   * (e.g. an animated graphic). Falls back to `image` when not provided.
+   */
+  media?: ReactNode;
   primaryCta: StepperCardCta;
   secondaryCta?: StepperCardCta;
 }

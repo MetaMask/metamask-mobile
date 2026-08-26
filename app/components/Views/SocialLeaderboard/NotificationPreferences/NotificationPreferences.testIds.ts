@@ -15,4 +15,4 @@ export const NotificationPreferencesSelectorsIDs = {
     `notification-preferences-view-trader-row-${traderId}`,
   TRADER_PRESS: (traderId: string) =>
     `notification-preferences-view-trader-press-${traderId}`,
-};
+} as const;

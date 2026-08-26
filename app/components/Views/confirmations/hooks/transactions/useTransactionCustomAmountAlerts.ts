@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { useAlerts } from '../../context/alert-system-context';
 import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
@@ -43,8 +43,8 @@ export function useTransactionCustomAmountAlerts({
   pendingTokenAmount: string;
   pendingFiatAmount?: string;
 }): {
+  alertContent?: ReactElement;
   alertMessage?: string;
-  alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({
@@ -73,10 +73,16 @@ export function useTransactionCustomAmountAlerts({
     });
   }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
-  const alerts = useMemo(
-    () => [...pendingTokenAlerts, ...filteredAlerts],
-    [filteredAlerts, pendingTokenAlerts],
-  );
+  const alerts = useMemo(() => {
+    const merged = [...pendingTokenAlerts, ...filteredAlerts];
+
+    // The hardware wallet alert can only be fixed by switching accounts, so
+    // its message takes priority over amount-level alerts.
+    return [
+      ...merged.filter((a) => a.key === AlertKeys.MMPayHardwareAccount),
+      ...merged.filter((a) => a.key !== AlertKeys.MMPayHardwareAccount),
+    ];
+  }, [filteredAlerts, pendingTokenAlerts]);
 
   const firstAlert = alerts?.[0];
 
@@ -84,15 +90,13 @@ export function useTransactionCustomAmountAlerts({
     return {};
   }
 
-  const alertTitle =
-    firstAlert.title ?? (firstAlert.message as string | undefined);
+  const alertMessage =
+    (firstAlert.message as string | undefined) ?? firstAlert.title;
 
-  const alertMessage = firstAlert.title
-    ? (firstAlert.message as string | undefined)
-    : undefined;
+  const alertContent = firstAlert.content as ReactElement | undefined;
 
   return {
+    alertContent,
     alertMessage,
-    alertTitle,
   };
 }

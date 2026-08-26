@@ -6,9 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Box,
   Icon,
   IconColor,
   IconSize,
@@ -39,18 +39,22 @@ import {
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
-import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardLinkageInProgressError,
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
@@ -64,6 +68,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  withCardProvider,
 } from '../util/metrics';
 
 export type LinkageStatus =
@@ -142,20 +147,14 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
+    const activeProviderId = useSelector(selectCardActiveProviderId);
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-    const isMoneyAccountEnabled = useSelector(
-      selectMoneyEnableMoneyAccountFlag,
-    );
-    const isMoneyAccountGeoEligible = useSelector(
-      selectIsMoneyAccountGeoEligible,
-    );
-    const isMoneyAccountVisible =
-      isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+    const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);
@@ -225,12 +224,10 @@ export const useMoneyAccountCardLinkage =
           iconName: IconName.Loading,
           hasNoTimeout: true,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Spinner
-                color={IconColor.IconDefault}
-                spinnerIconProps={{ size: IconSize.Lg }}
-              />
-            </Box>
+            <Spinner
+              color={IconColor.IconDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
+            />
           ),
         });
       },
@@ -250,13 +247,11 @@ export const useMoneyAccountCardLinkage =
           iconColor: theme.colors.success.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Confirmation}
-                color={IconColor.SuccessDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },
@@ -264,25 +259,23 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showErrorToast = useCallback(
-      (action: LinkageAction = 'link') => {
+      (action: LinkageAction = 'link', labelKey?: string) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings(ERROR_TITLE_BY_ACTION[action]),
+              label: strings(labelKey ?? ERROR_TITLE_BY_ACTION[action]),
             },
           ],
           iconName: IconName.Error,
           iconColor: theme.colors.error.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Error}
-                color={IconColor.ErrorDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Error}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },
@@ -296,14 +289,16 @@ export const useMoneyAccountCardLinkage =
       ) => {
         trackEvent(
           createEventBuilder(eventName)
-            .addProperties({
-              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
-              ...properties,
-            })
+            .addProperties(
+              withCardProvider(activeProviderId, {
+                flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+                ...properties,
+              }),
+            )
             .build(),
         );
       },
-      [trackEvent, createEventBuilder],
+      [trackEvent, createEventBuilder, activeProviderId],
     );
 
     const openLinkCardSheet = useCallback(
@@ -620,7 +615,19 @@ export const useMoneyAccountCardLinkage =
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
           setError(linkageError);
           setStatus('error');
-          showErrorToast(action);
+          // Cross-device conflict: the Money Account is already delegated to
+          // another card account, so the generic "something went wrong" copy
+          // would mislead — name the actual reason.
+          const isLinkedToDifferentCard =
+            linkageError instanceof CardProviderError &&
+            linkageError.code ===
+              CardProviderErrorCode.MoneyAccountLinkedToDifferentCard;
+          showErrorToast(
+            action,
+            isLinkedToDifferentCard
+              ? 'money.metamask_card.link_error_different_card'
+              : undefined,
+          );
           return false;
         }
       },

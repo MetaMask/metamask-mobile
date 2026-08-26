@@ -5,6 +5,7 @@ import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import {
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
   buildCampaignOutcomeToastCompositeKey,
   type CampaignOutcomeToastVariant,
 } from './compositeKeys';
@@ -15,6 +16,10 @@ import type {
   PerpsTradingCampaignVolumeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
@@ -174,6 +179,9 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   if (totalAccounts === 0) return 0;
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
+
+export const selectPendingMasSeriesOptIn = (state: RootState) =>
+  state.rewards.pendingMasSeriesOptIn;
 
 // Benefits selectors
 export const selectBenefits = (
@@ -417,6 +425,15 @@ export const selectOndoCampaignActivityById =
         ] ?? null)
       : null;
 
+export const selectVipTransactionsById =
+  (subscriptionId: string | undefined, type: VipTransactionType | undefined) =>
+  (state: RootState) =>
+    subscriptionId && type && state.rewards.vipTransactions
+      ? (state.rewards.vipTransactions[
+          buildSubscriptionVipTransactionCompositeKey(subscriptionId, type)
+        ] ?? null)
+      : null;
+
 // Campaign deposits selectors
 export const selectOndoCampaignDepositsByCampaignId =
   (campaignId: string | undefined) =>
@@ -453,6 +470,10 @@ export const selectSubscribedCampaignReminders = (
 ): RootState['rewards']['subscribedCampaignReminders'] =>
   state.rewards.subscribedCampaignReminders ??
   initialState.subscribedCampaignReminders;
+
+export const selectFirstPredictOnUsOfferViewed = (state: RootState): boolean =>
+  state.rewards.firstPredictionOnUsInteraction?.offerViewed ??
+  initialState.firstPredictionOnUsInteraction.offerViewed;
 
 export const selectIsCampaignOutcomeToastDismissed =
   (
@@ -591,4 +612,77 @@ export const selectPredictThePitchPrizePoolErrorByCampaignId =
   (state: RootState): boolean =>
     campaignId
       ? (state.rewards.predictThePitchPrizePools[campaignId]?.error ?? false)
+      : false;
+
+// Money Account Sweepstakes stats selectors
+export const selectMoneyAccountSweepstakesStatsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesStatsMeDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.data ?? null)
+      : null;
+
+export const selectMoneyAccountSweepstakesStatsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesStatsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.error ?? false)
+      : false;
+
+// Money Account Sweepstakes prize pool selectors
+export const selectMoneyAccountSweepstakesPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.error ??
+        false)
+      : false;
+
+// Money Account Sweepstakes draw proof selectors
+export const selectMoneyAccountSweepstakesDrawProofByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesDrawProofDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesDrawProofLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesDrawProofErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.error ??
+        false)
       : false;

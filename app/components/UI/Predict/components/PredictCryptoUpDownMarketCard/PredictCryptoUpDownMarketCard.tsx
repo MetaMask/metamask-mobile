@@ -6,7 +6,8 @@ import React, {
   useRef,
   useSyncExternalStore,
 } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, {
   Circle,
   Defs,
@@ -34,7 +35,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -50,12 +52,10 @@ import {
   type PredictMarket,
   type PredictOutcome,
   type PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
   type PriceQuery,
 } from '../../types';
-import type {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import type { PredictEntryPoint } from '../../types/navigation';
 import {
   getEventStartTime,
   getCryptoSymbol,
@@ -101,8 +101,8 @@ const REST_POLLING_INTERVAL_MS = 2000;
 const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
 const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 10 * 60 * 1000,
-  '15m': 30 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
   '1h': 60 * 60 * 1000,
   '4h': 4 * 60 * 60 * 1000,
   daily: 24 * 60 * 60 * 1000,
@@ -112,18 +112,20 @@ const getChartHistoryBucketMs = (displayDurationMs: number) =>
     CHART_HISTORY_WINDOW_MIN_BUCKET_MS,
     Math.floor(displayDurationMs / CHART_HISTORY_WINDOW_BUCKET_DIVISOR),
   );
+// Polymarket starts each payload at eventStartTime and caps it to the variant's
+// duration. Older lookbacks therefore return complete but stale chart data.
 const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 2 * 60 * 60 * 1000,
-  '15m': 2 * 60 * 60 * 1000,
-  '1h': 4 * 60 * 60 * 1000,
-  '4h': 12 * 60 * 60 * 1000,
-  daily: 7 * 24 * 60 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  hourly: 60 * 60 * 1000,
+  '4h': 4 * 60 * 60 * 1000,
+  daily: 24 * 60 * 60 * 1000,
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
-const PROGRESS_RING_RADIUS =
-  (PROGRESS_RING_SIZE - PROGRESS_RING_STROKE_WIDTH) / 2;
-const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
+const COMPACT_PROGRESS_RING_SIZE = 40;
+const COMPACT_PROGRESS_RING_STROKE_WIDTH = 2;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -174,10 +176,11 @@ interface PredictCryptoUpDownMarketCardProps {
    * output isn't displayed.
    */
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -811,54 +814,68 @@ const ProgressLogo = React.memo(
     progress,
     color,
     trackColor,
+    compact,
   }: {
     imageUrl?: string;
     progress: number;
     color: string;
     trackColor: string;
+    compact?: boolean;
   }) => {
     const tw = useTailwind();
-    const strokeDashoffset = PROGRESS_RING_CIRCUMFERENCE * (1 - progress);
+    const ringSize = compact ? COMPACT_PROGRESS_RING_SIZE : PROGRESS_RING_SIZE;
+    const strokeWidth = compact
+      ? COMPACT_PROGRESS_RING_STROKE_WIDTH
+      : PROGRESS_RING_STROKE_WIDTH;
+    const radius = (ringSize - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference * (1 - progress);
 
     return (
-      <Box twClassName="h-[54px] w-[54px] items-center justify-center">
+      <Box
+        twClassName="items-center justify-center"
+        style={tw.style({ width: ringSize, height: ringSize })}
+      >
         <Box twClassName="absolute inset-0">
           <Svg
-            width={PROGRESS_RING_SIZE}
-            height={PROGRESS_RING_SIZE}
-            viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`}
+            width={ringSize}
+            height={ringSize}
+            viewBox={`0 0 ${ringSize} ${ringSize}`}
           >
             <Circle
-              cx={PROGRESS_RING_SIZE / 2}
-              cy={PROGRESS_RING_SIZE / 2}
-              r={PROGRESS_RING_RADIUS}
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
               stroke={trackColor}
               strokeOpacity={0.7}
-              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
+              strokeWidth={strokeWidth}
               fill="transparent"
             />
             <Circle
-              cx={PROGRESS_RING_SIZE / 2}
-              cy={PROGRESS_RING_SIZE / 2}
-              r={PROGRESS_RING_RADIUS}
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
               stroke={color}
-              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
-              strokeDasharray={`${PROGRESS_RING_CIRCUMFERENCE} ${PROGRESS_RING_CIRCUMFERENCE}`}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${circumference} ${circumference}`}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               fill="transparent"
-              transform={`rotate(-90 ${PROGRESS_RING_SIZE / 2} ${
-                PROGRESS_RING_SIZE / 2
-              })`}
+              transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
             />
           </Svg>
         </Box>
-        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
+        <Box
+          twClassName={`${
+            compact ? 'h-8 w-8' : 'h-10 w-10'
+          } overflow-hidden rounded-full bg-default`}
+        >
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
               style={tw.style('h-full w-full')}
-              resizeMode="cover"
+              contentFit="cover"
+              recyclingKey={imageUrl}
             />
           ) : (
             <Box twClassName="h-full w-full bg-muted" />
@@ -901,6 +918,7 @@ const LiveStatus = React.memo(
         progress={progressRemaining}
         color={accentColor}
         trackColor={trackColor}
+        compact={compact}
       />
     );
 
@@ -1069,7 +1087,7 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
       twClassName={
         compact
           ? 'h-full rounded-xl bg-section p-4 justify-between'
-          : 'my-2 rounded-xl bg-section p-4'
+          : 'mb-3 rounded-xl bg-section p-4'
       }
     >
       <Box
@@ -1097,6 +1115,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -1106,8 +1125,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const isCompact = isCarousel;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
@@ -1173,6 +1191,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     eventStartTime: targetPriceEventStartTime ?? '',
     variant: getVariant(selectedMarket.series.recurrence),
     endDate: selectedMarket.endDate ?? '',
+    twapWindowSeconds: selectedMarket.twapWindowSeconds,
     enabled:
       !isCompact &&
       Boolean(symbol) &&
@@ -1228,6 +1247,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
       : undefined;
 
   const handleCardPress = useCallback(() => {
+    if (cardPressDisabled) {
+      return;
+    }
+
     onCardPress?.();
     navigateToMarketDetails(
       {
@@ -1243,6 +1266,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       { throughRoot: true },
     );
   }, [
+    cardPressDisabled,
     cardTitle,
     imageUrl,
     navigateToMarketDetails,
@@ -1265,7 +1289,16 @@ const PredictCryptoUpDownMarketCard: React.FC<
         return;
       }
 
-      onBuyButtonPress?.(selectedMarket.id);
+      const handledExternally =
+        onBuyButtonPress?.({
+          market: selectedMarket,
+          outcome: selectedOutcome,
+          outcomeToken: token,
+        }) === true;
+      if (handledExternally) {
+        return;
+      }
+
       executeGuardedAction(
         () => {
           openBuySheet({
@@ -1335,9 +1368,15 @@ const PredictCryptoUpDownMarketCard: React.FC<
             >
               {cardTitle}
             </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              Resets every {resetDuration}
+            </Text>
           </Box>
 
-          <Box twClassName="w-full items-center gap-2">
+          <Box twClassName="w-full">
             <OutcomeButtons
               compact
               upToken={upToken}
@@ -1347,12 +1386,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
               marketStatus={selectedMarket.status as PredictMarketStatus}
               onBuyPress={handleBuyPress}
             />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Resets every {resetDuration}
-            </Text>
           </Box>
         </Box>
       </Pressable>
@@ -1360,7 +1393,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}

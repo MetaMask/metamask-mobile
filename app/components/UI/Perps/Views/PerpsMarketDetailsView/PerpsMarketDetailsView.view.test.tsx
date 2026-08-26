@@ -6,7 +6,13 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
@@ -21,18 +27,22 @@ import {
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsProMarketViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTutorialSelectorsIDs,
   getPerpsCandlePeriodSelector,
   getPerpsCandlePeriodBottomSheetSelector,
 } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -485,21 +495,134 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
     });
 
-    it('renders header with market title', async () => {
+    it('renders header with full asset name and market pair subtitle', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE),
+      ).toHaveTextContent('ETH-USD perp');
     });
 
-    it('renders header price when market has no maxLeverage', async () => {
+    it('opens the market list when the header identity is pressed', async () => {
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('toggles watchlist when the header favorite button is pressed', async () => {
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockReturnValue([]);
+
+      renderEligibleNoPositionPerpsDetails();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(toggleWatchlistMarket).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('shows Lite header actions without the Pro wallet button', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
+
+      expect(
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the market summary price when the market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -536,11 +659,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -548,7 +676,7 @@ describe('PerpsMarketDetailsView', () => {
       renderEligibleNoPositionPerpsDetails();
 
       const fullscreenButton = await screen.findByTestId(
-        `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -704,13 +832,24 @@ describe('PerpsMarketDetailsView', () => {
       });
     };
 
+    // The entry card replaces a skeleton only after the AiDigestController fetch
+    // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
+    // test uses for this card. The 1s default is not enough on a loaded CV shard.
+    const findInsightsEntryCard = () =>
+      screen.findByTestId(
+        MarketInsightsSelectorsIDs.ENTRY_CARD,
+        {},
+        { timeout: 15000 },
+      );
+
+    const openInsightsFromEntryCard = async () => {
+      fireEvent.press(await findInsightsEntryCard());
+    };
+
     it('opens market insights from Perps and hides Long/Short when position is open', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      const entryCard = await screen.findByTestId(
-        MarketInsightsSelectorsIDs.ENTRY_CARD,
-      );
-      fireEvent.press(entryCard);
+      await openInsightsFromEntryCard();
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
@@ -738,9 +877,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows Long/Short in market insights when there is no position', async () => {
       renderPerpsInsightsJourney({ hasPosition: false });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
@@ -756,19 +893,30 @@ describe('PerpsMarketDetailsView', () => {
         insightsFlagEnabled: false,
       });
 
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        ).not.toBeOnTheScreen();
-      });
+      // Assert the absence only once the view is mounted and no skeleton is
+      // pending, otherwise the expectation passes before insights could render.
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId(
+              MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON,
+            ),
+          ).toBeNull();
+        },
+        { timeout: 15000 },
+      );
+      expect(
+        screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      ).toBeNull();
     });
 
     it('shows sources bottom sheet when tapping a trend item from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
 
       const trendItem = await screen.findByTestId(
         `${MarketInsightsSelectorsIDs.TREND_ITEM}-0`,
@@ -785,9 +933,7 @@ describe('PerpsMarketDetailsView', () => {
       try {
         renderPerpsInsightsJourney({ hasPosition: true });
 
-        fireEvent.press(
-          await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        );
+        await openInsightsFromEntryCard();
         const thumbsUp = await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
         );
@@ -813,9 +959,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
       fireEvent.press(
         await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,
@@ -827,6 +971,98 @@ describe('PerpsMarketDetailsView', () => {
           MarketInsightsSelectorsIDs.FEEDBACK_BOTTOM_SHEET,
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('About section', () => {
+    const aboutDescription =
+      'Ethereum is a decentralized smart contract platform. It powers DeFi, NFTs, and a large ecosystem of applications secured by proof of stake.';
+
+    it('shows About with Read more when the market has a description, then expands on press', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews({
+            description: aboutDescription,
+          }),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [
+            createEthMarketForViews({ description: aboutDescription }),
+          ],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.market.about_asset', { assetName: 'Ethereum' }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION,
+        ),
+      ).toHaveTextContent(aboutDescription);
+
+      // Measure text reports more than 3 lines → Read more becomes available.
+      fireEvent(
+        screen.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION}-measure`,
+        ),
+        'textLayout',
+        {
+          nativeEvent: {
+            lines: [
+              { text: 'line 1' },
+              { text: 'line 2' },
+              { text: 'line 3' },
+              { text: 'line 4' },
+            ],
+          },
+        },
+      );
+
+      const readMore = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+      );
+      fireEvent.press(readMore);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(
+            PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION)
+          .props.numberOfLines,
+      ).toBeUndefined();
+    });
+
+    it('does not show About when the market has no description', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews(),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).not.toBeOnTheScreen();
     });
   });
 });

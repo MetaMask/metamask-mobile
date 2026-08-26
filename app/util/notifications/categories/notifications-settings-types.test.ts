@@ -105,7 +105,6 @@ describe('getNotificationsSettingsSectionConfigs', () => {
   it('filters out socialAI when the social leaderboard flag is off', () => {
     const sections = getNotificationsSettingsSectionConfigs(categories, {
       isSocialLeaderboardEnabled: false,
-      isPriceAlertsEnabled: true,
     });
 
     expect(sections.map((s) => s.categoryId)).toEqual([
@@ -114,15 +113,15 @@ describe('getNotificationsSettingsSectionConfigs', () => {
     ]);
   });
 
-  it('filters out priceAlerts when the price alerts flag is off', () => {
+  it('includes priceAlerts without a feature flag gate', () => {
     const sections = getNotificationsSettingsSectionConfigs(categories, {
       isSocialLeaderboardEnabled: true,
-      isPriceAlertsEnabled: false,
     });
 
     expect(sections.map((s) => s.categoryId)).toEqual([
       'walletActivity',
       'socialAI',
+      'priceAlerts',
     ]);
   });
 });

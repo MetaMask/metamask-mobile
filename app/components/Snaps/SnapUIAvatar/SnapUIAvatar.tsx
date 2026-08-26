@@ -33,8 +33,9 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   );
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
+  const addressArray = useMemo(() => [address], [address]);
   const accountGroups = useSelector((state: RootState) =>
-    selectAccountGroupsByAddress(state, [address]),
+    selectAccountGroupsByAddress(state, addressArray),
   );
 
   const accountGroupAddress = accountGroups[0]?.accounts.find((account) =>

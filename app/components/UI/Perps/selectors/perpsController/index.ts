@@ -5,8 +5,15 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
+  selectRecentlyViewedMarkets,
+  selectPerpsMode as selectPerpsModeCore,
+  selectProLayoutPreferences as selectProLayoutPreferencesCore,
+  DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
   InitializationState,
   type PerpsActiveProviderMode,
+  type PerpsMode,
+  type ProLayoutPreferences,
 } from '@metamask/perps-controller';
 
 const selectPerpsControllerState = (state: RootState) =>
@@ -92,6 +99,28 @@ const selectPerpsWatchlistMarkets = createSelector(
   },
 );
 
+/**
+ * Symbols of markets the user has recently viewed, newest-first.
+ *
+ * Delegates to the core `selectRecentlyViewedMarkets`, which already
+ * filters out entries older than `RecentlyViewedMarketsTtlMs` (24h) and
+ * caps the list at `RecentlyViewedMarketsLimit` (10).
+ */
+const selectPerpsRecentlyViewedMarkets = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => {
+    try {
+      return (
+        (perpsControllerState
+          ? selectRecentlyViewedMarkets(perpsControllerState)
+          : undefined) ?? []
+      );
+    } catch {
+      return [];
+    }
+  },
+);
+
 const selectPerpsMarketFilterPreferences = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) => {
@@ -136,6 +165,108 @@ const selectPerpsInitializationState = createSelector(
     InitializationState.Uninitialized,
 );
 
+/**
+ * Current Perps interface mode (Lite ⇄ Pro).
+ *
+ * Wraps the core `selectPerpsMode` from `@metamask/perps-controller` (TAT-3582),
+ * defaulting to `DEFAULT_PERPS_MODE` when controller state is missing/partial
+ * (e.g. before Engine init, rehydration, or minimal E2E fixtures).
+ */
+const selectPerpsMode = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsMode => {
+    try {
+      return perpsControllerState
+        ? selectPerpsModeCore(perpsControllerState)
+        : DEFAULT_PERPS_MODE;
+    } catch {
+      return DEFAULT_PERPS_MODE;
+    }
+  },
+);
+
+/**
+ * Persisted Pro-mode layout preferences.
+ *
+ * Wraps the core `selectProLayoutPreferences` from `@metamask/perps-controller`,
+ * defaulting to `DEFAULT_PRO_LAYOUT_PREFERENCES` when controller state is
+ * missing/partial (e.g. before Engine init, rehydration, or minimal E2E
+ * fixtures). The core selector already merges over defaults, so the wrapper
+ * only needs to guard the undefined-state path.
+ */
+const selectPerpsProLayoutPreferences = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): ProLayoutPreferences => {
+    try {
+      return perpsControllerState
+        ? selectProLayoutPreferencesCore(perpsControllerState)
+        : DEFAULT_PRO_LAYOUT_PREFERENCES;
+    } catch {
+      return DEFAULT_PRO_LAYOUT_PREFERENCES;
+    }
+  },
+);
+
+/**
+ * Whether the Pro inline chart is expanded. Persisted globally across markets
+ * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
+ * Defaults to `false` (collapsed) per the controller default.
+ */
+const selectPerpsProChartExpanded = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences): boolean => proLayoutPreferences.chartExpanded,
+);
+
+/**
+ * Pro Positions panel side filter (all/long/short). Persisted globally
+ * across markets and app restarts via
+ * `PerpsController.proLayoutPreferences.positionsSideFilter`.
+ * Independent of `ordersSideFilter`.
+ */
+const selectPerpsProPositionsSideFilter = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => proLayoutPreferences.positionsSideFilter,
+);
+
+/**
+ * Pro Positions list sort config composed from flat controller fields.
+ * Persisted globally across markets and app restarts via
+ * `positionsSortField` / `positionsSortDirection` on
+ * `PerpsController.proLayoutPreferences`.
+ */
+const selectPerpsProPositionsSortConfig = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => ({
+    field: proLayoutPreferences.positionsSortField,
+    direction: proLayoutPreferences.positionsSortDirection,
+  }),
+);
+
+/**
+ * Pro Orders panel side filter (all/long/short). Persisted globally across
+ * markets and app restarts via
+ * `PerpsController.proLayoutPreferences.ordersSideFilter`.
+ * Independent of `positionsSideFilter`.
+ */
+const selectPerpsProOrdersSideFilter = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => proLayoutPreferences.ordersSideFilter,
+);
+
+/**
+ * Pro Orders list sort config composed from flat controller fields.
+ * Persisted globally across markets and app restarts via
+ * `ordersSortField` / `ordersSortDirection` on
+ * `PerpsController.proLayoutPreferences`.
+ */
+const selectPerpsProOrdersSortConfig = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => ({
+    field: proLayoutPreferences.ordersSortField,
+    direction: proLayoutPreferences.ordersSortDirection,
+  }),
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) => {
@@ -157,8 +288,16 @@ export {
   selectPerpsBalances,
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
+  selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
   selectPerpsPayWithToken,
+  selectPerpsMode,
+  selectPerpsProLayoutPreferences,
+  selectPerpsProChartExpanded,
+  selectPerpsProPositionsSideFilter,
+  selectPerpsProPositionsSortConfig,
+  selectPerpsProOrdersSideFilter,
+  selectPerpsProOrdersSortConfig,
 };

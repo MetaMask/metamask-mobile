@@ -116,35 +116,4 @@ describe('HomepagePerpsHomeSlot', () => {
     expect(screen.getByText('emptyStateContent:pills')).toBeOnTheScreen();
     expect(screen.getByText('emptyStateTitle:Perps movers')).toBeOnTheScreen();
   });
-
-  it('renders PerpsSection when mode is positions-only even in treatment', () => {
-    mockUseABTest.mockImplementation((key: string) => {
-      if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
-        return {
-          variant:
-            HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
-              HomepagePerpsPillsEmptyVariant.Treatment
-            ],
-          variantName: HomepagePerpsPillsEmptyVariant.Treatment,
-          isActive: true,
-        };
-      }
-      return {
-        variant: {},
-        variantName: 'control',
-        isActive: false,
-      };
-    });
-
-    renderWithProvider(
-      <HomepagePerpsHomeSlot
-        sectionIndex={1}
-        totalSectionsLoaded={5}
-        mode="positions-only"
-      />,
-    );
-
-    expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
-    expect(screen.getByText('emptyStateContent:tiles')).toBeOnTheScreen();
-  });
 });

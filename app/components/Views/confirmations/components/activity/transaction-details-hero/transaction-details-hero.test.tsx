@@ -10,7 +10,6 @@ import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { ARBITRUM_USDC } from '../../../constants/perps';
@@ -29,6 +28,10 @@ jest.mock('../../../../../../selectors/transactionController', () => ({
 jest.mock('../../token-icon', () => ({
   TokenIcon: () => null,
 }));
+
+// Merkl distributor — the `from` of the Transfer log emitted by a mUSD bonus claim
+const MERKL_DISTRIBUTOR_ADDRESS =
+  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
@@ -407,6 +410,80 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+\$200/)).toBeDefined();
     });
 
+    describe('post-quote withdrawals (inflated totalFiat)', () => {
+      // The controller builds totalFiat as `source amount + fees`, but a
+      // post-quote withdrawal's source amount already includes the fees, so
+      // totalFiat overstates what left the account. The hero must reconstruct
+      // it from targetFiat + the fees the details screen lists.
+      it('shows the source amount rather than the inflated totalFiat for moneyAccountWithdraw', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.moneyAccountWithdraw,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              isPostQuote: true,
+              targetFiat: '0.75',
+              bridgeFeeFiat: '0.25',
+              networkFeeFiat: '0',
+              totalFiat: '1.25',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText, queryByText } = render();
+
+        expect(getByText(/^-\$1\.00$/)).toBeDefined();
+        expect(getByText(/\+\$0\.75/)).toBeDefined();
+        expect(queryByText(/\$1\.25/)).toBeNull();
+      });
+
+      it('includes the network fee in the source amount', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.perpsWithdraw,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              isPostQuote: true,
+              targetFiat: '50.00',
+              bridgeFeeFiat: '1.50',
+              networkFeeFiat: '0.84',
+              totalFiat: '54.68',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        expect(getByText(/-\$52\.34/)).toBeDefined();
+        expect(getByText(/\+\$50/)).toBeDefined();
+      });
+
+      it('keeps totalFiat for deposits, where fees are genuinely paid on top', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.perpsDeposit,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              targetFiat: '123.46',
+              bridgeFeeFiat: '2.34',
+              totalFiat: '125.80',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        expect(getByText(/-\$125\.80/)).toBeDefined();
+        expect(getByText(/\+\$123\.46/)).toBeDefined();
+      });
+    });
+
     it('renders single-row hero with Money Account icon for mUSD-to-mUSD moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
@@ -427,6 +504,38 @@ describe('TransactionDetailsHero', () => {
       expect(getByTestId('money-account-icon')).toBeDefined();
       expect(queryByText('You sent')).toBeNull();
       expect(queryByText('You received')).toBeNull();
+    });
+
+    it('falls back to decoded mUSD amount when targetFiat is 0 for mUSD-to-mUSD moneyAccountWithdraw', () => {
+      const oneMusdTransferData =
+        '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa9604500000000000000000000000000000000000000000000000000000000000f4240';
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.batch,
+          chainId: CHAIN_IDS.MONAD,
+          txParams: { data: '0x123', to: '0x456' },
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountWithdraw },
+            {
+              type: TransactionType.tokenMethodTransfer,
+              to: MUSD_TOKEN_ADDRESS,
+              data: oneMusdTransferData,
+            },
+          ],
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '0',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(/-\$1\.00$/)).toBeDefined();
+      expect(queryByText(/\$0/)).toBeNull();
     });
 
     it('renders single-row hero for cross-chain mUSD moneyAccountWithdraw', () => {
@@ -512,6 +621,23 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+\$100/)).toBeDefined();
       expect(queryByText('You sent')).toBeNull();
       expect(queryByText('You received')).toBeNull();
+    });
+
+    it('keeps two decimals on a whole-dollar deposit', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            targetFiat: '1',
+            fiat: { orderId: 'order-123' },
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText(/^\+\$1\.00$/)).toBeDefined();
     });
 
     it('renders single-row mUSD deposit hero with Money Account icon', () => {

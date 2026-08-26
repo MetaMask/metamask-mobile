@@ -207,7 +207,9 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
 
 jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
-  const QUICK_INTERVALS = ['1m', '5m', '15m', '1h', '1d'];
+  const { TOKEN_OVERVIEW_CHART_INTERVALS } = jest.requireActual(
+    './tokenOverviewChart.constants',
+  );
   return {
     __esModule: true,
     default: ({
@@ -216,7 +218,7 @@ jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
       onIntervalSelect?: (interval: string) => void;
     }) => (
       <View testID="mock-interval-bar">
-        {QUICK_INTERVALS.map((interval) => (
+        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval: string) => (
           <Pressable
             key={interval}
             accessibilityLabel={interval}
@@ -1678,12 +1680,12 @@ describe('PriceAdvanced', () => {
 
       // For '1H' timeRange:
       // - WS_INTERVAL_BY_TIME_RANGE['1H'] = '1m'
-      // - INTERVAL_TO_TIME_PERIOD['1m'] = '1d'
+      // - CHART_INTERVAL_CONFIGS['1m'] = '1d'
       // - TIME_RANGE_CONFIGS['1H'].timePeriod = '1h'
       // With flag OFF, should use '1h', not '1d'
     });
 
-    it('uses INTERVAL_TO_TIME_PERIOD when technical indicators flag is ON', () => {
+    it('uses CHART_INTERVAL_CONFIGS when technical indicators flag is ON', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
 
       render(<PriceAdvanced {...baseProps} />);
@@ -1691,8 +1693,8 @@ describe('PriceAdvanced', () => {
       // Default timeRange is '1D':
       // - displayInterval starts as wsInterval = WS_INTERVAL_BY_TIME_RANGE['1D'] = '15m'
       // - chartInterval = '15m'
-      // - INTERVAL_TO_TIME_PERIOD['15m'] = '1d'
-      // With flag ON, should use '1d' from INTERVAL_TO_TIME_PERIOD
+      // - CHART_INTERVAL_CONFIGS['15m'] = '1d'
+      // With flag ON, should use '1d' from CHART_INTERVAL_CONFIGS
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
         expect.objectContaining({
           timePeriod: '1d',
@@ -1728,14 +1730,14 @@ describe('PriceAdvanced', () => {
       );
     });
 
-    it('correctly uses INTERVAL_TO_TIME_PERIOD for candle intervals when flag is ON', () => {
+    it('correctly uses CHART_INTERVAL_CONFIGS for candle intervals when flag is ON', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
 
       render(<PriceAdvanced {...baseProps} />);
 
       // For '1D' timeRange:
       // - wsInterval = '15m'
-      // - INTERVAL_TO_TIME_PERIOD['15m'] = '1d'
+      // - CHART_INTERVAL_CONFIGS['15m'] = '1d'
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
         expect.objectContaining({
           timePeriod: '1d',
@@ -1878,6 +1880,32 @@ describe('PriceAdvanced', () => {
         expect.objectContaining({
           timePeriod: '1w',
           interval: '1h',
+        }),
+      );
+    });
+
+    it('maps 4h interval to 1m timePeriod when flag is ON', () => {
+      enableIndicatorBar('4h');
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriod: '1m',
+          interval: '4h',
+        }),
+      );
+    });
+
+    it('maps 1w interval to 1y timePeriod when flag is ON', () => {
+      enableIndicatorBar('1w');
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriod: '1y',
+          interval: '1w',
         }),
       );
     });

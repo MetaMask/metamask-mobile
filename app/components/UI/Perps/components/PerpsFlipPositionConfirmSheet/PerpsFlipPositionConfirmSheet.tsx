@@ -24,7 +24,11 @@ import {
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -39,14 +43,22 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
-> = ({ position, sheetRef: externalSheetRef, onClose, onConfirm }) => {
+> = ({
+  position,
+  sheetRef: externalSheetRef,
+  onClose,
+  onConfirm,
+  enableHaptics = false,
+}) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
+  const { playImpact } = useHaptics();
 
   // Measure bottom sheet display
   usePerpsMeasurement({ traceName: TraceName.PerpsFlipPositionSheet });
@@ -131,17 +143,39 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const vipTier = useVipTier();
 
   const handleReverse = useCallback(async () => {
+    if (isFlipping || !hasValidAmount) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
     await handleFlipPosition(position, {
       totalFee: feeResults.totalFee,
+      metamaskFee: feeResults.metamaskFee,
+      metamaskFeeRate: feeResults.metamaskFeeRate,
       marketPrice: markPrice || price,
       vipTier: vipTier ?? undefined,
       vipDiscount: feeResults.feeDiscountPercentage,
+      ...toPerpsEntryAttribution({
+        source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+      }),
+      source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+      ...(feeResults.protocolFeeRate !== undefined
+        ? { hlFeeRate: feeResults.protocolFeeRate }
+        : {}),
     });
   }, [
     position,
+    enableHaptics,
     handleFlipPosition,
+    hasValidAmount,
+    isFlipping,
+    playImpact,
     feeResults.totalFee,
+    feeResults.metamaskFee,
+    feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
+    feeResults.protocolFeeRate,
     markPrice,
     price,
     vipTier,

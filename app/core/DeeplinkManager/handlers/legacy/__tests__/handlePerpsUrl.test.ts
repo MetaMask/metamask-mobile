@@ -3,7 +3,12 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import ReduxService from '../../../../redux';
-import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
+import {
+  selectIsFirstTimePerpsUser,
+  selectPerpsMode,
+} from '../../../../../components/UI/Perps/selectors/perpsController';
+import { selectPerpsProModeEnabledFlag } from '../../../../../components/UI/Perps/selectors/featureFlags';
+import { PerpsMode } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
@@ -17,6 +22,22 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
+jest.mock('../../../../../components/UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsProModeEnabledFlag: jest.fn(),
+}));
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PerpsController: {
+        setAttributionContext: jest.fn(),
+        getAttributionContext: jest.fn(() => ({})),
+        clearAttributionContext: jest.fn(),
+        mergeAttributionContext: jest.fn((props = {}) => props),
+      },
+    },
+  },
+}));
 
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
@@ -41,6 +62,10 @@ describe('handlePerpsUrl', () => {
     // Mock ReduxService.store.getState
     mockGetState = jest.fn();
     (ReduxService.store.getState as jest.Mock) = mockGetState;
+
+    // Pro mode inactive by default, matching existing PERPS_HOME assertions.
+    jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
+    jest.mocked(selectPerpsMode).mockReturnValue(PerpsMode.Lite);
   });
 
   afterEach(() => {
@@ -247,6 +272,28 @@ describe('handlePerpsUrl', () => {
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams for direct navigation
       expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('navigates to the default Pro market instead of Perps home when Pro mode is active', async () => {
+      // Mock returning user with Pro mode active
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+      jest.mocked(selectPerpsMode).mockReturnValue(PerpsMode.Pro);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
+
+      // Perps Home must never be shown while Pro mode is active (TAT-3612).
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'BTC' }),
+          source: 'deeplink',
+        }),
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({ screen: Routes.PERPS.PERPS_HOME }),
+      );
     });
 
     it('navigates to wallet tab for returning users with regular perps URL', async () => {

@@ -5,6 +5,8 @@ import {
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneyEarnBannerDismissedAction,
+  type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
@@ -22,6 +24,10 @@ describe('user reducer', () => {
 
     it('has onboardingStepperProgress as empty object', () => {
       expect(userInitialState.onboardingStepperProgress).toEqual({});
+    });
+
+    it('has moneyEarnBannerDismissedTokens as empty object', () => {
+      expect(userInitialState.moneyEarnBannerDismissedTokens).toEqual({});
     });
 
     it('has tokenIndicators as empty array', () => {
@@ -76,6 +82,78 @@ describe('user reducer', () => {
 
       expect(newState.moneyOnboardingSeen).toBe(true);
       expect(newState.userLoggedIn).toBe(true);
+    });
+  });
+
+  describe('SET_MONEY_EARN_BANNER_DISMISSED', () => {
+    it('sets the dismissed key to true', () => {
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      });
+    });
+
+    it('merges a new key without overwriting existing ones', () => {
+      const currentState = {
+        ...userInitialState,
+        moneyEarnBannerDismissedTokens: {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        },
+      };
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7' },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+      });
+    });
+
+    it('does not modify other state properties', () => {
+      const currentState = {
+        ...userInitialState,
+        userLoggedIn: true,
+      };
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.userLoggedIn).toBe(true);
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      });
+    });
+  });
+
+  describe('CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS', () => {
+    it('clears all dismissed tokens', () => {
+      const currentState = {
+        ...userInitialState,
+        moneyEarnBannerDismissedTokens: {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+          '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+        },
+      };
+      const action: ClearMoneyEarnBannerDismissedTokensAction = {
+        type: UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS,
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({});
     });
   });
 

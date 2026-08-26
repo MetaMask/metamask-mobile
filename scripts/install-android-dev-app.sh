@@ -9,6 +9,9 @@ set -euo pipefail
 #   Step 1 (Resolve):  Run with --skipInstall and watch the resolved run id / artifact size.
 #   Step 2 (Download): Inspect build/gh-expo-dev-build/android/*.apk and build/metamask-dev.apk.
 #   Step 3 (Install):  Run with --skip-download to install build/metamask-dev.apk on a booted emulator.
+#   Digest cache:      Re-runs skip download when the Actions artifact digest matches
+#                      build/gh-expo-dev-build/<artifact-name>.digest. Use --force-download
+#                      to re-download even when digests match.
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -17,7 +20,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 PACKAGE_ID="io.metamask"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# //\\// normalizes Windows backslash invocation paths (Yarn/Git Bash); no-op elsewhere.
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]//\\//}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
 readonly DOWNLOAD_DIR="$BUILD_DIR/gh-expo-dev-build/android"
@@ -25,7 +29,7 @@ readonly STABLE_APK_PATH="$BUILD_DIR/metamask-dev.apk"
 readonly GHA_LIB="$SCRIPT_DIR/lib/download-gha-expo-dev-build.sh"
 readonly DEVICE_TARGET_LIB="$SCRIPT_DIR/lib/dev-device-target.sh"
 
-if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
+if ! [[ "$(pwd)" -ef "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
   echo -e "${YELLOW}Current directory: $(pwd)${NC}"
   echo -e "${YELLOW}Expected directory: $REPO_ROOT${NC}"
@@ -44,6 +48,7 @@ RUN_ID=""
 UNINSTALL=false
 SKIP_DOWNLOAD=false
 SKIP_INSTALL=false
+FORCE_DOWNLOAD=false
 DOWNLOAD_SUCCESS=false
 
 cleanup() {
@@ -73,14 +78,19 @@ while [[ $# -gt 0 ]]; do
       SKIP_DOWNLOAD=true
       shift
       ;;
+    --force-download)
+      FORCE_DOWNLOAD=true
+      shift
+      ;;
     --skipInstall)
       SKIP_INSTALL=true
       shift
       ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--skipInstall] [--uninstall]"
+      echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
       echo "Targets ADB_SERIAL or ANDROID_DEVICE from .js.env; falls back to first connected device."
+      echo "  --force-download  Re-download even when the local Actions artifact digest matches."
       exit 1
       ;;
   esac
@@ -93,8 +103,15 @@ download_latest_app() {
   require_gh
 
   local resolved_run_id
+  local remote_digest
   resolved_run_id="$(resolve_expo_dev_run "$ANDROID_APK_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
+
+  if should_skip_artifact_download "$resolved_run_id" "$ANDROID_APK_ARTIFACT_NAME" "$STABLE_APK_PATH" "$FORCE_DOWNLOAD"; then
+    return 0
+  fi
+
+  remote_digest="$(fetch_artifact_digest "$resolved_run_id" "$ANDROID_APK_ARTIFACT_NAME")"
 
   echo -e "${BLUE}━━━ Step 2: Downloading ${ANDROID_APK_ARTIFACT_NAME} ━━━${NC}"
   rm -rf "$DOWNLOAD_DIR"
@@ -120,6 +137,7 @@ download_latest_app() {
   echo -e "${BLUE}━━━ Step 3: Copying to stable path ━━━${NC}"
   cp -f "$downloaded_apk" "$STABLE_APK_PATH"
   echo -e "${GREEN}✓ Copied to ${STABLE_APK_PATH}${NC}"
+  write_cached_artifact_digest "$ANDROID_APK_ARTIFACT_NAME" "$remote_digest"
   DOWNLOAD_SUCCESS=true
 }
 

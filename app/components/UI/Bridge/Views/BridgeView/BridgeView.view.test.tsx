@@ -17,9 +17,12 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import {
+  setDestToken,
   setSlippage,
   setSourceAmount,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -38,12 +41,14 @@ import {
 } from '../../_mocks_/bridgeViewTestConstants';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { TrendingTokensBottomSheetTestIds } from '../../../Trending/components/TrendingTokensBottomSheet/TrendingTokensBottomSheet.testIds';
+import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/SwapDiscoveryFeed/abTestConfig';
 import { getTrendingTokenRowItemTestId } from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
+import { merge } from 'lodash';
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -67,6 +72,10 @@ describeForPlatforms('BridgeView', () => {
     Date.now = () => new Date().getTime();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -87,6 +96,332 @@ describeForPlatforms('BridgeView', () => {
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+  });
+
+  describe('tabs', () => {
+    it('shows the market tab with its label by default, then switches to the limit tab and hides slippage settings on press', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.MARKET_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.market'));
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.limit'));
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.recurring'));
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('restores the market content when returning to the market tab', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('re-anchors the destination to the source token default pair when returning to the market tab', async () => {
+      // The user picks a Robinhood-chain pair on the Limit tab and goes back to
+      // Market, which anchors its source token from the route params. The
+      // destination has to follow that source instead of being left behind on
+      // the Robinhood chain, which would turn a swap into a cross-chain bridge.
+      const robinhoodChainId = '0x1237';
+      const robinhoodEth: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ether',
+      };
+      const robinhoodUsde: BridgeToken = {
+        address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'USDe',
+        name: 'Ethena USDe',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+          sourceToken: ETH_SOURCE,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(robinhoodEth));
+        store.dispatch(setDestToken(robinhoodUsde));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken?.chainId).toBe('0x1');
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+        );
+      });
+      expect(store.getState().bridge.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('re-anchors the destination to the source token chain when returning to the market tab without a route source token', async () => {
+      // Same as above, but Market has no source token on its route params, so it
+      // keeps the source the Limit tab left in Redux. The destination has to
+      // follow that source's chain rather than the bip44 default pair, whose
+      // dest asset always sits on Ethereum.
+      const bscUsdt: BridgeToken = {
+        address: '0x55d398326f99059ff775485246999027b3197955',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'USDT',
+        name: 'Tether USD',
+      };
+      const bscNative: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'BNB',
+        name: 'BNB',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  // The bip44 default pair is what a source token left on
+                  // another chain could wrongly get paired with.
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'eip155:1': { isActiveSrc: true, isActiveDest: true },
+                      'eip155:56': { isActiveSrc: true, isActiveDest: true },
+                    },
+                    bip44DefaultPairs: {
+                      eip155: {
+                        other: {},
+                        standard: {
+                          'eip155:1/slip44:60':
+                            'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(bscNative));
+        store.dispatch(setDestToken(bscUsdt));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'USDT', chainId: '0x38' }),
+        );
+      });
+      expect(store.getState().bridge.sourceToken?.chainId).toBe('0x38');
+    });
+
+    it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {
+      const { getByTestId, store } = defaultBridgeWithTokens();
+
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(store.getState().bridge.sourceAmount).toBe('1');
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      });
+      // The selected tokens are preserved so Market shows the same pair on return.
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    });
+
+    describe('feature flags', () => {
+      it('hides the tabs bar and keeps the market view functional when both Limit and Recurring flags are disabled', async () => {
+        const { getByTestId, queryByTestId, store } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: false },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.TABS_BAR),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          store.dispatch(setSourceAmount('1'));
+        });
+
+        await waitFor(() => {
+          expect(store.getState().bridge.sourceAmount).toBe('1');
+        });
+      });
+
+      it('shows only the enabled tab when a single WIP flag is enabled and lets the user switch to it', async () => {
+        const { getByTestId, queryByTestId } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: true },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+        expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
+
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+          ).toBeOnTheScreen();
+        });
+      });
+    });
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
@@ -208,13 +543,10 @@ describeForPlatforms('BridgeView', () => {
         }
       | undefined;
     const recommendedQuote = bridgeControllerState?.recommendedQuote;
-    const quote = recommendedQuote?.quote as Record<string, unknown>;
-    const quoteWithTrade = {
-      ...recommendedQuote,
+    const quoteWithTrade = merge({}, recommendedQuote, {
       quote: {
-        ...quote,
-        bridgeId: 'test-bridge',
-        bridges: ['test-bridge'],
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
         steps: [],
       },
       trade: {
@@ -222,14 +554,14 @@ describeForPlatforms('BridgeView', () => {
         gasLimit: 0,
         effectiveGas: 0,
       },
-    };
+    });
 
     if (bridgeControllerState) {
       bridgeControllerState.recommendedQuote = quoteWithTrade;
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText } = renderComponentViewScreen(
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
       BridgeView as unknown as React.ComponentType,
       { name: Routes.BRIDGE.BRIDGE_VIEW },
       { state },
@@ -241,6 +573,9 @@ describeForPlatforms('BridgeView', () => {
       ).toBe('$1.00');
     });
     expect(getByText('1 USDC')).toBeOnTheScreen();
+    expect(
+      queryByText(strings('bridge.recurring.you_get')),
+    ).not.toBeOnTheScreen();
   });
 
   it('resets source cursor to the end when input is focused again', async () => {
@@ -371,10 +706,8 @@ describeForPlatforms('BridgeView', () => {
           expect.anything(),
         );
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
-
-    updateQuoteSpy.mockRestore();
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
@@ -880,7 +1213,9 @@ describeForPlatforms('BridgeView', () => {
             engine: {
               backgroundState: {
                 RemoteFeatureFlagController: {
-                  remoteFeatureFlags: { swapsTrendingTokens: true },
+                  remoteFeatureFlags: {
+                    [SWAP_DISCOVERY_FEED_REVAMP_AB_KEY]: 'control',
+                  },
                   cacheTimestamp: 0,
                 },
               },
@@ -888,7 +1223,6 @@ describeForPlatforms('BridgeView', () => {
           } as unknown as DeepPartial<RootState>,
         });
 
-      // Section and all three filter controls appear in zero state
       await findByTestId(BridgeTrendingTokensSectionTestIds.SECTION);
       expect(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
@@ -900,7 +1234,6 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
       ).toBeOnTheScreen();
 
-      // Token rows from the mock API response appear
       await waitFor(
         () => {
           expect(
@@ -914,7 +1247,6 @@ describeForPlatforms('BridgeView', () => {
         { timeout: 5000 },
       );
 
-      // Tapping the price filter opens its bottom sheet
       fireEvent.press(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
       );
@@ -922,7 +1254,6 @@ describeForPlatforms('BridgeView', () => {
         await findByTestId(TrendingTokensBottomSheetTestIds.PRICE_CHANGE),
       ).toBeOnTheScreen();
 
-      // Entering an amount transitions out of zero state and hides the trending section
       act(() => {
         store.dispatch(setSourceAmount('1'));
       });

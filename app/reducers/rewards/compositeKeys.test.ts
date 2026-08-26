@@ -1,6 +1,7 @@
 import {
   buildCampaignOutcomeToastCompositeKey,
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
 } from './compositeKeys';
 
 describe('rewards compositeKeys', () => {
@@ -9,6 +10,14 @@ describe('rewards compositeKeys', () => {
       expect(buildSubscriptionCampaignCompositeKey('sub-1', 'camp-2')).toBe(
         'sub-1:camp-2',
       );
+    });
+  });
+
+  describe('buildSubscriptionVipTransactionCompositeKey', () => {
+    it('joins subscription id and vip transaction type', () => {
+      expect(
+        buildSubscriptionVipTransactionCompositeKey('sub-1', 'PERPS'),
+      ).toBe('sub-1:PERPS');
     });
   });
 

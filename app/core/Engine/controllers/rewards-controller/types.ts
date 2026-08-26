@@ -85,6 +85,12 @@ export type VipEquityAllocation = {
   earned: number;
   threshold: number;
   percent: number;
+  // LIFETIME total of points counting toward equity: the 30d window as it stood
+  // when the equity tier was first reached, plus every day since spent at that
+  // tier or above (a re-climb after dropping below it does not count). Unlike
+  // `earned` it is never clamped and never falls as the rolling window advances.
+  // Null when the backend pilot has no configured equity tier.
+  lifetimeQualifyingPoints: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -93,6 +99,13 @@ export type VipTierDto = {
   name: string;
   tier: number;
   pointsRequirement: number;
+  /**
+   * Lower 30d-points threshold to KEEP this tier once held (vs
+   * `pointsRequirement` to REACH it). `null` when no maintain threshold is
+   * configured for the tier — the reach requirement then also governs keeping
+   * it. Sourced from `/vip/me` (backend PR #737).
+   */
+  maintainPointsRequirement: number | null;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
@@ -107,6 +120,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   periodTitle: string;
   memberIdTitle: string;
+  transactionsTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
@@ -122,6 +136,19 @@ export type VipLocalizedTextDto = {
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  /**
+   * Sub-row copy for the lifetime equity-qualifying points figure. Carries a
+   * `{points}` placeholder that the client interpolates with
+   * `formatCompactValue(pointsAllocation.lifetimeQualifyingPoints)`, matching
+   * the ring beside it — number formatting for this card is client-side.
+   */
+  equityLifetimePointsDescription: string;
+  /**
+   * Copy for when the equity multiplier request itself fails. Carried here
+   * rather than on that response, which returns no strings when it fails.
+   */
+  equityMultiplierFailedTitle: string;
+  equityMultiplierFailedDescription: string;
   topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
@@ -131,6 +158,50 @@ export type VipLocalizedTextDto = {
   nextTierRevenueShareDelta: string;
   nextTierReferralPointsDelta: string;
 };
+
+/**
+ * Display-only equity multiplier from POST /vip/equity-multiplier.
+ * Never persist as program truth; never feed settlement (RWDS-1485).
+ */
+/**
+ * Display state of the multiplier, driven only by holdings against the
+ * configured band. `below_floor` — multiplier is 1.0. `active` — more holdings
+ * earn more. `at_cap` — maxed, nothing left to gain.
+ */
+export type VipEquityMultiplierState = 'below_floor' | 'active' | 'at_cap';
+
+/**
+ * Copy already resolved server-side for the current state and fully
+ * interpolated. Render as-is; never branch on `state` to pick copy, or a
+ * future state will need a mobile release.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierLocalizedTextDto = {
+  title: string;
+  description: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierUnavailableDto = {
+  available: false;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierAvailableDto = {
+  available: true;
+  multiplier: string;
+  state: VipEquityMultiplierState;
+  progressPercent: number;
+  tierNumber: number;
+  tierName: string;
+  capUsd: string;
+  computedAt: string;
+  localizedText: VipEquityMultiplierLocalizedTextDto;
+};
+
+export type VipEquityMultiplierDto =
+  | VipEquityMultiplierUnavailableDto
+  | VipEquityMultiplierAvailableDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {
@@ -196,6 +267,78 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+export type VipTransactionType = 'PERPS' | 'SWAP';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsTransactionDetailDto = {
+  coin: string;
+  feeCoin: string;
+  rawFee: string;
+  rawNotionalVolume: string;
+  tradeId: string;
+  orderId: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipSwapTransactionDetailDto = {
+  quoteId: string;
+  bridgeId?: string;
+  srcChainId: string;
+  srcAssetSymbol?: string;
+  destChainId: string;
+  destAssetSymbol?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionDto = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedVipTransactionsDto = {
+  results: VipTransactionDto[];
+  has_more: boolean;
+  cursor: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GetVipTransactionsDto = {
+  subscriptionId: string;
+  type: VipTransactionType;
+  cursor: string | null;
+  forceFresh?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsLastUpdatedDto = {
+  lastUpdated: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionEntryState = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsState = {
+  results: VipTransactionEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
 };
 
 // Per-subscription cache for VIP perps builder fee.
@@ -276,6 +419,7 @@ export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   PERPS_TRADING = 'PERPS_TRADING',
   PREDICT_THE_PITCH = 'PREDICT_THE_PITCH',
+  MONEY_ACCOUNT_SWEEPSTAKES = 'MONEY_ACCOUNT_SWEEPSTAKES',
   SEASON_1 = 'SEASON_1',
 }
 
@@ -418,11 +562,17 @@ export type PerpsTradingCampaignDetailsState = CampaignDetailsState;
 
 export type PredictThePitchCampaignDetailsState = CampaignDetailsState;
 
+export type MoneyAccountSweepstakesCampaignDetailsState =
+  CampaignDetailsState & {
+    localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+  };
+
 export type CampaignDetailsDtoState =
   | CampaignDetailsState
   | OndoHoldingDetailsState
   | PerpsTradingCampaignDetailsState
-  | PredictThePitchCampaignDetailsState;
+  | PredictThePitchCampaignDetailsState
+  | MoneyAccountSweepstakesCampaignDetailsState;
 
 /**
  * Serializable version of CampaignDto for state storage.
@@ -1131,11 +1281,77 @@ export type PerpsTradingCampaignDetails = CampaignDetails;
 
 export type PredictThePitchCampaignDetails = CampaignDetails;
 
+// Backend resolveMoneyAccountSweepstakesLocalizedText guarantees every key is
+// populated, so the UI can rely on these strings without a local fallback.
+// Keep in lockstep with Contentful + backend DEFAULT_MONEY_ACCOUNT_SWEEPSTAKES_LOCALIZED_TEXT.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesLocalizedTextDto = {
+  eligibleBalanceTitle: string;
+  eligibleBalanceDescription: string;
+  entriesTitle: string;
+  entriesDescription: string;
+  entriesCountValue: string;
+  drawScheduleTitle: string;
+  drawScheduleSummary: string;
+  drawScheduleCurrentDraw: string;
+  drawScheduleEntriesReset: string;
+  drawScheduleViewResults: string;
+  awardedLabel: string;
+  prizePoolLabel: string;
+  prizeTitle: string;
+  prizeDescription: string;
+  addFundsTitle: string;
+  addFundsNoBalanceTitle: string;
+  addFundsNoBalanceDescription: string;
+  weekTitle: string;
+  completeLabel: string;
+  activeLabel: string;
+  joinTheSweepstakesTitle: string;
+  drawPendingTitle: string;
+  drawCompleteTitle: string;
+  drawProofTitle: string;
+  merkleRootLabel: string;
+  formulaLabel: string;
+  drawFormulaLabel: string;
+  drawFormulaDescription: string;
+  seedBlockLabel: string;
+  seedBlockHashLabel: string;
+  drawProofEntriesLabel: string;
+  winnersLabel: string;
+  reservesLabel: string;
+  originalDrawTitle: string;
+  reserveSuffix: string;
+  refLabel: string;
+  weightLabel: string;
+  bindingConflictTitle: string;
+  bindingConflictDescription: string;
+  onTrackDescription: string;
+  lostTodayDescription: string;
+  shortfallDescription: string;
+  currentBalanceTitle: string;
+  balanceTitle: string;
+  qualifiedLabel: string;
+  thisWeekLabel: string;
+  nextDrawTitle: string;
+  dayRemainingValue: string;
+  daysRemainingValue: string;
+  learnHowItWorksTitle: string;
+  learnHowItWorksDescription: string;
+  learnMusdTitle: string;
+  learnMusdDescription: string;
+};
+
+export interface MoneyAccountSweepstakesCampaignDetails
+  extends CampaignDetails {
+  localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+}
+
 export type CampaignDetailsDto =
   | CampaignDetails
   | OndoHoldingDetails
   | PerpsTradingCampaignDetails
-  | PredictThePitchCampaignDetails;
+  | PredictThePitchCampaignDetails
+  | MoneyAccountSweepstakesCampaignDetails;
 
 export interface PredictThePitchLeaderboardEntryDto {
   rank: number;
@@ -1210,6 +1426,45 @@ export interface PredictThePitchPrizePoolDto {
   breakdown: PredictThePitchPrizeBreakdownEntryDto[];
   computedAt: string | null;
 }
+
+/**
+ * Minimal reference to a single Polymarket market.
+ */
+export interface PredictMarketRef {
+  eventId: string;
+  conditionId?: string;
+}
+
+/**
+ * Response DTO for the public first predict on us endpoint.
+ */
+export interface FirstPredictOnUsDto {
+  name: string;
+  image: ThemeImage | null;
+  localizedText: Record<string, string>;
+  usdAmount: number;
+  markets: PredictMarketRef[];
+  termsUrl: string | null;
+}
+
+/**
+ * Serializable version of FirstPredictOnUsDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsDtoState = {
+  name: string;
+  image: ThemeImageState | null;
+  localizedText: { [key: string]: string };
+  usdAmount: number;
+  markets: { eventId: string; conditionId?: string }[];
+  termsUrl: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsCacheState = {
+  data: FirstPredictOnUsDtoState | null;
+  lastFetched: number;
+};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
@@ -1305,6 +1560,196 @@ export type PredictThePitchPrizePoolState = {
 };
 
 // ─── End Predict The Pitch Campaign ───────────────────────────────────────
+
+// ─── Money Account Sweepstakes Campaign ───────────────────────────────────
+
+export type MoneyAccountSweepstakesTodayStatus =
+  | 'on_track'
+  | 'not_yet_qualified'
+  | 'lost_today'
+  // Today is outside the campaign's scored set, so day close writes no entry
+  // either way and no verdict exists. `qualifyingDepositsUsd` still reports
+  // real progress, so a shortfall must NOT be derived from it here — the
+  // participant may already be over the threshold.
+  | 'not_scored';
+
+export interface MoneyAccountSweepstakesStatsMeDto {
+  entryCount: number;
+  currentBalanceUsd: number;
+  yieldEarnedUsd: number;
+  qualifyingDepositsUsd: number;
+  qualifyingThresholdUsd: number;
+  todayStatus: MoneyAccountSweepstakesTodayStatus;
+  daysRemaining: number;
+  /**
+   * ISO timestamp of when the backend's on-chain ingest last ran — how fresh
+   * the deposit/balance figures above are, NOT when the response was built.
+   *
+   * Optional because older backend builds omit it entirely, and null when that
+   * environment's ingest has never run. Either way there is no freshness to
+   * report, so callers must hide the label rather than render a fallback date.
+   */
+  dataAsOf?: string | null;
+}
+
+export interface MoneyAccountSweepstakesPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  numberOfWinners: number;
+  minPrizeUsd: number;
+  maxPrizeUsd: number;
+}
+
+export interface MoneyAccountSweepstakesDrawExplanationDto {
+  merkleRoot: string;
+  seedBlock: number;
+  seedBlockHash: string;
+  formula: string;
+  entryCount: number;
+  winnerCount: number;
+  reserveCount: number;
+}
+
+export interface MoneyAccountSweepstakesRankedEntryDto {
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+  weight: number;
+  isReserve: boolean;
+}
+
+export interface MoneyAccountSweepstakesFinalWinnerDto {
+  originalRank: number;
+  addressPrefix: string;
+  refCode: string | null;
+  prizeAmountUsd: number | null;
+}
+
+export interface MoneyAccountSweepstakesAdjustmentDto {
+  kind: 'promoted' | 'removed';
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+}
+
+export interface MoneyAccountSweepstakesMerkleProofStepDto {
+  sibling: string;
+  position: 'left' | 'right';
+}
+
+export interface MoneyAccountSweepstakesAddressProofDto {
+  included: boolean;
+  index?: number | null;
+  leaf?: string | null;
+  path?: MoneyAccountSweepstakesMerkleProofStepDto[];
+}
+
+export interface MoneyAccountSweepstakesDrawProofDto {
+  explanation: MoneyAccountSweepstakesDrawExplanationDto;
+  originalDraw: MoneyAccountSweepstakesRankedEntryDto[];
+  finalWinners: MoneyAccountSweepstakesFinalWinnerDto[];
+  adjustmentTrail: MoneyAccountSweepstakesAdjustmentDto[];
+  addressProof?: MoneyAccountSweepstakesAddressProofDto;
+}
+
+export interface MoneyAccountSweepstakesOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  prizeAmountUsd?: number | null;
+  /** 1-based draw position; same as draw-proof originalRank / drawOrder. */
+  rank?: number | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesStatsMeState = {
+  entryCount: number;
+  currentBalanceUsd: number;
+  yieldEarnedUsd: number;
+  qualifyingDepositsUsd: number;
+  qualifyingThresholdUsd: number;
+  todayStatus: MoneyAccountSweepstakesTodayStatus;
+  daysRemaining: number;
+  dataAsOf?: string | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  numberOfWinners: number;
+  minPrizeUsd: number;
+  maxPrizeUsd: number;
+  lastFetched: number;
+};
+
+/**
+ * Plain-object state shapes for draw proof cache (interfaces are not Json-safe).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesDrawExplanationState = {
+  merkleRoot: string;
+  seedBlock: number;
+  seedBlockHash: string;
+  formula: string;
+  entryCount: number;
+  winnerCount: number;
+  reserveCount: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesRankedEntryState = {
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+  weight: number;
+  isReserve: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesFinalWinnerState = {
+  originalRank: number;
+  addressPrefix: string;
+  refCode: string | null;
+  prizeAmountUsd: number | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesAdjustmentState = {
+  kind: 'promoted' | 'removed';
+  drawOrder: number;
+  addressPrefix: string;
+  refCode: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesMerkleProofStepState = {
+  sibling: string;
+  position: 'left' | 'right';
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesAddressProofState = {
+  included: boolean;
+  index?: number | null;
+  leaf?: string | null;
+  path?: MoneyAccountSweepstakesMerkleProofStepState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesDrawProofState = {
+  explanation: MoneyAccountSweepstakesDrawExplanationState;
+  originalDraw: MoneyAccountSweepstakesRankedEntryState[];
+  finalWinners: MoneyAccountSweepstakesFinalWinnerState[];
+  adjustmentTrail: MoneyAccountSweepstakesAdjustmentState[];
+  addressProof?: MoneyAccountSweepstakesAddressProofState;
+  lastFetched: number;
+};
+
+// ─── End Money Account Sweepstakes Campaign ───────────────────────────────
 
 /**
  * Campaign status derived from dates
@@ -1874,11 +2319,12 @@ export type SubscriptionBenefitDto = {
   longDescription: string;
   thumbnail: string;
   validFrom: string;
-  validTo: string;
+  validTo: string | null;
   url: string;
   actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
+  companyName?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -2332,6 +2778,10 @@ export type RewardsControllerState = {
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;
   };
+  /** First-page VIP transactions keyed by subscriptionId:type. */
+  vipTransactions: {
+    [compositeId: string]: VipTransactionsState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -2395,8 +2845,22 @@ export type RewardsControllerState = {
   predictThePitchPrizePool: {
     [campaignId: string]: PredictThePitchPrizePoolState;
   };
+  /** Money Account Sweepstakes stats keyed by compositeId (subscriptionId:campaignId). */
+  moneyAccountSweepstakesStats: {
+    [compositeId: string]: MoneyAccountSweepstakesStatsMeState;
+  };
+  /** Money Account Sweepstakes prize pool keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesPrizePool: {
+    [campaignId: string]: MoneyAccountSweepstakesPrizePoolState;
+  };
+  /** Money Account Sweepstakes draw proof keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesDrawProof: {
+    [campaignId: string]: MoneyAccountSweepstakesDrawProofState;
+  };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
+  /** Cached first predict on us content from the public endpoint. */
+  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

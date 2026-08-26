@@ -6,7 +6,7 @@ import {
 } from '../../tags.performance.js';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import TimerHelper from '../../framework/TimerHelper';
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 
@@ -29,15 +29,15 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(AccountListBottomSheet.accountList),
+          await AppiumAssertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
           ),
       );
 
       await AccountListBottomSheet.tapAddAccountButton();
       await screen3Timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('SOL')),
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.tokenRow('SOL'),
         );
       });
 

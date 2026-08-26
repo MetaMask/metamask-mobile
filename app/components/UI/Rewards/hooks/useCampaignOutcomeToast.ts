@@ -1,10 +1,6 @@
 import { useCallback, useContext, useMemo } from 'react';
-import {
-  useFocusEffect,
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -23,6 +19,7 @@ import { buildCampaignOutcomeToastCompositeKey } from '../../../../reducers/rewa
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
+import type { RewardsStackParamList } from '../types/navigation';
 
 export interface CampaignOutcomeToastConfig {
   campaignType: CampaignType;
@@ -52,14 +49,14 @@ export function useCampaignOutcomeToast(
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const campaigns = useSelector(selectCampaigns);
   const dismissed = useSelector(selectDismissedCampaignOutcomeToasts);
 
   const targetCampaign = useMemo(() => {
-    const completed = campaigns
+    const completed = (campaigns ?? [])
       .filter(
         (c) => c.type === campaignType && getCampaignStatus(c) === 'complete',
       )
@@ -120,8 +117,8 @@ export function useCampaignOutcomeToast(
         : getNonWinnerNavigation(targetCampaign);
     navigateToRewardsRoute(
       navigation,
-      nav.route,
-      nav.params as Record<string, unknown>,
+      nav.route as keyof RewardsStackParamList,
+      nav.params as never,
     );
   }, [
     variant,

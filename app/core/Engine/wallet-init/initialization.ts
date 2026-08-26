@@ -1,18 +1,31 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
+import { isDmkEnabled } from '../../Ledger/dmk';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
+import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
+import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
+import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
+import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
-  getNetworkControllerInstanceOptions,
-  setupRpcEndpointMetrics,
-} from './instance-options/network-controller';
+  getTransactionControllerInstanceOptions,
+  setupTransactionControllerListeners,
+} from './instance-options/transaction-controller';
+import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
  * client-specific options live in its own builder under `./instance-options/`.
+ *
+ * @param request - The wallet initialization request.
+ * @param request.messenger - The root messenger.
+ * @param request.state - The persisted controller state.
+ * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
@@ -21,26 +34,60 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  const wallet = new Wallet({
-    messenger,
+  // DMK stack selection. Read the ledgerDmk flag fresh from the persisted
+  // RemoteFeatureFlagController state (LEDGER_FORCE_DMK env var overrides).
+  // No caching — the adapter factory reads the same flag from live state.
+  const remoteFeatureFlagState = (state as Record<string, unknown>)
+    ?.RemoteFeatureFlagController as
+    | {
+        remoteFeatureFlags?: Record<string, unknown>;
+        localOverrides?: Record<string, unknown>;
+      }
+    | undefined;
+  const useDmk = isDmkEnabled({
+    ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
+    ...(remoteFeatureFlagState?.localOverrides ?? {}),
+  });
+
+  const transactionControllerInitMessenger =
+    getTransactionControllerInitMessenger(messenger);
+
+  const wallet: Wallet = new Wallet({
+    // Mobile's root messenger carries a superset action/event union (all app
+    // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
+    // `Messenger` isn't covariant in those params, so the superset messenger
+    // isn't assignable to the wallet's type despite being the same runtime
+    // 'Root' bus that already carries everything Wallet needs.
+    messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
-      keyringController: getKeyringControllerInstanceOptions(messenger),
+      gasFeeController: getGasFeeControllerInstanceOptions(),
+      keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
         getRemoteFeatureFlagControllerInstanceOptions({
           messenger,
           state,
         }),
+      seedlessOnboardingController:
+        getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
+      subscriptionService: getSubscriptionServiceInstanceOptions(),
+      shieldApiService: getShieldApiServiceInstanceOptions(),
+      claimsService: getClaimsServiceInstanceOptions(),
+      transactionController: getTransactionControllerInstanceOptions({
+        initMessenger: transactionControllerInitMessenger,
+      }),
     },
   });
 
-  setupRpcEndpointMetrics(messenger);
+  setupTransactionControllerListeners({
+    messenger: transactionControllerInitMessenger,
+  });
 
-  wallet.init().catch((error) => console.error(error));
+  wallet.init().catch((error: unknown) => console.error(error));
 
   return wallet;
 }

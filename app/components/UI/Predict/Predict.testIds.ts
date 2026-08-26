@@ -53,6 +53,11 @@ export const PredictHomeSelectorsIDs = {
   CATEGORIES_SECTION: 'predict-home-categories-section',
   POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',
   TRENDING_SECTION: 'predict-home-trending-section',
+  // Wrappers that measure each section for scroll-into-view impression tracking.
+  LIVE_NOW_IMPRESSION: 'predict-home-live-now-impression',
+  CATEGORIES_IMPRESSION: 'predict-home-categories-impression',
+  POPULAR_TODAY_IMPRESSION: 'predict-home-popular-today-impression',
+  TRENDING_IMPRESSION: 'predict-home-trending-impression',
 } as const;
 
 // ========================================
@@ -223,6 +228,8 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+  TWAP_INFO_BUTTON: 'predict-crypto-up-down-details-twap-info-button',
+  TWAP_INFO_SHEET: 'predict-crypto-up-down-details-twap-info-sheet',
 } as const;
 
 export const PredictCryptoUpDownPositionsSelectorsIDs = {
@@ -300,6 +307,9 @@ export const PredictBuyPreviewSelectorsIDs = {
   // Inline error banners (sheet mode)
   PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
   ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
+  PAYMENT_FAILED_BANNER: 'predict-buy-preview-payment-failed-banner',
+  PAYMENT_FAILED_ADD_FUNDS_BUTTON:
+    'predict-buy-preview-payment-failed-add-funds',
 } as const;
 
 // ========================================

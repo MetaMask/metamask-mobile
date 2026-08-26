@@ -20,6 +20,7 @@ import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
+import { useSubtitleAccountParts } from './useSubtitleAccountParts';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
 export function PendingActivityListItemRow({
@@ -45,7 +46,7 @@ export function PendingActivityListItemRow({
     onPress?.(item);
   }, [onPress, item]);
 
-  const testIdSuffix = item.hash ?? index;
+  const testIdSuffix = item.hash ?? index ?? 0;
   const isQueued = item.isEarliestNonce === false;
   const subtitle = content.subtitle
     ? isQueued
@@ -53,8 +54,24 @@ export function PendingActivityListItemRow({
       : content.subtitle
     : undefined;
 
+  const subtitleAccountParts = useSubtitleAccountParts(
+    content,
+    styles,
+    testIdSuffix,
+  );
+  const subtitleParts =
+    subtitleAccountParts && isQueued
+      ? {
+          ...subtitleAccountParts,
+          pre: `${strings('transaction.queued')} • ${subtitleAccountParts.pre}`,
+        }
+      : subtitleAccountParts;
+
   const titleAccessory = isQueued ? undefined : (
-    <View style={styles.titleSpinner}>
+    <View
+      style={styles.titleSpinner}
+      testID={`activity-pending-spinner-container-${testIdSuffix}`}
+    >
       <PendingSpinner testID={`activity-pending-spinner-${testIdSuffix}`} />
     </View>
   );
@@ -76,6 +93,7 @@ export function PendingActivityListItemRow({
           fallbackIconName={fallbackIconName}
           networkImageSource={networkImageSource}
           styles={styles}
+          testIdSuffix={testIdSuffix}
           tokens={content.avatarTokens}
         />
       }
@@ -89,6 +107,7 @@ export function PendingActivityListItemRow({
       styles={styles}
       subtitle={subtitle}
       subtitleLeadingAccessory={subtitleLeadingAccessory}
+      subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}
       titleAccessory={titleAccessory}
     />

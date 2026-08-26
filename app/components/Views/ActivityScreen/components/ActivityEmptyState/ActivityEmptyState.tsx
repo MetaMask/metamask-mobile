@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Theme,
@@ -8,20 +9,22 @@ import {
 import { Box, TabEmptyState } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import Logger from '../../../../../util/Logger';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { selectAddressHasTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import ActivityEmptyDarkIcon from '../../../../../images/activity-empty-dark.svg';
 import ActivityEmptyLightIcon from '../../../../../images/activity-empty-light.svg';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useMoneyAccountDeposit } from '../../../../UI/Money/hooks/useMoneyAccount';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { ActivityTypeFilter } from '../../types';
 import {
   ActivityEmptyStateAction,
   getActivityEmptyState,
 } from './empty-states';
+import { BridgeViewMode } from '../../../../UI/Bridge/types';
+import { startSwapBridgePageLoadTrace } from '../../../../UI/Bridge/utils/swapBridgePageLoadTrace';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
@@ -39,9 +42,8 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   perpsSubFilterActive = false,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
 
   const Icon =
@@ -58,12 +60,21 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   const handleAction = useCallback(() => {
     switch (emptyState.action) {
       case ActivityEmptyStateAction.Swap:
-        navigation.navigate(Routes.BRIDGE.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
-        });
+        {
+          const params = startSwapBridgePageLoadTrace({
+            sourcePage: 'ActivityEmptyState',
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: MetaMetricsSwapsEventSource.MainView,
+          });
+
+          navigation.navigate(Routes.BRIDGE.ROOT, {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            params,
+          });
+        }
         return;
       case ActivityEmptyStateAction.AddFunds:
-        goToBuy();
+        goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
         return;
       case ActivityEmptyStateAction.MakePrediction:
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -73,14 +84,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       case ActivityEmptyStateAction.BrowsePerpsMarkets:
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_LIST,
-        });
-        return;
-      case ActivityEmptyStateAction.TransferToMoney:
-        initiateDeposit().catch((error) => {
-          Logger.error(error as Error, {
-            message:
-              '[ActivityEmptyState] Money deposit failed to initiate from empty state',
-          });
+          params: {},
         });
         return;
       case ActivityEmptyStateAction.OpenMetamaskCard:
@@ -89,7 +93,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy, initiateDeposit]);
+  }, [emptyState.action, navigation, goToBuy]);
 
   return (
     <Box

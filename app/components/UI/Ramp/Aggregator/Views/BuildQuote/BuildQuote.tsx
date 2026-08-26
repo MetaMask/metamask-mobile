@@ -5,19 +5,26 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { Pressable, View, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import BN4 from 'bnjs4';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   AvatarToken,
   AvatarTokenSize,
+  BottomSheetDialog,
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
+  IconName,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
@@ -30,8 +37,6 @@ import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
-
-import BaseSelectorButton from '../../../../../Base/SelectorButton';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -57,6 +62,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -83,21 +89,11 @@ import styleSheet from './BuildQuote.styles';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/bigint';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
@@ -108,10 +104,6 @@ import { createUnsupportedRegionModalNavigationDetails } from '../../components/
 import { regex } from '../../../../../../util/regex';
 import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SelectorButton = BaseSelectorButton as any;
-
 export interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
@@ -120,7 +112,7 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<BuildQuoteParams>();
   const { showBack } = params;
   const shouldShowBack = showBack !== false;
@@ -135,14 +127,13 @@ const BuildQuote = () => {
   const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<bigint>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
-  const keyboardHeight = useRef(1000);
-  const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -242,6 +233,7 @@ const BuildQuote = () => {
     setAmountNumber(0);
     setAmountBNMinimalUnit(undefined);
     setAmountFocused(false);
+    setIsKeypadOpen(false);
     setIsKeyboardFreshlyOpened(false);
   }, []);
 
@@ -297,8 +289,9 @@ const BuildQuote = () => {
       if (shouldShowUnsupportedModal && selectedRegion) {
         // Use requestAnimationFrame to ensure navigation happens after render
         requestAnimationFrame(() => {
-          navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
+          navigateWithDetails(
+            navigation,
+            createUnsupportedRegionModalNavigationDetails({
               regions: regions ?? [],
               region: selectedRegion,
             }),
@@ -379,16 +372,17 @@ const BuildQuote = () => {
         },
   );
 
-  let maxSellAmount = null;
+  let maxSellAmount: bigint | null = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    // Use nullish checks — bigint 0n is falsy, unlike BN instances.
     maxSellAmount =
-      balanceBN && gasPriceEstimation
-        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+      balanceBN != null && gasPriceEstimation
+        ? balanceBN - gasPriceEstimation.estimatedGasFee
         : null;
   } else if (
     selectedAsset &&
     selectedAsset.address !== NATIVE_ADDRESS &&
-    balanceBN
+    balanceBN != null
   ) {
     maxSellAmount = balanceBN;
   }
@@ -409,20 +403,24 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    if (isBuy || !maxSellAmount) {
+    // maxSellAmount of 0n is a real ceiling (e.g. native balance equals gas);
+    // only skip when it was never computed.
+    if (isBuy || maxSellAmount === null) {
       return false;
     }
-    return Boolean(amountBNMinimalUnit?.gt(maxSellAmount));
+    return Boolean(
+      amountBNMinimalUnit !== undefined && amountBNMinimalUnit > maxSellAmount,
+    );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!amountBNMinimalUnit || amountBNMinimalUnit.isZero()) {
+    if (amountBNMinimalUnit === undefined || amountBNMinimalUnit === 0n) {
       return false;
     }
-    if (!balanceBN) {
+    if (balanceBN == null) {
       return true;
     }
-    return balanceBN.lt(amountBNMinimalUnit);
+    return balanceBN < amountBNMinimalUnit;
   }, [balanceBN, amountBNMinimalUnit]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
@@ -430,11 +428,13 @@ const BuildQuote = () => {
       return false;
     }
 
-    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+    // 0n native balance must still be compared against gas — do not use
+    // truthiness (BN objects were always truthy; 0n is not).
+    if (nativeTokenBalanceBN == null || !gasPriceEstimation) {
       return false;
     }
 
-    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+    return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const displayBalance = useMemo(() => {
@@ -483,7 +483,7 @@ const BuildQuote = () => {
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   const handleConfigurationPress = useCallback(() => {
-    navigation.navigate(...createBuySettingsModalNavigationDetails());
+    navigateWithDetails(navigation, createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -493,29 +493,15 @@ const BuildQuote = () => {
   }, [handleCancelPress, navigation]);
 
   /**
-   * * Keypad style, handlers and effects
-   */
-  const keypadContainerStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: withTiming(keypadOffset.value),
-      },
-    ],
-  }));
-
-  useEffect(() => {
-    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 80;
-  }, [amountFocused, keyboardHeight, keypadOffset]);
-
-  /**
    * Back handler to dismiss keypad
    */
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        if (amountFocused) {
+        if (amountFocused || isKeypadOpen) {
           setAmountFocused(false);
+          setIsKeypadOpen(false);
           setIsKeyboardFreshlyOpened(false);
           return true;
         }
@@ -523,14 +509,20 @@ const BuildQuote = () => {
     );
 
     return () => backHandler.remove();
-  }, [amountFocused]);
+  }, [amountFocused, isKeypadOpen]);
 
-  const handleKeypadDone = useCallback(() => {
+  const handleKeypadClose = useCallback(() => {
     setAmountFocused(false);
+    setIsKeypadOpen(false);
     setIsKeyboardFreshlyOpened(false);
   }, []);
+
+  const handleKeypadDone = useCallback(() => {
+    handleKeypadClose();
+  }, [handleKeypadClose]);
   const onAmountInputPress = useCallback(() => {
     setAmountFocused(true);
+    setIsKeypadOpen(true);
     setIsKeyboardFreshlyOpened(true);
   }, []);
 
@@ -557,7 +549,7 @@ const BuildQuote = () => {
 
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0) as BN4,
+          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0),
         );
       }
 
@@ -573,11 +565,12 @@ const BuildQuote = () => {
         setAmountNumber(value);
       } else {
         const percentage = value * 100;
-        const amountPercentage = balanceBN
-          ?.mul(new BN4(percentage))
-          .div(new BN4(100));
+        const amountPercentage =
+          balanceBN !== null && balanceBN !== undefined
+            ? (balanceBN * BigInt(percentage)) / 100n
+            : undefined;
 
-        if (!amountPercentage) {
+        if (amountPercentage === undefined) {
           return;
         }
 
@@ -585,7 +578,8 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount?.lt(amountPercentage)
+          maxSellAmount !== null &&
+          maxSellAmount < amountPercentage
         ) {
           amountToSet = maxSellAmount;
         }
@@ -608,80 +602,81 @@ const BuildQuote = () => {
     ],
   );
 
-  const onKeypadLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    keyboardHeight.current = height;
-  }, []);
-
   /**
    * * Region handlers
    */
 
   const handleChangeRegion = useCallback(() => {
-    setAmountFocused(false);
+    handleKeypadClose();
     if (regions && regions.length > 0) {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({
           regions,
         }),
       );
     }
-  }, [navigation, regions, setAmountFocused]);
+  }, [handleKeypadClose, navigation, regions]);
 
   /**
    * * CryptoCurrency handlers
    */
 
   const handleAssetSelectorPress = useCallback(() => {
-    setAmountFocused(false);
-    navigation.navigate(
-      ...createTokenSelectModalNavigationDetails({
+    handleKeypadClose();
+    navigateWithDetails(
+      navigation,
+      createTokenSelectModalNavigationDetails({
         tokens: cryptoCurrencies ?? [],
       }),
     );
-  }, [navigation, cryptoCurrencies]);
+  }, [handleKeypadClose, navigation, cryptoCurrencies]);
 
   /**
    * * FiatCurrency handlers
    */
 
   const handleFiatSelectorPress = useCallback(() => {
-    setAmountFocused(false);
-    navigation.navigate(
-      ...createFiatSelectorModalNavigationDetails({
+    handleKeypadClose();
+    navigateWithDetails(
+      navigation,
+      createFiatSelectorModalNavigationDetails({
         currencies: fiatCurrencies ?? [],
       }),
     );
-  }, [navigation, fiatCurrencies]);
+  }, [handleKeypadClose, navigation, fiatCurrencies]);
 
   /**
    * * PaymentMethod handlers
    */
 
   const handleShowPaymentMethodsModal = useCallback(() => {
-    setAmountFocused(false);
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    handleKeypadClose();
+    navigateWithDetails(
+      navigation,
+      createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
         location: screenLocation,
       }),
     );
-  }, [navigation, paymentMethods, screenLocation]);
+  }, [handleKeypadClose, navigation, paymentMethods, screenLocation]);
 
   /**
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
     if (!selectedAddress) {
-      navigation.navigate(
-        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      navigateWithDetails(
+        navigation,
+        createIncompatibleAccountTokenModalNavigationDetails(),
       );
       return;
     }
 
     if (selectedAsset && currentFiatCurrency) {
-      navigation.navigate(
-        ...createQuotesNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQuotesNavDetails({
           amount: isBuy ? amountNumber : amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
@@ -889,9 +884,10 @@ const BuildQuote = () => {
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
   } else if (
-    balanceBN &&
-    !balanceBN.isZero() &&
-    maxSellAmount?.gt(new BN4(0))
+    balanceBN != null &&
+    balanceBN !== 0n &&
+    maxSellAmount !== null &&
+    maxSellAmount > 0n
   ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
@@ -945,14 +941,17 @@ const BuildQuote = () => {
               {isFetchingRegions ? (
                 <SkeletonText thick />
               ) : (
-                <SelectorButton
-                  accessibilityRole="button"
-                  accessible
+                <SelectButton
+                  variant={SelectButtonVariant.Primary}
+                  size={SelectButtonSize.Sm}
+                  placeholder={strings(
+                    'fiat_on_ramp_aggregator.region.select_region',
+                  )}
+                  value={selectedRegion?.emoji}
                   onPress={handleChangeRegion}
                   testID={BuildQuoteSelectors.REGION_DROPDOWN}
-                >
-                  <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
-                </SelectorButton>
+                  accessibilityRole="button"
+                />
               )}
               {isSell ? (
                 <>
@@ -962,15 +961,16 @@ const BuildQuote = () => {
                   !selectedFiatCurrencyId ? (
                     <SkeletonText thick />
                   ) : (
-                    <SelectorButton
-                      accessibilityRole="button"
-                      accessible
+                    <SelectButton
+                      variant={SelectButtonVariant.Primary}
+                      size={SelectButtonSize.Sm}
+                      placeholder={strings(
+                        'fiat_on_ramp_aggregator.select_region_currency',
+                      )}
+                      value={currentFiatCurrency?.symbol}
                       onPress={handleFiatSelectorPress}
-                    >
-                      <Text variant={TextVariant.BodyLGMedium}>
-                        {currentFiatCurrency?.symbol}
-                      </Text>
-                    </SelectorButton>
+                      accessibilityRole="button"
+                    />
                   )}
                 </>
               ) : null}
@@ -1019,8 +1019,8 @@ const BuildQuote = () => {
                 <SkeletonText thin medium />
               ) : (
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {displayBalance !== null && (
                     <>
@@ -1058,7 +1058,10 @@ const BuildQuote = () => {
               !hasInsufficientBalance &&
               amountIsOverGas && (
                 <Row>
-                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                  >
                     {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
                   </Text>
                 </Row>
@@ -1066,8 +1069,8 @@ const BuildQuote = () => {
             {hasInsufficientBalance && (
               <Row>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
                   testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
                 >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
@@ -1076,7 +1079,10 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && hasInsufficientNativeBalanceForGas && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {strings(
                     'fiat_on_ramp_aggregator.insufficient_native_balance',
                     { currency: nativeSymbol },
@@ -1087,8 +1093,8 @@ const BuildQuote = () => {
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
                   testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
                 >
                   {isBuy ? (
@@ -1106,8 +1112,8 @@ const BuildQuote = () => {
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
                   testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
                 >
                   {isBuy ? (
@@ -1156,51 +1162,64 @@ const BuildQuote = () => {
         <ScreenLayout.Content>
           <Row style={styles.cta}>
             <Button
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
-              label={strings('fiat_on_ramp_aggregator.get_quotes')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               isDisabled={amountNumber <= 0 || isFetching}
-              accessibilityRole="button"
-            />
+            >
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
+            </Button>
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
 
-      <Animated.View
-        style={[styles.keypadContainer, keypadContainerStyle]}
-        onLayout={onKeypadLayout}
-      >
-        <QuickAmounts
-          isBuy={isBuy}
-          onAmountPress={handleQuickAmountPress}
-          amounts={quickAmounts}
-        />
-        <Keypad
-          style={styles.keypad}
-          value={amount}
-          onChange={handleKeypadChange}
-          currency={
-            isBuy
-              ? currentFiatCurrency?.symbol
-              : `${selectedAsset?.symbol}-crypto`
+      {isKeypadOpen ? (
+        <BottomSheetDialog
+          testID={BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET}
+          isInteractable={false}
+          onClose={handleKeypadClose}
+          onStartShouldSetResponder={() =>
+            // Prevents the native gesture system from bubbling up
+            // the event to BottomSheetDialog, causing keypad to close
+            // when user click anywhere inside the keypad area that is
+            // not a pressable component.
+            true
           }
-          decimals={
-            isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
-          }
-        />
-        <ScreenLayout.Content>
-          <Button
-            size={ButtonSize.Lg}
-            onPress={handleKeypadDone}
-            label={strings('fiat_on_ramp_aggregator.done')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            accessibilityRole="button"
-          />
-        </ScreenLayout.Content>
-      </Animated.View>
+        >
+          <Box twClassName="content-end px-4 gap-4 pt-4">
+            {amount && amount !== '0' ? (
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleKeypadDone}
+                isFullWidth
+                testID={BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON}
+              >
+                {strings('fiat_on_ramp_aggregator.done')}
+              </Button>
+            ) : (
+              <QuickAmounts
+                isBuy={isBuy}
+                onAmountPress={handleQuickAmountPress}
+                amounts={quickAmounts}
+              />
+            )}
+            <Keypad
+              value={amount}
+              onChange={handleKeypadChange}
+              currency={
+                isBuy
+                  ? currentFiatCurrency?.symbol
+                  : `${selectedAsset?.symbol}-crypto`
+              }
+              decimals={
+                isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
+              }
+            />
+          </Box>
+        </BottomSheetDialog>
+      ) : null}
     </ScreenLayout>
   );
 };

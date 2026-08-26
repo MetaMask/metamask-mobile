@@ -1,8 +1,9 @@
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
+  BRIDGE_UAT_API_BASE_URL,
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
@@ -33,14 +34,45 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [NETWORK_CHAIN_ID.HYPE]: 'HyperEVM',
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
   [NETWORK_CHAIN_ID.ARC]: 'Arc',
+  [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: 'Robinhood',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',
+  [XlmScope.Pubnet]: 'Stellar',
 };
 
-export const BRIDGE_API_BASE_URL =
-  process.env.BRIDGE_USE_DEV_APIS === 'true'
-    ? BRIDGE_DEV_API_BASE_URL
-    : BRIDGE_PROD_API_BASE_URL;
+/**
+ * Resolves the Bridge API base URL to use based on the current MetaMask
+ * environment.
+ *
+ * `BRIDGE_USE_CUSTOM_BASE_URL` lets developers point the app at a custom Bridge
+ * API deployment (e.g. a local server or a one-off environment), bypassing the
+ * environment-based mapping.
+ *
+ * @returns the Bridge API base URL for the current MetaMask environment
+ */
+export const getBridgeApiBaseUrlForMetaMaskEnv = (): string => {
+  if (process.env.BRIDGE_USE_CUSTOM_BASE_URL) {
+    return process.env.BRIDGE_USE_CUSTOM_BASE_URL;
+  }
+
+  switch (process.env.METAMASK_ENVIRONMENT) {
+    case 'exp':
+      return BRIDGE_UAT_API_BASE_URL;
+    case 'dev':
+    case 'test':
+    case 'e2e':
+    case 'local':
+      return BRIDGE_DEV_API_BASE_URL;
+    case 'production':
+    case 'beta':
+    case 'rc':
+    case 'pre-release':
+    default:
+      return BRIDGE_PROD_API_BASE_URL;
+  }
+};
+
+export const BRIDGE_API_BASE_URL = getBridgeApiBaseUrlForMetaMaskEnv();
 
 export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';

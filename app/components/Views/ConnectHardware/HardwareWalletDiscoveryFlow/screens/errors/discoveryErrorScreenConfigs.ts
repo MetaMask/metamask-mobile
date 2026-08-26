@@ -4,6 +4,10 @@ import BluetoothConnectionFailedImage from '../../../../../../images/bluetooth-c
 import EthereumAppClosedImage from '../../../../../../images/ethereum-app-closed.png';
 import NearbyDevicesDeniedImage from '../../../../../../images/nearby-devices-denied.png';
 import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
+import {
+  LEDGER_RIVE,
+  LEDGER_RIVE_STATE_TRIGGER,
+} from '../../../ledgerRiveConstants';
 
 export const DISCOVERY_ERROR_STEPS = [
   DiscoveryStep.DeviceUnresponsive,
@@ -51,11 +55,6 @@ export interface DiscoveryErrorScreenConfig {
   ) => Record<string, string>;
 }
 
-const LEDGER_RIVE = {
-  artboardName: 'Ledger',
-  stateMachineName: 'Ledger_states',
-} as const;
-
 const openSettingsButtons = (
   settingsTestID: string,
   notNowTestID: string,
@@ -78,7 +77,10 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     titleKey: 'ledger.unresponsive',
     subtitleKey: 'ledger.unresponsive_message',
     testID: 'ledger-unresponsive-animation',
-    rive: { ...LEDGER_RIVE, stateTrigger: 'error' },
+    rive: {
+      ...LEDGER_RIVE,
+      stateTrigger: LEDGER_RIVE_STATE_TRIGGER.Error,
+    },
     primaryButton: {
       role: 'retry',
       testID: 'ledger-unresponsive-retry-button',
@@ -88,7 +90,10 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     titleKey: 'ledger.ledger_is_locked',
     subtitleKey: 'ledger.ledger_locked_message_continue',
     testID: 'ledger-locked-animation',
-    rive: { ...LEDGER_RIVE, stateTrigger: 'ledger_locked' },
+    rive: {
+      ...LEDGER_RIVE,
+      stateTrigger: LEDGER_RIVE_STATE_TRIGGER.Locked,
+    },
     secondaryButton: {
       role: 'retry',
       testID: 'ledger-locked-retry-button',

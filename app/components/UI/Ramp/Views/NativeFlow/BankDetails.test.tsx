@@ -427,6 +427,12 @@ describe('V2BankDetails', () => {
     await waitFor(() => {
       expect(mockConfirmPayment).toHaveBeenCalledWith('test-order-id', 'pm-1');
     });
+
+    // TRAM-3696: terminal confirmed event carries the provider order id.
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'RAMPS_TRANSACTION_CONFIRMED',
+      expect.objectContaining({ provider_order_id: 'test-order-id' }),
+    );
   });
 
   it('handles cancel order button press', async () => {

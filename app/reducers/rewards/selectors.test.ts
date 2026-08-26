@@ -47,6 +47,7 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectPendingMasSeriesOptIn,
   selectBenefits,
   selectVipDashboard,
   selectVipDashboardError,
@@ -77,6 +78,7 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
+  selectVipTransactionsById,
   selectPredictThePitchLeaderboardByCampaignId,
   selectPredictThePitchLeaderboardLoadingByCampaignId,
   selectPredictThePitchLeaderboardErrorByCampaignId,
@@ -103,6 +105,7 @@ import {
   OndoGmActivityEntryDto,
   SubscriptionBenefitDto,
   VipDashboardState,
+  VipTransactionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3234,6 +3237,7 @@ describe('Rewards selectors', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -3245,12 +3249,15 @@ describe('Rewards selectors', () => {
           swapsBps: 11,
           perpsBps: 7,
           referralCarryoverBps: 4242,
+          maintainPointsRequirement: null,
           status: 'current',
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
+        transactionsTitle: 'Transactions',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -3271,6 +3278,8 @@ describe('Rewards selectors', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
       lastFetched: 123,
     };
@@ -4256,6 +4265,51 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectVipTransactionsById', () => {
+    const mockTransactions: VipTransactionDto[] = [
+      {
+        id: 'transaction-1',
+        type: 'PERPS',
+        timestamp: '2026-07-22T12:00:00.000Z',
+        feeUsd: '2.50',
+        volumeUsd: '500.00',
+        perps: {
+          coin: 'ETH',
+          feeCoin: 'USDC',
+          rawFee: '2.50',
+          rawNotionalVolume: '500.00',
+          tradeId: 'trade-1',
+          orderId: 'order-1',
+        },
+      },
+    ];
+
+    it('returns null when an identifier is undefined', () => {
+      const state = createMockRootState({
+        vipTransactions: { 'sub-1:PERPS': mockTransactions },
+      });
+
+      expect(selectVipTransactionsById(undefined, 'PERPS')(state)).toBeNull();
+      expect(selectVipTransactionsById('sub-1', undefined)(state)).toBeNull();
+    });
+
+    it('returns null when transactions do not exist', () => {
+      const state = createMockRootState({ vipTransactions: {} });
+
+      expect(selectVipTransactionsById('sub-1', 'PERPS')(state)).toBeNull();
+    });
+
+    it('returns transactions for the specified subscription and type', () => {
+      const state = createMockRootState({
+        vipTransactions: { 'sub-1:PERPS': mockTransactions },
+      });
+
+      expect(selectVipTransactionsById('sub-1', 'PERPS')(state)).toEqual(
+        mockTransactions,
+      );
+    });
+  });
+
   describe('Predict The Pitch selectors', () => {
     const mockLeaderboard = {
       campaignId: 'predict-c-1',
@@ -4481,6 +4535,32 @@ describe('Rewards selectors', () => {
         subscribedCampaignReminders: subscribed,
       });
       expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
+    });
+  });
+
+  describe('selectPendingMasSeriesOptIn', () => {
+    it('returns the initial cleared flag when pending is unset', () => {
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: {
+          needsRetry: false,
+          subscriptionId: null,
+        },
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual({
+        needsRetry: false,
+        subscriptionId: null,
+      });
+    });
+
+    it('returns the pending retry flag when set', () => {
+      const pending = {
+        needsRetry: true,
+        subscriptionId: 'sub-mas-1',
+      };
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: pending,
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual(pending);
     });
   });
 });

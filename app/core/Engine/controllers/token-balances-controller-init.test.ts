@@ -75,6 +75,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 
@@ -94,6 +95,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 
@@ -114,6 +116,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 });

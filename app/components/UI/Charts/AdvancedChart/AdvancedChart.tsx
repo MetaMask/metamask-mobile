@@ -23,12 +23,11 @@ import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
-  resolveLineChromeOptions,
-  resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type FetchOlderBarsResponse,
   type IndicatorType,
+  resolveCurrentPriceColor,
   type OHLCVBar,
   type OHLCVPaginationConfig,
   type RNToWebViewMessage,
@@ -107,15 +106,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartInteracted,
       onChartTradingViewClicked,
       isLoading = false,
-      lineChrome,
       subPaneHeightRatio,
       useSubscriptPriceFormat,
+      priceDecimals,
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
       legendOverlay,
+      showBuiltInLegend,
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
@@ -187,11 +187,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
-      // Snapshot current prop values at the moment the template is created.
-      // This must happen inside useMemo (not in a separate effect) so the refs
-      // reflect what is actually baked, preventing a stale-color race where a
-      // simultaneous non-color dep change causes the SET_THEME_COLORS effect to
-      // see "colors already match" and skip a needed hot-swap.
+      // Snapshot current color-override prop values at the moment the template
+      // is created so the SET_THEME_COLORS effect can skip a redundant send on
+      // mount. Must happen inside useMemo (not a post-render effect) to avoid
+      // a stale-color race when multiple deps change in the same render cycle.
       initialLineColorRef.current = lineColorOverride;
       initialSuccessColorRef.current = successColorOverride;
       initialErrorColorRef.current = errorColorOverride;
@@ -207,8 +206,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
-        lineChrome,
         useSubscriptPriceFormat,
+        priceDecimals,
         hidePaneSeparator,
         gridLineColorOverride,
         lineColorOverride,
@@ -217,6 +216,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
+        showBuiltInLegend,
         volumeSuccessColorOverride,
         volumeErrorColorOverride,
       });
@@ -228,12 +228,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       theme,
       enableDrawingTools,
       disabledFeatures,
-      lineChrome,
       useSubscriptPriceFormat,
+      priceDecimals,
       labelStyleOverrides,
       hidePaneSeparator,
       gridLineColorOverride,
       legendOverlay,
+      showBuiltInLegend,
     ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.
@@ -710,6 +711,82 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // ---- Declarative prop syncing ----
 
+    // Hot-swap chart colors via postMessage whenever overrides change.
+    // IMPORTANT: this effect MUST be declared BEFORE the OHLCV-sync effect
+    // below. React fires effects in declaration order, so colours reach the
+    // WebView before SET_OHLCV_DATA. The WebView updates its theme state
+    // first; when onChartReady fires (after the data triggers widget
+    // creation), flushPendingTheme() reads the already-correct colour.
+    // This mirrors main's pendingMessages queue, which drained
+    // SET_THEME_COLORS inside onChartReady before applySeriesColors().
+    useEffect(() => {
+      if (!webViewLoaded) return;
+      if (!themeColorsSentRef.current) {
+        const effectiveCurrentPriceColor = resolveCurrentPriceColor({
+          lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+          currentPriceLineColorOverride,
+          lineColorOverride,
+          successColorOverride,
+          themeSuccessDefault: theme.colors.success.default,
+        });
+        const colorsMatch =
+          lineColorOverride === initialLineColorRef.current &&
+          successColorOverride === initialSuccessColorRef.current &&
+          errorColorOverride === initialErrorColorRef.current &&
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
+          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
+          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
+        themeColorsSentRef.current = true;
+        if (
+          colorsMatch &&
+          currentPriceLineColorOverride === undefined &&
+          volumeSuccessColorOverride === undefined &&
+          volumeErrorColorOverride === undefined
+        )
+          return;
+      }
+      const effectiveSuccessColor =
+        successColorOverride ?? theme.colors.success.default;
+      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
+      const effectiveErrorColor =
+        errorColorOverride ?? theme.colors.error.default;
+      const effectiveCurrentPriceColor = resolveCurrentPriceColor({
+        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+        currentPriceLineColorOverride,
+        lineColorOverride,
+        successColorOverride,
+        themeSuccessDefault: theme.colors.success.default,
+      });
+      const effectiveVolumeSuccessColor =
+        volumeSuccessColorOverride ?? effectiveSuccessColor;
+      const effectiveVolumeErrorColor =
+        volumeErrorColorOverride ?? effectiveErrorColor;
+      postMessage({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: effectiveLineColor,
+          successColor: effectiveSuccessColor,
+          errorColor: effectiveErrorColor,
+          currentPriceColor: effectiveCurrentPriceColor,
+          volumeSuccessColor: effectiveVolumeSuccessColor,
+          volumeErrorColor: effectiveVolumeErrorColor,
+        },
+      });
+    }, [
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      currentPriceLineColorOverride,
+      labelStyleOverrides?.lastValuePillColor,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
+      webViewLoaded,
+      chartReadyCount,
+      postMessage,
+      theme.colors.success.default,
+      theme.colors.error.default,
+    ]);
+
     useEffect(() => {
       // `webViewLoaded` (state) is in deps so this re-runs once the new WebView
       // loads; `webViewLoadedRef` is the synchronously-correct value that prevents
@@ -808,11 +885,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       beginFullOhlcvLayoutSettle,
     ]);
 
-    // Send initial chartType as soon as WebView loads (before chart is ready)
-    // This prevents the flash of default chart type during initialization
+    // Send chartType to the WebView as soon as it loads so the widget can
+    // apply it before hiding the loading overlay. Without this, TradingView
+    // defaults to candlestick and the user sees a brief flash when line is
+    // the active type. Also re-sends on chartType changes before chart ready.
     useEffect(() => {
       if (!webViewLoaded || chartType === undefined) return;
-      if (prevChartTypeRef.current !== undefined) return;
       prevChartTypeRef.current = chartType;
       postMessage({
         type: 'SET_CHART_TYPE',
@@ -915,15 +993,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [showVolume, volumeOverlay, chartReadyCount, postMessage]);
 
-    // Line / chart chrome: always send resolved payload after CHART_READY (matches inline CONFIG).
-    useEffect(() => {
-      if (chartReadyCount === 0) return;
-      postMessage({
-        type: 'SET_LINE_CHROME',
-        payload: resolveLineChromeOptions(lineChrome),
-      });
-    }, [lineChrome, chartReadyCount, postMessage]);
-
     useEffect(() => {
       if (chartReadyCount === 0) return;
       postMessage({
@@ -931,80 +1000,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: { heightRatio: subPaneHeightRatio ?? null },
       });
     }, [subPaneHeightRatio, chartReadyCount, postMessage]);
-
-    // Hot-swap chart colors via postMessage whenever overrides change.
-    // Gates on webViewLoaded (not chartReady) so messages sent during chart
-    // init get queued in pendingMessages and drained inside onChartReady —
-    // before the first overlay paint — eliminating stale-color flashes.
-    // Skips only the very first invocation (mount) when all color overrides still match
-    // the HTML template; all subsequent changes always send.
-    useEffect(() => {
-      if (!webViewLoaded) return;
-      if (!themeColorsSentRef.current) {
-        const effectiveCurrentPriceColor = resolveCurrentPriceColor({
-          lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-          currentPriceLineColorOverride,
-          lineColorOverride,
-          successColorOverride,
-          themeSuccessDefault: theme.colors.success.default,
-        });
-        // First run after webViewLoaded: skip only if colors still match template
-        const colorsMatch =
-          lineColorOverride === initialLineColorRef.current &&
-          successColorOverride === initialSuccessColorRef.current &&
-          errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
-          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
-          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
-        themeColorsSentRef.current = true;
-        if (
-          colorsMatch &&
-          currentPriceLineColorOverride === undefined &&
-          volumeSuccessColorOverride === undefined &&
-          volumeErrorColorOverride === undefined
-        )
-          return;
-      }
-      const effectiveSuccessColor =
-        successColorOverride ?? theme.colors.success.default;
-      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
-      const effectiveErrorColor =
-        errorColorOverride ?? theme.colors.error.default;
-      const effectiveCurrentPriceColor = resolveCurrentPriceColor({
-        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-        currentPriceLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        themeSuccessDefault: theme.colors.success.default,
-      });
-      const effectiveVolumeSuccessColor =
-        volumeSuccessColorOverride ?? effectiveSuccessColor;
-      const effectiveVolumeErrorColor =
-        volumeErrorColorOverride ?? effectiveErrorColor;
-      postMessage({
-        type: 'SET_THEME_COLORS',
-        payload: {
-          lineColor: effectiveLineColor,
-          successColor: effectiveSuccessColor,
-          errorColor: effectiveErrorColor,
-          currentPriceColor: effectiveCurrentPriceColor,
-          volumeSuccessColor: effectiveVolumeSuccessColor,
-          volumeErrorColor: effectiveVolumeErrorColor,
-        },
-      });
-    }, [
-      lineColorOverride,
-      successColorOverride,
-      errorColorOverride,
-      currentPriceLineColorOverride,
-      labelStyleOverrides?.lastValuePillColor,
-      volumeSuccessColorOverride,
-      volumeErrorColorOverride,
-      webViewLoaded,
-      postMessage,
-      theme.colors.success.default,
-      theme.colors.error.default,
-    ]);
 
     // On first paint, wait for indicators/legend before hiding skeleton. After the chart
     // has been revealed once, keep it visible while users toggle indicators live.

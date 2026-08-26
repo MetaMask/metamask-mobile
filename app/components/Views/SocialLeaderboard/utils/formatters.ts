@@ -1,15 +1,19 @@
 import {
   formatPerpsFiat,
   formatPercentage,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
+import { DAY, HOUR, MINUTE, SECOND } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
+import { tradeTimestampToMs } from './tradeTimestamp';
 
-const EM_DASH = '\u2014';
+/** Placeholder rendered wherever a numeric value is unavailable. */
+export const EM_DASH = '\u2014';
 
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
@@ -20,6 +24,16 @@ export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
   const sign = value < 0 ? '-' : '';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Per-unit trade price for feed sub-headers and similar copy. Uses the same
+ * tiered precision as Perps ({@link PRICE_RANGES_UNIVERSAL}) and the social
+ * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`.
+ */
+export function formatTradeUnitPrice(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), { ranges: PRICE_RANGES_UNIVERSAL });
 }
 
 /**
@@ -100,6 +114,16 @@ export function formatSignedAbbreviatedUsd(
 }
 
 /**
+ * Unsigned USD with K/M/B/T abbreviation for ≥$1K values and two decimals below
+ * that (e.g. `$137.28`, `$1.1K`, `$10.3K`). Use for compact monetary labels
+ * like a trade's size where no +/- direction applies.
+ */
+export function formatAbbreviatedUsd(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return shortenAbsCurrency(Math.abs(value));
+}
+
+/**
  * Formats a raw token quantity for display in list rows.
  * - Values >= 1,000 are abbreviated with K/M/B/T suffixes (e.g. 216.65M).
  * - Smaller values are capped at 4 decimal places, with "< 0.00001" for dust.
@@ -135,11 +159,6 @@ export function formatPercent(
 
   const formatted = formatPercentage(value, decimals);
   return showSign ? formatted : formatted.replace(/^[+-]/, '');
-}
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-function tradeTimestampToMs(timestamp: number): number {
-  return timestamp < 1e12 ? timestamp * 1000 : timestamp;
 }
 
 /**
@@ -182,4 +201,36 @@ export function formatTradeDayLabel(timestamp: number): string {
   const date = new Date(tradeTimestampToMs(timestamp));
   const month = strings(`date.months.${date.getMonth()}`);
   return `${month} ${date.getDate()} ${date.getFullYear()}`;
+}
+
+/**
+ * Formats a feed item timestamp.
+ *
+ * - Within the last 24 hours: compact relative time ("21s", "4m", "2h").
+ * - Older than 24 hours: absolute clock time via `formatTradeTime` (e.g. `8:27 pm`).
+ *
+ * Uses manual formatting (not `toLocaleTimeString`) so output is deterministic on
+ * Hermes, which ignores locale options and falls back to strings like
+ * "02:16:21 GMT+0100".
+ */
+export function formatFeedTimestamp(
+  timestamp: number,
+  now: number = Date.now(),
+): string {
+  const ms = tradeTimestampToMs(timestamp);
+  const diff = Math.max(0, now - ms);
+
+  if (diff >= DAY) {
+    return formatTradeTime(timestamp);
+  }
+
+  if (diff < MINUTE) {
+    return `${Math.floor(diff / SECOND)}s`;
+  }
+
+  if (diff < HOUR) {
+    return `${Math.floor(diff / MINUTE)}m`;
+  }
+
+  return `${Math.floor(diff / HOUR)}h`;
 }

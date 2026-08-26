@@ -34,18 +34,13 @@ export function getNotificationsSettingsSectionConfigs(
   categories: NotificationCategoryMetadata[],
   {
     isSocialLeaderboardEnabled,
-    isPriceAlertsEnabled,
   }: {
     isSocialLeaderboardEnabled: boolean;
-    isPriceAlertsEnabled: boolean;
   },
 ): NotificationCategoryMetadata[] {
   return categories.filter((category) => {
     if (category.categoryId === 'socialAI') {
       return isSocialLeaderboardEnabled;
-    }
-    if (category.categoryId === 'priceAlerts') {
-      return isPriceAlertsEnabled;
     }
     return true;
   });

@@ -117,7 +117,7 @@ app/components/UI/Predict/
 | PredictFeed.tsx          | 738   | 16+   | Multiple nested components, prop drilling        |
 | PredictController.ts     | 2,401 | N/A   | 15+ repeated error handling patterns             |
 
-#### 2. Legacy Styling (10 files)
+#### 2. Legacy Styling (9 files)
 
 Files using `StyleSheet.create()` instead of Tailwind:
 
@@ -127,7 +127,6 @@ Files using `StyleSheet.create()` instead of Tailwind:
 - PredictPositionEmpty.styles.ts
 - PredictPositionResolved.styles.ts
 - PredictOffline.styles.ts
-- PredictGTMModal.styles.ts
 - PredictMarketRowItem.styles.ts
 - PredictMarketMultiple.styles.ts
 - PredictSellPreview.styles.ts
@@ -362,7 +361,6 @@ PredictScreenStack
 
 PredictModalStack
 ├── PredictUnavailableModal
-├── PredictGTMModal
 ├── PredictAddFundsModal
 └── PredictActivityDetail
 ```
@@ -506,15 +504,15 @@ PredictScreenStack
 
 ```typescript
 // selectors/predictController/index.ts
-selectPredictBalanceByAddress({ address }); // Memoized balance lookup
-selectPredictClaimablePositions(); // All claimable positions
-selectPredictClaimablePositionsByAddress(); // Per-address positions
-selectPredictWonPositions(); // Won positions with P&L
-selectPredictPendingDeposits(); // Pending deposits
-selectPredictConfirmedDeposits(); // Confirmed deposits
-selectPredictCancelledDeposits(); // Cancelled deposits
-selectPredictPendingClaims(); // Pending claims
-selectPredictPendingWithdraw(); // Pending withdraw
+selectPredictBalanceByAddress(state, address); // Memoized balance lookup
+selectPredictClaimablePositions(state); // All claimable positions
+selectPredictClaimablePositionsByAddress(state, address); // Per-address positions
+selectPredictWonPositions(state, address); // Won positions with P&L
+selectPredictPendingDeposits(state); // Pending deposits
+selectPredictPendingClaims(state); // Pending claims
+selectPredictPendingDepositByAddress(state, address); // Pending deposit by address
+selectPredictPendingClaimByAddress(state, address); // Pending claim by address
+selectPredictWithdrawTransaction(state); // Pending withdraw
 ```
 
 ---
@@ -552,7 +550,9 @@ Examples:
 export function usePredictBalance() {
   const { getBalance } = usePredictTrading();           // Compose
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();  // Compose
-  const balance = useSelector(selectPredictBalanceByAddress());  // Redux
+  const balance = useSelector((state) =>
+    selectPredictBalanceByAddress(state, selectedAddress),
+  );  // Redux
 
   const loadBalance = useCallback(async () => {
     await ensurePolygonNetworkExists();
