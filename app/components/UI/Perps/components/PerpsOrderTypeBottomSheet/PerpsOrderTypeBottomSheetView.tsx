@@ -244,8 +244,10 @@ const PerpsOrderTypeBottomSheetView = ({
   const selectedCategoryKey = visibleCategories.find(({ options }) =>
     options.some(({ type }) => type === currentOrderType),
   )?.key;
+  const fallbackCategoryKey =
+    selectedCategoryKey ?? visibleCategories[0]?.key ?? 'basic';
   const [activeCategoryKey, setActiveCategoryKey] =
-    useState<OrderTypeCategoryKey>('basic');
+    useState<OrderTypeCategoryKey>(fallbackCategoryKey);
 
   useEffect(() => {
     if (!isVisible) {
@@ -255,13 +257,9 @@ const PerpsOrderTypeBottomSheetView = ({
       const currentCategoryExists = visibleCategories.some(
         ({ key }) => key === currentKey,
       );
-      return (
-        selectedCategoryKey ??
-        (currentCategoryExists ? currentKey : visibleCategories[0]?.key) ??
-        'basic'
-      );
+      return currentCategoryExists ? currentKey : fallbackCategoryKey;
     });
-  }, [currentOrderType, isVisible, selectedCategoryKey, visibleCategories]);
+  }, [fallbackCategoryKey, isVisible, visibleCategories]);
 
   const activeCategoryIndex = Math.max(
     0,

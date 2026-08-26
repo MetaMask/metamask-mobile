@@ -277,6 +277,66 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('keeps Triggered active when Advanced becomes available', () => {
+      const { rerender } = render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypes}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      );
+
+      rerender(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('falls back to the selected order type category when the active category disappears', () => {
+      const { rerender } = render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType="stop_limit"
+          availableOrderTypes={proOrderTypesWithTwap}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
+      );
+
+      rerender(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType="stop_limit"
+          availableOrderTypes={proOrderTypes}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
     it('derives the initial active tab from the selected order type', () => {
       render(
         <PerpsOrderTypeBottomSheet
