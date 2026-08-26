@@ -74,12 +74,12 @@ function seedTrackedAssets(fixture: ReturnType<FixtureBuilder['build']>) {
     },
     assetsPrice: {
       ...existing.assetsPrice,
-      ...byAssetId(() => ({
+      [LEGITIMATE_ASSET.assetId]: {
         assetPriceType: 'fungible' as const,
         price: 1,
         usdPrice: 1,
         lastUpdated: now,
-      })),
+      },
     },
     customAssets: {
       ...existing.customAssets,
