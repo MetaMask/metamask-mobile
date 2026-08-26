@@ -1,39 +1,79 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { Hex } from '@metamask/utils';
+import { bigIntToHex, Hex, isStrictHexString } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 
 const ZERO_ADDRESS = '0x0' as Hex;
 
-// payToken.balanceUsd is a one-time snapshot that can be stale (race with
-// AccountTracker polling). Read from the same reactive asset source the
-// token selector uses so the balance stays in sync.
-export function usePayTokenAccountBalance(): {
+interface PayTokenAccountBalance {
   balanceUsd: string;
   balanceRaw: string;
-} {
+}
+
+interface LivePayTokenAccountBalance {
+  balanceUsd: string | undefined;
+  balanceRaw: string | undefined;
+}
+
+const normalizeEvmChainId = (chainId: string) =>
+  isStrictHexString(chainId) ? bigIntToHex(BigInt(chainId)) : chainId;
+
+export function usePayTokenAccountBalance(options: {
+  requireLiveBalance: true;
+}): LivePayTokenAccountBalance;
+export function usePayTokenAccountBalance(options?: {
+  requireLiveBalance?: false;
+}): PayTokenAccountBalance;
+/**
+ * Reads the reactive account-token balance. Existing confirmation callers keep
+ * the controller snapshot fallback; Perps can require live data and distinguish
+ * an unresolved balance from a measured zero.
+ */
+export function usePayTokenAccountBalance(
+  options: { requireLiveBalance?: boolean } = {},
+): PayTokenAccountBalance | LivePayTokenAccountBalance {
+  const { requireLiveBalance = false } = options;
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
+  const payTokenChainId = payToken
+    ? requireLiveBalance
+      ? normalizeEvmChainId(payToken.chainId)
+      : payToken.chainId
+    : undefined;
   const usdRate = useTokenFiatRate(
     (payToken?.address ?? ZERO_ADDRESS) as Hex,
-    (payToken?.chainId ?? ZERO_ADDRESS) as Hex,
+    (payTokenChainId ?? ZERO_ADDRESS) as Hex,
     'usd',
   );
 
   return useMemo(() => {
     if (!payToken) {
-      return { balanceUsd: '0', balanceRaw: '0' };
+      return requireLiveBalance
+        ? { balanceUsd: undefined, balanceRaw: undefined }
+        : { balanceUsd: '0', balanceRaw: '0' };
     }
 
-    const matchingToken = accountTokens.find(
-      (t) =>
-        t.address?.toLowerCase() === payToken.address.toLowerCase() &&
-        t.chainId === payToken.chainId,
-    );
+    const matchingToken = accountTokens.find((token) => {
+      if (
+        token.address?.toLowerCase() !== payToken.address.toLowerCase() ||
+        !token.chainId
+      ) {
+        return false;
+      }
+
+      const tokenChainId = requireLiveBalance
+        ? normalizeEvmChainId(token.chainId)
+        : token.chainId;
+      return tokenChainId === payTokenChainId;
+    });
 
     if (!matchingToken?.rawBalance) {
+      if (requireLiveBalance) {
+        return { balanceUsd: undefined, balanceRaw: undefined };
+      }
+
       return {
         balanceUsd: payToken.balanceUsd ?? '0',
         balanceRaw: payToken.balanceRaw ?? '0',
@@ -45,10 +85,22 @@ export function usePayTokenAccountBalance(): {
     );
     const decimals = matchingToken.decimals ?? payToken.decimals;
     const humanBalance = new BigNumber(rawBalanceDecimal).shiftedBy(-decimals);
+
+    if (requireLiveBalance) {
+      return {
+        balanceUsd: humanBalance.isZero()
+          ? '0'
+          : usdRate != null
+            ? humanBalance.multipliedBy(usdRate).toString(10)
+            : undefined,
+        balanceRaw: rawBalanceDecimal,
+      };
+    }
+
     const balanceUsd = usdRate
       ? humanBalance.multipliedBy(usdRate).toString(10)
       : (payToken.balanceUsd ?? '0');
 
     return { balanceUsd, balanceRaw: rawBalanceDecimal };
-  }, [payToken, accountTokens, usdRate]);
+  }, [accountTokens, payToken, payTokenChainId, requireLiveBalance, usdRate]);
 }
