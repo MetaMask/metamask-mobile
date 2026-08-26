@@ -2,6 +2,7 @@ import type {
   FetchFeedParams,
   PredictEntityId,
   PredictFeedId,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -22,7 +23,17 @@ export interface PredictApiReadTransport {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
+
+type PredictApiReadQueryParams = FetchFeedParams & {
+  range?: PredictMarketHistoryRange;
+};
 
 export interface PredictApiReadClientOptions {
   baseUrl: string;
@@ -87,9 +98,22 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'markets', marketId, 'history'],
+      { range },
+      options,
+    );
+  }
+
   async #get(
     segments: readonly string[],
-    params?: FetchFeedParams,
+    params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const url = new URL(
@@ -97,11 +121,10 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       this.#baseUrlWithTrailingSlash(),
     );
 
-    if (params?.cursor !== undefined) {
-      url.searchParams.set('cursor', params.cursor);
-    }
-    if (params?.limit !== undefined) {
-      url.searchParams.set('limit', String(params.limit));
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
     }
 
     const response = await this.#fetch(url.toString(), {
