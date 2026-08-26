@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
 import RewardsReferralCodeTag from './RewardsReferralCodeTag';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -30,18 +31,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-const mockToastRef = {
-  current: {
-    showToast: jest.fn(),
-  },
-};
-
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(() => ({
-    toastRef: mockToastRef,
-  })),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../../../images/rewards/vip.svg', () => 'VipIcon');
 
@@ -139,6 +135,6 @@ describe('RewardsReferralCodeTag', () => {
 
     fireEvent.press(getByText(referralCode));
 
-    expect(mockToastRef.current.showToast).toHaveBeenCalled();
+    expect(toast).toHaveBeenCalled();
   });
 });
