@@ -28,6 +28,7 @@ import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
+import { usePerpsScaleOrderSupport } from './PerpsProOrderForm/usePerpsScaleOrderSupport';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];

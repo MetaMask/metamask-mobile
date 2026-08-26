@@ -18,6 +18,7 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
 
 const mockUseSelector = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
@@ -25,6 +26,7 @@ const mockUsePerpsProvider = jest.fn();
 const mockUseIsPerpsProModeActive = jest.fn();
 const mockUsePerpsProOrderForm = jest.fn();
 const mockOrderTypeBottomSheet = jest.fn();
+const mockUsePerpsScaleOrderSupport = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
@@ -219,7 +221,11 @@ jest.mock('../../../components/PerpsBottomSheetTooltip', () => {
   };
 });
 
-const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
+const market = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  providerId: 'hyperliquid',
+} as PerpsMarketData;
 
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
@@ -244,6 +250,9 @@ describe('PerpsProOrderFormPanel', () => {
       supportsTwapOrders: true,
     });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
+    mockUsePerpsScaleOrderSupport.mockReturnValue({
+      supportsScaleOrders: true,
+    });
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);

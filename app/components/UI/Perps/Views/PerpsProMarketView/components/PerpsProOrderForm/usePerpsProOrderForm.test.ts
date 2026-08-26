@@ -1720,7 +1720,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(creationFailed).toHaveBeenCalled();
+      expect(marketCreationFailed).toHaveBeenCalled();
     });
   });
 
@@ -1962,6 +1962,47 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('uses resting-order failure copy when Scale placement fails', () => {
+      mockOrderForm.type = 'scale';
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onError?.('Scale order rejected');
+      });
+
+      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(marketCreationFailed).not.toHaveBeenCalled();
+    });
+
+    it('does not submit a duplicate Scale request while placement is pending', async () => {
+      let resolveOrder:
+        | ((value: { success: boolean; error?: string }) => void)
+        | undefined;
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      let firstSubmission: Promise<unknown> | undefined;
+      await act(async () => {
+        firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveOrder?.({ success: false, error: 'rejected' });
+        await firstSubmission;
+      });
+    });
+
     it('resets Scale configuration after a partial controller result', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
@@ -1980,6 +2021,26 @@ describe('usePerpsProOrderForm', () => {
       expect(mockUpdateOrderForm).toHaveBeenCalledWith(
         expect.objectContaining({ amount: '', type: 'market' }),
       );
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
+
+    it('does not retry placed children after a partial Scale success', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102'],
+        submittedSize: '2.222',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
       expect(result.current.scaleOrder.startPrice).toBe('');
     });
 
@@ -2294,6 +2355,24 @@ describe('usePerpsProOrderForm', () => {
         strings('perps.pro_order_form.scale.validation.unavailable'),
       );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('re-checks selected-route Scale support immediately before placement', async () => {
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, checkScaleOrderSupport);
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkScaleOrderSupport).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'validationError' }),
+      );
     });
   });
 

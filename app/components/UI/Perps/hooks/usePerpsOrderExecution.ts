@@ -307,15 +307,26 @@ export function usePerpsOrderExecution(
             // immediately, then end the order-render CUF when the resting order
             // appears in the stream (or on timeout).
             onSuccess?.();
-            const orderId = result.orderId;
-            if (typeof orderId !== 'string') {
+            const scaleChildOrderIds =
+              orderParams.orderType === 'scale'
+                ? (result.childOrderIds ?? [])
+                : [];
+            const orderIds = [result.orderId, ...scaleChildOrderIds].filter(
+              (orderId): orderId is string =>
+                Boolean(orderId && typeof orderId === 'string'),
+            );
+            const renderedOrderId = orderIds.find((orderId) =>
+              stream.orders
+                .getSnapshot()
+                ?.some((order) => order.orderId === orderId),
+            );
+            const orderId = renderedOrderId ?? orderIds[0];
+            if (!orderId) {
               endCuf({
                 [PERPS_CUF_TAG.SUCCESS]: false,
                 [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
               });
-            } else if (
-              stream.orders.getSnapshot()?.some((o) => o.orderId === orderId)
-            ) {
+            } else if (renderedOrderId) {
               // Already rested between submit and here: end at the delivery
               // instant, not now.
               endCufStreamRendered(stream.orders.getLastDeliveredAt());

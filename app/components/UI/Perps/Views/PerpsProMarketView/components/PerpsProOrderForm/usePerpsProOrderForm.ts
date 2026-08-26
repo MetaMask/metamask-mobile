@@ -1253,6 +1253,15 @@ export const usePerpsProOrderForm = ({
       }
 
       if (isScaleOrder) {
+        if (!(await checkScaleOrderSupport())) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.pro_order_form.scale.validation.unavailable'),
+            ),
+          );
+          return;
+        }
+
         if (!scaleLadderResult.success) {
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
@@ -1522,6 +1531,7 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking,
     isAtCap,
     isScaleOrdersEnabled,
+    checkScaleOrderSupport,
     isScaleOrder,
     scaleLadderResult,
     hasTpslBlocker,
