@@ -4575,6 +4575,13 @@
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
     },
+    "agent_chat": {
+      "title": "Agent chat",
+      "description": "Chat with the MetaMask wallet agent (dev).",
+      "placeholder": "Ask about your wallet",
+      "send": "Send",
+      "stop": "Stop"
+    },
     "add_device": {
       "title": "Add device",
       "enter_your_password": "Enter your password",

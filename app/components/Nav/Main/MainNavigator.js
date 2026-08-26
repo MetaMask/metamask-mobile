@@ -32,6 +32,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
+import { ChatView } from '../../UI/Chat';
 import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
@@ -1499,6 +1500,13 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
+          options={{ headerShown: false }}
+        />
+      )}
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+        <NativeStack.Screen
+          name={Routes.AGENT_CHAT}
+          component={ChatView}
           options={{ headerShown: false }}
         />
       )}

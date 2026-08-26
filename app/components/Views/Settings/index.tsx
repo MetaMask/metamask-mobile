@@ -107,6 +107,9 @@ const Settings = () => {
   const onPressFeatureFlagOverride = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
+  const onPressAgentChat = () => {
+    navigation.navigate(Routes.AGENT_CHAT);
+  };
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
@@ -222,6 +225,13 @@ const Settings = () => {
               'app_settings.feature_flag_override.description',
             )}
             onPress={onPressFeatureFlagOverride}
+          />
+        )}
+        {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+          <SettingsDrawer
+            title={strings('app_settings.agent_chat.title')}
+            description={strings('app_settings.agent_chat.description')}
+            onPress={onPressAgentChat}
           />
         )}
       </ScrollView>

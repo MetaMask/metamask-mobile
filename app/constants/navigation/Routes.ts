@@ -603,6 +603,7 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  AGENT_CHAT: 'AgentChat',
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
