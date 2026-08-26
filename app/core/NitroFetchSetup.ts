@@ -30,10 +30,37 @@ import {
   C2_DOMAIN_BLOCKLIST_URL,
   METAMASK_STALELIST_URL,
 } from '@metamask/phishing-controller';
+import { MUSD_TOKEN_ADDRESS } from '@metamask/money-account-utils';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from './Engine/controllers/remote-feature-flag-controller/utils';
+
+/**
+ * Must mirror POPULAR_TOKENS assetIds (same order) in
+ * app/components/Views/Homepage/Sections/Tokens/hooks/usePopularTokens.ts.
+ * Prefetch URL is USD-only; non-USD display currencies skip the cache hit and
+ * fetch normally (see urlIncludes on the popular-tokens entry).
+ */
+const POPULAR_TOKEN_ASSET_IDS = [
+  `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
+  'eip155:1/slip44:60',
+  'bip122:000000000019d6689c085ae165831e93/slip44:0',
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  'eip155:56/slip44:714',
+] as const;
+
+/** Covers cold start → unlock → empty-wallet Tokens mount on mid-range devices. */
+const POPULAR_TOKENS_PREFETCH_TTL_MS = 120_000;
+
+interface StartupPrefetch {
+  url: string;
+  urlPrefix: string;
+  key: string;
+  /** When set, every substring must appear in the consuming URL. */
+  urlIncludes?: readonly string[];
+  prefetchCacheTtlMs?: number;
+}
 
 /**
  * Single source of truth for startup prefetches.
@@ -46,7 +73,7 @@ import {
  * Adding an entry here automatically registers it AND wires up the cache hit.
  * You cannot add one without the other.
  */
-const STARTUP_PREFETCHES = [
+const STARTUP_PREFETCHES: readonly StartupPrefetch[] = [
   {
     url:
       `https://client-config.api.cx.metamask.io/v1/flags` +
@@ -66,12 +93,42 @@ const STARTUP_PREFETCHES = [
     urlPrefix: C2_DOMAIN_BLOCKLIST_URL,
     key: 'phishing-c2-blocklist',
   },
-] as const;
+  {
+    // Empty-wallet homepage popular tokens (usePopularTokens).
+    // urlIncludes scopes the one-shot cache to that request (mUSD asset + USD)
+    // so other spot-prices callers do not consume or get a wrong currency body.
+    url: `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+      {
+        assetIds: POPULAR_TOKEN_ASSET_IDS.join(','),
+        includeMarketData: 'true',
+        vsCurrency: 'usd',
+      },
+    )}`,
+    urlPrefix: 'https://price.api.cx.metamask.io/v3/spot-prices',
+    urlIncludes: [MUSD_TOKEN_ADDRESS, 'vsCurrency=usd'],
+    key: 'popular-tokens-spot-prices',
+    prefetchCacheTtlMs: POPULAR_TOKENS_PREFETCH_TTL_MS,
+  },
+];
 
 function getUrl(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;
   if (input instanceof URL) return input.href;
   return (input as Request).url ?? '';
+}
+
+function matchesPrefetchEntry(url: string, entry: StartupPrefetch): boolean {
+  if (!url.startsWith(entry.urlPrefix)) {
+    return false;
+  }
+  if (
+    entry.urlIncludes?.some(
+      (needle) => !url.toLowerCase().includes(needle.toLowerCase()),
+    )
+  ) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -84,9 +141,7 @@ function withPrefetchKey(
 ): RequestInit | undefined {
   const url = getUrl(input);
 
-  const entry = STARTUP_PREFETCHES.find(({ urlPrefix }) =>
-    url.startsWith(urlPrefix),
-  );
+  const entry = STARTUP_PREFETCHES.find((e) => matchesPrefetchEntry(url, e));
 
   if (!entry) return init;
 
@@ -96,7 +151,14 @@ function withPrefetchKey(
     headers.set('prefetchKey', entry.key);
   }
 
-  return { ...init, headers };
+  const result: RequestInit & { prefetchCacheTtlMs?: number } = {
+    ...init,
+    headers,
+  };
+  if (entry.prefetchCacheTtlMs !== undefined) {
+    result.prefetchCacheTtlMs = entry.prefetchCacheTtlMs;
+  }
+  return result;
 }
 
 /**
@@ -142,10 +204,14 @@ function installProductionNitroFetch(): void {
   _g.Request = Request;
   _g.Response = Response;
 
-  for (const { url, key } of STARTUP_PREFETCHES) {
+  for (const entry of STARTUP_PREFETCHES) {
+    const { url, key, prefetchCacheTtlMs } = entry;
     // Non-fatal: a registration failure means the cache is cold on next launch,
     // not that the request fails — swallow so it never becomes an unhandled rejection.
-    prefetchOnAppStart(url, { prefetchKey: key }).catch(() => undefined);
+    prefetchOnAppStart(url, {
+      prefetchKey: key,
+      ...(prefetchCacheTtlMs !== undefined ? { prefetchCacheTtlMs } : {}),
+    }).catch(() => undefined);
   }
 }
 

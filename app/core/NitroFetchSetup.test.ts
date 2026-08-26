@@ -29,6 +29,10 @@ jest.mock('./Engine/controllers/remote-feature-flag-controller/utils', () => ({
   getFeatureFlagAppEnvironment: jest.fn(() => 'production'),
 }));
 
+jest.mock('@metamask/money-account-utils', () => ({
+  MUSD_TOKEN_ADDRESS: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+}));
+
 import './NitroFetchSetup';
 
 const mockNitroFetch = jest.mocked(nitroFetch);
@@ -36,11 +40,27 @@ const mockPrefetchOnAppStart = jest.mocked(prefetchOnAppStart);
 
 const FEATURE_FLAGS_PREFIX =
   'https://client-config.api.cx.metamask.io/v1/flags';
+const POPULAR_TOKENS_SPOT_PRICES_PREFIX =
+  'https://price.api.cx.metamask.io/v3/spot-prices';
+const MUSD_TOKEN_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const POPULAR_TOKENS_SPOT_PRICES_URL = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+  {
+    assetIds: [
+      `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
+      'eip155:1/slip44:60',
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      'eip155:56/slip44:714',
+    ].join(','),
+    includeMarketData: 'true',
+    vsCurrency: 'usd',
+  },
+)}`;
 
 describe('NitroFetchSetup', () => {
   describe('startup prefetch registration', () => {
-    it('registers all three startup prefetch endpoints on module load', () => {
-      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(3);
+    it('registers all four startup prefetch endpoints on module load', () => {
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledTimes(4);
       expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
         expect.stringContaining(FEATURE_FLAGS_PREFIX),
         { prefetchKey: 'feature-flags' },
@@ -55,6 +75,13 @@ describe('NitroFetchSetup', () => {
         C2_DOMAIN_BLOCKLIST_URL,
         {
           prefetchKey: 'phishing-c2-blocklist',
+        },
+      );
+      expect(mockPrefetchOnAppStart).toHaveBeenCalledWith(
+        POPULAR_TOKENS_SPOT_PRICES_URL,
+        {
+          prefetchKey: 'popular-tokens-spot-prices',
+          prefetchCacheTtlMs: 120_000,
         },
       );
     });
@@ -238,6 +265,47 @@ describe('NitroFetchSetup', () => {
         expect((init?.headers as Headers).get('prefetchKey')).toBe(
           'phishing-c2-blocklist',
         );
+      });
+
+      it('injects prefetchKey for popular-tokens spot-prices URL (USD + mUSD asset)', async () => {
+        await global.fetch(POPULAR_TOKENS_SPOT_PRICES_URL);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect((init?.headers as Headers).get('prefetchKey')).toBe(
+          'popular-tokens-spot-prices',
+        );
+        expect(
+          (init as RequestInit & { prefetchCacheTtlMs?: number })
+            ?.prefetchCacheTtlMs,
+        ).toBe(120_000);
+      });
+
+      it('does not inject prefetchKey for spot-prices with a non-USD currency', async () => {
+        const eurUrl = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+          {
+            assetIds: `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
+            includeMarketData: 'true',
+            vsCurrency: 'eur',
+          },
+        )}`;
+
+        await global.fetch(eurUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(eurUrl, undefined);
+      });
+
+      it('does not inject prefetchKey for unrelated spot-prices requests', async () => {
+        const otherUrl = `${POPULAR_TOKENS_SPOT_PRICES_PREFIX}?${new URLSearchParams(
+          {
+            assetIds: 'eip155:1/slip44:60',
+            includeMarketData: 'true',
+            vsCurrency: 'usd',
+          },
+        )}`;
+
+        await global.fetch(otherUrl);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(otherUrl, undefined);
       });
 
       it('preserves existing init options alongside injected prefetchKey', async () => {
