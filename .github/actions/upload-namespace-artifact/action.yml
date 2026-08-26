@@ -1,0 +1,81 @@
+# Retries namespace-actions/upload-artifact on transient GitHub CreateArtifact
+# failures (ECONNREFUSED) so otherwise-green Appium shards do not fail CI.
+# See INFRA-3902.
+name: 'Upload Namespace artifact with retry'
+description: >
+  Upload an artifact with namespace-actions/upload-artifact, retrying up to 3
+  times when the GitHub CreateArtifact API briefly refuses the connection.
+
+inputs:
+  name:
+    description: 'Name of the artifact to upload.'
+    required: true
+  path:
+    description: 'A file, directory or wildcard pattern that describes what to upload.'
+    required: true
+  if-no-files-found:
+    description: 'Behavior if no files are found (`warn`, `error`, or `ignore`).'
+    required: false
+    default: 'warn'
+  retention-days:
+    description: 'Artifact retention in days.'
+    required: false
+    default: '30'
+  retry-wait-seconds:
+    description: 'Seconds to wait between upload attempts.'
+    required: false
+    default: '15'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload artifact (attempt 1)
+      id: upload-1
+      continue-on-error: true
+      uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        retention-days: ${{ inputs.retention-days }}
+
+    - name: Wait before retry (attempt 2)
+      if: ${{ steps.upload-1.outcome == 'failure' }}
+      shell: bash
+      env:
+        RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
+      run: |
+        echo "::warning::Namespace artifact upload failed; retrying after ${RETRY_WAIT_SECONDS}s (INFRA-3902)"
+        sleep "$RETRY_WAIT_SECONDS"
+
+    - name: Upload artifact (attempt 2)
+      id: upload-2
+      if: ${{ steps.upload-1.outcome == 'failure' }}
+      continue-on-error: true
+      uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: true
+
+    - name: Wait before retry (attempt 3)
+      if: ${{ steps.upload-1.outcome == 'failure' && steps.upload-2.outcome == 'failure' }}
+      shell: bash
+      env:
+        RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
+      run: |
+        echo "::warning::Namespace artifact upload failed again; retrying after ${RETRY_WAIT_SECONDS}s (INFRA-3902)"
+        sleep "$RETRY_WAIT_SECONDS"
+
+    - name: Upload artifact (attempt 3)
+      id: upload-3
+      if: ${{ steps.upload-1.outcome == 'failure' && steps.upload-2.outcome == 'failure' }}
+      uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: true
