@@ -13,7 +13,6 @@ import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAsse
 import {
   earnAssetToToken,
   getEarnAssetMetadata,
-  hasEarnAssetBalance,
 } from '../../../../UI/Earn/utils/earnAssets';
 import { getEarnAssetRateText } from '../../../../UI/Earn/utils/earnSection/getEarnAssetRateText';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
@@ -27,7 +26,6 @@ const EarnAssetRow = ({ item, onPress }: EarnAssetRowProps) => {
   const { asset } = item;
   const metadata = getEarnAssetMetadata(asset);
   const token = earnAssetToToken(asset);
-  const isHeld = hasEarnAssetBalance(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
@@ -68,10 +66,7 @@ const EarnAssetRow = ({ item, onPress }: EarnAssetRowProps) => {
           variant={TextVariant.BodySm}
           numberOfLines={1}
         >
-          {getEarnAssetRateText({
-            asset,
-            useGetCopy: isHeld,
-          })}
+          {getEarnAssetRateText({ asset })}
         </Text>
       </Box>
     </ButtonBase>

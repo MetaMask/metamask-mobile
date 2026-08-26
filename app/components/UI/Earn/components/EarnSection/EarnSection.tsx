@@ -58,7 +58,6 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
-// TODO: Use in this file after rebasing
 import { getEarnAssetRateText } from '../../utils/earnSection/getEarnAssetRateText';
 
 interface EarnSectionHomeAnalytics {
@@ -302,22 +301,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           const hasSubsidizedFee = asset.experiences.some(
             ({ isFeeSubsidized }) => isFeeSubsidized,
           );
-          const isApr = asset.highestRateExperience?.rate.type === 'APR';
-          const rateText =
-            asset.highestRatePercent === undefined
-              ? strings('earn_module.rate_unavailable')
-              : strings(
-                  hasMinDepositAmount
-                    ? isApr
-                      ? 'earn_module.get_rate_apr'
-                      : 'earn_module.get_rate_apy'
-                    : isApr
-                      ? 'earn_module.rate_apr'
-                      : 'earn_module.rate_apy',
-                  {
-                    percentage: truncateNumber(asset.highestRatePercent),
-                  },
-                );
+
+          const rateText = getEarnAssetRateText({ asset });
 
           return (
             <EarnSectionAssetCard

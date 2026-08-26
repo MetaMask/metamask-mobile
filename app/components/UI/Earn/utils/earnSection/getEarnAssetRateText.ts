@@ -1,20 +1,21 @@
 import { strings } from '../../../../../../locales/i18n';
 import { truncateNumber } from '../../utils';
+import { isEarnAssetBalanceBelowMinDepositAmount } from '../earnAssets/earnAssetBalance';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
 export const getEarnAssetRateText = ({
   asset,
-  useGetCopy,
 }: {
   asset: EarnSectionRankedAsset;
-  useGetCopy: boolean;
 }): string => {
+  const hasMinDepositAmount = !isEarnAssetBalanceBelowMinDepositAmount(asset);
+
   if (asset.highestRatePercent === undefined) {
     return strings('earn_module.rate_unavailable');
   }
 
   const isApr = asset.highestRateExperience?.rate.type === 'APR';
-  const key = useGetCopy
+  const key = hasMinDepositAmount
     ? isApr
       ? 'earn_module.get_rate_apr'
       : 'earn_module.get_rate_apy'
