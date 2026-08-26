@@ -419,6 +419,12 @@ describe('Predict API canonical response parsers', () => {
     expect(parsePredictMarketHistory(input)).toEqual(input);
   });
 
+  it('parses Market history for the ALL range', () => {
+    const input = createMarketHistory({ range: 'ALL' });
+
+    expect(parsePredictMarketHistory(input)).toEqual(input);
+  });
+
   it('parses the shared Market history response with millisecond UTC timestamps', () => {
     const result = parsePredictMarketHistory(marketHistoryMillisecondUtc);
 
@@ -449,7 +455,7 @@ describe('Predict API canonical response parsers', () => {
   });
 
   it.each([
-    ['range', createMarketHistory({ range: 'ALL' })],
+    ['range', createMarketHistory({ range: 'FOO' })],
     ['timestamp', createMarketHistory({ observedAt: 'not-a-timestamp' })],
     [
       'non-complementary prices',

@@ -108,9 +108,9 @@ const MarketHistoryContent = ({
     }));
   const hasDrawableSeries = chartSeries.length > 0;
 
-  return (
-    <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
-      {isLoading ? (
+  const renderChartState = () => {
+    if (isLoading) {
+      return (
         <Box
           accessible
           accessibilityLabel={strings(
@@ -121,7 +121,11 @@ const MarketHistoryContent = ({
           style={chartStateStyle}
           twClassName="rounded-2xl bg-muted"
         />
-      ) : isError ? (
+      );
+    }
+
+    if (isError) {
+      return (
         <Box
           testID={PredictMarketHistoryTestIds.ERROR}
           style={chartStateStyle}
@@ -137,24 +141,39 @@ const MarketHistoryContent = ({
             {strings('predict.error.retry')}
           </Button>
         </Box>
-      ) : !hasDrawableSeries ? (
+      );
+    }
+
+    if (!hasDrawableSeries) {
+      return (
         <Box
           testID={PredictMarketHistoryTestIds.EMPTY}
           style={chartStateStyle}
           twClassName="items-center justify-center rounded-2xl bg-muted px-6"
         >
-          <Text color={TextColor.TextAlternative}>
+          <Text
+            color={TextColor.TextAlternative}
+            testID={PredictMarketHistoryTestIds.EMPTY_MESSAGE}
+          >
             {strings('predict.history.unavailable_for_range')}
           </Text>
         </Box>
-      ) : (
-        <Box twClassName="-ml-4">
-          <PredictMarketChart
-            testID={PredictMarketHistoryTestIds.CHART}
-            series={chartSeries}
-          />
-        </Box>
-      )}
+      );
+    }
+
+    return (
+      <Box twClassName="-ml-4">
+        <PredictMarketChart
+          testID={PredictMarketHistoryTestIds.CHART}
+          series={chartSeries}
+        />
+      </Box>
+    );
+  };
+
+  return (
+    <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
+      {renderChartState()}
 
       <Box style={styles.rangeRow}>
         <Image
@@ -257,7 +276,7 @@ interface PredictGameMarketHistoryProps {
 
 const getCompactTeamLabel = (team: PredictTeam) => {
   const words = team.name.trim().split(/\s+/);
-  return words[words.length - 1] || team.abbreviation || team.name;
+  return words.at(-1) || team.abbreviation || team.name;
 };
 
 export const PredictGameMarketHistory = ({

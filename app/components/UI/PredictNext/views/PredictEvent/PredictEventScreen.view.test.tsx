@@ -258,10 +258,36 @@ describe('PredictEventScreen', () => {
         undefined,
       ),
     );
-    expect(view.getByText('Latest Yes probability')).toBeOnTheScreen();
     expect(
-      view.queryByText('Last traded Yes probability'),
-    ).not.toBeOnTheScreen();
+      await view.findByTestId(PredictMarketHistoryTestIds.CHART),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders complete Market history after async load', async () => {
+    resolveEvent();
+    const view = renderPredictEventScreen(routeParams);
+
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+
+    await waitFor(() => {
+      expect(chart.props.accessibilityLabel).toContain('Yes 42%');
+      expect(chart.props.accessibilityLabel).toContain('No 58%');
+    });
+    expect(
+      within(chart).getByTestId(PredictMarketHistoryTestIds.chartLabel('yes')),
+    ).toBeOnTheScreen();
+    expect(
+      within(chart).getByTestId(PredictMarketHistoryTestIds.chartValue('yes')),
+    ).toBeOnTheScreen();
+    expect(
+      within(chart).getByTestId(PredictMarketHistoryTestIds.chartLabel('no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(chart).getByTestId(PredictMarketHistoryTestIds.chartValue('no')),
+    ).toBeOnTheScreen();
   });
 
   it('retries Market history after an initial error', async () => {
@@ -304,12 +330,10 @@ describe('PredictEventScreen', () => {
 
     const empty = await view.findByTestId(PredictMarketHistoryTestIds.EMPTY);
 
-    expect(empty).toHaveTextContent(
-      'Market history is not available for this range.',
-    );
+    expect(
+      within(empty).getByTestId(PredictMarketHistoryTestIds.EMPTY_MESSAGE),
+    ).toHaveTextContent('Market history is not available for this range.');
     expect(StyleSheet.flatten(empty.props.style).height).toBe(150);
-    expect(view.getByText('40%')).toBeOnTheScreen();
-    expect(view.queryByText('+0 pts')).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.CHART),
     ).not.toBeOnTheScreen();
@@ -450,7 +474,7 @@ describe('PredictEventScreen', () => {
       view.queryByTestId(
         `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
       ),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.EMPTY),
     ).not.toBeOnTheScreen();

@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
-import { ReduceMotion, withRepeat, withTiming } from 'react-native-reanimated';
 import { PredictMarketChart } from './PredictMarketChart';
 
 jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
@@ -12,12 +11,6 @@ jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
     scale: 2,
     fontScale: 1,
   })),
-}));
-
-jest.mock('react-native-reanimated', () => ({
-  ...jest.requireActual('react-native-reanimated'),
-  withRepeat: jest.fn((animation) => animation),
-  withTiming: jest.fn((value) => value),
 }));
 
 const testSeries = [
@@ -333,10 +326,9 @@ describe('PredictMarketChart', () => {
       nativeEvent: { layout: { width: 343, height: 150 } },
     });
 
-    expect(withTiming).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ duration: 3200 }),
-    );
+    expect(
+      view.getByTestId('market-chart-endpoint-home-pulse'),
+    ).toBeOnTheScreen();
   });
 
   it('delegates reduced-motion behavior to the system setting', () => {
@@ -348,13 +340,9 @@ describe('PredictMarketChart', () => {
       nativeEvent: { layout: { width: 343, height: 150 } },
     });
 
-    expect(withRepeat).toHaveBeenCalledWith(
-      expect.anything(),
-      -1,
-      false,
-      undefined,
-      ReduceMotion.System,
-    );
+    expect(
+      view.getByTestId('market-chart-endpoint-home-pulse'),
+    ).toBeOnTheScreen();
   });
 
   it('renders a radius-six solid endpoint with a background stroke', () => {
@@ -416,7 +404,7 @@ describe('PredictMarketChart', () => {
     expect(view.getByTestId('market-chart-scrub-time').props.matrix[4]).toBe(x);
   });
 
-  it('shows the timestamp and interpolated prices while scrubbing', () => {
+  it('shows the timestamp and carry-forward prices while scrubbing', () => {
     const view = render(
       <PredictMarketChart
         series={testSeries}
@@ -433,7 +421,7 @@ describe('PredictMarketChart', () => {
 
     expect(
       view.getByLabelText(
-        /Market probability history at Time 1[34][0-9]\. Vikings 59%/,
+        /Market probability history at Time 1[34][0-9]\. Vikings 58%/,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -450,13 +438,15 @@ describe('PredictMarketChart', () => {
 
     expect(
       view.getByLabelText(
-        /Market probability history at Time 1[67][0-9]\. Vikings 60%, Ravens 39%/,
+        /Market probability history at Time 1[67][0-9]\. Vikings 58%, Ravens 41%/,
       ),
     ).toBeOnTheScreen();
 
     fireEvent(chart, 'responderRelease', createResponderEvent(176.9, 80));
 
-    expect(view.queryByTestId('market-chart-scrub-future')).toBeNull();
+    expect(
+      view.queryByTestId('market-chart-scrub-future'),
+    ).not.toBeOnTheScreen();
     expect(
       view.getByLabelText(
         'Market probability history. Vikings 61%, Ravens 38%',

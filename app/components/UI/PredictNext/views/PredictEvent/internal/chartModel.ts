@@ -147,42 +147,14 @@ export const sampleAtTime = (
   return value;
 };
 
-const interpolateAtTime = (
-  data: readonly ChartPoint[],
-  time: number,
-): number | undefined => {
-  let low = 0;
-  let high = data.length - 1;
-
-  while (low <= high) {
-    const middle = Math.floor((low + high) / 2);
-    const point = data[middle];
-    if (point.time === time) {
-      return point.value;
-    }
-    if (point.time < time) {
-      low = middle + 1;
-    } else {
-      high = middle - 1;
-    }
-  }
-
-  const previous = data[high];
-  const next = data[low];
-  if (!previous) return undefined;
-  if (!next) return previous.value;
-
-  const progress = (time - previous.time) / (next.time - previous.time);
-  return previous.value + (next.value - previous.value) * progress;
-};
-
 const getTimeDomain = (
   series: readonly ChartSeries[],
 ): [number, number] | undefined => {
   const starts = series.map((entry) => entry.data[0]?.time);
-  const ends = series.map((entry) => entry.data[entry.data.length - 1]?.time);
-  if (starts.some((time) => time === undefined)) return undefined;
-  if (ends.some((time) => time === undefined)) return undefined;
+  const ends = series.map((entry) => entry.data.at(-1)?.time);
+  if (starts.includes(undefined) || ends.includes(undefined)) {
+    return undefined;
+  }
 
   const start = Math.min(...(starts as number[]));
   const end = Math.max(...(ends as number[]));
@@ -202,32 +174,33 @@ const clipToTimeDomain = (
   const startValue =
     sampleAtTime(data, minTime) ?? points[0]?.value ?? data[0]?.value;
   const endValue =
-    sampleAtTime(data, maxTime) ??
-    points[points.length - 1]?.value ??
-    data[data.length - 1]?.value;
+    sampleAtTime(data, maxTime) ?? points.at(-1)?.value ?? data.at(-1)?.value;
 
   if (startValue !== undefined && points[0]?.time !== minTime) {
     points.unshift({ time: minTime, value: startValue });
   }
-  if (endValue !== undefined && points[points.length - 1]?.time !== maxTime) {
+  if (endValue !== undefined && points.at(-1)?.time !== maxTime) {
     points.push({ time: maxTime, value: endValue });
   }
 
   return points;
 };
 
-const getValueDomain = (
-  series: readonly ChartSeries[],
-): [number, number] | undefined => {
-  const values = series.flatMap((entry) =>
-    entry.data.map((point) => Math.max(0, Math.min(1, point.value))),
-  );
-  if (values.length === 0) return undefined;
+const clampUnitInterval = (value: number) => Math.max(0, Math.min(1, value));
 
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  if (minValue >= maxValue) return [minValue, maxValue];
+const domainFromTicks = (
+  minValue: number,
+  maxValue: number,
+  ticks: readonly number[],
+): [number, number] => [
+  Math.max(0, Math.min(minValue, ticks[0])),
+  Math.min(1, Math.max(maxValue, ticks.at(-1) ?? maxValue)),
+];
 
+const findNiceTicks = (
+  minValue: number,
+  maxValue: number,
+): number[] | undefined => {
   const targetInteriorSpan =
     (maxValue - minValue) / (VALUE_TICK_COUNT - (VALUE_TICK_COUNT > 3 ? 3 : 2));
   const targetStep = (maxValue - minValue) / (VALUE_TICK_COUNT - 1);
@@ -252,12 +225,9 @@ const getValueDomain = (
           { length: VALUE_TICK_COUNT },
           (_, index) => tickMin + index * tickStep,
         );
-        if (ticks[ticks.length - 1] > 1) continue;
+        if ((ticks.at(-1) ?? 0) > 1) continue;
         if (intervalCount === VALUE_TICK_COUNT - 1) {
-          return [
-            Math.max(0, Math.min(minValue, ticks[0])),
-            Math.min(1, Math.max(maxValue, ticks[ticks.length - 1])),
-          ];
+          return ticks;
         }
         if (intervalCount > bestIntervalCount) {
           bestIntervalCount = intervalCount;
@@ -267,11 +237,25 @@ const getValueDomain = (
     }
   }
 
-  if (!bestTicks) return [minValue, maxValue];
-  return [
-    Math.max(0, Math.min(minValue, bestTicks[0])),
-    Math.min(1, Math.max(maxValue, bestTicks[bestTicks.length - 1])),
-  ];
+  return bestTicks;
+};
+
+const getValueDomain = (
+  series: readonly ChartSeries[],
+): [number, number] | undefined => {
+  const values = series.flatMap((entry) =>
+    entry.data.map((point) => clampUnitInterval(point.value)),
+  );
+  if (values.length === 0) return undefined;
+
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  if (minValue >= maxValue) return [minValue, maxValue];
+
+  const ticks = findNiceTicks(minValue, maxValue);
+  return ticks
+    ? domainFromTicks(minValue, maxValue, ticks)
+    : [minValue, maxValue];
 };
 
 const scaleValue = (
@@ -396,8 +380,7 @@ export const createChartModel = ({
   const endpoints = addLabelPositions(
     drawableSeries.map((entry) => {
       const value =
-        sampleAtTime(entry.data, maxTime) ??
-        entry.data[entry.data.length - 1].value;
+        sampleAtTime(entry.data, maxTime) ?? entry.data.at(-1)?.value ?? 0;
       return { x: x(maxTime), y: y(value), value };
     }),
     height,
@@ -415,7 +398,7 @@ export const createChartModel = ({
   let displayedSeries = preparedSeries;
   if (scrub) {
     const scrubbed = preparedSeries.flatMap((entry) => {
-      const value = interpolateAtTime(entry.data, scrub.time);
+      const value = sampleAtTime(entry.data, scrub.time);
       return value === undefined
         ? []
         : [{ entry, x: scrub.x, y: y(value), value }];

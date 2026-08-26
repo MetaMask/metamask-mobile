@@ -60,20 +60,15 @@ const marketId = 'market-1' as PredictEntityId;
 describe('PredictMarketDataService', () => {
   const services: PredictMarketDataService[] = [];
 
-  beforeAll(() => {
-    jest.useFakeTimers({ advanceTimers: true });
-  });
-
   beforeEach(() => {
+    jest.useFakeTimers({ advanceTimers: true });
     jest.clearAllMocks();
   });
 
   afterEach(() => {
-    services.splice(0).forEach((service) => service.destroy());
-  });
-
-  afterAll(() => {
+    jest.clearAllTimers();
     jest.useRealTimers();
+    services.splice(0).forEach((service) => service.destroy());
   });
 
   const buildService = (marketData: VenueMarketDataAdapter) => {

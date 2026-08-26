@@ -85,14 +85,14 @@ export const PredictMarketChart = ({
   const { fontScale } = useWindowDimensions();
   const [width, setWidth] = useState(0);
   const [scrub, setScrub] = useState<{ time: number; x: number }>();
-  const idPrefix = useId().replace(/:/g, '');
+  const idPrefix = useId().replaceAll(':', '');
   const layout = getScaledChartLayout({
     height,
     labelGutter,
     fontScale,
     labels: series.map((entry) => entry.label),
     values: series.flatMap((entry) => {
-      const value = entry.data[entry.data.length - 1]?.value;
+      const value = entry.data.at(-1)?.value;
       return value === undefined ? [] : [formatValue(value)];
     }),
   });

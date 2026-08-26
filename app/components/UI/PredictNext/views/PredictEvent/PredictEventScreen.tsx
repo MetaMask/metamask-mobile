@@ -142,6 +142,29 @@ export const PredictEventScreen = () => {
       ),
     );
 
+    const renderMarketHistory = () => {
+      if (game && homeMarket && awayMarket) {
+        return (
+          <PredictGameMarketHistory
+            venueId={event.venueId}
+            home={{ market: homeMarket, team: game.homeTeam }}
+            away={{ market: awayMarket, team: game.awayTeam }}
+          />
+        );
+      }
+
+      if (historyMarket) {
+        return (
+          <PredictMarketHistory
+            venueId={event.venueId}
+            market={historyMarket}
+          />
+        );
+      }
+
+      return null;
+    };
+
     return (
       <>
         <EventScreenLayout onBack={handleBack}>
@@ -180,18 +203,7 @@ export const PredictEventScreen = () => {
               ))}
             </FilterButtonGroup>
           ) : null}
-          {game && homeMarket && awayMarket ? (
-            <PredictGameMarketHistory
-              venueId={event.venueId}
-              home={{ market: homeMarket, team: game.homeTeam }}
-              away={{ market: awayMarket, team: game.awayTeam }}
-            />
-          ) : historyMarket ? (
-            <PredictMarketHistory
-              venueId={event.venueId}
-              market={historyMarket}
-            />
-          ) : null}
+          {renderMarketHistory()}
           <Box
             testID={PredictEventScreenTestIds.PREDICT_SECTION}
             twClassName="mt-8 gap-[14px]"

@@ -119,7 +119,7 @@ describe('createChartModel', () => {
     });
 
     expect(result?.displayedSeries.map((entry) => entry.id)).toEqual(['home']);
-    expect(result?.displayedSeries[0].endpoint.value).toBeCloseTo(0.575);
+    expect(result?.displayedSeries[0].endpoint.value).toBe(0.6);
     expect(result?.series[1].linePath.startsWith('M0,')).toBe(true);
   });
 
