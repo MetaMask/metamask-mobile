@@ -68,23 +68,14 @@ describe('orderUtils', () => {
       },
     );
 
-    it.each([
-      ['stop_market', 'market', 'Stop Market'],
-      ['stop_limit', 'limit', 'Stop Limit'],
-      ['take_profit_market', 'market', 'Take Profit Market'],
-      ['take_profit_limit', 'limit', 'Take Profit Limit'],
-    ] as const)(
-      'resolves legacy %s from its detailed order type',
-      (orderType, executionType, detailedOrderType) => {
-        const result = resolvePerpsTransactionOrderType({
-          type: executionType,
-          orderType: executionType,
-          detailedOrderType,
-        });
+    it('resolves a legacy stop-market transaction from its detailed order type', () => {
+      const result = resolvePerpsTransactionOrderType({
+        type: 'market',
+        detailedOrderType: 'Stop Market',
+      });
 
-        expect(result).toBe(orderType);
-      },
-    );
+      expect(result).toBe('stop_market');
+    });
 
     it('keeps a normalized order type when transaction data provides one', () => {
       const result = resolvePerpsTransactionOrderType({

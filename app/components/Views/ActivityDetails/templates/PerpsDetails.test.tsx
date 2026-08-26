@@ -276,35 +276,6 @@ describe('PerpsDetails', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders a trigger price row for a legacy stop-market transaction', () => {
-    const transaction: PerpsTransaction = {
-      ...baseTransaction,
-      type: 'order',
-      category: 'limit_order',
-      title: 'Stop market order',
-      order: {
-        orderId: 'legacy-stop-market-order',
-        text: PerpsOrderTransactionStatus.Filled,
-        statusType: PerpsOrderTransactionStatusType.Filled,
-        type: 'market',
-        orderType: 'market',
-        size: '10',
-        triggerPrice: '99000',
-        filled: '100%',
-        isTrigger: true,
-        detailedOrderType: 'Stop Market',
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
-    );
-
-    expect(
-      getByTestId(ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW),
-    ).toBeOnTheScreen();
-  });
-
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,

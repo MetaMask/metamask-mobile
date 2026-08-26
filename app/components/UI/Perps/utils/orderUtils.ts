@@ -146,9 +146,7 @@ export interface PerpsTransactionOrderLike {
 export const resolvePerpsTransactionOrderType = (
   order: PerpsTransactionOrderLike,
 ): OrderType => {
-  // A normalized trigger type is authoritative. Ordinary market/limit values
-  // are legacy execution types and must not mask a detailed trigger label.
-  if (order.orderType && isTriggerOrderType(order.orderType)) {
+  if (order.orderType) {
     return order.orderType;
   }
 
@@ -164,7 +162,7 @@ export const resolvePerpsTransactionOrderType = (
     return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
   }
 
-  return order.orderType ?? order.type;
+  return order.type;
 };
 
 export interface PerpsOrderPriceRowVisibility {

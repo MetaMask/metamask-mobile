@@ -20,11 +20,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
-import {
-  formatOrderLabel,
-  getValidPerpsPrice,
-  resolvePerpsTransactionOrderType,
-} from './orderUtils';
+import { formatOrderLabel, getValidPerpsPrice } from './orderUtils';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
@@ -476,14 +472,7 @@ export function transformOrdersToTransactions(
     const title = formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
-    const executionType = isLimitExecutionOrderType(orderType)
-      ? 'limit'
-      : 'market';
-    const normalizedOrderType: OrderType = resolvePerpsTransactionOrderType({
-      type: executionType,
-      orderType: triggerOrderType ?? orderType,
-      detailedOrderType,
-    });
+    const normalizedOrderType: OrderType = triggerOrderType ?? orderType;
     const isLimitExecution = isLimitExecutionOrderType(normalizedOrderType);
     const isTriggerType = isTriggerOrderType(normalizedOrderType);
     const limitPrice =
