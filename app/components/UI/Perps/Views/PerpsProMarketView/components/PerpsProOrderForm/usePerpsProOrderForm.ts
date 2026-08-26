@@ -19,7 +19,14 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Engine from '../../../../../../../core/Engine';
@@ -134,29 +141,59 @@ const isLimitPriceValidationError = (message: string): boolean =>
       'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
     );
 
+type MarketDataBlockingReason = 'loading' | 'error' | 'price-unavailable';
+
+const getMarketDataBlockingReason = ({
+  isLoading,
+  hasError,
+  price,
+}: {
+  isLoading: boolean;
+  hasError: boolean;
+  price: number;
+}): MarketDataBlockingReason | null => {
+  if (hasError) {
+    return 'error';
+  }
+  if (isLoading) {
+    return 'loading';
+  }
+  return price > 0 ? null : 'price-unavailable';
+};
+
 const getBlockingNotices = ({
   reduceOnlyErrorCode,
   isReduceOnlyPositionLoading,
-  isMarketDataBlocking,
-  hasMarketDataError,
+  marketDataBlockingReason,
   filteredErrors,
 }: {
   reduceOnlyErrorCode?: ReduceOnlyValidationCode;
   isReduceOnlyPositionLoading: boolean;
-  isMarketDataBlocking: boolean;
-  hasMarketDataError: boolean;
+  marketDataBlockingReason: MarketDataBlockingReason | null;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
-  if (isMarketDataBlocking) {
-    return hasMarketDataError
-      ? [
-          {
-            id: 'market-data',
-            variant: 'banner',
-            message: strings('perps.failed_to_load_market_data'),
-          },
-        ]
-      : [];
+  if (marketDataBlockingReason === 'loading') {
+    return [];
+  }
+
+  if (marketDataBlockingReason === 'error') {
+    return [
+      {
+        id: 'market-data',
+        variant: 'banner',
+        message: strings('perps.failed_to_load_market_data'),
+      },
+    ];
+  }
+
+  if (marketDataBlockingReason === 'price-unavailable') {
+    return [
+      {
+        id: 'price-unavailable',
+        variant: 'banner',
+        message: strings('perps.pro_order_form.price_unavailable'),
+      },
+    ];
   }
 
   // Position data is unresolved — skipValidation retains prior errors, so hide
@@ -460,12 +497,16 @@ export const usePerpsProOrderForm = ({
     };
   }, [currentPrice]);
   const latestMidPriceRef = useRef(assetData.price);
-  // Intentionally sync during render so post-await validation sees the latest
-  // committed mid price; an effect would lag and could allow a stale submit.
-  latestMidPriceRef.current = assetData.price;
+  useLayoutEffect(() => {
+    latestMidPriceRef.current = assetData.price;
+  }, [assetData.price]);
 
-  const isMarketDataBlocking =
-    isLoadingMarketData || Boolean(marketDataError) || !(assetData.price > 0);
+  const marketDataBlockingReason = getMarketDataBlockingReason({
+    isLoading: isLoadingMarketData,
+    hasError: Boolean(marketDataError),
+    price: assetData.price,
+  });
+  const isMarketDataBlocking = marketDataBlockingReason !== null;
 
   const normalizedTriggerPrice = canonicalizeOrderPrice(
     triggerPrice,
@@ -1255,8 +1296,7 @@ export const usePerpsProOrderForm = ({
           ? reduceOnlyValidation.errorCode
           : undefined,
         isReduceOnlyPositionLoading,
-        isMarketDataBlocking,
-        hasMarketDataError: Boolean(marketDataError),
+        marketDataBlockingReason,
         filteredErrors,
       }),
       ...getTpslNotices({
@@ -1281,8 +1321,7 @@ export const usePerpsProOrderForm = ({
   }, [
     reduceOnly,
     isReduceOnlyPositionLoading,
-    isMarketDataBlocking,
-    marketDataError,
+    marketDataBlockingReason,
     reduceOnlyValidation.errorCode,
     filteredErrors,
     doesStopLossRiskLiquidation,
@@ -1361,7 +1400,8 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
-    hasTpslBlocker;
+    hasTpslBlocker ||
+    (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type));
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) => {

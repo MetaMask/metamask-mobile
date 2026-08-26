@@ -452,7 +452,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('blocks silently while the live market price is unavailable', () => {
+    it('explains why the order is blocked when the live price is unavailable', () => {
       // Arrange
       mockLivePrice = '';
 
@@ -460,7 +460,11 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
-      expect(result.current.notices).toEqual([]);
+      expect(result.current.notices).toContainEqual({
+        id: 'price-unavailable',
+        variant: 'banner',
+        message: strings('perps.pro_order_form.price_unavailable'),
+      });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
@@ -1318,7 +1322,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockOrderForm.type).toBe('stop_market');
       expect(mockOrderForm.limitPrice).toBe('90500');
       expect(mockContextValue.triggerPrice).toBe('91000');
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(mockSetOrderType).not.toHaveBeenCalled();
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
       expect(mockSetTriggerPrice).not.toHaveBeenCalled();
