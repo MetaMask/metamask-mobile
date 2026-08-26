@@ -2132,7 +2132,7 @@ const EXPECTED_TITLES = {
   rampBuy: 'Bought',
   sell: 'Sold',
   rampSell: 'Sold',
-  claim: 'Claimed',
+  claim: 'Claimed Ethereum',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
   stake: 'Staked Ethereum',
@@ -2252,6 +2252,20 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText('Claimed Ethereum')).toBeOnTheScreen();
   });
+
+  it.each(['claim', 'unstake'] as const)(
+    'reads the asset name for a tokenless EVM %s',
+    (type) => {
+      const item = makeItem({ type, status: 'success' });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByText(type === 'claim' ? 'Claimed Ethereum' : 'Unstaked Ethereum'),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('keeps the symbol for a non-ETH claim', () => {
     const item = makeItem({

@@ -422,12 +422,13 @@ describe('ActivityList transformations', () => {
             contractAddress: '',
             decimal: 18,
             from: address,
+            name: 'Ether',
             symbol: 'ETH',
             to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
             transferType: 'normal',
           },
         ],
-      } as Partial<V1TransactionByHashResponse>);
+      });
 
       const result = selectApiEvmTransactions({ address })(
         buildData([stakeDeposit]),

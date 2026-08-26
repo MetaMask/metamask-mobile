@@ -116,7 +116,7 @@ describe('classifyPooledStakingActivity', () => {
     expect(result.type).toBe(expectedType);
   });
 
-  it('keeps the sender and the moved token', () => {
+  it('keeps the moved token', () => {
     const result = classifyPooledStakingActivity(
       buildApiTransaction(),
       buildContractInteraction(),
@@ -127,7 +127,7 @@ describe('classifyPooledStakingActivity', () => {
       chainId: 'eip155:1',
       hash: '0xhash',
       status: 'success',
-      data: { from: sender, token: nativeToken },
+      data: { token: nativeToken },
     });
   });
 
@@ -201,6 +201,7 @@ describe('classifyPooledStakingActivity', () => {
       buildContractInteraction(),
     );
 
+    expect(result.data).not.toHaveProperty('from');
     expect(result.data).not.toHaveProperty('to');
     expect(result.data).not.toHaveProperty('methodId');
     expect(result.data).not.toHaveProperty('transactionCategory');
@@ -337,7 +338,7 @@ describe('classifyPooledStakingActivity', () => {
 
     expect(result).toMatchObject({
       type: 'stake',
-      data: { from: sender, token: nativeToken },
+      data: { token: nativeToken },
     });
   });
 
@@ -413,7 +414,7 @@ describe('classifyPooledStakingActivity', () => {
 
     expect(result).toMatchObject({
       type: 'claim',
-      data: { from: sender, token: claimedToken },
+      data: { token: claimedToken },
     });
   });
 });
@@ -421,19 +422,19 @@ describe('classifyPooledStakingActivity', () => {
 // `contractMap` is not re-exported, so the copied constants are pinned against
 // the public contract class instead.
 describe('pooled staking constants match @metamask/stake-sdk', () => {
-  const buildContract = (chainId: ChainId) =>
-    new PooledStakingContract(
-      chainId,
-      new JsonRpcProvider('http://localhost:8545'),
-    );
+  // The network is passed explicitly so the provider never probes for it.
+  const provider = new JsonRpcProvider('http://localhost:8545', {
+    chainId: 1,
+    name: 'test',
+  });
+  const mainnet = new PooledStakingContract(ChainId.ETHEREUM, provider);
+  const hoodi = new PooledStakingContract(ChainId.HOODI, provider);
 
   it.each([
-    [ChainId.ETHEREUM, MAINNET_POOL],
-    [ChainId.HOODI, HOODI_POOL],
-  ])('resolves the pool address for chain %s', (chainId, expectedAddress) => {
-    expect(buildContract(chainId).contract.address.toLowerCase()).toBe(
-      expectedAddress,
-    );
+    [mainnet, MAINNET_POOL],
+    [hoodi, HOODI_POOL],
+  ])('resolves the pool address', (contract, expectedAddress) => {
+    expect(contract.contract.address.toLowerCase()).toBe(expectedAddress);
   });
 
   it.each([
@@ -442,11 +443,9 @@ describe('pooled staking constants match @metamask/stake-sdk', () => {
     ['claimExitedAssets', CLAIM_EXITED_ASSETS_METHOD_ID],
     ['multicall', MULTICALL_METHOD_ID],
   ])('resolves the %s selector', (functionName, expectedMethodId) => {
-    expect(
-      buildContract(ChainId.ETHEREUM).contract.interface.getSighash(
-        functionName,
-      ),
-    ).toBe(expectedMethodId);
+    expect(mainnet.contract.interface.getSighash(functionName)).toBe(
+      expectedMethodId,
+    );
   });
 });
 

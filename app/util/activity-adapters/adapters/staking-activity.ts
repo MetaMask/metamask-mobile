@@ -24,7 +24,6 @@ type ApiStakingTransaction = Pick<
 const NATIVE_FEE_DECIMALS = 18;
 
 interface StakingActivityData {
-  from?: string;
   token?: TokenAmount;
   fees?: ActivityFee[];
 }
@@ -67,19 +66,17 @@ function getStakingToken(
   return token?.direction === (isStake ? 'out' : 'in') ? token : undefined;
 }
 
-/** `to` is dropped: `claim` has no such field, and no staking row shows it. */
+/** Counterparties are dropped: `data.from` can be the pool, not the user. */
 function getStakingActivityData(
   activity: ActivityListItem,
   kind: StakingKind,
   fallbackFees?: ActivityFee[],
 ): StakingActivityData {
   const { data } = activity;
-  const from = 'from' in data ? data.from : undefined;
   const token = getStakingToken(data, kind);
   const fees = data.fees?.length ? data.fees : fallbackFees;
 
   return {
-    ...(from ? { from } : {}),
     ...(token ? { token } : {}),
     ...(fees ? { fees } : {}),
   };
@@ -169,13 +166,7 @@ export function classifyPooledStakingActivity(
     getNetworkFees(transaction, environment),
   );
 
-  if (kind === 'stake') {
-    return { ...activity, type: 'stake', data };
-  }
-
-  return kind === 'unstake'
-    ? { ...activity, type: 'unstake', data }
-    : { ...activity, type: 'claim', data };
+  return { ...activity, type: kind, data };
 }
 
 /**
@@ -204,7 +195,5 @@ export function classifyKeyringStakingActivity(
     ...(token ? { token } : {}),
   };
 
-  return kind === 'stake'
-    ? { ...activity, type: 'stake', data }
-    : { ...activity, type: 'unstake', data };
+  return { ...activity, type: kind, data };
 }

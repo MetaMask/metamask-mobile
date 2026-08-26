@@ -656,8 +656,11 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
+      // A claim's symbol is checked because other protocols share the kind; with
+      // no token there is nothing to mistake, so it reads as staking.
       const readsEthAssetName =
-        isEvmStakingKind(item) && (item.type !== 'claim' || symbol === 'ETH');
+        isEvmStakingKind(item) &&
+        (item.type !== 'claim' || !symbol || symbol === 'ETH');
       let displayNoun = symbol;
       if (readsEthAssetName) {
         displayNoun = 'Ethereum';
