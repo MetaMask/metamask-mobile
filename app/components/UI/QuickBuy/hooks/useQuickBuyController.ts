@@ -5,14 +5,7 @@ import {
   sumAmounts,
 } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -62,7 +55,7 @@ import {
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import {
   selectBridgeFeatureFlags,
@@ -85,7 +78,6 @@ import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
-import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
@@ -251,8 +243,6 @@ export function useQuickBuyController(
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
 
   const traderAddress = analyticsContext?.traderAddress ?? '';
@@ -1534,9 +1524,7 @@ export function useQuickBuyController(
     // on the trigger screen while submission happens in the background. The
     // complete/failed toast later fires from the app-root registration.
     onClose();
-    toastRef?.current?.showToast(
-      buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-    );
+    toast(buildQuickBuyToastOptions('pending', tradeToastInfo));
     // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
     // success/error feedback is deferred to the terminal complete/failed
     // states once the swap settles.
@@ -1575,10 +1563,7 @@ export function useQuickBuyController(
         // tracked and the app-root handler ignored them. Reconcile against the
         // current bridge status now so the user isn't stuck on the pending
         // toast; if it's still pending, future stateChange events take over.
-        const showToast = toastRef?.current?.showToast;
-        if (showToast) {
-          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
-        }
+        resolveQuickBuyTerminalToast(txMetaId);
       }
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1607,9 +1592,7 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-      );
+      toast(buildQuickBuyToastOptions('failed', tradeToastInfo));
       await playErrorNotification();
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1637,8 +1620,6 @@ export function useQuickBuyController(
     stxEnabled,
     dispatch,
     onClose,
-    toastRef,
-    theme,
     isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,

@@ -1,5 +1,5 @@
 import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
-import { TextColor } from '@metamask/design-system-react-native';
+import { TextColor, toast } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act, renderHook } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -253,21 +253,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockShowToast = jest.fn();
-jest.mock('../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    ToastContext: actualReact.createContext({
-      // Defer to mockShowToast lazily: this object is built at mock-factory
-      // eval time, before the `mockShowToast` const is initialised.
-      toastRef: {
-        current: {
-          showToast: (...args: unknown[]) => mockShowToast(...args),
-        },
-      },
-    }),
-    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -3829,14 +3819,14 @@ describe('useQuickBuyController', () => {
         });
 
         expect(onClose).toHaveBeenCalledTimes(1);
-        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
-          trade: expect.objectContaining({
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
+          'pending',
+          expect.objectContaining({
             tokenSymbol: 'TEST',
             tradeMode: 'buy',
           }),
-          theme: expect.any(Object),
-        });
-        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        );
+        expect(toast).toHaveBeenCalledWith({ kind: 'pending' });
         expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
         await act(async () => {
@@ -3863,14 +3853,14 @@ describe('useQuickBuyController', () => {
           'tx-1',
           expect.objectContaining({ tokenSymbol: 'TEST', tradeMode: 'buy' }),
         );
-        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
-          trade: expect.objectContaining({
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
+          'pending',
+          expect.objectContaining({
             tokenSymbol: 'TEST',
             tradeMode: 'buy',
           }),
-          theme: expect.any(Object),
-        });
-        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        );
+        expect(toast).toHaveBeenCalledWith({ kind: 'pending' });
       });
 
       it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
@@ -4005,11 +3995,7 @@ describe('useQuickBuyController', () => {
           await result.current.handleConfirm();
         });
 
-        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
-          'tx-1',
-          expect.any(Function),
-          expect.any(Object),
-        );
+        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith('tx-1');
       });
 
       it('shows a failed toast and does not track the trade when submit throws', async () => {
@@ -4028,14 +4014,14 @@ describe('useQuickBuyController', () => {
         });
 
         expect(onClose).toHaveBeenCalledTimes(1);
-        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
-          trade: expect.objectContaining({
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
+          'failed',
+          expect.objectContaining({
             tokenSymbol: 'TEST',
             tradeMode: 'buy',
           }),
-          theme: expect.any(Object),
-        });
-        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        );
+        expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
         expect(playErrorNotification).toHaveBeenCalledTimes(1);
         expect(trackQuickBuyTrade).not.toHaveBeenCalled();
       });
