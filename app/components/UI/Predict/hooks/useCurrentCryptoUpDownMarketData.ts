@@ -89,17 +89,15 @@ export const useCurrentCryptoUpDownMarketData = ({
       eventStartTime: eventStartTime ?? '',
       variant,
       endDate: market.endDate ?? '',
+      twapWindowSeconds: market.twapWindowSeconds,
       enabled:
         shouldFetchMarketData &&
-        !market.twapWindowSeconds &&
         Boolean(symbol) &&
         Boolean(eventStartTime) &&
         Boolean(market.endDate),
     });
   const priceToBeat = shouldFetchMarketData
-    ? market.twapWindowSeconds
-      ? market.priceToBeat
-      : resolveCryptoTargetPrice(market, targetPrice)
+    ? resolveCryptoTargetPrice(market, targetPrice)
     : undefined;
   const chartData = useCryptoUpDownChartData(market, priceToBeat, {
     enabled: shouldFetchMarketData,

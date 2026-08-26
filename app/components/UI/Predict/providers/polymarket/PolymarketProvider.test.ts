@@ -68,6 +68,10 @@ import {
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
 import {
+  PolymarketRequestCancelledError,
+  PolymarketRequestTimeoutError,
+} from './fetchWithTimeout';
+import {
   buildClaimTransaction,
   planDepositWalletClaim,
 } from './preflight/claim';
@@ -133,8 +137,8 @@ jest.mock('./utils', () => {
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
       CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-      CHAINLINK_CANDLES_ENDPOINT:
-        'https://polymarket.com/api/chainlink-candles',
+      CRYPTO_PRICE_HISTORY_ENDPOINT:
+        'https://polymarket.com/api/crypto/price-history',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -429,115 +433,22 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('adds World Cup child markets to the original feed event before parsing', async () => {
+    it('does not fetch child events when listing markets', async () => {
       const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
       });
-      const moneylineMarket = {
-        id: 'moneyline-market',
-        sportsMarketType: 'moneyline',
-      };
-      const teamToAdvanceMarket = {
-        id: 'team-to-advance-market',
-        sportsMarketType: 'soccer_team_to_advance',
-      };
       const parentEvent = {
         id: 'parent-event',
-        title: 'Feed title to preserve',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [moneylineMarket],
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
       };
-      const fetchedParentEvent = {
-        ...parentEvent,
-        title: 'Fetched parent title should not replace feed title',
-        markets: [],
-      };
-      const childEvent = {
-        id: 'child-event',
-        parentEventId: parentEvent.id,
-        markets: [teamToAdvanceMarket],
-      };
-      const markets = [
-        {
-          id: 'market-1',
-          outcomes: [{ id: 'team-to-advance-outcome' }],
-        },
-      ];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
 
       mockFetchEventsFromPolymarketApi.mockResolvedValue({
         events: [parentEvent],
-        category: 'trending',
-        nextCursor: null,
-      } as never);
-      mockFetchChildEventsFromGammaApi.mockResolvedValue([
-        fetchedParentEvent,
-        childEvent,
-      ] as never);
-      mockParsePolymarketEvents.mockReturnValue(markets as never);
-
-      await expect(
-        provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets,
-        nextCursor: null,
-      });
-      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
-        parentEventId: parentEvent.id,
-      });
-      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            id: parentEvent.id,
-            title: parentEvent.title,
-            markets: [moneylineMarket, teamToAdvanceMarket],
-          }),
-        ],
-        expect.any(Object),
-      );
-    });
-
-    it('does not resolve World Cup child feed events into duplicate parent cards', async () => {
-      const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
-      });
-      const childFeedEvent = {
-        id: 'child-event',
-        parentEventId: 'parent-event',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [
-          {
-            id: 'quarterfinals-market',
-            sportsMarketType: 'soccer_team_to_reach_quarterfinals',
-          },
-        ],
-      };
-      const markets = [
-        {
-          id: 'child-market',
-          outcomes: [{ id: 'quarterfinals-outcome' }],
-        },
-      ];
-
-      mockFetchEventsFromPolymarketApi.mockResolvedValue({
-        events: [childFeedEvent],
         category: 'trending',
         nextCursor: null,
       } as never);
@@ -551,9 +462,60 @@ describe('PolymarketProvider', () => {
       });
       expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [childFeedEvent],
+        [parentEvent],
         expect.any(Object),
       );
+    });
+
+    it('merges child events into parent market details for extended sports leagues', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const parentEvent = {
+        id: '567958',
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'nyk', league: 'nba' },
+          { abbreviation: 'sas', league: 'nba' },
+        ],
+        markets: [
+          { id: 'moneyline', active: true, sportsMarketType: 'moneyline' },
+        ],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        markets: [{ id: 'props', active: true, sportsMarketType: 'points' }],
+      };
+      const parsedMarket = { id: parentEvent.id, outcomes: [] };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        parentEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockResolvedValueOnce([
+        parentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: parentEvent.id,
+      });
+
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(result).toEqual({
+        ...parsedMarket,
+        childMarketIds: [parentEvent.id, childEvent.id],
+      });
     });
 
     it('keeps directly opened child events with ungroupable active markets', async () => {
@@ -655,6 +617,7 @@ describe('PolymarketProvider', () => {
       expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
         order: 'liquidity',
       });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
     });
 
     it('propagates list market failures to the query error state', async () => {
@@ -768,6 +731,38 @@ describe('PolymarketProvider', () => {
       await expect(
         provider.getMarkets({ category: 'trending' }),
       ).rejects.toThrow('Failed');
+    });
+
+    it('does not report expected market request timeouts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(timeoutError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(timeoutError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict markets request ended by expected timeout/cancellation:',
+        timeoutError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports unowned native market aborts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(abortError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(abortError);
+
+      expect(Logger.error).toHaveBeenCalledWith(abortError, expect.any(Object));
     });
 
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
@@ -904,6 +899,49 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getCryptoTargetPrice', () => {
+    it('requests the matching TWAP price for TWAP markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64544.60401529397 }),
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 60,
+      });
+
+      expect(result).toBe(64544.60401529397);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapEnabled=true');
+      expect(url).toContain('twapLookbackSeconds=60');
+    });
+
+    it('omits TWAP parameters for spot-price markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64551.57 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).not.toContain('twapEnabled');
+      expect(url).not.toContain('twapLookbackSeconds');
+    });
+  });
+
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -1015,6 +1053,42 @@ describe('PolymarketProvider', () => {
       json: jest.fn().mockResolvedValue([{}]),
     });
     signer.signTypedMessage.mockResolvedValue('0xsigned-order');
+  });
+
+  describe('eligibility request errors', () => {
+    it('does not report expected caller cancellation to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const cancellationError = new PolymarketRequestCancelledError(
+        new Error('The operation was aborted'),
+      );
+      global.fetch = jest.fn().mockRejectedValue(cancellationError);
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict geoblock request ended by expected timeout/cancellation:',
+        cancellationError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports genuine geoblock connectivity failures to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new TypeError('Network request failed');
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        networkError,
+        expect.any(Object),
+      );
+    });
   });
 
   it('exposes the Polymarket provider id', () => {
@@ -2181,17 +2255,15 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  it('gets crypto price history from Chainlink candle closes', async () => {
+  it('gets spot crypto price history from the current Polymarket price history API', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({
-        candles: [
-          { time: 999, close: 9 },
-          { time: 1000, close: 10 },
-          { time: 1060, close: 11 },
-          { time: 1121, close: 12 },
-        ],
-      }),
+      json: jest.fn().mockResolvedValue([
+        { timestamp: 999000, value: 9 },
+        { timestamp: 1000000, value: 10 },
+        { timestamp: 1060000, value: 11 },
+        { timestamp: 'invalid', value: 12 },
+      ]),
     });
 
     const result = await createProvider().getCryptoPriceHistory({
@@ -2202,104 +2274,77 @@ describe('PolymarketProvider', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
+      'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=1000&variant=hourly&endDate=1120',
       expect.objectContaining({
         method: 'GET',
         signal: expect.any(AbortSignal),
       }),
     );
     expect(result).toEqual([
-      { timestamp: 1000, value: 10 },
-      { timestamp: 1060, value: 11 },
+      { timestamp: 999000, value: 9 },
+      { timestamp: 1000000, value: 10 },
+      { timestamp: 1060000, value: 11 },
     ]);
   });
 
-  it('logs a development warning when every candle falls outside the requested window', async () => {
-    const { DevLogger } = jest.requireMock(
-      '../../../../../core/SDKConnect/utils/DevLogger',
-    );
-    (DevLogger.log as jest.Mock).mockClear();
-
+  it('gets TWAP price history from the current Polymarket price history API', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({
-        candles: Array.from({ length: 15 }, (_, i) => ({
-          time: 10_000 + i * 60,
-          close: 100 + i,
-        })),
-      }),
+      json: jest.fn().mockResolvedValue([
+        { timestamp: 1787158800000, value: 68449.07681200188 },
+        { timestamp: 1787158805000, value: 68450.56902128145 },
+        { timestamp: 'invalid', value: 68455 },
+      ]),
     });
-
-    const result = await createProvider().getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime: '1000',
-      endDate: '1300',
+    const params = {
+      symbol: ' btc ',
+      eventStartTime: '2026-08-19T17:00:00Z',
       variant: 'fiveminute',
-    });
+      endDate: '2026-08-19T17:05:00Z',
+      twapWindowSeconds: 60 as const,
+    };
 
-    expect(result).toEqual([]);
-    expect(DevLogger.log).toHaveBeenCalledWith(
-      expect.stringContaining('every candle was filtered out'),
+    const result = await createProvider().getCryptoPriceHistory(params);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=2026-08-19T17%3A00%3A00Z&variant=fiveminute&endDate=2026-08-19T17%3A05%3A00Z&twapEnabled=true&twapLookbackSeconds=60',
       expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
+    );
+    expect(result).toEqual([
+      { timestamp: 1787158800000, value: 68449.07681200188 },
+      { timestamp: 1787158805000, value: 68450.56902128145 },
+    ]);
+  });
+
+  it.each(['fiveminute', 'fifteen', 'hourly', 'fourhour', 'daily'])(
+    'forwards the %s variant to the current price history API',
+    async (variant) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      const provider = createProvider();
+      const eventStartTime = '1970-01-01T00:00:00.000Z';
+
+      await provider.getCryptoPriceHistory({
         symbol: 'BTC',
-        variant: 'fiveminute',
-        interval: '1m',
-        startSeconds: 1000,
-        endSeconds: 1300,
-      }),
-    );
-  });
+        eventStartTime,
+        variant,
+      });
 
-  it('uses supported Chainlink candle intervals for crypto history variants', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue({ candles: [] }),
-    });
-
-    const provider = createProvider();
-    const eventStartTime = '1970-01-01T00:00:00.000Z';
-
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'fiveminute',
-    });
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'fourhour',
-    });
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'daily',
-    });
-
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      1,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
-      expect.objectContaining({
-        method: 'GET',
-        signal: expect.any(AbortSignal),
-      }),
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      2,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
-      expect.objectContaining({
-        method: 'GET',
-        signal: expect.any(AbortSignal),
-      }),
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      3,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
-      expect.objectContaining({
-        method: 'GET',
-        signal: expect.any(AbortSignal),
-      }),
-    );
-  });
+      expect(global.fetch).toHaveBeenCalledWith(
+        `https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=1970-01-01T00%3A00%3A00.000Z&variant=${variant}`,
+        expect.objectContaining({
+          method: 'GET',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    },
+  );
 
   it('rethrows crypto price history errors after logging', async () => {
     global.fetch = jest.fn().mockResolvedValue({

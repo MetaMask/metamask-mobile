@@ -2,15 +2,13 @@ import type { Mockttp } from 'mockttp';
 
 import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
+import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions.js';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
 import { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
-} from '../../../framework/PlaywrightUtilities.js';
+} from '../../../framework/AppiumUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
@@ -58,14 +56,16 @@ const IOS_ONBOARDING_INDICATOR_IDS = [
   OnboardingSelectorIDs.SCREEN_TITLE,
 ] as const;
 
+interface AppiumElement {
+  isVisible: () => Promise<boolean>;
+}
+
 const isOnboardingIndicatorVisible = async (
   testId: string,
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -108,9 +108,7 @@ const isCreatePasswordIndicatorVisible = async (
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -356,13 +354,10 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login screen should be visible before unlock',
-      timeout: 30_000,
-    },
-  );
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login screen should be visible before unlock',
+    timeout: 30_000,
+  });
   await LoginView.enterPassword(password);
   await LoginView.tapLoginButton();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
