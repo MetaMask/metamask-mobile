@@ -208,6 +208,19 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
   }),
 }));
 
+jest.mock('../../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods', () => ({
+  useFiatDepositPaymentMethods: () => ({
+    paymentMethods: [],
+    suggestedPaymentMethod: null,
+    assetId: '',
+    isFetching: false,
+    isLoading: false,
+    status: 'idle',
+    isSuccess: false,
+    error: null,
+  }),
+}));
+
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 const TRANSACTION_ID_MOCK = 'tx-mock-id';
