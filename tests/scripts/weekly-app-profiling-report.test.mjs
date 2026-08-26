@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  buildInvestigationLeads,
+  buildPeakRecordings,
   buildSlackMarkdown,
+  formatRecordingSlackLink,
+  pickPeakSample,
   selectFeaturedScenarios,
   selectTopLeads,
 } from './weekly-app-profiling-report.mjs';
 
-function scenario(rank, scenario, samples, slowFrames, failRatePct) {
+function scenario(rank, scenario, samples, slowFrames, failRatePct, extras = {}) {
   return {
     rank,
     scenario,
@@ -16,10 +20,11 @@ function scenario(rank, scenario, samples, slowFrames, failRatePct) {
       samples,
       cpuAvg: { avg: 10 },
       memAvgMb: { avg: 650 },
-      memMaxMb: { avg: 800 },
+      memMaxMb: { avg: extras.memMaxAvg ?? 800 },
       slowFramesPct: { avg: slowFrames },
       issues: { avg: 2 },
       appSizeMb: { avg: 320 },
+      peakRecordings: extras.peakRecordings ?? {},
     },
   };
 }
@@ -54,7 +59,92 @@ test('limits Slack leads to three and excludes low-confidence leads', () => {
   );
 });
 
-test('Slack output uses compact sections instead of a wide table', () => {
+test('pickPeakSample selects the highest metric sample with recording', () => {
+  const peak = pickPeakSample(
+    [
+      {
+        pr: 1,
+        memMax: 900,
+        videoURL: 'https://example.com/a',
+        sessionId: 'a',
+      },
+      {
+        pr: 2,
+        memMax: 1114.65,
+        videoURL: 'https://example.com/peak',
+        sessionId: 'peak',
+      },
+      {
+        pr: 3,
+        memMax: 1000,
+        videoURL: 'https://example.com/c',
+        sessionId: 'c',
+      },
+    ],
+    'memMax',
+  );
+
+  assert.deepEqual(peak, {
+    metric: 'memMax',
+    value: 1114.65,
+    pr: 2,
+    sessionId: 'peak',
+    videoURL: 'https://example.com/peak',
+  });
+});
+
+test('buildPeakRecordings exposes memMax and slowFrames peaks', () => {
+  const peaks = buildPeakRecordings([
+    {
+      pr: 10,
+      memMax: 800,
+      slowFrames: 39.94,
+      videoURL: 'https://example.com/jank',
+      sessionId: 'jank',
+    },
+    {
+      pr: 11,
+      memMax: 1114.65,
+      slowFrames: 9.1,
+      videoURL: 'https://example.com/mem',
+      sessionId: 'mem',
+    },
+  ]);
+
+  assert.equal(peaks.memMax.videoURL, 'https://example.com/mem');
+  assert.equal(peaks.memMax.value, 1114.65);
+  assert.equal(peaks.slowFrames.videoURL, 'https://example.com/jank');
+  assert.equal(peaks.slowFrames.value, 39.94);
+});
+
+test('buildInvestigationLeads attaches peak recording for memory risks', () => {
+  const leads = buildInvestigationLeads({
+    scenarioRows: [
+      scenario(1, 'Perps open position and close it', 5, 9.4, 0, {
+        memMaxAvg: 1009.62,
+        peakRecordings: {
+          memMax: {
+            metric: 'memMax',
+            value: 1114.65,
+            pr: 42,
+            sessionId: 'peak-sess',
+            videoURL: 'https://app-automate.browserstack.com/builds/b/sessions/peak-sess',
+          },
+        },
+      }),
+    ],
+  });
+
+  assert.equal(leads.length, 1);
+  assert.equal(leads[0].theme, 'memory');
+  assert.equal(
+    leads[0].recordingUrl,
+    'https://app-automate.browserstack.com/builds/b/sessions/peak-sess',
+  );
+  assert.match(leads[0].recordingLabel, /peak memMax 1114\.65 MB/);
+});
+
+test('Slack leads include BrowserStack recording links for peaks', () => {
   const message = buildSlackMarkdown({
     meta: {
       since: '2026-08-03T00:00:00.000Z',
@@ -65,9 +155,29 @@ test('Slack output uses compact sections instead of a wide table', () => {
       artifactPrs: 3,
     },
     prSummary: { withResults: 5, allPassed: 3, withFailures: 2 },
-    scenarios: [scenario(1, 'Important flow', 4, 30, 0)],
+    scenarios: [
+      scenario(1, 'Important flow', 4, 30, 0, {
+        peakRecordings: {
+          slowFrames: {
+            metric: 'slowFrames',
+            value: 39.94,
+            pr: 7,
+            sessionId: 'sf',
+            videoURL: 'https://app-automate.browserstack.com/builds/b/sessions/sf',
+          },
+        },
+      }),
+    ],
     leads: [
-      { severity: 'high', theme: 'ui-jank', summary: 'Investigate this.' },
+      {
+        severity: 'high',
+        theme: 'ui-jank',
+        scenario: 'Important flow',
+        summary: 'Important flow averages 30% slow frames (n=4).',
+        recordingUrl:
+          'https://app-automate.browserstack.com/builds/b/sessions/sf',
+        recordingLabel: 'Recording (peak slow frames 39.94%)',
+      },
     ],
     aiInsights: '### AI insights to investigate\n1. Investigate this.',
   });
@@ -90,4 +200,17 @@ test('Slack output uses compact sections instead of a wide table', () => {
   assert.equal(message.includes('quality gate'), false);
   assert.equal(message.includes('Priority actions'), true);
   assert.equal(message.includes('Important flow'), true);
+  assert.equal(
+    message.includes(
+      '<https://app-automate.browserstack.com/builds/b/sessions/sf|Recording (peak slow frames 39.94%)>',
+    ),
+    true,
+  );
+  assert.equal(
+    formatRecordingSlackLink(
+      'https://example.com/r',
+      'Recording (peak memMax 1 MB)',
+    ),
+    ' <https://example.com/r|Recording (peak memMax 1 MB)>',
+  );
 });

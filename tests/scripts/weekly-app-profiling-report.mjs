@@ -360,13 +360,62 @@ function downloadAggregatedReports({ repo, runId, destDir }) {
   return true;
 }
 
+function collectVideoUrlsBySession(node, out = new Map()) {
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      collectVideoUrlsBySession(item, out);
+    }
+    return out;
+  }
+  if (node && typeof node === 'object') {
+    const sessionId = node.sessionId;
+    const videoURL = node.videoURL;
+    if (
+      typeof sessionId === 'string' &&
+      sessionId &&
+      typeof videoURL === 'string' &&
+      videoURL
+    ) {
+      out.set(sessionId, videoURL);
+    }
+    for (const value of Object.values(node)) {
+      collectVideoUrlsBySession(value, out);
+    }
+  }
+  return out;
+}
+
+/**
+ * Index BrowserStack recording URLs from performance result JSONs that ship
+ * alongside app-profiling artifacts (sessionId → videoURL).
+ */
+function loadVideoUrlIndex(prAggDir) {
+  const out = new Map();
+  for (const file of [
+    'performance-results.json',
+    'aggregated-performance-report.json',
+  ]) {
+    const filePath = path.join(prAggDir, file);
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      collectVideoUrlsBySession(data, out);
+    } catch {
+      // Ignore malformed companion reports; app-profiling remains primary.
+    }
+  }
+  return out;
+}
+
 function collectProfilingFromArtifacts(artifactsRoot, scenarioNames) {
   const byTest = Object.fromEntries(scenarioNames.map((n) => [n, []]));
   if (!fs.existsSync(artifactsRoot)) return byTest;
 
   for (const pr of fs.readdirSync(artifactsRoot)) {
-    const dir = path.join(artifactsRoot, pr, 'agg', 'app-profiling');
+    const aggDir = path.join(artifactsRoot, pr, 'agg');
+    const dir = path.join(aggDir, 'app-profiling');
     if (!fs.existsSync(dir)) continue;
+    const videoBySession = loadVideoUrlIndex(aggDir);
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.json')) continue;
       const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
@@ -375,8 +424,18 @@ function collectProfilingFromArtifacts(artifactsRoot, scenarioNames) {
       const s = data.profilingSummary || {};
       if (s.error || s.status === 'error') continue;
       if (s.cpu?.avg == null && s.memory?.avg == null) continue;
+      const sessionId =
+        typeof data.sessionId === 'string' && data.sessionId
+          ? data.sessionId
+          : null;
+      const videoURL =
+        (typeof data.videoURL === 'string' && data.videoURL) ||
+        (sessionId ? videoBySession.get(sessionId) : null) ||
+        null;
       byTest[name].push({
         pr: Number(pr),
+        sessionId,
+        videoURL,
         cpuAvg: s.cpu?.avg ?? null,
         cpuMax: s.cpu?.max ?? null,
         memAvg: s.memory?.avg ?? null,
@@ -393,38 +452,99 @@ function collectProfilingFromArtifacts(artifactsRoot, scenarioNames) {
   return byTest;
 }
 
+/**
+ * Pick the sample with the highest value for a metric (e.g. peak memMax).
+ * Used to attach the BrowserStack recording that best illustrates a risk.
+ */
+function pickPeakSample(samples, metricKey) {
+  let best = null;
+  for (const sample of samples || []) {
+    const raw = sample?.[metricKey];
+    if (raw == null || !Number.isFinite(raw)) continue;
+    const value = +Number(raw).toFixed(2);
+    if (!best || value > best.value) {
+      best = {
+        metric: metricKey,
+        value,
+        pr: sample.pr ?? null,
+        sessionId: sample.sessionId ?? null,
+        videoURL: sample.videoURL ?? null,
+      };
+    }
+  }
+  return best;
+}
+
+function buildPeakRecordings(samples) {
+  return {
+    memMax: pickPeakSample(samples, 'memMax'),
+    slowFrames: pickPeakSample(samples, 'slowFrames'),
+    criticalIssues: pickPeakSample(samples, 'criticalIssues'),
+    issues: pickPeakSample(samples, 'issues'),
+  };
+}
+
+function recordingLabelForLead(theme, peak) {
+  if (!peak?.videoURL) return null;
+  if (theme === 'memory') {
+    return `Recording (peak memMax ${peak.value} MB)`;
+  }
+  if (theme === 'ui-jank') {
+    return `Recording (peak slow frames ${peak.value}%)`;
+  }
+  return `Recording (peak ${peak.metric} ${peak.value})`;
+}
+
+function formatRecordingSlackLink(recordingUrl, label) {
+  if (!recordingUrl) return '';
+  const safeLabel = label || 'Recording';
+  return ` <${recordingUrl}|${safeLabel}>`;
+}
+
 function buildInvestigationLeads({ scenarioRows }) {
   const leads = [];
 
   for (const s of scenarioRows) {
     const slow = s.profiling.slowFramesPct?.avg;
     const memMax = s.profiling.memMaxMb?.avg;
+    const peaks = s.profiling.peakRecordings || {};
 
     if (slow != null && slow >= 25) {
+      const peak = peaks.slowFrames || null;
       leads.push({
         severity: 'high',
         theme: 'ui-jank',
         scenario: s.scenario,
         summary: `${s.scenario} averages ${slow}% slow frames (n=${s.profiling.samples}). Investigate list/render cost and recent merges touching this flow.`,
+        recordingUrl: peak?.videoURL ?? null,
+        recordingLabel: recordingLabelForLead('ui-jank', peak),
+        peak,
       });
     } else if (slow != null && slow >= 15) {
+      const peak = peaks.slowFrames || null;
       leads.push({
         severity: 'medium',
         theme: 'ui-jank',
         scenario: s.scenario,
         summary: `${s.scenario} shows elevated slow frames (${slow}%). Worth a trend check next week.`,
+        recordingUrl: peak?.videoURL ?? null,
+        recordingLabel: recordingLabelForLead('ui-jank', peak),
+        peak,
       });
     }
 
     if (memMax != null && memMax >= 900) {
+      const peak = peaks.memMax || null;
       leads.push({
         severity: 'high',
         theme: 'memory',
         scenario: s.scenario,
         summary: `${s.scenario} memory max avg is ${memMax} MB. Investigate retained objects / subscriptions in this flow.`,
+        recordingUrl: peak?.videoURL ?? null,
+        recordingLabel: recordingLabelForLead('memory', peak),
+        peak,
       });
     }
-
   }
 
   return leads;
@@ -542,7 +662,12 @@ function buildSlackMarkdown(report) {
           : lead.severity === 'medium'
             ? ':large_yellow_circle:'
             : ':large_green_circle:';
-      lines.push(`${icon} *[${lead.theme}]* ${lead.summary}`);
+      lines.push(
+        `${icon} *[${lead.theme}]* ${lead.summary}${formatRecordingSlackLink(
+          lead.recordingUrl,
+          lead.recordingLabel,
+        )}`,
+      );
       if (lead.examples?.length) {
         for (const ex of lead.examples) {
           lines.push(`  • <${ex.url}|#${ex.number}> ${ex.title}`);
@@ -594,6 +719,8 @@ function buildAiBriefing(report) {
   lines.push(`- Start every executive-summary bullet with the relevant team tag(s) from the scenario data.`);
   lines.push(`- Skip low-confidence scenarios (very low profiling n) unless they have extreme outliers.`);
   lines.push(`- Keep the final answer concise, in English, Slack-friendly markdown.`);
+  lines.push(`- When highlighting a risk (memory peak, slow-frame outlier, critical issues), append the matching BrowserStack recording link from \`peakRecordings\` using Slack mrkdwn: \`<url|Recording (peak …)>\`.`);
+  lines.push(`- Prefer the peak sample for the metric you cite (memMax → peakRecordings.memMax, slow frames → peakRecordings.slowFrames).`);
   lines.push(`- End with a prioritized checklist of no more than 3 bullets.`);
   lines.push('');
   lines.push(`## Window`);
@@ -628,6 +755,10 @@ function buildAiBriefing(report) {
   lines.push('');
   lines.push(`### Data details`);
   lines.push(`Use compact Slack cards for the selected scenarios. Do not use a table.`);
+  lines.push('');
+  lines.push(`### Profiling leads`);
+  lines.push(`- [Lead with metrics] <recordingUrl|Recording (peak …)>`);
+  lines.push(`- [Lead with metrics] <recordingUrl|Recording (peak …)>`);
   lines.push('');
   lines.push(`### AI insights to investigate`);
   lines.push(`1. ...`);
@@ -793,6 +924,7 @@ async function main() {
         issues: stats(samples.map((s) => s.issues)),
         criticalIssues: stats(samples.map((s) => s.criticalIssues)),
         appSizeMb: stats(samples.map((s) => s.appSizeMb)),
+        peakRecordings: buildPeakRecordings(samples),
       },
     };
   });
@@ -865,6 +997,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 export {
   buildSlackMarkdown,
+  buildInvestigationLeads,
+  buildPeakRecordings,
+  formatRecordingSlackLink,
+  pickPeakSample,
   selectFeaturedScenarios,
   selectTopLeads,
 };
