@@ -65,18 +65,18 @@ const wireSumSubSdkBuilderMocks = () => {
   mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  restoreSumSubNativeModule();
+  wireSumSubSdkBuilderMocks();
+});
+
+afterEach(() => {
+  restoreSumSubNativeModule();
+  jest.resetAllMocks();
+});
+
 describe('launchSumSubSdk', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    restoreSumSubNativeModule();
-    wireSumSubSdkBuilderMocks();
-  });
-
-  afterEach(() => {
-    restoreSumSubNativeModule();
-    jest.resetAllMocks();
-  });
-
   it('resets any previous SDK instance then launches with the given access token', async () => {
     const result = await launchSumSubSdk({ accessToken: 'applicant-token' });
 

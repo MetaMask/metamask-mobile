@@ -9,6 +9,7 @@ import {
   SUMSUB_API_BASE_URL,
   SUMSUB_SANDBOX_ACCESS_TOKEN_PATH,
   SUMSUB_SANDBOX_TOKEN_TTL_SECS,
+  type MintSumSubSandboxAccessTokenParams,
 } from './mintSumSubSandboxAccessToken';
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -18,6 +19,18 @@ jest.mock('../../../../../util/Logger', () => ({
     error: jest.fn(),
   },
 }));
+
+const mockFetchImpl = jest.fn();
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockFetchImpl.mockReset();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
+  jest.resetAllMocks();
+});
 
 const bytesToHex = (bytes: Uint8Array): string =>
   Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -46,6 +59,14 @@ const createJsonResponse = ({
   status,
   json: async () => payload,
 });
+
+const mintWithMockFetch = (
+  params?: Omit<MintSumSubSandboxAccessTokenParams, 'fetchImpl'>,
+) =>
+  mintSumSubSandboxAccessToken({
+    fetchImpl: mockFetchImpl as unknown as typeof fetch,
+    ...params,
+  });
 
 describe('signSumSubSandboxRequest', () => {
   it('HMACs timestamp, method, path, and exact body bytes', () => {
@@ -76,15 +97,6 @@ describe('signSumSubSandboxRequest', () => {
 });
 
 describe('mintSumSubSandboxAccessToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
-  });
-
   it.each([
     {
       name: 'mint is not allowed',
@@ -100,19 +112,14 @@ describe('mintSumSubSandboxAccessToken', () => {
       },
     },
   ])('returns null when $name', async ({ params }) => {
-    const fetchImpl = jest.fn();
-
-    const token = await mintSumSubSandboxAccessToken({
-      fetchImpl,
-      ...params,
-    });
+    const token = await mintWithMockFetch(params);
 
     expect(token).toBeNull();
-    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(mockFetchImpl).not.toHaveBeenCalled();
   });
 
   it('posts a signed sandbox mint request and returns the applicant token', async () => {
-    const fetchImpl = jest.fn().mockResolvedValue(
+    mockFetchImpl.mockResolvedValue(
       createJsonResponse({
         ok: true,
         status: 200,
@@ -128,14 +135,13 @@ describe('mintSumSubSandboxAccessToken', () => {
       ttlInSecs: SUMSUB_SANDBOX_TOKEN_TTL_SECS,
     });
 
-    const token = await mintSumSubSandboxAccessToken({
+    const token = await mintWithMockFetch({
       nowSeconds: NOW_SECONDS,
-      fetchImpl,
       ...SANDBOX_CREDS,
     });
 
     expect(token).toBe('_act-sandbox');
-    expect(fetchImpl).toHaveBeenCalledWith(
+    expect(mockFetchImpl).toHaveBeenCalledWith(
       `${SUMSUB_API_BASE_URL}${SUMSUB_SANDBOX_ACCESS_TOKEN_PATH}`,
       expect.objectContaining({
         method: 'POST',
@@ -168,7 +174,7 @@ describe('mintSumSubSandboxAccessToken', () => {
   });
 
   it('binds the minted token to the default sandbox user id when none is given', async () => {
-    const fetchImpl = jest.fn().mockResolvedValue(
+    mockFetchImpl.mockResolvedValue(
       createJsonResponse({
         ok: true,
         status: 200,
@@ -176,9 +182,8 @@ describe('mintSumSubSandboxAccessToken', () => {
       }),
     );
 
-    const token = await mintSumSubSandboxAccessToken({
+    const token = await mintWithMockFetch({
       nowSeconds: NOW_SECONDS,
-      fetchImpl,
       appToken: SANDBOX_CREDS.appToken,
       secretKey: SANDBOX_CREDS.secretKey,
       levelName: SANDBOX_CREDS.levelName,
@@ -187,7 +192,7 @@ describe('mintSumSubSandboxAccessToken', () => {
     });
 
     expect(token).toBe('_act-sandbox');
-    expect(fetchImpl).toHaveBeenCalledWith(
+    expect(mockFetchImpl).toHaveBeenCalledWith(
       `${SUMSUB_API_BASE_URL}${SUMSUB_SANDBOX_ACCESS_TOKEN_PATH}`,
       expect.objectContaining({
         body: JSON.stringify({
@@ -260,12 +265,11 @@ describe('mintSumSubSandboxAccessToken', () => {
       message: 'Sumsub sandbox token mint failed: HTTP 503',
     },
   ])('throws when $name', async ({ response, message }) => {
-    const fetchImpl = jest.fn().mockResolvedValue(response);
+    mockFetchImpl.mockResolvedValue(response);
 
     await expect(
-      mintSumSubSandboxAccessToken({
+      mintWithMockFetch({
         nowSeconds: NOW_SECONDS,
-        fetchImpl,
         ...SANDBOX_CREDS,
       }),
     ).rejects.toThrow(message);
@@ -273,18 +277,17 @@ describe('mintSumSubSandboxAccessToken', () => {
 
   it('aborts the mint when the request exceeds the timeout', async () => {
     jest.useFakeTimers();
-    const fetchImpl = jest.fn(
+    mockFetchImpl.mockImplementation(
       (_url: string, init?: RequestInit) =>
-        new Promise<Response>((_resolve, reject) => {
+        new Promise((_resolve, reject) => {
           init?.signal?.addEventListener('abort', () => {
             reject(new Error('The operation was aborted'));
           });
         }),
     );
 
-    const mintPromise = mintSumSubSandboxAccessToken({
+    const mintPromise = mintWithMockFetch({
       nowSeconds: NOW_SECONDS,
-      fetchImpl,
       ...SANDBOX_CREDS,
       timeoutMs: 15_000,
     });
@@ -297,16 +300,8 @@ describe('mintSumSubSandboxAccessToken', () => {
 });
 
 describe('resolveSumSubAccessToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('returns the minted sandbox token when mint succeeds', async () => {
-    const fetchImpl = jest.fn().mockResolvedValue(
+    mockFetchImpl.mockResolvedValue(
       createJsonResponse({
         ok: true,
         status: 200,
@@ -315,7 +310,7 @@ describe('resolveSumSubAccessToken', () => {
     );
 
     const token = await resolveSumSubAccessToken({
-      fetchImpl,
+      fetchImpl: mockFetchImpl as unknown as typeof fetch,
       ...SANDBOX_CREDS,
     });
 
@@ -323,10 +318,8 @@ describe('resolveSumSubAccessToken', () => {
   });
 
   it('falls back to MM_SUMSUB_ACCESS_TOKEN when mint is not configured', async () => {
-    const fetchImpl = jest.fn();
-
     const token = await resolveSumSubAccessToken({
-      fetchImpl,
+      fetchImpl: mockFetchImpl as unknown as typeof fetch,
       isMintAllowed: true,
       appToken: '',
       secretKey: '',
@@ -334,6 +327,6 @@ describe('resolveSumSubAccessToken', () => {
     });
 
     expect(token).toBe('');
-    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(mockFetchImpl).not.toHaveBeenCalled();
   });
 });
