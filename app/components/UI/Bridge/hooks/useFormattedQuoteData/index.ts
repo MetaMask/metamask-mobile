@@ -4,10 +4,7 @@ import { type QuoteResponse } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 
 import type { BridgeToken } from '../../types';
-import {
-  selectBridgeFeatureFlags,
-  selectSlippage,
-} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-restricted-paths
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
@@ -46,11 +43,8 @@ export const useFormattedQuoteData = ({
 
   const priceImpactFiat = usePriceImpactFiat(activeQuote);
   const networkFee = useFormattedNetworkFee(activeQuote);
-  const slippage = useSelector(selectSlippage);
-  // TODO use swapRate metadata
-  // const quoteRate = activeQuote?.quote.priceData?.swapRate
-  //   ? Number(activeQuote.quote.priceData.swapRate)
-  //   : undefined;
+  const slippage = quoteParams.slippage;
+
   const quoteRate =
     Number(quoteParams.srcAmount) === 0
       ? undefined
