@@ -57,18 +57,44 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
-// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
-// daemon-artifact blockList entries below only match paths anchored at the
+// Escapes a filesystem path for safe embedding in a RegExp so local artifact
+// blockList entries only match paths anchored at the
 // worktree root, not the same substring appearing anywhere in node_modules.
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+const artifactDirectoryPattern = (relativeDir) =>
+  new RegExp(
+    `^${escapeRegExp(path.resolve(__dirname, relativeDir))}(?:[/\\\\]|$)`,
+  );
+
+const additionalArtifactDirs = (
+  process.env.METRO_ADDITIONAL_ARTIFACT_DIRS ?? ''
+)
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
+  .map((relativeDir) => {
+    if (
+      path.isAbsolute(relativeDir) ||
+      relativeDir === '.' ||
+      relativeDir.split(/[\\/]/).includes('..')
+    ) {
+      throw new Error(
+        'METRO_ADDITIONAL_ARTIFACT_DIRS accepts only checkout-relative directories without `..`.',
+      );
+    }
+    return relativeDir;
+  });
+
+// Local runtime and visual-testing artifacts, anchored to this worktree root.
 // Anchoring prevents an unrelated dependency whose path merely *contains*
-// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
-const mmDaemonArtifactBlockList = [
+// one of these names from being silently dropped from the bundle.
+const localArtifactBlockList = [
   new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
-  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
-  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+  artifactDirectoryPattern('.mm-server'),
+  artifactDirectoryPattern('test-artifacts'),
+  artifactDirectoryPattern('temp'),
+  ...additionalArtifactDirs.map(artifactDirectoryPattern),
 ];
 
 // True when the module being resolved was requested from a file inside
@@ -142,8 +168,8 @@ module.exports = function (baseConfig) {
         mergeConfig(defaultConfig, {
           cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
-            // Exclude mm CLI daemon artifacts from the file watcher so that
-            // log writes, state updates and test-artifact captures don't
+            // Exclude local runtime artifacts from the file watcher so that
+            // log writes, state updates, and artifact captures don't
             // trigger unnecessary Fast Refresh cycles during visual testing.
             blockList: [
               ...(Array.isArray(defaultConfig.resolver.blockList)
@@ -151,7 +177,7 @@ module.exports = function (baseConfig) {
                 : defaultConfig.resolver.blockList
                   ? [defaultConfig.resolver.blockList]
                   : []),
-              ...mmDaemonArtifactBlockList,
+              ...localArtifactBlockList,
             ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
