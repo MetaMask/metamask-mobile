@@ -169,7 +169,7 @@
       },
       "warning": {
         "message": "Security partners don't have enough reliable history to verify this address.",
-        "title": "Limited or mixed address signals"
+        "title": "Limited address signals"
       }
     },
     "url_trust_signal": {
@@ -5036,13 +5036,13 @@
     "malicious_token_description_no_symbol": "Security partners flag this token as high risk.",
     "malicious_token_banner_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_banner_description_no_symbol": "Security partners flag this token as high risk.",
-    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
-    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
+    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
-    "risky_token_description": "{{symbol}} has limited history or risk signals.",
-    "risky_token_description_no_symbol": "This token has limited history or risk signals.",
+    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
@@ -5052,7 +5052,7 @@
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
     "subtitle_no_issues": "No risk signals detected. Always research any asset before trading.",
-    "subtitle_suspicious": "This token has limited history or risk signals.",
+    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
     "subtitle_malicious": "Security partners flag this token as high risk.",
     "subtitle_unavailable": "Security analysis could not be loaded for this token.",
     "token_distribution": "Token distribution",
