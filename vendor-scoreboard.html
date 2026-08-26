@@ -231,6 +231,40 @@
     </section>
 
     <section class="section">
+      <h2>Pipeline job execution · best vs worst</h2>
+      <p style="margin-bottom:12px">
+        GitHub Actions wall time for the lane’s <strong>Onboarding + Imported Wallet</strong> jobs.
+        Best = fastest run in the window · Worst = slowest. Lower is better.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Best job</th>
+              <th>Worst job</th>
+              <th>Spread</th>
+              <th>Avg</th>
+              <th>Best run</th>
+              <th>Worst run</th>
+            </tr>
+          </thead>
+          <tbody id="pipe-best-worst"></tbody>
+        </table>
+      </div>
+      <div class="dual" style="margin-top:14px">
+        <div>
+          <div class="eyebrow">Best job (lower better)</div>
+          <div id="best-job-bars"></div>
+        </div>
+        <div>
+          <div class="eyebrow">Worst job (lower better)</div>
+          <div id="worst-job-bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <h2>Same-run snapshot · <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431" target="_blank">32736700431</a></h2>
       <p style="margin-bottom:12px">Only BrowserStack + Sauce Private + Cloud ran together. Best apples-to-apples compare for BS vs Sauce.</p>
       <div class="same" id="same-run"></div>
@@ -360,6 +394,13 @@
               <label><span>Test phase (avg)</span><span>${v.avgTestMin} min</span></label>
               <div class="track"><div class="fill" style="width:${durationPct}%;background:${v.color}"></div></div>
             </div>
+            <div class="meter">
+              <label><span>Job best → worst</span><span>${v.minTestMin}–${v.maxTestMin} min</span></label>
+              <div class="track" style="position:relative">
+                <div class="fill" style="width:${(v.maxTestMin/slowest)*100}%;background:${v.color};opacity:.28"></div>
+                <div class="fill" style="width:${(v.minTestMin/slowest)*100}%;background:${v.color}"></div>
+              </div>
+            </div>
           </div>
           <div class="chips">${chips}</div>
         </article>`;
@@ -380,6 +421,50 @@
           <div>${v.short}</div>
           <div class="track"><div class="fill" style="width:${(v.avgTestMin/maxMin)*100}%;background:${v.color}"></div></div>
           <div><strong>${v.avgTestMin}m</strong></div>
+        </div>`).join('');
+    }
+
+    function findRunByMin(v, minutes) {
+      const hit = (v.history || []).find(h => h.testMin === minutes);
+      return hit || null;
+    }
+
+    function renderPipelineBestWorst() {
+      const maxWorst = Math.max(...DATA.vendors.map(v => v.maxTestMin));
+      document.getElementById('pipe-best-worst').innerHTML = DATA.vendors.map(v => {
+        const bestRun = findRunByMin(v, v.minTestMin);
+        const worstRun = findRunByMin(v, v.maxTestMin);
+        const spread = (v.maxTestMin - v.minTestMin).toFixed(1);
+        const bestCell = bestRun
+          ? `<strong>${v.minTestMin}m</strong> · <a href="${bestRun.url}" target="_blank">${bestRun.id}</a>`
+          : `<strong>${v.minTestMin}m</strong>`;
+        const worstCell = worstRun
+          ? `<strong>${v.maxTestMin}m</strong> · <a href="${worstRun.url}" target="_blank">${worstRun.id}</a>`
+          : `<strong>${v.maxTestMin}m</strong>`;
+        const bestLabel = bestRun ? (bestRun.label || bestRun.id) : '—';
+        const worstLabel = worstRun ? (worstRun.label || worstRun.id) : '—';
+        return `<tr>
+          <td>${v.short}${v.status === 'under_evaluation' ? ' <span class="badge eval">eval</span>' : ''}</td>
+          <td>${bestCell}</td>
+          <td>${worstCell}</td>
+          <td>${spread}m</td>
+          <td>${v.avgTestMin}m</td>
+          <td style="color:var(--muted);font-size:11px">${bestLabel}</td>
+          <td style="color:var(--muted);font-size:11px">${worstLabel}</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('best-job-bars').innerHTML = DATA.vendors.map(v => `
+        <div class="bar-row">
+          <div>${v.short}</div>
+          <div class="track"><div class="fill" style="width:${(v.minTestMin/maxWorst)*100}%;background:${v.color}"></div></div>
+          <div><strong>${v.minTestMin}m</strong></div>
+        </div>`).join('');
+      document.getElementById('worst-job-bars').innerHTML = DATA.vendors.map(v => `
+        <div class="bar-row">
+          <div>${v.short}</div>
+          <div class="track"><div class="fill" style="width:${(v.maxTestMin/maxWorst)*100}%;background:${v.color}"></div></div>
+          <div><strong>${v.maxTestMin}m</strong></div>
         </div>`).join('');
     }
 
@@ -412,6 +497,7 @@
 
     renderScoreboard();
     renderBars();
+    renderPipelineBestWorst();
     renderSameRun();
     renderSauceAug25();
     renderHeat();
