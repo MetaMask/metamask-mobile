@@ -6190,6 +6190,15 @@
           "timestamp": "now"
         }
       },
+      "social_ai": {
+        "title": "Don't miss a trading signal",
+        "description": "Turn on notifications so we can alert you when traders you follow make a move.",
+        "preview": {
+          "title": "New trade from a trader you follow",
+          "message": "ETH long · $10,000",
+          "timestamp": "now"
+        }
+      },
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
