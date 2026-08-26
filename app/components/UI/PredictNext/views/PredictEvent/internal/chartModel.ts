@@ -150,8 +150,12 @@ export const sampleAtTime = (
 const getTimeDomain = (
   series: readonly ChartSeries[],
 ): [number, number] | undefined => {
-  const starts = series.map((entry) => entry.data[0]?.time);
-  const ends = series.map((entry) => entry.data.at(-1)?.time);
+  const starts: (number | undefined)[] = series.map(
+    (entry) => entry.data[0]?.time,
+  );
+  const ends: (number | undefined)[] = series.map(
+    (entry) => entry.data.at(-1)?.time,
+  );
   if (starts.includes(undefined) || ends.includes(undefined)) {
     return undefined;
   }
