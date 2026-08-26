@@ -1,15 +1,14 @@
-import React, { useCallback, useContext, useMemo } from 'react';
-import { ActivityIndicator } from 'react-native';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import React, { useCallback, useMemo } from 'react';
 import {
-  ButtonIconVariant,
-  ToastDescriptionOptions,
-  ToastLabelOptions,
-  ToastLinkButtonOptions,
-  ToastOptions,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Spinner,
+  toast,
+  ToastSeverity,
+  type ToastOptions,
+} from '@metamask/design-system-react-native';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   playNotification,
@@ -32,6 +31,11 @@ export interface OutcomeCtaToastParams {
   onClosePress: () => void;
 }
 
+export interface RewardsToastNudgeParams {
+  label: string;
+  onPress: () => void;
+}
+
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
@@ -39,31 +43,11 @@ export interface RewardsToastConfig {
   warning: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
   enableNotificationsNudge: (
-    linkButtonOptions: ToastLinkButtonOptions,
+    params: RewardsToastNudgeParams,
   ) => RewardsToastOptions;
   outcomeWinner: (params: OutcomeCtaToastParams) => RewardsToastOptions;
   outcomeNonWinner: (params: OutcomeCtaToastParams) => RewardsToastOptions;
 }
-
-const getRewardsToastLabels = (title: string): ToastLabelOptions => {
-  const labels: ToastLabelOptions = [
-    {
-      label: title,
-      isBold: true,
-    },
-  ];
-
-  return labels;
-};
-
-const getRewardsToastDescriptionLabels = (
-  description?: string,
-): ToastDescriptionOptions | undefined => {
-  if (!description) {
-    return undefined;
-  }
-  return { description };
-};
 
 const REWARDS_TOASTS_DEFAULT_OPTIONS: Partial<RewardsToastOptions> = {
   hasNoTimeout: false,
@@ -73,116 +57,67 @@ const useRewardsToast = (): {
   showToast: (config: RewardsToastOptions) => void;
   RewardsToastOptions: RewardsToastConfig;
 } => {
-  const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
 
-  const showToast = useCallback(
-    (config: RewardsToastOptions) => {
-      const { hapticsType, ...toastOptions } = config;
-      toastRef?.current?.showToast(toastOptions as ToastOptions);
-      playNotification(hapticsType);
-    },
-    [toastRef],
-  );
+  const showToast = useCallback((config: RewardsToastOptions) => {
+    const { hapticsType, ...toastOptions } = config;
+    toast(toastOptions);
+    playNotification(hapticsType);
+  }, []);
 
   const RewardsToastOptions: RewardsToastConfig = useMemo(
     () => ({
       success: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Success,
         hapticsType: NotificationMoment.Success,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        title,
+        description: subtitle,
         hasNoTimeout: false,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
       }),
       error: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Danger,
         hapticsType: NotificationMoment.Error,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        title,
+        description: subtitle,
         hasNoTimeout: false,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
       }),
       loading: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Plain,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
-        startAccessory: (
-          <ActivityIndicator size="small" color={theme.colors.icon.default} />
-        ),
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
+        startAccessory: <Spinner spinnerIconProps={{ size: IconSize.Lg }} />,
+        title,
+        description: subtitle,
       }),
       warning: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: theme.colors.warning.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Warning,
         hapticsType: NotificationMoment.Warning,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        title,
+        description: subtitle,
         hasNoTimeout: true,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
       }),
       entriesClosed: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Lock,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: 'transparent',
+        startAccessory: (
+          <Icon
+            name={IconName.Lock}
+            size={IconSize.Lg}
+            color={IconColor.IconDefault}
+          />
+        ),
         hapticsType: NotificationMoment.Warning,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        title,
+        description: subtitle,
         hasNoTimeout: false,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
       }),
-      enableNotificationsNudge: (
-        linkButtonOptions: ToastLinkButtonOptions,
-      ) => ({
+      enableNotificationsNudge: ({
+        label,
+        onPress,
+      }: RewardsToastNudgeParams) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Plain,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
@@ -193,20 +128,10 @@ const useRewardsToast = (): {
             color={theme.colors.warning.default}
           />
         ),
-        labelOptions: getRewardsToastLabels(
-          strings('rewards.notifications_nudge.title'),
-        ),
-        descriptionOptions: getRewardsToastDescriptionLabels(
-          strings('rewards.notifications_nudge.description'),
-        ),
-        linkButtonOptions,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-          },
-        },
+        title: strings('rewards.notifications_nudge.title'),
+        description: strings('rewards.notifications_nudge.description'),
+        actionButtonLabel: label,
+        actionButtonOnPress: onPress,
       }),
       outcomeWinner: ({
         title,
@@ -216,7 +141,6 @@ const useRewardsToast = (): {
         onClosePress,
       }: OutcomeCtaToastParams) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
-        variant: ToastVariants.Plain,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
@@ -227,17 +151,11 @@ const useRewardsToast = (): {
             color={theme.colors.success.default}
           />
         ),
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: { description },
-        linkButtonOptions: {
-          label: ctaLabel,
-          onPress: onCtaPress,
-        },
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: onClosePress,
-        },
+        title,
+        description,
+        actionButtonLabel: ctaLabel,
+        actionButtonOnPress: onCtaPress,
+        onClose: onClosePress,
       }),
       outcomeNonWinner: ({
         title,
@@ -246,32 +164,17 @@ const useRewardsToast = (): {
         onCtaPress,
         onClosePress,
       }: OutcomeCtaToastParams) => ({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Success,
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
-        labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: { description },
-        linkButtonOptions: {
-          label: ctaLabel,
-          onPress: onCtaPress,
-        },
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: onClosePress,
-        },
+        title,
+        description,
+        actionButtonLabel: ctaLabel,
+        actionButtonOnPress: onCtaPress,
+        onClose: onClosePress,
       }),
     }),
-    [
-      theme.colors.success.default,
-      theme.colors.error.default,
-      theme.colors.icon.default,
-      theme.colors.warning.default,
-      toastRef,
-    ],
+    [theme.colors.success.default, theme.colors.warning.default],
   );
 
   return {
