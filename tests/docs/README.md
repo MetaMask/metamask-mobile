@@ -13,7 +13,7 @@
 
 ## E2E Framework Structure
 
-- **Appium smoke (`tests/smoke-appium/`)** — Primary E2E path for new coverage (Playwright + Appium). See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
+- **Appium smoke (`tests/smoke-appium/`)** — Playwright + Appium. See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
 - **Helpers (`tests/helpers/`)** — Shared E2E helpers (swap, perps, analytics, etc.)
 - **Legacy smoke shared utils (`tests/smoke/identity/`, `tests/smoke/snaps/`)** — Still imported by Appium
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
@@ -35,7 +35,7 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke-appium/` - Appium smoke tests (Playwright); primary path for new specs
+- `tests/smoke-appium/` - Appium smoke tests (Playwright)
 - `tests/helpers/` - Shared E2E helpers (swap, perps, analytics, …)
 - `tests/smoke/identity/`, `tests/smoke/snaps/` - Shared Appium helpers
 - `tests/page-objects/` - Page Object classes following POM pattern
@@ -336,6 +336,6 @@ await Utilities.executeWithRetry(
 | Tool                      | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                              |
 | ------------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Component View Tests      | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                           |
-| Appium smoke (Playwright) | Black box testing | **Current E2E**      | - New smoke / user-flow coverage <br> - PR and CI smoke (`tests/smoke-appium/`)                                     | - Uses `main-e2e` builds and Playwright fixture <br> - See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md) <br> - Page objects use `Gestures` / `Assertions` / `Matchers` facades                            |
+| Appium smoke (Playwright) | Black box testing | E2E                  | - Smoke / user-flow coverage <br> - PR and CI smoke (`tests/smoke-appium/`)                                         | - Uses `main-e2e` builds and Playwright fixture <br> - See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md) <br> - Page objects use `Gestures` / `Assertions` / `Matchers`                                    |
 | Maestro                   | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices |
 | Appium (WDIO / cloud)     | Black box testing | Performance tests    | - When we want to test user flows as an end user <br> - When we want to measure and report performance stats        | - High cost <br> - Struggles with deeply nested elements <br> - Uses a cloud provider for real device testing <br> - Separate from Appium smoke / Playwright path                                                                  |

@@ -2,12 +2,12 @@
 
 ## Overview
 
-Page objects and smoke specs target **Appium + Playwright** (`tests/smoke-appium/`). Use the canonical facades from `tests/framework/index.ts`:
+Page objects and smoke specs target **Appium + Playwright** (`tests/smoke-appium/`). Import from `tests/framework/index.ts`:
 
 - `Matchers` — element locators (`Promise<AppiumElement>`)
 - `Gestures` — taps, typing, swipes, scrolls
 - `Assertions` — waits and expectations
-- `AppiumElement` — canonical matcher/gesture element type
+- `AppiumElement` — matcher/gesture element type
 
 Do **not** import `AppiumGestures` in page objects or specs. Use `Gestures` from `tests/framework`.
 
@@ -56,5 +56,5 @@ Prefer the same `Matchers` / `Gestures` / `Assertions` call for iOS and Android.
 - Different selector strategy → `Matchers` (`getElementByText`, `getElementByIDAndLabel`, …)
 - Structurally different action flow → `PlatformDetector` + `Gestures` / `Assertions` in the page object
 
-Canonical guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
+Guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
 Runbook: [docs/testing/appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md).

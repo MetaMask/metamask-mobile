@@ -1,6 +1,6 @@
 # Appium Smoke E2E Tests
 
-Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`.
+Appium smoke is the mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`.
 
 |                         | Appium smoke                                           |
 | ----------------------- | ------------------------------------------------------ |

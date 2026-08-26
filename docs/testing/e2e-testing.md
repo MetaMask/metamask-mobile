@@ -46,15 +46,15 @@
 ### Key Features
 
 - ✅ **Auto-retry** - Handles flaky network/UI conditions
-- ✅ **Appium / Playwright** - `Gestures`, `Assertions`, and `Matchers` are the canonical facades for Appium smoke
+- ✅ **Appium / Playwright** - `Gestures`, `Assertions`, and `Matchers` for Appium smoke
 - ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
 - ✅ **Performance optimization** - Stability checking disabled by default for better performance
 - ✅ **Better error messages** - Descriptive errors with retry context and timing
 - ✅ **Type safety** - Full TypeScript support with IntelliSense
 
-### Gestures facade (canonical)
+### Gestures
 
-Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `FrameworkDetector` or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Do not import `FrameworkDetector` or `Playwright*` dual APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
 
 ```
 Page object calls Gestures.waitAndTap(elem)
@@ -64,9 +64,9 @@ Page object calls Gestures.waitAndTap(elem)
 
 ## Writing Page Objects
 
-### Default Pattern — Appium smoke
+### Page object pattern
 
-Use `Matchers.getElementByID/Text/Label` for getters and `Gestures`/`Assertions` for actions. No Playwright-specific imports needed for the common case.
+Use `Matchers.getElementByID/Text/Label` for getters and `Gestures`/`Assertions` for actions.
 
 ```typescript
 import Matchers from '../framework/Matchers';
@@ -185,7 +185,7 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
 
 ## Test Organization — Appium Specs
 
-Appium smoke tests live in `tests/smoke-appium/`. Page objects use the `Gestures`/`Assertions`/`Matchers` facades so specs stay runner-agnostic aside from the Playwright fixture wrapper and login helper.
+Appium smoke tests live in `tests/smoke-appium/`. Page objects use `Gestures`, `Assertions`, and `Matchers`. Specs use the Playwright fixture wrapper and login helper.
 
 **Running Appium smoke locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
 
