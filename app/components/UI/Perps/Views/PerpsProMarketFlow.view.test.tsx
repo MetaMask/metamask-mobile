@@ -98,6 +98,8 @@ const defaultProPrices: Record<string, PriceUpdate> = {
   },
 };
 
+let unwirePerpsControllerForStore: (() => void) | undefined;
+
 const renderProMarketScenario = (
   options: Parameters<typeof renderPerpsProMarketView>[0] = {},
 ) => {
@@ -116,7 +118,8 @@ const renderProMarketScenario = (
       ...(options.extraRoutes ?? []),
     ],
   });
-  wirePerpsControllerForStore(result.store);
+  unwirePerpsControllerForStore?.();
+  unwirePerpsControllerForStore = wirePerpsControllerForStore(result.store);
   return result;
 };
 
@@ -158,6 +161,8 @@ describeForPlatforms('Perps Pro Market Flow', () => {
     // Wake CUF waiters / clear pending spans so stream timers do not outlive
     // the Jest environment and race toast/haptic teardown.
     clearPendingPerpsCufTraces();
+    unwirePerpsControllerForStore?.();
+    unwirePerpsControllerForStore = undefined;
     await flushAsyncSideEffects();
     cleanup();
   });
@@ -178,13 +183,17 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       const ethScope = within(ethRow);
       expect(ethScope.getByText('ETH')).toBeOnTheScreen();
       expect(ethScope.getByText(/3x/)).toBeOnTheScreen();
-      expect(ethScope.getByTestId('pnl-text')).toHaveTextContent(/\+/);
+      expect(
+        ethScope.getByTestId(panelIds.POSITION_PNL_TEXT),
+      ).toHaveTextContent(/\+/);
       expect(ethScope.getByText(/\$2,400/)).toBeOnTheScreen();
 
       const btcScope = within(btcRow);
       expect(btcScope.getByText('BTC')).toBeOnTheScreen();
       expect(btcScope.getByText(/5x/)).toBeOnTheScreen();
-      expect(btcScope.getByTestId('pnl-text')).toHaveTextContent(/\+/);
+      expect(
+        btcScope.getByTestId(panelIds.POSITION_PNL_TEXT),
+      ).toHaveTextContent(/\+/);
       expect(btcScope.getByText(/\$52,000/)).toBeOnTheScreen();
 
       await applySideFilter('long');

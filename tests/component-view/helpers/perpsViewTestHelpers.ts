@@ -29,11 +29,26 @@ interface EngineWithState {
 
 type ProLayoutPreferencesPatch = Record<string, unknown>;
 
+type WirePerpsControllerForStoreCleanup = () => void;
+
 /**
  * Mirrors real PerpsController messengers so Pro preference / mode writes
  * update Redux selectors in component view tests.
+ *
+ * Returns a cleanup that restores the previous `ReduxService.store` and the
+ * original `setProLayoutPreferences` / `setPerpsMode` implementations so later
+ * suites on the same Jest worker do not dispatch against a disposed store.
  */
-export function wirePerpsControllerForStore(store: Store): void {
+export function wirePerpsControllerForStore(
+  store: Store,
+): WirePerpsControllerForStoreCleanup {
+  let previousStore: ReduxStore | undefined;
+  try {
+    previousStore = ReduxService.store;
+  } catch {
+    previousStore = undefined;
+  }
+
   // Haptics/toasts read gates via ReduxService.store; without this, place-order
   // success notifications fail-open after Logger.error("store does not exist").
   ReduxService.store = store as unknown as ReduxStore;
@@ -42,6 +57,9 @@ export function wirePerpsControllerForStore(store: Store): void {
     setProLayoutPreferences: (prefs: ProLayoutPreferencesPatch) => void;
     setPerpsMode: (mode: PerpsMode) => void;
   };
+  const originalSetProLayoutPreferences =
+    perpsController.setProLayoutPreferences;
+  const originalSetPerpsMode = perpsController.setPerpsMode;
 
   const syncPerpsControllerState = (patch: Record<string, unknown>): void => {
     const engineWithState = Engine as unknown as EngineWithState;
@@ -95,4 +113,12 @@ export function wirePerpsControllerForStore(store: Store): void {
   perpsController.setPerpsMode = jest.fn((mode) => {
     syncPerpsControllerState({ mode });
   });
+
+  return () => {
+    perpsController.setProLayoutPreferences = originalSetProLayoutPreferences;
+    perpsController.setPerpsMode = originalSetPerpsMode;
+    if (previousStore) {
+      ReduxService.store = previousStore;
+    }
+  };
 }

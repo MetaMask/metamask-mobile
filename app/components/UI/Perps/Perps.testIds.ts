@@ -529,6 +529,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
+  POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
