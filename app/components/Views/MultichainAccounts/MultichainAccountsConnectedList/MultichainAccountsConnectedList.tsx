@@ -94,6 +94,7 @@ const MultichainAccountsConnectedList = ({
           />
         ),
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       navigation.navigate(Routes.BROWSER.HOME);
     },

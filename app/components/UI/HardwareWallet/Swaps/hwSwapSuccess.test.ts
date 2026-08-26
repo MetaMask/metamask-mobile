@@ -41,6 +41,7 @@ describe('completeHwSwapSuccess', () => {
       title: 'bridge.hardware_wallet_progress.submitted_title',
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
     expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith({

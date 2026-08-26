@@ -30,6 +30,7 @@ export function completeHwSwapSuccess({
     title: strings('bridge.hardware_wallet_progress.submitted_title'),
     severity: ToastSeverity.Success,
     hasNoTimeout: false,
+    showCloseButton: false,
   });
   dispatch(resetHardwareWalletsSwaps());
   navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });

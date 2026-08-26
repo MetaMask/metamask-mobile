@@ -495,6 +495,7 @@ describe('MultichainAccountsConnectedList', () => {
         expect.objectContaining({
           title: 'Account 1 now active.',
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });

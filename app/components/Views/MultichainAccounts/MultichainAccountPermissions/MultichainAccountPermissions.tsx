@@ -212,6 +212,7 @@ export const MultichainAccountPermissions = (
           />
         ),
         hasNoTimeout: false,
+        showCloseButton: false,
       });
 
       // Navigate back
@@ -281,6 +282,7 @@ export const MultichainAccountPermissions = (
               />
             ),
             hasNoTimeout: false,
+            showCloseButton: false,
           });
         }
       }

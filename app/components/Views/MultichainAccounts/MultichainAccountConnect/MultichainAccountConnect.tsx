@@ -732,6 +732,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           <AvatarFavicon src={faviconSource} size={AvatarFaviconSize.Sm} />
         ),
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     } catch (e) {
       if (e instanceof Error) {
