@@ -72,17 +72,3 @@ export class EncapsulatedElement {
 export function encapsulated(config: LocatorConfig): Promise<AppiumElement> {
   return EncapsulatedElement.create(config);
 }
-
-/**
- * @deprecated Use `Promise<AppiumElement>`. Kept so unmigrated POs keep compiling.
- */
-export type EncapsulatedElementType = Promise<AppiumElement>;
-
-/**
- * @deprecated Await the element promise directly.
- */
-export async function asPlaywrightElement(
-  elem: Promise<AppiumElement>,
-): Promise<AppiumElement> {
-  return elem;
-}
