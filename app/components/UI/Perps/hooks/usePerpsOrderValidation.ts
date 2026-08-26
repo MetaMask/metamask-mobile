@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -83,6 +91,292 @@ const FIELD_OWNED_PROTOCOL_ERRORS = new Set<string>([
   PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_POSITIVE,
 ]);
 
+type OrderFormValidationData = Pick<
+  OrderFormState,
+  'asset' | 'direction' | 'leverage' | 'limitPrice' | 'type'
+>;
+
+interface BuildOrderParamsInput {
+  orderForm: OrderFormValidationData;
+  positionSize: string;
+  assetPrice: number;
+  existingPositionLeverage?: number;
+  originalUsdAmount?: string;
+  reduceOnly?: boolean;
+  isFullClose?: boolean;
+  triggerPrice?: string;
+  szDecimals?: number;
+}
+
+interface ImmediateValidationInput {
+  marginRequired: string;
+  spendableBalance: number;
+  originalUsdAmount?: string;
+  minimumOrderSize: number;
+  reduceOnly?: boolean;
+  isFullClose?: boolean;
+}
+
+interface ProtocolValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+interface ProtocolValidationErrorsInput {
+  protocolValidation: ProtocolValidationResult;
+  immediateErrors: string[];
+  requestFieldIssues: OrderFormFieldIssue[];
+  orderForm: OrderFormValidationData;
+  existingPositionLeverage?: number;
+  minimumOrderSize: number;
+}
+
+interface CompleteValidationInput {
+  requestId: number;
+  currentRequestId: number;
+  requestFieldIssues: OrderFormFieldIssue[];
+  errors: string[];
+  warnings: string[];
+  setValidation: Dispatch<SetStateAction<ValidationState>>;
+}
+
+const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
+  network === 'mainnet'
+    ? TRADING_DEFAULTS.amount.mainnet
+    : TRADING_DEFAULTS.amount.testnet;
+
+const getValidationPrerequisiteError = ({
+  assetPrice,
+  positionSize,
+}: {
+  assetPrice: number;
+  positionSize: string;
+}): string | undefined => {
+  if (!(assetPrice > 0)) {
+    return strings('perps.order.validation.market_data_loading');
+  }
+
+  const numericPositionSize = Number.parseFloat(positionSize);
+  if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
+    return strings('perps.order.validation.amount_required');
+  }
+
+  return undefined;
+};
+
+const getImmediateValidationErrors = ({
+  marginRequired,
+  spendableBalance,
+  originalUsdAmount,
+  minimumOrderSize,
+  reduceOnly,
+  isFullClose,
+}: ImmediateValidationInput): string[] => {
+  const errors: string[] = [];
+  const requiredMargin = Number.parseFloat(marginRequired);
+
+  if (requiredMargin > spendableBalance) {
+    errors.push(
+      strings('perps.order.validation.insufficient_balance', {
+        required: marginRequired,
+        available: spendableBalance.toString(),
+      }),
+    );
+  }
+
+  const usdAmount = Number.parseFloat(originalUsdAmount || '0');
+  const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
+  if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
+    errors.push(
+      strings('perps.order.validation.minimum_amount', {
+        amount: minimumOrderSize.toString(),
+      }),
+    );
+  }
+
+  return errors;
+};
+
+const buildOrderParams = ({
+  orderForm,
+  positionSize,
+  assetPrice,
+  existingPositionLeverage,
+  originalUsdAmount,
+  reduceOnly,
+  isFullClose,
+  triggerPrice,
+  szDecimals,
+}: BuildOrderParamsInput): OrderParams => ({
+  symbol: orderForm.asset,
+  isBuy: orderForm.direction === 'long',
+  size: positionSize,
+  orderType: orderForm.type,
+  leverage: orderForm.leverage,
+  currentPrice: assetPrice,
+  existingPositionLeverage,
+  ...(originalUsdAmount !== undefined ? { usdAmount: originalUsdAmount } : {}),
+  ...(isLimitExecutionOrderType(orderForm.type) && orderForm.limitPrice
+    ? {
+        price: canonicalizeOrderPrice(orderForm.limitPrice, szDecimals),
+      }
+    : {}),
+  ...(isTriggerOrderType(orderForm.type) && triggerPrice?.trim()
+    ? {
+        triggerPrice: canonicalizeOrderPrice(triggerPrice, szDecimals),
+      }
+    : {}),
+  ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+  ...(isFullClose !== undefined ? { isFullClose } : {}),
+});
+
+const getProtocolErrorContext = ({
+  error,
+  orderForm,
+  existingPositionLeverage,
+  minimumOrderSize,
+}: {
+  error?: string;
+  orderForm: OrderFormValidationData;
+  existingPositionLeverage?: number;
+  minimumOrderSize: number;
+}): Record<string, unknown> => {
+  switch (error) {
+    case PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID:
+      return {
+        min: 1,
+        max: PERPS_CONSTANTS.DefaultMaxLeverage,
+      };
+    case PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION:
+      return {
+        required: existingPositionLeverage,
+        provided: orderForm.leverage,
+      };
+    case PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED: {
+      const maxValue = getMaxOrderValue(
+        PERPS_CONSTANTS.DefaultMaxLeverage,
+        orderForm.type,
+      );
+      return {
+        maxValue: formatPerpsFiat(maxValue, {
+          minimumDecimals: 0,
+          maximumDecimals: 0,
+        }).replace('$', ''),
+      };
+    }
+    case PERPS_ERROR_CODES.ORDER_SIZE_MIN:
+      return { amount: minimumOrderSize.toString() };
+    case PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN:
+      return { symbol: orderForm.asset };
+    default:
+      return {};
+  }
+};
+
+const getProtocolValidationError = ({
+  protocolValidation,
+  immediateErrors,
+  requestFieldIssues,
+  orderForm,
+  existingPositionLeverage,
+  minimumOrderSize,
+}: ProtocolValidationErrorsInput): string | undefined => {
+  const { error } = protocolValidation;
+  if (
+    protocolValidation.isValid ||
+    !error ||
+    (requestFieldIssues.length > 0 && FIELD_OWNED_PROTOCOL_ERRORS.has(error))
+  ) {
+    return undefined;
+  }
+
+  const translatedError = translatePerpsError(
+    error,
+    getProtocolErrorContext({
+      error,
+      orderForm,
+      existingPositionLeverage,
+      minimumOrderSize,
+    }),
+  );
+  if (
+    immediateErrors.some((existingError) =>
+      existingError.includes(translatedError),
+    )
+  ) {
+    return undefined;
+  }
+
+  return translatedError;
+};
+
+const getProtocolValidationErrors = ({
+  protocolValidation,
+  immediateErrors,
+  requestFieldIssues,
+  orderForm,
+  existingPositionLeverage,
+  minimumOrderSize,
+}: ProtocolValidationErrorsInput): string[] => {
+  const errors = [...immediateErrors];
+  const protocolError = getProtocolValidationError({
+    protocolValidation,
+    immediateErrors,
+    requestFieldIssues,
+    orderForm,
+    existingPositionLeverage,
+    minimumOrderSize,
+  });
+
+  if (protocolError) {
+    errors.push(protocolError);
+  }
+  if (!protocolValidation.isValid && !protocolValidation.error) {
+    errors.push(strings('perps.order.validation.failed'));
+  }
+
+  return errors;
+};
+
+const getValidationWarnings = (leverage: number): string[] => {
+  if (leverage <= VALIDATION_THRESHOLDS.HighLeverageWarning) {
+    return EMPTY_WARNINGS;
+  }
+
+  return [strings('perps.order.validation.high_leverage_warning')];
+};
+
+const completeValidation = ({
+  requestId,
+  currentRequestId,
+  requestFieldIssues,
+  errors,
+  warnings,
+  setValidation,
+}: CompleteValidationInput): ValidationAttempt | undefined => {
+  if (requestId !== currentRequestId) {
+    return undefined;
+  }
+
+  const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
+  const resolvedWarnings = warnings.length > 0 ? warnings : EMPTY_WARNINGS;
+  const attempt: ValidationAttempt = {
+    errors: resolvedErrors,
+    warnings: resolvedWarnings,
+    fieldIssues: requestFieldIssues,
+    isValid: resolvedErrors.length === 0 && requestFieldIssues.length === 0,
+  };
+
+  setValidation({
+    errors: resolvedErrors,
+    warnings: resolvedWarnings,
+    protocolValid: resolvedErrors.length === 0,
+    isValidating: false,
+  });
+
+  return attempt;
+};
+
 /**
  * Hook to handle order validation combining protocol-specific and UI-specific rules
  * Uses the existing validateOrder method from the provider
@@ -111,6 +405,22 @@ export function usePerpsOrderValidation(
 
   const { validateOrder } = usePerpsTrading();
   const network = usePerpsNetwork();
+  const orderFormValidationData = useMemo<OrderFormValidationData>(
+    () => ({
+      asset: orderForm.asset,
+      direction: orderForm.direction,
+      leverage: orderForm.leverage,
+      limitPrice: orderForm.limitPrice,
+      type: orderForm.type,
+    }),
+    [
+      orderForm.asset,
+      orderForm.direction,
+      orderForm.leverage,
+      orderForm.limitPrice,
+      orderForm.type,
+    ],
+  );
 
   const [validation, setValidation] = useState<ValidationState>({
     errors: EMPTY_ERRORS,
@@ -174,110 +484,43 @@ export function usePerpsOrderValidation(
         isValidating: true,
       }));
 
-      const completeValidation = (
-        errors: string[],
-        warnings: string[],
-      ): ValidationAttempt | undefined => {
-        if (requestId !== validationRequestIdRef.current) {
-          return undefined;
-        }
-
-        const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
-        const resolvedWarnings =
-          warnings.length > 0 ? warnings : EMPTY_WARNINGS;
-        const attempt: ValidationAttempt = {
-          errors: resolvedErrors,
-          warnings: resolvedWarnings,
-          fieldIssues: requestFieldIssues,
-          isValid:
-            resolvedErrors.length === 0 && requestFieldIssues.length === 0,
-        };
-
-        setValidation({
-          errors: resolvedErrors,
-          warnings: resolvedWarnings,
-          protocolValid: resolvedErrors.length === 0,
-          isValidating: false,
+      const prerequisiteError = getValidationPrerequisiteError({
+        assetPrice,
+        positionSize,
+      });
+      if (prerequisiteError) {
+        return completeValidation({
+          requestId,
+          currentRequestId: validationRequestIdRef.current,
+          requestFieldIssues,
+          errors: [prerequisiteError],
+          warnings: EMPTY_WARNINGS,
+          setValidation,
         });
-
-        return attempt;
-      };
-
-      if (!(assetPrice > 0)) {
-        return completeValidation(
-          [strings('perps.order.validation.market_data_loading')],
-          EMPTY_WARNINGS,
-        );
       }
 
-      const numericPositionSize = Number.parseFloat(positionSize);
-      if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
-        return completeValidation(
-          [strings('perps.order.validation.amount_required')],
-          EMPTY_WARNINGS,
-        );
-      }
-
-      // Perform immediate UI validation for critical errors
-      const immediateErrors: string[] = [];
-
-      // Balance validation (immediate)
-      const requiredMargin = Number.parseFloat(marginRequired);
-      if (requiredMargin > spendableBalance) {
-        immediateErrors.push(
-          strings('perps.order.validation.insufficient_balance', {
-            required: marginRequired,
-            available: spendableBalance.toString(),
-          }),
-        );
-      }
-
-      // Minimum order size validation using original USD input (prevents precision loss)
-      // Validate USD amount directly (source of truth) instead of recalculated value
-      // This prevents validation flash when price updates cause rounding near the $10 minimum
-      const usdAmount = Number.parseFloat(originalUsdAmount || '0');
-      const minimumOrderSize =
-        network === 'mainnet'
-          ? TRADING_DEFAULTS.amount.mainnet
-          : TRADING_DEFAULTS.amount.testnet;
-
-      // Full reduce-only closes may be below the normal minimum notional (dust);
-      // the controller skips ORDER_SIZE_MIN when reduceOnly && isFullClose.
-      const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
-      if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
-        immediateErrors.push(
-          strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderSize.toString(),
-          }),
-        );
-      }
+      const minimumOrderSize = getMinimumOrderSize(network);
+      const immediateErrors = getImmediateValidationErrors({
+        marginRequired,
+        spendableBalance,
+        originalUsdAmount,
+        minimumOrderSize,
+        reduceOnly,
+        isFullClose,
+      });
 
       try {
-        // Convert form state to OrderParams for protocol validation
-        const orderParams: OrderParams = {
-          symbol: orderForm.asset,
-          isBuy: orderForm.direction === 'long',
-          size: positionSize, // Use BTC amount, not USD amount
-          orderType: orderForm.type,
-          leverage: orderForm.leverage,
-          currentPrice: assetPrice,
+        const orderParams = buildOrderParams({
+          orderForm: orderFormValidationData,
+          positionSize,
+          assetPrice,
           existingPositionLeverage,
-          ...(originalUsdAmount !== undefined
-            ? { usdAmount: originalUsdAmount }
-            : {}),
-          ...(isLimitExecutionOrderType(orderForm.type) && orderForm.limitPrice
-            ? {
-                price: canonicalizeOrderPrice(orderForm.limitPrice, szDecimals),
-              }
-            : {}),
-          ...(isTriggerOrderType(orderForm.type) && triggerPrice?.trim()
-            ? {
-                triggerPrice: canonicalizeOrderPrice(triggerPrice, szDecimals),
-              }
-            : {}),
-          ...(reduceOnly !== undefined ? { reduceOnly } : {}),
-          ...(isFullClose !== undefined ? { isFullClose } : {}),
-        };
+          originalUsdAmount,
+          reduceOnly,
+          isFullClose,
+          triggerPrice,
+          szDecimals,
+        });
 
         // Get protocol-specific validation
         DevLogger.log(
@@ -293,82 +536,21 @@ export function usePerpsOrderValidation(
           protocolValidation,
         );
 
-        // Merge immediate errors with protocol validation results
-        const errors: string[] = [...immediateErrors];
-        if (
-          !protocolValidation.isValid &&
-          protocolValidation.error &&
-          !(
-            requestFieldIssues.length > 0 &&
-            FIELD_OWNED_PROTOCOL_ERRORS.has(protocolValidation.error)
-          )
-        ) {
-          // Build context data for error interpolation
-          const errorContext: Record<string, unknown> = {};
-
-          // For leverage errors, provide min/max/required/provided values
-          if (
-            protocolValidation.error ===
-            PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID
-          ) {
-            errorContext.min = 1;
-            // Use default max leverage since we don't have market-specific data here
-            errorContext.max = PERPS_CONSTANTS.DefaultMaxLeverage;
-          } else if (
-            protocolValidation.error ===
-            PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION
-          ) {
-            errorContext.required = existingPositionLeverage;
-            errorContext.provided = orderForm.leverage;
-          } else if (
-            protocolValidation.error ===
-            PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED
-          ) {
-            // Calculate max order value based on default leverage and order type
-            const maxValue = getMaxOrderValue(
-              PERPS_CONSTANTS.DefaultMaxLeverage,
-              orderForm.type,
-            );
-            errorContext.maxValue = formatPerpsFiat(maxValue, {
-              minimumDecimals: 0,
-              maximumDecimals: 0,
-            }).replace('$', '');
-          } else if (
-            protocolValidation.error === PERPS_ERROR_CODES.ORDER_SIZE_MIN
-          ) {
-            // Provide minimum amount for the error message
-            errorContext.amount = minimumOrderSize.toString();
-          } else if (
-            protocolValidation.error === PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN
-          ) {
-            // Provide the symbol that was not found
-            errorContext.symbol = orderForm.asset;
-          }
-
-          // Translate error codes from provider to user-friendly messages
-          const translatedError = translatePerpsError(
-            protocolValidation.error,
-            errorContext,
-          );
-          // Only add protocol error if not already covered by immediate validation
-          if (!errors.some((e) => e.includes(translatedError))) {
-            errors.push(translatedError);
-          }
-        }
-        if (!protocolValidation.isValid && !protocolValidation.error) {
-          errors.push(strings('perps.order.validation.failed'));
-        }
-
-        const warnings: string[] = [];
-
-        // High leverage warning
-        if (orderForm.leverage > VALIDATION_THRESHOLDS.HighLeverageWarning) {
-          warnings.push(
-            strings('perps.order.validation.high_leverage_warning'),
-          );
-        }
-
-        return completeValidation(errors, warnings);
+        return completeValidation({
+          requestId,
+          currentRequestId: validationRequestIdRef.current,
+          requestFieldIssues,
+          errors: getProtocolValidationErrors({
+            protocolValidation,
+            immediateErrors,
+            requestFieldIssues,
+            orderForm: orderFormValidationData,
+            existingPositionLeverage,
+            minimumOrderSize,
+          }),
+          warnings: getValidationWarnings(orderFormValidationData.leverage),
+          setValidation,
+        });
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
           return undefined;
@@ -377,10 +559,14 @@ export function usePerpsOrderValidation(
           'usePerpsOrderValidation: Error during validation',
           error,
         );
-        return completeValidation(
-          [strings('perps.order.validation.error')],
-          EMPTY_WARNINGS,
-        );
+        return completeValidation({
+          requestId,
+          currentRequestId: validationRequestIdRef.current,
+          requestFieldIssues,
+          errors: [strings('perps.order.validation.error')],
+          warnings: EMPTY_WARNINGS,
+          setValidation,
+        });
       }
     },
     [
@@ -389,11 +575,7 @@ export function usePerpsOrderValidation(
       isFullClose,
       marginRequired,
       network,
-      orderForm.asset,
-      orderForm.direction,
-      orderForm.leverage,
-      orderForm.limitPrice,
-      orderForm.type,
+      orderFormValidationData,
       originalUsdAmount,
       positionSize,
       reduceOnly,
