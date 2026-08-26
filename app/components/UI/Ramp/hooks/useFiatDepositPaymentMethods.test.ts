@@ -76,7 +76,11 @@ describe('useFiatDepositPaymentMethods', () => {
       // Expose queryFn for request-shape assertions without running React Query.
       (mockUseQuery as { lastOptions?: unknown }).lastOptions = options;
       return {
-        data: { methods: [CARD_METHOD], selected: CARD_METHOD, providerIds: [] },
+        data: {
+          methods: [CARD_METHOD],
+          selected: CARD_METHOD,
+          providerIds: [],
+        },
         isLoading: false,
         isFetching: false,
         isSuccess: true,
@@ -89,8 +93,11 @@ describe('useFiatDepositPaymentMethods', () => {
   it('queries getPaymentMethodsForContext with deposit asset and headless flags', async () => {
     renderHook(() => useFiatDepositPaymentMethods());
 
-    const options = (mockUseQuery as { lastOptions?: { queryFn: () => Promise<unknown>; queryKey: unknown[] } })
-      .lastOptions;
+    const options = (
+      mockUseQuery as {
+        lastOptions?: { queryFn: () => Promise<unknown>; queryKey: unknown[] };
+      }
+    ).lastOptions;
     expect(options?.queryKey).toEqual([
       'ramps',
       'paymentMethodsForContext',
