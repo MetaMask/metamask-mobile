@@ -1,11 +1,13 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import type { Dispatch, AnyAction } from 'redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
-  initialHardwareWalletsSwapsState,
+  HardwareWalletsSwapsStepKind,
+  HardwareWalletsSwapsStepStatus,
+  type HardwareWalletsSwapsState,
 } from './HardwareWalletsSwaps.state';
 import { useHardwareWalletSubmit } from './useHardwareWalletSubmit';
 
@@ -69,19 +71,41 @@ const preparedTxMeta = {
   txParams: { from: '0xfrom' },
 } as unknown as TransactionMeta;
 
+const waitingProgressState: HardwareWalletsSwapsState = {
+  status: HardwareWalletsSwapsStatus.Waiting,
+  currentStep: 0,
+  totalSteps: 1,
+  steps: [
+    {
+      kind: HardwareWalletsSwapsStepKind.Transaction,
+      status: HardwareWalletsSwapsStepStatus.Waiting,
+    },
+  ],
+  disconnectedStep: null,
+};
+
+const submittedProgressState: HardwareWalletsSwapsState = {
+  status: HardwareWalletsSwapsStatus.Submitted,
+  currentStep: 1,
+  totalSteps: 1,
+  steps: [
+    {
+      kind: HardwareWalletsSwapsStepKind.Transaction,
+      status: HardwareWalletsSwapsStepStatus.Signed,
+    },
+  ],
+  disconnectedStep: null,
+};
+
 /** Renders the hook exactly as production wires it: send via approval accept, bridge via submitBridgeTx. */
 function renderSubmitHook(isSendFlow: boolean) {
-  return renderHook(() =>
+  const progressRef = { current: waitingProgressState };
+  const hook = renderHook(() =>
     useHardwareWalletSubmit({
       isSendFlow,
       walletAddress: '0xfrom',
       dispatch: mockDispatch as unknown as Dispatch<AnyAction>,
-      progressRef: {
-        current: {
-          ...initialHardwareWalletsSwapsState,
-          status: HardwareWalletsSwapsStatus.Waiting,
-        },
-      },
+      progressRef,
       submissionGenerationRef: { current: 0 },
       preparedTxMeta,
       approvalRequestId: 'approval-1',
@@ -90,6 +114,8 @@ function renderSubmitHook(isSendFlow: boolean) {
       setPendingOperationAddress: jest.fn(),
     }),
   );
+
+  return { ...hook, progressRef };
 }
 
 describe('useHardwareWalletSubmit (unified device-rejection handling)', () => {
@@ -194,6 +220,40 @@ describe('useHardwareWalletSubmit (unified device-rejection handling)', () => {
 
     expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
     expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.Rejected,
+    });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.TransactionFailed,
+    });
+  });
+
+  it('bridge flow: dispatches TransactionFailed for rejection-shaped broadcast errors after signing', async () => {
+    let rejectBroadcast!: (reason?: unknown) => void;
+    mockSubmitBridgeTx.mockImplementation(
+      () =>
+        new Promise<never>((_, reject) => {
+          rejectBroadcast = reject;
+        }),
+    );
+
+    const { result, progressRef } = renderSubmitHook(false);
+    let submitPromise!: Promise<void>;
+
+    act(() => {
+      submitPromise = result.current.submit();
+    });
+    await waitFor(() => {
+      expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+    });
+    progressRef.current = submittedProgressState;
+
+    await act(async () => {
+      rejectBroadcast(new Error('Broadcast rejected by provider'));
+      await submitPromise;
+    });
+
+    expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
     expect(mockDispatch).not.toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.Rejected,
     });

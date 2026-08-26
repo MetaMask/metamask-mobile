@@ -25,6 +25,7 @@ import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { withPostTradeNotificationSuppression } from '../../Bridge/utils/postTradeNotifications';
 import {
   HardwareWalletsSwapsEventType,
+  HardwareWalletsSwapsStatus,
   type HardwareWalletsSwapsState,
 } from './HardwareWalletsSwaps.state';
 import type { SubmissionParams } from './HardwareWalletsSwaps';
@@ -186,16 +187,12 @@ export function useHardwareWalletSubmit({
         if (submissionGenerationRef.current !== submissionGenerationAtStart) {
           return undefined;
         }
-        // Device rejections are treated uniformly for both flows and are
-        // surfaced INLINE via the Rejected state (rejected_title + Try
-        // Again/Cancel on the progress screen) — no error sheet. Bridge
-        // signing errors never reach this catch — the batch tracker's
-        // executeHardwareWalletOperation consumes them without rethrowing —
-        // so submitFn rejections here are approval (send) or broadcast
-        // (bridge) failures. Known internal abort signals whose messages
-        // merely look like cancellations are excluded so they fall through
-        // to the generic failure path.
+        // Rejected is only accepted while the progress state is Waiting. Once
+        // all signing steps have completed (Submitted), submitFn can reject
+        // because publishing failed; its error message may contain a broad
+        // cancellation pattern but must reach TransactionFailed.
         if (
+          progressRef.current.status === HardwareWalletsSwapsStatus.Waiting &&
           isDeviceUserRejection(error, {
             excludedMessages: INTERNAL_ABORT_MESSAGES,
           })
@@ -216,7 +213,7 @@ export function useHardwareWalletSubmit({
         return undefined;
       }
     },
-    [dispatch, submissionGenerationRef],
+    [dispatch],
   );
 
   // ── Send flow ──────────────────────────────────────────────────────
