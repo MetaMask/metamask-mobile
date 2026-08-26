@@ -2,6 +2,7 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Toaster } from '@metamask/design-system-react-native';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
@@ -115,6 +116,7 @@ export function renderMarketInsightsViewWithNavigation(
           component={RampNavigator}
         />
       </RootStack.Navigator>
+      <Toaster />
     </AccessRestrictedProvider>
   );
 

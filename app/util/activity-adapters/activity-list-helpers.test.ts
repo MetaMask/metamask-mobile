@@ -490,4 +490,41 @@ describe('enrichTokenFromApi', () => {
   it('returns undefined when given no token', () => {
     expect(enrichTokenFromApi(undefined, apiData)).toBeUndefined();
   });
+
+  it('fills symbol but not decimals for non-EVM keyring amounts', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '1',
+      assetId: solAssetId,
+      symbol: 'SOL',
+    };
+
+    expect(
+      enrichTokenFromApi(token, {
+        [solAssetId.toLowerCase()]: { symbol: 'SOL', decimals: 9 },
+      }),
+    ).toStrictEqual({
+      direction: 'out',
+      amount: '1',
+      assetId: solAssetId,
+      symbol: 'SOL',
+    });
+  });
+
+  it('keeps explicit non-EVM decimals from the adapter', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '1000000000',
+      assetId: solAssetId,
+      decimals: 9,
+    };
+
+    expect(
+      enrichTokenFromApi(token, {
+        [solAssetId.toLowerCase()]: { symbol: 'SOL', decimals: 6 },
+      })?.decimals,
+    ).toBe(9);
+  });
 });
