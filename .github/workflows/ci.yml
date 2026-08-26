@@ -866,6 +866,16 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
+      # QA Stats reads artifacts through the GitHub API, which cannot see
+      # artifacts stored by namespace-actions/upload-artifact.
+      - name: Upload unit test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload coverage unit shard (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
@@ -1100,8 +1110,7 @@ jobs:
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload cv-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
@@ -1135,8 +1144,8 @@ jobs:
           path: ./tests/coverage-integration-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+      - name: Upload integration-test-coverage-summary (GitHub)
+        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-coverage-summary
@@ -1153,8 +1162,7 @@ jobs:
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload unit-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
@@ -1235,6 +1243,14 @@ jobs:
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload component view test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage CV shard (current)
@@ -1328,6 +1344,14 @@ jobs:
         with:
           name: coverage-integration-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage integration shard (current)

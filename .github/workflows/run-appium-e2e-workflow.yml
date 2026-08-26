@@ -433,8 +433,10 @@ jobs:
           path: tests/test-reports/playwright-json/playwright-report.json
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright JSON report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+      # QA Stats and github-tools read these reports through the GitHub API.
+      # Keep this upload on Namespace runs as well as the Namespace-native copy.
+      - name: Upload Playwright JSON report (GitHub)
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
