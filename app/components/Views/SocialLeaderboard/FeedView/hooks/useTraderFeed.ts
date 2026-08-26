@@ -123,9 +123,10 @@ export const useTraderFeed = (
     queryFn: ({ pageParam }: { pageParam?: string }) =>
       fetchTraderFeedPage(scope, pageParam),
     getNextPageParam: getTraderFeedNextPageParam,
+    initialPageParam: undefined as string | undefined,
     enabled: enabled && isUnlocked,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<InfiniteData<FeedResponse>, Error>);
+  });
 
   const pages = query.data?.pages ?? undefined;
 
@@ -172,9 +173,6 @@ export const useTraderFeed = (
     // Reset to the newest activity from the top. Refetch only the first page
     // (the stale list stays visible meanwhile, so no skeleton flash), then drop
     // any older pages that were loaded via pagination.
-    await refetch({
-      refetchPage: (_page: FeedResponse, index: number) => index === 0,
-    } as Parameters<typeof refetch>[0]);
     queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
       old
         ? {
@@ -183,6 +181,7 @@ export const useTraderFeed = (
           }
         : old,
     );
+    await refetch();
   }, [queryClient, queryKey, refetch]);
 
   return {
