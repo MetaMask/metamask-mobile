@@ -549,9 +549,8 @@ enum EVENT_NAME {
 
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
-  LOGIN_ATTEMPTED = 'Login Attempted',
-  LOGIN_COMPLETED = 'Login Completed',
-  LOGIN_FAILED = 'Login Failed',
+  APP_UNLOCKED = 'App Unlocked',
+  APP_UNLOCKED_FAILED = 'App Unlocked Failed',
 
   // Reset Wallet Confirmed Modal
   RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
@@ -1532,9 +1531,8 @@ const events = {
 
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
-  LOGIN_ATTEMPTED: generateOpt(EVENT_NAME.LOGIN_ATTEMPTED),
-  LOGIN_COMPLETED: generateOpt(EVENT_NAME.LOGIN_COMPLETED),
-  LOGIN_FAILED: generateOpt(EVENT_NAME.LOGIN_FAILED),
+  APP_UNLOCKED: generateOpt(EVENT_NAME.APP_UNLOCKED),
+  APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
 
   // Delete Wallet Modal
   RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),
