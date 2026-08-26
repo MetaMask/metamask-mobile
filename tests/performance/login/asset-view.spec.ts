@@ -35,9 +35,7 @@ perfTest.describe(
         );
 
         await WalletView.tapOnTokensSection();
-        const profilingEnabled =
-          currentDeviceDetails.platform === 'android' ||
-          currentDeviceDetails.platform === 'ios';
+        const profilingEnabled = currentDeviceDetails.platform === 'android';
         if (profilingEnabled) {
           await startBrowserStackProfiler(
             driver,
