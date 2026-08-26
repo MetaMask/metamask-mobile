@@ -217,6 +217,60 @@ const getPerpsToastLabels = (
   description: secondary,
 });
 
+const getOrderPlacementSubtitle = (
+  direction: OrderDirection,
+  amount: string,
+  assetSymbol: string,
+): string =>
+  strings('perps.order.order_placement_subtitle', {
+    direction: capitalize(direction),
+    amount,
+    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+  });
+
+const createOrderPlacementToast =
+  (base: PerpsToastOptions, titleKey: string) =>
+  (
+    direction: OrderDirection,
+    amount: string,
+    assetSymbol: string,
+  ): PerpsToastOptions => ({
+    ...base,
+    ...getPerpsToastLabels(
+      strings(titleKey),
+      getOrderPlacementSubtitle(direction, amount, assetSymbol),
+    ),
+  });
+
+const createOrderFailedToast =
+  (base: PerpsToastOptions, titleKey: string, fallbackKey: string) =>
+  (error?: string): PerpsToastOptions => ({
+    ...base,
+    ...getPerpsToastLabels(
+      strings(titleKey),
+      handlePerpsError({
+        error,
+        fallbackMessage: strings(fallbackKey),
+      }),
+    ),
+  });
+
+const createOrderLifecycleToasts = (
+  bases: Record<string, PerpsToastOptions>,
+  confirmedTitleKey: string,
+) => ({
+  submitted: createOrderPlacementToast(
+    bases.inProgress,
+    'perps.order.order_submitted',
+  ),
+  confirmed: createOrderPlacementToast(bases.success, confirmedTitleKey),
+  creationFailed: createOrderFailedToast(
+    bases.error,
+    'perps.order.order_failed',
+    'perps.order.your_funds_have_been_returned_to_you',
+  ),
+});
+
 function dismissToast() {
   try {
     toast.dismiss();
@@ -468,129 +522,33 @@ const usePerpsToasts = (): {
           }),
         },
       },
-      // Intentional duplication of some options between market and limit to avoid coupling.
+      // Market and limit share factories so titles stay independent without duplicating config.
       orderManagement: {
-        market: {
-          submitted: (
-            direction: OrderDirection,
-            amount: string,
-            assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.inProgress,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_submitted'),
-              strings('perps.order.order_placement_subtitle', {
-                direction: capitalize(direction),
-                amount,
-                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
-              }),
-            ),
-          }),
-          // Displays "Order Filled" since market orders are filled immediately or fail.
-          confirmed: (
-            direction: OrderDirection,
-            amount: string,
-            assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.success,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_filled'),
-              strings('perps.order.order_placement_subtitle', {
-                direction: capitalize(direction),
-                amount,
-                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
-              }),
-            ),
-          }),
-          creationFailed: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
-              }),
-            ),
-          }),
-        },
+        // Displays "Order Filled" since market orders are filled immediately or fail.
+        market: createOrderLifecycleToasts(
+          perpsBaseToastOptions,
+          'perps.order.order_filled',
+        ),
         limit: {
-          submitted: (
-            direction: OrderDirection,
-            amount: string,
-            assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.inProgress,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_submitted'),
-              strings('perps.order.order_placement_subtitle', {
-                direction: capitalize(direction),
-                amount,
-                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
-              }),
-            ),
-          }),
           // Displays "Order Placed" since limit orders aren't typically filled immediately.
-          confirmed: (
-            direction: OrderDirection,
-            amount: string,
-            assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.success,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_placed'),
-              strings('perps.order.order_placement_subtitle', {
-                direction: capitalize(direction),
-                amount,
-                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
-              }),
-            ),
-          }),
-          creationFailed: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
-              }),
-            ),
-          }),
+          ...createOrderLifecycleToasts(
+            perpsBaseToastOptions,
+            'perps.order.order_placed',
+          ),
           editSubmitting: () => ({
             ...perpsBaseToastOptions.inProgress,
             hasNoTimeout: true,
             ...getPerpsToastLabels(strings('perps.order.updating_your_order')),
           }),
-          editConfirmed: (
-            direction: OrderDirection,
-            amount: string,
-            assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.success,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_updated'),
-              strings('perps.order.order_placement_subtitle', {
-                direction: capitalize(direction),
-                amount,
-                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
-              }),
-            ),
-          }),
-          editFailed: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            ...getPerpsToastLabels(
-              strings('perps.order.order_update_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.order_update_failed_subtitle',
-                ),
-              }),
-            ),
-          }),
+          editConfirmed: createOrderPlacementToast(
+            perpsBaseToastOptions.success,
+            'perps.order.order_updated',
+          ),
+          editFailed: createOrderFailedToast(
+            perpsBaseToastOptions.error,
+            'perps.order.order_update_failed',
+            'perps.order.order_update_failed_subtitle',
+          ),
         },
         // Used for both market and limit orders.
         shared: {
