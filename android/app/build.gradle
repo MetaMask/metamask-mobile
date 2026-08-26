@@ -332,9 +332,9 @@ android {
             //   DEX 26.70 MB -> 21.44 MB (-19.7%). Cold start to first frame unchanged.
             //
             // Also forced work: AGP 9.0 removes support for proguard-android.txt entirely.
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
-            testProguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
 
