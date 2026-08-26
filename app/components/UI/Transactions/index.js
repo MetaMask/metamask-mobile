@@ -464,9 +464,7 @@ const Transactions = (props) => {
 
   const showTransactionUpdateErrorToast = (error) => {
     toast({
-      title:
-        strings('transaction_update_toast.title') ||
-        'Transaction update failed',
+      title: strings('transaction_update_toast.title'),
       description: resolveTransactionUpdateErrorMessage(error),
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,

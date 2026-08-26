@@ -426,6 +426,7 @@ describe('useUnifiedTxActions', () => {
 
       expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
+          title: expect.any(String),
           description: 'failed',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
