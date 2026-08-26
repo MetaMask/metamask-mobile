@@ -178,7 +178,10 @@ import {
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
-import { fetchWithTimeout } from './fetchWithTimeout';
+import {
+  fetchWithTimeout,
+  isExpectedPolymarketRequestAbort,
+} from './fetchWithTimeout';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -1003,13 +1006,22 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getMarkets', {
-          category: params?.category,
-          hasAfterCursor: Boolean(params?.afterCursor),
-        }),
-      );
+      const errorContext = this.getErrorContext('getMarkets', {
+        category: params?.category,
+        hasAfterCursor: Boolean(params?.afterCursor),
+      });
+      if (isExpectedPolymarketRequestAbort(error)) {
+        Logger.log(
+          'Predict markets request ended by expected timeout/cancellation:',
+          error instanceof Error ? error.message : String(error),
+          errorContext,
+        );
+      } else {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          errorContext,
+        );
+      }
 
       throw error;
     }
@@ -2538,13 +2550,22 @@ export class PolymarketProvider implements PredictProvider {
         timestamp: new Date().toISOString(),
       });
 
-      // Log to Sentry - this error is swallowed (returns false) so controller won't see it
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('isEligible', {
-          operation: 'geoblock_check',
-        }),
-      );
+      const errorContext = this.getErrorContext('isEligible', {
+        operation: 'geoblock_check',
+      });
+      if (isExpectedPolymarketRequestAbort(error)) {
+        Logger.log(
+          'Predict geoblock request ended by expected timeout/cancellation:',
+          error instanceof Error ? error.message : String(error),
+          errorContext,
+        );
+      } else {
+        // This error is swallowed (returns false), so the controller cannot report it.
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          errorContext,
+        );
+      }
     }
     return result;
   }
