@@ -25,6 +25,8 @@ import LimitIconDark from '../../../../../images/perps/order-types/limit.svg';
 import LimitIconLight from '../../../../../images/perps/order-types/limit-light.svg';
 import MarketIconDark from '../../../../../images/perps/order-types/market.svg';
 import MarketIconLight from '../../../../../images/perps/order-types/market-light.svg';
+import ScaleIconDark from '../../../../../images/perps/order-types/scale.svg';
+import ScaleIconLight from '../../../../../images/perps/order-types/scale-light.svg';
 import StopLimitIconDark from '../../../../../images/perps/order-types/stop-limit.svg';
 import StopLimitIconLight from '../../../../../images/perps/order-types/stop-limit-light.svg';
 import StopMarketIconDark from '../../../../../images/perps/order-types/stop-market.svg';
@@ -75,8 +77,8 @@ const SCALE_ORDER_TYPE: OrderTypeOption = {
   type: 'scale',
   titleKey: 'perps.order.type.scale.title',
   descriptionKey: 'perps.order.type.scale.description',
-  LightIcon: LimitIconLight,
-  DarkIcon: LimitIconDark,
+  LightIcon: ScaleIconLight,
+  DarkIcon: ScaleIconDark,
   testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
 };
 
