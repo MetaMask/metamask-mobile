@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import AccountHub from './AccountHub';
+import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -255,11 +256,7 @@ describe('AccountHub', () => {
 
   it('selects an account group and dismisses', () => {
     const { UNSAFE_getByType } = render(<AccountHub />);
-    const list = UNSAFE_getByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList')
-        .default,
-    );
+    const list = UNSAFE_getByType(MultichainAccountSelectorList);
 
     list.props.onSelectAccount({ id: 'group-2' });
 
@@ -285,11 +282,7 @@ describe('AccountHub', () => {
 
   it('scrolls the header with the list and pins Add wallet below it', () => {
     const { UNSAFE_getByType, getByTestId } = render(<AccountHub />);
-    const list = UNSAFE_getByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList')
-        .default,
-    );
+    const list = UNSAFE_getByType(MultichainAccountSelectorList);
 
     expect(list.props.ListHeaderComponent).toBeTruthy();
     // Add wallet is a sibling below the list (sticky), not a list footer.
@@ -301,11 +294,7 @@ describe('AccountHub', () => {
 
   it('hides search in the reused account list', () => {
     const { UNSAFE_getByType } = render(<AccountHub />);
-    const list = UNSAFE_getByType(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList')
-        .default,
-    );
+    const list = UNSAFE_getByType(MultichainAccountSelectorList);
 
     expect(list.props.hideSearch).toBe(true);
   });

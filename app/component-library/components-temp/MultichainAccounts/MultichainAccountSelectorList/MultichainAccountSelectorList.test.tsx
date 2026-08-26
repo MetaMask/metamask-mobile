@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 
 // FlashList v2 mock – see app/util/test/mockFlashList.ts
@@ -35,6 +36,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
+  MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
@@ -718,6 +720,59 @@ describe('MultichainAccountSelectorList', () => {
         ['Account 2'],
         ['Account 1', 'Account 3'],
       );
+    });
+
+    it('keeps the list testID in the empty state', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByTestId } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        [account1],
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+          'NoSuchAccount',
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+          ).toBeOnTheScreen();
+        },
+        { timeout: SEARCH_WAIT_TIMEOUT_MS },
+      );
+
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders header and footer slots in the empty state', () => {
+      const { getByTestId, getByText } = renderComponentWithMockState(
+        [],
+        {},
+        [],
+        {
+          ListHeaderComponent: <Text>Header slot</Text>,
+          ListFooterComponent: <Text>Footer slot</Text>,
+        },
+      );
+
+      expect(getByText('Header slot')).toBeOnTheScreen();
+      expect(getByText('Footer slot')).toBeOnTheScreen();
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeOnTheScreen();
     });
 
     it('shows empty state when no accounts match search', async () => {

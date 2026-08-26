@@ -472,9 +472,9 @@ const MultichainAccountSelectorList = ({
           ) : null}
         </View>
       )}
-      <View style={styles.listContainer}>
+      <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
-          <>
+          <View style={styles.emptyStateColumn}>
             {renderListSlot(props.ListHeaderComponent)}
             <View
               style={styles.emptyState}
@@ -489,11 +489,10 @@ const MultichainAccountSelectorList = ({
               </Text>
             </View>
             {renderListSlot(props.ListFooterComponent)}
-          </>
+          </View>
         ) : (
           <FlashList
             ref={listRefToUse}
-            testID={testID}
             data={flattenedData}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
