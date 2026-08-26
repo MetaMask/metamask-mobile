@@ -243,10 +243,12 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # BrowserStack performance builds — seedless onboarding (OAuthLoginHandlers mocked via E2E_MOCK_OAUTH)
-  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
-  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
-  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # BrowserStack performance builds — seedless onboarding.
+  # E2E_MOCK_OAUTH mocks OAuthLoginHandlers only (skip native Google/Apple UI).
+  # IS_PERFORMANCE_TEST keeps the real SeedlessOnboardingController so perf hits
+  # live UAT TOPRF (E2E CI still mocks TOPRF via Metro controller + Mockttp).
+  # IS_PERFORMANCE_TEST also suppresses E2E startup overhead (ReadOnlyNetworkStore,
+  # command polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e'.
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
     github_environment: build-e2e
@@ -270,9 +272,8 @@ builds:
     code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
-  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
-  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
-  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead while keeping METAMASK_ENVIRONMENT='e2e'.
+  # Seedless controller stays real on perf builds; OAuthLoginHandlers mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
     github_environment: build-e2e
     signing: *signing_uat

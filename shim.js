@@ -322,7 +322,10 @@ if (enableApiCallLogs || isTestEnvironment) {
     // which makes HyperLiquid reject perps orders/candles with a 415.
     const installedFetch = global.fetch;
 
-    // Hosts that bypass the mock proxy and make direct network requests.
+    // Performance builds only: let SeedlessOnboardingController hit live UAT
+    // TOPRF / auth-service. E2E CI keeps these hosts on Mockttp (TOPRF mocked).
+    // IS_PERFORMANCE_TEST is inlined at build time via babel.
+    const isPerformanceTestBuild = process.env.IS_PERFORMANCE_TEST === 'true';
     const PROXY_BYPASS_PATTERNS = [
       '.node.web3auth.io',
       '.uat-node.web3auth.io',
@@ -330,6 +333,9 @@ if (enableApiCallLogs || isTestEnvironment) {
     ];
 
     const shouldBypassProxy = (targetUrl) => {
+      if (!isPerformanceTestBuild) {
+        return false;
+      }
       try {
         const hostname = new URL(targetUrl).hostname;
         return PROXY_BYPASS_PATTERNS.some(
