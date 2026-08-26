@@ -18,11 +18,13 @@ import {
   type FeedParams,
   type GetEventResult,
   type GetFeedResult,
+  type GetMarketHistoryResult,
   type GetVenueStatusResult,
 } from '../queries/marketDataQueries';
 import type {
   PredictEntityId,
   PredictFeedId,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
@@ -59,10 +61,21 @@ export interface PredictMarketDataServiceGetEventAction {
   ) => Promise<GetEventResult>;
 }
 
+export interface PredictMarketDataServiceGetMarketHistoryAction {
+  type: 'PredictMarketDataService:getMarketHistory';
+  handler: (
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ) => Promise<GetMarketHistoryResult>;
+}
+
 export type PredictMarketDataServiceActions =
   | PredictMarketDataServiceGetVenueStatusAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
+  | PredictMarketDataServiceGetMarketHistoryAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_MARKET_DATA_SERVICE_NAME>;
 
 export type PredictMarketDataServiceEvents =
@@ -135,6 +148,10 @@ export class PredictMarketDataService extends BaseDataService<
     messenger.registerActionHandler(
       'PredictMarketDataService:getEvent',
       this.getEvent.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictMarketDataService:getMarketHistory',
+      this.getMarketHistory.bind(this),
     );
   }
 
@@ -230,6 +247,38 @@ export class PredictMarketDataService extends BaseDataService<
             this.#marketData.fetchEvent(eventId, {
               signal: options?.signal ?? signal,
             }) as Promise<Json & GetEventResult>,
+        }),
+    );
+  }
+
+  async getMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<GetMarketHistoryResult> {
+    this.#assertVenue(venueId);
+    const descriptor = marketDataQueries.getMarketHistory(
+      venueId,
+      marketId,
+      range,
+    );
+    return withPredictNextTrace(
+      {
+        method: 'getMarketHistory',
+        name: TraceName.PredictNextGetMarketHistory,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId, range },
+        resultData: (result) => ({ pointCount: result.points.length }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.fetchMarketHistory(marketId, range, {
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetMarketHistoryResult>,
         }),
     );
   }
