@@ -367,10 +367,6 @@ const completeValidation = ({
   protocolValid,
   setValidation,
 }: CompleteValidationInput): ValidationAttempt | undefined => {
-  if (requestId !== currentRequestId) {
-    return undefined;
-  }
-
   const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
   const resolvedWarnings = warnings.length > 0 ? warnings : EMPTY_WARNINGS;
   const resolvedProtocolValid = protocolValid ?? resolvedErrors.length === 0;
@@ -381,12 +377,14 @@ const completeValidation = ({
     isValid: resolvedProtocolValid && requestFieldIssues.length === 0,
   };
 
-  setValidation({
-    errors: resolvedErrors,
-    warnings: resolvedWarnings,
-    protocolValid: resolvedProtocolValid,
-    isValidating: false,
-  });
+  if (requestId === currentRequestId) {
+    setValidation({
+      errors: resolvedErrors,
+      warnings: resolvedWarnings,
+      protocolValid: resolvedProtocolValid,
+      isValidating: false,
+    });
+  }
 
   return attempt;
 };
@@ -472,8 +470,6 @@ export function usePerpsOrderValidation(
   const validationRequestIdRef = useRef(0);
   // Track whether we've completed the first validation so we can skip the debounce for it
   const hasValidatedOnceRef = useRef(false);
-  const isImmediateValidationInFlightRef = useRef(false);
-  const immediateValidationCountRef = useRef(0);
 
   const clearValidationTimer = useCallback(() => {
     if (validationTimerRef.current) {
@@ -543,9 +539,6 @@ export function usePerpsOrderValidation(
           orderParams,
         );
         const protocolValidation = await validateOrder(orderParams);
-        if (requestId !== validationRequestIdRef.current) {
-          return undefined;
-        }
         DevLogger.log(
           'usePerpsOrderValidation: Validation result',
           protocolValidation,
@@ -567,9 +560,6 @@ export function usePerpsOrderValidation(
           setValidation,
         });
       } catch (error) {
-        if (requestId !== validationRequestIdRef.current) {
-          return undefined;
-        }
         DevLogger.log(
           'usePerpsOrderValidation: Error during validation',
           error,
@@ -602,19 +592,17 @@ export function usePerpsOrderValidation(
   );
 
   useEffect(() => {
-    if (isImmediateValidationInFlightRef.current) {
-      return;
-    }
-
     const requestId = ++validationRequestIdRef.current;
 
     clearValidationTimer();
 
-    // Synchronous field validation is derived during render. Reset the
-    // asynchronous status while waiting for the next debounced validation.
-    setValidation((prev) =>
-      prev.isValidating ? { ...prev, isValidating: false } : prev,
-    );
+    // Synchronous field validation is derived during render. Lite also uses
+    // this pending state to block submission throughout the debounce window;
+    // Pro intentionally maps its CTA spinner only to active placement.
+    setValidation((prev) => ({
+      ...prev,
+      isValidating: !skipValidation,
+    }));
 
     // Skip protocol validation during keypad input to prevent flickering.
     if (skipValidation) {
@@ -657,38 +645,25 @@ export function usePerpsOrderValidation(
     clearValidationTimer();
     const requestId = ++validationRequestIdRef.current;
     hasValidatedOnceRef.current = true;
-    immediateValidationCountRef.current += 1;
-    isImmediateValidationInFlightRef.current = true;
 
-    try {
-      if (skipValidation) {
-        return {
-          errors: EMPTY_ERRORS,
-          warnings: EMPTY_WARNINGS,
-          fieldIssues,
-          isValid: false,
-        };
-      }
-
-      let attempt = await performValidation(requestId, fieldIssues);
-      if (!attempt) {
-        const retryRequestId = ++validationRequestIdRef.current;
-        attempt = await performValidation(retryRequestId, fieldIssues);
-      }
-
-      return (
-        attempt ?? {
-          errors: [strings('perps.order.validation.failed')],
-          warnings: EMPTY_WARNINGS,
-          fieldIssues,
-          isValid: false,
-        }
-      );
-    } finally {
-      immediateValidationCountRef.current -= 1;
-      isImmediateValidationInFlightRef.current =
-        immediateValidationCountRef.current > 0;
+    if (skipValidation) {
+      return {
+        errors: EMPTY_ERRORS,
+        warnings: EMPTY_WARNINGS,
+        fieldIssues,
+        isValid: false,
+      };
     }
+
+    const attempt = await performValidation(requestId, fieldIssues);
+    return (
+      attempt ?? {
+        errors: [strings('perps.order.validation.failed')],
+        warnings: EMPTY_WARNINGS,
+        fieldIssues,
+        isValid: false,
+      }
+    );
   }, [clearValidationTimer, fieldIssues, performValidation, skipValidation]);
 
   // Return validation with stable array references

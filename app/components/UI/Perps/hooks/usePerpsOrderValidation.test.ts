@@ -463,6 +463,7 @@ describe('usePerpsOrderValidation', () => {
 
       // Validation should not fire yet (debouncing)
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.isValidating).toBe(true);
 
       // Advance timers to fire the debounced callback
       act(() => {
@@ -508,9 +509,13 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('returns the submit validation result after a live price update', async () => {
+    it('returns the submit result and re-arms validation after a live price update', async () => {
       // Arrange
-      const deferredValidation = createDeferred<{
+      const submitValidation = createDeferred<{
+        isValid: boolean;
+        error?: string;
+      }>();
+      const latestValidation = createDeferred<{
         isValid: boolean;
         error?: string;
       }>();
@@ -522,7 +527,9 @@ describe('usePerpsOrderValidation', () => {
         expect(result.current.isValidating).toBe(false);
       });
       mockValidateOrder.mockClear();
-      mockValidateOrder.mockReturnValueOnce(deferredValidation.promise);
+      mockValidateOrder
+        .mockReturnValueOnce(submitValidation.promise)
+        .mockReturnValueOnce(latestValidation.promise);
       let validationPromise!: Promise<ValidationAttempt>;
       let attempt: ValidationAttempt | undefined;
 
@@ -534,18 +541,33 @@ describe('usePerpsOrderValidation', () => {
         ...defaultParams,
         assetPrice: 50100,
       });
+      expect(result.current.isValidating).toBe(true);
       act(() => {
         jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
       });
+      expect(mockValidateOrder).toHaveBeenCalledTimes(2);
       await act(async () => {
-        deferredValidation.resolve({ isValid: true });
+        submitValidation.resolve({ isValid: true });
         attempt = await validationPromise;
       });
 
-      // Assert
-      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      // The tap-time request returns its own result without overwriting the
+      // newer background request's pending state.
       expect(attempt?.isValid).toBe(true);
       expect(attempt?.errors).toEqual([]);
+      expect(result.current.isValidating).toBe(true);
+
+      await act(async () => {
+        latestValidation.resolve({
+          isValid: false,
+          error: 'latest validation error',
+        });
+        await Promise.resolve();
+      });
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.isValid).toBe(false);
     });
 
     it('cleans up debounce timer on unmount', async () => {
@@ -621,13 +643,13 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(false);
-      expect(result.current.isValidating).toBe(false);
+      expect(result.current.isValidating).toBe(true);
       expect(result.current.fieldIssues).toEqual([
         { field: 'limitPrice', issue: { code: 'required' } },
       ]);
     });
 
-    it('retains confirmed validity while a protocol validation is pending', async () => {
+    it('retains confirmed validity while marking debounced validation pending', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result, rerender } = renderHook(
@@ -646,7 +668,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(true);
-      expect(result.current.isValidating).toBe(false);
+      expect(result.current.isValidating).toBe(true);
 
       act(() => {
         jest.advanceTimersByTime(1000);
