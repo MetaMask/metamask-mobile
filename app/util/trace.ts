@@ -75,6 +75,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',

@@ -1391,20 +1391,13 @@ describe('useTransactionPayMetrics', () => {
       );
     }
 
-    it('dispatches confirmation_time_to_open_ms immediately on mount', async () => {
+    it('does not dispatch confirmation_time_to_open_ms, which useConfirmationLoadMetrics owns', async () => {
       jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
 
       runHook({ type: TransactionType.perpsDeposit });
       await act(async () => noop());
 
-      const calls = timingDispatches('confirmation_time_to_open_ms');
-      expect(calls).toHaveLength(1);
-      expect(calls[0][0]).toEqual({
-        id: transactionIdMock,
-        params: {
-          properties: { confirmation_time_to_open_ms: 1000 },
-        },
-      });
+      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(0);
     });
 
     it('dispatches confirmation_time_to_load_info_ms when pay token loads', async () => {
@@ -1474,7 +1467,6 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(1);
       expect(
         timingDispatches('confirmation_time_to_load_info_ms'),
       ).toHaveLength(1);
