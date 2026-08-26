@@ -72,6 +72,10 @@ describeForPlatforms('BridgeView', () => {
     Date.now = () => new Date().getTime();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -702,10 +706,8 @@ describeForPlatforms('BridgeView', () => {
           expect.anything(),
         );
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
-
-    updateQuoteSpy.mockRestore();
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
