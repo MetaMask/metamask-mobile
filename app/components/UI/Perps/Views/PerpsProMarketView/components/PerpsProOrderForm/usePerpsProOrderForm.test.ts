@@ -1435,7 +1435,7 @@ describe('usePerpsProOrderForm', () => {
       const { result, rerender } = renderProForm();
 
       expect(result.current.priceCardMessage).toBeUndefined();
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
 
       act(() => {
         result.current.onTriggerPriceBlur();
@@ -1520,7 +1520,7 @@ describe('usePerpsProOrderForm', () => {
         const { result, rerender } = renderProForm();
 
         expect(result.current.priceCardMessage).toBeUndefined();
-        expect(result.current.isPlaceOrderDisabled).toBe(false);
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
 
         act(() => {
           result.current.onLimitPriceBlur();
@@ -1545,7 +1545,7 @@ describe('usePerpsProOrderForm', () => {
       const { result, rerender } = renderProForm();
 
       expect(result.current.priceCardMessage).toBeUndefined();
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
 
       act(() => {
         result.current.onTriggerPriceBlur();
@@ -1569,7 +1569,7 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       expect(result.current.priceCardMessage).toBeUndefined();
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
 
       await act(async () => {
         await result.current.onPlaceOrderPress();
@@ -1723,6 +1723,37 @@ describe('usePerpsProOrderForm', () => {
         // Assert
         expect(result.current.isPlaceOrderDisabled).toBe(true);
         expect(result.current.notices).toEqual([]);
+      },
+    );
+
+    it.each([
+      { orderType: 'limit', missingField: 'limitPrice' },
+      { orderType: 'stop_market', missingField: 'triggerPrice' },
+      { orderType: 'take_profit_market', missingField: 'triggerPrice' },
+      { orderType: 'stop_limit', missingField: 'triggerPrice' },
+      { orderType: 'stop_limit', missingField: 'limitPrice' },
+      { orderType: 'take_profit_limit', missingField: 'triggerPrice' },
+      { orderType: 'take_profit_limit', missingField: 'limitPrice' },
+    ] as const)(
+      'is disabled for $orderType when $missingField is missing',
+      ({ orderType, missingField }) => {
+        // Arrange
+        mockOrderForm.type = orderType;
+        mockOrderForm.limitPrice =
+          missingField === 'limitPrice' ? undefined : '91000';
+        mockContextValue.triggerPrice =
+          missingField === 'triggerPrice' ? undefined : '91000';
+        mockValidation.isValid = false;
+        mockValidation.fieldIssues = [
+          { field: missingField, issue: { code: 'required' } },
+        ];
+
+        // Act
+        const { result } = renderProForm();
+
+        // Assert
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(result.current.priceCardMessage).toBeUndefined();
       },
     );
 

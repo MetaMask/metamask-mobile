@@ -407,7 +407,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'shows trigger price, hides TP/SL, and blocks Place order after an invalid stop-market blur',
+    'silently blocks an invalid stop-market price until blur shows guidance',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -428,9 +428,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '1000');
 
-      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+          ).not.toBeOnTheScreen();
+          expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
 
       fireEvent(triggerInput, 'blur');
 
@@ -480,7 +486,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
   itForPlatforms('defers required trigger guidance until blur', async () => {
     renderProMarketWithTriggeredOrdersFlag(true);
-    await findSizeInput();
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
 
     fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
     fireEvent.press(
@@ -499,7 +506,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(
           screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
         ).not.toBeOnTheScreen();
-        expect(placeOrderButton).toBeEnabled();
+        expect(placeOrderButton).toBeDisabled();
       },
       { timeout: TIMEOUT_MS },
     );
@@ -519,7 +526,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
   itForPlatforms('defers required limit guidance until blur', async () => {
     renderProMarketWithTriggeredOrdersFlag(true);
-    await findSizeInput();
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
 
     fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
     fireEvent.press(
@@ -540,7 +548,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(
           screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
         ).not.toBeOnTheScreen();
-        expect(placeOrderButton).toBeEnabled();
+        expect(placeOrderButton).toBeDisabled();
       },
       { timeout: TIMEOUT_MS },
     );

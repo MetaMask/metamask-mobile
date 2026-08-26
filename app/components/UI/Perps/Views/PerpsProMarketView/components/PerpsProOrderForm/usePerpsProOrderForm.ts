@@ -1329,14 +1329,8 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
   ]);
 
-  const hasVisiblePriceValidationError = orderValidation.fieldIssues.some(
-    ({ field }) =>
-      field === 'triggerPrice'
-        ? hasBlurredTriggerPrice || hasAttemptedSubmit
-        : hasBlurredLimitPrice || hasAttemptedSubmit,
-  );
   const hasBlockingOrderValidationError =
-    filteredErrors.length > 0 || hasVisiblePriceValidationError;
+    filteredErrors.length > 0 || orderValidation.fieldIssues.length > 0;
 
   const isPlaceOrderDisabled =
     !hasValidAmount ||
