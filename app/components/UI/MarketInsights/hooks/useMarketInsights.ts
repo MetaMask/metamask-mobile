@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
@@ -40,8 +40,10 @@ export const useMarketInsights = (
     Boolean(isEnabled && assetIdentifier),
   );
   const [error, setError] = useState<string | null>(null);
+  const requestGenerationRef = useRef(0);
 
   const fetchInsights = useCallback(async () => {
+    const requestGeneration = ++requestGenerationRef.current;
     if (!isEnabled || !assetIdentifier) {
       setReport(null);
       setReportAssetId(null);
@@ -60,19 +62,26 @@ export const useMarketInsights = (
         await Engine.context.AiDigestController.fetchMarketInsights(
           assetIdentifier,
         );
+      if (requestGeneration !== requestGenerationRef.current) return;
       setReport(data as MarketInsightsReport | null);
       setReportAssetId(data ? assetIdentifier : null);
     } catch (err) {
+      if (requestGeneration !== requestGenerationRef.current) return;
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
       setReport(null);
       setReportAssetId(null);
     } finally {
-      setIsLoading(false);
+      if (requestGeneration === requestGenerationRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [assetIdentifier, isEnabled]);
 
   useEffect(() => {
     fetchInsights();
+    return () => {
+      requestGenerationRef.current += 1;
+    };
   }, [fetchInsights]);
 
   const timeAgo = useMemo(
