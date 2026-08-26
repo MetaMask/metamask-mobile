@@ -479,9 +479,9 @@ jobs:
             "$report" \
             tests/test-reports/playwright-json/shard-status.json
 
-      - name: Upload Playwright HTML report (Namespace)
+      - name: Upload Playwright HTML report (mirrored)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: ./.github/actions/upload-namespace-artifact
+        uses: ./.github/actions/upload-mirrored-artifact
         with:
           name: appium-smoke-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
@@ -496,22 +496,21 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload Playwright JSON report (Namespace)
+      - name: Upload Playwright JSON report (mirrored)
         # Fixed inner filename (playwright-report.json) for github-tools playwright-test-health-report;
         # suite/shard identity is in the artifact name prefix playwright-json-report-*.
         # Also includes shard-status.json for re-run filtering across attempts.
+        # Mirrors to GitHub so collect-qa-stats.mjs / e2e-freeze-timings can see it.
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: ./.github/actions/upload-namespace-artifact
+        uses: ./.github/actions/upload-mirrored-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/
           if-no-files-found: ignore
           retention-days: 7
-      # Always upload to GitHub Artifacts too. Namespace storage is invisible to
-      # collect-qa-stats.mjs / e2e-freeze-timings (GitHub API only), which need
-      # these JSON reports to publish e2e_test_times for timing-balanced sharding.
       - name: Upload Playwright JSON report (GitHub)
-        if: ${{ always() }}
+        # Namespace path already mirrored GitHub via upload-mirrored-artifact.
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
@@ -520,9 +519,9 @@ jobs:
           retention-days: 7
           overwrite: true
 
-      - name: Upload Appium phase timings (Namespace)
+      - name: Upload Appium phase timings (mirrored)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: ./.github/actions/upload-namespace-artifact
+        uses: ./.github/actions/upload-mirrored-artifact
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
@@ -537,9 +536,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload failure screen recordings (Namespace)
+      - name: Upload failure screen recordings (mirrored)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
-        uses: ./.github/actions/upload-namespace-artifact
+        uses: ./.github/actions/upload-mirrored-artifact
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
