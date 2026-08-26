@@ -29,8 +29,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, values?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
       'perps.order.validation.existing_position': `Existing position for ${values?.asset}`,
-      'perps.order.validation.amount_required':
-        'Order amount must be greater than 0',
       'perps.order.validation.insufficient_balance': `Insufficient balance: need ${values?.required}, have ${values?.available}`,
       'perps.order.validation.minimum_amount': `Minimum order size is $${values?.amount}`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
@@ -101,7 +99,7 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
-    it('reports a required amount when position size changes to zero', async () => {
+    it('keeps zero position size invalid without an amount message', async () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({
         isValid: false,
@@ -127,9 +125,7 @@ describe('usePerpsOrderValidation', () => {
       // Assert
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
       await fastWaitFor(() => {
-        expect(result.current.errors).toContain(
-          'Order amount must be greater than 0',
-        );
+        expect(result.current.errors).toEqual([]);
       });
       expect(result.current.isValid).toBe(false);
     });

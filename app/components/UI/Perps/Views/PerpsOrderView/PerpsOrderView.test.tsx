@@ -2103,6 +2103,25 @@ describe('PerpsOrderView', () => {
       expect(errorText).toBeDefined();
     });
 
+    it('keeps the button disabled without displaying the zero amount message', async () => {
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: [],
+        isValidating: false,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+
+      expect(placeOrderButton).toBeDisabled();
+      expect(
+        screen.queryByText('Order amount must be greater than 0'),
+      ).toBeNull();
+    });
+
     it('disables button when order is placing', async () => {
       // Mock placing order state
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({

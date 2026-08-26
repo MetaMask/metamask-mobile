@@ -382,53 +382,41 @@ describe('usePerpsProOrderForm', () => {
       expect(banner?.message).toBe('Insufficient funds');
     });
 
-    it('defers the amount-required message until size interaction', () => {
+    it('keeps an empty amount blocked without an inline message', () => {
       // Arrange
       mockOrderForm.amount = '0';
       mockValidation.isValid = false;
-      mockValidation.errors = ['Order amount must be greater than 0'];
+      mockValidation.errors = [];
 
       // Act
       const { result } = renderProForm();
 
       // Assert
-      expect(result.current.notices).not.toContainEqual({
-        id: 'validation-0',
-        variant: 'inline',
-        message: 'Order amount must be greater than 0',
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(false);
 
       act(() => {
         result.current.sizeInput.onBlur();
       });
 
-      expect(result.current.notices).toContainEqual({
-        id: 'validation-0',
-        variant: 'inline',
-        message: 'Order amount must be greater than 0',
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('shows the amount-required message after a submit attempt', async () => {
+    it('blocks after submit without an inline amount message', async () => {
       // Arrange
       mockOrderForm.amount = '0';
       mockValidation.isValid = false;
-      mockValidation.errors = ['Order amount must be greater than 0'];
+      mockValidation.errors = [];
       mockValidation.validateNow.mockResolvedValue({
-        errors: ['Order amount must be greater than 0'],
+        errors: [],
         warnings: [],
         fieldIssues: [],
         isValid: false,
       });
       const { result } = renderProForm();
 
-      expect(result.current.notices).not.toContainEqual({
-        id: 'validation-0',
-        variant: 'inline',
-        message: 'Order amount must be greater than 0',
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(false);
 
       // Act
@@ -438,13 +426,9 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(validationError).toHaveBeenCalledWith(
-        'Order amount must be greater than 0',
+        strings('perps.order.validation.error'),
       );
-      expect(result.current.notices).toContainEqual({
-        id: 'validation-0',
-        variant: 'inline',
-        message: 'Order amount must be greater than 0',
-      });
+      expect(result.current.notices).toEqual([]);
       expect(result.current.isPlaceOrderDisabled).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });

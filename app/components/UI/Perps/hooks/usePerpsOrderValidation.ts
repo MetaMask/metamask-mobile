@@ -137,7 +137,13 @@ interface CompleteValidationInput {
   requestFieldIssues: OrderFormFieldIssue[];
   errors: string[];
   warnings: string[];
+  protocolValid?: boolean;
   setValidation: Dispatch<SetStateAction<ValidationState>>;
+}
+
+interface ValidationPrerequisiteResult {
+  errors: string[];
+  protocolValid: boolean;
 }
 
 const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
@@ -145,20 +151,26 @@ const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
     ? TRADING_DEFAULTS.amount.mainnet
     : TRADING_DEFAULTS.amount.testnet;
 
-const getValidationPrerequisiteError = ({
+const getValidationPrerequisiteResult = ({
   assetPrice,
   positionSize,
 }: {
   assetPrice: number;
   positionSize: string;
-}): string | undefined => {
+}): ValidationPrerequisiteResult | undefined => {
   if (!(assetPrice > 0)) {
-    return strings('perps.order.validation.market_data_loading');
+    return {
+      errors: [strings('perps.order.validation.market_data_loading')],
+      protocolValid: false,
+    };
   }
 
   const numericPositionSize = Number.parseFloat(positionSize);
   if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
-    return strings('perps.order.validation.amount_required');
+    return {
+      errors: EMPTY_ERRORS,
+      protocolValid: false,
+    };
   }
 
   return undefined;
@@ -352,6 +364,7 @@ const completeValidation = ({
   requestFieldIssues,
   errors,
   warnings,
+  protocolValid,
   setValidation,
 }: CompleteValidationInput): ValidationAttempt | undefined => {
   if (requestId !== currentRequestId) {
@@ -360,17 +373,18 @@ const completeValidation = ({
 
   const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
   const resolvedWarnings = warnings.length > 0 ? warnings : EMPTY_WARNINGS;
+  const resolvedProtocolValid = protocolValid ?? resolvedErrors.length === 0;
   const attempt: ValidationAttempt = {
     errors: resolvedErrors,
     warnings: resolvedWarnings,
     fieldIssues: requestFieldIssues,
-    isValid: resolvedErrors.length === 0 && requestFieldIssues.length === 0,
+    isValid: resolvedProtocolValid && requestFieldIssues.length === 0,
   };
 
   setValidation({
     errors: resolvedErrors,
     warnings: resolvedWarnings,
-    protocolValid: resolvedErrors.length === 0,
+    protocolValid: resolvedProtocolValid,
     isValidating: false,
   });
 
@@ -484,17 +498,18 @@ export function usePerpsOrderValidation(
         isValidating: true,
       }));
 
-      const prerequisiteError = getValidationPrerequisiteError({
+      const prerequisiteResult = getValidationPrerequisiteResult({
         assetPrice,
         positionSize,
       });
-      if (prerequisiteError) {
+      if (prerequisiteResult) {
         return completeValidation({
           requestId,
           currentRequestId: validationRequestIdRef.current,
           requestFieldIssues,
-          errors: [prerequisiteError],
+          errors: prerequisiteResult.errors,
           warnings: EMPTY_WARNINGS,
+          protocolValid: prerequisiteResult.protocolValid,
           setValidation,
         });
       }

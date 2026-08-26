@@ -744,32 +744,16 @@ export const usePerpsProOrderForm = ({
     const sizePositiveMsg = strings(
       'perps.errors.orderValidation.sizePositive',
     );
-    const amountRequiredMsg = strings('perps.order.validation.amount_required');
     const withoutSize = orderValidation.errors.filter(
       (err) => err !== sizePositiveMsg,
     );
     const fieldMessages = new Set(
       orderValidation.fieldIssues.map(getOrderFormFieldIssueMessage),
     );
-    return withoutSize.filter((err) => {
-      if (
-        err === amountRequiredMsg &&
-        !hasValidAmount &&
-        !hasInteractedWithSize &&
-        !hasAttemptedSubmit
-      ) {
-        return false;
-      }
-
-      return !fieldMessages.has(err);
-    });
-  }, [
-    hasAttemptedSubmit,
-    hasValidAmount,
-    hasInteractedWithSize,
-    orderValidation.errors,
-    orderValidation.fieldIssues,
-  ]);
+    return withoutSize.filter((err) => !fieldMessages.has(err));
+  }, [orderValidation.errors, orderValidation.fieldIssues]);
+  const hasBlockingAmountValidationError =
+    !hasValidAmount && (hasInteractedWithSize || hasAttemptedSubmit);
 
   const {
     doesStopLossRiskLiquidation,
@@ -1384,11 +1368,13 @@ export const usePerpsProOrderForm = ({
         ? hasBlurredTriggerPrice || hasAttemptedSubmit
         : hasBlurredLimitPrice || hasAttemptedSubmit,
   );
-  const hasVisibleOrderValidationError =
-    filteredErrors.length > 0 || hasVisiblePriceValidationError;
+  const hasBlockingOrderValidationError =
+    filteredErrors.length > 0 ||
+    hasBlockingAmountValidationError ||
+    hasVisiblePriceValidationError;
 
   const isPlaceOrderDisabled =
-    hasVisibleOrderValidationError ||
+    hasBlockingOrderValidationError ||
     isAtCap ||
     isPlacing ||
     isMarketDataBlocking ||
