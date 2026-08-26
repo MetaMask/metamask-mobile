@@ -425,7 +425,7 @@ export const usePerpsProOrderForm = ({
     error: marketDataError,
   } = usePerpsMarketData({
     asset: symbol,
-    showErrorToast: true,
+    showErrorToast: false,
   });
   const szDecimals =
     marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
@@ -791,6 +791,8 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    // Defensive guard for stale or programmatic invocations. The rendered CTA
+    // is already disabled for both expected blocking states.
     if (isMarketDataBlocking || isAtCap) {
       return;
     }
@@ -809,7 +811,6 @@ export const usePerpsProOrderForm = ({
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(message),
       );
-      isSubmittingRef.current = false;
       return;
     }
 
@@ -871,7 +872,6 @@ export const usePerpsProOrderForm = ({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
         });
-        isSubmittingRef.current = false;
         return;
       }
 
@@ -889,7 +889,6 @@ export const usePerpsProOrderForm = ({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
         });
-        isSubmittingRef.current = false;
         return;
       }
 

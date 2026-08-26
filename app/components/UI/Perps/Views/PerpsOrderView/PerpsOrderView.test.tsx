@@ -105,6 +105,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.order.validation.limit_price_required':
+        'Please set a limit price for limit orders',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -1228,6 +1230,70 @@ describe('PerpsOrderView', () => {
     });
 
     expect(mockValidateNow).toHaveBeenCalledTimes(1);
+    expect(mockExecuteOrder).not.toHaveBeenCalled();
+  });
+
+  it('reports an authoritative field issue before direct order placement', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: mockExecuteOrder,
+      isPlacing: false,
+    });
+    const mockBuilder = {
+      addProperties: jest.fn(),
+      build: jest.fn().mockReturnValue({}),
+    };
+    mockBuilder.addProperties.mockReturnValue(mockBuilder);
+    mockCreateEventBuilder.mockReturnValue(mockBuilder);
+    const currentToasts = (usePerpsToasts as jest.Mock)();
+    const mockShowToast = jest.fn();
+    const mockValidationError = jest.fn((message) => ({ message }));
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      ...currentToasts,
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        ...currentToasts.PerpsToastOptions,
+        formValidation: {
+          ...currentToasts.PerpsToastOptions.formValidation,
+          orderForm: {
+            ...currentToasts.PerpsToastOptions.formValidation.orderForm,
+            validationError: mockValidationError,
+          },
+        },
+      },
+    });
+    mockValidateNow.mockResolvedValueOnce({
+      isValid: false,
+      errors: [],
+      warnings: [],
+      fieldIssues: [{ field: 'limitPrice', issue: { code: 'required' } }],
+    });
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(mockValidationError).toHaveBeenCalledWith(
+      'Please set a limit price for limit orders',
+    );
+    expect(mockShowToast).toHaveBeenCalledWith({
+      message: 'Please set a limit price for limit orders',
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_ERROR,
+    );
+    expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+          'Please set a limit price for limit orders',
+      }),
+    );
     expect(mockExecuteOrder).not.toHaveBeenCalled();
   });
 

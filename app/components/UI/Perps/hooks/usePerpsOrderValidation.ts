@@ -1,12 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -71,11 +63,7 @@ export interface ValidationAttempt {
   isValid: boolean;
 }
 
-export interface ValidationResult {
-  errors: string[];
-  warnings: string[];
-  fieldIssues: OrderFormFieldIssue[];
-  isValid: boolean;
+export interface ValidationResult extends ValidationAttempt {
   isValidating: boolean;
   validateNow: () => Promise<ValidationAttempt>;
 }
@@ -131,19 +119,16 @@ interface ProtocolValidationErrorsInput {
   minimumOrderSize: number;
 }
 
-interface CompleteValidationInput {
-  requestId: number;
-  currentRequestId: number;
+interface BuildValidationOutcomeInput {
   requestFieldIssues: OrderFormFieldIssue[];
   errors: string[];
   warnings: string[];
   protocolValid?: boolean;
-  setValidation: Dispatch<SetStateAction<ValidationState>>;
 }
 
-interface ValidationPrerequisiteResult {
-  errors: string[];
-  protocolValid: boolean;
+interface ValidationOutcome {
+  attempt: ValidationAttempt;
+  state: ValidationState;
 }
 
 const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
@@ -151,29 +136,19 @@ const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
     ? TRADING_DEFAULTS.amount.mainnet
     : TRADING_DEFAULTS.amount.testnet;
 
-const getValidationPrerequisiteResult = ({
+const isValidationReady = ({
   assetPrice,
   positionSize,
 }: {
   assetPrice: number;
   positionSize: string;
-}): ValidationPrerequisiteResult | undefined => {
+}): boolean => {
   if (!(assetPrice > 0)) {
-    return {
-      errors: EMPTY_ERRORS,
-      protocolValid: false,
-    };
+    return false;
   }
 
   const numericPositionSize = Number.parseFloat(positionSize);
-  if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
-    return {
-      errors: EMPTY_ERRORS,
-      protocolValid: false,
-    };
-  }
-
-  return undefined;
+  return Number.isFinite(numericPositionSize) && numericPositionSize > 0;
 };
 
 const getImmediateValidationErrors = ({
@@ -285,43 +260,6 @@ const getProtocolErrorContext = ({
   }
 };
 
-const getProtocolValidationError = ({
-  protocolValidation,
-  immediateErrors,
-  requestFieldIssues,
-  orderForm,
-  existingPositionLeverage,
-  minimumOrderSize,
-}: ProtocolValidationErrorsInput): string | undefined => {
-  const { error } = protocolValidation;
-  if (
-    protocolValidation.isValid ||
-    !error ||
-    (requestFieldIssues.length > 0 && FIELD_OWNED_PROTOCOL_ERRORS.has(error))
-  ) {
-    return undefined;
-  }
-
-  const translatedError = translatePerpsError(
-    error,
-    getProtocolErrorContext({
-      error,
-      orderForm,
-      existingPositionLeverage,
-      minimumOrderSize,
-    }),
-  );
-  if (
-    immediateErrors.some((existingError) =>
-      existingError.includes(translatedError),
-    )
-  ) {
-    return undefined;
-  }
-
-  return translatedError;
-};
-
 const getProtocolValidationErrors = ({
   protocolValidation,
   immediateErrors,
@@ -331,18 +269,30 @@ const getProtocolValidationErrors = ({
   minimumOrderSize,
 }: ProtocolValidationErrorsInput): string[] => {
   const errors = [...immediateErrors];
-  const protocolError = getProtocolValidationError({
-    protocolValidation,
-    immediateErrors,
-    requestFieldIssues,
-    orderForm,
-    existingPositionLeverage,
-    minimumOrderSize,
-  });
+  const { error } = protocolValidation;
+  const isFieldOwnedError =
+    error !== undefined &&
+    requestFieldIssues.length > 0 &&
+    FIELD_OWNED_PROTOCOL_ERRORS.has(error);
 
-  if (protocolError) {
-    errors.push(protocolError);
+  if (!protocolValidation.isValid && error && !isFieldOwnedError) {
+    const translatedError = translatePerpsError(
+      error,
+      getProtocolErrorContext({
+        error,
+        orderForm,
+        existingPositionLeverage,
+        minimumOrderSize,
+      }),
+    );
+    const isDuplicate = immediateErrors.some((existingError) =>
+      existingError.includes(translatedError),
+    );
+    if (!isDuplicate) {
+      errors.push(translatedError);
+    }
   }
+
   if (!protocolValidation.isValid && !protocolValidation.error) {
     errors.push(strings('perps.order.validation.failed'));
   }
@@ -358,15 +308,12 @@ const getValidationWarnings = (leverage: number): string[] => {
   return [strings('perps.order.validation.high_leverage_warning')];
 };
 
-const completeValidation = ({
-  requestId,
-  currentRequestId,
+const buildValidationOutcome = ({
   requestFieldIssues,
   errors,
   warnings,
   protocolValid,
-  setValidation,
-}: CompleteValidationInput): ValidationAttempt | undefined => {
+}: BuildValidationOutcomeInput): ValidationOutcome => {
   const resolvedErrors = errors.length > 0 ? errors : EMPTY_ERRORS;
   const resolvedWarnings = warnings.length > 0 ? warnings : EMPTY_WARNINGS;
   const resolvedProtocolValid = protocolValid ?? resolvedErrors.length === 0;
@@ -377,16 +324,15 @@ const completeValidation = ({
     isValid: resolvedProtocolValid && requestFieldIssues.length === 0,
   };
 
-  if (requestId === currentRequestId) {
-    setValidation({
+  return {
+    attempt,
+    state: {
       errors: resolvedErrors,
       warnings: resolvedWarnings,
       protocolValid: resolvedProtocolValid,
       isValidating: false,
-    });
-  }
-
-  return attempt;
+    },
+  };
 };
 
 /**
@@ -487,6 +433,16 @@ export function usePerpsOrderValidation(
         return undefined;
       }
 
+      const finalizeValidation = (
+        input: BuildValidationOutcomeInput,
+      ): ValidationAttempt => {
+        const outcome = buildValidationOutcome(input);
+        if (requestId === validationRequestIdRef.current) {
+          setValidation(outcome.state);
+        }
+        return outcome.attempt;
+      };
+
       // Set validation state to indicate we're validating
       // but preserve existing errors to prevent flashing
       setValidation((prev) => ({
@@ -494,19 +450,16 @@ export function usePerpsOrderValidation(
         isValidating: true,
       }));
 
-      const prerequisiteResult = getValidationPrerequisiteResult({
+      const validationReady = isValidationReady({
         assetPrice,
         positionSize,
       });
-      if (prerequisiteResult) {
-        return completeValidation({
-          requestId,
-          currentRequestId: validationRequestIdRef.current,
+      if (!validationReady) {
+        return finalizeValidation({
           requestFieldIssues,
-          errors: prerequisiteResult.errors,
+          errors: EMPTY_ERRORS,
           warnings: EMPTY_WARNINGS,
-          protocolValid: prerequisiteResult.protocolValid,
-          setValidation,
+          protocolValid: false,
         });
       }
 
@@ -544,9 +497,7 @@ export function usePerpsOrderValidation(
           protocolValidation,
         );
 
-        return completeValidation({
-          requestId,
-          currentRequestId: validationRequestIdRef.current,
+        return finalizeValidation({
           requestFieldIssues,
           errors: getProtocolValidationErrors({
             protocolValidation,
@@ -557,20 +508,16 @@ export function usePerpsOrderValidation(
             minimumOrderSize,
           }),
           warnings: getValidationWarnings(orderFormValidationData.leverage),
-          setValidation,
         });
       } catch (error) {
         DevLogger.log(
           'usePerpsOrderValidation: Error during validation',
           error,
         );
-        return completeValidation({
-          requestId,
-          currentRequestId: validationRequestIdRef.current,
+        return finalizeValidation({
           requestFieldIssues,
           errors: [strings('perps.order.validation.error')],
           warnings: EMPTY_WARNINGS,
-          setValidation,
         });
       }
     },

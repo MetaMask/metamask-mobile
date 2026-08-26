@@ -166,6 +166,7 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
+import { getOrderFormFieldIssueMessage } from '../../utils/triggerOrderValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -1341,24 +1342,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         const validationAttempt = await validateNow();
         if (!validationAttempt.isValid) {
-          const firstError = validationAttempt.errors[0];
-          if (firstError) {
-            showToast(
-              PerpsToastOptions.formValidation.orderForm.validationError(
-                firstError,
-              ),
-            );
+          const firstFieldIssue = validationAttempt.fieldIssues[0];
+          const firstError =
+            validationAttempt.errors[0] ||
+            (firstFieldIssue
+              ? getOrderFormFieldIssueMessage(firstFieldIssue)
+              : strings('perps.order.validation.error'));
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              firstError,
+            ),
+          );
 
-            track(MetaMetricsEvents.PERPS_ERROR, {
-              [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-                PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
-              [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-                PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-            });
-          }
+          track(MetaMetricsEvents.PERPS_ERROR, {
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
+            [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+              PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+          });
           return;
         }
 
