@@ -407,6 +407,41 @@ describe('PerpsProOrderBookPanel', () => {
     );
   });
 
+  it('mirrors the column headers when the book is pinned left', () => {
+    mockOrderBookPosition = 'left';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    // Value leads and price trails, mirroring the ladder rows below.
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-value`,
+      `${testID}-column-header-price`,
+    ]);
+  });
+
+  it('keeps the default column header order when the book is pinned right', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-price`,
+      `${testID}-column-header-value`,
+    ]);
+  });
+
   it('shows the spread value alone, keeping the label for screen readers', () => {
     const { getByTestId, queryByText } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
