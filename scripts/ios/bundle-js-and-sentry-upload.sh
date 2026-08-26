@@ -1,9 +1,7 @@
 #!/bin/bash
 set -e
 
-# Xcode's PATH does not include nvm. Do not source nvm.sh here: nvm returns 3
-# while resolving aliases and `set -e` aborts this phase with no log output.
-# ios/.xcode.env (via with-environment.sh) sets NODE_BINARY from .nvmrc.
+# Do not source nvm.sh: nvm returns 3 under set -e and aborts this Xcode phase.
 
 # Source environment if file exists
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"

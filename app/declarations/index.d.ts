@@ -504,34 +504,21 @@ declare module '@sumsub/react-native-mobilesdk-module' {
 
   export type SumSubTokenExpirationHandler = () => Promise<string>;
 
-  export interface SumSubSdkInstance {
-    launch: () => Promise<SumSubLaunchResult>;
-    dismiss: () => void;
-  }
-
   export interface SumSubSdkBuilder {
     withHandlers: (handlers: {
       onStatusChanged?: (event: SumSubStatusChangedEvent) => void;
-      onEvent?: (event: { eventType: string; payload?: unknown }) => void;
-      onLog?: (event: { message: string }) => void;
     }) => SumSubSdkBuilder;
     withDebug: (debug: boolean) => SumSubSdkBuilder;
-    withLocale: (locale: string) => SumSubSdkBuilder;
-    withAnalyticsEnabled: (enabled: boolean) => SumSubSdkBuilder;
-    withApplicantConf: (conf: Record<string, string>) => SumSubSdkBuilder;
-    withTheme: (theme: Record<string, unknown>) => SumSubSdkBuilder;
     onTestEnv: () => SumSubSdkBuilder;
-    build: () => SumSubSdkInstance;
+    build: () => { launch: () => Promise<SumSubLaunchResult> };
   }
 
-  interface SNSMobileSDKModule {
+  const SNSMobileSDK: {
     init: (
       accessToken: string,
       expirationHandler: SumSubTokenExpirationHandler,
     ) => SumSubSdkBuilder;
     reset: () => void;
-  }
-
-  const SNSMobileSDK: SNSMobileSDKModule;
+  };
   export default SNSMobileSDK;
 }

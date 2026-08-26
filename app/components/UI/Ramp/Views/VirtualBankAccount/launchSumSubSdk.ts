@@ -24,18 +24,6 @@ const assertSumSubNativeModuleLinked = (): void => {
   throw new Error(SUMSUB_NATIVE_MODULE_MISSING_ERROR);
 };
 
-/**
- * Opens the native Sumsub Mobile SDK. The caller supplies an applicant
- * access token (minted by the KYC API). An empty token is valid input:
- * the SDK still presents, then asks `onTokenExpired` for a refresh.
- *
- * Stand-in for the KycController launcher (`reactNativeSumSubLauncher`)
- * until that controller is published and wired into Engine.
- *
- * @param params - Launch options.
- * @param params.accessToken - Applicant access token, or `''` to launch and refresh via `onTokenExpired`.
- * @param params.onTokenExpired - Optional token refresh. Defaults to returning the original `accessToken`.
- */
 export const launchSumSubSdk = async ({
   accessToken,
   onTokenExpired,
@@ -50,10 +38,7 @@ export const launchSumSubSdk = async ({
     .withDebug(Boolean(__DEV__))
     .withHandlers({
       onStatusChanged: (event) => {
-        Logger.log('[Sumsub] status changed', {
-          prevStatus: event.prevStatus,
-          newStatus: event.newStatus,
-        });
+        Logger.log('[Sumsub] status changed', event);
       },
     })
     .build();

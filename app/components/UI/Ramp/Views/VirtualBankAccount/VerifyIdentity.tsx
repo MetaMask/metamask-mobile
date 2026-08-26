@@ -149,21 +149,10 @@ const VbaVerifyIdentity = () => {
         accessToken,
         onTokenExpired: resolveSumSubAccessToken,
       });
-      Logger.log('[VBA KYC] Sumsub SDK closed', {
-        success: result.success,
-        status: result.status,
-        errorType: result.errorType,
-      });
+      Logger.log('[VBA KYC] Sumsub SDK closed', result);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
-        context: {
-          name: 'VbaVerifyIdentity',
-          data: {
-            method: 'launchSumSubSdk',
-            status: 'launch_failed',
-          },
-        },
       });
     } finally {
       setIsLaunchingSumSub(false);

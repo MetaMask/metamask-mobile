@@ -4,7 +4,10 @@ import {
   SUMSUB_NATIVE_MODULE_MISSING_ERROR,
   SUMSUB_NATIVE_MODULE_NAME,
 } from './launchSumSubSdk';
-import type { SumSubTokenExpirationHandler } from '@sumsub/react-native-mobilesdk-module';
+import type {
+  SumSubStatusChangedEvent,
+  SumSubTokenExpirationHandler,
+} from '@sumsub/react-native-mobilesdk-module';
 import Logger from '../../../../../util/Logger';
 
 const mockLaunch = jest.fn();
@@ -135,13 +138,11 @@ describe('launchSumSubSdk', () => {
   });
 
   it('logs native SDK status changes', async () => {
-    type StatusChangedHandler = (event: {
-      prevStatus: string;
-      newStatus: string;
-    }) => void;
-    let onStatusChanged: StatusChangedHandler | undefined;
+    let onStatusChanged:
+      | ((event: SumSubStatusChangedEvent) => void)
+      | undefined;
     mockWithHandlers.mockImplementation(
-      (handlers: { onStatusChanged: StatusChangedHandler }) => {
+      (handlers: { onStatusChanged: typeof onStatusChanged }) => {
         onStatusChanged = handlers.onStatusChanged;
         return { build: mockBuild };
       },
@@ -153,10 +154,7 @@ describe('launchSumSubSdk', () => {
 
     expect(jest.mocked(Logger.log)).toHaveBeenCalledWith(
       '[Sumsub] status changed',
-      {
-        prevStatus: 'Init',
-        newStatus: 'Approved',
-      },
+      { prevStatus: 'Init', newStatus: 'Approved' },
     );
   });
 });

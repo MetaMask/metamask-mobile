@@ -18,10 +18,6 @@ export const SUMSUB_SANDBOX_TOKEN_TTL_SECS = 600;
 
 const SUMSUB_SANDBOX_MINT_TIMEOUT_MS = 15_000;
 
-/**
- * Thrown when Dashboard Sandbox credentials are set but Sumsub rejects the
- * mint (HTTP error, missing token in the response, or abort).
- */
 export class SumSubSandboxMintError extends Error {
   constructor(message: string) {
     super(message);
@@ -40,19 +36,9 @@ const readNonEmptyString = (value: unknown): string | undefined => {
   return value;
 };
 
-/**
- * Dashboard Sandbox mint is local `__DEV__` only. Production bundles inline
- * `__DEV__` as false. Jest may leave it undefined; treat that as allowed so
- * unit tests can exercise the signer.
- */
 export const isSumSubSandboxMintAllowed = (): boolean =>
   typeof __DEV__ === 'undefined' || Boolean(__DEV__);
 
-/**
- * Optional overrides for {@link mintSumSubSandboxAccessToken}. Production
- * callers omit this object. Tests pin time, inject `fetch`, and force the
- * `__DEV__` gate via `isMintAllowed`.
- */
 export interface MintSumSubSandboxAccessTokenParams {
   nowSeconds?: number;
   fetchImpl?: typeof fetch;
@@ -60,35 +46,24 @@ export interface MintSumSubSandboxAccessTokenParams {
   secretKey?: string;
   levelName?: string;
   userId?: string;
-  /**
-   * Abort the mint after this many milliseconds. `0` skips the timer
-   * (used by unit tests so Jest does not hold a 15s handle). Production
-   * callers omit this.
-   */
   timeoutMs?: number;
-  /**
-   * Test seam. Overrides {@link isSumSubSandboxMintAllowed}. Same-module
-   * calls do not go through the export, so `jest.spyOn` cannot stub the
-   * gate. Production callers omit this.
-   */
   isMintAllowed?: boolean;
 }
 
-const hasSandboxMintCredentials = ({
-  appToken = SUMSUB_SANDBOX_APP_TOKEN,
-  secretKey = SUMSUB_SANDBOX_SECRET_KEY,
-  levelName = SUMSUB_SANDBOX_LEVEL_NAME,
-  isMintAllowed = isSumSubSandboxMintAllowed(),
-}: Pick<
-  MintSumSubSandboxAccessTokenParams,
-  'appToken' | 'secretKey' | 'levelName' | 'isMintAllowed'
-> = {}): boolean =>
-  isMintAllowed && Boolean(appToken && secretKey && levelName);
+const hasSandboxMintCredentials = (
+  params?: Pick<
+    MintSumSubSandboxAccessTokenParams,
+    'appToken' | 'secretKey' | 'levelName' | 'isMintAllowed'
+  >,
+): boolean => {
+  const appToken = params?.appToken ?? SUMSUB_SANDBOX_APP_TOKEN;
+  const secretKey = params?.secretKey ?? SUMSUB_SANDBOX_SECRET_KEY;
+  const levelName = params?.levelName ?? SUMSUB_SANDBOX_LEVEL_NAME;
+  const isMintAllowed = params?.isMintAllowed ?? isSumSubSandboxMintAllowed();
 
-/**
- * HMAC-SHA256 hex digest for a Sumsub App Token request.
- * Signs `timestamp + method + path + body` with the sandbox secret.
- */
+  return isMintAllowed && Boolean(appToken && secretKey && levelName);
+};
+
 export const signSumSubSandboxRequest = ({
   secretKey,
   timestampSeconds,
@@ -110,36 +85,23 @@ export const signSumSubSandboxRequest = ({
     ),
   );
 
-/**
- * Mints a short-lived Sumsub applicant access token against Dashboard
- * Sandbox (`https://api.sumsub.com`, `sbx:` app tokens). This is not
- * `onTestEnv()` / `test-api.sumsub.com`, which is a different host.
- *
- * Returns `null` when mint is not allowed or credentials are unset so
- * teammates without a Dashboard login still build. Throws
- * {@link SumSubSandboxMintError} when credentials are set but Sumsub rejects
- * the request.
- */
-export const mintSumSubSandboxAccessToken = async ({
-  nowSeconds = Math.floor(Date.now() / 1000),
-  fetchImpl = fetch,
-  appToken = SUMSUB_SANDBOX_APP_TOKEN,
-  secretKey = SUMSUB_SANDBOX_SECRET_KEY,
-  levelName = SUMSUB_SANDBOX_LEVEL_NAME,
-  userId = SUMSUB_SANDBOX_USER_ID,
-  timeoutMs = SUMSUB_SANDBOX_MINT_TIMEOUT_MS,
-  isMintAllowed = isSumSubSandboxMintAllowed(),
-}: MintSumSubSandboxAccessTokenParams = {}): Promise<string | null> => {
-  if (
-    !hasSandboxMintCredentials({
-      appToken,
-      secretKey,
-      levelName,
-      isMintAllowed,
-    })
-  ) {
+// Dashboard Sandbox (`sbx:` tokens) uses api.sumsub.com. Do not call onTestEnv().
+export const mintSumSubSandboxAccessToken = async (
+  params?: MintSumSubSandboxAccessTokenParams,
+): Promise<string | null> => {
+  if (!hasSandboxMintCredentials(params)) {
     return null;
   }
+
+  const {
+    nowSeconds = Math.floor(Date.now() / 1000),
+    fetchImpl = fetch,
+    appToken = SUMSUB_SANDBOX_APP_TOKEN,
+    secretKey = SUMSUB_SANDBOX_SECRET_KEY,
+    levelName = SUMSUB_SANDBOX_LEVEL_NAME,
+    userId = SUMSUB_SANDBOX_USER_ID,
+    timeoutMs = SUMSUB_SANDBOX_MINT_TIMEOUT_MS,
+  } = params ?? {};
 
   const body = JSON.stringify({
     userId,
@@ -210,10 +172,6 @@ export const mintSumSubSandboxAccessToken = async ({
   }
 };
 
-/**
- * Prefers a freshly minted sandbox applicant token when Dashboard Sandbox
- * credentials are present. Falls back to `MM_SUMSUB_ACCESS_TOKEN`, then `''`.
- */
 export const resolveSumSubAccessToken = async (
   params?: MintSumSubSandboxAccessTokenParams,
 ): Promise<string> => {

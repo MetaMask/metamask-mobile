@@ -55,38 +55,13 @@ export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
 
-/**
- * Optional already-minted applicant access token. Production tokens come from
- * the KYC API. Leave unset: the native SDK still launches, then fails
- * Unauthorized unless `__DEV__` sandbox mint credentials below are set.
- */
+// Dev-only Sumsub sandbox mint. Never CI/GitHub secrets.
 export const SUMSUB_ACCESS_TOKEN = process.env.MM_SUMSUB_ACCESS_TOKEN ?? '';
-
-/**
- * Dev-only Sumsub Dashboard Sandbox App Token (`sbx:` prefix). Used to mint an
- * applicant access token so Continue can get past Unauthorized. Never a CI or
- * GitHub secret. Production builds ignore this even if it is present.
- */
 export const SUMSUB_SANDBOX_APP_TOKEN =
   process.env.MM_SUMSUB_SANDBOX_APP_TOKEN ?? '';
-
-/**
- * Dev-only Sumsub Dashboard Sandbox secret key paired with
- * {@link SUMSUB_SANDBOX_APP_TOKEN}. Never a CI or GitHub secret.
- */
 export const SUMSUB_SANDBOX_SECRET_KEY =
   process.env.MM_SUMSUB_SANDBOX_SECRET_KEY ?? '';
-
-/**
- * Verification level name from the same Sandbox workspace (case-sensitive).
- * Required for sandbox mint. Example from Sumsub docs: `basic-kyc-level`.
- */
 export const SUMSUB_SANDBOX_LEVEL_NAME =
   process.env.MM_SUMSUB_SANDBOX_LEVEL_NAME ?? '';
-
-/**
- * Applicant `userId` / `externalUserId` bound to the minted token. Stable so
- * relaunches reuse the same sandbox applicant. Override to start a new profile.
- */
 export const SUMSUB_SANDBOX_USER_ID =
   process.env.MM_SUMSUB_SANDBOX_USER_ID ?? 'mm-mobile-vba-sandbox';

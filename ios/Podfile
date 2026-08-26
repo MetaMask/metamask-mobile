@@ -100,9 +100,7 @@ def common_target_logic
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
   pod 'OpenSSL-Universal', :modular_headers => true
 
-  # Sumsub Idensic Mobile SDK (VBA KYC), pulled by @sumsub/react-native-mobilesdk-module.
-  # Local podspec (ios/IdensicMobileSDK.podspec) downloads the public xcframework
-  # zip. No second CocoaPods source, no dashboard credentials, no ~/.netrc.
+  # Local podspec. Do not add a second CocoaPods source.
   pod 'IdensicMobileSDK', :podspec => 'IdensicMobileSDK.podspec'
 
   use_react_native!(
