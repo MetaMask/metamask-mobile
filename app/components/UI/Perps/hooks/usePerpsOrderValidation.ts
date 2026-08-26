@@ -12,6 +12,7 @@ import {
   isTriggerOrderType,
   type OrderParams,
   type OrderFormState,
+  type PerpsProvider,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
@@ -105,10 +106,9 @@ interface ImmediateValidationInput {
   isFullClose?: boolean;
 }
 
-interface ProtocolValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+type ProtocolValidationResult = Awaited<
+  ReturnType<PerpsProvider['validateOrder']>
+>;
 
 interface ProtocolValidationErrorsInput {
   protocolValidation: ProtocolValidationResult;
@@ -470,11 +470,7 @@ export function usePerpsOrderValidation(
       requestId: number,
       requestFieldIssues: OrderFormFieldIssue[],
       requestLocalErrors: string[],
-    ): Promise<ValidationAttempt | undefined> => {
-      if (requestId !== validationRequestIdRef.current) {
-        return undefined;
-      }
-
+    ): Promise<ValidationAttempt> => {
       const finalizeValidation = (
         input: BuildValidationOutcomeInput,
       ): ValidationAttempt => {
@@ -597,12 +593,16 @@ export function usePerpsOrderValidation(
     // also skip the debounce whenever all deterministic local errors clear.
     if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
-      performValidation(requestId, fieldIssues, localErrors);
+      if (requestId === validationRequestIdRef.current) {
+        performValidation(requestId, fieldIssues, localErrors);
+      }
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
-      performValidation(requestId, fieldIssues, localErrors);
+      if (requestId === validationRequestIdRef.current) {
+        performValidation(requestId, fieldIssues, localErrors);
+      }
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
@@ -641,19 +641,7 @@ export function usePerpsOrderValidation(
       };
     }
 
-    const attempt = await performValidation(
-      requestId,
-      fieldIssues,
-      localErrors,
-    );
-    return (
-      attempt ?? {
-        errors: [strings('perps.order.validation.failed')],
-        warnings: EMPTY_WARNINGS,
-        fieldIssues,
-        isValid: false,
-      }
-    );
+    return performValidation(requestId, fieldIssues, localErrors);
   }, [
     clearValidationTimer,
     fieldIssues,
