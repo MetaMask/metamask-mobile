@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
+import type { GestureResponderEvent } from 'react-native';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
@@ -59,6 +60,8 @@ jest.mock('../utils/translatePerpsError', () => ({
     fallbackMessage: string;
   }) => error || fallbackMessage,
 }));
+
+const pressEvent = {} as GestureResponderEvent;
 
 describe('usePerpsToasts', () => {
   let mockNavigate: jest.Mock;
@@ -168,7 +171,7 @@ describe('usePerpsToasts', () => {
           );
 
         act(() => {
-          config.actionButtonOnPress?.();
+          config.actionButtonOnPress?.(pressEvent);
         });
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
@@ -191,7 +194,7 @@ describe('usePerpsToasts', () => {
           );
 
         act(() => {
-          config.actionButtonOnPress?.();
+          config.actionButtonOnPress?.(pressEvent);
         });
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
@@ -992,7 +995,7 @@ describe('usePerpsToasts', () => {
 
         // Test navigation handler
         act(() => {
-          config.actionButtonOnPress?.();
+          config.actionButtonOnPress?.(pressEvent);
         });
 
         expect(toast.dismiss).toHaveBeenCalled();

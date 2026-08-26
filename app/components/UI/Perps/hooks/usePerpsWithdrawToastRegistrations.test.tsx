@@ -54,7 +54,8 @@ describe('usePerpsWithdrawToastRegistrations', () => {
     expect(result.current[0].eventName).toBe(
       'TransactionController:transactionStatusUpdated',
     );
-    return result.current[0].handler;
+    const { handler } = result.current[0];
+    return (payload: unknown) => handler(payload, jest.fn());
   }
 
   it('shows pending toast when perpsWithdraw transaction is approved', () => {

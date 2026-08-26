@@ -331,7 +331,11 @@ const usePerpsToasts = (): {
 
   const showToast = useCallback((config: PerpsToastOptions) => {
     const { hapticsType, ...toastOptions } = config;
-    toast(toastOptions);
+    try {
+      toast(toastOptions);
+    } catch {
+      // Toaster may be unmounted in tests
+    }
     playNotification(hapticsType);
   }, []);
 

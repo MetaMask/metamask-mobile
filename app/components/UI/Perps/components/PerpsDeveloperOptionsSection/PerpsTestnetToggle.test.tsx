@@ -32,7 +32,7 @@ describe('PerpsTestnetToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockToggleTestnet.mockClear();
-    (toast as jest.Mock).mockClear();
+    (toast as unknown as jest.Mock).mockClear();
   });
 
   it('renders correctly with testnet network', () => {

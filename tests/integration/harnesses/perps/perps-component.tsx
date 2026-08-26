@@ -342,7 +342,10 @@ export function buildPerpsComponentHarness(
   >;
   const closeToast = toast.dismiss as unknown as jest.Mock<void, []>;
   const toastRef: React.RefObject<ToastRef | null> = {
-    current: { showToast, closeToast },
+    current: {
+      showToast: showToast as unknown as ToastRef['showToast'],
+      closeToast,
+    },
   };
 
   const renderWithFlow = (
