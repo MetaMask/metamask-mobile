@@ -41,12 +41,13 @@ interface GroupCandidate {
   isValid: boolean;
 }
 
-const getProjectionGroupKey = (market: GroupedMarket): string =>
-  market.group.marketType === 'spread'
+function getProjectionGroupKey(market: GroupedMarket): string {
+  return market.group.marketType === 'spread'
     ? SPREAD_PROJECTION_KEY
     : market.group.key;
+}
 
-const isSupportedMarket = (market: PredictMarket): market is GroupedMarket => {
+function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
   const group = market.group;
   return (
     group !== undefined &&
@@ -56,13 +57,11 @@ const isSupportedMarket = (market: PredictMarket): market is GroupedMarket => {
     group.option?.type === 'number' &&
     Number.isFinite(group.option.value)
   );
-};
+}
 
 type SpreadAxisSide = 'home' | 'away';
 
-const getSpreadAxisSide = (
-  market: GroupedMarket,
-): SpreadAxisSide | undefined => {
+function getSpreadAxisSide(market: GroupedMarket): SpreadAxisSide | undefined {
   const gameSelection = market.outcomes.find(
     (outcome) => outcome.side === 'yes',
   )?.gameSelection;
@@ -70,12 +69,12 @@ const getSpreadAxisSide = (
   return gameSelection === 'home' || gameSelection === 'away'
     ? gameSelection
     : undefined;
-};
+}
 
-const compareMarkets = (
+function compareMarkets(
   left: { market: GroupedMarket; index: number },
   right: { market: GroupedMarket; index: number },
-): number => {
+): number {
   if (
     left.market.group.marketType === 'spread' &&
     right.market.group.marketType === 'spread'
@@ -108,16 +107,19 @@ const compareMarkets = (
     (left.market.group.displayOrder ?? left.index) -
     (right.market.group.displayOrder ?? right.index)
   );
-};
+}
 
-const getProjectedMarkets = (
+function getProjectedMarkets(
   candidate: GroupCandidate,
-): readonly GroupedMarket[] =>
-  [...candidate.markets].sort(compareMarkets).map(({ market }) => market);
+): readonly GroupedMarket[] {
+  return [...candidate.markets]
+    .sort(compareMarkets)
+    .map(({ market }) => market);
+}
 
-export const createMarketGroupProjection = (
+export function createMarketGroupProjection(
   markets: readonly PredictMarket[],
-): readonly MarketGroupProjection[] => {
+): readonly MarketGroupProjection[] {
   const candidates = new Map<string, GroupCandidate>();
 
   markets.forEach((market, index) => {
@@ -146,8 +148,9 @@ export const createMarketGroupProjection = (
     existing.markets.push({ market, index });
     existing.optionValues.add(group.option.value);
     existing.isValid =
-      existing.isValid && existing.marketType === group.marketType;
-    existing.isValid = existing.isValid && !hasDuplicateOption;
+      existing.isValid &&
+      existing.marketType === group.marketType &&
+      !hasDuplicateOption;
   });
 
   const invalidGroupKeys = new Set(
@@ -191,6 +194,6 @@ export const createMarketGroupProjection = (
       return group === undefined ? [] : [group];
     })
     .sort((left, right) => left.firstIndex - right.firstIndex);
-};
+}
 
 export default createMarketGroupProjection;

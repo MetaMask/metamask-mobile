@@ -18,10 +18,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
-import type { Theme } from '../../../../../util/theme/models';
-import type { PredictMarket } from '../../types';
-import { MarketGroupCardTestIds } from './MarketGroupCard.testIds';
+import { useTheme } from '../../../../../../util/theme';
+import type { Theme } from '../../../../../../util/theme/models';
+import type { PredictMarket } from '../../../types';
+import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 
 export interface MarketGroupOptionSelectorProps {
   groupKey: string;
@@ -52,28 +52,34 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-const getOptionValue = (market: PredictMarket): number | undefined =>
-  market.group?.option?.type === 'number'
-    ? market.group.marketType === 'spread'
-      ? Math.abs(market.group.option.value)
-      : market.group.option.value
-    : undefined;
+function getOptionValue(market: PredictMarket): number | undefined {
+  const group = market.group;
+  if (group === undefined || group.option?.type !== 'number') {
+    return undefined;
+  }
 
-const getIndexForScrollOffset = (offset: number, itemCount: number): number => {
+  if (group.marketType === 'spread') {
+    return Math.abs(group.option.value);
+  }
+
+  return group.option.value;
+}
+
+function getIndexForScrollOffset(offset: number, itemCount: number): number {
   if (itemCount === 0) {
     return 0;
   }
 
   const index = Math.round(offset / ITEM_WIDTH);
   return Math.max(0, Math.min(itemCount - 1, index));
-};
+}
 
-export const MarketGroupOptionSelector = ({
+export function MarketGroupOptionSelector({
   groupKey,
   markets,
   selectedMarketId,
   onSelect,
-}: MarketGroupOptionSelectorProps) => {
+}: MarketGroupOptionSelectorProps): React.JSX.Element {
   const tw = useTailwind();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -219,4 +225,4 @@ export const MarketGroupOptionSelector = ({
       />
     </Box>
   );
-};
+}

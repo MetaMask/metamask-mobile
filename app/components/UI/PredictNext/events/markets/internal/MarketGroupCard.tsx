@@ -14,12 +14,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import type { PredictMarket, PredictOutcome } from '../../types';
-import { formatAskPrice, getAskPricePercent } from '../shared/formatting';
+import { strings } from '../../../../../../../locales/i18n';
+import type { PredictMarket, PredictOutcome } from '../../../types';
+import { formatAskPrice, getAskPricePercent } from '../../shared/formatting';
 import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
-import { MarketGroupCardTestIds } from './MarketGroupCard.testIds';
-import { MarketCard } from './internal/MarketCard';
+import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
+import { MarketCard } from './MarketCard';
 
 export interface MarketGroupCardProps {
   groupKey: string;
@@ -30,27 +30,40 @@ export interface MarketGroupCardProps {
   onRulesPress: (market: PredictMarket) => void;
 }
 
-const findOutcome = (
+function findOutcome(
   market: PredictMarket,
   side: PredictOutcome['side'],
-): PredictOutcome | undefined =>
-  market.outcomes.find((outcome) => outcome.side === side);
+): PredictOutcome | undefined {
+  return market.outcomes.find((outcome) => outcome.side === side);
+}
 
-const outcomePrefix = (outcome: PredictOutcome): string =>
-  outcome.label.trim().slice(0, 1).toUpperCase() || outcome.side.toUpperCase();
+function outcomePrefix(outcome: PredictOutcome): string {
+  return (
+    outcome.label.trim().slice(0, 1).toUpperCase() || outcome.side.toUpperCase()
+  );
+}
 
-const getOptionValue = (market: PredictMarket): number | undefined =>
-  market.group?.option?.type === 'number'
-    ? market.group.option.value
-    : undefined;
+function getOptionValue(market: PredictMarket): number | undefined {
+  const group = market.group;
+  if (group === undefined || group.option?.type !== 'number') {
+    return undefined;
+  }
 
-const formatSpreadValue = (value: number): string =>
-  value > 0 ? `+${value}` : `${value}`;
+  if (group.marketType === 'spread') {
+    return Math.abs(group.option.value);
+  }
 
-const getOutcomeOptionValue = (
+  return group.option.value;
+}
+
+function formatSpreadValue(value: number): string {
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function getOutcomeOptionValue(
   market: PredictMarket,
   outcome: PredictOutcome,
-): string => {
+): string {
   const optionValue = getOptionValue(market);
   if (optionValue === undefined) {
     return '—';
@@ -64,16 +77,18 @@ const getOutcomeOptionValue = (
   return formatSpreadValue(
     outcome.side === 'yes' ? absoluteOptionValue : -absoluteOptionValue,
   );
-};
+}
 
-const getBarWidth = (outcome: PredictOutcome): DimensionValue => {
+function getBarWidth(outcome: PredictOutcome): DimensionValue {
   const percent = getAskPricePercent(outcome.askPrice);
   return percent === undefined ? 24 : `${Math.max(9.5, percent)}%`;
-};
+}
 
-const noOp = (): void => undefined;
+function noOp(): void {
+  return undefined;
+}
 
-const OutcomeRow = ({
+function OutcomeRow({
   groupKey,
   market,
   outcome,
@@ -81,11 +96,12 @@ const OutcomeRow = ({
   groupKey: string;
   market: PredictMarket;
   outcome: PredictOutcome;
-}) => {
+}): React.JSX.Element {
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
-  const color =
-    outcome.side === 'yes' ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+  const isYes = outcome.side === 'yes';
+  const color = isYes ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+  const barColor = isYes ? 'bg-success-default' : 'bg-error-default';
 
   return (
     <Box
@@ -98,9 +114,7 @@ const OutcomeRow = ({
         </Text>
         <Box twClassName="h-0.5 w-full rounded-full">
           <Box
-            twClassName={`h-0.5 rounded-full ${
-              outcome.side === 'yes' ? 'bg-success-default' : 'bg-error-default'
-            }`}
+            twClassName={`h-0.5 rounded-full ${barColor}`}
             style={{ width: getBarWidth(outcome) }}
           />
         </Box>
@@ -110,7 +124,7 @@ const OutcomeRow = ({
         fontWeight={FontWeight.Medium}
         numberOfLines={1}
       >
-        {`${outcomePrefix(outcome)} ${optionValue ?? '—'}`}
+        {`${outcomePrefix(outcome)} ${optionValue}`}
       </Text>
       <Button
         testID={MarketGroupCardTestIds.outcomeButton(
@@ -139,16 +153,16 @@ const OutcomeRow = ({
       </Button>
     </Box>
   );
-};
+}
 
-export const MarketGroupCard = ({
+export function MarketGroupCard({
   groupKey,
   title,
   markets,
   selectedMarket,
   onSelectMarket,
   onRulesPress,
-}: MarketGroupCardProps) => {
+}: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
   const yesOutcome = findOutcome(selectedMarket, 'yes');
   const noOutcome = findOutcome(selectedMarket, 'no');
@@ -203,4 +217,4 @@ export const MarketGroupCard = ({
       ) : null}
     </MarketCard.Root>
   );
-};
+}

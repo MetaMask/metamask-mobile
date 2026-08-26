@@ -9,7 +9,12 @@ import { renderPredictEventScreen } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
-import { processColor, StyleSheet } from 'react-native';
+import {
+  processColor,
+  StyleSheet,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
@@ -35,6 +40,16 @@ const routeParams = {
   eventId,
   titleSnapshot: 'Snapshot Event title',
 };
+
+const createScrollEvent = (
+  x: number,
+): NativeSyntheticEvent<NativeScrollEvent> =>
+  ({
+    nativeEvent: {
+      contentOffset: { x, y: 0 },
+      velocity: { x: 0, y: 0 },
+    },
+  }) as NativeSyntheticEvent<NativeScrollEvent>;
 
 const createEvent = (overrides: Partial<PredictEvent> = {}): PredictEvent => ({
   venueId,
@@ -162,6 +177,10 @@ const resolveEvent = (event: PredictEvent = createEvent()) => {
       return Promise.resolve(undefined);
     },
   );
+};
+
+const resolveEventForRoute = (event: PredictEvent): void => {
+  resolveEvent({ ...event, venueId, id: eventId });
 };
 
 describe('PredictEventScreen', () => {
@@ -627,7 +646,7 @@ describe('PredictEventScreen', () => {
   });
 
   it('renders moneyline, total, and spread cards in one Game Event', async () => {
-    resolveEvent(makePredictNextCompositeGameEvent());
+    resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
@@ -649,36 +668,24 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
-      view.getByTestId(
-        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
-      ),
-    );
-
-    await waitFor(() =>
-      expect(
-        within(
-          view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
-        ).getByTestId(
-          MarketGroupCardTestIds.outcomeButton(
-            'nfl-total-points',
-            'nfl-total-220-5',
-            'yes',
-          ),
-        ),
-      ).toHaveTextContent('7¢'),
-    );
   });
 
   it('renders a Total group and updates prices when the selected line changes', async () => {
     const event = makePredictNextTotalsEvent();
-    resolveEvent({ ...event, venueId, id: eventId });
+    resolveEventForRoute(event);
     const view = renderPredictEventScreen(routeParams);
 
     const card = await view.findByTestId(
       MarketGroupCardTestIds.card('nfl-total-points'),
     );
+    const getOutcomeButton = (marketId: string, side: 'yes' | 'no') =>
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-total-points',
+          marketId,
+          side,
+        ),
+      );
     const selectedOption = view.getByTestId(
       MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-218-5'),
     );
@@ -691,24 +698,8 @@ describe('PredictEventScreen', () => {
         MarketGroupCardTestIds.selectionMarker('nfl-total-points'),
       ),
     ).toBeOnTheScreen();
-    expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.outcomeButton(
-          'nfl-total-points',
-          'nfl-total-218-5',
-          'yes',
-        ),
-      ),
-    ).toHaveTextContent('12¢');
-    expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.outcomeButton(
-          'nfl-total-points',
-          'nfl-total-218-5',
-          'no',
-        ),
-      ),
-    ).toHaveTextContent('88¢');
+    expect(getOutcomeButton('nfl-total-218-5', 'yes')).toHaveTextContent('12¢');
+    expect(getOutcomeButton('nfl-total-218-5', 'no')).toHaveTextContent('88¢');
 
     fireEvent.press(
       view.getByTestId(
@@ -717,24 +708,12 @@ describe('PredictEventScreen', () => {
     );
 
     await waitFor(() => {
-      expect(
-        within(card).getByTestId(
-          MarketGroupCardTestIds.outcomeButton(
-            'nfl-total-points',
-            'nfl-total-220-5',
-            'yes',
-          ),
-        ),
-      ).toHaveTextContent('7¢');
-      expect(
-        within(card).getByTestId(
-          MarketGroupCardTestIds.outcomeButton(
-            'nfl-total-points',
-            'nfl-total-220-5',
-            'no',
-          ),
-        ),
-      ).toHaveTextContent('93¢');
+      expect(getOutcomeButton('nfl-total-220-5', 'yes')).toHaveTextContent(
+        '7¢',
+      );
+      expect(getOutcomeButton('nfl-total-220-5', 'no')).toHaveTextContent(
+        '93¢',
+      );
       expect(
         view.getByTestId(
           MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-218-5'),
@@ -765,10 +744,8 @@ describe('PredictEventScreen', () => {
   it('renders a grouped Market without a selector when it has one option', async () => {
     const event = makePredictNextTotalsEvent();
     const [market] = event.markets;
-    resolveEvent({
+    resolveEventForRoute({
       ...event,
-      venueId,
-      id: eventId,
       markets: [market],
     });
     const view = renderPredictEventScreen(routeParams);
@@ -785,78 +762,46 @@ describe('PredictEventScreen', () => {
 
   it('renders both spread legs in one card and selects by horizontal drag', async () => {
     const event = makePredictNextSpreadsEvent();
-    resolveEvent({ ...event, venueId, id: eventId });
+    resolveEventForRoute(event);
     const view = renderPredictEventScreen(routeParams);
 
     const card = await view.findByTestId(
       MarketGroupCardTestIds.card('nfl-spreads'),
     );
+    const getOption = (marketId: string) =>
+      view.getByTestId(MarketGroupCardTestIds.option('nfl-spreads', marketId));
+    const getOutcomeButton = (marketId: string, side: 'yes' | 'no') =>
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton('nfl-spreads', marketId, side),
+      );
+    const getRow = (marketId: string, side: 'yes' | 'no') =>
+      within(card).getByTestId(
+        MarketGroupCardTestIds.row('nfl-spreads', marketId, side),
+      );
 
     expect(
       within(card).getByTestId(MarketGroupCardTestIds.title('nfl-spreads')),
     ).toHaveTextContent('Spreads');
     expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.outcomeButton(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-          'yes',
-        ),
-      ),
+      getOutcomeButton('nfl-spread-new-england-2-5', 'yes'),
     ).toBeDisabled();
-    expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.row(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-          'yes',
-        ),
-      ),
-    ).toHaveTextContent(/\+2\.5/);
-    expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.row(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-          'no',
-        ),
-      ),
-    ).toHaveTextContent(/-2\.5/);
-    expect(
-      within(card).getByTestId(
-        MarketGroupCardTestIds.outcomeButton(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-          'no',
-        ),
-      ),
-    ).toBeDisabled();
-    expect(
-      view.getByTestId(
-        MarketGroupCardTestIds.option(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-        ),
-      ),
-    ).toHaveTextContent('2.5');
-    expect(
-      view.getByTestId(
-        MarketGroupCardTestIds.option(
-          'nfl-spreads',
-          'nfl-spread-new-england-2-5',
-        ),
-      ),
-    ).toHaveProp('accessibilityState', { selected: true });
-    expect(
-      view.getByTestId(
-        MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-2-5'),
-      ),
-    ).toHaveTextContent('2.5');
-    expect(
-      view.getByTestId(
-        MarketGroupCardTestIds.option('nfl-spreads', 'nfl-spread-seattle-2-5'),
-      ),
-    ).toHaveProp('accessibilityState', { selected: false });
+    expect(getRow('nfl-spread-new-england-2-5', 'yes')).toHaveTextContent(
+      /\+2\.5/,
+    );
+    expect(getRow('nfl-spread-new-england-2-5', 'no')).toHaveTextContent(
+      /-2\.5/,
+    );
+    expect(getOutcomeButton('nfl-spread-new-england-2-5', 'no')).toBeDisabled();
+    expect(getOption('nfl-spread-new-england-2-5')).toHaveTextContent('2.5');
+    expect(getOption('nfl-spread-new-england-2-5')).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+    expect(getOption('nfl-spread-seattle-2-5')).toHaveTextContent('2.5');
+    expect(getOption('nfl-spread-seattle-2-5')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
     const selector = view.getByTestId(
       MarketGroupCardTestIds.selector('nfl-spreads'),
     );
@@ -864,40 +809,17 @@ describe('PredictEventScreen', () => {
       selector.props.onLayout({
         nativeEvent: { layout: { width: 300 } },
       });
-      selector.props.onScrollEndDrag?.({
-        nativeEvent: {
-          contentOffset: { x: 168, y: 0 },
-          velocity: { x: 0, y: 0 },
-        },
-      } as never);
+      selector.props.onScrollEndDrag?.(createScrollEvent(168));
     });
     await waitFor(() => {
-      expect(
-        view.getByTestId(
-          MarketGroupCardTestIds.option(
-            'nfl-spreads',
-            'nfl-spread-seattle-2-5',
-          ),
-        ),
-      ).toHaveProp('accessibilityState', { selected: true });
-      expect(
-        within(card).getByTestId(
-          MarketGroupCardTestIds.row(
-            'nfl-spreads',
-            'nfl-spread-seattle-2-5',
-            'yes',
-          ),
-        ),
-      ).toHaveTextContent(/\+2\.5/);
-      expect(
-        within(card).getByTestId(
-          MarketGroupCardTestIds.row(
-            'nfl-spreads',
-            'nfl-spread-seattle-2-5',
-            'no',
-          ),
-        ),
-      ).toHaveTextContent(/-2\.5/);
+      expect(getOption('nfl-spread-seattle-2-5')).toHaveProp(
+        'accessibilityState',
+        { selected: true },
+      );
+      expect(getRow('nfl-spread-seattle-2-5', 'yes')).toHaveTextContent(
+        /\+2\.5/,
+      );
+      expect(getRow('nfl-spread-seattle-2-5', 'no')).toHaveTextContent(/-2\.5/);
     });
     expect(
       view.queryByTestId(

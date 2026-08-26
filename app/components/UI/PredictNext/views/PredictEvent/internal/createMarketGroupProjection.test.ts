@@ -27,26 +27,15 @@ const createMarket = (
   ],
 });
 
-const totalGroup = (
+const createGroup = (
+  marketType: 'spread' | 'total',
   key: string,
   option: number,
   displayOrder?: number,
 ): PredictMarket['group'] => ({
   key,
   groupType: 'marketSelector',
-  marketType: 'total',
-  option: { type: 'number', value: option },
-  displayOrder,
-});
-
-const spreadGroup = (
-  key: string,
-  option: number,
-  displayOrder?: number,
-): PredictMarket['group'] => ({
-  key,
-  groupType: 'marketSelector',
-  marketType: 'spread',
+  marketType,
   option: { type: 'number', value: option },
   displayOrder,
 });
@@ -55,8 +44,8 @@ describe('createMarketGroupProjection', () => {
   it('groups related Markets, orders options, and keeps the group position', () => {
     const markets = [
       createMarket('standard'),
-      createMarket('total-high', totalGroup('totals', 220.5, 1)),
-      createMarket('total-low', totalGroup('totals', 218.5, 0)),
+      createMarket('total-high', createGroup('total', 'totals', 220.5, 1)),
+      createMarket('total-low', createGroup('total', 'totals', 218.5, 0)),
       createMarket('after-standard'),
     ];
 
@@ -78,10 +67,10 @@ describe('createMarketGroupProjection', () => {
   it('keeps moneyline Markets beside total and spread groups', () => {
     const markets = [
       createMarket('moneyline'),
-      createMarket('spread-high', spreadGroup('spreads', 2.5, 1)),
-      createMarket('total-high', totalGroup('totals', 220.5, 1)),
-      createMarket('spread-low', spreadGroup('spreads', 1.5, 0)),
-      createMarket('total-low', totalGroup('totals', 218.5, 0)),
+      createMarket('spread-high', createGroup('spread', 'spreads', 2.5, 1)),
+      createMarket('total-high', createGroup('total', 'totals', 220.5, 1)),
+      createMarket('spread-low', createGroup('spread', 'spreads', 1.5, 0)),
+      createMarket('total-low', createGroup('total', 'totals', 218.5, 0)),
     ];
 
     expect(createMarketGroupProjection(markets)).toEqual([
@@ -107,22 +96,22 @@ describe('createMarketGroupProjection', () => {
     const markets = [
       createMarket(
         'spread-home-high',
-        spreadGroup('home-spreads', 2.5, 0),
+        createGroup('spread', 'home-spreads', 2.5, 0),
         'home',
       ),
       createMarket(
         'spread-away-high',
-        spreadGroup('away-spreads', 2.5, 1),
+        createGroup('spread', 'away-spreads', 2.5, 1),
         'away',
       ),
       createMarket(
         'spread-home-low',
-        spreadGroup('home-spreads', 1.5, 2),
+        createGroup('spread', 'home-spreads', 1.5, 2),
         'home',
       ),
       createMarket(
         'spread-away-low',
-        spreadGroup('away-spreads', 1.5, 3),
+        createGroup('spread', 'away-spreads', 1.5, 3),
         'away',
       ),
     ];
@@ -150,10 +139,13 @@ describe('createMarketGroupProjection', () => {
   });
 
   it('falls back to standard cards for duplicate total options', () => {
-    const duplicate = createMarket('duplicate', totalGroup('bad', 1, 0));
+    const duplicate = createMarket(
+      'duplicate',
+      createGroup('total', 'bad', 1, 0),
+    );
     const duplicateAgain = createMarket(
       'duplicate-again',
-      totalGroup('bad', 1, 1),
+      createGroup('total', 'bad', 1, 1),
     );
 
     expect(createMarketGroupProjection([duplicate, duplicateAgain])).toEqual([

@@ -1,16 +1,19 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { MarketGroupCard, type MarketGroupCardProps } from './MarketGroupCard';
+import {
+  MarketGroupCard,
+  type MarketGroupCardProps,
+} from './internal/MarketGroupCard';
 
 export type TotalMarketGroupCardProps = Omit<MarketGroupCardProps, 'title'>;
 
-export const TotalMarketGroupCard = ({
-  selectedMarket,
-  ...props
-}: TotalMarketGroupCardProps) => (
-  <MarketGroupCard
-    {...props}
-    selectedMarket={selectedMarket}
-    title={strings('predict.market_groups.total_points')}
-  />
-);
+export function TotalMarketGroupCard(
+  props: TotalMarketGroupCardProps,
+): React.JSX.Element {
+  return (
+    <MarketGroupCard
+      {...props}
+      title={strings('predict.market_groups.total_points')}
+    />
+  );
+}
