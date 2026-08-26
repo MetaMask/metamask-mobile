@@ -338,12 +338,12 @@
 
     function renderScoreboard() {
       const root = document.getElementById('scoreboard');
+      // Bar width matches the labeled metric: duration / slowest vendor (longer bar = longer phase).
+      // Lower minutes is still better for ranking; do not invert the meter next to a "min" label.
+      const slowest = Math.max(...DATA.vendors.map(x => x.avgTestMin));
       root.innerHTML = DATA.vendors.map(v => {
         const passPct = (v.bestPass / 23) * 100;
-        // speed score: invert vs slowest avg
-        const slowest = Math.max(...DATA.vendors.map(x => x.avgTestMin));
-        const fastest = Math.min(...DATA.vendors.map(x => x.avgTestMin));
-        const speedPct = fastest === slowest ? 100 : ((slowest - v.avgTestMin) / (slowest - fastest)) * 100;
+        const durationPct = slowest > 0 ? (v.avgTestMin / slowest) * 100 : 0;
         const chips = v.history.slice(0, 5).map(h =>
           `<span class="chip"><a href="${h.url}" target="_blank">${h.pass}/23</a> · ${h.testMin ?? '—'}m</span>`
         ).join('');
@@ -357,8 +357,8 @@
               <div class="track"><div class="fill" style="width:${passPct}%;background:${v.color}"></div></div>
             </div>
             <div class="meter">
-              <label><span>Speed (avg test phase)</span><span>${v.avgTestMin} min</span></label>
-              <div class="track"><div class="fill" style="width:${Math.max(8, speedPct)}%;background:${v.color}"></div></div>
+              <label><span>Test phase (avg)</span><span>${v.avgTestMin} min</span></label>
+              <div class="track"><div class="fill" style="width:${durationPct}%;background:${v.color}"></div></div>
             </div>
           </div>
           <div class="chips">${chips}</div>
