@@ -1,5 +1,4 @@
 import { RouteProp } from '@react-navigation/native';
-import type { OrderType } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from './navigation';
 
 export enum PerpsOrderTransactionStatus {
@@ -73,13 +72,9 @@ export interface PerpsTransaction {
     orderId?: string;
     text: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
-    /** Legacy execution type retained for activity adapter compatibility. */
     type: 'limit' | 'market';
-    /** Normalized order placement type, including trigger variants. */
-    orderType?: OrderType;
     size: string;
-    limitPrice?: string;
-    triggerPrice?: string;
+    limitPrice: string;
     filled: string;
     side?: 'buy' | 'sell';
     reduceOnly?: boolean;

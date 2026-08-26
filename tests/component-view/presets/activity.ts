@@ -19,7 +19,6 @@ import type {
   Order,
   OrderFill,
   UserHistoryItem,
-  OrdinaryOrderType,
 } from '@metamask/perps-controller';
 import {
   FillType,
@@ -1799,10 +1798,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   {
     id: string;
     title: string;
-    orderType: OrdinaryOrderType;
-    executionType: 'market' | 'limit';
-    limitPrice?: string;
-    triggerPrice?: string;
+    orderType: 'market' | 'limit';
     filled: string;
     statusText: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
@@ -1815,8 +1811,6 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
     id: 'activity-cv-perps-order-market-close-short',
     title: 'Market close short',
     orderType: 'market',
-    executionType: 'market',
-    limitPrice: undefined,
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1825,9 +1819,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   stopMarketCloseShort: {
     id: 'activity-cv-perps-order-stop-market-close-short',
     title: 'Stop market close short',
-    orderType: 'stop_market',
-    executionType: 'market',
-    triggerPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    orderType: 'market',
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1837,10 +1829,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   takeProfitCanceled: {
     id: 'activity-cv-perps-order-tp-canceled',
     title: 'Take profit limit close short',
-    orderType: 'take_profit_limit',
-    executionType: 'limit',
-    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
-    triggerPrice: '91000',
+    orderType: 'limit',
     filled: '0%',
     statusText: PerpsOrderTransactionStatus.Canceled,
     statusType: PerpsOrderTransactionStatusType.Canceled,
@@ -1850,10 +1839,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   takeProfitFilled: {
     id: 'activity-cv-perps-order-tp-filled',
     title: 'Take profit limit close short',
-    orderType: 'take_profit_limit',
-    executionType: 'limit',
-    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
-    triggerPrice: '91000',
+    orderType: 'limit',
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1879,11 +1865,9 @@ export const buildActivityCvPerpsOrderTransaction = (
       orderId: spec.id,
       text: spec.statusText,
       statusType: spec.statusType,
-      type: spec.executionType,
-      orderType: spec.orderType,
+      type: spec.orderType,
       size: '9.2113',
-      limitPrice: spec.limitPrice,
-      triggerPrice: spec.triggerPrice,
+      limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
       filled: spec.filled,
       side: 'buy',
       reduceOnly: spec.reduceOnly,

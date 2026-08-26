@@ -52,11 +52,6 @@ import {
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
-import {
-  getOrderPriceRowVisibility,
-  getValidPerpsPrice,
-  resolvePerpsTransactionOrderType,
-} from '../../../UI/Perps/utils/orderUtils';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
@@ -224,32 +219,6 @@ function OrderDetails({
     isFeeLoading || hasFeeError || totalFee === undefined
       ? '—'
       : formatPerpsOrderFee(totalFee);
-  const orderType = order ? resolvePerpsTransactionOrderType(order) : undefined;
-  const { showTriggerPrice, showLimitPrice } =
-    getOrderPriceRowVisibility(orderType);
-  const priceRows: React.ReactElement[] = [];
-
-  if (order && showTriggerPrice && getValidPerpsPrice(order.triggerPrice)) {
-    priceRows.push(
-      <ActivityDetailRow
-        key="trigger-price"
-        label={strings('perps.order.trigger_price')}
-        value={getPerpsPriceValue(order.triggerPrice)}
-        testID={ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW}
-      />,
-    );
-  }
-
-  if (order && showLimitPrice && getValidPerpsPrice(order.limitPrice)) {
-    priceRows.push(
-      <ActivityDetailRow
-        key="limit-price"
-        label={strings('perps.transactions.order.limit_price')}
-        value={getPerpsPriceValue(order.limitPrice)}
-        testID={ActivityDetailsSelectorsIDs.LIMIT_PRICE_ROW}
-      />,
-    );
-  }
 
   return (
     <ActivityDetailsTemplateFrame
@@ -271,7 +240,11 @@ function OrderDetails({
             value={order?.size ? getPerpsPriceValue(order.size) : undefined}
             testID={ActivityDetailsSelectorsIDs.SIZE_ROW}
           />
-          {priceRows}
+          <ActivityDetailRow
+            label={strings('perps.transactions.order.limit_price')}
+            value={getPerpsPriceValue(order?.limitPrice)}
+            testID={ActivityDetailsSelectorsIDs.LIMIT_PRICE_ROW}
+          />
           <ActivityDetailRow
             label={strings('perps.transactions.order.filled')}
             value={order?.filled}
