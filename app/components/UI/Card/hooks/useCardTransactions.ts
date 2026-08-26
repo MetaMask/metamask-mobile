@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
@@ -34,6 +34,8 @@ export interface UseCardTransactionsResult {
   /** True while the first page is being fetched. */
   isLoading: boolean;
   error: unknown;
+  /** True when `error` came from `loadMore` rather than the initial fetch or a refresh. */
+  isLoadMoreError: boolean;
   refetch: () => Promise<unknown>;
   isFetching: boolean;
 }
@@ -103,12 +105,35 @@ export function useCardTransactions(
     isAuthenticated &&
     Boolean(query.data?.pages[query.data.pages.length - 1]?.nextCursor);
 
-  const { isFetchingNextPage, fetchNextPage } = query;
+  const [fetchKind, setFetchKind] = useState<
+    'initial' | 'refresh' | 'loadMore'
+  >('initial');
+
+  const { isFetchingNextPage, fetchNextPage, refetch: refetchQuery } = query;
   const loadMore = useCallback(() => {
     if (hasMore && !isFetchingNextPage) {
-      fetchNextPage();
+      setFetchKind('loadMore');
+      fetchNextPage()
+        .then((result) => {
+          if (!result.error) {
+            setFetchKind('initial');
+          }
+        })
+        .catch(() => {
+          // Keep fetchKind as 'loadMore' so the footer retries this page.
+        });
     }
   }, [hasMore, isFetchingNextPage, fetchNextPage]);
+
+  const refetch = useCallback(() => {
+    setFetchKind('refresh');
+    return refetchQuery().then((result) => {
+      if (!result.error) {
+        setFetchKind('initial');
+      }
+      return result;
+    });
+  }, [refetchQuery]);
 
   return {
     items,
@@ -119,7 +144,8 @@ export function useCardTransactions(
     // loading and a background refetch doesn't flash the spinner.
     isLoading: query.isInitialLoading,
     error: query.error,
-    refetch: query.refetch,
+    isLoadMoreError: Boolean(query.error) && fetchKind === 'loadMore',
+    refetch,
     isFetching: query.isFetching,
   };
 }
