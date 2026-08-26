@@ -92,7 +92,7 @@ describe('createMarketGroupProjection', () => {
     ]);
   });
 
-  it('merges both spread legs and keeps both sides in the selector', () => {
+  it('keeps distinct spread group keys in separate selectors', () => {
     const markets = [
       createMarket(
         'spread-home-high',
@@ -121,8 +121,15 @@ describe('createMarketGroupProjection', () => {
         type: 'group',
         key: 'home-spreads',
         marketType: 'spread',
-        markets: [markets[0], markets[2], markets[3], markets[1]],
+        markets: [markets[0], markets[2]],
         firstIndex: 0,
+      },
+      {
+        type: 'group',
+        key: 'away-spreads',
+        marketType: 'spread',
+        markets: [markets[1], markets[3]],
+        firstIndex: 1,
       },
     ]);
   });

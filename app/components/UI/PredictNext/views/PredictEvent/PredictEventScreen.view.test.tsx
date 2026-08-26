@@ -19,6 +19,7 @@ import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
 import type {
+  PredictDecimal,
   PredictEntityId,
   PredictHttpsUrl,
   PredictEvent,
@@ -670,6 +671,47 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps two Game history lines when selecting a grouped Market', async () => {
+    resolveEventForRoute(makePredictNextCompositeGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+    messengerCall.mockClear();
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+      ),
+    );
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+        ),
+      ).toHaveProp('accessibilityState', { selected: true }),
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      'nfl-total-220-5',
+      'ALL',
+      undefined,
+    );
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-away-market`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-home-market`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('renders a Total group and updates prices when the selected line changes', async () => {
     const event = makePredictNextTotalsEvent();
     resolveEventForRoute(event);
@@ -741,6 +783,50 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Total points');
   });
 
+  it('synchronizes grouped selection with non-Game Market history', async () => {
+    const event = makePredictNextTotalsEvent();
+    resolveEventForRoute(event);
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
+    messengerCall.mockClear();
+
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+      ),
+    );
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        'nfl-total-220-5',
+        'ALL',
+        undefined,
+      ),
+    );
+  });
+
+  it('synchronizes non-Game Market history selection with a grouped card', async () => {
+    const event = makePredictNextTotalsEvent();
+    resolveEventForRoute(event);
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
+    fireEvent.press(
+      view.getByTestId(PredictEventScreenTestIds.market('nfl-total-220-5')),
+    );
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+        ),
+      ).toHaveProp('accessibilityState', { selected: true }),
+    );
+  });
+
   it('renders a grouped Market without a selector when it has one option', async () => {
     const event = makePredictNextTotalsEvent();
     const [market] = event.markets;
@@ -792,7 +878,14 @@ describe('PredictEventScreen', () => {
       /-2\.5/,
     );
     expect(getOutcomeButton('nfl-spread-new-england-2-5', 'no')).toBeDisabled();
+    expect(
+      getOutcomeButton('nfl-spread-new-england-2-5', 'yes').props
+        .accessibilityLabel,
+    ).toBe('New England, line +2.5, price 46¢');
     expect(getOption('nfl-spread-new-england-2-5')).toHaveTextContent('2.5');
+    expect(
+      getOption('nfl-spread-new-england-2-5').props.accessibilityLabel,
+    ).toBe('Market option for New England, line 2.5, price 46¢');
     expect(getOption('nfl-spread-new-england-2-5')).toHaveProp(
       'accessibilityState',
       { selected: true },
@@ -826,6 +919,55 @@ describe('PredictEventScreen', () => {
         MarketGroupCardTestIds.card('nfl-spread-new-england-2-5'),
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('distinguishes zero prices from missing grouped prices', async () => {
+    const event = makePredictNextTotalsEvent();
+    const [market] = event.markets;
+    if (market === undefined) {
+      throw new Error('Expected a grouped Market.');
+    }
+    const modifiedMarket = {
+      ...market,
+      outcomes: [
+        { ...market.outcomes[0], askPrice: '0' as PredictDecimal },
+        { ...market.outcomes[1], askPrice: undefined },
+      ] as typeof market.outcomes,
+    };
+    resolveEventForRoute({ ...event, markets: [modifiedMarket] });
+    const view = renderPredictEventScreen(routeParams);
+
+    const card = await view.findByTestId(
+      MarketGroupCardTestIds.card('nfl-total-points'),
+    );
+    const yesButton = within(card).getByTestId(
+      MarketGroupCardTestIds.outcomeButton(
+        'nfl-total-points',
+        market.id,
+        'yes',
+      ),
+    );
+
+    expect(yesButton).toHaveTextContent('0¢');
+    expect(
+      view.getByTestId(
+        MarketGroupCardTestIds.quoteBar('nfl-total-points', market.id, 'yes'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        MarketGroupCardTestIds.quoteBar('nfl-total-points', market.id, 'no'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(
+        MarketGroupCardTestIds.outcomeButton(
+          'nfl-total-points',
+          market.id,
+          'no',
+        ),
+      ),
+    ).toHaveTextContent('—');
   });
 
   it('opens the shared rules sheet with Event and selected Market rules', async () => {

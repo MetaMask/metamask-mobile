@@ -127,6 +127,45 @@ describe('Predict API canonical response parsers', () => {
     });
   });
 
+  it('ignores selector fields on an unsupported group type', () => {
+    const [error, result] = PredictMarketGroupSchema.validate(
+      {
+        key: 'future-group',
+        groupType: 'future-group-type',
+        marketType: '',
+        option: { type: 'unexpected', value: 'not-a-number' },
+        displayOrder: -1,
+      },
+      { coerce: true },
+    );
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it.each(['', ' ', '\t'])('rejects a group key with value %j', (key) => {
+    const [error] = PredictMarketGroupSchema.validate({
+      key,
+      groupType: 'future-group-type',
+    });
+
+    expect(error).toBeDefined();
+  });
+
+  it('rejects whitespace-only selector fields', () => {
+    const [error] = PredictMarketGroupSchema.validate({
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: ' ',
+      option: { type: 'number', value: 220.5 },
+    });
+
+    expect(error).toBeDefined();
+  });
+
   it.each([
     {
       name: 'a marketSelector group without marketType',

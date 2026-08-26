@@ -9,6 +9,8 @@ export const MarketGroupCardTestIds = {
     `predict-next-market-group-${groupKey}-option-${marketId}`,
   row: (groupKey: string, marketId: string, side: 'yes' | 'no') =>
     `predict-next-market-group-${groupKey}-${marketId}-${side}-row`,
+  quoteBar: (groupKey: string, marketId: string, side: 'yes' | 'no') =>
+    `predict-next-market-group-${groupKey}-${marketId}-${side}-quote-bar`,
   outcomeButton: (groupKey: string, marketId: string, side: 'yes' | 'no') =>
     `predict-next-market-group-${groupKey}-${marketId}-${side}`,
   rulesButton: (groupKey: string) =>

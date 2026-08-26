@@ -49,8 +49,8 @@ A product navigation surface that presents one or more related Feeds. Each selec
 _Avoid_: Feed, Competition screen, backend Feed hierarchy
 
 **Event**:
-A grouping of one or more related binary Markets from exactly one Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An Event may have one Category and one Series.
-_Avoid_: Market, PredictMarket, composite Venue Events
+A grouping of one or more related binary Markets with one parent Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An immutable Game detail read may append validated Markets from authoritative sibling Venue Events while retaining the requested Event as its parent. An Event may have one Category and one Series.
+_Avoid_: Market, PredictMarket, synthetic parent Event, client-side Event join
 
 **Event Screen**:
 A product navigation surface that presents one immutable Event identified by its Venue and Event identities.
@@ -245,7 +245,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
 - A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
 - A Feed Screen contains one or more ordered tabs, and each tab identifies exactly one Feed.
-- Each Event maps to exactly one Venue Event and contains one or more Markets; Predict never combines Markets from multiple Venue Events into one Event.
+- Each Event has one parent Venue Event and contains one or more Markets. A Game detail response may append validated Markets from authoritative sibling Venue Events without changing the parent identity.
 - An Event Screen presents exactly one immutable Event and never rotates to another Event from the same Series.
 - Each Event may have one primary Category and one Series.
 - A Category is product-owned and is distinct from Venue tags and future Topics.
@@ -273,7 +273,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Game has one home Team and one away Team in the initial canonical model.
 - Game status and Market Lifecycle are independent and must not be derived from one another.
 - An Outcome may have one Game Selection of home, away, or draw; its Yes or No side remains unchanged.
-- Sports Events preserve Venue Event boundaries; related Venue Events are never flattened into Markets under a synthetic parent Event.
+- Sports Event composition preserves the requested parent identity and source boundaries. Only a Game detail read may append validated sibling Markets; Predict never creates a synthetic parent Event.
 
 ## Flagged Ambiguities
 

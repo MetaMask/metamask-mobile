@@ -2864,7 +2864,12 @@
     },
     "market_groups": {
       "total_points": "Total points",
-      "spread": "Spreads"
+      "spread": "Spreads",
+      "market_option": "Market option",
+      "line_unavailable": "line unavailable",
+      "price_unavailable": "price unavailable",
+      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",

@@ -5,7 +5,6 @@ import type {
 } from '../../../types';
 
 type SupportedMarketType = 'spread' | 'total';
-const SPREAD_PROJECTION_KEY = '__predict_next_spread__';
 
 type GroupedMarket = PredictMarket & {
   group: PredictMarketGroup & {
@@ -42,9 +41,7 @@ interface GroupCandidate {
 }
 
 function getProjectionGroupKey(market: GroupedMarket): string {
-  return market.group.marketType === 'spread'
-    ? SPREAD_PROJECTION_KEY
-    : market.group.key;
+  return market.group.key;
 }
 
 function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
@@ -59,54 +56,23 @@ function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
   );
 }
 
-type SpreadAxisSide = 'home' | 'away';
-
-function getSpreadAxisSide(market: GroupedMarket): SpreadAxisSide | undefined {
-  const gameSelection = market.outcomes.find(
-    (outcome) => outcome.side === 'yes',
-  )?.gameSelection;
-
-  return gameSelection === 'home' || gameSelection === 'away'
-    ? gameSelection
-    : undefined;
-}
-
 function compareMarkets(
   left: { market: GroupedMarket; index: number },
   right: { market: GroupedMarket; index: number },
 ): number {
-  if (
-    left.market.group.marketType === 'spread' &&
-    right.market.group.marketType === 'spread'
-  ) {
-    const leftSide = getSpreadAxisSide(left.market);
-    const rightSide = getSpreadAxisSide(right.market);
+  const leftOrder = left.market.group.displayOrder;
+  const rightOrder = right.market.group.displayOrder;
 
-    if (leftSide !== undefined && rightSide !== undefined) {
-      if (leftSide !== rightSide) {
-        return leftSide === 'home' ? -1 : 1;
-      }
-
-      const magnitudeDifference =
-        Math.abs(left.market.group.option.value) -
-        Math.abs(right.market.group.option.value);
-
-      if (magnitudeDifference !== 0) {
-        return leftSide === 'home' ? -magnitudeDifference : magnitudeDifference;
-      }
-    }
-
-    return (
-      left.market.group.option.value - right.market.group.option.value ||
-      (left.market.group.displayOrder ?? left.index) -
-        (right.market.group.displayOrder ?? right.index)
-    );
+  if (leftOrder !== undefined && rightOrder !== undefined) {
+    return leftOrder - rightOrder || left.index - right.index;
   }
-
-  return (
-    (left.market.group.displayOrder ?? left.index) -
-    (right.market.group.displayOrder ?? right.index)
-  );
+  if (leftOrder !== undefined) {
+    return -1;
+  }
+  if (rightOrder !== undefined) {
+    return 1;
+  }
+  return left.index - right.index;
 }
 
 function getProjectedMarkets(
@@ -142,9 +108,7 @@ export function createMarketGroupProjection(
       return;
     }
 
-    const hasDuplicateOption =
-      group.marketType !== 'spread' &&
-      existing.optionValues.has(group.option.value);
+    const hasDuplicateOption = existing.optionValues.has(group.option.value);
     existing.markets.push({ market, index });
     existing.optionValues.add(group.option.value);
     existing.isValid =

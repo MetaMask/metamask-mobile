@@ -18,9 +18,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import type { Theme } from '../../../../../../util/theme/models';
 import type { PredictMarket } from '../../../types';
+import {
+  formatAskPrice,
+  formatMarketGroupOption,
+} from '../../shared/formatting';
 import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 
 export interface MarketGroupOptionSelectorProps {
@@ -51,19 +56,6 @@ const createStyles = (colors: Theme['colors']) =>
       borderBottomColor: colors.text.default,
     },
   });
-
-function getOptionValue(market: PredictMarket): number | undefined {
-  const group = market.group;
-  if (group === undefined || group.option?.type !== 'number') {
-    return undefined;
-  }
-
-  if (group.marketType === 'spread') {
-    return Math.abs(group.option.value);
-  }
-
-  return group.option.value;
-}
 
 function getIndexForScrollOffset(offset: number, itemCount: number): number {
   if (itemCount === 0) {
@@ -184,18 +176,30 @@ export function MarketGroupOptionSelector({
         >
           {markets.map((market) => {
             const isSelected = market.id === selectedMarketId;
-            const optionValue = getOptionValue(market);
+            const optionValue = formatMarketGroupOption(market);
+            const yesOutcome = market.outcomes.find(
+              (outcome) => outcome.side === 'yes',
+            );
 
             return (
               <Pressable
                 key={market.id}
                 testID={MarketGroupCardTestIds.option(groupKey, market.id)}
                 accessibilityRole="button"
-                accessibilityLabel={
-                  optionValue === undefined
-                    ? 'Market option'
-                    : `Market option ${optionValue}`
-                }
+                accessibilityLabel={strings(
+                  'predict.market_groups.option_accessibility_label',
+                  {
+                    team:
+                      yesOutcome?.label ??
+                      strings('predict.market_groups.market_option'),
+                    line:
+                      optionValue ??
+                      strings('predict.market_groups.line_unavailable'),
+                    price:
+                      formatAskPrice(yesOutcome?.askPrice) ??
+                      strings('predict.market_groups.price_unavailable'),
+                  },
+                )}
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => onSelect(market.id)}
                 style={tw.style('items-center justify-center py-1', {
@@ -211,7 +215,8 @@ export function MarketGroupOptionSelector({
                       : TextColor.TextAlternative
                   }
                 >
-                  {optionValue ?? '—'}
+                  {optionValue ??
+                    strings('predict.market_groups.line_unavailable')}
                 </Text>
               </Pressable>
             );

@@ -1,5 +1,4 @@
 import React from 'react';
-import type { DimensionValue } from 'react-native';
 import {
   Box,
   Button,
@@ -16,7 +15,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../../types';
-import { formatAskPrice, getAskPricePercent } from '../../shared/formatting';
+import {
+  formatAskPrice,
+  formatMarketGroupOption,
+  getAskPricePercent,
+} from '../../shared/formatting';
 import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
 import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 import { MarketCard } from './MarketCard';
@@ -43,45 +46,11 @@ function outcomePrefix(outcome: PredictOutcome): string {
   );
 }
 
-function getOptionValue(market: PredictMarket): number | undefined {
-  const group = market.group;
-  if (group === undefined || group.option?.type !== 'number') {
-    return undefined;
-  }
-
-  if (group.marketType === 'spread') {
-    return Math.abs(group.option.value);
-  }
-
-  return group.option.value;
-}
-
-function formatSpreadValue(value: number): string {
-  return value > 0 ? `+${value}` : `${value}`;
-}
-
 function getOutcomeOptionValue(
   market: PredictMarket,
   outcome: PredictOutcome,
 ): string {
-  const optionValue = getOptionValue(market);
-  if (optionValue === undefined) {
-    return '—';
-  }
-
-  if (market.group?.marketType !== 'spread') {
-    return `${optionValue}`;
-  }
-
-  const absoluteOptionValue = Math.abs(optionValue);
-  return formatSpreadValue(
-    outcome.side === 'yes' ? absoluteOptionValue : -absoluteOptionValue,
-  );
-}
-
-function getBarWidth(outcome: PredictOutcome): DimensionValue {
-  const percent = getAskPricePercent(outcome.askPrice);
-  return percent === undefined ? 24 : `${Math.max(9.5, percent)}%`;
+  return formatMarketGroupOption(market, outcome.side) ?? '—';
 }
 
 function noOp(): void {
@@ -99,6 +68,7 @@ function OutcomeRow({
 }): React.JSX.Element {
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
+  const askPricePercent = getAskPricePercent(outcome.askPrice);
   const isYes = outcome.side === 'yes';
   const color = isYes ? TextColor.SuccessDefault : TextColor.ErrorDefault;
   const barColor = isYes ? 'bg-success-default' : 'bg-error-default';
@@ -112,12 +82,21 @@ function OutcomeRow({
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {outcome.label}
         </Text>
-        <Box twClassName="h-0.5 w-full rounded-full">
+        {askPricePercent === undefined ? null : (
           <Box
-            twClassName={`h-0.5 rounded-full ${barColor}`}
-            style={{ width: getBarWidth(outcome) }}
-          />
-        </Box>
+            testID={MarketGroupCardTestIds.quoteBar(
+              groupKey,
+              market.id,
+              outcome.side,
+            )}
+            twClassName="h-0.5 w-full rounded-full"
+          >
+            <Box
+              twClassName={`h-0.5 rounded-full ${barColor}`}
+              style={{ width: `${Math.max(9.5, askPricePercent)}%` }}
+            />
+          </Box>
+        )}
       </Box>
       <Text
         variant={TextVariant.BodyMd}
@@ -132,11 +111,14 @@ function OutcomeRow({
           market.id,
           outcome.side,
         )}
-        accessibilityLabel={
-          price
-            ? `${outcome.label}, ${price}`
-            : `${outcome.label}, price unavailable`
-        }
+        accessibilityLabel={strings(
+          'predict.market_groups.outcome_accessibility_label',
+          {
+            team: outcome.label,
+            line: optionValue,
+            price: price ?? strings('predict.market_groups.price_unavailable'),
+          },
+        )}
         isDisabled
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

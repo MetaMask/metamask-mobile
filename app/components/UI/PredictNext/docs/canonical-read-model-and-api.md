@@ -164,7 +164,8 @@ interface PredictMarketOption {
 }
 
 interface PredictMarketGroup {
-  // Stable within the containing Event. Mobile never derives this value.
+  // Stable within the containing Event. Markets with the same key are one
+  // presentation group. Mobile never derives this value.
   key: string;
   groupType: PredictMarketGroupType;
   marketType?: PredictMarketType;
@@ -240,6 +241,12 @@ interface PredictFeed {
 - Nested Category, Series, Market, and Outcome IDs inherit Venue scope from the containing Event.
 - `recurrence` describes a regular cadence but is not authoritative current-Event selection logic.
 - For a Game Event, `Event.startsAt` is the scheduled Game start; the Game does not duplicate that timestamp.
+- A composed Game detail keeps the requested Game Event's identity, title,
+  Sports/Game metadata, and `startsAt`. It may append only validated Markets
+  from authoritative sibling Venue Events.
+- A composed Event's `closesAt` and `updatedAt` describe the complete returned
+  Market set. Its `volume` and `volume24h` are present only when every returned
+  Market has the corresponding volume; otherwise that aggregate is omitted.
 - `Game.score`, `period`, and `clock` are display-safe strings because their formats vary by Sport. Mobile must not parse them to recover Venue semantics.
 - `Game.observedAt` records when the backend observed the Game snapshot so mobile can identify stale REST data.
 - `Outcome.gameSelection` is authoritative when present. Mobile must not infer a Team or draw association from an Outcome label, Market question, title, ticker, or array order.
@@ -250,10 +257,13 @@ interface PredictFeed {
 - `group.groupType` selects the presentation behavior. The current supported
   value is `marketSelector`; unknown values remain standard Markets until a
   supported composition exists.
+- `group.key` identifies one presentation group within the Event. Markets with
+  the same key may share one selector; different keys must remain separate.
 - A `marketSelector` group has a `marketType` and a numeric `option`. For a
   total, the option is the point threshold. For a spread, it is the canonical
-  handicap supplied by the backend. The option type is explicit so another
-  representation can be added later without changing `groupType`.
+  signed handicap for the `yes` Outcome's target. The `no` Outcome displays the
+  opposite handicap. The option type is explicit so another representation can
+  be added later without changing `groupType`.
 - `displayOrder` orders alternate Markets inside one group. It does not order
   groups or Events. When it is absent, response order is authoritative. A
   single Market renders without a selector. Multiple Markets select the first

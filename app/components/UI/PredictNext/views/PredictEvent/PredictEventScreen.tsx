@@ -116,6 +116,11 @@ export const PredictEventScreen = () => {
       setHasBlockingError(false);
     }
   }, [query.data, query.isError]);
+  useEffect(() => {
+    setSelectedMarketId(undefined);
+    setSelectedMarketIds({});
+    setRulesTarget(null);
+  }, [eventId]);
   const handleBack = useCallback(
     () =>
       navigation.canGoBack()
@@ -135,8 +140,30 @@ export const PredictEventScreen = () => {
         ...current,
         [groupKey]: marketId,
       }));
+      if (query.data?.sports?.game === undefined) {
+        setSelectedMarketId(marketId);
+      }
     },
-    [],
+    [query.data?.sports?.game],
+  );
+  const handleMarketSelect = useCallback(
+    (marketId: string) => {
+      setSelectedMarketId(marketId);
+      const market = query.data?.markets.find(
+        (candidate) => candidate.id === marketId,
+      );
+      const groupKey =
+        market?.group?.groupType === 'marketSelector'
+          ? market.group.key
+          : undefined;
+      if (groupKey !== undefined && market !== undefined) {
+        setSelectedMarketIds((current) => ({
+          ...current,
+          [groupKey]: market.id,
+        }));
+      }
+    },
+    [query.data?.markets],
   );
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
@@ -145,8 +172,13 @@ export const PredictEventScreen = () => {
   if (query.data) {
     const event = query.data;
     const eventRules = event.rules?.trim();
+    const firstProjectedMarket =
+      marketProjection[0]?.type === 'group'
+        ? marketProjection[0].markets[0]
+        : marketProjection[0]?.market;
     const historyMarket =
       event.markets.find((market) => market.id === selectedMarketId) ??
+      firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
       rulesTarget?.type === 'market'
@@ -239,7 +271,7 @@ export const PredictEventScreen = () => {
           {event.markets.length > 1 && !(game && homeQuote && awayQuote) ? (
             <FilterButtonGroup
               value={historyMarket?.id ?? ''}
-              onChange={setSelectedMarketId}
+              onChange={handleMarketSelect}
               variant={FilterButtonVariant.Secondary}
               testID={PredictEventScreenTestIds.MARKETS}
             >
