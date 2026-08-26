@@ -10,7 +10,7 @@ Appium smoke is the mobile E2E path (Playwright + Appium). Specs live under `tes
 | **Build**               | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)       |
 | **Local yarn commands** | `yarn appium-smoke:ios` / `yarn appium-smoke:android`  |
 
-Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework imports are ESLint errors: [tests/AGENTS.md](../tests/AGENTS.md).
+On PRs into `main`, iOS is built and Appium iOS runs **only on request** — add `run-appium-ios-tests`, or `skip-smart-e2e-selection` when path filters already require iOS. Path filters and smoke-infra changes alone do not trigger it, and the app is never built unless it will be tested. On PRs into `release/*` the older policy still applies: opt in via `run-appium-ios-tests`, via `skip-smart-e2e-selection` when path filters already require iOS, or when shared smoke infra / `tests/smoke-appium/**` paths change. Unrequested iOS coverage comes from pushes to `main`/`release/*` and the overnight schedule (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md#ios-builds-on-prs-into-main-are-on-request-only)). Dual-framework imports are ESLint errors: [tests/AGENTS.md](../../tests/AGENTS.md).
 
 ## Architecture
 
@@ -233,7 +233,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 ## CI
 
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
-- **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
+- **Tests:** `appium-smoke-tests-android` in PR CI; `appium-smoke-tests-ios` on pushes to `main`/`release/*`, the overnight schedule, opted-in `release/*` PRs, and PRs into `main` only when iOS was requested by label (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md#ios-builds-on-prs-into-main-are-on-request-only)).
 - **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — selects specs per fixed `split`/`total_splits` via `e2e-split-tags-shards.mjs` (qa-stats timing bin-pack when available), then runs Playwright with `--grep` and those files.
 - **Seedless:** `SmokeSeedlessOnboarding` uses **2** shards per platform (thin keep list in `tests/smoke-appium/seedless/`). Smart E2E selects this tag from `tests/tags.js` — prefer CV/unit for Account Already Exists, attribution props, and Import SRP UI.
 

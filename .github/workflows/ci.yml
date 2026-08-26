@@ -1526,6 +1526,13 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # PRs into main do not build iOS from path filters alone — it has to be
+    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
+    # path filters already require iOS. Both opt-ins are resolved into
+    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
+    # only built when iOS E2E will actually run. Pushes to main/release/*, the
+    # nightly schedule, and PRs into release/* are unaffected.
     if: >-
       ${{
         !cancelled() &&
@@ -1662,6 +1669,10 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # Runs on iOS only, so on PRs into main it runs only when iOS was requested via
+  # run-appium-ios-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # release/* that build iOS. Moving this to Android would make it unconditional
+  # on PRs again — tracked separately.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
     if: >-
