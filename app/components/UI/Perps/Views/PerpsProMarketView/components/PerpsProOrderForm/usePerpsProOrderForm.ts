@@ -395,7 +395,6 @@ export const usePerpsProOrderForm = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  const [hasInteractedWithSize, setHasInteractedWithSize] = useState(false);
   const [lastSubmittedOrderType, setLastSubmittedOrderType] =
     useState<OrderType | null>(null);
   const hasAttemptedSubmit = lastSubmittedOrderType === orderForm.type;
@@ -528,8 +527,8 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const {
-    sizeInput: rawSizeInput,
-    sizeSlider: rawSizeSlider,
+    sizeInput,
+    sizeSlider,
     effectiveUsdAmount,
     commitPendingSliderPreview,
     isAtMaxAmount,
@@ -543,32 +542,6 @@ export const usePerpsProOrderForm = ({
     maxDigits: MAX_PERPS_INPUT_DIGITS,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
-
-  const sizeInput = useMemo<PerpsProSizeInputModel>(
-    () => ({
-      ...rawSizeInput,
-      onChange: (value: string) => {
-        setHasInteractedWithSize(true);
-        rawSizeInput.onChange(value);
-      },
-      onBlur: () => {
-        setHasInteractedWithSize(true);
-        rawSizeInput.onBlur();
-      },
-    }),
-    [rawSizeInput],
-  );
-
-  const sizeSlider = useMemo<PerpsProSizeSliderModel>(
-    () => ({
-      ...rawSizeSlider,
-      onDragEnd: (value: number) => {
-        setHasInteractedWithSize(true);
-        rawSizeSlider.onDragEnd(value);
-      },
-    }),
-    [rawSizeSlider],
-  );
 
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -752,9 +725,6 @@ export const usePerpsProOrderForm = ({
     );
     return withoutSize.filter((err) => !fieldMessages.has(err));
   }, [orderValidation.errors, orderValidation.fieldIssues]);
-  const hasBlockingAmountValidationError =
-    !hasValidAmount && (hasInteractedWithSize || hasAttemptedSubmit);
-
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -1041,7 +1011,6 @@ export const usePerpsProOrderForm = ({
       setLimitPrice(undefined);
       setTriggerPrice(undefined);
       setReduceOnly(false);
-      setHasInteractedWithSize(false);
       setLastSubmittedOrderType(null);
     } finally {
       isSubmittingRef.current = false;
@@ -1369,11 +1338,10 @@ export const usePerpsProOrderForm = ({
         : hasBlurredLimitPrice || hasAttemptedSubmit,
   );
   const hasBlockingOrderValidationError =
-    filteredErrors.length > 0 ||
-    hasBlockingAmountValidationError ||
-    hasVisiblePriceValidationError;
+    filteredErrors.length > 0 || hasVisiblePriceValidationError;
 
   const isPlaceOrderDisabled =
+    !hasValidAmount ||
     hasBlockingOrderValidationError ||
     isAtCap ||
     isPlacing ||

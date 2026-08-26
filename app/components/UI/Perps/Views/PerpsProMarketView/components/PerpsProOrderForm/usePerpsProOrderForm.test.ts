@@ -393,7 +393,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.notices).toEqual([]);
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
 
       act(() => {
         result.current.sizeInput.onBlur();
@@ -417,7 +417,7 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       expect(result.current.notices).toEqual([]);
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
 
       // Act
       await act(async () => {
@@ -1719,6 +1719,21 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('isPlaceOrderDisabled', () => {
+    it.each(['', '0', 'not-a-number'])(
+      'is disabled on mount for amount "%s"',
+      (amount) => {
+        // Arrange
+        mockOrderForm.amount = amount;
+
+        // Act
+        const { result } = renderProForm();
+
+        // Assert
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(result.current.notices).toEqual([]);
+      },
+    );
+
     it('shows loading only while order placement is in progress', () => {
       // Arrange
       mockIsPlacing = true;

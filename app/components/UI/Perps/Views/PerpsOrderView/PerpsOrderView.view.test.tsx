@@ -109,6 +109,47 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('disables Place Order on initial mount with an empty amount', () => {
+    // Arrange
+    renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      },
+    });
+
+    // Act
+    const placeOrderButton = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    // Assert
+    expect(placeOrderButton).toBeDisabled();
+    expect(
+      screen.queryByText(strings('perps.order.validation.amount_required')),
+    ).not.toBeOnTheScreen();
+    expect(Engine.context.PerpsController.validateOrder).not.toHaveBeenCalled();
+  });
+
   it('submits a market long after the trader reviews the calculated order fees and details', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const calculateFees = Engine.context.PerpsController
