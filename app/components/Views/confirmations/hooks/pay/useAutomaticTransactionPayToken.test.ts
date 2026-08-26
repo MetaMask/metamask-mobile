@@ -33,7 +33,7 @@ import {
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
-import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
+import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
@@ -50,7 +50,7 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
-jest.mock('./useFiatDepositPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../../selectors/transactionController', () => ({

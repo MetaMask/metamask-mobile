@@ -3,7 +3,7 @@ import { hasTransactionType } from '@metamask/transaction-controller';
 import { useHasFiatProvider } from '../../../../UI/Ramp/hooks/useHasFiatProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
+import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
 
 /**
  * Returns whether fiat payment is available for the current transaction.

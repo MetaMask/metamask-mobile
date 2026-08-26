@@ -10,7 +10,7 @@ import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
+import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
 import { HighlightedItem } from '../../types/token';
 import { getPaymentMethodDisplayName } from '../../utils/generic';
 

@@ -2,12 +2,12 @@ import { renderHook } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
+import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
 import { useHasFiatProvider } from '../../../../UI/Ramp/hooks/useHasFiatProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useMMPayFiatConfig');
-jest.mock('./useFiatDepositPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods');
 jest.mock('../../../../UI/Ramp/hooks/useHasFiatProvider');
 jest.mock('../transactions/useTransactionMetadataRequest');
 

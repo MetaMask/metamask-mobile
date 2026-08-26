@@ -4,14 +4,14 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
+import { useFiatDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods';
 import { useRampsUserRegion } from '../../../../UI/Ramp/hooks/useRampsUserRegion';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('./useTransactionPayData');
-jest.mock('./useFiatDepositPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useFiatDepositPaymentMethods');
 jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
 
 // Capture selector-opened emits at the ramps analytics boundary.

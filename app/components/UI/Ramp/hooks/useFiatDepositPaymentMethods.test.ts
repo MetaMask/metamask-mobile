@@ -2,10 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
-import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import Engine from '../../../../../core/Engine';
+import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import Engine from '../../../../core/Engine';
 
 const mockUseQuery = jest.fn();
 const mockUseSelector = jest.fn();
@@ -16,10 +16,12 @@ jest.mock('@tanstack/react-query', () => ({
 jest.mock('react-redux', () => ({
   useSelector: (...args: unknown[]) => mockUseSelector(...args),
 }));
-jest.mock('./useMMPayFiatConfig');
-jest.mock('./useTransactionPayData');
-jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../Views/confirmations/hooks/pay/useMMPayFiatConfig');
+jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayData');
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+);
+jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getPaymentMethodsForContext: jest.fn(),

@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { type Hex, hexToBigInt, toCaipAssetType } from '@metamask/utils';
-import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
+import { NATIVE_TOKEN_ADDRESS } from '../../../Views/confirmations/constants/tokens';
 
 export interface FiatDepositAsset {
   address: Hex;

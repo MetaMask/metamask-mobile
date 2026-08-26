@@ -2,16 +2,16 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { type PaymentMethod } from '@metamask/ramps-controller';
-import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
-import { selectUserRegion } from '../../../../../selectors/rampsController';
-import { normalizeAssetIdForApi } from '../../../../UI/Ramp/utils/normalizeAssetIdForApi';
-import { parseUserFacingError } from '../../../../UI/Ramp/utils/parseUserFacingError';
-import type { RampsQueryStatus } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { deriveFiatDepositAssetId } from '../../utils/fiatDepositAsset';
+import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+import { selectUserRegion } from '../../../../selectors/rampsController';
+import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
+import type { RampsQueryStatus } from './useRampsPaymentMethods';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { deriveFiatDepositAssetId } from '../utils/fiatDepositAsset';
 
 export interface UseFiatDepositPaymentMethodsResult {
   paymentMethods: PaymentMethod[];
