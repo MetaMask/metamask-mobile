@@ -2,11 +2,14 @@ import AppConstants from '../../../../core/AppConstants';
 import { getCardWebBaseUrlForMetaMaskEnv } from './mapCardWebUrl';
 
 describe('getCardWebBaseUrlForMetaMaskEnv', () => {
-  it('returns AppConstants.CARD.WEB_URL.PRD for production/rc', () => {
+  it('returns AppConstants.CARD.WEB_URL.PRD for production/rc/rc-nightly', () => {
     expect(getCardWebBaseUrlForMetaMaskEnv('production')).toBe(
       AppConstants.CARD.WEB_URL.PRD,
     );
     expect(getCardWebBaseUrlForMetaMaskEnv('rc')).toBe(
+      AppConstants.CARD.WEB_URL.PRD,
+    );
+    expect(getCardWebBaseUrlForMetaMaskEnv('rc-nightly')).toBe(
       AppConstants.CARD.WEB_URL.PRD,
     );
   });

@@ -16,6 +16,7 @@ export const getDefaultImmersveApiBaseUrlForMetaMaskEnv = (
       return AppConstants.IMMERSVE_API_URL.DEV;
     case 'production':
     case 'rc':
+    case 'rc-nightly':
     default:
       return AppConstants.IMMERSVE_API_URL.PRD;
   }

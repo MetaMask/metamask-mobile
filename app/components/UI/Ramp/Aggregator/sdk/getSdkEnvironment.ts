@@ -15,6 +15,7 @@ export function getSdkEnvironment() {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'rc-nightly':
       return Environment.Production;
     case 'dev':
     case 'exp':

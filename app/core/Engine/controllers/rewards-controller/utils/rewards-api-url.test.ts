@@ -12,12 +12,19 @@ jest.mock('../../../../AppConstants', () => ({
 }));
 
 describe('canChangeRewardsEnvUrl', () => {
-  it.each(['e2e', 'dev', 'local', 'pre-release', 'exp', 'beta', 'rc', 'test'])(
-    'returns true for "%s" env',
-    (env) => {
-      expect(canChangeRewardsEnvUrl(env)).toBe(true);
-    },
-  );
+  it.each([
+    'e2e',
+    'dev',
+    'local',
+    'pre-release',
+    'exp',
+    'beta',
+    'rc',
+    'rc-nightly',
+    'test',
+  ])('returns true for "%s" env', (env) => {
+    expect(canChangeRewardsEnvUrl(env)).toBe(true);
+  });
 
   it('returns false for production env', () => {
     expect(canChangeRewardsEnvUrl('production')).toBe(false);
@@ -113,7 +120,7 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
     expect(canChange).toBe(false);
   });
 
-  it('returns PRD url and canChange=true for beta, pre-release, or rc env', () => {
+  it('returns PRD url and canChange=true for beta, pre-release, rc, or rc-nightly env', () => {
     let [apiUrl, canChange] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta');
     expect(apiUrl).toEqual('https://api.prd');
     expect(canChange).toBe(true);
@@ -124,6 +131,11 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
     expect(canChange).toBe(true);
 
     [apiUrl, canChange] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc');
+    expect(apiUrl).toEqual('https://api.prd');
+    expect(canChange).toBe(true);
+
+    [apiUrl, canChange] =
+      getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc-nightly');
     expect(apiUrl).toEqual('https://api.prd');
     expect(canChange).toBe(true);
   });

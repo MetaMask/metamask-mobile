@@ -4,8 +4,16 @@ name: Nightly Build
 #
 # iOS uses build-and-upload-to-testflight.yml; Android calls build.yml directly.
 #
-# rc depends on exp within each platform stream to ensure the external version
-# service produces sequential numbers (N for exp, N+1 for rc).
+# rc-nightly depends on exp within each platform stream so the external version
+# service produces sequential numbers (N for exp, N+1 for rc-nightly).
+#
+# MCRM-142: nightlies must not use environment: rc / build_name: main-rc.
+# Official Runway / release/* Auto RC is the only path that may emit Mixpanel
+# *-release-candidate. Main nightly uses METAMASK_ENVIRONMENT=rc-nightly
+# (Mixpanel *-rc-nightly, LaunchDarkly ReleaseCandidate).
+#
+# Runway #nightly-builds Slack (bot "Mobile Nightly Build Automation") is not
+# in this repo. Update that template to "Main RC Nightly Links" when this ships.
 
 on:
   schedule:
@@ -38,13 +46,13 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  ios-rc:
-    name: Nightly iOS rc
+  ios-rc-nightly:
+    name: Nightly iOS rc-nightly
     needs: [ios-exp]
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: main
-      environment: rc
+      environment: rc-nightly
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
       runner_provider: ${{ inputs.runner_provider }}
@@ -65,25 +73,25 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  android-rc-generate:
+  android-rc-nightly-generate:
     needs: [android-exp]
     uses: ./.github/workflows/generate-build-version.yml
 
-  android-rc:
-    name: Nightly Android rc
-    needs: [android-rc-generate]
+  android-rc-nightly:
+    name: Nightly Android rc-nightly
+    needs: [android-rc-nightly-generate]
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-rc
+      build_name: main-rc-nightly
       platform: android
       source_branch: main
-      build_number: ${{ needs.android-rc-generate.outputs.build-version }}
+      build_number: ${{ needs.android-rc-nightly-generate.outputs.build-version }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   size-analysis-ios:
     name: Sentry Size Analysis (iOS)
-    needs: [ios-rc]
+    needs: [ios-rc-nightly]
     if: success()
     runs-on: macos-latest
     steps:
@@ -99,7 +107,7 @@ jobs:
       - name: Download iOS xcarchive
         uses: actions/download-artifact@v4
         with:
-          name: ios-xcarchive-main-rc
+          name: ios-xcarchive-main-rc-nightly
           path: ./build-artifacts/
       - name: Unzip xcarchive
         run: |
@@ -122,7 +130,7 @@ jobs:
 
   size-analysis-android:
     name: Sentry Size Analysis (Android)
-    needs: [android-rc]
+    needs: [android-rc-nightly]
     if: success()
     runs-on: ubuntu-latest
     steps:
@@ -138,7 +146,7 @@ jobs:
       - name: Download Android APK
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-main-rc
+          name: android-apk-main-rc-nightly
           path: ./build-artifacts/
       - name: Upload to Sentry Size Analysis
         env:

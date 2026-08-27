@@ -40,6 +40,13 @@ describe('RemoteFeatureFlagController utils', () => {
       );
     });
 
+    it('returns EnvironmentType.ReleaseCandidate when METAMASK_ENVIRONMENT is rc-nightly', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+      expect(getFeatureFlagAppEnvironment()).toBe(
+        EnvironmentType.ReleaseCandidate,
+      );
+    });
+
     it('returns EnvironmentType.Test when METAMASK_ENVIRONMENT is test', () => {
       process.env.METAMASK_ENVIRONMENT = 'test';
       expect(getFeatureFlagAppEnvironment()).toBe(EnvironmentType.Test);

@@ -68,6 +68,7 @@ export const getBridgeApiBaseUrlForMetaMaskEnv = (): string => {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'rc-nightly':
     case 'pre-release':
     default:
       return BRIDGE_PROD_API_BASE_URL;

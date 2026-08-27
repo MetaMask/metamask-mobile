@@ -213,6 +213,30 @@ describe('getTransactionPayFiatTestOptions', () => {
     });
   });
 
+  it('returns the funding source in rc-nightly', () => {
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
+      value: 'rc-nightly',
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    Object.defineProperty(
+      process.env,
+      'TRANSACTION_PAY_FIAT_TEST_FUNDING_SOURCE',
+      {
+        value: '0x1234567890123456789012345678901234567890',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      },
+    );
+
+    expect(getTransactionPayFiatTestOptions()).toStrictEqual({
+      testAmountOverride: undefined,
+      testFundingSource: '0x1234567890123456789012345678901234567890',
+    });
+  });
+
   it('returns the amount override in enabled builds', () => {
     Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
       value: 'dev',

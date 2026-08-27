@@ -15,6 +15,7 @@ const { RUNTIME_VERSION, UPDATE_URL } = require('../ota.config.js');
 const VALID_ENVIRONMENTS = [
   'beta',
   'rc',
+  'rc-nightly',
   'exp',
   'test',
   'e2e',

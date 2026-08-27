@@ -85,6 +85,11 @@ describe('getRampsEnvironment', () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
     });
+
+    it('returns Production for rc-nightly environment', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
+    });
   });
 
   describe('Development Environment', () => {
@@ -234,6 +239,17 @@ describe('rampsServiceInit', () => {
 
     it('passes Production environment for rc environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Production,
+        }),
+      );
+    });
+
+    it('passes Production environment for rc-nightly environment', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(

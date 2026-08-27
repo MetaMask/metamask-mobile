@@ -31,6 +31,7 @@ export function getTransakEnvironment(): TransakEnvironment {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'rc-nightly':
       return TransakEnvironment.Production;
 
     case 'dev':

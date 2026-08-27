@@ -67,7 +67,7 @@ describe('transak-service-init', () => {
     });
 
     describe('METAMASK_ENVIRONMENT fallback path', () => {
-      it.each(['production', 'beta', 'rc'])(
+      it.each(['production', 'beta', 'rc', 'rc-nightly'])(
         'returns Production for %s environment',
         (env) => {
           process.env.METAMASK_ENVIRONMENT = env;

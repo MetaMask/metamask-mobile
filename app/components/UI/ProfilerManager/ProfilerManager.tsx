@@ -15,6 +15,7 @@ import {
 const shouldEnableProfiler = (() => {
   switch (process.env.METAMASK_ENVIRONMENT) {
     case 'rc':
+    case 'rc-nightly':
       return true;
     case 'exp':
       return true;

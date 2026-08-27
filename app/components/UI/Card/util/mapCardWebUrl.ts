@@ -20,6 +20,7 @@ export const getCardWebBaseUrlForMetaMaskEnv = (
       return AppConstants.CARD.WEB_URL.UAT;
     case 'production':
     case 'rc':
+    case 'rc-nightly':
     default:
       return AppConstants.CARD.WEB_URL.PRD;
   }

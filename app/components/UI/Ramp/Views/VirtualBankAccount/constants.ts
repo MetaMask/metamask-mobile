@@ -30,6 +30,7 @@ const getKycApiBaseUrlForMetaMaskEnv = (): string => {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'rc-nightly':
     case 'pre-release':
     default:
       // Not deployed to production yet; `useKycDisclaimers` skips the fetch.

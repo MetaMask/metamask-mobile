@@ -79,6 +79,7 @@ on:
           - main-prod
           - main-beta
           - main-rc
+          - main-rc-nightly
           - main-test
           - main-e2e
           - main-exp

@@ -50,7 +50,7 @@ describe('getBridgeApiBaseUrlForMetaMaskEnv', () => {
     },
   );
 
-  it.each(['production', 'beta', 'rc', 'pre-release'])(
+  it.each(['production', 'beta', 'rc', 'rc-nightly', 'pre-release'])(
     'returns the prod base URL when METAMASK_ENVIRONMENT is %s',
     (env: string) => {
       setEnv({ METAMASK_ENVIRONMENT: env });

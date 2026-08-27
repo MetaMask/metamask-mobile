@@ -15,6 +15,7 @@ export const PRODUCTION_LIKE_ENVIRONMENTS = [
   'qa',
   'beta',
   'rc',
+  'rc-nightly',
   'exp',
 ];
 

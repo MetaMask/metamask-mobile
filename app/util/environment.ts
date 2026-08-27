@@ -4,6 +4,7 @@ import type { Hex } from '@metamask/utils';
 
 const DEV_ENVIRONMENT = 'dev';
 const RC_ENVIRONMENT = 'rc';
+const RC_NIGHTLY_ENVIRONMENT = 'rc-nightly';
 const FLASK_BUILD_TYPE = 'flask';
 
 // TODO: This should be consolidated into app/util/test/utils.js
@@ -46,6 +47,7 @@ export const getTransactionPayFiatTestOptions = ():
   const isEnabledBuild =
     process.env.METAMASK_ENVIRONMENT === DEV_ENVIRONMENT ||
     process.env.METAMASK_ENVIRONMENT === RC_ENVIRONMENT ||
+    process.env.METAMASK_ENVIRONMENT === RC_NIGHTLY_ENVIRONMENT ||
     process.env.METAMASK_BUILD_TYPE === FLASK_BUILD_TYPE;
 
   if (!isEnabledBuild) {

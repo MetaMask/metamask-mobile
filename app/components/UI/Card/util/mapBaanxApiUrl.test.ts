@@ -43,11 +43,14 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       delete process.env.BAANX_API_URL;
     });
 
-    it('returns AppConstants.BAANX_API_URL.PRD for production/rc', () => {
+    it('returns AppConstants.BAANX_API_URL.PRD for production/rc/rc-nightly', () => {
       expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('production')).toBe(
         AppConstants.BAANX_API_URL.PRD,
       );
       expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('rc')).toBe(
+        AppConstants.BAANX_API_URL.PRD,
+      );
+      expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('rc-nightly')).toBe(
         AppConstants.BAANX_API_URL.PRD,
       );
     });

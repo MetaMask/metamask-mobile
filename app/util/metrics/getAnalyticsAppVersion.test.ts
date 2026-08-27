@@ -36,6 +36,13 @@ describe('formatAnalyticsAppVersion', () => {
     expect(result).toBe('8.6.0-release-candidate');
   });
 
+  it('appends rc-nightly for rc-nightly and does not use release-candidate', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'rc-nightly');
+
+    expect(result).toBe('8.6.0-rc-nightly');
+    expect(result).not.toContain('release-candidate');
+  });
+
   it('appends experimental for exp', () => {
     const result = formatAnalyticsAppVersion(baseVersion, 'exp');
 

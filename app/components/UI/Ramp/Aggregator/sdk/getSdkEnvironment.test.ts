@@ -54,6 +54,11 @@ describe('getSdkEnvironment', () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
       expect(getSdkEnvironment()).toBe(Environment.Production);
     });
+
+    it('returns Production environment for rc-nightly', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
   });
 
   describe('Staging environments', () => {
@@ -154,6 +159,7 @@ describe('getSdkEnvironment', () => {
       { env: 'production', expected: Environment.Production },
       { env: 'beta', expected: Environment.Production },
       { env: 'rc', expected: Environment.Production },
+      { env: 'rc-nightly', expected: Environment.Production },
       { env: 'dev', expected: Environment.Staging },
       { env: 'exp', expected: Environment.Staging },
       { env: 'test', expected: Environment.Staging },

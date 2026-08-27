@@ -15,6 +15,7 @@ export const getFeatureFlagAppEnvironment = () => {
     // TODO: Remove pre-release case once verified that pre-release is no longer used
     case 'pre-release':
     case 'rc':
+    case 'rc-nightly':
       return EnvironmentType.ReleaseCandidate;
     // TODO: Create LD environment for e2e and mirror test values
     case 'e2e':

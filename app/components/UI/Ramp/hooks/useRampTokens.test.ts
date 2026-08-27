@@ -261,6 +261,25 @@ describe('useRampTokens', () => {
       });
     });
 
+    it('uses production URL for rc-nightly environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      renderHookWithProvider(() => useRampTokens(), {
+        state: createMockState('us-ca'),
+      });
+
+      await waitFor(() => {
+        expect(mockHandleFetch).toHaveBeenCalledWith(
+          'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
+        );
+      });
+    });
+
     it('uses staging URL for dev environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       const mockResponse = createMockResponse(

@@ -16,12 +16,13 @@ on:
         required: true
         type: string
       channel:
-        description: 'OTA channel to push update to (exp, rc, production)'
+        description: 'OTA channel to push update to (exp, rc, rc-nightly, production)'
         required: true
         type: choice
         options:
           - exp
           - rc
+          - rc-nightly
           - production
         default: exp
       platform:
@@ -49,7 +50,7 @@ on:
         type: string
         required: true
       channel:
-        description: 'OTA channel to push update to (exp, rc, production)'
+        description: 'OTA channel to push update to (exp, rc, rc-nightly, production)'
         type: string
         required: false
         default: exp
@@ -230,6 +231,7 @@ jobs:
           case "${{ inputs.channel }}" in
             exp)        BUILD_NAME="main-exp" ;;
             rc)         BUILD_NAME="main-rc" ;;
+            rc-nightly) BUILD_NAME="main-rc-nightly" ;;
             production) BUILD_NAME="main-prod" ;;
             *)
               echo "::error::Unknown channel: ${{ inputs.channel }}"

@@ -203,7 +203,7 @@ _code_fencing_flask: &code_fencing_flask
 # Build Configurations
 # =============================================================================
 # Based on client distribution matrix - see docs for full mapping
-# Environments: production, rc, test, e2e, exp, dev
+# Environments: production, rc, rc-nightly, test, e2e, exp, dev
 
 builds:
   # ---------------------------------------------------------------------------
@@ -239,6 +239,18 @@ builds:
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Nightly Main from `main` (MCRM-142). Same LD ReleaseCandidate + RC signing
+  # as main-rc; Mixpanel suffix is *-rc-nightly, not *-release-candidate.
+  main-rc-nightly:
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc-nightly'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main

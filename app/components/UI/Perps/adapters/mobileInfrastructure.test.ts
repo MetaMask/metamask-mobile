@@ -589,6 +589,12 @@ describe('getTerminalApiUrl', () => {
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
   });
 
+  it('returns prd URL for rc-nightly environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+  });
+
   it('returns uat URL for exp environment (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'main';

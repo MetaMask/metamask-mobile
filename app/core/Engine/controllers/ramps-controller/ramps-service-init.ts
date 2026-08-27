@@ -29,6 +29,7 @@ export function getRampsEnvironment(): RampsEnvironment {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'rc-nightly':
       return RampsEnvironment.Production;
     case 'dev':
       return RampsEnvironment.Development;
