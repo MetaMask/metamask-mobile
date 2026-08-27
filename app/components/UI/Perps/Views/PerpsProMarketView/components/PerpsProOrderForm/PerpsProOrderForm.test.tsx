@@ -532,6 +532,14 @@ describe('PerpsProOrderForm', () => {
       expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
+    it('plays selection when the Mid price preset is pressed', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
     it('exposes Reduce only with checked checkbox semantics', () => {
       renderForm({ reduceOnly: true });
 
