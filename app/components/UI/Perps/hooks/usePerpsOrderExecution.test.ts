@@ -159,6 +159,26 @@ describe('usePerpsOrderExecution', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
+    it('confirms Chase acceptance without a render CUF or stream wait', async () => {
+      const onSuccess = jest.fn();
+      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'chase-1' });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'chase',
+          chaseIntervalMs: 5000,
+        });
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('reports a rejected TWAP without creating a render CUF', async () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();

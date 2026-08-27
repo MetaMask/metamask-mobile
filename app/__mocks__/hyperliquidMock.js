@@ -1,12 +1,15 @@
 /* eslint-disable */
 // Mock for @nktkas/hyperliquid SDK
 
-const { HyperliquidError } = jest.requireActual(
-  require.resolve('../../node_modules/@nktkas/hyperliquid/esm/_base.js'),
+// Jest maps SDK specifiers back to this mock, so use Node's resolver to load
+// the real public exchange entrypoint.
+const { createRequire } = process.getBuiltinModule('module');
+const hyperliquidExchangeEntrypoint = createRequire(__filename).resolve(
+  '@nktkas/hyperliquid/api/exchange',
 );
-const { ApiRequestError } = jest.requireActual(
-  require.resolve('../../node_modules/@nktkas/hyperliquid/esm/api/_errors.js'),
-);
+const { ApiRequestError } = jest.requireActual(hyperliquidExchangeEntrypoint);
+// The exchange entrypoint exports ApiRequestError but not its SDK base class.
+const HyperliquidError = Object.getPrototypeOf(ApiRequestError);
 
 const mockExchangeClient = {
   order: jest.fn(),

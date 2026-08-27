@@ -139,7 +139,7 @@ index 0a987fb49a1d711134c29f15f5e72d508b6e3ff2..04762f814204931a628eb104929ecc9d
      SCREEN_NAME: {
          CONNECTION_ERROR: 'connection_error',
 diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
-index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39ebdd0862b6 100644
+index f10d652a266dd75758a604a46acfcc2668433f78..9be2add92aa7e7674a11b12f3f735575b55986c7 100644
 --- a/dist/providers/HyperLiquidProvider.cjs
 +++ b/dist/providers/HyperLiquidProvider.cjs
 @@ -14,6 +14,7 @@ var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidP
@@ -236,7 +236,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39eb
      // Built and validated in `#prepareStrategyPlacement`, before anything was
      // signed, so what is submitted here is exactly what the minimums were
      // applied to.
-@@ -8153,18 +8213,56 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8153,18 +8213,57 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          sizes,
      });
      const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
@@ -263,6 +263,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39eb
 +    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
++    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
      const outcomes = statuses
          .slice(0, count)
          .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
@@ -301,11 +302,24 @@ index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39eb
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
-@@ -8192,6 +8290,19 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8182,9 +8281,10 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+             }),
+         });
+     }
+-    if (result.status !== 'ok' ||
+-        statuses.length !== count ||
+-        acceptedCount !== count) {
++    const isValidFull = result.status === 'ok' &&
++        statuses.length === count &&
++        statusKinds.every((kind) => kind === 'accepted');
++    if (!isValidFull) {
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale ladder was not fully accepted', {
+             accepted: acceptedCount,
+             filled: filledChildOrderIds.length,
+@@ -8192,6 +8292,18 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
              requested: count,
              statuses,
          });
-+        const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
 +        const isValidPartial = result.status === 'ok' &&
 +            statuses.length === count &&
 +            statusKinds.every((kind) => kind !== undefined) &&
@@ -321,7 +335,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39eb
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8226,12 +8337,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8226,12 +8338,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -336,7 +350,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..bfc932c2cb436b4984f9fe722c9f39eb
  /**
   * Place a chase's first order and register the session that follows it.
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
-index a21659ff69cf4d684d380aa0eb5de4a979f64da3..c492dda6ea2cce9b1c8fe13f19470843a23f3515 100644
+index a21659ff69cf4d684d380aa0eb5de4a979f64da3..a31a78a0e1a985afebe7e6d110020882b2879e7a 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
 +++ b/dist/providers/HyperLiquidProvider.mjs
 @@ -11,6 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -433,7 +447,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..c492dda6ea2cce9b1c8fe13f19470843
      // Built and validated in `#prepareStrategyPlacement`, before anything was
      // signed, so what is submitted here is exactly what the minimums were
      // applied to.
-@@ -8149,18 +8209,56 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8149,18 +8209,57 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          sizes,
      });
      const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
@@ -460,6 +474,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..c492dda6ea2cce9b1c8fe13f19470843
 +    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
++    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
      const outcomes = statuses
          .slice(0, count)
          .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
@@ -498,11 +513,24 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..c492dda6ea2cce9b1c8fe13f19470843
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
-@@ -8188,6 +8286,19 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8178,9 +8277,10 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+             }),
+         });
+     }
+-    if (result.status !== 'ok' ||
+-        statuses.length !== count ||
+-        acceptedCount !== count) {
++    const isValidFull = result.status === 'ok' &&
++        statuses.length === count &&
++        statusKinds.every((kind) => kind === 'accepted');
++    if (!isValidFull) {
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale ladder was not fully accepted', {
+             accepted: acceptedCount,
+             filled: filledChildOrderIds.length,
+@@ -8188,6 +8288,18 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
              requested: count,
              statuses,
          });
-+        const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
 +        const isValidPartial = result.status === 'ok' &&
 +            statuses.length === count &&
 +            statusKinds.every((kind) => kind !== undefined) &&
@@ -518,7 +546,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..c492dda6ea2cce9b1c8fe13f19470843
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8222,12 +8333,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8222,12 +8334,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -605,7 +633,7 @@ index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a4
      // Add success-specific properties
      if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
 diff --git a/dist/utils/orderCalculations.cjs b/dist/utils/orderCalculations.cjs
-index 2a598bd3207b56678c06a3194dc5333e0ed8ef47..0925f67c29a8de92d35163cf9be09fdba3bf9e33 100644
+index 2a598bd3207b56678c06a3194dc5333e0ed8ef47..7074ce9438ffbd304b95337ddd8e364addeade64 100644
 --- a/dist/utils/orderCalculations.cjs
 +++ b/dist/utils/orderCalculations.cjs
 @@ -1,6 +1,6 @@
@@ -644,7 +672,7 @@ index 2a598bd3207b56678c06a3194dc5333e0ed8ef47..0925f67c29a8de92d35163cf9be09fdb
   * Split a scale placement's total size across its ladder rungs.
   *
 diff --git a/dist/utils/orderCalculations.d.cts b/dist/utils/orderCalculations.d.cts
-index 1690154642dd1bcd0593d5d722c4733f11d60306..44afec57b8ce022068fc1afff0c4dc1f2d017473 100644
+index 1690154642dd1bcd0593d5d722c4733f11d60306..ab26f187207ed27264fb1d2a8793851a2c581142 100644
 --- a/dist/utils/orderCalculations.d.cts
 +++ b/dist/utils/orderCalculations.d.cts
 @@ -1,5 +1,5 @@
@@ -676,7 +704,7 @@ index 1690154642dd1bcd0593d5d722c4733f11d60306..44afec57b8ce022068fc1afff0c4dc1f
   * Split a scale placement's total size across its ladder rungs.
   *
 diff --git a/dist/utils/orderCalculations.d.mts b/dist/utils/orderCalculations.d.mts
-index 7bb70f793228cb0e23643552e855f280207316ff..d5cebc263e7ebf2c9c4565fdd755b813d003406a 100644
+index 7bb70f793228cb0e23643552e855f280207316ff..7c21f736a5027d5c0ecd0e54e229d3869ee9302b 100644
 --- a/dist/utils/orderCalculations.d.mts
 +++ b/dist/utils/orderCalculations.d.mts
 @@ -1,5 +1,5 @@
@@ -708,7 +736,7 @@ index 7bb70f793228cb0e23643552e855f280207316ff..d5cebc263e7ebf2c9c4565fdd755b813
   * Split a scale placement's total size across its ladder rungs.
   *
 diff --git a/dist/utils/orderCalculations.mjs b/dist/utils/orderCalculations.mjs
-index f12bae309cccd7e90d40efc4f1f7d6df9fd25ad5..4673a0046851b7b04831b14b5e2b1840f63e60e4 100644
+index f12bae309cccd7e90d40efc4f1f7d6df9fd25ad5..a182146982040877088bb71dc10d8ba314622c1d 100644
 --- a/dist/utils/orderCalculations.mjs
 +++ b/dist/utils/orderCalculations.mjs
 @@ -231,6 +231,25 @@ export function computeScalePriceLadder(params) {

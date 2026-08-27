@@ -537,6 +537,19 @@ describe('Perps order lifecycle — FLOW integration', () => {
         ],
         expectedChildOrderIds: ['101', '103'],
       },
+      {
+        responseShape: 'all-hybrid accepted and error status entries',
+        statuses: [
+          { resting: { oid: 101 }, error: 'Invalid status' },
+          { resting: { oid: 102 }, error: 'Invalid status' },
+          { filled: { oid: 103 }, error: 'Invalid status' },
+        ],
+        expectedCancels: [
+          { a: 0, o: 101 },
+          { a: 0, o: 102 },
+        ],
+        expectedChildOrderIds: ['103', '101', '102'],
+      },
     ])(
       'rejects and cleans up a Scale ladder with a $responseShape',
       async ({ statuses, expectedCancels, expectedChildOrderIds }) => {

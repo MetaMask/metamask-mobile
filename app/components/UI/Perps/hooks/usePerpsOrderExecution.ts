@@ -203,7 +203,8 @@ export function usePerpsOrderExecution(
       // stream (no exchange fill-wait time) via
       // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
       // overlapping orders never collide.
-      const isScheduledAcceptanceOrder = orderParams.orderType === 'twap';
+      const isScheduledAcceptanceOrder =
+        orderParams.orderType === 'twap' || orderParams.orderType === 'chase';
       if (isScheduledAcceptanceOrder) {
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
