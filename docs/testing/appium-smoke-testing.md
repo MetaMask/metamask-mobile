@@ -210,14 +210,14 @@ Helpers:
 
 ## Phase timing telemetry
 
-Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). Aggregate with:
+Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). On Namespace runners the same files are also published to GitHub Artifacts so `gh` / the GitHub API can download them. Aggregate with:
 
 ```bash
 yarn appium-smoke:aggregate-timings
 yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
 ```
 
-Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` once jobs upload them.
+Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` (`gh run download <run> -n appium-timings-<suite>`).
 
 ## Reports and artifacts
 
@@ -228,7 +228,7 @@ Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare aga
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
 | Phase timings                 | `test-reports/appium-timings/`        |
 
-CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`.
+CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`. `appium-timings-<suite>` is always published to GitHub Artifacts (plus Namespace storage on Namespace runners).
 
 ## CI
 
