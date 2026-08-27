@@ -315,7 +315,22 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+/**
+ * TEMP perf-debug switch. `WC2Manager.init()` constructs `@walletconnect/core`'s `Core`,
+ * which internally runs relay-auth key generation (secp256k1/elliptic-curve BigInt math via
+ * `@walletconnect/relay-auth`). CPU profiling showed significant self-time here on the first
+ * post-unlock login of a session. Flip to true to test its contribution to the unlock spike.
+ * Remove this block before merging.
+ */
+const PERF_DEBUG_SKIP_WALLETCONNECT_INIT = true; // setting this to true decreases the initial usage of the jS thread by 25%
+
 function* initializeWalletConnectService() {
+  if (PERF_DEBUG_SKIP_WALLETCONNECT_INIT) {
+    Logger.log(
+      '[PERF_DEBUG] skipped WC2Manager.init() (WalletConnect relay-auth not run)',
+    );
+    return;
+  }
   try {
     yield call(() => WC2Manager.init({}));
   } catch (e) {

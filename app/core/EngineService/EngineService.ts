@@ -33,6 +33,22 @@ import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
 /**
+ * TEMP perf-debug switches for manual binary search on wallet-unlock JS-thread spike.
+ * ~50+ controllers' `:stateChange` events are wired here to two independent fan-outs
+ * that all fire in the same burst right after unlock:
+ * 1. `update_bg_state_cb` -> Batcher -> Redux `engine.backgroundState` (drives re-renders)
+ * 2. `setupEnginePersistence` -> per-controller debounced JSON.stringify + file write
+ * Flip ONE at a time to see which (if either) explains the sustained JS-thread spike.
+ * Remove this block before merging.
+ */
+const PERF_DEBUG_SKIP_REDUX_BG_STATE_UPDATES = false;
+const PERF_DEBUG_SKIP_FILESYSTEM_PERSISTENCE = false;
+// eslint-disable-next-line no-console
+console.log(
+  `[PERF_DEBUG] EngineService module loaded. skipReduxBgStateUpdates=${PERF_DEBUG_SKIP_REDUX_BG_STATE_UPDATES} skipFilesystemPersistence=${PERF_DEBUG_SKIP_FILESYSTEM_PERSISTENCE}`,
+);
+
+/**
  * Reads the AnalyticsController's own persisted copy of the analytics identity.
  * Used to recover the identity when MMKV has lost it — see `getAnalyticsId`.
  */
@@ -94,6 +110,13 @@ export class EngineService {
     // Set up immediate Redux updates for all controller state changes
     // This ensures Redux is updated right away when controllers change
     const update_bg_state_cb = (controllerName: string) => {
+      if (PERF_DEBUG_SKIP_REDUX_BG_STATE_UPDATES) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[PERF_DEBUG] skipped Redux bg-state update for ${controllerName}`,
+        );
+        return;
+      }
       if (!engine.context.KeyringController.metadata?.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
@@ -231,6 +254,13 @@ export class EngineService {
    * @param initialState - Optional initial state to compare against. If provided, controllers whose state changed during Engine.init() will be persisted immediately. This catches state changes that occur before subscriptions are set up.
    */
   private setupEnginePersistence = (initialState?: Record<string, unknown>) => {
+    if (PERF_DEBUG_SKIP_FILESYSTEM_PERSISTENCE) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[PERF_DEBUG] setupEnginePersistence skipped entirely (no persistence subscriptions set up)',
+      );
+      return;
+    }
     try {
       if (UntypedEngine.controllerMessenger) {
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {

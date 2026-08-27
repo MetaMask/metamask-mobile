@@ -105,6 +105,27 @@ import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeepli
 import { clearBrazeUser } from '../Braze';
 
 /**
+ * TEMP perf-debug switch for manual binary search on wallet-unlock JS-thread spike.
+ * `postLoginAsyncOperations` runs directly in the login/unlock call path (fire-and-forget),
+ * not through the pub/sub messenger system — it's unaffected by the ExtendedMessenger event
+ * block or the EngineService Redux/persistence skips. It runs `resyncAccounts()` plus parallel
+ * multichain account discovery with up to 3 retries (exponential backoff, 1s-10s) per entropy
+ * source. Flip to true to test whether this is the source of the sustained post-unlock spike.
+ * Remove this block before merging.
+ */
+export const PERF_DEBUG_SKIP_POST_LOGIN_ASYNC_OPS = false; // One of these 2 when false increases the initial usage of the jS thread by 15%
+
+/**
+ * TEMP perf-debug switch. `dispatchLogin()` (called on every unlock) awaits
+ * `AccountTreeInitService.initializeAccountTree()` (AccountsController.updateAccounts +
+ * AccountTreeController.init) and `MultichainAccountService.init()` before dispatching
+ * `logIn()`. CPU profiling showed heavy secp256k1/BIP32 field-arithmetic (@noble/curves via
+ * @scure/bip32) self-time on unlock; this flag skips that block to test its contribution.
+ * Remove this block before merging.
+ */
+export const PERF_DEBUG_SKIP_ACCOUNT_TREE_INIT = false;
+
+/**
  * Holds auth data used to determine auth configuration
  */
 export interface AuthData {
@@ -133,10 +154,16 @@ class AuthenticationService {
     if (options.clearAccountTreeState) {
       AccountTreeInitService.clearState();
     }
-    await AccountTreeInitService.initializeAccountTree();
+    if (PERF_DEBUG_SKIP_ACCOUNT_TREE_INIT) {
+      Logger.log(
+        '[PERF_DEBUG] skipped AccountTreeInitService.initializeAccountTree() + MultichainAccountService.init()',
+      );
+    } else {
+      await AccountTreeInitService.initializeAccountTree();
 
-    const { MultichainAccountService } = Engine.context;
-    await MultichainAccountService.init();
+      const { MultichainAccountService } = Engine.context;
+      await MultichainAccountService.init();
+    }
 
     ReduxService.store.dispatch(logIn());
     ReduxService.store.dispatch(setCompletedOnboarding(true));
@@ -279,6 +306,13 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
+    if (PERF_DEBUG_SKIP_POST_LOGIN_ASYNC_OPS) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[PERF_DEBUG] postLoginAsyncOperations skipped entirely (resyncAccounts + multichain discovery not run)',
+      );
+      return;
+    }
     // READ THIS CAREFULLY:
     // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
     // automatically "fix" this corrupted state, we run this method which will re-sync

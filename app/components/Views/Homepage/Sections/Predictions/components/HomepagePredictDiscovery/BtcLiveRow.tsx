@@ -1,6 +1,8 @@
 import React, {
   forwardRef,
   memo,
+  Profiler,
+  type ProfilerOnRenderCallback,
   useCallback,
   useImperativeHandle,
   useRef,
@@ -25,6 +27,10 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { formatPrice } from '../../../../../../UI/Predict/utils/format';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
 import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
+// import {
+//   perfDebugLogRenderDuration,
+//   perfDebugLogTiming,
+// } from '../../../../../../UI/Predict/utils/perfDebugTiming';
 import type { PredictMarket } from '../../../../../../UI/Predict/types';
 import { HOMEPAGE_PREDICT_SERIES_SLOT } from '../../constants/homepagePredictMarketSlots';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
@@ -34,6 +40,18 @@ const formatBtc = (value: number | undefined) =>
   value === undefined || Number.isNaN(value)
     ? '\u2014'
     : formatPrice(value, { maximumDecimals: 0 });
+
+// TEMP perf-debug: reports the exact ms React spent rendering+committing
+// `BtcLiveValues` on every countdown/price tick. Remove alongside the other
+// `PERF_DEBUG_*` timing instrumentation once the JS-thread investigation
+// concludes.
+const handleBtcLiveValuesProfilerRender: ProfilerOnRenderCallback = (
+  _id,
+  phase,
+  actualDuration,
+) => {
+  // perfDebugLogRenderDuration('BtcLiveValues', phase, actualDuration);
+};
 
 interface BtcLiveRowProps {
   onPress: (
@@ -104,6 +122,8 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
       enabled: isPredictEnabled && isFocused,
     });
 
+  // perfDebugLogTiming('BtcLiveValues render', { currentPrice, countdown });
+
   useImperativeHandle(ref, () => ({ marketId, market }), [market, marketId]);
 
   return (
@@ -140,7 +160,9 @@ const BtcLiveRow = memo(({ onPress }: BtcLiveRowProps) => {
       <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
         <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
       </Box>
-      <BtcLiveValues ref={liveValuesRef} />
+      <Profiler id="BtcLiveValues" onRender={handleBtcLiveValuesProfilerRender}>
+        <BtcLiveValues ref={liveValuesRef} />
+      </Profiler>
       <Icon
         name={IconName.ArrowRight}
         size={IconSize.Sm}

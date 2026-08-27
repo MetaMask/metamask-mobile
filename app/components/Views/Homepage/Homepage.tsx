@@ -37,6 +37,33 @@ import EarnSection from './Sections/EarnSection';
 import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 
 /**
+ * TEMP perf-debug switches for the Homepage screen. `PERF_DEBUG.homepage` in
+ * Wallet/index.tsx showed that enabling Homepage causes continuous JS-thread activity.
+ * Toggle these ONE AT A TIME (rebuild + reprofile) to isolate the section/provider
+ * responsible.
+ *
+ * NOTE: `BalanceBreakdownSection` (via `usePerpsSlice`) and `HomepagePerpsHomeSlot`
+ * (via `usePerpsConnection`/`usePerpsStream`) consume the Perps context unconditionally,
+ * so they are force-disabled below whenever their required provider is off — otherwise
+ * they'd throw "usePerpsConnection/usePerpsStream must be used within a Provider".
+ * Remove this block before merging.
+ */
+const PERF_DEBUG_HOMEPAGE = {
+  perpsConnectionProvider: false,
+  perpsStreamProvider: false,
+  balanceBreakdownSection: false,
+  tokensSection: true, //OK
+  perpsHomeSlot: false,
+  earnSection: true, //OK
+  predictionsSection: true, // OK if turning off BTC live price
+  watchlistSection: true, //OK
+  topTradersSection: true, //OK
+  defiSection: true, //OK
+  nftsSection: true, //OK
+  moreSection: true, //OK
+};
+
+/**
  * Homepage component - Main view for the redesigned wallet homepage.
  *
  * This component orchestrates all homepage sections and coordinates
@@ -146,71 +173,99 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    return (
+    const showBalanceBreakdownSection =
+      PERF_DEBUG_HOMEPAGE.balanceBreakdownSection &&
+      PERF_DEBUG_HOMEPAGE.perpsConnectionProvider &&
+      Boolean(balanceBreakdownSectionProps);
+
+    const showPerpsHomeSlot =
+      PERF_DEBUG_HOMEPAGE.perpsHomeSlot &&
+      PERF_DEBUG_HOMEPAGE.perpsConnectionProvider &&
+      PERF_DEBUG_HOMEPAGE.perpsStreamProvider &&
+      isPerpsEnabled;
+
+    const content = (
+      <Box
+        marginBottom={8}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+        accessible={false}
+      >
+        {showBalanceBreakdownSection ? (
+          <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+        ) : null}
+        {PERF_DEBUG_HOMEPAGE.tokensSection && (
+          <TokensSection
+            ref={tokensSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {showPerpsHomeSlot && (
+          <HomepagePerpsHomeSlot
+            ref={perpsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.earnSection && isEarnSectionEnabled && (
+          <EarnSection
+            ref={earnSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.predictionsSection && (
+          <PredictionsSection
+            ref={predictionsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.watchlistSection && isWatchlistEnabled && (
+          <WatchlistSection
+            ref={watchlistSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.topTradersSection && isTopTradersEnabled && (
+          <TopTradersSection
+            ref={topTradersSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.defiSection && isDeFiEnabled && (
+          <DeFiSection
+            ref={defiSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.nftsSection && (
+          <NFTsSection
+            ref={nftsSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {PERF_DEBUG_HOMEPAGE.moreSection && <MoreSection />}
+      </Box>
+    );
+
+    const contentWithStreamProvider =
+      PERF_DEBUG_HOMEPAGE.perpsStreamProvider ? (
+        <PerpsStreamProvider>{content}</PerpsStreamProvider>
+      ) : (
+        content
+      );
+
+    return PERF_DEBUG_HOMEPAGE.perpsConnectionProvider ? (
       <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
-        <PerpsStreamProvider>
-          <Box
-            marginBottom={8}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
-            accessible={false}
-          >
-            {balanceBreakdownSectionProps ? (
-              <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
-            ) : null}
-            <TokensSection
-              ref={tokensSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            {isPerpsEnabled && (
-              <HomepagePerpsHomeSlot
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isEarnSectionEnabled && (
-              <EarnSection
-                ref={earnSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            <PredictionsSection
-              ref={predictionsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            {isWatchlistEnabled && (
-              <WatchlistSection
-                ref={watchlistSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isTopTradersEnabled && (
-              <TopTradersSection
-                ref={topTradersSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isDeFiEnabled && (
-              <DeFiSection
-                ref={defiSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            <NFTsSection
-              ref={nftsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            <MoreSection />
-          </Box>
-        </PerpsStreamProvider>
+        {contentWithStreamProvider}
       </PerpsConnectionProvider>
+    ) : (
+      contentWithStreamProvider
     );
   },
 );

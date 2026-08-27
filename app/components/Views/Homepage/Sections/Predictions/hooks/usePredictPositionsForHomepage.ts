@@ -21,6 +21,15 @@ interface UsePredictPositionsForHomepageOptions {
 }
 
 /**
+ * TEMP perf-debug switch. CPU profiling showed continuous JS-thread activity
+ * from the market-price WebSocket subscription opened whenever homepage
+ * positions are non-claimable (`livePriceUpdates: !claimable` below). Flip to
+ * true to force `livePriceUpdates: false` and measure its contribution in
+ * isolation. Remove this block before merging.
+ */
+const PERF_DEBUG_SKIP_POSITION_LIVE_PRICES = false;
+
+/**
  * Lightweight wrapper around the Predict team's usePredictPositions hook,
  * adapted for homepage display with optional slicing and claimable value sum.
  *
@@ -32,10 +41,18 @@ export const usePredictPositionsForHomepage = (
 ): UsePredictPositionsForHomepageResult => {
   const { maxPositions, claimable = false, enabled = true } = options;
 
+  if (PERF_DEBUG_SKIP_POSITION_LIVE_PRICES && !claimable) {
+    console.log(
+      '[PERF_DEBUG] skipped position live-price WebSocket subscription (livePriceUpdates forced to false)',
+    );
+  }
+
   const { data, isLoading, error, refetch } = usePredictPositions({
     claimable,
     enabled,
-    livePriceUpdates: !claimable,
+    livePriceUpdates: PERF_DEBUG_SKIP_POSITION_LIVE_PRICES
+      ? false
+      : !claimable,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);

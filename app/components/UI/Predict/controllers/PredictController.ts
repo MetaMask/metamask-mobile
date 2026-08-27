@@ -505,6 +505,17 @@ const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 export const OPTIMISTIC_BALANCE_MAX_AGE_MS = 30 * 1000;
 
 /**
+ * TEMP perf-debug switch. Homepage `PredictionsSection` CPU profiling showed
+ * continuous JS-thread activity driven by the Predict market-price and RTDS
+ * crypto-price WebSocket connections (message parsing + ping/heartbeat
+ * timers in `WebSocketManager`). Flip to true to short-circuit both
+ * `subscribeToMarketPrices` and `subscribeToCryptoPrices` (no WebSocket
+ * connection is ever created) to measure their contribution in isolation.
+ * Remove this block before merging.
+ */
+const PERF_DEBUG_SKIP_ALL_PREDICT_WEBSOCKETS = false;
+
+/**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
  * Provides a unified interface for prediction markets trading across multiple protocols.
@@ -2983,6 +2994,12 @@ export class PredictController extends BaseController<
     tokenIds: string[],
     callback: PriceUpdateCallback,
   ): () => void {
+    if (PERF_DEBUG_SKIP_ALL_PREDICT_WEBSOCKETS) {
+      console.log(
+        '[PERF_DEBUG] skipped subscribeToMarketPrices (no market-price WebSocket subscription created)',
+      );
+      return () => undefined;
+    }
     const provider = this.provider;
     if (!provider?.subscribeToMarketPrices) {
       return () => undefined;
@@ -3022,6 +3039,12 @@ export class PredictController extends BaseController<
     callback: CryptoPriceUpdateCallback,
     options?: CryptoPriceSubscriptionOptions,
   ): () => void {
+    if (PERF_DEBUG_SKIP_ALL_PREDICT_WEBSOCKETS) {
+      console.log(
+        '[PERF_DEBUG] skipped subscribeToCryptoPrices (no RTDS crypto-price WebSocket subscription created)',
+      );
+      return () => undefined;
+    }
     const provider = this.provider;
     if (!provider?.subscribeToCryptoPrices) {
       return () => undefined;
