@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TRADING_DEFAULTS,
   DECIMAL_PRECISION_CONFIG,
   OrderType,
+  PerpsMode,
   getMaxAllowedAmount,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -22,6 +24,7 @@ import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
+import { selectPerpsMode } from '../selectors/perpsController';
 import {
   getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
@@ -41,6 +44,19 @@ interface UsePerpsOrderFormParams {
   /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
   effectiveAvailableBalance?: number;
 }
+
+const isOrderTypeAllowedOnSurface = (
+  type: OrderType | undefined,
+  mode: PerpsMode,
+): type is OrderType => {
+  if (!type) {
+    return false;
+  }
+  if (mode === PerpsMode.Lite) {
+    return type === 'market' || type === 'limit';
+  }
+  return true;
+};
 
 export interface UsePerpsOrderFormReturn {
   orderForm: OrderFormState;
@@ -125,6 +141,7 @@ export function usePerpsOrderForm(
   );
 
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
+  const perpsMode = useSelector(selectPerpsMode);
 
   const spendableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
@@ -204,8 +221,12 @@ export function usePerpsOrderForm(
 
   // Navigation param > persisted global type > pending draft.
   // Pending is per-market, so it must not override a type chosen on another market.
+  // Lite only offers market/limit; skip Pro-only types (twap, triggers) so they
+  // stay stored for Pro instead of being submitted from Lite.
   const defaultOrderType =
-    initialType || persistedOrderType || pendingConfig?.orderType || 'market';
+    [initialType, persistedOrderType, pendingConfig?.orderType].find((type) =>
+      isOrderTypeAllowedOnSurface(type, perpsMode),
+    ) ?? 'market';
 
   // Calculate initial balance percentage
   const parsedInitialAmount = Number.parseFloat(initialAmountValue);

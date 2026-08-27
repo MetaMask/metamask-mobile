@@ -11,7 +11,11 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
+import {
+  TRADING_DEFAULTS,
+  PerpsMode,
+  type Position,
+} from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
   PerpsStreamProvider,
@@ -85,13 +89,14 @@ const SET_MAX_SLIPPAGE = 'test/setMaxSlippage';
 
 interface TestEngineState {
   backgroundState: {
-    PerpsController: {
-      maxSlippageBps?: number;
-    };
+    PerpsController: Record<string, unknown>;
   };
 }
 
-const createPerpsStore = (maxSlippageBps?: number) =>
+const createPerpsStore = (
+  maxSlippageBps?: number,
+  extraControllerState: Record<string, unknown> = {},
+) =>
   configureStore({
     reducer: {
       engine: (
@@ -100,8 +105,10 @@ const createPerpsStore = (maxSlippageBps?: number) =>
       ): TestEngineState => {
         const currentState = state ?? {
           backgroundState: {
-            PerpsController:
-              maxSlippageBps === undefined ? {} : { maxSlippageBps },
+            PerpsController: {
+              ...(maxSlippageBps === undefined ? {} : { maxSlippageBps }),
+              ...extraControllerState,
+            },
           },
         };
 
@@ -116,7 +123,10 @@ const createPerpsStore = (maxSlippageBps?: number) =>
           ...currentState,
           backgroundState: {
             ...currentState.backgroundState,
-            PerpsController: { maxSlippageBps: action.payload },
+            PerpsController: {
+              ...currentState.backgroundState.PerpsController,
+              maxSlippageBps: action.payload,
+            },
           },
         };
       },
@@ -328,6 +338,51 @@ describe('usePerpsOrderForm', () => {
 
       expect(result.current.orderForm.type).toBe('limit');
       expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('ignores a persisted Pro-only order type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('ignores a persisted stop-market type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'stop_market',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('restores a persisted TWAP order type on Pro', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Pro,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('twap');
     });
 
     it('prioritizes existing position leverage over saved config', () => {
@@ -1179,7 +1234,11 @@ describe('usePerpsOrderForm', () => {
             initialAsset: 'BTC',
             initialType: 'stop_market',
           }),
-        { wrapper: createWrapper() },
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({ mode: PerpsMode.Pro }),
+          ),
+        },
       );
 
       act(() => {
@@ -1196,7 +1255,7 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('recalculates trigger-market sizing after max slippage state changes', () => {
-      const store = createPerpsStore(300);
+      const store = createPerpsStore(300, { mode: PerpsMode.Pro });
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({
