@@ -345,9 +345,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       : 0;
 
     const { isVisible: isSectionVisible, onLayout: handleSectionLayout } =
-      useSectionViewportVisible(sectionViewRef, {
-        isLoading: isLoadingSection,
-      });
+      useSectionViewportVisible(sectionViewRef);
 
     useHomeViewedEvent({
       sectionRef: willRender && !pillsEmptyFeedHidden ? sectionViewRef : null,

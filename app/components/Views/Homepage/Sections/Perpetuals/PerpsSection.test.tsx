@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
@@ -459,6 +460,9 @@ describe('PerpsSection', () => {
         contentVariant: 'trending',
         resolvedSource: 'provider',
       }),
+    );
+    expect(jest.mocked(useSectionViewportVisible)).toHaveBeenCalledWith(
+      expect.any(Object),
     );
   });
 
