@@ -1,6 +1,10 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
+import type {
+  OrderType,
+  PerpsMarketData,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -33,6 +37,7 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
   'take_profit_market',
 ];
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
+const TWAP_SUPPORTED_PROVIDER: PerpsProviderType = 'hyperliquid';
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -71,13 +76,18 @@ const PerpsProOrderFormPanel = ({
           }
         : undefined,
     );
-  const isTwapEnabled = isTwapRolloutEnabled && supportsTwapOrders;
-  const isTwapAvailabilityPending =
-    isTwapRolloutEnabled && isLoadingOrderCapabilities;
   const resolvedTwapProviderId =
     orderCapabilities?.status === 'ready'
       ? orderCapabilities.providerId
       : undefined;
+  // Controller v13 exposes executable strategy limits for Hyperliquid only.
+  // Keep other providers undiscoverable until capabilities own their limits.
+  const isTwapEnabled =
+    isTwapRolloutEnabled &&
+    supportsTwapOrders &&
+    resolvedTwapProviderId === TWAP_SUPPORTED_PROVIDER;
+  const isTwapAvailabilityPending =
+    isTwapRolloutEnabled && isLoadingOrderCapabilities;
   const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [

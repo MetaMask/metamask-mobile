@@ -2,16 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
+  InitializationState,
+  type GetOrderCapabilitiesParams,
+  type PerpsActiveProviderMode,
+  type PerpsOrderCapabilities,
+  type SwitchProviderResult,
+} from '@metamask/perps-controller';
+import {
+  selectPerpsInitializationState,
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
-import type {
-  GetOrderCapabilitiesParams,
-  PerpsActiveProviderMode,
-  PerpsOrderCapabilities,
-  SwitchProviderResult,
-} from '@metamask/perps-controller';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -23,6 +25,9 @@ const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
 };
+
+const ORDER_CAPABILITIES_MAX_RETRIES = 2;
+const ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
 
 /**
  * Hook for managing perps provider selection
@@ -38,6 +43,7 @@ export function usePerpsProvider(
   const activeProvider = useSelector(selectPerpsProvider);
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
   const perpsNetwork = useSelector(selectPerpsNetwork);
+  const initializationState = useSelector(selectPerpsInitializationState);
 
   /**
    * Get list of available providers based on feature flags
@@ -91,14 +97,17 @@ export function usePerpsProvider(
     [activeProvider],
   );
 
-  const capabilityRequestKey = orderCapabilitiesParams?.symbol
-    ? JSON.stringify([
-        orderCapabilitiesParams.providerId,
-        orderCapabilitiesParams.symbol,
-        activeProvider,
-        perpsNetwork,
-      ])
-    : undefined;
+  const capabilityRequestKey =
+    orderCapabilitiesParams?.symbol &&
+    initializationState === InitializationState.Initialized
+      ? JSON.stringify([
+          orderCapabilitiesParams.providerId,
+          orderCapabilitiesParams.symbol,
+          activeProvider,
+          perpsNetwork,
+          initializationState,
+        ])
+      : undefined;
   const [orderCapabilitiesState, setOrderCapabilitiesState] =
     useState<OrderCapabilitiesState>(EMPTY_ORDER_CAPABILITIES_STATE);
   const isCurrentCapabilityRequest =
@@ -113,10 +122,11 @@ export function usePerpsProvider(
 
   useEffect(() => {
     let isCurrent = true;
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined;
     const symbol = orderCapabilitiesParams?.symbol;
     const providerId = orderCapabilitiesParams?.providerId;
 
-    if (!symbol) {
+    if (!symbol || initializationState !== InitializationState.Initialized) {
       setOrderCapabilitiesState(EMPTY_ORDER_CAPABILITIES_STATE);
       return () => {
         isCurrent = false;
@@ -127,6 +137,7 @@ export function usePerpsProvider(
       symbol,
       activeProvider,
       perpsNetwork,
+      initializationState,
     ]);
     setOrderCapabilitiesState({
       requestKey,
@@ -134,20 +145,37 @@ export function usePerpsProvider(
       isLoading: true,
     });
 
-    const loadCapabilities = async () => {
+    const loadCapabilities = async (retryCount = 0) => {
       try {
         const capabilities =
           await Engine.context.PerpsController.getOrderCapabilities({
             symbol,
             providerId,
           });
-        if (isCurrent) {
-          setOrderCapabilitiesState({
-            requestKey,
-            capabilities,
-            isLoading: false,
-          });
+        if (!isCurrent) {
+          return;
         }
+
+        if (
+          capabilities.status === 'unavailable' &&
+          capabilities.reason === 'provider_unavailable' &&
+          retryCount < ORDER_CAPABILITIES_MAX_RETRIES
+        ) {
+          retryTimeout = setTimeout(
+            () => {
+              retryTimeout = undefined;
+              loadCapabilities(retryCount + 1);
+            },
+            ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS * 2 ** retryCount,
+          );
+          return;
+        }
+
+        setOrderCapabilitiesState({
+          requestKey,
+          capabilities,
+          isLoading: false,
+        });
       } catch {
         if (isCurrent) {
           setOrderCapabilitiesState({
@@ -163,9 +191,13 @@ export function usePerpsProvider(
 
     return () => {
       isCurrent = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
     };
   }, [
     activeProvider,
+    initializationState,
     orderCapabilitiesParams?.providerId,
     orderCapabilitiesParams?.symbol,
     perpsNetwork,

@@ -877,6 +877,54 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('blocks TWAP placement when its resolved route changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ providerId }: { providerId: PerpsProviderType }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: providerId,
+          }),
+        { initialProps: { providerId: 'hyperliquid' } },
+      );
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      rerender({ providerId: 'myx' });
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
     it('resets a selected TWAP after rollout availability disappears', () => {
       mockOrderForm.type = 'twap';
       const { result, rerender } = renderHook(
@@ -896,6 +944,36 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockSetOrderType).toHaveBeenCalledWith('market');
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('clears the TWAP draft after rollout availability disappears', () => {
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('2');
+        result.current.twap.onMinutesChange('30');
+        result.current.twap.onRandomizeChange(true);
+      });
+
+      rerender({ isTwapEnabled: false });
+
+      expect(result.current.twap).toMatchObject({
+        days: '',
+        hours: '',
+        minutes: PERPS_TWAP_UI_CONFIG.DefaultMinutes,
+        randomize: false,
+      });
     });
 
     it('keeps a selected TWAP while capability discovery is pending', () => {
@@ -2710,6 +2788,17 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((notice) => notice.id === 'twap-duration'),
       ).toBeDefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('normalizes leading zeros in TWAP duration parts', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onMinutesChange('0000005');
+      });
+
+      expect(result.current.twap.minutes).toBe('5');
     });
 
     it('blocks a TWAP duration whose individually valid parts exceed the total maximum', () => {

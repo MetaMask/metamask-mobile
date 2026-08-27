@@ -34,6 +34,7 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
@@ -85,6 +86,7 @@ export function usePerpsOrderExecution(
   const { onSubmitted, onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder } = usePerpsTrading();
   const stream = usePerpsStream();
+  const network = usePerpsNetwork();
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
@@ -178,6 +180,8 @@ export function usePerpsOrderExecution(
               stopLossPrice: orderParams.stopLossPrice,
               twapDuration: orderParams.twapDuration,
               twapRandomize: orderParams.twapRandomize,
+              providerId: orderParams.providerId,
+              network,
             },
           },
         });
@@ -189,7 +193,7 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, onError, onSubmitted],
+    [controllerPlaceOrder, network, onError, onSubmitted],
   );
 
   const placeOrder = useCallback(

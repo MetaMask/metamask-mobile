@@ -569,6 +569,34 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
+  it('omits TWAP when controller v13 resolves a provider without executable TWAP limits', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'myx',
+        supportedStrategies: ['twap'],
+      },
+      supportsTwapOrders: true,
+    });
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: [
+          'market',
+          'limit',
+          'stop_limit',
+          'stop_market',
+          'take_profit_limit',
+          'take_profit_market',
+        ],
+      }),
+    );
+  });
+
   it('renders the fees tooltip when a tooltip is selected', () => {
     // Arrange
     mockHookResult.selectedTooltip = 'fees';

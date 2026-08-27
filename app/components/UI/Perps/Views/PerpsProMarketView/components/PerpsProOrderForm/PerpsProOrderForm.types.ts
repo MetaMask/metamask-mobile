@@ -60,6 +60,7 @@ export interface PerpsProTwapModel {
   hours: string;
   minutes: string;
   randomize: boolean;
+  durationError?: string;
   onDaysChange: (value: string) => void;
   onHoursChange: (value: string) => void;
   onMinutesChange: (value: string) => void;

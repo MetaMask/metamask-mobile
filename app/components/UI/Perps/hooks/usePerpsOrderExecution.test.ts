@@ -12,8 +12,18 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
+import Logger from '../../../../util/Logger';
 
 jest.mock('./usePerpsTrading');
+jest.mock('./usePerpsNetwork', () => ({
+  usePerpsNetwork: () => 'testnet',
+}));
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../../../util/trace', () => {
   const actual = jest.requireActual('../../../../util/trace');
   return {
@@ -24,6 +34,7 @@ jest.mock('../../../../util/trace', () => {
 });
 const mockEndTrace = endTrace as jest.Mock;
 const mockTrace = trace as jest.Mock;
+const mockLoggerError = jest.mocked(Logger.error);
 const mockGetPositionsSnapshot = jest.fn();
 const mockGetOrdersSnapshot = jest.fn();
 const mockPositionsLastDeliveredAt = jest.fn(() => null as number | null);
@@ -202,6 +213,33 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.lastResult).toBeUndefined();
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('reports the routed provider and network for a thrown TWAP placement error', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('TWAP network timeout'));
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              providerId: 'hyperliquid',
+              network: 'testnet',
+            }),
+          }),
+        }),
+      );
     });
   });
 

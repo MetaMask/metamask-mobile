@@ -32,9 +32,12 @@ export const formatCompactTwapDuration = (
   const days = toNonNegativeInteger(twap.days);
   const hours = toNonNegativeInteger(twap.hours);
   const minutes = toNonNegativeInteger(twap.minutes);
-  const parts = days > 0 ? [`${days}d`] : [];
+  const daySuffix = strings('perps.pro_order_form.twap.days_short');
+  const hourSuffix = strings('perps.pro_order_form.twap.hours_short');
+  const minuteSuffix = strings('perps.pro_order_form.twap.minutes_short');
+  const parts = days > 0 ? [`${days}${daySuffix}`] : [];
 
-  parts.push(`${hours}h`, `${minutes}m`);
+  parts.push(`${hours}${hourSuffix}`, `${minutes}${minuteSuffix}`);
   return parts.join(' ');
 };
 

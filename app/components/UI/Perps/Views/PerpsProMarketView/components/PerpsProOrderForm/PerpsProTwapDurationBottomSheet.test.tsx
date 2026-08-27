@@ -70,6 +70,22 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(onMinutesChange).toHaveBeenCalledWith('30');
   });
 
+  it('renders a duration error inside the open sheet', () => {
+    const durationError =
+      'Running time must be between 5 minutes and 24 hours.';
+
+    render(
+      <PerpsProTwapDurationBottomSheet
+        twap={createTwap({ durationError })}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(ids.TWAP_DURATION_ERROR)).toHaveTextContent(
+      durationError,
+    );
+  });
+
   it('closes from the standard sheet header affordance', () => {
     const onClose = jest.fn();
     render(

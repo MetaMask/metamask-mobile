@@ -586,6 +586,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   TWAP_DURATION_VALUE: 'perps-pro-order-form-twap-duration-value',
   TWAP_DURATION_SHEET: 'perps-pro-order-form-twap-duration-sheet',
   TWAP_DURATION_SHEET_CLOSE: 'perps-pro-order-form-twap-duration-sheet-close',
+  TWAP_DURATION_ERROR: 'perps-pro-order-form-twap-duration-error',
   TWAP_DAYS: 'perps-pro-order-form-twap-days',
   TWAP_HOURS: 'perps-pro-order-form-twap-hours',
   TWAP_MINUTES: 'perps-pro-order-form-twap-minutes',

@@ -100,6 +100,15 @@ const PerpsProTwapDurationBottomSheet = ({
             </Box>
           ))}
         </Box>
+        {twap.durationError ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.ErrorDefault}
+            testID={ids.TWAP_DURATION_ERROR}
+          >
+            {twap.durationError}
+          </Text>
+        ) : null}
       </Box>
       {durationFields.map(({ testID }) => (
         <PerpsProInputKeyboardAccessory key={testID} inputTestID={testID} />

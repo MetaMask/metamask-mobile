@@ -1,7 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { InitializationState } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
+  selectPerpsInitializationState,
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
@@ -38,6 +40,24 @@ const createDeferredCapabilities = () => {
   return { promise, resolve };
 };
 
+const mockAggregatedProviderSelectors = (
+  getInitializationState: () => InitializationState = () =>
+    InitializationState.Initialized,
+) => {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectPerpsProvider) {
+      return 'aggregated';
+    }
+    if (selector === selectPerpsNetwork) {
+      return 'mainnet';
+    }
+    if (selector === selectPerpsInitializationState) {
+      return getInitializationState();
+    }
+    return false;
+  });
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockGetOrderCapabilities.mockResolvedValue({
@@ -52,6 +72,9 @@ beforeEach(() => {
     }
     if (selector === selectPerpsNetwork) {
       return 'mainnet';
+    }
+    if (selector === selectPerpsInitializationState) {
+      return InitializationState.Initialized;
     }
     return false;
   });
@@ -184,7 +207,7 @@ describe('usePerpsProvider', () => {
     });
 
     it('returns TWAP support from a ready controller capability', async () => {
-      mockUseSelector.mockReturnValue('aggregated');
+      mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
         providerId: 'hyperliquid',
@@ -210,7 +233,7 @@ describe('usePerpsProvider', () => {
     });
 
     it('preserves the provider route resolved by default capability routing', async () => {
-      mockUseSelector.mockReturnValue('aggregated');
+      mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
         providerId: 'hyperliquid',
@@ -232,7 +255,7 @@ describe('usePerpsProvider', () => {
     });
 
     it('marks a new capability route pending before it resolves', () => {
-      mockUseSelector.mockReturnValue('aggregated');
+      mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockReturnValue(
         new Promise<never>(() => undefined),
       );
@@ -244,11 +267,11 @@ describe('usePerpsProvider', () => {
     });
 
     it('keeps TWAP disabled when capabilities are unavailable', async () => {
-      mockUseSelector.mockReturnValue('aggregated');
+      mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'unavailable',
         providerId: 'hyperliquid',
-        reason: 'provider_unavailable',
+        reason: 'strategy_market_unsupported',
       });
 
       const { result } = renderHook(() =>
@@ -258,6 +281,113 @@ describe('usePerpsProvider', () => {
       await waitFor(() => {
         expect(mockGetOrderCapabilities).toHaveBeenCalled();
       });
+      expect(result.current.supportsTwapOrders).toBe(false);
+    });
+
+    it('retries transient provider unavailability before restoring TWAP support', async () => {
+      jest.useFakeTimers();
+      try {
+        mockAggregatedProviderSelectors();
+        mockGetOrderCapabilities
+          .mockResolvedValueOnce({
+            status: 'unavailable',
+            providerId: 'hyperliquid',
+            reason: 'provider_unavailable',
+          })
+          .mockResolvedValueOnce({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: ['twap'],
+          });
+
+        const { result } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+        );
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoadingOrderCapabilities).toBe(true);
+
+        await act(async () => {
+          jest.runOnlyPendingTimers();
+          await Promise.resolve();
+        });
+
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        expect(result.current.supportsTwapOrders).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('refetches capabilities when the same provider returns to initialized', async () => {
+      let initializationState = InitializationState.Initialized;
+      mockAggregatedProviderSelectors(() => initializationState);
+      mockGetOrderCapabilities
+        .mockResolvedValueOnce({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap'],
+        })
+        .mockResolvedValueOnce({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [],
+        });
+      const { result, rerender } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC' }),
+      );
+      await waitFor(() => {
+        expect(result.current.supportsTwapOrders).toBe(true);
+      });
+
+      initializationState = InitializationState.Initializing;
+      rerender(undefined);
+      expect(result.current.supportsTwapOrders).toBe(false);
+      initializationState = InitializationState.Initialized;
+      rerender(undefined);
+
+      await waitFor(() => {
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
+      });
+      expect(result.current.supportsTwapOrders).toBe(false);
+    });
+
+    it('ignores a late response from a prior controller initialization', async () => {
+      let initializationState = InitializationState.Initialized;
+      const staleCapabilities = createDeferredCapabilities();
+      mockAggregatedProviderSelectors(() => initializationState);
+      mockGetOrderCapabilities
+        .mockReturnValueOnce(staleCapabilities.promise)
+        .mockResolvedValueOnce({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [],
+        });
+      const { result, rerender } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC' }),
+      );
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+
+      initializationState = InitializationState.Initializing;
+      rerender(undefined);
+      initializationState = InitializationState.Initialized;
+      rerender(undefined);
+      await waitFor(() => {
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
+      });
+      await act(async () => {
+        staleCapabilities.resolve({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap'],
+        });
+        await staleCapabilities.promise;
+      });
+
       expect(result.current.supportsTwapOrders).toBe(false);
     });
 
@@ -273,7 +403,7 @@ describe('usePerpsProvider', () => {
           providerId: 'hyperliquid',
           supportedStrategies: [],
         });
-      mockUseSelector.mockReturnValue('aggregated');
+      mockAggregatedProviderSelectors();
       const { result, rerender } = renderHook(
         ({ symbol }) => usePerpsProvider({ symbol, providerId: 'hyperliquid' }),
         { initialProps: { symbol: 'BTC' } },
@@ -327,6 +457,9 @@ describe('usePerpsProvider', () => {
           }
           if (selector === selectPerpsNetwork) {
             return perpsNetwork;
+          }
+          if (selector === selectPerpsInitializationState) {
+            return InitializationState.Initialized;
           }
           return false;
         });
