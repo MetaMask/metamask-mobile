@@ -138,7 +138,12 @@ export const useSwapsLimitOrderPriceAdjust = ({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
     });
-  }, [destTokenAmount, hasUserEditedLimitPrice, quotedFiatRate]);
+  }, [
+    destTokenAmount,
+    executionType, // flipSide clears limitPrice even when quotedFiatRate is unchanged
+    hasUserEditedLimitPrice,
+    quotedFiatRate,
+  ]);
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,
@@ -153,21 +158,22 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    const nextLimitPrice = isLimitFiatMode
-      ? formatTokenInputAmountFromFiat({
-          fiatAmount: limitPrice,
-          tokenFiatRate: counterFiatRate,
-          tokenDecimals: counterToken?.decimals,
-        })
-      : formatFiatInputAmount(limitPrice, counterFiatRate);
-
-    dispatch({ type: 'toggleFiatMode', limitPrice: nextLimitPrice });
+    dispatch({
+      type: 'toggleFiatMode',
+      convertLimitPrice: (currentLimitPrice) =>
+        isLimitFiatMode
+          ? formatTokenInputAmountFromFiat({
+              fiatAmount: currentLimitPrice,
+              tokenFiatRate: counterFiatRate,
+              tokenDecimals: counterToken?.decimals,
+            })
+          : formatFiatInputAmount(currentLimitPrice, counterFiatRate),
+    });
   }, [
     canToggleLimitPrice,
     counterFiatRate,
     counterToken?.decimals,
     isLimitFiatMode,
-    limitPrice,
   ]);
 
   const secondaryValue = getSwapsLimitOrderSecondaryValue({

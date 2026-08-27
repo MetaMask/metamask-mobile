@@ -15,7 +15,10 @@ export type LimitOrderPriceAdjustAction =
   | { type: 'seedFromMarket'; limitPrice: string }
   | { type: 'enterCustom' }
   | { type: 'setCustomValue'; value: string | undefined }
-  | { type: 'toggleFiatMode'; limitPrice: string | undefined }
+  | {
+      type: 'toggleFiatMode';
+      convertLimitPrice: (limitPrice: string | undefined) => string | undefined;
+    }
   | { type: 'flipSide' }
   | { type: 'reset' };
 
@@ -58,7 +61,6 @@ export const limitOrderPriceAdjustReducer = (
     case 'seedFromMarket':
       return {
         ...state,
-        isLimitFiatMode: true,
         limitPrice: action.limitPrice,
       };
     case 'enterCustom':
@@ -74,8 +76,9 @@ export const limitOrderPriceAdjustReducer = (
     case 'toggleFiatMode':
       return {
         ...state,
+        hasUserEditedLimitPrice: true,
         isLimitFiatMode: !state.isLimitFiatMode,
-        limitPrice: action.limitPrice,
+        limitPrice: action.convertLimitPrice(state.limitPrice),
       };
     case 'flipSide':
       return {

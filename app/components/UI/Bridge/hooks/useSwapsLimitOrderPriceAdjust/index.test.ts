@@ -79,6 +79,30 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.counterToken).toEqual(sourceToken);
   });
 
+  it('reseeds market price after flipping quote unit when source and dest fiat rates match', () => {
+    const usdt = createMockToken({
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      decimals: 6,
+    });
+    mockUseTokenFiatRate.mockImplementation(() => 1);
+
+    const { result } = renderPriceAdjustHook({
+      destTokenAmount: '10',
+      sourceToken: usdt,
+    });
+
+    expect(result.current.limitPrice).toBe('1');
+
+    act(() => {
+      result.current.onQuoteUnitPress?.();
+    });
+
+    expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+    expect(result.current.limitPrice).toBe('1');
+    expect(result.current.quotedSymbol).toBe('USDT');
+  });
+
   it('does not reseed market price after the user edits the limit price', () => {
     const { result, rerender } = renderPriceAdjustHook();
 
@@ -184,6 +208,60 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isLimitFiatMode).toBe(false);
     expect(result.current.limitPrice).toBe('0.0005');
     expect(result.current.secondaryValue).toBe('$1.00');
+  });
+
+  it('converts the committed custom percent when toggling amount type in the same turn', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('5');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+      result.current.onAmountTypeTogglePress?.();
+    });
+
+    expect(result.current.isLimitFiatMode).toBe(false);
+    expect(result.current.limitPrice).toBe('0.000475');
+    expect(result.current.secondaryValue).toBe('$0.95');
+  });
+
+  it('keeps counter-token denomination after destTokenAmount updates', () => {
+    const { result, rerender } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.onAmountTypeTogglePress?.();
+    });
+
+    rerender({
+      destToken,
+      destTokenAmount: '2.0',
+      sourceToken,
+    });
+
+    expect(result.current.isLimitFiatMode).toBe(false);
+    expect(result.current.limitPrice).toBe('0.0005');
+  });
+
+  it('keeps counter-token denomination after quoted fiat rate updates', () => {
+    const { result, rerender } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.onAmountTypeTogglePress?.();
+    });
+
+    mockFiatRates({ destRate: 1.1 });
+
+    rerender({
+      destToken,
+      destTokenAmount: '1.5',
+      sourceToken,
+    });
+
+    expect(result.current.isLimitFiatMode).toBe(false);
+    expect(result.current.limitPrice).toBe('0.0005');
   });
 
   it('omits amount type toggle when a token fiat rate is unavailable', () => {

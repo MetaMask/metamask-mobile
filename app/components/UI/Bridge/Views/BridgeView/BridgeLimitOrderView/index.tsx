@@ -119,19 +119,28 @@ const BridgeLimitOrderViewContent = ({
     customPercentInputRef.current?.blur();
   }, []);
 
-  const dismissInputAndKeypad = useCallback(() => {
+  const commitCustomPercentIfFocused = useCallback(() => {
     if (isCustomPercentFocused) {
       commitCustomPercent();
     }
+  }, [commitCustomPercent, isCustomPercentFocused]);
+
+  const dismissInputAndKeypad = useCallback(() => {
+    commitCustomPercentIfFocused();
     inputRef.current?.blur();
     blurLimitAdjustInputs();
     closeKeypad();
-  }, [
-    blurLimitAdjustInputs,
-    closeKeypad,
-    commitCustomPercent,
-    isCustomPercentFocused,
-  ]);
+  }, [blurLimitAdjustInputs, closeKeypad, commitCustomPercentIfFocused]);
+
+  const onSourceInputPress = useCallback(() => {
+    commitCustomPercentIfFocused();
+    focusAmount();
+  }, [commitCustomPercentIfFocused, focusAmount]);
+
+  const onLimitPriceInputPress = useCallback(() => {
+    commitCustomPercentIfFocused();
+    focusLimitPrice();
+  }, [commitCustomPercentIfFocused, focusLimitPrice]);
 
   const closeKeypadWithoutCommit = useCallback(() => {
     inputRef.current?.blur();
@@ -193,7 +202,7 @@ const BridgeLimitOrderViewContent = ({
               destTokenAmount={destTokenAmount}
               isDestAmountLoading={isDestAmountLoading}
               isFlipDisabled={isFlipDisabled}
-              onSourceInputPress={focusAmount}
+              onSourceInputPress={onSourceInputPress}
               onSourceTokenPress={handleSourceTokenPress}
               onSourceMaxPress={handleSourceMaxPress}
               onFlipPress={handleFlipTokensPress}
@@ -216,7 +225,7 @@ const BridgeLimitOrderViewContent = ({
               isLimitFiatMode={isLimitFiatMode}
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
-              onLimitPriceInputPress={focusLimitPrice}
+              onLimitPriceInputPress={onLimitPriceInputPress}
               limitPriceSelection={limitPriceSelection}
               onLimitPriceSelectionChange={handleLimitPriceSelectionChange}
               secondaryLimitPrice={secondaryValue}

@@ -141,10 +141,12 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
       hasVisibleBanner,
       onMarketPresetPress,
       onCustomPresetPress,
+      onLimitPriceInputPress,
     }: {
       hasVisibleBanner: boolean;
       onMarketPresetPress?: () => void;
       onCustomPresetPress?: () => void;
+      onLimitPriceInputPress?: () => void;
     }) => (
       <View
         testID={
@@ -153,6 +155,10 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
             : 'limit-order-price-adjust-without-banner'
         }
       >
+        <View
+          testID="limit-order-limit-price-input"
+          onTouchEnd={onLimitPriceInputPress}
+        />
         <View
           testID="limit-order-market-preset"
           onTouchEnd={onMarketPresetPress}
@@ -177,6 +183,7 @@ const mockHandleMarketPress = jest.fn();
 const mockHandleCustomPress = jest.fn();
 const mockFocusCustomPercent = jest.fn();
 const mockFocusAmount = jest.fn();
+const mockFocusLimitPrice = jest.fn();
 
 let mockIsAmountFocused = false;
 let mockIsCustomPercentFocused = false;
@@ -247,7 +254,7 @@ function buildKeypadMock() {
     customPercentSelection: undefined,
     focusAmount: mockFocusAmount,
     focusCustomPercent: mockFocusCustomPercent,
-    focusLimitPrice: jest.fn(),
+    focusLimitPrice: mockFocusLimitPrice,
     handleChange: jest.fn(),
     handleCustomPercentSelectionChange: jest.fn(),
     handleLimitPriceSelectionChange: jest.fn(),
@@ -370,6 +377,39 @@ describe('BridgeLimitOrderView', () => {
 
     expect(mockCommitCustomPercent).not.toHaveBeenCalled();
     expect(mockCloseKeypad).toHaveBeenCalledTimes(1);
+  });
+
+  it('commits custom percent when source amount is pressed while custom percent is focused', () => {
+    mockIsCustomPercentFocused = true;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-source-token-area-input'), 'pressIn');
+
+    expect(mockCommitCustomPercent).toHaveBeenCalledTimes(1);
+    expect(mockFocusAmount).toHaveBeenCalledTimes(1);
+  });
+
+  it('commits custom percent when limit price is pressed while custom percent is focused', () => {
+    mockIsCustomPercentFocused = true;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-order-limit-price-input'), 'touchEnd');
+
+    expect(mockCommitCustomPercent).toHaveBeenCalledTimes(1);
+    expect(mockFocusLimitPrice).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not commit custom percent when source amount is pressed while custom percent is not focused', () => {
+    mockIsCustomPercentFocused = false;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-source-token-area-input'), 'pressIn');
+
+    expect(mockCommitCustomPercent).not.toHaveBeenCalled();
+    expect(mockFocusAmount).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleMarketPress and closes the keypad when the market preset is pressed', () => {
