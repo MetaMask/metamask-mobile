@@ -1,16 +1,6 @@
-import React from 'react';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 
 import {
   useUnifiedTxActions,
@@ -36,6 +26,14 @@ import {
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockNavigate = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -138,28 +136,10 @@ import {
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { isHardwareAccount } from '../../../util/address';
 
-const mockShowToast = jest.fn();
+const mockToast = toast as unknown as jest.Mock;
 const SELECTED_ADDRESS = '0x29D68015EE8Eb26fD23579a1df80ff1fb0F26209';
 
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: jest.fn(),
-  },
-};
-
-function TxActionsTestWrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(
-    ToastContext.Provider,
-    { value: { toastRef: mockToastRef } },
-    children,
-  );
-}
-
-const renderUnifiedTxActions = () =>
-  renderHook(() => useUnifiedTxActions(), {
-    wrapper: TxActionsTestWrapper,
-  });
+const renderUnifiedTxActions = () => renderHook(() => useUnifiedTxActions());
 
 const SPEED_UP_GAS = {
   maxFeePerGas: '0xff',
@@ -247,7 +227,7 @@ describe('useUnifiedTxActions', () => {
         .getGasValuesForReplacement,
     );
     engineContext.TransactionController.state.transactions = [];
-    mockShowToast.mockClear();
+    mockToast.mockClear();
 
     (createQRSigningTransactionModalNavDetails as jest.Mock).mockReturnValue([
       'QRSigningModal',
@@ -445,14 +425,12 @@ describe('useUnifiedTxActions', () => {
         } as SpeedUpCancelParams);
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
-          descriptionOptions: { description: 'failed' },
+          description: 'failed',
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
       expect(result.current.speedUpIsOpen).toBe(false);
@@ -473,11 +451,10 @@ describe('useUnifiedTxActions', () => {
         await result.current.speedUpTransaction();
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          descriptionOptions: {
-            description: 'gas computation failed',
-          },
+          description: 'gas computation failed',
+          severity: ToastSeverity.Danger,
         }),
       );
       expect(result.current.speedUpIsOpen).toBe(false);
@@ -593,14 +570,12 @@ describe('useUnifiedTxActions', () => {
         } as SpeedUpCancelParams);
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
-          descriptionOptions: { description: 'nope' },
+          description: 'nope',
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
       expect(result.current.cancelIsOpen).toBe(false);
@@ -876,14 +851,12 @@ describe('useUnifiedTxActions', () => {
           });
 
           expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(mockToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: ToastVariants.Icon,
-              iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
-              backgroundColor: BoxBackgroundColor.Transparent,
-              descriptionOptions: { description: 'gas error' },
+              description: 'gas error',
+              severity: ToastSeverity.Danger,
               hasNoTimeout: false,
+              showCloseButton: false,
             }),
           );
           expect(result.current.speedUpIsOpen).toBe(false);
@@ -901,16 +874,12 @@ describe('useUnifiedTxActions', () => {
           });
 
           expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(mockToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: ToastVariants.Icon,
-              iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
-              backgroundColor: BoxBackgroundColor.Transparent,
-              descriptionOptions: {
-                description: 'Missing transaction id for speed up',
-              },
+              description: 'Missing transaction id for speed up',
+              severity: ToastSeverity.Danger,
               hasNoTimeout: false,
+              showCloseButton: false,
             }),
           );
           expect(result.current.speedUpIsOpen).toBe(false);
@@ -1099,14 +1068,12 @@ describe('useUnifiedTxActions', () => {
           });
 
           expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(mockToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: ToastVariants.Icon,
-              iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
-              backgroundColor: BoxBackgroundColor.Transparent,
-              descriptionOptions: { description: 'cancel error' },
+              description: 'cancel error',
+              severity: ToastSeverity.Danger,
               hasNoTimeout: false,
+              showCloseButton: false,
             }),
           );
           expect(result.current.cancelIsOpen).toBe(false);
@@ -1124,16 +1091,12 @@ describe('useUnifiedTxActions', () => {
           });
 
           expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(mockToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: ToastVariants.Icon,
-              iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
-              backgroundColor: BoxBackgroundColor.Transparent,
-              descriptionOptions: {
-                description: 'Missing transaction id for cancel',
-              },
+              description: 'Missing transaction id for cancel',
+              severity: ToastSeverity.Danger,
               hasNoTimeout: false,
+              showCloseButton: false,
             }),
           );
           expect(result.current.cancelIsOpen).toBe(false);
@@ -1330,12 +1293,11 @@ describe('useUnifiedTxActions', () => {
         await result.current.speedUpTransaction();
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });
@@ -1352,12 +1314,11 @@ describe('useUnifiedTxActions', () => {
         await result.current.cancelTransaction();
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Icon,
-          iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
-          backgroundColor: BoxBackgroundColor.Transparent,
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
         }),
       );
     });

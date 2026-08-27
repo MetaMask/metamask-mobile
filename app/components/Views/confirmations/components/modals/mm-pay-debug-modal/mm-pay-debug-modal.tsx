@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useContext } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Modal, ScrollView, TouchableOpacity } from 'react-native';
 import {
   BottomSheet,
@@ -13,6 +13,7 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  toast,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -25,8 +26,6 @@ import {
   truncateForDisplay,
 } from '../../../utils/debug/stringify-debug-value';
 import ClipboardManager from '../../../../../../core/ClipboardManager';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
-import { ToastVariants } from '../../../../../../component-library/components/Toast/Toast.types';
 import { MmPayDebugModalTestIds } from './mm-pay-debug-modal.testIds';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './mm-pay-debug-modal.styles';
@@ -36,8 +35,6 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
   const { styles } = useStyles(styleSheet, {});
   const { sections, copyAllPayload } = useMmPayDebugData();
   const quoteDebug = useMmPayQuoteDebug();
-  const { toastRef } = useContext(ToastContext);
-
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   const handleSheetClosed = useCallback(() => {
@@ -48,16 +45,9 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const showToast = useCallback(
-    (label: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: false,
-        labelOptions: [{ label }],
-      });
-    },
-    [toastRef],
-  );
+  const showToast = useCallback((label: string) => {
+    toast({ title: label, hasNoTimeout: false, showCloseButton: false });
+  }, []);
 
   const handleCopy = useCallback(
     async (text: string, isAll?: boolean) => {

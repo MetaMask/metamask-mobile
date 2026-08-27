@@ -1,9 +1,11 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../../../../component-library/components/Toast';
+  AvatarNetwork,
+  AvatarNetworkSize,
+  AvatarToken,
+  AvatarTokenSize,
+  toast,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
@@ -16,7 +18,6 @@ import {
   useSelectedGasFeeToken,
 } from '../../../hooks/gas/useGasFeeToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 
@@ -25,8 +26,6 @@ const IGNORED_TRANSACTION_TYPES = [TransactionType.musdConversion];
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata || {};
-  const toastContext = useContext(ToastContext);
-  const toast = toastContext?.toastRef?.current;
   const nativeGasFeeToken = useGasFeeToken({
     tokenAddress: NATIVE_TOKEN_ADDRESS,
   });
@@ -47,35 +46,26 @@ export function GasFeeTokenToast() {
   );
 
   useEffect(() => {
-    if (!toast || !gasFeeToken || !transactionMetadata || isIgnoredType) return;
+    if (!gasFeeToken || !transactionMetadata || isIgnoredType) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
 
-    toast.showToast({
-      labelOptions: [
-        {
-          label: `${strings('gas_fee_token_toast.message')}${gasFeeToken.symbol}.`,
-          isBold: true,
-        },
-      ],
-      variant: ToastVariants.Network,
+    toast({
+      title: `${strings('gas_fee_token_toast.message')}${gasFeeToken.symbol}.`,
+      startAccessory: tokenSelected?.image ? (
+        <AvatarToken
+          src={{ uri: tokenSelected.image }}
+          size={AvatarTokenSize.Md}
+        />
+      ) : (
+        <AvatarNetwork src={networkImageSource} size={AvatarNetworkSize.Md} />
+      ),
       hasNoTimeout: false,
-      networkImageSource: tokenSelected?.image
-        ? { uri: tokenSelected.image }
-        : networkImageSource,
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          toast?.closeToast();
-        },
-      },
     });
   }, [
     gasFeeToken,
     tokenSelected,
-    toast,
     networkImageSource,
     transactionMetadata,
     isIgnoredType,

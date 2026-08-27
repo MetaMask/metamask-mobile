@@ -7,19 +7,13 @@ import {
   TransactionEnvelopeType,
   TransactionParams,
 } from '@metamask/transaction-controller';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import {
+  ToastSeverity,
+  type ToastOptions,
+} from '@metamask/design-system-react-native';
 import { addHexPrefix, safeBNToHex } from '../number';
 import { safeToChecksumAddress } from '../address';
 import { strings } from '../../../locales/i18n';
-import { ToastVariants } from '../../component-library/components/Toast';
-import {
-  ButtonIconVariant,
-  type ToastOptions,
-} from '../../component-library/components/Toast/Toast.types';
-import {
-  IconColor,
-  IconName,
-} from '../../component-library/components/Icons/Icon';
 
 export function buildTransactionParams({
   gasDataEIP1559,
@@ -90,18 +84,11 @@ export function resolveTransactionUpdateErrorMessage(
   return raw;
 }
 
-const TRANSACTION_UPDATE_ERROR_TOAST_BASE = {
-  variant: ToastVariants.Icon,
-  iconName: IconName.CircleX,
-  iconColor: IconColor.Error,
-  backgroundColor: BoxBackgroundColor.Transparent,
-} as const;
-
 /**
  * Toast configuration for speed-up / cancel failures (legacy Transactions list and unified view).
  *
  * @param error - Thrown value from speed-up or cancel flow
- * @returns Options for the app toast `showToast` API (same shape for `ToastContext` and `ToastService`).
+ * @returns Options for the MMDS `toast()` API.
  */
 export function getTransactionUpdateErrorToastOptions(
   error: unknown,
@@ -110,10 +97,11 @@ export function getTransactionUpdateErrorToastOptions(
   const title =
     strings('transaction_update_toast.title') || 'Transaction update failed';
   return {
-    ...TRANSACTION_UPDATE_ERROR_TOAST_BASE,
-    labelOptions: [{ label: title, isBold: true }],
-    descriptionOptions: description ? { description } : undefined,
+    title,
+    ...(description !== undefined && { description }),
+    severity: ToastSeverity.Danger,
     hasNoTimeout: false,
+    showCloseButton: false,
   };
 }
 
@@ -123,7 +111,7 @@ export function getTransactionUpdateErrorToastOptions(
  *
  * @param error - Thrown value from the amount-update flow
  * @param onClose - Callback invoked when the user presses the dismiss button.
- * @returns Options for the app toast `showToast` API.
+ * @returns Options for the MMDS `toast()` API.
  */
 export function getAmountUpdateErrorToastOptions(
   error: unknown,
@@ -131,19 +119,10 @@ export function getAmountUpdateErrorToastOptions(
 ): ToastOptions {
   const description = resolveTransactionUpdateErrorMessage(error);
   return {
-    ...TRANSACTION_UPDATE_ERROR_TOAST_BASE,
-    labelOptions: [
-      {
-        label: strings('transaction_update_toast.amount_update_title'),
-        isBold: true,
-      },
-    ],
-    descriptionOptions: description ? { description } : undefined,
+    title: strings('transaction_update_toast.amount_update_title'),
+    ...(description !== undefined && { description }),
+    severity: ToastSeverity.Danger,
     hasNoTimeout: true,
-    closeButtonOptions: {
-      variant: ButtonIconVariant.Icon,
-      iconName: IconName.Close,
-      onPress: onClose,
-    },
+    onClose,
   };
 }
