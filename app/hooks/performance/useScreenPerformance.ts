@@ -90,7 +90,7 @@ export const useScreenPerformance = ({
       id: ttfdTraceId.current,
       startTime: mountTime,
       tags: getOnboardingPerformanceTags({ screen_id: screenId }),
-      data: { perf_fix: 'ttfd-v1' },
+      data: { perf_fix: `ttfd-${screenId}-v1` },
     });
     ttfdStarted.current = true;
 

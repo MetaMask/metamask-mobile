@@ -13,7 +13,6 @@ export const OnboardingScreenIds = {
   IMPORT_SRP: 'import_srp',
   MANUAL_BACKUP_STEP1: 'manual_backup_step1',
   MANUAL_BACKUP_STEP2: 'manual_backup_step2',
-  MANUAL_BACKUP_STEP3: 'manual_backup_step3',
   ONBOARDING_SUCCESS: 'onboarding_success',
   ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
   ACCOUNT_NOT_FOUND: 'account_not_found',
