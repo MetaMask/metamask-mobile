@@ -201,6 +201,23 @@ describe('useEarnSearchFeed', () => {
     expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
   });
 
+  it('returns an inactive state when Earn search is disabled', () => {
+    mockMoneyVisible(true);
+    mockCatalogue({
+      assets: [discoveryUsdt],
+      isLoading: true,
+      errors: [new Error('catalogue unavailable')],
+    });
+
+    const { result } = renderHook(() =>
+      useEarnSearchFeed({ query: '', enabled: false }),
+    );
+
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeUndefined();
+  });
+
   it('pins visible Money before all ranked assets', () => {
     mockMoneyVisible(true);
     mockCatalogue({ assets: [discoveryUsdt, heldUsdc, discoveryDai] });

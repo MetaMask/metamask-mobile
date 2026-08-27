@@ -80,15 +80,18 @@ export const useEarnSearchFeed = ({
   );
 
   const data = useMemo<EarnSearchItem[]>(
-    () => [
-      ...(moneyItem ? [moneyItem] : []),
-      ...matchingAssets.map((asset) => ({
-        kind: 'asset' as const,
-        id: asset.assetId,
-        asset,
-      })),
-    ],
-    [matchingAssets, moneyItem],
+    () =>
+      enabled
+        ? [
+            ...(moneyItem ? [moneyItem] : []),
+            ...matchingAssets.map((asset) => ({
+              kind: 'asset' as const,
+              id: asset.assetId,
+              asset,
+            })),
+          ]
+        : [],
+    [enabled, matchingAssets, moneyItem],
   );
 
   const retry = useCallback(async () => {
@@ -111,23 +114,23 @@ export const useEarnSearchFeed = ({
 
   const error = useMemo<EarnSearchFeedError | undefined>(
     () =>
-      hasError
+      enabled && hasError
         ? {
             message: strings('earn_module.assets_unavailable'),
             retry,
             isRetrying,
           }
         : undefined,
-    [hasError, isRetrying, retry],
+    [enabled, hasError, isRetrying, retry],
   );
 
   return useMemo(
     () => ({
       data,
-      isLoading: isCatalogueLoading && data.length === 0,
+      isLoading: enabled && isCatalogueLoading && data.length === 0,
       error,
     }),
-    [data, error, isCatalogueLoading],
+    [data, enabled, error, isCatalogueLoading],
   );
 };
 
