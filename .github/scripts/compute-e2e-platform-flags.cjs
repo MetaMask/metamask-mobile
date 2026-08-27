@@ -44,6 +44,13 @@ function computeE2EPlatformFlags(input) {
   const isStableTarget =
     githubEventName === 'pull_request' && prBaseRef === 'stable';
 
+  // Feature-branch PRs into main do not build iOS from path filters alone. Two
+  // labels opt back in — see applyE2ELabelOverrides. Pushes to main/release/*,
+  // the nightly schedule, and PRs into release/* are unaffected, so iOS
+  // regressions are still caught before a release is cut.
+  const isMainTargetPullRequest =
+    githubEventName === 'pull_request' && prBaseRef === 'main';
+
   if (isStableTarget) {
     message = 'Skipping E2E (stable branch synchronization PR)';
   } else if (githubEventName === 'schedule' || githubEventName === 'push') {
@@ -91,6 +98,16 @@ function computeE2EPlatformFlags(input) {
     changed = changedSpecFiles;
   }
 
+  // Preserved so the skip-smart-e2e-selection opt-in can stay non-widening: it
+  // must know whether iOS was selected by path filters before the suppression
+  // below erased it.
+  const iosByPathFilters = ios;
+
+  if (isMainTargetPullRequest && ios) {
+    ios = false;
+    message = `${message} — iOS not requested for a PR into main (add run-appium-ios-tests or skip-smart-e2e-selection)`;
+  }
+
   const e2eNeeded = android || ios;
 
   const runSmartE2ESelection =
@@ -102,6 +119,7 @@ function computeE2EPlatformFlags(input) {
   return {
     android,
     ios,
+    iosByPathFilters,
     e2eNeeded,
     nativeBuildNeeded: e2eNeeded ? nativeBuildNeeded : false,
     runSmartE2ESelection,
@@ -121,6 +139,7 @@ function computeE2EPlatformFlags(input) {
 function applyE2ELabelOverrides(flags, input) {
   const {
     runAppiumIosLabel = false,
+    skipSmartSelection = false,
     githubEventName,
     prBaseRef = '',
     isFork,
@@ -136,7 +155,19 @@ function applyE2ELabelOverrides(flags, input) {
     !shouldSkipE2E &&
     !ignorableOnly;
 
-  if (!isEligiblePullRequest || !runAppiumIosLabel || flags.ios) {
+  // Two ways to request iOS. `run-appium-ios-tests` widens to iOS regardless of
+  // path filters — that is its whole purpose. `skip-smart-e2e-selection` runs the
+  // full ALL tag set on the platforms path filters already selected, so it opts
+  // into iOS only when iOS was one of them; it must not add a platform the path
+  // filters deliberately skipped.
+  let reason = null;
+  if (runAppiumIosLabel) {
+    reason = 'run-appium-ios-tests label';
+  } else if (skipSmartSelection && flags.iosByPathFilters) {
+    reason = 'skip-smart-e2e-selection label';
+  }
+
+  if (!isEligiblePullRequest || !reason || flags.ios) {
     return flags;
   }
 
@@ -148,7 +179,11 @@ function applyE2ELabelOverrides(flags, input) {
     ios,
     e2eNeeded,
     nativeBuildNeeded: e2eNeeded && !testOnlyChanges,
-    message: `${flags.message} + iOS build (run-appium-ios-tests label)`,
+    // An iOS-only PR into main is suppressed down to no platforms at all, which
+    // turns Smart E2E Selection off. Restoring iOS has to restore it too — and
+    // isEligiblePullRequest already guarantees every other conjunct here.
+    runSmartE2ESelection: true,
+    message: `${flags.message} + iOS build (${reason})`,
   };
 }
 
@@ -178,6 +213,14 @@ function resolveRunAppiumIos(flags, input) {
     return false;
   }
 
+  // No iOS app, nothing to run smoke against. Keeps the flag from advertising a
+  // run that cannot happen, and upholds the "only build when iOS E2E will run"
+  // invariant from the other side: on PRs into main, ios and runAppiumIos are
+  // driven by the same two opt-ins, so they are always equal.
+  if (!flags.ios) {
+    return false;
+  }
+
   if (runAppiumIosLabel) {
     return true;
   }
@@ -204,7 +247,10 @@ function resolveE2EPlatformRequirements(input) {
   } = input;
 
   const baseFlags = computeE2EPlatformFlags(pathFilterInput);
-  const flags = applyE2ELabelOverrides(baseFlags, labelOverrideInput);
+  const flags = applyE2ELabelOverrides(baseFlags, {
+    ...labelOverrideInput,
+    skipSmartSelection,
+  });
   const runAppiumIos = resolveRunAppiumIos(flags, {
     skipSmartSelection,
     runAppiumIosLabel: labelOverrideInput.runAppiumIosLabel,

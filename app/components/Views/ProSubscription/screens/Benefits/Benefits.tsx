@@ -90,6 +90,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
               key={item.id}
               item={item}
               onPress={() => handleBenefitPress(item.id)}
+              selectedPlan={selectedPlan}
             />
           ))}
         </Box>
@@ -121,6 +122,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}
           details={selectedBenfitDetail}
+          selectedPlan={selectedPlan}
         />
       )}
     </Box>
