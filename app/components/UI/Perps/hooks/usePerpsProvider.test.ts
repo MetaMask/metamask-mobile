@@ -339,9 +339,13 @@ describe('usePerpsProvider', () => {
         expect(result.current.supportsTwapOrders).toBe(true);
       });
 
-      initializationState = InitializationState.Initializing;
+      initializationState = InitializationState.Uninitialized;
       rerender(undefined);
       expect(result.current.supportsTwapOrders).toBe(false);
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+
+      initializationState = InitializationState.Initializing;
+      rerender(undefined);
       expect(result.current.isLoadingOrderCapabilities).toBe(true);
 
       initializationState = InitializationState.Initialized;

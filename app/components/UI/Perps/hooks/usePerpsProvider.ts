@@ -119,7 +119,8 @@ export function usePerpsProvider(
     : null;
   const isAwaitingCapabilityInitialization =
     Boolean(orderCapabilitiesParams?.symbol) &&
-    initializationState === InitializationState.Initializing;
+    (initializationState === InitializationState.Uninitialized ||
+      initializationState === InitializationState.Initializing);
   const isLoadingOrderCapabilities =
     isAwaitingCapabilityInitialization ||
     (capabilityRequestKey !== undefined &&
