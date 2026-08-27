@@ -1460,7 +1460,7 @@ describe('CandleStreamChannel', () => {
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
       );
-      await channel.prewarmCandles(
+      const duplicateStalePrewarm = channel.prewarmCandles(
         'BTC',
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
@@ -1481,8 +1481,8 @@ describe('CandleStreamChannel', () => {
         interval: CandlePeriod.FiveMinutes,
         candles: [mockCandleData.candles[0]],
       });
-      await stalePrewarm;
-      await channel.prewarmCandles(
+      await Promise.all([stalePrewarm, duplicateStalePrewarm]);
+      const duplicateCurrentPrewarm = channel.prewarmCandles(
         'BTC',
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
@@ -1490,7 +1490,7 @@ describe('CandleStreamChannel', () => {
       expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
 
       resolveCurrentFetch(currentContextData);
-      await currentPrewarm;
+      await Promise.all([currentPrewarm, duplicateCurrentPrewarm]);
 
       expect(channel.getCachedData('BTC', CandlePeriod.FiveMinutes)).toEqual(
         currentContextData,
@@ -1539,6 +1539,8 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneWeek,
         callback: jest.fn(),
       });
+      await Promise.resolve();
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
 

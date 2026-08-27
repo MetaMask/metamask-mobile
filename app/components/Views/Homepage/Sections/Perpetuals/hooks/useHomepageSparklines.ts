@@ -95,9 +95,7 @@ export function useHomepageSparklines(
           ? marketOrSymbol
           : marketOrSymbol.symbol;
       const closes = extractCloses(
-        typeof marketOrSymbol === 'string'
-          ? undefined
-          : marketOrSymbol.trend,
+        typeof marketOrSymbol === 'string' ? undefined : marketOrSymbol.trend,
       );
       if (closes.length < 2) {
         fallbacks.push(symbol);
@@ -159,12 +157,6 @@ export function useHomepageSparklines(
         callback: (candleData: CandleData) => {
           if (!active) return;
           if (!candleData?.candles || candleData.candles.length === 0) {
-            if (Object.hasOwn(fallbackDataRef.current, symbol)) {
-              const next = { ...fallbackDataRef.current };
-              Reflect.deleteProperty(next, symbol);
-              fallbackDataRef.current = next;
-              scheduleFlush();
-            }
             return;
           }
           if (
@@ -215,12 +207,7 @@ export function useHomepageSparklines(
     );
     lastSparklinesRef.current = { contextKey: marketContextKey, values: next };
     return next;
-  }, [
-    fallbackState,
-    marketContextKey,
-    safeMarketsOrSymbols,
-    trendSparklines,
-  ]);
+  }, [fallbackState, marketContextKey, safeMarketsOrSymbols, trendSparklines]);
 
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
