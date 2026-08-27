@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 const STORE_CONFIGS = [
   {
     outcomePrefix: 'NS',
@@ -23,57 +21,8 @@ const getStoreOutcomes = (outcomePrefix) =>
 const hasSuccessfulUpload = (outcomePrefix) =>
   getStoreOutcomes(outcomePrefix).some(isSuccessfulOutcome);
 
-const isNamespaceRunnerProvider = (
-  runnerProvider = getEnv('RUNNER_PROVIDER'),
-) => runnerProvider.includes('namespace');
-
-const isRetryableNamespaceUploadError = (errorMessage) => {
-  if (!errorMessage) {
-    return true;
-  }
-
-  return /CreateArtifact.*ECONNREFUSED|ECONNREFUSED.*CreateArtifact|ECONNREFUSED/i.test(
-    errorMessage,
-  );
-};
-
-const getNamespaceRetryDecision = ({
-  runnerProvider,
-  nextAttempt,
-  previousOutcomes,
-  errorMessage,
-}) => {
-  if (!isNamespaceRunnerProvider(runnerProvider)) {
-    return { retryable: false, reason: 'not-namespace-runner' };
-  }
-
-  if (!Number.isFinite(nextAttempt) || nextAttempt < 2 || nextAttempt > 3) {
-    return { retryable: false, reason: 'attempt-out-of-range' };
-  }
-
-  if (!previousOutcomes.every((outcome) => outcome === 'failure')) {
-    return { retryable: false, reason: 'previous-attempt-did-not-fail' };
-  }
-
-  if (!isRetryableNamespaceUploadError(errorMessage)) {
-    return { retryable: false, reason: 'non-retryable-error' };
-  }
-
-  return {
-    retryable: true,
-    reason: errorMessage
-      ? 'retryable-error'
-      : 'nested-action-error-unavailable',
-  };
-};
-
-const writeOutput = (name, value) => {
-  if (process.env.GITHUB_OUTPUT) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
-  }
-
-  console.log(`${name}=${value}`);
-};
+const isNamespaceRunnerProvider = () =>
+  getEnv('RUNNER_PROVIDER').includes('namespace');
 
 const getRequiredStoreConfigs = () => {
   if (!isNamespaceRunnerProvider()) {
@@ -104,22 +53,10 @@ const runRetryWait = async () => {
 
   const failureText = attempt > 2 ? 'failed again' : 'failed';
   console.log(
-    `::warning::Namespace upload ${failureText}; retrying after ${retryWaitSeconds}s (INFRA-3902)`,
+    `::warning::Namespace upload ${failureText}; retrying after ${retryWaitSeconds}s`,
   );
 
   await wait(retryWaitSeconds * 1000);
-};
-
-const runNamespaceRetryDecision = () => {
-  const decision = getNamespaceRetryDecision({
-    runnerProvider: getEnv('RUNNER_PROVIDER'),
-    nextAttempt: Number(getEnv('ATTEMPT', '2')),
-    previousOutcomes: getEnv('PREVIOUS_OUTCOMES').split(',').filter(Boolean),
-    errorMessage: getEnv('ERROR_MESSAGE'),
-  });
-
-  writeOutput('retryable', String(decision.retryable));
-  writeOutput('reason', decision.reason);
 };
 
 const runRequireBothStores = () => {
@@ -151,11 +88,6 @@ const main = async () => {
 
   if (command === 'retry-wait') {
     await runRetryWait();
-    return;
-  }
-
-  if (command === 'namespace-retry-decision') {
-    runNamespaceRetryDecision();
     return;
   }
 

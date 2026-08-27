@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
-import os from 'os';
 import path from 'path';
 
 const SCRIPT_PATH = path.join(__dirname, 'dual-upload-e2e-artifact.mjs');
@@ -29,34 +28,6 @@ const runScript = (env: Record<string, string>) =>
       ...env,
     },
   });
-
-const runRetryDecision = (env: Record<string, string>) =>
-  spawnSync(process.execPath, [SCRIPT_PATH, 'namespace-retry-decision'], {
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      ...env,
-    },
-  });
-
-const runRetryDecisionWithOutputFile = (env: Record<string, string>) => {
-  const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'dual-upload-'));
-  const outputPath = path.join(tempDirectory, 'github-output');
-
-  try {
-    const result = runRetryDecision({
-      GITHUB_OUTPUT: outputPath,
-      ...env,
-    });
-    const output = fs.existsSync(outputPath)
-      ? fs.readFileSync(outputPath, 'utf8')
-      : '';
-
-    return { result, output };
-  } finally {
-    fs.rmSync(tempDirectory, { recursive: true, force: true });
-  }
-};
 
 const loadActionMetadata = () =>
   yaml.load(fs.readFileSync(ACTION_PATH, 'utf8')) as ActionMetadata;
@@ -90,114 +61,40 @@ describe('dual-upload-e2e-artifact', () => {
   });
 
   it('retries Namespace after the first Namespace failure', () => {
-    const retryDecision = getStepById('ns-retry-2');
     const retryWait = getStepByName('Wait before Namespace retry (attempt 2)');
     const retryUpload = getStepById('ns-2');
 
-    expect(retryDecision?.if).toBe(
+    expect(retryWait?.if).toBe(
       "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}",
     );
-    expect(retryDecision?.name).toBe('Classify Namespace retry (attempt 2)');
     expect(retryUpload?.if).toBe(
-      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
-    );
-    expect(retryWait?.if).toBe(
-      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
+      "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}",
     );
   });
 
   it('stops Namespace retries unless the first two attempts fail', () => {
-    const retryDecision = getStepById('ns-retry-3');
     const retryWait = getStepByName('Wait before Namespace retry (attempt 3)');
     const retryUpload = getStepById('ns-3');
 
-    expect(retryDecision?.if).toBe(
+    expect(retryWait?.if).toBe(
       "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' && steps.ns-2.outcome == 'failure' }}",
     );
-    expect(retryDecision?.name).toBe('Classify Namespace retry (attempt 3)');
     expect(retryUpload?.if).toBe(
-      "${{ steps.ns-retry-3.outputs.retryable == 'true' }}",
-    );
-    expect(retryWait?.if).toBe(
-      "${{ steps.ns-retry-3.outputs.retryable == 'true' }}",
-    );
-  });
-
-  it('classifies namespace failures without action error details as retryable', () => {
-    const result = runRetryDecision({
-      RUNNER_PROVIDER: 'namespace-profile-metamask-android-build',
-      ATTEMPT: '2',
-      PREVIOUS_OUTCOMES: 'failure',
-    });
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('retryable=true');
-    expect(result.stdout).toContain('reason=nested-action-error-unavailable');
-  });
-
-  it('classifies CreateArtifact ECONNREFUSED as retryable when error details are available', () => {
-    const result = runRetryDecision({
-      RUNNER_PROVIDER: 'namespace',
-      ATTEMPT: '2',
-      PREVIOUS_OUTCOMES: 'failure',
-      ERROR_MESSAGE: 'CreateArtifact failed: connect ECONNREFUSED 127.0.0.1',
-    });
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('retryable=true');
-    expect(result.stdout).toContain('reason=retryable-error');
-  });
-
-  it('classifies non-ECONNREFUSED errors as non-retryable when error details are available', () => {
-    const result = runRetryDecision({
-      RUNNER_PROVIDER: 'namespace',
-      ATTEMPT: '2',
-      PREVIOUS_OUTCOMES: 'failure',
-      ERROR_MESSAGE: 'Artifact name is not valid',
-    });
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('retryable=false');
-    expect(result.stdout).toContain('reason=non-retryable-error');
-  });
-
-  it('prevents retry steps from running for non-ECONNREFUSED errors', () => {
-    const retryWait = getStepByName('Wait before Namespace retry (attempt 2)');
-    const retryUpload = getStepById('ns-2');
-
-    const { result, output } = runRetryDecisionWithOutputFile({
-      RUNNER_PROVIDER: 'namespace',
-      ATTEMPT: '2',
-      PREVIOUS_OUTCOMES: 'failure',
-      ERROR_MESSAGE: 'Artifact name is not valid',
-    });
-
-    expect(result.status).toBe(0);
-    expect(output).toContain('retryable=false');
-    expect(output).toContain('reason=non-retryable-error');
-    expect(retryWait?.if).toBe(
-      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
-    );
-    expect(retryUpload?.if).toBe(
-      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
+      "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' && steps.ns-2.outcome == 'failure' }}",
     );
   });
 
   it('skips Namespace upload attempts for non-Namespace providers', () => {
-    const retryDecision = getStepById('ns-retry-2');
-
-    const result = runRetryDecision({
-      RUNNER_PROVIDER: 'current',
-      ATTEMPT: '2',
-      PREVIOUS_OUTCOMES: 'failure',
-    });
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('retryable=false');
-    expect(result.stdout).toContain('reason=not-namespace-runner');
-    expect(retryDecision?.if).toBe(
-      "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}",
+    const actionMetadata = loadActionMetadata();
+    const namespaceSteps = actionMetadata.runs.steps.filter((step) =>
+      step.name?.includes('Namespace'),
     );
+
+    for (const namespaceStep of namespaceSteps) {
+      expect(namespaceStep.if).toContain(
+        "contains(inputs.runner-provider, 'namespace')",
+      );
+    }
   });
 
   it('uploads to GitHub once without retry orchestration', () => {
