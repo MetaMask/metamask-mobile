@@ -1,40 +1,45 @@
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '@metamask/money-account-utils';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { type Hex, hexToBigInt, toCaipAssetType } from '@metamask/utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
+import { POLYGON_NATIVE_TOKEN } from '../../Bridge/constants/assets';
 
 export interface FiatDepositAsset {
   address: Hex;
   chainId: Hex;
 }
 
-const POLYGON_POL: Hex = '0x0000000000000000000000000000000000001010';
 const ETH_MAINNET: FiatDepositAsset = {
   address: NATIVE_ADDRESS as Hex,
-  chainId: '0x1',
+  chainId: CHAIN_IDS.MAINNET,
 };
 
 /**
- * Mirrors `FIAT_ASSET_ID_BY_TX_TYPE` in
- * `@metamask/transaction-pay-controller`, which owns this mapping but does not
- * export it. See the note on {@link deriveFiatDepositAssetId}.
+ * Mirrors `FIAT_ASSET_ID_BY_TX_TYPE`, unexported by TPC. See the TODO below.
+ * `moneyAccountDeposit` is intentionally absent: it resolves ahead of both the
+ * override and this table. The perps and predict entries stay because TPC's own
+ * `FIAT_ASSET_ID_BY_TX_TYPE` still carries them, so the mirror must too.
  */
 const DEFAULT_ASSET_BY_TX_TYPE: Partial<
   Record<TransactionType, FiatDepositAsset>
 > = {
-  [TransactionType.moneyAccountDeposit]: ETH_MAINNET,
   [TransactionType.perpsDeposit]: {
     address: NATIVE_ADDRESS as Hex,
-    chainId: '0xa4b1',
+    chainId: CHAIN_IDS.ARBITRUM,
   },
-  [TransactionType.predictDeposit]: { address: POLYGON_POL, chainId: '0x89' },
+  [TransactionType.predictDeposit]: {
+    address: POLYGON_NATIVE_TOKEN,
+    chainId: CHAIN_IDS.POLYGON,
+  },
 };
 
 /** Chains whose native token is not `NATIVE_ADDRESS` at SLIP-44 60. */
 const NATIVE_OVERRIDES: Partial<Record<Hex, { address: Hex; slip44: number }>> =
-  { '0x89': { address: POLYGON_POL, slip44: 966 } };
+  { [CHAIN_IDS.POLYGON]: { address: POLYGON_NATIVE_TOKEN, slip44: 966 } };
 
 function toAssetId({ address, chainId }: FiatDepositAsset): string {
   const chainReference = String(hexToBigInt(chainId));
@@ -53,26 +58,42 @@ function toAssetId({ address, chainId }: FiatDepositAsset): string {
 }
 
 /**
- * CAIP-19 id of the asset an MM Pay deposit settles in, resolved the same way
- * `@metamask/transaction-pay-controller` resolves it for `getQuotes`: the
- * `assetPerTransactionType` flag override, then that package's defaults, then
- * ETH mainnet. Batch transactions use their first enabled nested type.
- *
- * Returns `''` when the transaction is not a fiat deposit, which leaves the
+ * CAIP-19 id of the asset an MM Pay deposit settles in, resolved the way
+ * `@metamask/transaction-pay-controller` resolves it for `getQuotes` by
+ * default: the `assetPerTransactionType` flag override, then that package's
+ * defaults, then ETH mainnet. Matches the transaction or any nested one, so
+ * batches resolve too; returns `''` when nothing matches, which leaves the
  * payment-methods query idle rather than fetching a catalog nobody asked for.
  *
- * TODO: `@metamask/transaction-pay-controller` owns this mapping as
- * `FIAT_ASSET_ID_BY_TX_TYPE`, and the CAIP construction as
- * `buildCaipAssetType`, but its entry point exports neither, so this file
- * mirrors both. Getting them exported and consumed here needs two steps: a core
- * PR adding the re-exports, and a mobile bump off 26.4.1 (27.0.0 replaced
- * `resolveSourceAmount` with `getBalance`, which mobile has not adopted).
+ * The money branch mirrors TPC's direct-mUSD asset unconditionally, because
+ * that path is what MM Pay ships. Both mUSD-facing surfaces agree: the provider
+ * switch in `money-account-deposit-info.tsx` pins Monad mUSD outright, and the
+ * fiat entry gate in `MoneyAddMoneySheet.tsx` reads
+ * `useMoneyAccountDepositAssetId()`, which resolves the vault-config chain with
+ * a Monad fallback, so Monad holds in practice because the shipped vault config
+ * is `0x8f`. The residual risk is the kill switch: with `directMoneyMusdEnabled`
+ * off TPC quotes ETH mainnet on the relay path while this catalog stays
+ * mUSD-scoped, so a payment method present only in the mUSD catalog would fail
+ * to find a quote. The `moneyAccountDeposit` entry of
+ * `confirmations_pay_fiat.assetPerTransactionType` is therefore inert in the
+ * Ramps layer, while TPC still honours it on the relay path.
+ *
+ * TODO: `@metamask/transaction-pay-controller` owns both halves of this
+ * (`FIAT_ASSET_ID_BY_TX_TYPE` and `buildCaipAssetType`) and exports neither,
+ * so this file mirrors them. Reading TPC's own `fiatPayment.caipAssetId`
+ * instead is circular: TPC writes it only inside quote execution, which
+ * returns early unless an amount and a selected payment method already exist,
+ * and this catalog is what produces that selection. The fix is for TPC to
+ * resolve the asset when the transaction is added, so this file can go.
  */
 export function deriveFiatDepositAssetId(
   transaction: TransactionMeta | undefined,
   enabledTypes: TransactionType[],
   assetPerTransactionType?: Partial<Record<TransactionType, FiatDepositAsset>>,
 ): string {
+  // Nested order decides which deposit type wins, matching TPC's
+  // `resolveTransactionType`; picking by `enabledTypes` order instead would let
+  // remote-flag array order change the answer.
   const candidate =
     transaction?.type === TransactionType.batch
       ? transaction.nestedTransactions?.find(
@@ -84,6 +105,10 @@ export function deriveFiatDepositAssetId(
 
   if (!txType) {
     return '';
+  }
+
+  if (txType === TransactionType.moneyAccountDeposit) {
+    return MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD];
   }
 
   return toAssetId(
