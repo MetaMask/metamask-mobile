@@ -60,7 +60,7 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
-import { getEarnAssetRateText } from '../../utils/earnSection/getEarnAssetRateText';
+import { getEarnAssetRateCopy } from '../../utils/earnSection/getEarnAssetRateCopy';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 
 interface EarnSectionHomeAnalytics {
@@ -282,7 +282,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             !isEarnAssetBalanceBelowMinDepositAmount(asset);
           const hasSubsidizedFee = hasEarnAssetSubsidizedFee(asset);
 
-          const rateText = getEarnAssetRateText({ asset });
+          const rateText = getEarnAssetRateCopy({ asset });
 
           return (
             <EarnSectionAssetCard

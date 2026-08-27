@@ -11,7 +11,7 @@ import {
   getEarnAssetMetadata,
   hasEarnAssetSubsidizedFee,
 } from '../../../../UI/Earn/utils/earnAssets';
-import { getEarnAssetRateText } from '../../../../UI/Earn/utils/earnSection/getEarnAssetRateText';
+import { getEarnAssetRateCopy } from '../../../../UI/Earn/utils/earnSection/getEarnAssetRateCopy';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
 import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
@@ -49,7 +49,7 @@ const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
       descriptionProps={{
         numberOfLines: 1,
       }}
-      value={getEarnAssetRateText({ asset })}
+      value={getEarnAssetRateCopy({ asset })}
       valueProps={{
         color: TextColor.SuccessDefault,
         numberOfLines: 1,

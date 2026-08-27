@@ -6,10 +6,10 @@ import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 /**
  * Gets localized rate copy for a ranked Earn asset.
  *
- * @param asset - Ranked Earn asset whose highest rate should be formatted.
- * @returns Localized rate text, including unavailable or get-started copy.
+ * @param asset - Ranked Earn asset whose rate copy should be generated.
+ * @returns Localized rate copy, including unavailable or get-started copy.
  */
-export const getEarnAssetRateText = ({
+export const getEarnAssetRateCopy = ({
   asset,
 }: {
   asset: EarnSectionRankedAsset;
