@@ -8,7 +8,6 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   isLimitExecutionOrderType,
-  isStrategyOrderType,
   isTriggerOrderType,
   type OrderParams,
   type OrderResult,
@@ -204,10 +203,8 @@ export function usePerpsOrderExecution(
       // stream (no exchange fill-wait time) via
       // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
       // overlapping orders never collide.
-      if (
-        isStrategyOrderType(orderParams.orderType) &&
-        orderParams.orderType !== 'scale'
-      ) {
+      const isScheduledAcceptanceOrder = orderParams.orderType === 'twap';
+      if (isScheduledAcceptanceOrder) {
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.

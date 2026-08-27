@@ -321,11 +321,19 @@ interface ScaleInputConfig {
 const ScaleFields = ({
   inputs,
   isDisabled,
+  isHidden,
 }: {
   inputs: readonly ScaleInputConfig[];
   isDisabled: boolean;
+  isHidden: boolean;
 }) => (
-  <Box testID={ids.SCALE_FIELDS}>
+  <Box
+    testID={ids.SCALE_FIELDS}
+    pointerEvents={isHidden ? 'none' : undefined}
+    accessibilityElementsHidden={isHidden}
+    importantForAccessibility={isHidden ? 'no-hide-descendants' : undefined}
+    twClassName={isHidden ? 'h-0 overflow-hidden opacity-0' : undefined}
+  >
     {inputs.map((input) => (
       <PerpsProCompactInput
         key={input.inputTestID}
@@ -344,6 +352,7 @@ const ScaleFields = ({
         placeholder={input.placeholder}
         keyboardType={input.keyboardType}
         isDisabled={isDisabled}
+        isHidden={isHidden}
       />
     ))}
   </Box>
@@ -407,7 +416,7 @@ const ScalePreview = ({
         keyTextProps={summaryKeyTextProps}
         valueTextProps={{
           ...summaryValueTextProps,
-          numberOfLines: 2,
+          numberOfLines: 0,
           testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
         }}
         twClassName={summaryRangeRowClassName}
@@ -787,12 +796,11 @@ const PerpsProOrderForm = ({
                 onDurationPress={onTwapDurationPress}
               />
             ) : null}
-            {isScaleOrder ? (
-              <ScaleFields
-                inputs={scaleInputs}
-                isDisabled={isScaleFormLocked}
-              />
-            ) : null}
+            <ScaleFields
+              inputs={scaleInputs}
+              isDisabled={isScaleFormLocked}
+              isHidden={!isScaleOrder}
+            />
           </Box>
           {priceCardMessage ? (
             <HelpText
@@ -878,24 +886,22 @@ const PerpsProOrderForm = ({
       <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-      {isScaleOrder
-        ? scaleInputs.map((input, index) => (
-            <PerpsProInputKeyboardAccessory
-              key={input.inputTestID}
-              inputTestID={input.inputTestID}
-              onPrevious={
-                index > 0
-                  ? () => scaleInputs[index - 1].inputRef.current?.focus()
-                  : undefined
-              }
-              onNext={
-                index < scaleInputs.length - 1
-                  ? () => scaleInputs[index + 1].inputRef.current?.focus()
-                  : undefined
-              }
-            />
-          ))
-        : null}
+      {scaleInputs.map((input, index) => (
+        <PerpsProInputKeyboardAccessory
+          key={input.inputTestID}
+          inputTestID={input.inputTestID}
+          onPrevious={
+            index > 0
+              ? () => scaleInputs[index - 1].inputRef.current?.focus()
+              : undefined
+          }
+          onNext={
+            index < scaleInputs.length - 1
+              ? () => scaleInputs[index + 1].inputRef.current?.focus()
+              : undefined
+          }
+        />
+      ))}
     </>
   );
 };

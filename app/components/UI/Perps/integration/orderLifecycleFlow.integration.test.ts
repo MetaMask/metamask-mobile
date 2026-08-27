@@ -29,20 +29,11 @@ import {
   type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
-import { HyperliquidError } from '@nktkas/hyperliquid';
+import { ApiRequestError, HyperliquidError } from '@nktkas/hyperliquid';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
-
-const { ApiRequestError } = jest.requireActual(
-  '../../../../__mocks__/hyperliquidMock.js',
-) as {
-  ApiRequestError: new (
-    response: unknown,
-    message?: string,
-  ) => HyperliquidError & { response: unknown };
-};
 
 describe('Perps order lifecycle — FLOW integration', () => {
   describe('opening a position via the hook chain', () => {
@@ -337,18 +328,44 @@ describe('Perps order lifecycle — FLOW integration', () => {
         message: 'SDK failure',
       },
       {
-        failure: 'malformed partial response',
+        failure: 'unknown partial status',
         error: new ApiRequestError(
           {
             status: 'ok',
             response: {
               type: 'order',
-              data: { statuses: [{ resting: { oid: 101 } }] },
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { scheduled: { oid: 102 } },
+                  { error: 'Insufficient margin' },
+                ],
+              },
             },
           },
-          'Malformed bulk response',
+          'Unknown bulk status',
         ),
-        message: 'Malformed bulk response',
+        message: 'Unknown bulk status',
+      },
+      {
+        failure: 'malformed partial status',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { filled: { oid: '102' } },
+                  { error: 'Insufficient margin' },
+                ],
+              },
+            },
+          },
+          'Malformed bulk status',
+        ),
+        message: 'Malformed bulk status',
       },
       {
         failure: 'hybrid partial response',
@@ -489,9 +506,40 @@ describe('Perps order lifecycle — FLOW integration', () => {
         statuses: { resting: { oid: 101 } },
         expectedCancels: null,
       },
+      {
+        responseShape: 'unknown status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { scheduled: { oid: 102 } },
+          { error: 'Insufficient margin' },
+        ],
+        expectedCancels: [{ a: 0, o: 101 }],
+      },
+      {
+        responseShape: 'malformed status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { filled: { oid: '102' } },
+          { error: 'Insufficient margin' },
+        ],
+        expectedCancels: [{ a: 0, o: 101 }],
+      },
+      {
+        responseShape: 'hybrid accepted and error status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { error: 'Insufficient margin' },
+          { resting: { oid: 103 }, error: 'Invalid status' },
+        ],
+        expectedCancels: [
+          { a: 0, o: 101 },
+          { a: 0, o: 103 },
+        ],
+        expectedChildOrderIds: ['101', '103'],
+      },
     ])(
       'rejects and cleans up a Scale ladder with a $responseShape',
-      async ({ statuses, expectedCancels }) => {
+      async ({ statuses, expectedCancels, expectedChildOrderIds }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
@@ -521,7 +569,9 @@ describe('Perps order lifecycle — FLOW integration', () => {
 
         // Assert
         expect(placeOrderResultRef.current).toMatchObject({ success: false });
-        expect(placeOrderResultRef.current?.childOrderIds).toBeUndefined();
+        expect(placeOrderResultRef.current?.childOrderIds).toEqual(
+          expectedChildOrderIds,
+        );
         if (expectedCancels) {
           expect(
             perps.harness.mocks.exchangeClient.cancel,

@@ -1969,6 +1969,8 @@ describe('usePerpsProOrderForm', () => {
           maxPrice: 200,
           count: 3,
           szDecimals: 3,
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
         }),
       ).toEqual(['100', '150', '200']);
       expect(
@@ -1977,8 +1979,48 @@ describe('usePerpsProOrderForm', () => {
           maxPrice: 100.123457,
           count: 3,
           szDecimals: 3,
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
         }),
       ).toEqual(['100.12', '100.12', '100.12']);
+    });
+
+    it('applies HyperLiquid precision for each symbol size grid', () => {
+      const btcPrices = normalizeScalePriceLadder({
+        minPrice: 1.234567,
+        maxPrice: 1.234568,
+        count: 2,
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        szDecimals: 3,
+      });
+      const ethPrices = normalizeScalePriceLadder({
+        minPrice: 1.234567,
+        maxPrice: 1.234568,
+        count: 2,
+        providerId: 'hyperliquid',
+        symbol: 'ETH',
+        szDecimals: 4,
+      });
+
+      expect(btcPrices).toEqual(['1.235', '1.235']);
+      expect(ethPrices).toEqual(['1.23', '1.23']);
+    });
+
+    it('rejects Scale normalization for an unsupported provider', () => {
+      const normalizeUnsupportedProvider = () =>
+        normalizeScalePriceLadder({
+          minPrice: 100,
+          maxPrice: 200,
+          count: 3,
+          providerId: 'myx',
+          symbol: 'BTC',
+          szDecimals: 3,
+        });
+
+      expect(normalizeUnsupportedProvider).toThrow(
+        'Unsupported Scale price normalization provider: myx',
+      );
     });
 
     const configureScaleOrder = (
@@ -1998,6 +2040,25 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       expect(result.current.scaleOrder.totalOrders).toBe('');
+    });
+
+    it('keeps the blank Scale default free of validation banners', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '';
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
     });
 
     it('bounds ladder sizing work for an extreme accepted skew', () => {
@@ -2164,7 +2225,7 @@ describe('usePerpsProOrderForm', () => {
       expect(params).not.toHaveProperty('price');
     });
 
-    it('forwards the concrete Scale provider route to placement', async () => {
+    it('rejects an unsupported Scale provider before placement', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, true, 'hyperliquid', false, {
@@ -2176,10 +2237,47 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('keeps Scale USD sizing consistent when market and ladder prices differ', async () => {
+      mockOrderForm.amount = '90000';
+      mockLivePrice = '90000';
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+      expect(result.current.sizeInput.value).toBe('1');
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+
+      mockOrderForm.type = 'scale';
+      rerender({});
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('50000');
+        result.current.scaleOrder.onEndPriceChange('80000');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(result.current.sizeInput.value).toBe('90000');
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
       expect(mockExecuteOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           orderType: 'scale',
-          providerId: 'myx',
+          size: '1.386',
+          scaleMinPrice: '50000',
+          scaleMaxPrice: '80000',
+          scaleNumOrders: 3,
         }),
       );
     });
@@ -2644,18 +2742,30 @@ describe('usePerpsProOrderForm', () => {
       expect(middle.size).toBe(last.size);
     });
 
-    it('coerces Scale skew to two decimals on blur', () => {
+    it('rejects a third Scale skew decimal while typing', () => {
       mockOrderForm.type = 'scale';
       const { result } = renderProForm();
 
       act(() => {
+        result.current.scaleOrder.onSizeSkewChange('2.34');
         result.current.scaleOrder.onSizeSkewChange('2.345');
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('2.34');
+    });
+
+    it('restores the default Scale skew when an empty draft blurs', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('');
       });
       act(() => {
         result.current.scaleOrder.onSizeSkewBlur();
       });
 
-      expect(result.current.scaleOrder.sizeSkew).toBe('2.35');
+      expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
 
     it('preserves an invalid Scale skew on blur for validation', () => {
@@ -2689,7 +2799,7 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       act(() => {
-        result.current.scaleOrder.onSizeSkewChange('2.345');
+        result.current.scaleOrder.onSizeSkewChange('2.34');
       });
       act(() => {
         result.current.scaleOrder.onSizeSkewBlur();
@@ -2702,7 +2812,7 @@ describe('usePerpsProOrderForm', () => {
             PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
           [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
-          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
+          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.34,
         }),
       );
     });
@@ -2862,7 +2972,7 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('fails closed after bounded Scale validation refreshes', async () => {
+    it('ignores live mid-price ticks during Scale validation', async () => {
       const validResult = {
         errors: [],
         warnings: [],
@@ -2907,10 +3017,8 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).toHaveBeenCalledWith(
-        strings('perps.order.validation.error'),
-      );
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(validationError).not.toHaveBeenCalled();
     });
 
     it('uses fresh reduce-only position state after the Scale capability gap', async () => {

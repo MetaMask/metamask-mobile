@@ -199,6 +199,25 @@ const openTwapOrderForm = async () => {
   };
 };
 
+const openScaleOrderForm = async () => {
+  const sizeInput = await findSizeInput();
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  const advancedTab = await screen.findByTestId(
+    PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+  fireEvent.press(advancedTab);
+  const scaleOption = await screen.findByTestId(
+    PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+  fireEvent.press(scaleOption);
+
+  return sizeInput;
+};
+
 const openTwapDurationSheet = async () => {
   fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
   await screen.findByTestId(
@@ -603,6 +622,34 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
           'Size (USD)',
         );
+      });
+    },
+  );
+
+  itForPlatforms(
+    'forces USD sizing when Scale ladder prices differ from the market',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (ETH)',
+        ),
+      );
+
+      await openScaleOrderForm();
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      await waitFor(() => {
+        expect(sizeInput).toHaveProp('value', '100');
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (USD)',
+        );
+        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
       });
     },
   );

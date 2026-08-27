@@ -581,6 +581,8 @@ export const usePerpsProOrderForm = ({
   const [scaleEndPrice, setScaleEndPrice] = useState('');
   const [scaleTotalOrders, setScaleTotalOrders] = useState('');
   const [scaleSizeSkew, setScaleSizeSkew] = useState(SCALE_DEFAULT_SKEW);
+  const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
+    useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -651,6 +653,11 @@ export const usePerpsProOrderForm = ({
     marketData?.maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage;
   const isLoadingMarketData = isMarketDataLoading && marketData === null;
   const isScaleOrder = orderForm.type === 'scale';
+  useEffect(() => {
+    if (!isScaleOrder) {
+      setHasScaleValidationInteraction(false);
+    }
+  }, [isScaleOrder]);
   const guardScaleMutation = useCallback((mutation: () => void) => {
     if (isScalePlacementLockedRef.current) {
       return;
@@ -807,6 +814,7 @@ export const usePerpsProOrderForm = ({
     szDecimals,
     maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
+    forceUsd: isScaleOrder,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
 
@@ -902,6 +910,9 @@ export const usePerpsProOrderForm = ({
     ) {
       return { success: false, code: 'size_required' };
     }
+    if (!scaleProviderId) {
+      return { success: false, code: 'calculation_error' };
+    }
 
     try {
       const scalePrices = normalizeScalePriceLadder({
@@ -909,6 +920,8 @@ export const usePerpsProOrderForm = ({
         maxPrice,
         count: orderCount,
         szDecimals,
+        providerId: scaleProviderId,
+        symbol,
       });
       if (new Set(scalePrices).size !== scalePrices.length) {
         return { success: false, code: 'invalid_range' };
@@ -1099,6 +1112,8 @@ export const usePerpsProOrderForm = ({
     scaleSizeSkew,
     scaleStartPrice,
     scaleTotalOrders,
+    scaleProviderId,
+    symbol,
     szDecimals,
   ]);
 
@@ -1403,7 +1418,6 @@ export const usePerpsProOrderForm = ({
   const scaleValidationInputKey = JSON.stringify({
     orderForm: effectiveOrderForm,
     positionSize: submissionPositionSize,
-    assetPrice: assetData.price,
     spendableBalance,
     marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
@@ -1411,7 +1425,6 @@ export const usePerpsProOrderForm = ({
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     triggerPrice: normalizedTriggerPrice,
-    midPrice: assetData.price,
     szDecimals,
     providerId: orderProviderId,
   });
@@ -1491,7 +1504,11 @@ export const usePerpsProOrderForm = ({
     return withoutSize.filter((err) => !fieldMessages.has(err));
   }, [orderValidation.errors, orderValidation.fieldIssues]);
   const scaleValidationNotice = useMemo<PerpsProOrderNotice | undefined>(() => {
-    if (!isScaleOrder || scaleLadderResult.success) {
+    if (
+      !isScaleOrder ||
+      !hasScaleValidationInteraction ||
+      scaleLadderResult.success
+    ) {
       return undefined;
     }
     return {
@@ -1499,10 +1516,14 @@ export const usePerpsProOrderForm = ({
       variant: 'banner',
       message: getScaleValidationMessage(scaleLadderResult.code),
     };
-  }, [isScaleOrder, scaleLadderResult]);
+  }, [hasScaleValidationInteraction, isScaleOrder, scaleLadderResult]);
 
   useEffect(() => {
-    if (!isScaleOrder || scaleLadderResult.success) {
+    if (
+      !isScaleOrder ||
+      !hasScaleValidationInteraction ||
+      scaleLadderResult.success
+    ) {
       lastTrackedScaleValidationRef.current = undefined;
       return;
     }
@@ -1517,7 +1538,13 @@ export const usePerpsProOrderForm = ({
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: scaleLadderResult.code,
       ...scaleAnalyticsProperties,
     });
-  }, [isScaleOrder, scaleAnalyticsProperties, scaleLadderResult, track]);
+  }, [
+    hasScaleValidationInteraction,
+    isScaleOrder,
+    scaleAnalyticsProperties,
+    scaleLadderResult,
+    track,
+  ]);
 
   const {
     doesStopLossRiskLiquidation,
@@ -2319,13 +2346,7 @@ export const usePerpsProOrderForm = ({
           resetPriceInputInteraction();
         }
         setOrderType(type);
-        if (type === 'twap') {
-          setLimitPrice(undefined);
-          setTriggerPrice(undefined);
-          setTakeProfitPrice(undefined);
-          setStopLossPrice(undefined);
-        }
-        if (type === 'scale') {
+        if (type === 'twap' || type === 'scale') {
           setLimitPrice(undefined);
           setTriggerPrice(undefined);
           setTakeProfitPrice(undefined);
@@ -2599,6 +2620,7 @@ export const usePerpsProOrderForm = ({
       sizeSkew: scaleSizeSkew,
       onStartPriceChange: (value) =>
         guardScaleMutation(() => {
+          setHasScaleValidationInteraction(true);
           normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice);
         }),
       onStartPriceBlur: () =>
@@ -2609,6 +2631,7 @@ export const usePerpsProOrderForm = ({
         }),
       onEndPriceChange: (value) =>
         guardScaleMutation(() => {
+          setHasScaleValidationInteraction(true);
           normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice);
         }),
       onEndPriceBlur: () =>
@@ -2619,6 +2642,7 @@ export const usePerpsProOrderForm = ({
         }),
       onTotalOrdersChange: (value) =>
         guardScaleMutation(() => {
+          setHasScaleValidationInteraction(true);
           normalizeScaleInput(value, scaleTotalOrders, setScaleTotalOrders, 0);
         }),
       onTotalOrdersBlur: () =>
@@ -2629,11 +2653,19 @@ export const usePerpsProOrderForm = ({
         }),
       onSizeSkewChange: (value) =>
         guardScaleMutation(() => {
-          normalizeScaleInput(value, scaleSizeSkew, setScaleSizeSkew);
+          setHasScaleValidationInteraction(true);
+          normalizeScaleInput(
+            value,
+            scaleSizeSkew,
+            setScaleSizeSkew,
+            SCALE_SKEW_DECIMAL_PLACES,
+          );
         }),
       onSizeSkewBlur: () =>
         guardScaleMutation(() => {
-          const coercedSkew = coerceScaleSkew(scaleSizeSkew);
+          const coercedSkew = scaleSizeSkew
+            ? coerceScaleSkew(scaleSizeSkew)
+            : SCALE_DEFAULT_SKEW;
           setScaleSizeSkew(coercedSkew);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
@@ -2812,6 +2844,10 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    if (isScaleOrder) {
+      setHasScaleValidationInteraction(true);
+    }
+
     const locksScalePlacement = isScaleOrder;
     if (locksScalePlacement) {
       isScalePlacementLockedRef.current = true;
@@ -2901,13 +2937,19 @@ export const usePerpsProOrderForm = ({
   const presentedSizeInput = useMemo<PerpsProSizeInputModel>(
     () => ({
       ...sizeInput,
-      onChange: (value) => guardScaleMutation(() => sizeInput.onChange(value)),
+      onChange: (value) =>
+        guardScaleMutation(() => {
+          if (isScaleOrder) {
+            setHasScaleValidationInteraction(true);
+          }
+          sizeInput.onChange(value);
+        }),
       onFocus: () => guardScaleMutation(sizeInput.onFocus),
       onBlur: () => guardScaleMutation(sizeInput.onBlur),
       onToggleDenomination: () =>
         guardScaleMutation(sizeInput.onToggleDenomination),
     }),
-    [guardScaleMutation, sizeInput],
+    [guardScaleMutation, isScaleOrder, sizeInput],
   );
   const presentedSizeSlider = useMemo<PerpsProSizeSliderModel>(
     () => ({

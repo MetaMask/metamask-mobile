@@ -1170,7 +1170,6 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
-      "just_now": "Just now",
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
@@ -1592,7 +1591,6 @@
       "keyboard_next": "Next field",
       "keyboard_done": "Done",
       "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
-      "close_keyboard": "Close keyboard",
       "scale": {
         "start_price": "Start (USD)",
         "end_price": "End (USD)",

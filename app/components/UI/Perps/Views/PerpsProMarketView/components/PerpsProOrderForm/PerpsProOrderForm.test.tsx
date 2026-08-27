@@ -478,7 +478,7 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent('$1,360.5 → $1,722.4');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveProp('numberOfLines', 2);
+      ).toHaveProp('numberOfLines', 0);
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {
@@ -721,6 +721,7 @@ describe('PerpsProOrderForm', () => {
       sizeAccessoryID,
       triggerAccessoryID,
       limitPriceAccessoryID,
+      ...scaleAccessoryIDs,
     ];
     const mountedAccessoryIDs = () =>
       screen
@@ -744,6 +745,12 @@ describe('PerpsProOrderForm', () => {
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(ids.SCALE_START_PRICE, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', scaleAccessoryIDs[0]);
+      expect(screen.queryByTestId(ids.SCALE_START_PRICE)).not.toBeOnTheScreen();
       expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
@@ -789,9 +796,30 @@ describe('PerpsProOrderForm', () => {
         );
       });
       expect(mountedAccessoryIDs()).toHaveLength(7);
-      expect(mountedAccessoryIDs()).toEqual(
-        expect.arrayContaining([...expectedAccessoryIDs, ...scaleAccessoryIDs]),
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
+    });
+
+    it('binds pre-mounted Scale inputs on the first switch to Scale', () => {
+      const view = renderForm({ orderType: 'market' });
+      expect(screen.queryByTestId(ids.SCALE_START_PRICE)).not.toBeOnTheScreen();
+
+      view.rerender(
+        <PerpsProOrderForm
+          {...createProps({
+            orderType: 'scale',
+            scaleOrder: createScaleOrder(),
+          })}
+        />,
       );
+
+      expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+        'inputAccessoryViewID',
+        scaleAccessoryIDs[0],
+      );
+      fireEvent.press(
+        screen.getByTestId(`${ids.KEYBOARD_NEXT}-${ids.SCALE_START_PRICE}`),
+      );
+      expect(mockInputFocus).toHaveBeenCalledWith(ids.SCALE_END_PRICE);
     });
 
     it('dismisses the keyboard from Done', () => {

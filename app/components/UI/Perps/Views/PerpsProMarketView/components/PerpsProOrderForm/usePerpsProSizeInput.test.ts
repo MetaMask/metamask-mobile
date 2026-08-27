@@ -174,6 +174,33 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.denomination.unit).toBe('usd');
   });
 
+  it('forces an existing asset draft back to its canonical USD amount', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '90000' }) },
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.value).toBe('1');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+
+    rerender(createParams({ usdAmount: '90000', forceUsd: true }));
+
+    expect(result.current.sizeInput.value).toBe('90000');
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+    expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+  });
+
   it('projects USD to asset with size-decimal round down', () => {
     const params = createParams({ usdAmount: '100', effectivePrice: 30000 });
     const { result } = renderHook(() => usePerpsProSizeInput(params));

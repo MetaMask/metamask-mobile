@@ -1540,8 +1540,7 @@
       "available_balance_unavailable": "-- доступно",
       "est_liquidation": "Ожид. ликвидация",
       "tpsl": "ТП/СЛ",
-      "place_order": "Разместить ордер",
-      "close_keyboard": "Закрыть клавиатуру"
+      "place_order": "Разместить ордер"
     },
     "pro_positions_panel": {
       "order_history": "История ордеров",
