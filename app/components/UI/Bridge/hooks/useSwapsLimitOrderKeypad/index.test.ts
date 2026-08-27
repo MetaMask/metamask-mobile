@@ -1,5 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { Keys, type KeypadChangeData } from '../../../../Base/Keypad';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
+import type { useSourceAmountInput } from '../useSourceAmountInput';
 import { createMockToken } from '../../testUtils/fixtures';
 import { useSwapsLimitOrderKeypad } from './index';
 
@@ -22,11 +24,23 @@ const nativeToken = createMockToken({
   decimals: 18,
 });
 
-const sourceAmountInput = {
-  keypadValue: '1.5',
+const sourceAmountInput: ReturnType<typeof useSourceAmountInput> = {
+  amount: '1.5',
+  balanceCheckAmount: '1.5',
+  canToggle: false,
+  handleFocus: jest.fn(),
+  handleKeypadChange: mockHandleAmountKeypadChange,
+  handleSelectionChange: jest.fn(),
+  handleToggle: jest.fn(),
+  inputPrefix: undefined,
+  isFiatMode: false,
   keypadCurrency: 'ETH',
   keypadDecimals: 18,
-  handleKeypadChange: mockHandleAmountKeypadChange,
+  keypadValue: '1.5',
+  resetToTokenMode: jest.fn(),
+  secondaryValue: undefined,
+  selection: undefined,
+  syncFiatAmountToTokenAmount: jest.fn(),
 };
 
 function mockSourceAmountCursor() {
@@ -36,6 +50,7 @@ function mockSourceAmountCursor() {
         sourceSelection: { start: 0, end: 1 },
         handleSourceSelectionChange: jest.fn(),
         handleKeypadChange: mockHandleLimitPriceKeypadChange,
+        resetSourceAmountCursorPosition: jest.fn(),
         setSourceAmountCursorPositionToEnd: mockSetLimitPriceCursorToEnd,
       };
     }
@@ -44,6 +59,7 @@ function mockSourceAmountCursor() {
       sourceSelection: { start: 0, end: 0 },
       handleSourceSelectionChange: jest.fn(),
       handleKeypadChange: mockHandleCustomPercentKeypadChange,
+      resetSourceAmountCursorPosition: jest.fn(),
       setSourceAmountCursorPositionToEnd: mockSetCustomPercentCursorToEnd,
     };
   });
@@ -149,7 +165,11 @@ describe('useSwapsLimitOrderKeypad', () => {
 
   it('routes keypad changes to the amount handler by default', () => {
     const { result } = renderKeypadHook();
-    const keypadData = { value: '2', cursorPosition: 1 };
+    const keypadData: KeypadChangeData = {
+      value: '2',
+      valueAsNumber: 2,
+      pressedKey: Keys.Digit2,
+    };
 
     act(() => {
       result.current.handleChange(keypadData);
@@ -160,7 +180,11 @@ describe('useSwapsLimitOrderKeypad', () => {
 
   it('routes keypad changes to the limit price handler when limit price is focused', () => {
     const { result } = renderKeypadHook();
-    const keypadData = { value: '101', cursorPosition: 3 };
+    const keypadData: KeypadChangeData = {
+      value: '101',
+      valueAsNumber: 101,
+      pressedKey: Keys.Digit1,
+    };
 
     act(() => {
       result.current.focusLimitPrice();
@@ -175,7 +199,11 @@ describe('useSwapsLimitOrderKeypad', () => {
 
   it('routes keypad changes to the custom percent handler when custom percent is focused', () => {
     const { result } = renderKeypadHook();
-    const keypadData = { value: '15', cursorPosition: 2 };
+    const keypadData: KeypadChangeData = {
+      value: '15',
+      valueAsNumber: 15,
+      pressedKey: Keys.Digit5,
+    };
 
     act(() => {
       result.current.focusCustomPercent();

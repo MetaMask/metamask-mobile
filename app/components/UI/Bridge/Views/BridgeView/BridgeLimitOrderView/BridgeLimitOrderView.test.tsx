@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CaipChainId } from '@metamask/utils';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -10,6 +11,7 @@ import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput'
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import { LimitOrderExecutionType } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import BridgeLimitOrderView from './index';
 
@@ -184,7 +186,7 @@ function buildSwapInputsMock() {
   return {
     destToken: createMockTokenWithBalance({ symbol: 'USDC' }),
     destTokenAmount: '24.44',
-    enabledChainIds: ['eip155:1'],
+    enabledChainIds: ['eip155:1'] as CaipChainId[],
     handleDestTokenPress: jest.fn(),
     handleFlipTokensPress: jest.fn(),
     handleSourceMaxPress: jest.fn(),
@@ -228,7 +230,7 @@ function buildPriceAdjustMock() {
     handlePercentPress: jest.fn(),
     isCustomActive: false,
     isLimitFiatMode: false,
-    executionType: 'sell',
+    executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
     marketComparison: undefined,
     onAmountTypeTogglePress: undefined,
