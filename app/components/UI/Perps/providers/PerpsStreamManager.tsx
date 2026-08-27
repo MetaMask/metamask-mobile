@@ -785,6 +785,31 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
   }
 
+  private finishFirstDataTrace(): void {
+    const traceId = this.firstDataTraceId;
+    if (this.wsConnectionStartTime === null || !traceId) {
+      return;
+    }
+
+    const firstDataDuration = performance.now() - this.wsConnectionStartTime;
+    DevLogger.log(
+      `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
+      { duration: `${firstDataDuration.toFixed(0)}ms` },
+    );
+    endTrace({
+      name: TraceName.PerpsWebSocketFirstPrice,
+      id: traceId,
+      data: {
+        ...getCapturedLoadingSessionTraceData(traceId),
+        success: true,
+        duration: firstDataDuration,
+      },
+    });
+    this.wsConnectionStartTime = null;
+    clearCapturedLoadingSessionTraceData(traceId);
+    this.firstDataTraceId = undefined;
+  }
+
   private allMarketSymbols: string[] = [];
   // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
   private prewarmCycleId: number = 0;
@@ -876,26 +901,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           PerpsConnectionManager.getConnectionGeneration(),
         );
         // Track first price data from WebSocket (only once per connection)
-        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-          const firstDataDuration =
-            performance.now() - this.wsConnectionStartTime;
-          DevLogger.log(
-            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-            { duration: `${firstDataDuration.toFixed(0)}ms` },
-          );
-          endTrace({
-            name: TraceName.PerpsWebSocketFirstPrice,
-            id: this.firstDataTraceId,
-            data: {
-              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
-              success: true,
-              duration: firstDataDuration,
-            },
-          });
-          this.wsConnectionStartTime = null;
-          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
-          this.firstDataTraceId = undefined;
-        }
+        this.finishFirstDataTrace();
 
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
@@ -1088,26 +1094,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               PerpsConnectionManager.getConnectionGeneration(),
             );
             // Track first price data from WebSocket (only once per prewarm)
-            if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-              const firstDataDuration =
-                performance.now() - this.wsConnectionStartTime;
-              DevLogger.log(
-                `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-                { duration: `${firstDataDuration.toFixed(0)}ms` },
-              );
-              endTrace({
-                name: TraceName.PerpsWebSocketFirstPrice,
-                id: this.firstDataTraceId,
-                data: {
-                  ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
-                  success: true,
-                  duration: firstDataDuration,
-                },
-              });
-              this.wsConnectionStartTime = null;
-              clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
-              this.firstDataTraceId = undefined;
-            }
+            this.finishFirstDataTrace();
 
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
