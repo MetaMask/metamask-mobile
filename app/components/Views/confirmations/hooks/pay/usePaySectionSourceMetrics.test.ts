@@ -135,6 +135,8 @@ describe('usePaySectionSourceMetrics', () => {
   it.each([
     [KeyringType.Hd, 'metamask'],
     [KeyringType.PrivateKey, 'imported'],
+    [KeyringType.Money, 'money-account'],
+    ['Money Keyring', 'money-account'],
     ['Snap Keyring', 'snap'],
     [KeyringType.Ledger, 'Ledger'],
     [KeyringType.Trezor, 'Trezor'],
