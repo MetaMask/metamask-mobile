@@ -1,4 +1,3 @@
-import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from './SRPImport.testIds';
@@ -18,13 +17,8 @@ import {
   ImportNewSecretRecoveryPhraseOptions,
   ImportNewSecretRecoveryPhraseReturnType,
 } from '../../../actions/multiSrp';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
-import { mockTheme } from '../../../util/theme';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -66,7 +60,6 @@ const mockSetOptions = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
-const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -105,10 +98,18 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
@@ -158,20 +159,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetString.mockResolvedValue('');
-
-    (useContext as jest.Mock).mockImplementation((context) => {
-      if (context === ToastContext) {
-        return {
-          toastRef: {
-            current: {
-              showToast: mockShowToast,
-              closeToast: jest.fn(),
-            },
-          },
-        };
-      }
-      return jest.requireActual('react').useContext(context);
-    });
 
     mockImportNewSecretRecoveryPhrase.mockImplementation(
       (
@@ -471,16 +458,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       expect(mockNavigate).toHaveBeenCalledWith('WalletView');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: 'Wallet 2 imported',
-        },
-      ],
-      iconName: IconName.Confirmation,
-      iconColor: mockTheme.colors.success.default,
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Wallet 2 imported',
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 

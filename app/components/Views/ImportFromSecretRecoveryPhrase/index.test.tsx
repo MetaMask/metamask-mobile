@@ -34,8 +34,23 @@ import {
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { SRP_LENGTHS } from './constant';
 
 const mockQrSyncResetState = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
@@ -434,6 +449,83 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
         { timeout: 3000 },
       );
+    });
+
+    it('shows length error toast when seed phrase length is not supported', async () => {
+      const { getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // Enter a valid-length phrase so Continue enables, then force the length check to fail.
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      const includesSpy = jest
+        .spyOn(SRP_LENGTHS, 'includes')
+        .mockReturnValue(false);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('import_from_seed.seed_phrase_length_error'),
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+
+      includesSpy.mockRestore();
+    });
+
+    it('shows invalid seed phrase error when Continue is pressed with a checksum-invalid mnemonic', async () => {
+      const { getByPlaceholderText, getByTestId, getByText, getByRole } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // 12 BIP39 words with an invalid checksum.
+      fireEvent.changeText(
+        input,
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.invalid_seed_phrase')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID),
+      ).toBeOnTheScreen();
     });
 
     it('keeps continue enabled after entering a 24-word SRP whose first 12 words are also valid', async () => {

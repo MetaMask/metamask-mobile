@@ -27,6 +27,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -40,12 +41,6 @@ import AppConstants from '../../../core/AppConstants';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { IconName as IconNameLibrary } from '../../../component-library/components/Icons/Icon';
-import {
-  ButtonIconVariant,
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
 import Routes from '../../../constants/navigation/Routes';
 import {
   SRPQuizIntroduction,
@@ -75,8 +70,6 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showSeedPhrase, setShowSeedPhrase] = useState<boolean>(false);
-
-  const { toastRef } = useContext(ToastContext);
 
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -249,23 +242,12 @@ const RevealPrivateCredential = ({
     trackEvent(createEventBuilder(MetaMetricsEvents.COPY_SRP).build());
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings('reveal_credential.copied_to_clipboard'),
-        },
-      ],
+    toast({
+      title: strings('reveal_credential.copied_to_clipboard'),
       hasNoTimeout: false,
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconNameLibrary.Close,
-        onPress: () => {
-          toastRef?.current?.closeToast();
-        },
-      },
+      showCloseButton: false,
     });
-  }, [trackEvent, createEventBuilder, clipboardPrivateCredential, toastRef]);
+  }, [trackEvent, createEventBuilder, clipboardPrivateCredential]);
 
   const renderSRPExplanation = () => (
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

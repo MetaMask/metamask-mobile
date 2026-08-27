@@ -2,7 +2,6 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useContext,
   useEffect,
   useRef,
 } from 'react';
@@ -32,16 +31,13 @@ import {
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
-import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -49,7 +45,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
-import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -108,8 +103,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     () => tw.style('px-4 py-4 bg-default', { marginBottom: insets.bottom }),
     [insets, tw],
   );
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -246,18 +239,13 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(false);
     setSeedPhrase(['']);
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
-            hdKeyrings.length + 1
-          } ${strings('import_new_secret_recovery_phrase.success_2')}`,
-        },
-      ],
-      iconName: ComponentIconName.Confirmation,
-      iconColor: colors.success.default,
+    toast({
+      title: `${strings('import_new_secret_recovery_phrase.success_1')} ${
+        hdKeyrings.length + 1
+      } ${strings('import_new_secret_recovery_phrase.success_2')}`,
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
 
     fetchAccountsWithActivity();
@@ -266,8 +254,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   }, [
     seedPhrase,
     trackDiscoveryEvent,
-    toastRef,
-    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,
