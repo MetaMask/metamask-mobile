@@ -7,11 +7,18 @@ export type EarnAssetId = CaipAssetType;
 
 export type EarnRateStatus = 'loading' | 'ready' | 'error' | 'unavailable';
 
-export interface EarnRate {
+interface EarnRateBase {
   type: 'APR' | 'APY';
-  percentage?: number;
-  status: EarnRateStatus;
 }
+
+export type EarnRate =
+  | (EarnRateBase & {
+      status: 'ready';
+      percentage: number;
+    })
+  | (EarnRateBase & {
+      status: Exclude<EarnRateStatus, 'ready'>;
+    });
 
 export type EarnExperienceType = EARN_EXPERIENCES | 'MONEY_ACCOUNT_DEPOSIT';
 

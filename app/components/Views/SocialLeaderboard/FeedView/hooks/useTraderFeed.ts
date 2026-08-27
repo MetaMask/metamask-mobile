@@ -6,11 +6,7 @@ import {
   type InfiniteData,
   type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
-import type {
-  FeedResponse,
-  FetchFeedOptions,
-} from '@metamask/social-controllers';
-import Engine from '../../../../../core/Engine';
+import type { FeedResponse } from '@metamask/social-controllers';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   formatSocialQueryErrorMessage,
@@ -25,12 +21,12 @@ import type {
   FeedSection,
   FeedTypeFilter,
 } from '../types';
-
-/** Feed scope the social API expects, derived from the audience toggle. */
-type FeedScope = NonNullable<FetchFeedOptions['scope']>;
-
-/** Page size requested per feed page. */
-const FEED_PAGE_LIMIT = 30;
+import {
+  buildTraderFeedQueryKey,
+  fetchTraderFeedPage,
+  getTraderFeedNextPageParam,
+  toFeedScope,
+} from './traderFeedQueries';
 
 export interface UseTraderFeedOptions {
   /**
@@ -117,37 +113,16 @@ export const useTraderFeed = (
   const { audience = 'all', typeFilter = 'all', enabled = true } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
 
-  const scope: FeedScope =
-    audience === 'following' ? 'following' : 'leaderboard';
+  const scope = toFeedScope(audience);
 
   const queryClient = useQueryClient();
-  const queryKey = useMemo(
-    () => ['SocialService:fetchFeed', { scope, chains: FEED_CAIP2_CHAINS }],
-    [scope],
-  );
+  const queryKey = useMemo(() => buildTraderFeedQueryKey(scope), [scope]);
 
   const query = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) => {
-      // Call as a member expression so the messenger keeps its `this` binding;
-      // aliasing `.call` into a local detaches it and breaks action lookup.
-      const messenger = Engine.controllerMessenger as unknown as {
-        call: (
-          action: 'SocialService:fetchFeed',
-          fetchOptions: FetchFeedOptions,
-        ) => Promise<FeedResponse>;
-      };
-      return messenger.call('SocialService:fetchFeed', {
-        scope,
-        limit: FEED_PAGE_LIMIT,
-        chains: [...FEED_CAIP2_CHAINS],
-        ...(pageParam ? { olderThan: pageParam } : {}),
-      });
-    },
-    // react-query only stops paginating on `undefined`; guard the empty cursor
-    // so an exhausted feed doesn't loop back to the first page.
-    getNextPageParam: (lastPage: FeedResponse) =>
-      lastPage.pagination?.olderCursor ?? undefined,
+    queryFn: ({ pageParam }: { pageParam?: string }) =>
+      fetchTraderFeedPage(scope, pageParam),
+    getNextPageParam: getTraderFeedNextPageParam,
     enabled: enabled && isUnlocked,
     retry: false,
   } as unknown as UseInfiniteQueryOptions<FeedResponse, Error>);
