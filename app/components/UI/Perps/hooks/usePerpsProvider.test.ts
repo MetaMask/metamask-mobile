@@ -279,9 +279,21 @@ describe('usePerpsProvider', () => {
       );
 
       await waitFor(() => {
-        expect(mockGetOrderCapabilities).toHaveBeenCalled();
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
       expect(result.current.supportsTwapOrders).toBe(false);
+    });
+
+    it('keeps capability discovery terminal after initialization fails', () => {
+      mockAggregatedProviderSelectors(() => InitializationState.Failed);
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+
+      expect(result.current.isLoadingOrderCapabilities).toBe(false);
+      expect(result.current.supportsTwapOrders).toBe(false);
+      expect(mockGetOrderCapabilities).not.toHaveBeenCalled();
     });
 
     it('retries transient provider unavailability before restoring TWAP support', async () => {
