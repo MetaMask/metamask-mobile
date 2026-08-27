@@ -1,4 +1,7 @@
-import { unstable_batchedUpdates as batchFunc } from 'react-native';
+import {
+  unstable_batchedUpdates as batchFunc,
+  InteractionManager,
+} from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
@@ -43,6 +46,10 @@ const getPersistedAnalyticsId = (state: unknown): unknown =>
 export class EngineService {
   private engineInitialized = false;
 
+  // perf_fix: coldstart-v1 — Handle to the deferred persistence task so it can
+  // be canceled if EngineService is torn down before it executes.
+  private deferredPersistenceHandle: { cancel: () => void } | null = null;
+
   private updateBatcher = new Batcher<string>((keys) =>
     batchFunc(() => {
       keys.forEach((key) => {
@@ -65,10 +72,12 @@ export class EngineService {
    *
    * @param engine - The initialized Engine instance
    * @param initialState - Optional initial state loaded from persistence. If provided, controllers whose state changed during Engine.init() will be persisted.
+   * @param deferPersistence - When true, persistence setup runs after the current interaction completes (perf_fix: coldstart-v1). Safe for fresh installs where no state exists yet.
    */
   private initializeControllers = (
     engine: TypedEngine,
     initialState?: Record<string, unknown>,
+    deferPersistence?: boolean,
   ) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
     if (!engine.context) {
@@ -123,7 +132,21 @@ export class EngineService {
     // This is called automatically after Redux subscriptions to ensure
     // both Redux and filesystem are kept in sync when controller state changes
     // Pass initialState to detect and persist any state changes that occurred during Engine.init()
-    this.setupEnginePersistence(initialState);
+    //
+    // perf_fix: coldstart-v1 — For fresh installs, defer persistence setup
+    // until after the current interaction completes. No persisted state exists
+    // yet, so the comparison/initial-persist pass is pure overhead on the path
+    // to the first onboarding screen.
+    if (deferPersistence) {
+      this.deferredPersistenceHandle =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+          this.deferredPersistenceHandle = null;
+          this.setupEnginePersistence(initialState);
+        });
+    } else {
+      this.setupEnginePersistence(initialState);
+    }
   };
 
   /**
@@ -145,7 +168,23 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getAllPersistedState();
+
+    // perf_fix: coldstart-v1 — Determine new vs. existing user.
+    // `existingUser` is set by redux-persist rehydration, which completes before
+    // startAppServices saga dispatches ON_PERSISTED_DATA_LOADED (the gate that
+    // triggers this method). Treat `undefined` as existing user defensively:
+    // a false-negative (skipping reads for an existing user) would cause data
+    // loss, whereas a false-positive (reading empty storage for a new user) is
+    // merely slower.
+    const existingUserFlag = reduxState?.user?.existingUser;
+    const isNewUser = existingUserFlag === false;
+
+    // perf_fix: coldstart-v1 — For fresh installs, skip the filesystem read
+    // since no controller state has been persisted yet. This avoids async I/O
+    // for every controller name on the critical path to the onboarding screen.
+    const persistedState = isNewUser
+      ? { backgroundState: {} }
+      : await ControllerStorage.getAllPersistedState();
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -158,6 +197,11 @@ export class EngineService {
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
+      data: {
+        perf_fix: 'coldstart-v1',
+        skipped_persisted_read: isNewUser,
+        existing_user_flag: String(existingUserFlag),
+      },
     });
 
     const state =
@@ -183,6 +227,7 @@ export class EngineService {
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
+        isNewUser,
       );
 
       // Fire-and-forget: refresh social following state from the server.

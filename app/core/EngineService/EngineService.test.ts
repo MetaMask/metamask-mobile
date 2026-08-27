@@ -76,6 +76,15 @@ jest.mock('../../store/getPersistentState/getPersistentState', () => ({
   getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
 }));
 
+// Spy on InteractionManager.runAfterInteractions (perf_fix: coldstart-v1 uses it)
+import { InteractionManager } from 'react-native';
+const mockRunAfterInteractions = jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation((cb) => {
+    if (typeof cb === 'function') cb();
+    return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() } as never;
+  });
+
 // Mock ControllerStorage and createPersistController
 jest.mock('../../store/persistConfig', () => ({
   ControllerStorage: {
@@ -247,6 +256,18 @@ describe('EngineService', () => {
         KeyringController: { vault: 'encrypted_vault_data' },
       },
     });
+
+    // Must set existingUser so EngineService reads from ControllerStorage
+    const mockStore = {
+      getState: () => ({
+        user: { existingUser: true },
+        engine: { backgroundState: { KeyringController: {} } },
+      }),
+      dispatch: mockDispatch,
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+    } as unknown as ReduxStore;
+    ReduxService.store = mockStore;
 
     engineService.start();
     await waitFor(() => {
@@ -675,6 +696,135 @@ describe('EngineService', () => {
       );
       expect(vaultCheckLogs).toHaveLength(0);
     });
+
+    it('skips ControllerStorage.getAllPersistedState for new users (perf_fix: coldstart-v1)', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
+    });
+
+    it('reads ControllerStorage.getAllPersistedState for existing users', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: 'encrypted-vault-data' },
+          },
+        },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+    });
+
+    it('defers persistence setup via InteractionManager for new users (perf_fix: coldstart-v1)', async () => {
+      // Arrange
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — persistence setup was scheduled via InteractionManager
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+    });
+
+    it('does not defer persistence setup for existing users', async () => {
+      // Arrange
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: 'encrypted-vault-data' },
+          },
+        },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — persistence setup runs synchronously, not deferred
+      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+    });
+
+    it('treats undefined existingUser as existing user defensively (reads persisted state)', async () => {
+      // Arrange — existingUser is undefined (e.g., state not yet rehydrated)
+      const mockGetState = jest.fn().mockReturnValue({
+        user: {},
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — falls back to reading persisted state (safe default)
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats missing user state as existing user defensively', async () => {
+      // Arrange — user key is missing entirely from redux state
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({});
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — does not defer, does not skip reads
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+    });
   });
 
   describe('setupEnginePersistence', () => {
@@ -703,6 +853,19 @@ describe('EngineService', () => {
         >,
       );
       mockGetPersistentState.mockReturnValue({ filtered: 'state' });
+
+      // These tests exercise the existing-user persistence path (non-deferred).
+      // Set existingUser: true so EngineService.start() reads persisted state
+      // and runs setupEnginePersistence synchronously.
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: { backgroundState: { KeyringController: {} } },
+      });
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
 
       // Mock Engine.context for metadata - this will be used by the existing Engine mock
       Object.defineProperty(Engine, 'context', {
