@@ -1,5 +1,145 @@
+diff --git a/dist/constants/eventNames.cjs b/dist/constants/eventNames.cjs
+index a555b1c498ee368c5bd6b764dec80d8a54e38b9f..d38e8998f75d87603ddfcab2f9a417688513136a 100644
+--- a/dist/constants/eventNames.cjs
++++ b/dist/constants/eventNames.cjs
+@@ -24,6 +24,10 @@ exports.PERPS_EVENT_PROPERTY = {
+     ORDER_SIZE: 'order_size',
+     MARGIN_USED: 'margin_used',
+     ORDER_TYPE: 'order_type', // lowercase per dashboard
++    SCALE_ORDER_COUNT: 'scale_order_count',
++    SCALE_RANGE_PCT: 'scale_range_pct',
++    SCALE_SKEW: 'scale_skew',
++    REDUCE_ONLY: 'reduce_only',
+     ORDER_TIMESTAMP: 'order_timestamp',
+     LIMIT_PRICE: 'limit_price',
+     FEES: 'fees',
+@@ -443,6 +447,8 @@ exports.PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -552,6 +558,10 @@ exports.PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
+diff --git a/dist/constants/eventNames.d.cts b/dist/constants/eventNames.d.cts
+index 7360d8b881056fffa9bf70fdc486622689e20bd2..f81640fcc359e0d1caaeecaabaef9d72f4a5888d 100644
+--- a/dist/constants/eventNames.d.cts
++++ b/dist/constants/eventNames.d.cts
+@@ -18,6 +18,10 @@ export declare const PERPS_EVENT_PROPERTY: {
+     readonly ORDER_SIZE: "order_size";
+     readonly MARGIN_USED: "margin_used";
+     readonly ORDER_TYPE: "order_type";
++    readonly SCALE_ORDER_COUNT: "scale_order_count";
++    readonly SCALE_RANGE_PCT: "scale_range_pct";
++    readonly SCALE_SKEW: "scale_skew";
++    readonly REDUCE_ONLY: "reduce_only";
+     readonly ORDER_TIMESTAMP: "order_timestamp";
+     readonly LIMIT_PRICE: "limit_price";
+     readonly FEES: "fees";
+@@ -372,6 +376,8 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
+diff --git a/dist/constants/eventNames.d.mts b/dist/constants/eventNames.d.mts
+index 573fc96610bf968ffa8d561c61493daab0553cdb..4ac9663ca62ab51c9f74db6c9cfeb30cc91ef1a5 100644
+--- a/dist/constants/eventNames.d.mts
++++ b/dist/constants/eventNames.d.mts
+@@ -18,6 +18,10 @@ export declare const PERPS_EVENT_PROPERTY: {
+     readonly ORDER_SIZE: "order_size";
+     readonly MARGIN_USED: "margin_used";
+     readonly ORDER_TYPE: "order_type";
++    readonly SCALE_ORDER_COUNT: "scale_order_count";
++    readonly SCALE_RANGE_PCT: "scale_range_pct";
++    readonly SCALE_SKEW: "scale_skew";
++    readonly REDUCE_ONLY: "reduce_only";
+     readonly ORDER_TIMESTAMP: "order_timestamp";
+     readonly LIMIT_PRICE: "limit_price";
+     readonly FEES: "fees";
+@@ -372,6 +376,8 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
+diff --git a/dist/constants/eventNames.mjs b/dist/constants/eventNames.mjs
+index 0a987fb49a1d711134c29f15f5e72d508b6e3ff2..04762f814204931a628eb104929ecc9d785b451b 100644
+--- a/dist/constants/eventNames.mjs
++++ b/dist/constants/eventNames.mjs
+@@ -21,6 +21,10 @@ export const PERPS_EVENT_PROPERTY = {
+     ORDER_SIZE: 'order_size',
+     MARGIN_USED: 'margin_used',
+     ORDER_TYPE: 'order_type', // lowercase per dashboard
++    SCALE_ORDER_COUNT: 'scale_order_count',
++    SCALE_RANGE_PCT: 'scale_range_pct',
++    SCALE_SKEW: 'scale_skew',
++    REDUCE_ONLY: 'reduce_only',
+     ORDER_TIMESTAMP: 'order_timestamp',
+     LIMIT_PRICE: 'limit_price',
+     FEES: 'fees',
+@@ -440,6 +444,8 @@ export const PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -549,6 +555,10 @@ export const PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
 diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
-index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a08d7c998 100644
+index f10d652a266dd75758a604a46acfcc2668433f78..ddb13c1f212b31c57edb65a7350d28c75ef2e705 100644
 --- a/dist/providers/HyperLiquidProvider.cjs
 +++ b/dist/providers/HyperLiquidProvider.cjs
 @@ -14,6 +14,7 @@ var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidP
@@ -179,7 +319,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8226,10 +8335,5 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8226,12 +8335,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -191,8 +331,10 @@ index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a
 -    };
 +    return buildAcceptedResult();
  }, _HyperLiquidProvider_startChaseSession = 
+ /**
+  * Place a chase's first order and register the session that follows it.
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
-index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717e45ba73a 100644
+index a21659ff69cf4d684d380aa0eb5de4a979f64da3..948f21810b4be25d81c26bd846f4c92ceb3ac5f9 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
 +++ b/dist/providers/HyperLiquidProvider.mjs
 @@ -11,6 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -372,7 +514,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8222,10 +8331,5 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8222,12 +8331,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -384,6 +526,8 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717
 -    };
 +    return buildAcceptedResult();
  }, _HyperLiquidProvider_startChaseSession = 
+ /**
+  * Place a chase's first order and register the session that follows it.
 diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
 index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fbf320ee22 100644
 --- a/dist/services/TradingService.cjs
@@ -456,139 +600,106 @@ index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a4
      }
      // Add success-specific properties
      if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
-diff --git a/dist/constants/eventNames.cjs b/dist/constants/eventNames.cjs
---- a/dist/constants/eventNames.cjs
-+++ b/dist/constants/eventNames.cjs
-@@ -23,6 +23,10 @@ exports.PERPS_EVENT_PROPERTY = {
-     ORDER_SIZE: 'order_size',
-     MARGIN_USED: 'margin_used',
-     ORDER_TYPE: 'order_type', // lowercase per dashboard
-+    SCALE_ORDER_COUNT: 'scale_order_count',
-+    SCALE_RANGE_PCT: 'scale_range_pct',
-+    SCALE_SKEW: 'scale_skew',
-+    REDUCE_ONLY: 'reduce_only',
-     ORDER_TIMESTAMP: 'order_timestamp',
-     LIMIT_PRICE: 'limit_price',
-     FEES: 'fees',
-@@ -442,6 +446,8 @@ exports.PERPS_EVENT_VALUE = {
-         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
-         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
-         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
-+        SCALE_CONFIG_CHANGED: 'scale_config_changed',
-+        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
-         // Auto Close TP/SL RoE sign toggle
-         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
-         // Discovery analytics
-@@ -552,6 +558,10 @@ exports.PERPS_EVENT_VALUE = {
-     SETTING_TYPE: {
-         LEVERAGE: 'leverage',
-         SLIPPAGE: 'slippage',
-+        SCALE_START_PRICE: 'start_price',
-+        SCALE_END_PRICE: 'end_price',
-+        SCALE_TOTAL_ORDERS: 'total_orders',
-+        SCALE_SIZE_SKEW: 'size_skew',
-     },
-     SCREEN_NAME: {
-         CONNECTION_ERROR: 'connection_error',
-diff --git a/dist/constants/eventNames.d.cts b/dist/constants/eventNames.d.cts
---- a/dist/constants/eventNames.d.cts
-+++ b/dist/constants/eventNames.d.cts
-@@ -17,6 +17,10 @@ export declare const PERPS_EVENT_PROPERTY: {
-     readonly ORDER_SIZE: "order_size";
-     readonly MARGIN_USED: "margin_used";
-     readonly ORDER_TYPE: "order_type";
-+    readonly SCALE_ORDER_COUNT: "scale_order_count";
-+    readonly SCALE_RANGE_PCT: "scale_range_pct";
-+    readonly SCALE_SKEW: "scale_skew";
-+    readonly REDUCE_ONLY: "reduce_only";
-     readonly ORDER_TIMESTAMP: "order_timestamp";
-     readonly LIMIT_PRICE: "limit_price";
-     readonly FEES: "fees";
-@@ -371,6 +375,8 @@ export declare const PERPS_EVENT_VALUE: {
-         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
-         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
-         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
-+        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
-+        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
-         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
-         readonly MARKET_LIST_FILTER: "market_list_filter";
-         readonly SORT_APPLIED: "sort_applied";
-@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
-     readonly SETTING_TYPE: {
-         readonly LEVERAGE: "leverage";
-         readonly SLIPPAGE: "slippage";
-+        readonly SCALE_START_PRICE: "start_price";
-+        readonly SCALE_END_PRICE: "end_price";
-+        readonly SCALE_TOTAL_ORDERS: "total_orders";
-+        readonly SCALE_SIZE_SKEW: "size_skew";
-     };
-     readonly SCREEN_NAME: {
-         readonly CONNECTION_ERROR: "connection_error";
-diff --git a/dist/constants/eventNames.d.mts b/dist/constants/eventNames.d.mts
---- a/dist/constants/eventNames.d.mts
-+++ b/dist/constants/eventNames.d.mts
-@@ -17,6 +17,10 @@ export declare const PERPS_EVENT_PROPERTY: {
-     readonly ORDER_SIZE: "order_size";
-     readonly MARGIN_USED: "margin_used";
-     readonly ORDER_TYPE: "order_type";
-+    readonly SCALE_ORDER_COUNT: "scale_order_count";
-+    readonly SCALE_RANGE_PCT: "scale_range_pct";
-+    readonly SCALE_SKEW: "scale_skew";
-+    readonly REDUCE_ONLY: "reduce_only";
-     readonly ORDER_TIMESTAMP: "order_timestamp";
-     readonly LIMIT_PRICE: "limit_price";
-     readonly FEES: "fees";
-@@ -371,6 +375,8 @@ export declare const PERPS_EVENT_VALUE: {
-         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
-         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
-         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
-+        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
-+        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
-         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
-         readonly MARKET_LIST_FILTER: "market_list_filter";
-         readonly SORT_APPLIED: "sort_applied";
-@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
-     readonly SETTING_TYPE: {
-         readonly LEVERAGE: "leverage";
-         readonly SLIPPAGE: "slippage";
-+        readonly SCALE_START_PRICE: "start_price";
-+        readonly SCALE_END_PRICE: "end_price";
-+        readonly SCALE_TOTAL_ORDERS: "total_orders";
-+        readonly SCALE_SIZE_SKEW: "size_skew";
-     };
-     readonly SCREEN_NAME: {
-         readonly CONNECTION_ERROR: "connection_error";
-diff --git a/dist/constants/eventNames.mjs b/dist/constants/eventNames.mjs
---- a/dist/constants/eventNames.mjs
-+++ b/dist/constants/eventNames.mjs
-@@ -20,6 +20,10 @@ export const PERPS_EVENT_PROPERTY = {
-     ORDER_SIZE: 'order_size',
-     MARGIN_USED: 'margin_used',
-     ORDER_TYPE: 'order_type', // lowercase per dashboard
-+    SCALE_ORDER_COUNT: 'scale_order_count',
-+    SCALE_RANGE_PCT: 'scale_range_pct',
-+    SCALE_SKEW: 'scale_skew',
-+    REDUCE_ONLY: 'reduce_only',
-     ORDER_TIMESTAMP: 'order_timestamp',
-     LIMIT_PRICE: 'limit_price',
-     FEES: 'fees',
-@@ -439,6 +443,8 @@ export const PERPS_EVENT_VALUE = {
-         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
-         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
-         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
-+        SCALE_CONFIG_CHANGED: 'scale_config_changed',
-+        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
-         // Auto Close TP/SL RoE sign toggle
-         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
-         // Discovery analytics
-@@ -549,6 +555,10 @@ export const PERPS_EVENT_VALUE = {
-     SETTING_TYPE: {
-         LEVERAGE: 'leverage',
-         SLIPPAGE: 'slippage',
-+        SCALE_START_PRICE: 'start_price',
-+        SCALE_END_PRICE: 'end_price',
-+        SCALE_TOTAL_ORDERS: 'total_orders',
-+        SCALE_SIZE_SKEW: 'size_skew',
-     },
-     SCREEN_NAME: {
-         CONNECTION_ERROR: 'connection_error',
+diff --git a/dist/utils/orderCalculations.cjs b/dist/utils/orderCalculations.cjs
+index 2a598bd3207b56678c06a3194dc5333e0ed8ef47..1d4858ccebe24357939026050ba0476f9c20fc40 100644
+--- a/dist/utils/orderCalculations.cjs
++++ b/dist/utils/orderCalculations.cjs
+@@ -1,6 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.buildOrdersArray = exports.formatPartialTpslSize = exports.validateOrderPrecision = exports.calculateOrderPriceAndSize = exports.calculateFinalPositionSize = exports.splitScaleSizes = exports.computeScalePriceLadder = exports.computeChaseQuotePrice = exports.getPriceTick = exports.floorToSizeDecimals = exports.getMaxAllowedAmount = exports.calculateMarginRequired = exports.calculatePositionSize = void 0;
++exports.buildOrdersArray = exports.formatPartialTpslSize = exports.validateOrderPrecision = exports.calculateOrderPriceAndSize = exports.calculateFinalPositionSize = exports.splitScaleSizes = exports.normalizeScalePriceLadder = exports.computeScalePriceLadder = exports.computeChaseQuotePrice = exports.getPriceTick = exports.floorToSizeDecimals = exports.getMaxAllowedAmount = exports.calculateMarginRequired = exports.calculatePositionSize = void 0;
+ const hyperLiquidConfig_js_1 = require("../constants/hyperLiquidConfig.cjs");
+ const perpsConfig_js_1 = require("../constants/perpsConfig.cjs");
+ const perpsErrorCodes_js_1 = require("../perpsErrorCodes.cjs");
+@@ -241,6 +241,20 @@ function computeScalePriceLadder(params) {
+     return Array.from({ length: count }, (_unused, index) => index === count - 1 ? maxPrice : minPrice + step * index);
+ }
+ exports.computeScalePriceLadder = computeScalePriceLadder;
++/**
++ * Build the exact price strings a Scale provider will receive.
++ *
++ * Mobile and other clients use this provider-neutral contract for previews so
++ * validation and placement share the controller's venue precision rules.
++ *
++ * @param params - Ladder and asset precision parameters.
++ * @returns The normalized rung prices, ascending.
++ */
++function normalizeScalePriceLadder(params) {
++    const { szDecimals, ...ladderParams } = params;
++    return computeScalePriceLadder(ladderParams).map((price) => (0, hyperLiquidAdapter_js_1.formatHyperLiquidPrice)({ price, szDecimals }));
++}
++exports.normalizeScalePriceLadder = normalizeScalePriceLadder;
+ /**
+  * Split a scale placement's total size across its ladder rungs.
+  *
+diff --git a/dist/utils/orderCalculations.d.cts b/dist/utils/orderCalculations.d.cts
+index 1690154642dd1bcd0593d5d722c4733f11d60306..78af81e88faab9f07a24da8e39ecc2689a98c3d4 100644
+--- a/dist/utils/orderCalculations.d.cts
++++ b/dist/utils/orderCalculations.d.cts
+@@ -171,6 +171,18 @@ export declare function computeScalePriceLadder(params: {
+     maxPrice: number;
+     count: number;
+ }): number[];
++/**
++ * Build the exact price strings a Scale provider will receive.
++ *
++ * @param params - Ladder and asset precision parameters.
++ * @returns The normalized rung prices, ascending.
++ */
++export declare function normalizeScalePriceLadder(params: {
++    minPrice: number;
++    maxPrice: number;
++    count: number;
++    szDecimals: number;
++}): string[];
+ /**
+  * Split a scale placement's total size across its ladder rungs.
+  *
+diff --git a/dist/utils/orderCalculations.d.mts b/dist/utils/orderCalculations.d.mts
+index 7bb70f793228cb0e23643552e855f280207316ff..58865ffb9954ba6173c51c1521b40d4665b64fa2 100644
+--- a/dist/utils/orderCalculations.d.mts
++++ b/dist/utils/orderCalculations.d.mts
+@@ -171,6 +171,18 @@ export declare function computeScalePriceLadder(params: {
+     maxPrice: number;
+     count: number;
+ }): number[];
++/**
++ * Build the exact price strings a Scale provider will receive.
++ *
++ * @param params - Ladder and asset precision parameters.
++ * @returns The normalized rung prices, ascending.
++ */
++export declare function normalizeScalePriceLadder(params: {
++    minPrice: number;
++    maxPrice: number;
++    count: number;
++    szDecimals: number;
++}): string[];
+ /**
+  * Split a scale placement's total size across its ladder rungs.
+  *
+diff --git a/dist/utils/orderCalculations.mjs b/dist/utils/orderCalculations.mjs
+index f12bae309cccd7e90d40efc4f1f7d6df9fd25ad5..ce1a7d8e50535b41c561e8daed546d88029ad652 100644
+--- a/dist/utils/orderCalculations.mjs
++++ b/dist/utils/orderCalculations.mjs
+@@ -231,6 +231,19 @@ export function computeScalePriceLadder(params) {
+     // narrow the range they asked for.
+     return Array.from({ length: count }, (_unused, index) => index === count - 1 ? maxPrice : minPrice + step * index);
+ }
++/**
++ * Build the exact price strings a Scale provider will receive.
++ *
++ * Mobile and other clients use this provider-neutral contract for previews so
++ * validation and placement share the controller's venue precision rules.
++ *
++ * @param params - Ladder and asset precision parameters.
++ * @returns The normalized rung prices, ascending.
++ */
++export function normalizeScalePriceLadder(params) {
++    const { szDecimals, ...ladderParams } = params;
++    return computeScalePriceLadder(ladderParams).map((price) => formatHyperLiquidPrice({ price, szDecimals }));
++}
+ /**
+  * Split a scale placement's total size across its ladder rungs.
+  *

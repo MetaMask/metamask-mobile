@@ -7,6 +7,7 @@ import {
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { normalizeScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -1961,6 +1962,25 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('scale orders', () => {
+    it('normalizes Scale rungs through the controller precision contract', () => {
+      expect(
+        normalizeScalePriceLadder({
+          minPrice: 100,
+          maxPrice: 200,
+          count: 3,
+          szDecimals: 3,
+        }),
+      ).toEqual(['100', '150', '200']);
+      expect(
+        normalizeScalePriceLadder({
+          minPrice: 100.123456,
+          maxPrice: 100.123457,
+          count: 3,
+          szDecimals: 3,
+        }),
+      ).toEqual(['100.12', '100.12', '100.12']);
+    });
+
     const configureScaleOrder = (
       result: ReturnType<typeof renderProForm>['result'],
     ) => {
@@ -2075,7 +2095,7 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
-    it('uses the capability-resolved provider price contract for Scale preview', () => {
+    it('uses controller-owned price formatting for Scale preview', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       mockSizeDecimals = 3;
@@ -2098,7 +2118,7 @@ describe('usePerpsProOrderForm', () => {
         myx.result.current.scaleOrder.onTotalOrdersChange('3');
       });
 
-      expect(myx.result.current.scaleOrder.rungs).toHaveLength(3);
+      expect(myx.result.current.scaleOrder.rungs).toEqual([]);
     });
 
     it('clears limit and trigger drafts when Scale is selected', () => {

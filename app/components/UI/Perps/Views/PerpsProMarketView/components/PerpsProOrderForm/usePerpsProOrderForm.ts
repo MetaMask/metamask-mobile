@@ -5,8 +5,6 @@ import {
   SCALE_ORDER_COUNT,
   TRADING_DEFAULTS,
   calculateMarginRequired,
-  computeScalePriceLadder,
-  formatHyperLiquidPrice,
   formatPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
@@ -17,6 +15,7 @@ import {
   type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
+import { normalizeScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -111,7 +110,6 @@ import {
 } from '../../../../utils/triggerOrderValidation';
 import {
   MAX_PERPS_INPUT_DIGITS,
-  PROVIDER_CONFIG,
   PERPS_TWAP_UI_CONFIG,
 } from '../../../../constants/perpsConfig';
 import {
@@ -208,19 +206,6 @@ const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
   minPrice > 0 && maxPrice > minPrice
     ? ((maxPrice - minPrice) / minPrice) * 100
     : undefined;
-
-const formatScalePriceForProvider = ({
-  price,
-  providerId,
-  szDecimals,
-}: {
-  price: number;
-  providerId: PerpsProviderType | undefined;
-  szDecimals: number;
-}): string =>
-  providerId === PROVIDER_CONFIG.DefaultProvider
-    ? formatHyperLiquidPrice({ price, szDecimals })
-    : new BigNumber(price).toFixed();
 
 /** Prefix of the interpolated insufficient-balance message (stable across amounts). */
 const INSUFFICIENT_BALANCE_PREFIX = strings(
@@ -919,17 +904,12 @@ export const usePerpsProOrderForm = ({
     }
 
     try {
-      const scalePrices = computeScalePriceLadder({
+      const scalePrices = normalizeScalePriceLadder({
         minPrice,
         maxPrice,
         count: orderCount,
-      }).map((price) =>
-        formatScalePriceForProvider({
-          price,
-          providerId: scaleProviderId,
-          szDecimals,
-        }),
-      );
+        szDecimals,
+      });
       if (new Set(scalePrices).size !== scalePrices.length) {
         return { success: false, code: 'invalid_range' };
       }
@@ -1116,7 +1096,6 @@ export const usePerpsProOrderForm = ({
     exactFullCloseSize,
     scaleMinimumOrderAmount,
     scaleEndPrice,
-    scaleProviderId,
     scaleSizeSkew,
     scaleStartPrice,
     scaleTotalOrders,
