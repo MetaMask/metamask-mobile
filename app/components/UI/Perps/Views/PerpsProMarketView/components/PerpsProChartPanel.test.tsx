@@ -321,7 +321,10 @@ describe('PerpsProChartPanel', () => {
         symbol="BTC"
         selectedCandlePeriod={CandlePeriod.FifteenMinutes}
         isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
         effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
         onCandlePeriodChange={mockOnCandlePeriodChange}
         onMorePress={mockOnMorePress}
         onChartError={mockOnChartError}

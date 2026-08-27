@@ -13,6 +13,7 @@ export interface PerpsMarketContext {
   identityKey: string;
   isReady: boolean;
   isUserReady: boolean;
+  isConnectionInitialized: boolean;
 }
 
 const subscribeToInitializedMarketContext = (listener: () => void) =>
@@ -30,6 +31,8 @@ const subscribeToInitializedUserContext = (listener: () => void) =>
   PerpsConnectionManager.subscribeToInitializedUserContext(listener);
 const getUserContextReadySnapshot = () =>
   PerpsConnectionManager.isSelectedUserContextReady();
+const getConnectionInitializedSnapshot = () =>
+  PerpsConnectionManager.getConnectionState().isInitialized;
 
 /**
  * Compares the selected market context with the connection that last completed
@@ -68,10 +71,16 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     getUserContextReadySnapshot,
     getUserContextReadySnapshot,
   );
+  const isConnectionInitialized = useSyncExternalStore(
+    subscribeToInitializedMarketContext,
+    getConnectionInitializedSnapshot,
+    getConnectionInitializedSnapshot,
+  );
   return {
     key: `${selectedContextKey}|${connectionGeneration}`,
     identityKey: selectedContextKey,
     isReady,
     isUserReady,
+    isConnectionInitialized,
   };
 }

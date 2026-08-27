@@ -419,7 +419,6 @@ const PerpsProMarketView = ({
     [handleCandlePeriodChange, playSelection, selectedCandlePeriod],
   );
 
-  const currentSymbol = market?.symbol;
   const chartContextKey = `${marketSectionContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
   const marketSectionState = resolveProMarketSectionState(
     Boolean(
