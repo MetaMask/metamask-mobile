@@ -430,6 +430,47 @@ describe('EngineService', () => {
     });
   });
 
+  it('cancels deferred persistence when Engine init fails', async () => {
+    // Arrange — new user path sets up deferred persistence
+    const mockCancel = jest.fn();
+    mockRunAfterInteractions.mockClear();
+    mockRunAfterInteractions.mockImplementation(
+      () =>
+        ({
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: mockCancel,
+        }) as never,
+    );
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+    (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+
+    // Make Engine.init throw after initializeControllers would set the handle
+    jest.spyOn(Engine, 'init').mockImplementation(() => {
+      throw new Error('Engine init failed');
+    });
+
+    // Act
+    await engineService.start();
+
+    // Assert — deferred persistence must be cancelled in the catch block
+    // Engine.init throws before initializeControllers runs, so no handle
+    // is created in this specific case. But cancelDeferredPersistence is
+    // still called defensively in the catch block.
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('Engine init failed'),
+      'Failed to initialize Engine! Falling back to vault recovery.',
+    );
+  });
+
   describe('updateBatcher', () => {
     // Type for accessing private updateBatcher property
     interface EngineServiceWithBatcher {

@@ -274,6 +274,8 @@ export class EngineService {
       // Non-blocking — persisted state covers the UI until this resolves.
       hydrateSocialFollowing();
     } catch (error) {
+      this.cancelDeferredPersistence();
+
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
         context: 'engine_service_startup',
