@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type {
@@ -191,6 +191,7 @@ export const useWhatsHappening = (
   const isActive = isFeatureEnabled && isHookEnabled;
   const queryClient = useQueryClient();
   const pendingRefreshRef = useRef<(() => void) | null>(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const query = useQuery<WhatsHappeningItem[], Error>({
     queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
@@ -204,16 +205,22 @@ export const useWhatsHappening = (
     // in-flight requests here.
     staleTime: 0,
     cacheTime: 0,
+    // Match the previous hook: fetch on mount / refresh / key change, not on
+    // app resume or reconnect (those would mark every subscriber as fetching).
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   useEffect(() => {
-    if (!isActive) {
+    // Only the feature flag should drop the shared query. `enabled: false` is
+    // used by WhatsHappeningSection when a parent already owns the feed.
+    if (!isFeatureEnabled) {
       queryClient.removeQueries({
         queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
         exact: true,
       });
     }
-  }, [isActive, outdatedItemId, queryClient]);
+  }, [isFeatureEnabled, outdatedItemId, queryClient]);
 
   useEffect(
     () => () => {
@@ -226,6 +233,7 @@ export const useWhatsHappening = (
   const refresh = useCallback(() => {
     pendingRefreshRef.current?.();
     pendingRefreshRef.current = null;
+    setIsManualRefreshing(true);
 
     return new Promise<void>((resolve) => {
       pendingRefreshRef.current = resolve;
@@ -238,6 +246,7 @@ export const useWhatsHappening = (
           if (pendingRefreshRef.current === resolve) {
             pendingRefreshRef.current();
             pendingRefreshRef.current = null;
+            setIsManualRefreshing(false);
           }
         });
     });
@@ -250,7 +259,9 @@ export const useWhatsHappening = (
 
   return {
     items: isActive && !error ? (query.data ?? []) : [],
-    isLoading: isActive && query.isFetching,
+    // isFetching is true for background refetches (new observer, stale mount).
+    // Only the initial load and an explicit refresh should show skeletons.
+    isLoading: isActive && (query.isLoading || isManualRefreshing),
     error,
     refresh,
   };

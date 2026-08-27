@@ -215,7 +215,9 @@ describe('useWhatsHappening', () => {
       trends: [mockTrend, mockTrend],
     });
 
-    await result.current.refresh();
+    await act(async () => {
+      await result.current.refresh();
+    });
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
   });
@@ -235,8 +237,11 @@ describe('useWhatsHappening', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let refreshSettled = false;
-    const refreshPromise = result.current.refresh().then(() => {
-      refreshSettled = true;
+    let refreshPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      refreshPromise = result.current.refresh().then(() => {
+        refreshSettled = true;
+      });
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(true));
@@ -275,15 +280,21 @@ describe('useWhatsHappening', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let firstRefreshSettled = false;
-    const firstRefreshPromise = result.current.refresh().then(() => {
-      firstRefreshSettled = true;
+    let firstRefreshPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      firstRefreshPromise = result.current.refresh().then(() => {
+        firstRefreshSettled = true;
+      });
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(true));
 
     let secondRefreshSettled = false;
-    const secondRefreshPromise = result.current.refresh().then(() => {
-      secondRefreshSettled = true;
+    let secondRefreshPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      secondRefreshPromise = result.current.refresh().then(() => {
+        secondRefreshSettled = true;
+      });
     });
 
     await act(async () => {
@@ -560,6 +571,48 @@ describe('useWhatsHappening', () => {
     expect(result.current.first.items).toHaveLength(1);
     expect(result.current.second.items).toHaveLength(1);
     expect(mockFetchMarketOverview).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not clear a shared in-flight query when a sibling hook is disabled', async () => {
+    let resolveOverview: ((value: typeof mockOverview) => void) | undefined;
+    mockFetchMarketOverview.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveOverview = resolve;
+        }),
+    );
+
+    const { result } = renderHook(
+      () => ({
+        parent: useWhatsHappening(),
+        child: useWhatsHappening({ enabled: false }),
+      }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.parent.isLoading).toBe(true));
+
+    expect(result.current.child.isLoading).toBe(false);
+    expect(mockFetchMarketOverview).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveOverview?.(mockOverview);
+    });
+
+    await waitFor(() => expect(result.current.parent.isLoading).toBe(false));
+
+    expect(mockFetchMarketOverview).toHaveBeenCalledTimes(1);
+    expect(result.current.parent.items).toHaveLength(1);
+  });
+
+  it('keeps items visible without loading when a second observer mounts', async () => {
+    const { result: first } = renderWhatsHappeningHook();
+    await waitFor(() => expect(first.current.isLoading).toBe(false));
+
+    const { result: second } = renderWhatsHappeningHook();
+
+    expect(second.current.isLoading).toBe(false);
+    expect(second.current.items).toHaveLength(1);
   });
 
   it('does not apply a late front-page result after outdatedItemId changes', async () => {
