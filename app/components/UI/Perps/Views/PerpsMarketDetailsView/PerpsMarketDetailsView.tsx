@@ -139,6 +139,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
+import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import {
   buildChartOverlayLines,
   getChartLimitOrderLines,
@@ -420,9 +421,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
-    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
-  );
+  const { visibleCandleCount, setVisibleCandleCount } =
+    usePerpsVisibleCandleCount();
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
@@ -815,8 +815,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
-      // Reset chart to default state (like initial navigation)
-      setVisibleCandleCount(45);
+      // Reset chart to default zoom (persisted default, currently 30 candles)
+      setVisibleCandleCount(PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT);
 
       // Reset chart view to default position
       if (isAdvancedChartEnabled) {
@@ -836,7 +836,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [configuredChartLibrary, isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled, setVisibleCandleCount]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1629,6 +1629,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     coloredVolume
                     onOhlcDataChange={setOhlcData}
                     onNeedMoreHistory={fetchMoreHistory}
+                    onVisibleCandleCountChange={setVisibleCandleCount}
                     testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
                   />
                 ) : (
@@ -1916,6 +1917,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
         fallbackFetchMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={setVisibleCandleCount}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}

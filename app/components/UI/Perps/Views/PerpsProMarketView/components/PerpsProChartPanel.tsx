@@ -29,9 +29,9 @@ import { Skeleton } from '../../../../../../component-library/components-temp/Sk
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
+import { usePerpsVisibleCandleCount } from '../../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -109,12 +109,13 @@ const PerpsProChartPanel = ({
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
+  const { visibleCandleCount, setVisibleCandleCount } =
+    usePerpsVisibleCandleCount();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
-  const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
   // reported close. Symbol/period/flag resets are owned by
@@ -233,6 +234,7 @@ const PerpsProChartPanel = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={setVisibleCandleCount}
         testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
       />
     );
@@ -359,6 +361,7 @@ const PerpsProChartPanel = ({
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
         fallbackFetchMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={setVisibleCandleCount}
       />
     </>
   );

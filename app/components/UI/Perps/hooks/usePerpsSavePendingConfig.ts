@@ -4,13 +4,22 @@ import Engine from '../../../../core/Engine';
 import { type OrderFormState } from '@metamask/perps-controller';
 import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
 
+export interface PendingTradeConfigExtras {
+  /** Pro-only reduce-only flag restored with the 30s draft. */
+  reduceOnly?: boolean;
+}
+
 /**
- * Hook to save pending trade configuration when user navigates away from the trade screen
- * Saves the current form state (including pay-with token selection) so it can be restored when user returns within 5 minutes
+ * Hook to save pending trade configuration when user navigates away from the trade screen.
+ * Saves the current form state so it can be restored when the user returns within 30 seconds.
  */
-export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
+export function usePerpsSavePendingConfig(
+  orderForm: OrderFormState,
+  extras: PendingTradeConfigExtras = {},
+) {
   const { PerpsController } = Engine.context;
   const selectedPaymentToken = usePerpsPayWithToken();
+  const { reduceOnly } = extras;
 
   const config = useMemo(
     () => ({
@@ -20,6 +29,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       stopLossPrice: orderForm.stopLossPrice,
       limitPrice: orderForm.limitPrice,
       orderType: orderForm.type,
+      reduceOnly,
       selectedPaymentToken: selectedPaymentToken
         ? {
             description: selectedPaymentToken.description,
@@ -35,6 +45,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       orderForm.stopLossPrice,
       orderForm.limitPrice,
       orderForm.type,
+      reduceOnly,
       selectedPaymentToken,
     ],
   );

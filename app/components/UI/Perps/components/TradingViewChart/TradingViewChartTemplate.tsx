@@ -399,6 +399,9 @@ export const createTradingViewChartTemplate = (
         window.lastHistoryFetchTime = 0;
         window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
         window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
+        window.candleCountPostTimeout = null;
+        window.lastPostedCandleCount = null;
+        window.CANDLE_COUNT_POST_DEBOUNCE_MS = 400;
         // Set up edge detection for loading more historical data
         window.setupEdgeDetection = function() {
             if (!window.chart) {
@@ -410,6 +413,30 @@ export const createTradingViewChartTemplate = (
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
                     if (!range || !window.allCandleData || window.allCandleData.length === 0) {
                         return;
+                    }
+
+                    // Debounce pinch/pan settle so we persist zoom without
+                    // posting on every frame (avoids RN re-renders mid-gesture).
+                    const rawCount = range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
+                    const nextCount = Math.round(rawCount);
+                    if (Number.isFinite(nextCount)) {
+                        if (window.candleCountPostTimeout) {
+                            clearTimeout(window.candleCountPostTimeout);
+                        }
+                        window.candleCountPostTimeout = setTimeout(function() {
+                            window.candleCountPostTimeout = null;
+                            if (nextCount === window.lastPostedCandleCount) {
+                                return;
+                            }
+                            window.lastPostedCandleCount = nextCount;
+                            window.visibleCandleCount = nextCount;
+                            if (window.ReactNativeWebView) {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'VISIBLE_CANDLE_COUNT',
+                                    candleCount: nextCount,
+                                }));
+                            }
+                        }, window.CANDLE_COUNT_POST_DEBOUNCE_MS);
                     }
 
                     // Check if we're near the left edge (oldest data)

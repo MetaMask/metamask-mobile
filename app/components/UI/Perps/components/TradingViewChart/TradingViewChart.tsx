@@ -70,6 +70,7 @@ interface TradingViewChartProps {
   onChartReady?: () => void;
   onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
+  onVisibleCandleCountChange?: (count: number) => void;
   showVolume?: boolean; // Control volume bars visibility
   showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
   coloredVolume?: boolean; // Control volume bar coloring (true = green/red by direction, false = single color)
@@ -93,6 +94,7 @@ const TradingViewChart = React.forwardRef<
       onChartReady,
       onNeedMoreHistory,
       visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
+      onVisibleCandleCountChange,
       showVolume = true, // Default to showing volume
       showOverlay = false, // Default to hiding overlay
       coloredVolume = true, // Default to colored volume bars
@@ -321,6 +323,11 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
+            case 'VISIBLE_CANDLE_COUNT':
+              if (typeof message.candleCount === 'number') {
+                onVisibleCandleCountChange?.(message.candleCount);
+              }
+              break;
             default:
               break;
           }
@@ -331,7 +338,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady, onNeedMoreHistory, ohlcData],
+      [onChartReady, onNeedMoreHistory, onVisibleCandleCountChange, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts

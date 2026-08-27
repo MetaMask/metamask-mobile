@@ -430,8 +430,17 @@ jest.mock('../../../../../core/Engine', () => ({
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
       recordMarketViewed: (...args: unknown[]) =>
         mockRecordMarketViewed(...args),
+      setVisibleCandleCount: jest.fn(),
     },
   },
+}));
+
+const mockSetVisibleCandleCount = jest.fn();
+jest.mock('../../hooks/usePerpsVisibleCandleCount', () => ({
+  usePerpsVisibleCandleCount: () => ({
+    visibleCandleCount: 30,
+    setVisibleCandleCount: mockSetVisibleCandleCount,
+  }),
 }));
 
 // Mock for usePerpsMarkets that can be modified per test

@@ -56,6 +56,7 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      reduceOnly: undefined,
       selectedPaymentToken: null,
     });
   });
@@ -80,6 +81,7 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      reduceOnly: undefined,
       selectedPaymentToken: {
         description: 'USDC',
         address: '0xusdc',
@@ -96,5 +98,24 @@ describe('usePerpsSavePendingConfig', () => {
     unmount();
 
     expect(mockSavePendingTradeConfiguration).not.toHaveBeenCalled();
+  });
+
+  it('includes reduceOnly in config when provided', () => {
+    const { unmount } = renderHook(() =>
+      usePerpsSavePendingConfig(defaultOrderForm, { reduceOnly: true }),
+    );
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith('BTC', {
+      amount: '100',
+      leverage: 10,
+      takeProfitPrice: '',
+      stopLossPrice: '',
+      limitPrice: '',
+      orderType: 'market',
+      reduceOnly: true,
+      selectedPaymentToken: null,
+    });
   });
 });

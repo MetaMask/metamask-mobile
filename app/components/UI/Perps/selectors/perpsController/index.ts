@@ -8,9 +8,17 @@ import {
   selectRecentlyViewedMarkets,
   selectPerpsMode as selectPerpsModeCore,
   selectProLayoutPreferences as selectProLayoutPreferencesCore,
+  selectSelectedOrderType as selectSelectedOrderTypeCore,
+  selectVisibleCandleCount as selectVisibleCandleCountCore,
+  selectOrderBookPreferences as selectOrderBookPreferencesCore,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_SELECTED_ORDER_TYPE,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
+  VISIBLE_CANDLE_COUNT_CONFIG,
   InitializationState,
+  type OrderBookPreferences,
+  type OrderType,
   type PerpsActiveProviderMode,
   type PerpsMode,
   type ProLayoutPreferences,
@@ -210,11 +218,62 @@ const selectPerpsProLayoutPreferences = createSelector(
 /**
  * Whether the Pro inline chart is expanded. Persisted globally across markets
  * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
- * Defaults to `false` (collapsed) per the controller default.
+ * Defaults to `true` (visible) so first-time Pro users see the chart.
  */
 const selectPerpsProChartExpanded = createSelector(
   selectPerpsProLayoutPreferences,
   (proLayoutPreferences): boolean => proLayoutPreferences.chartExpanded,
+);
+
+/**
+ * Market-agnostic selected order type. Persisted globally so switching from
+ * limit on BTC to ETH keeps the limit configuration.
+ */
+const selectPerpsSelectedOrderType = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): OrderType => {
+    try {
+      return perpsControllerState
+        ? selectSelectedOrderTypeCore(perpsControllerState)
+        : DEFAULT_SELECTED_ORDER_TYPE;
+    } catch {
+      return DEFAULT_SELECTED_ORDER_TYPE;
+    }
+  },
+);
+
+/**
+ * Visible candle count shared by Lite and Pro charts. Persisted globally
+ * across markets and app restarts.
+ */
+const selectPerpsVisibleCandleCount = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): number => {
+    try {
+      return perpsControllerState
+        ? selectVisibleCandleCountCore(perpsControllerState)
+        : VISIBLE_CANDLE_COUNT_CONFIG.Default;
+    } catch {
+      return VISIBLE_CANDLE_COUNT_CONFIG.Default;
+    }
+  },
+);
+
+/**
+ * Market-agnostic Pro order-book listed-by preferences (currency + metric).
+ * Group-by remains per-market via `selectOrderBookGrouping`.
+ */
+const selectPerpsOrderBookPreferences = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): OrderBookPreferences => {
+    try {
+      return perpsControllerState
+        ? selectOrderBookPreferencesCore(perpsControllerState)
+        : DEFAULT_ORDER_BOOK_PREFERENCES;
+    } catch {
+      return DEFAULT_ORDER_BOOK_PREFERENCES;
+    }
+  },
 );
 
 /**
@@ -296,6 +355,9 @@ export {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsSelectedOrderType,
+  selectPerpsVisibleCandleCount,
+  selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
   selectPerpsProOrdersSideFilter,

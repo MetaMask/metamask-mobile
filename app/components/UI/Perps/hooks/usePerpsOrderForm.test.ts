@@ -12,6 +12,7 @@ import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -22,6 +23,14 @@ jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      setSelectedOrderType: jest.fn(),
+      saveTradeConfiguration: jest.fn(),
+    },
+  },
+}));
 
 // Create a mock stream manager for testing
 const createMockStreamManager = (): PerpsStreamManager => {
@@ -295,6 +304,43 @@ describe('usePerpsOrderForm', () => {
       );
 
       expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('uses the persisted market-agnostic order type when no pending or navigation type exists', () => {
+      const mockStoreWithSelectedOrderType = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  selectedOrderType: 'limit',
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperWithSelectedOrderType = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithSelectedOrderType,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: WrapperWithSelectedOrderType,
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
     });
 
     it('prioritizes existing position leverage over saved config', () => {
@@ -816,6 +862,23 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.type).toBe('limit');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).toHaveBeenCalledWith('limit');
+    });
+
+    it('persists leverage via saveTradeConfiguration', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setLeverage(15);
+      });
+
+      expect(
+        Engine.context.PerpsController.saveTradeConfiguration,
+      ).toHaveBeenCalledWith('BTC', 15);
     });
 
     it('updates multiple fields at once', () => {

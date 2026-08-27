@@ -384,6 +384,10 @@ export function buildPerpsFlowHarness(
     setSelectedPaymentToken: jest.fn(),
     savePendingTradeConfiguration: jest.fn(),
     clearPendingTradeConfiguration: jest.fn(),
+    setSelectedOrderType: jest.fn(),
+    setVisibleCandleCount: jest.fn(),
+    setOrderBookPreferences: jest.fn(),
+    saveTradeConfiguration: jest.fn(),
   };
   installMockEngineContext();
 
