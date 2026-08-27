@@ -71,39 +71,67 @@ export function mapTpslToPositionLines(
   tpslLines: TPSLLines | undefined,
   positionSize: string | undefined,
 ): PositionLines | undefined {
-  if (!tpslLines?.entryPrice) return undefined;
+  const limitOrders = (tpslLines?.limitOrders ?? [])
+    .map((order) => {
+      const price = Number.parseFloat(order.price);
+      if (!Number.isFinite(price)) {
+        return undefined;
+      }
+      const side: PositionLines['side'] =
+        order.side === 'sell' ? 'short' : 'long';
+      return {
+        price,
+        side,
+      };
+    })
+    .filter((order): order is { price: number; side: PositionLines['side'] } =>
+      Boolean(order),
+    );
+
+  const entry = tpslLines?.entryPrice
+    ? Number.parseFloat(tpslLines.entryPrice)
+    : undefined;
+  const hasFiniteEntry = Number.isFinite(entry);
+  if (!hasFiniteEntry && limitOrders.length === 0) {
+    return undefined;
+  }
+
   let side: PositionLines['side'] = 'long';
   if (positionSize !== undefined && Number.parseFloat(positionSize) < 0) {
     side = 'short';
   }
 
-  const entry = Number.parseFloat(tpslLines.entryPrice);
-  if (!Number.isFinite(entry)) return undefined;
-
   const result: PositionLines = {
     side,
-    entryPrice: entry,
   };
 
-  const takeProfitPrice = tpslLines.takeProfitPrice
-    ? Number.parseFloat(tpslLines.takeProfitPrice)
-    : undefined;
-  if (Number.isFinite(takeProfitPrice)) {
-    result.takeProfitPrice = takeProfitPrice;
+  if (hasFiniteEntry && entry !== undefined) {
+    result.entryPrice = entry;
+
+    const takeProfitPrice = tpslLines?.takeProfitPrice
+      ? Number.parseFloat(tpslLines.takeProfitPrice)
+      : undefined;
+    if (Number.isFinite(takeProfitPrice)) {
+      result.takeProfitPrice = takeProfitPrice;
+    }
+
+    const stopLossPrice = tpslLines?.stopLossPrice
+      ? Number.parseFloat(tpslLines.stopLossPrice)
+      : undefined;
+    if (Number.isFinite(stopLossPrice)) {
+      result.stopLossPrice = stopLossPrice;
+    }
+
+    const liquidationPrice = tpslLines?.liquidationPrice
+      ? Number.parseFloat(tpslLines.liquidationPrice)
+      : undefined;
+    if (Number.isFinite(liquidationPrice)) {
+      result.liquidationPrice = liquidationPrice;
+    }
   }
 
-  const stopLossPrice = tpslLines.stopLossPrice
-    ? Number.parseFloat(tpslLines.stopLossPrice)
-    : undefined;
-  if (Number.isFinite(stopLossPrice)) {
-    result.stopLossPrice = stopLossPrice;
-  }
-
-  const liquidationPrice = tpslLines.liquidationPrice
-    ? Number.parseFloat(tpslLines.liquidationPrice)
-    : undefined;
-  if (Number.isFinite(liquidationPrice)) {
-    result.liquidationPrice = liquidationPrice;
+  if (limitOrders.length > 0) {
+    result.limitOrders = limitOrders;
   }
 
   return result;
@@ -121,6 +149,8 @@ export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
     takeProfit: colors.success.default,
     stopLoss: colors.warning.default,
     liquidation: colors.error.default,
+    limitBuy: colors.success.default,
+    limitSell: colors.error.default,
   };
 }
 
@@ -214,6 +244,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const tpslTakeProfitPrice = tpslLines?.takeProfitPrice;
   const tpslStopLossPrice = tpslLines?.stopLossPrice;
   const tpslLiquidationPrice = tpslLines?.liquidationPrice;
+  const tpslLimitOrders = tpslLines?.limitOrders;
 
   const positionLines = useMemo(
     () =>
@@ -223,6 +254,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
           takeProfitPrice: tpslTakeProfitPrice,
           stopLossPrice: tpslStopLossPrice,
           liquidationPrice: tpslLiquidationPrice,
+          limitOrders: tpslLimitOrders,
         },
         positionSize,
       ),
@@ -231,6 +263,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       tpslTakeProfitPrice,
       tpslStopLossPrice,
       tpslLiquidationPrice,
+      tpslLimitOrders,
       positionSize,
     ],
   );

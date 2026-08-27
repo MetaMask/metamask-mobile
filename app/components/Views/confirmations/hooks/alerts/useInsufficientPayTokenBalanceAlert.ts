@@ -119,10 +119,16 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceUsd, totalAmountUsd],
   );
 
+  // Skip for Max: source amount is the full pay-token balance (or already
+  // reduced to leave room for gas). Quote rounding and adding source-network
+  // fees on top of that amount can make source+fees > live balance even
+  // though Max is valid — same class of false positive as money-account Max.
   const isInsufficientForFees = useMemo(
     () =>
-      !isPendingAlert && totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, isPendingAlert, totalSourceAmountRaw],
+      !isMax &&
+      !isPendingAlert &&
+      totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
+    [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
   // The source chain does not draw native gas from the user's EOA when any of:
