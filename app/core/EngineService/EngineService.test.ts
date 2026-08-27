@@ -14,6 +14,7 @@ import {
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
 import { setExistingUser } from '../../actions/user';
+import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -31,6 +32,10 @@ jest.mock('../../util/Logger', () => ({
 jest.mock('../BackupVault', () => ({
   getVaultFromBackup: () =>
     Promise.resolve({ success: true, vault: 'fake_vault' }),
+}));
+
+jest.mock('../Engine/controllers/social-controller-hydration', () => ({
+  hydrateSocialFollowing: jest.fn(),
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
@@ -430,8 +435,9 @@ describe('EngineService', () => {
     });
   });
 
-  it('cancels deferred persistence when Engine init fails', async () => {
-    // Arrange — new user path sets up deferred persistence
+  it('cancels deferred persistence when error occurs after initializeControllers', async () => {
+    // Arrange — new user path: initializeControllers sets a deferred handle,
+    // then hydrateSocialFollowing throws, landing in the catch block.
     const mockCancel = jest.fn();
     mockRunAfterInteractions.mockClear();
     mockRunAfterInteractions.mockImplementation(
@@ -453,22 +459,25 @@ describe('EngineService', () => {
     });
     (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
 
-    // Make Engine.init throw after initializeControllers would set the handle
-    jest.spyOn(Engine, 'init').mockImplementation(() => {
-      throw new Error('Engine init failed');
+    // hydrateSocialFollowing throws after initializeControllers has set the handle
+    (hydrateSocialFollowing as jest.Mock).mockImplementation(() => {
+      throw new Error('hydration failed');
     });
 
     // Act
     await engineService.start();
 
-    // Assert — deferred persistence must be cancelled in the catch block
-    // Engine.init throws before initializeControllers runs, so no handle
-    // is created in this specific case. But cancelDeferredPersistence is
-    // still called defensively in the catch block.
+    // Assert — deferred handle was created by initializeControllers
+    expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+    // Assert — catch block cancelled the stale deferred persistence
+    expect(mockCancel).toHaveBeenCalledTimes(1);
     expect(Logger.error).toHaveBeenCalledWith(
-      new Error('Engine init failed'),
+      new Error('hydration failed'),
       'Failed to initialize Engine! Falling back to vault recovery.',
     );
+
+    // Cleanup
+    (hydrateSocialFollowing as jest.Mock).mockReset();
   });
 
   describe('updateBatcher', () => {
