@@ -1,6 +1,13 @@
 /* eslint-disable */
 // Mock for @nktkas/hyperliquid SDK
 
+const { HyperliquidError } = jest.requireActual(
+  require.resolve('../../node_modules/@nktkas/hyperliquid/esm/_base.js'),
+);
+const { ApiRequestError } = jest.requireActual(
+  require.resolve('../../node_modules/@nktkas/hyperliquid/esm/api/_errors.js'),
+);
+
 const mockExchangeClient = {
   order: jest.fn(),
   modify: jest.fn(),
@@ -63,4 +70,6 @@ module.exports = {
   WebSocketTransport,
   actionSorter,
   signL1Action,
+  HyperliquidError,
+  ApiRequestError,
 };

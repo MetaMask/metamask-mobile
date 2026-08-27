@@ -1,8 +1,82 @@
 diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
-index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b58e65b59 100644
+index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a08d7c998 100644
 --- a/dist/providers/HyperLiquidProvider.cjs
 +++ b/dist/providers/HyperLiquidProvider.cjs
-@@ -8117,8 +8117,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -14,6 +14,7 @@ var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidP
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HyperLiquidProvider = void 0;
+ const utils_1 = require("@metamask/utils");
++const hyperliquid_1 = require("@nktkas/hyperliquid");
+ const bignumber_js_1 = require("bignumber.js");
+ const uuid_1 = require("uuid");
+ const eventNames_js_1 = require("../constants/eventNames.cjs");
+@@ -50,6 +51,65 @@ const stringParseUtils_js_1 = require("../utils/stringParseUtils.cjs");
+  * @returns The result of the operation.
+  */
+ const isStatusObject = (status) => typeof status === 'object' && status !== null;
++const getScaleBulkOrderStatusKind = (status) => {
++    if (!isStatusObject(status) || Object.keys(status).length !== 1) {
++        return undefined;
++    }
++    if ((0, utils_1.hasProperty)(status, 'error')) {
++        return typeof status.error === 'string' ? 'error' : undefined;
++    }
++    for (const state of ['resting', 'filled']) {
++        if (!(0, utils_1.hasProperty)(status, state)) {
++            continue;
++        }
++        const order = status[state];
++        return isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0
++            ? 'accepted'
++            : undefined;
++    }
++    return undefined;
++};
++/**
++ * Recover the bulk order response that the pinned SDK wraps in an
++ * `ApiRequestError` when any rung is rejected.
++ *
++ * @param error - The SDK error thrown by `ExchangeClient.order`.
++ * @param expectedStatusCount - Number of Scale rungs submitted.
++ * @returns The complete bulk order response, or undefined for any other error.
++ */
++const getScaleBulkOrderResponseFromError = (error, expectedStatusCount) => {
++    if (!(error instanceof hyperliquid_1.HyperliquidError) ||
++        error.name !== 'ApiRequestError' ||
++        !(0, utils_1.hasProperty)(error, 'response')) {
++        return undefined;
++    }
++    const result = error.response;
++    if (!isStatusObject(result) || result.status !== 'ok') {
++        return undefined;
++    }
++    const { response } = result;
++    if (!isStatusObject(response) || response.type !== 'order') {
++        return undefined;
++    }
++    const { data } = response;
++    if (!isStatusObject(data)) {
++        return undefined;
++    }
++    const { statuses } = data;
++    if (!Array.isArray(statuses) || statuses.length !== expectedStatusCount) {
++        return undefined;
++    }
++    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
++    if (statusKinds.some((kind) => kind === undefined) ||
++        !statusKinds.includes('accepted') ||
++        !statusKinds.includes('error')) {
++        return undefined;
++    }
++    return result;
++};
+ /**
+  * Exchange messages that mean a cancel was refused because the order is not on
+  * the book any more.
+@@ -8117,8 +8177,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   *
   * The whole ladder goes in a single `order` action, which is one round trip
   * and one signature rather than one per rung. It is **not** atomic: an `na`
@@ -13,7 +87,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b
   *
   * @param params - Order parameters.
   * @param context - Prepared asset and sizing context.
-@@ -8126,7 +8126,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -8126,7 +8186,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   * @returns A promise that resolves to the result.
   */
  async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
@@ -22,11 +96,31 @@ index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b
      // Built and validated in `#prepareStrategyPlacement`, before anything was
      // signed, so what is submitted here is exactly what the minimums were
      // applied to.
-@@ -8158,13 +8158,41 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
-         grouping: 'na',
-         ...(builder && { builder }),
+@@ -8153,18 +8213,56 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         sizes,
      });
+     const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
+-    const result = await exchangeClient.order({
+-        orders,
+-        grouping: 'na',
+-        ...(builder && { builder }),
+-    });
 -    const statuses = result.response?.data?.statuses ?? [];
++    let result;
++    try {
++        result = await exchangeClient.order({
++            orders,
++            grouping: 'na',
++            ...(builder && { builder }),
++        });
++    }
++    catch (error) {
++        const bulkResponse = getScaleBulkOrderResponseFromError(error, count);
++        if (!bulkResponse) {
++            throw error;
++        }
++        result = bulkResponse;
++    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
      const outcomes = statuses
@@ -67,7 +161,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
-@@ -8192,6 +8220,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8192,6 +8290,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
              requested: count,
              statuses,
          });
@@ -85,7 +179,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8226,9 +8265,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8226,12 +8335,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -96,11 +190,88 @@ index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b
 -        submittedSize: formattedSize,
 -    };
 +    return buildAcceptedResult();
+ }, _HyperLiquidProvider_startChaseSession = 
+ /**
+  * Place a chase's first order and register the session that follows it.
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
-index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4edd83988 100644
+index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717e45ba73a 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
 +++ b/dist/providers/HyperLiquidProvider.mjs
-@@ -8113,8 +8113,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -11,6 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ };
+ var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
+ import { hasProperty, isHexString } from "@metamask/utils";
++import { HyperliquidError } from '@nktkas/hyperliquid';
+ import { BigNumber } from "bignumber.js";
+ import { v4 as uuidv4 } from "uuid";
+ import { PERPS_EVENT_PROPERTY, PERPS_EVENT_VALUE } from "../constants/eventNames.mjs";
+@@ -47,6 +48,65 @@ import { parseBoundedNonNegativeDecimal } from "../utils/stringParseUtils.mjs";
+  * @returns The result of the operation.
+  */
+ const isStatusObject = (status) => typeof status === 'object' && status !== null;
++const getScaleBulkOrderStatusKind = (status) => {
++    if (!isStatusObject(status) || Object.keys(status).length !== 1) {
++        return undefined;
++    }
++    if (hasProperty(status, 'error')) {
++        return typeof status.error === 'string' ? 'error' : undefined;
++    }
++    for (const state of ['resting', 'filled']) {
++        if (!hasProperty(status, state)) {
++            continue;
++        }
++        const order = status[state];
++        return isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0
++            ? 'accepted'
++            : undefined;
++    }
++    return undefined;
++};
++/**
++ * Recover the bulk order response that the pinned SDK wraps in an
++ * `ApiRequestError` when any rung is rejected.
++ *
++ * @param error - The SDK error thrown by `ExchangeClient.order`.
++ * @param expectedStatusCount - Number of Scale rungs submitted.
++ * @returns The complete bulk order response, or undefined for any other error.
++ */
++const getScaleBulkOrderResponseFromError = (error, expectedStatusCount) => {
++    if (!(error instanceof HyperliquidError) ||
++        error.name !== 'ApiRequestError' ||
++        !hasProperty(error, 'response')) {
++        return undefined;
++    }
++    const result = error.response;
++    if (!isStatusObject(result) || result.status !== 'ok') {
++        return undefined;
++    }
++    const { response } = result;
++    if (!isStatusObject(response) || response.type !== 'order') {
++        return undefined;
++    }
++    const { data } = response;
++    if (!isStatusObject(data)) {
++        return undefined;
++    }
++    const { statuses } = data;
++    if (!Array.isArray(statuses) || statuses.length !== expectedStatusCount) {
++        return undefined;
++    }
++    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
++    if (statusKinds.some((kind) => kind === undefined) ||
++        !statusKinds.includes('accepted') ||
++        !statusKinds.includes('error')) {
++        return undefined;
++    }
++    return result;
++};
+ /**
+  * Exchange messages that mean a cancel was refused because the order is not on
+  * the book any more.
+@@ -8113,8 +8173,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   *
   * The whole ladder goes in a single `order` action, which is one round trip
   * and one signature rather than one per rung. It is **not** atomic: an `na`
@@ -111,7 +282,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4
   *
   * @param params - Order parameters.
   * @param context - Prepared asset and sizing context.
-@@ -8122,7 +8122,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -8122,7 +8182,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   * @returns A promise that resolves to the result.
   */
  async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
@@ -120,11 +291,31 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4
      // Built and validated in `#prepareStrategyPlacement`, before anything was
      // signed, so what is submitted here is exactly what the minimums were
      // applied to.
-@@ -8154,13 +8154,41 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
-         grouping: 'na',
-         ...(builder && { builder }),
+@@ -8149,18 +8209,56 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         sizes,
      });
+     const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
+-    const result = await exchangeClient.order({
+-        orders,
+-        grouping: 'na',
+-        ...(builder && { builder }),
+-    });
 -    const statuses = result.response?.data?.statuses ?? [];
++    let result;
++    try {
++        result = await exchangeClient.order({
++            orders,
++            grouping: 'na',
++            ...(builder && { builder }),
++        });
++    }
++    catch (error) {
++        const bulkResponse = getScaleBulkOrderResponseFromError(error, count);
++        if (!bulkResponse) {
++            throw error;
++        }
++        result = bulkResponse;
++    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
      const outcomes = statuses
@@ -165,7 +356,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
-@@ -8188,6 +8216,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8188,6 +8286,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
              requested: count,
              statuses,
          });
@@ -183,7 +374,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8222,9 +8261,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8222,12 +8331,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -194,6 +385,9 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4
 -        submittedSize: formattedSize,
 -    };
 +    return buildAcceptedResult();
+ }, _HyperLiquidProvider_startChaseSession = 
+ /**
+  * Place a chase's first order and register the session that follows it.
 diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
 index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fbf320ee22 100644
 --- a/dist/services/TradingService.cjs

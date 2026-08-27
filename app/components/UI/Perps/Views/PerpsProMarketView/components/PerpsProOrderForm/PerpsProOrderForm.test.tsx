@@ -257,6 +257,33 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
     });
 
+    it('renders blank default Scale prices and order count without zero placeholders', () => {
+      const scaleOrder = createScaleOrder();
+      scaleOrder.startPrice = '';
+      scaleOrder.endPrice = '';
+      scaleOrder.totalOrders = '';
+      renderForm({ orderType: 'scale', scaleOrder });
+
+      for (const inputTestID of [
+        ids.SCALE_START_PRICE,
+        ids.SCALE_END_PRICE,
+        ids.SCALE_TOTAL_ORDERS,
+      ]) {
+        expect(screen.getByTestId(inputTestID)).toHaveProp('value', '');
+        expect(screen.getByTestId(inputTestID)).toHaveProp('placeholder', '');
+      }
+      expect(
+        within(
+          screen.getByTestId(`${ids.SCALE_START_PRICE}-container`),
+        ).queryByText('$'),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(`${ids.SCALE_END_PRICE}-container`),
+        ).queryByText('$'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('locks every editable Scale control while placement is loading', () => {
       renderForm({
         orderType: 'scale',
@@ -380,6 +407,19 @@ describe('PerpsProOrderForm', () => {
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
       ).toHaveTextContent('$1');
+    });
+
+    it('allows the complete Scale liquidation range to wrap', () => {
+      const scaleOrder = createScaleOrder();
+      scaleOrder.liquidationRange = '$1,360.5 → $1,722.4';
+      renderForm({ orderType: 'scale', scaleOrder });
+
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
+      ).toHaveTextContent('$1,360.5 → $1,722.4');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
+      ).toHaveProp('numberOfLines', 2);
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {

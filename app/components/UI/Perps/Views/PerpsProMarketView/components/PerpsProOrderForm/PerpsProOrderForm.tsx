@@ -213,6 +213,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryRangeRowClassName = 'min-h-10 h-auto px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
 const SLIPPAGE_EDIT_HIT_SLOP = 12;
@@ -354,7 +355,10 @@ const ScalePreview = ({
             : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={{ testID: ids.SCALE_PREVIEW_START_VALUE }}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_START_VALUE,
+        }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
@@ -366,7 +370,10 @@ const ScalePreview = ({
             : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={{ testID: ids.SCALE_PREVIEW_END_VALUE }}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_END_VALUE,
+        }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
@@ -374,7 +381,10 @@ const ScalePreview = ({
         keyLabel={strings('perps.pro_order_form.scale.margin')}
         value={model.marginRange}
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={{ testID: ids.SCALE_PREVIEW_MARGIN_VALUE }}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_MARGIN_VALUE,
+        }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
@@ -382,8 +392,12 @@ const ScalePreview = ({
         keyLabel={strings('perps.pro_order_form.est_liquidation')}
         value={model.liquidationRange}
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={{ testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE }}
-        twClassName={summaryRowClassName}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          numberOfLines: 2,
+          testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
+        }}
+        twClassName={summaryRangeRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -395,7 +409,10 @@ const ScalePreview = ({
           summary.onFeesInfoPress,
         )}
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={{ testID: ids.SCALE_PREVIEW_FEES_VALUE }}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_FEES_VALUE,
+        }}
         twClassName={summaryFeesRowClassName}
         style={summaryRowStyle}
       />
@@ -470,12 +487,12 @@ const PerpsProOrderForm = ({
       value: scaleOrder.startPrice,
       onChangeText: scaleOrder.onStartPriceChange,
       onBlur: scaleOrder.onStartPriceBlur,
-      startAccessory: (
+      startAccessory: scaleOrder.startPrice ? (
         <Text variant={TextVariant.BodySm}>
           {strings('perps.tpsl.usd_label')}
         </Text>
-      ),
-      placeholder: '0.00',
+      ) : undefined,
+      placeholder: '',
     },
     {
       inputTestID: ids.SCALE_END_PRICE,
@@ -484,12 +501,12 @@ const PerpsProOrderForm = ({
       value: scaleOrder.endPrice,
       onChangeText: scaleOrder.onEndPriceChange,
       onBlur: scaleOrder.onEndPriceBlur,
-      startAccessory: (
+      startAccessory: scaleOrder.endPrice ? (
         <Text variant={TextVariant.BodySm}>
           {strings('perps.tpsl.usd_label')}
         </Text>
-      ),
-      placeholder: '0.00',
+      ) : undefined,
+      placeholder: '',
     },
     {
       inputTestID: ids.SCALE_TOTAL_ORDERS,
@@ -498,6 +515,7 @@ const PerpsProOrderForm = ({
       value: scaleOrder.totalOrders,
       onChangeText: scaleOrder.onTotalOrdersChange,
       onBlur: scaleOrder.onTotalOrdersBlur,
+      placeholder: '',
     },
     {
       inputTestID: ids.SCALE_SIZE_SKEW,

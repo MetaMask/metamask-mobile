@@ -20,12 +20,29 @@
  */
 
 import { act, waitFor } from '@testing-library/react-native';
-import { type OrderResult, type Position } from '@metamask/perps-controller';
 
+// The harness installs the controller boundary mocks before the controller
+// entrypoint is evaluated.
 import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
+import {
+  PERPS_ERROR_CODES,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
+import { HyperliquidError } from '@nktkas/hyperliquid';
+
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
+
+const { ApiRequestError } = jest.requireActual(
+  '../../../../__mocks__/hyperliquidMock.js',
+) as {
+  ApiRequestError: new (
+    response: unknown,
+    message?: string,
+  ) => HyperliquidError & { response: unknown };
+};
 
 describe('Perps order lifecycle — FLOW integration', () => {
   describe('opening a position via the hook chain', () => {
@@ -246,14 +263,29 @@ describe('Perps order lifecycle — FLOW integration', () => {
       },
     ])(
       'reports $placement Scale submitted size and weighted telemetry',
-      async ({ statuses, childOrderIds, submittedSize, submittedValue }) => {
+      async ({
+        placement,
+        statuses,
+        childOrderIds,
+        submittedSize,
+        submittedValue,
+      }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
-        perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        const venueResponse = {
           status: 'ok',
-          response: { data: { statuses } },
-        });
+          response: { type: 'order', data: { statuses } },
+        } as const;
+        if (placement === 'partial') {
+          perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(
+            new ApiRequestError(venueResponse, 'order 2: Insufficient margin'),
+          );
+        } else {
+          perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce(
+            venueResponse,
+          );
+        }
         const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
 
         // Act
@@ -291,6 +323,105 @@ describe('Perps order lifecycle — FLOW integration', () => {
           order_type: 'scale',
           order_size: Number(submittedSize),
           order_value: submittedValue,
+        });
+        expect(
+          perps.harness.mocks.exchangeClient.cancel,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      {
+        failure: 'unrelated SDK error',
+        error: new HyperliquidError('SDK failure'),
+        message: 'SDK failure',
+      },
+      {
+        failure: 'malformed partial response',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: { statuses: [{ resting: { oid: 101 } }] },
+            },
+          },
+          'Malformed bulk response',
+        ),
+        message: 'Malformed bulk response',
+      },
+      {
+        failure: 'hybrid partial response',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { error: 'Insufficient margin' },
+                  {
+                    resting: { oid: 103 },
+                    error: 'Invalid status',
+                  },
+                ],
+              },
+            },
+          },
+          'Hybrid bulk response',
+        ),
+        message: 'Hybrid bulk response',
+      },
+      {
+        failure: 'all-rejected partial response',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { error: 'Multi-sig required' },
+                  { error: 'Multi-sig required' },
+                  { error: 'Multi-sig required' },
+                ],
+              },
+            },
+          },
+          'order 0: Multi-sig required',
+        ),
+        message: PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED,
+      },
+    ])(
+      'preserves failure behavior for a $failure',
+      async ({ error, message }) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(error);
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        // Act
+        let placeOrderResult: OrderResult | null = null;
+        await act(async () => {
+          placeOrderResult = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        // Assert
+        expect(placeOrderResult).toMatchObject({
+          success: false,
+          error: message,
         });
         expect(
           perps.harness.mocks.exchangeClient.cancel,
