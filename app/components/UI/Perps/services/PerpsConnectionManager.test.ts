@@ -270,6 +270,7 @@ describe('PerpsConnectionManager', () => {
     >;
     disconnect: jest.MockedFunction<() => Promise<void>>;
     reconnectWithNewContext: jest.MockedFunction<() => Promise<void>>;
+    getActiveProvider: jest.Mock;
   };
 
   // No need for beforeAll - singleton is created on first access
@@ -1141,7 +1142,7 @@ describe('PerpsConnectionManager', () => {
         jest.requireActual('../../../../util/trace'),
         'endTrace',
       );
-      void PerpsConnectionManager.connect();
+      const obsoleteInitialization = PerpsConnectionManager.connect();
       await Promise.resolve();
       const manager = PerpsConnectionManager as unknown as {
         isConnected: boolean;
@@ -1179,6 +1180,7 @@ describe('PerpsConnectionManager', () => {
       resolveInitialization?.();
       await Promise.resolve();
       await Promise.resolve();
+      await Promise.resolve();
 
       expect(mockPerpsController.getActiveProvider).not.toHaveBeenCalled();
       expect(manager.isConnected).toBe(true);
@@ -1189,6 +1191,7 @@ describe('PerpsConnectionManager', () => {
           ([request]) => (request as { id?: string }).id === retiredTraceId,
         ),
       ).toHaveLength(1);
+      await obsoleteInitialization;
       reconnect.mockRestore();
       endTrace.mockRestore();
       jest.useRealTimers();
