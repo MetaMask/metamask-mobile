@@ -67,6 +67,14 @@ export function clearQuickBuyApiMocks(): void {
  * read `network` + `relayer`. Without them the total stays a formatted zero.
  */
 export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
+  // v1→v2 conversion sets `src.amount` to srcTokenAmount + src-token txFee.
+  // Echo the post-fee routing amount so `src.amount` still equals the request
+  // and the confirm CTA can enable.
+  const requested = BigInt(srcTokenAmount || '0');
+  const txFee = BigInt(QUICK_BUY_QUOTE_TX_FEE_AMOUNT);
+  const postFeeSrcTokenAmount =
+    requested > txFee ? (requested - txFee).toString() : srcTokenAmount;
+
   return {
     quote: {
       requestId: 'quick-buy-quote-1',
@@ -104,7 +112,7 @@ export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
       },
       srcChainId: 1,
       destChainId: 1,
-      srcTokenAmount,
+      srcTokenAmount: postFeeSrcTokenAmount,
       destTokenAmount: '10000000',
       minDestTokenAmount: '9900000',
       gasIncluded: true,
