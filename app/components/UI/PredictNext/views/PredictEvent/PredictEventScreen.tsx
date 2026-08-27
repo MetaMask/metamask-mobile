@@ -20,7 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { findGameSelectionQuote, getEventGame } from '../../events/game';
+import { getEventGame } from '../../events/game';
 import {
   MarketList,
   MarketStandardCard,
@@ -44,6 +44,7 @@ import {
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
+import { resolveGameHistoryMarkets } from './internal/resolveGameHistoryMarkets';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const styles = StyleSheet.create({
@@ -141,11 +142,9 @@ export const PredictEventScreen = () => {
         ...current,
         [groupKey]: marketId,
       }));
-      if (query.data?.sports?.game === undefined) {
-        setSelectedMarketId(marketId);
-      }
+      setSelectedMarketId(marketId);
     },
-    [query.data?.sports?.game],
+    [],
   );
   const handleMarketSelect = useCallback(
     (marketId: string) => {
@@ -186,24 +185,19 @@ export const PredictEventScreen = () => {
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
     const game = getEventGame(event);
-    const homeQuote = findGameSelectionQuote(event, 'home');
-    const awayQuote = findGameSelectionQuote(event, 'away');
+    const gameHistoryMarkets = resolveGameHistoryMarkets(event);
 
     const renderMarketHistory = () => {
-      if (game && homeQuote && awayQuote) {
+      if (
+        game &&
+        gameHistoryMarkets !== undefined &&
+        selectedMarketId === undefined
+      ) {
         return (
           <PredictGameMarketHistory
             venueId={event.venueId}
-            home={{
-              market: homeQuote.market,
-              outcome: homeQuote.outcome,
-              team: game.homeTeam,
-            }}
-            away={{
-              market: awayQuote.market,
-              outcome: awayQuote.outcome,
-              team: game.awayTeam,
-            }}
+            home={{ ...gameHistoryMarkets.home, team: game.homeTeam }}
+            away={{ ...gameHistoryMarkets.away, team: game.awayTeam }}
           />
         );
       }
@@ -269,7 +263,7 @@ export const PredictEventScreen = () => {
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           )}
-          {event.markets.length > 1 && !(game && homeQuote && awayQuote) ? (
+          {event.markets.length > 1 && !(game && gameHistoryMarkets) ? (
             <FilterButtonGroup
               value={historyMarket?.id ?? ''}
               onChange={handleMarketSelect}

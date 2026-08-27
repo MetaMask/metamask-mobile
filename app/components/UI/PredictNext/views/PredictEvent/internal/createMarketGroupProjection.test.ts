@@ -147,13 +147,13 @@ describe('createMarketGroupProjection', () => {
         type: 'group',
         key: 'away-spreads',
         marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets: [markets[3], markets[1]],
+        markets: [markets[1], markets[3]],
         firstIndex: 1,
       },
     ]);
   });
 
-  it('orders spread legs across the home-to-away axis', () => {
+  it('orders spread Markets by backend display order', () => {
     const markets = [
       createMarket(
         'spread-home-high',
@@ -162,17 +162,17 @@ describe('createMarketGroupProjection', () => {
       ),
       createMarket(
         'spread-away-high',
-        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 2.5, 1),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', -2.5, 3),
         'away',
       ),
       createMarket(
         'spread-home-low',
-        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 2),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 1),
         'home',
       ),
       createMarket(
         'spread-away-low',
-        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5, 3),
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', -1.5, 2),
         'away',
       ),
     ];
@@ -185,6 +185,33 @@ describe('createMarketGroupProjection', () => {
         key: 'spreads',
         marketType: PREDICT_MARKET_TYPES.SPREAD,
         markets: [markets[0], markets[2], markets[3], markets[1]],
+        firstIndex: 0,
+      },
+    ]);
+  });
+
+  it('keeps response order when spread display order is absent', () => {
+    const markets = [
+      createMarket(
+        'spread-away',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', -1.5),
+        'away',
+      ),
+      createMarket(
+        'spread-home',
+        createGroup(PREDICT_MARKET_TYPES.SPREAD, 'spreads', 1.5),
+        'home',
+      ),
+    ];
+
+    const result = createMarketGroupProjection(markets);
+
+    expect(result).toEqual([
+      {
+        type: 'group',
+        key: 'spreads',
+        marketType: PREDICT_MARKET_TYPES.SPREAD,
+        markets,
         firstIndex: 0,
       },
     ]);

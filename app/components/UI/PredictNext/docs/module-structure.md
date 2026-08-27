@@ -20,7 +20,9 @@ PredictNext/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
       MarketStandardCard.tsx   # Public standard Market composition
-      internal/                # Private standard Market-card parts
+      SpreadMarketGroupCard.tsx # Public spread Market-group composition
+      TotalMarketGroupCard.tsx  # Public total Market-group composition
+      internal/                # Private Market-card parts
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
 

@@ -59,50 +59,10 @@ function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
   );
 }
 
-type SpreadAxisSide = 'home' | 'away';
-
-function getSpreadAxisSide(market: GroupedMarket): SpreadAxisSide | undefined {
-  const gameSelection = market.outcomes.find(
-    (outcome) => outcome.side === 'yes',
-  )?.gameSelection;
-
-  return gameSelection === 'home' || gameSelection === 'away'
-    ? gameSelection
-    : undefined;
-}
-
 function compareMarkets(
   left: { market: GroupedMarket; index: number },
   right: { market: GroupedMarket; index: number },
 ): number {
-  if (
-    left.market.group.marketType === PREDICT_MARKET_TYPES.SPREAD &&
-    right.market.group.marketType === PREDICT_MARKET_TYPES.SPREAD
-  ) {
-    const leftSide = getSpreadAxisSide(left.market);
-    const rightSide = getSpreadAxisSide(right.market);
-
-    if (leftSide !== undefined && rightSide !== undefined) {
-      if (leftSide !== rightSide) {
-        return leftSide === 'home' ? -1 : 1;
-      }
-
-      const magnitudeDifference =
-        Math.abs(left.market.group.option.value) -
-        Math.abs(right.market.group.option.value);
-
-      if (magnitudeDifference !== 0) {
-        return leftSide === 'home' ? -magnitudeDifference : magnitudeDifference;
-      }
-    }
-
-    return (
-      left.market.group.option.value - right.market.group.option.value ||
-      (left.market.group.displayOrder ?? left.index) -
-        (right.market.group.displayOrder ?? right.index)
-    );
-  }
-
   return (
     (left.market.group.displayOrder ?? left.index) -
     (right.market.group.displayOrder ?? right.index)

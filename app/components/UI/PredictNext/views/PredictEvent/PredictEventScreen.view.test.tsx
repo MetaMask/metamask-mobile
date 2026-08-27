@@ -671,15 +671,56 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps two Game history lines when selecting a grouped Market', async () => {
+  it('loads ungrouped winner history when grouped Markets come first', async () => {
+    const event = makePredictNextCompositeGameEvent();
+    const groupedMarkets = event.markets.filter(
+      (market) => market.group !== undefined,
+    );
+    const winnerMarkets = event.markets.filter(
+      (market) => market.group === undefined,
+    );
+    resolveEventForRoute({
+      ...event,
+      markets: [...groupedMarkets, ...winnerMarkets],
+    });
+
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-away-market',
+          'ALL',
+          undefined,
+        ],
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-home-market',
+          'ALL',
+          undefined,
+        ],
+      ]),
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      'nfl-spread-new-england-2-5',
+      'ALL',
+      undefined,
+    );
+  });
+
+  it('loads selected grouped Market history for a Game Event', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
-    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    fireEvent(chart, 'layout', {
-      nativeEvent: { layout: { width: 343, height: 250 } },
-    });
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
     messengerCall.mockClear();
+
     fireEvent.press(
       view.getByTestId(
         MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
@@ -693,23 +734,55 @@ describe('PredictEventScreen', () => {
         ),
       ).toHaveProp('accessibilityState', { selected: true }),
     );
-    expect(messengerCall).not.toHaveBeenCalledWith(
-      'PredictMarketDataService:getMarketHistory',
-      venueId,
-      'nfl-total-220-5',
-      'ALL',
-      undefined,
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        'nfl-total-220-5',
+        'ALL',
+        undefined,
+      ),
     );
     expect(
-      view.getByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-away-market`,
+      view.queryByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-yes`,
       ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
     expect(
-      view.getByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-home-market`,
+      view.queryByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-home-yes`,
       ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
+  });
+
+  it('updates grouped history when a Game has no winner pair', async () => {
+    const event = makePredictNextCompositeGameEvent();
+    resolveEventForRoute({
+      ...event,
+      markets: event.markets.filter(
+        (market) => market.group?.key === 'nfl-total-points',
+      ),
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    messengerCall.mockClear();
+
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+      ),
+    );
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        'nfl-total-220-5',
+        'ALL',
+        undefined,
+      ),
+    );
   });
 
   it('renders a Total group and updates prices when the selected line changes', async () => {
@@ -846,9 +919,12 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders both spread legs from home to away and selects by horizontal drag', async () => {
+  it('uses backend spread order during horizontal selection', async () => {
     const event = makePredictNextSpreadsEvent();
-    resolveEventForRoute(event);
+    resolveEventForRoute({
+      ...event,
+      markets: [...event.markets].reverse(),
+    });
     const view = renderPredictEventScreen(routeParams);
 
     const card = await view.findByTestId(

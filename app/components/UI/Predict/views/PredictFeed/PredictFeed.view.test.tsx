@@ -773,14 +773,12 @@ describe('PredictFeed', () => {
         await findByTestId(
           getPredictSearchSelector.resultCard(0),
           {},
-          { timeout: 10_000 },
+          { timeout: 3000 },
         ),
       ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
-          {},
-          { timeout: 10_000 },
         ),
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);

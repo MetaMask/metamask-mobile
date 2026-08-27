@@ -30,7 +30,9 @@ never performs this join.
 ## Ubiquitous language
 
 - **Feed** — a product-owned, ordered, paginated selection of Events for a navigation surface. A Feed can represent a Category, curated collection, or supported filter combination.
-- **Event** — one Venue Event containing one or more related Markets.
+- **Event** — one canonical Event with one parent Venue Event and one or more
+  related Markets. A Game detail read can append validated Markets from
+  authoritative sibling Venue Events without changing that parent identity.
 - **Market** — one binary prediction question within an Event.
 - **Market Group** — optional metadata on each Market that tells the Event
   Screen how related Markets can be presented together.
@@ -268,6 +270,9 @@ interface PredictFeed {
   groups or Events. When it is absent, response order is authoritative. A
   single Market renders without a selector. Multiple Markets select the first
   Market after ordering, without an `isDefault` flag.
+- A spread selector may show the absolute option value without a sign. This is
+  presentation of the backend option only. It does not change the canonical
+  signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
   presentation. Malformed known group fields fail runtime validation.
 
@@ -550,4 +555,4 @@ Until that implementation lands, code and tests remain the executable contract.
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
 - continuous live updates and WebSockets;
-- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, and account-scoped data.
+- play-by-play, possession, down and distance, per-period scores, player entities and statistics, Games with more than two competitors, independently cached Team resources, and account-scoped data.

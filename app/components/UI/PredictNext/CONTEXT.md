@@ -60,6 +60,10 @@ _Avoid_: Event Detail, Event Details Screen
 A single binary question within an Event, resolved as Yes or No, such as "Lakers to win Game 7".
 _Avoid_: Outcome, PredictOutcome, condition
 
+**Market Group**:
+Optional backend-owned metadata on a Market that tells the Event Screen how related Markets can be presented together. The backend supplies the key, group type, Market type, option, and display order. Mobile never derives these values from display text or identifiers.
+_Avoid_: Client-created group, parsed line, local display order
+
 **Outcome**:
 One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome may have a Game Selection when it authoritatively represents the home Team, away Team, or draw.
 _Avoid_: OutcomeToken, token, share
@@ -253,6 +257,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Collection Series may have multiple simultaneous or upcoming Events.
 - A Rolling Series selects one current Event at a time without changing that Event's identity.
 - Each Market contains exactly two Outcomes, typically Yes and No.
+- Each Market may have one Market Group. The backend owns this metadata, and mobile does not derive it.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
 - An Immediate Order does not remain open; a Resting Order may later be cancelled or amended when the Venue supports those capabilities.
