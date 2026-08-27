@@ -23,8 +23,9 @@ const getStoreOutcomes = (outcomePrefix) =>
 const hasSuccessfulUpload = (outcomePrefix) =>
   getStoreOutcomes(outcomePrefix).some(isSuccessfulOutcome);
 
-const isNamespaceRunnerProvider = (runnerProvider = getEnv('RUNNER_PROVIDER')) =>
-  runnerProvider.includes('namespace');
+const isNamespaceRunnerProvider = (
+  runnerProvider = getEnv('RUNNER_PROVIDER'),
+) => runnerProvider.includes('namespace');
 
 const isRetryableNamespaceUploadError = (errorMessage) => {
   if (!errorMessage) {
@@ -60,7 +61,9 @@ const getNamespaceRetryDecision = ({
 
   return {
     retryable: true,
-    reason: errorMessage ? 'retryable-error' : 'nested-action-error-unavailable',
+    reason: errorMessage
+      ? 'retryable-error'
+      : 'nested-action-error-unavailable',
   };
 };
 
@@ -111,9 +114,7 @@ const runNamespaceRetryDecision = () => {
   const decision = getNamespaceRetryDecision({
     runnerProvider: getEnv('RUNNER_PROVIDER'),
     nextAttempt: Number(getEnv('ATTEMPT', '2')),
-    previousOutcomes: getEnv('PREVIOUS_OUTCOMES')
-      .split(',')
-      .filter(Boolean),
+    previousOutcomes: getEnv('PREVIOUS_OUTCOMES').split(',').filter(Boolean),
     errorMessage: getEnv('ERROR_MESSAGE'),
   });
 
