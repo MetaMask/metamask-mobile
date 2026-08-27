@@ -1340,6 +1340,7 @@ export class Engine {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1383,6 +1384,10 @@ export class Engine {
 
     // Claims:
     ClaimsController.clearState();
+
+    // KYC: drops the customer email, terms acceptance and verification status
+    // so they cannot leak into the next wallet.
+    KycController.clearState();
   };
 
   removeAllListeners() {
