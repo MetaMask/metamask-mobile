@@ -266,7 +266,6 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
 
       expect(onTwapDurationPress).toHaveBeenCalledTimes(1);
-      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('displays the compact TWAP duration value', () => {

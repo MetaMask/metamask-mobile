@@ -381,11 +381,6 @@ const PerpsProOrderForm = ({
     onOrderTypeButtonPress();
   }, [onOrderTypeButtonPress, playSelection]);
 
-  const handleTwapDurationPress = useCallback(() => {
-    playSelection().catch(() => undefined);
-    onTwapDurationPress();
-  }, [onTwapDurationPress, playSelection]);
-
   const handleUseMidPricePress = useCallback(() => {
     if (!onUseMidPricePress) {
       return;
@@ -543,7 +538,7 @@ const PerpsProOrderForm = ({
             {isTwap ? (
               <PerpsProTwapFields
                 twap={twap}
-                onDurationPress={handleTwapDurationPress}
+                onDurationPress={onTwapDurationPress}
               />
             ) : null}
           </Box>
