@@ -1180,6 +1180,7 @@ describe('PerpsConnectionManager', () => {
       await Promise.resolve();
       await Promise.resolve();
 
+      expect(mockPerpsController.getActiveProvider).not.toHaveBeenCalled();
       expect(manager.isConnected).toBe(true);
       expect(manager.isInitialized).toBe(true);
       expect(manager.initializedUserContextKey).toBe('replacement');
