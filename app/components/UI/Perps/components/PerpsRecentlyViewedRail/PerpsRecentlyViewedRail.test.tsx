@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, PriceUpdate } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
 import PerpsRecentlyViewedRail, {
@@ -53,6 +53,16 @@ const createMarket = (
   change24h: '$0.01',
   change24hPercent: '+1.00%',
   volume: '$1M',
+  ...overrides,
+});
+
+const createPriceUpdate = (
+  overrides: Partial<PriceUpdate> = {},
+): PriceUpdate => ({
+  symbol: 'BTC',
+  price: '0',
+  timestamp: 0,
+  isTradable: true,
   ...overrides,
 });
 
@@ -133,10 +143,10 @@ describe('PerpsRecentlyViewedRail', () => {
 
   it('overlays live 24h percent change onto the pill', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: {
+      BTC: createPriceUpdate({
         price: '55000.00',
         percentChange24h: '5.77',
-      },
+      }),
     });
 
     render(
@@ -156,10 +166,10 @@ describe('PerpsRecentlyViewedRail', () => {
 
   it('overlays a live negative 24h percent change onto the pill', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: {
+      BTC: createPriceUpdate({
         price: '48000.00',
         percentChange24h: '-7.84',
-      },
+      }),
     });
 
     render(
