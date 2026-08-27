@@ -202,9 +202,12 @@ export function usePerpsOrderForm(
     defaultLeverage,
   ]);
 
-  // Priority for order type: pending config > navigation param > persisted global > market
+  // Priority for order type: navigation param > persisted global > pending draft.
+  // Pending is per-market; putting it first would undo a type change made on
+  // another market (limit on ETH, then back to BTC whose stale draft still
+  // says market).
   const defaultOrderType =
-    pendingConfig?.orderType || initialType || persistedOrderType || 'market';
+    initialType || persistedOrderType || pendingConfig?.orderType || 'market';
 
   // Calculate initial balance percentage
   const parsedInitialAmount = Number.parseFloat(initialAmountValue);
@@ -342,7 +345,6 @@ export function usePerpsOrderForm(
       ...(pendingConfig.limitPrice !== undefined && {
         limitPrice: pendingConfig.limitPrice,
       }),
-      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
     }));
     // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps

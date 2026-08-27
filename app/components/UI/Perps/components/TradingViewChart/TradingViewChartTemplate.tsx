@@ -420,20 +420,24 @@ export const createTradingViewChartTemplate = (
                     const rawCount = range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
                     const nextCount = Math.round(rawCount);
                     if (Number.isFinite(nextCount)) {
+                        const clampedCount = Math.min(
+                            window.ZOOM_LIMITS.MAX_CANDLES,
+                            Math.max(window.ZOOM_LIMITS.MIN_CANDLES, nextCount)
+                        );
                         if (window.candleCountPostTimeout) {
                             clearTimeout(window.candleCountPostTimeout);
                         }
                         window.candleCountPostTimeout = setTimeout(function() {
                             window.candleCountPostTimeout = null;
-                            if (nextCount === window.lastPostedCandleCount) {
+                            if (clampedCount === window.lastPostedCandleCount) {
                                 return;
                             }
-                            window.lastPostedCandleCount = nextCount;
-                            window.visibleCandleCount = nextCount;
+                            window.lastPostedCandleCount = clampedCount;
+                            window.visibleCandleCount = clampedCount;
                             if (window.ReactNativeWebView) {
                                 window.ReactNativeWebView.postMessage(JSON.stringify({
                                     type: 'VISIBLE_CANDLE_COUNT',
-                                    candleCount: nextCount,
+                                    candleCount: clampedCount,
                                 }));
                             }
                         }, window.CANDLE_COUNT_POST_DEBOUNCE_MS);

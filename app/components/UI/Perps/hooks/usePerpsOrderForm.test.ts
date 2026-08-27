@@ -343,6 +343,53 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.type).toBe('limit');
     });
 
+    it('prefers the persisted global order type over a stale per-market pending type', () => {
+      const mockStore = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  selectedOrderType: 'limit',
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: {
+                        pendingConfig: {
+                          amount: '125',
+                          orderType: 'market',
+                          timestamp: Date.now(),
+                        },
+                      },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const Wrapper = ({ children }: { children: React.ReactNode }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStore,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: Wrapper,
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
     it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({

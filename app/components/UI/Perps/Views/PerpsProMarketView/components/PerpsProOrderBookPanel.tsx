@@ -393,8 +393,8 @@ const PerpsProOrderBookPanel = ({
 
   const { preferences: orderBookPreferences, setOrderBookPreferences } =
     usePerpsOrderBookPreferences();
-  const currency = orderBookPreferences.currency;
-  const metric = orderBookPreferences.metric;
+  const currency = orderBookPreferences?.currency ?? 'usd';
+  const metric = orderBookPreferences?.metric ?? 'total';
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 

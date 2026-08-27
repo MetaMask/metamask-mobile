@@ -325,7 +325,15 @@ const TradingViewChart = React.forwardRef<
               break;
             case 'VISIBLE_CANDLE_COUNT':
               if (typeof message.candleCount === 'number') {
-                onVisibleCandleCountChange?.(message.candleCount);
+                const min = PERPS_CHART_CONFIG.CANDLE_COUNT.MIN;
+                const max = PERPS_CHART_CONFIG.CANDLE_COUNT.MAX;
+                const clamped = Math.min(
+                  max,
+                  Math.max(min, Math.round(message.candleCount)),
+                );
+                if (Number.isFinite(clamped)) {
+                  onVisibleCandleCountChange?.(clamped);
+                }
               }
               break;
             default:

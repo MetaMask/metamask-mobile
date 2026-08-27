@@ -118,4 +118,23 @@ describe('usePerpsSavePendingConfig', () => {
       selectedPaymentToken: null,
     });
   });
+
+  it('does not save while mounted when the draft amount changes', () => {
+    const { rerender, unmount } = renderHook(
+      ({ form }: { form: OrderFormState }) => usePerpsSavePendingConfig(form),
+      { initialProps: { form: defaultOrderForm } },
+    );
+
+    rerender({ form: { ...defaultOrderForm, amount: '200' } });
+
+    expect(mockSavePendingTradeConfiguration).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledTimes(1);
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith(
+      'BTC',
+      expect.objectContaining({ amount: '200' }),
+    );
+  });
 });

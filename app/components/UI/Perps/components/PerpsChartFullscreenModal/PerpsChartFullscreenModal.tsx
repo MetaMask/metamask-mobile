@@ -8,14 +8,12 @@ import React, {
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStyles } from '../../../../../component-library/hooks';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import TradingViewChart, {
   type TradingViewChartRef,
   type TPSLLines,
@@ -260,8 +258,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             />
             <ButtonIcon
               iconName={IconName.Close}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
+              size={ButtonIconSize.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
               testID="perps-chart-fullscreen-close-button"
