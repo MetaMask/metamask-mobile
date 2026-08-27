@@ -244,7 +244,10 @@ describe('PerpsProSizeInput', () => {
       'onTouchCancel',
       onDragCancel,
     );
-    expect(onChangeText).not.toHaveBeenCalled();
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+      'onChangeText',
+      onChangeText,
+    );
     expect(onToggleDenomination).not.toHaveBeenCalled();
     expect(onAddFundsPress).not.toHaveBeenCalled();
     expect(mockInputFocus).not.toHaveBeenCalled();
