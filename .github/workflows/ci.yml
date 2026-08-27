@@ -782,7 +782,14 @@ jobs:
     needs:
       - get_requirements
     steps:
+      # Last job in the Linux cohort still cloning from github.com on Namespace;
+      # everything else uses the in-region git mirror. Namespace scales network
+      # bandwidth with machine shape, so an internet clone costs roughly twice
+      # the wall-clock on the 4x8 profile as it did on 8x16.
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
