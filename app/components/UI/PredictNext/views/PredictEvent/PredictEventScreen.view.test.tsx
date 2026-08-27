@@ -225,7 +225,6 @@ describe('PredictEventScreen', () => {
         venueId,
         secondMarket.id,
         'ALL',
-        undefined,
       ),
     );
     expect(
@@ -263,7 +262,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'market-1',
         '1W',
-        undefined,
       ),
     );
     expect(
@@ -435,14 +433,12 @@ describe('PredictEventScreen', () => {
           venueId,
           awayMarket.id,
           'ALL',
-          undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
           'ALL',
-          undefined,
         ],
       ]),
     );
@@ -949,15 +945,14 @@ describe('PredictEventScreen', () => {
       ([action]) => action === 'PredictMarketDataService:getEvent',
     );
     expect(eventCalls).toEqual([
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
     ]);
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
       'ALL',
-      undefined,
     );
   });
 
