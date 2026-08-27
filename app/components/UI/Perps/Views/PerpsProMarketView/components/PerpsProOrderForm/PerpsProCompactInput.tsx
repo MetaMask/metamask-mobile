@@ -20,6 +20,7 @@ import {
   Pressable,
   type KeyboardTypeOptions,
   type TextInput,
+  type View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
@@ -100,6 +101,7 @@ export interface PerpsProCompactInputProps {
   onBlur?: () => void;
   /** Fires on every field tap, including while already focused. Idempotent. */
   onFieldPress?: () => void;
+  containerRef?: React.Ref<View>;
   isDisabled?: boolean;
   /**
    * Keeps the native input mounted so its iOS keyboard accessory can bind
@@ -130,6 +132,7 @@ const PerpsProCompactInput = React.forwardRef<
       onFocus,
       onBlur,
       onFieldPress,
+      containerRef,
       isDisabled = false,
       isHidden = false,
     },
@@ -192,6 +195,7 @@ const PerpsProCompactInput = React.forwardRef<
     if (variant === 'inline-labeled') {
       return (
         <Box
+          ref={containerRef}
           twClassName={
             isHidden
               ? undefined
@@ -227,6 +231,7 @@ const PerpsProCompactInput = React.forwardRef<
     if (variant === 'inline') {
       return (
         <Box
+          ref={containerRef}
           twClassName={
             isHidden
               ? undefined

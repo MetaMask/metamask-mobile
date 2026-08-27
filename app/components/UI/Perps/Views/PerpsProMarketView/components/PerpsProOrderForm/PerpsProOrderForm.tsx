@@ -31,7 +31,12 @@ import {
   isTriggerOrderType,
 } from '@metamask/perps-controller';
 import React, { useCallback, useRef } from 'react';
-import { Pressable, type TextInput } from 'react-native';
+import {
+  Pressable,
+  type KeyboardTypeOptions,
+  type TextInput,
+  type View,
+} from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
 import {
@@ -300,13 +305,17 @@ const OrderSummary = ({
 interface ScaleInputConfig {
   inputTestID: string;
   inputRef: React.RefObject<TextInput | null>;
+  containerRef?: React.Ref<View>;
   label: string;
   value: string;
   onChangeText: (value: string) => void;
+  onFocus?: () => void;
   onBlur: () => void;
+  onFieldPress?: () => void;
   startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   placeholder?: string;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 const ScaleFields = ({
@@ -321,15 +330,19 @@ const ScaleFields = ({
       <PerpsProCompactInput
         key={input.inputTestID}
         ref={input.inputRef}
+        containerRef={input.containerRef}
         variant="inline-labeled"
         label={input.label}
         value={input.value}
         onChangeText={input.onChangeText}
+        onFocus={input.onFocus}
         onBlur={input.onBlur}
+        onFieldPress={input.onFieldPress}
         testID={input.inputTestID}
         startAccessory={input.startAccessory}
         endAccessory={input.endAccessory}
         placeholder={input.placeholder}
+        keyboardType={input.keyboardType}
         isDisabled={isDisabled}
       />
     ))}
@@ -431,6 +444,7 @@ const PerpsProOrderForm = ({
   onLeveragePress,
   orderType,
   scaleOrder,
+  scaleKeyboardScroll,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
@@ -483,10 +497,16 @@ const PerpsProOrderForm = ({
     {
       inputTestID: ids.SCALE_START_PRICE,
       inputRef: scaleStartPriceRef,
+      containerRef: scaleKeyboardScroll?.startPrice.cardRef,
       label: strings('perps.pro_order_form.scale.start_price'),
       value: scaleOrder.startPrice,
       onChangeText: scaleOrder.onStartPriceChange,
-      onBlur: scaleOrder.onStartPriceBlur,
+      onFocus: scaleKeyboardScroll?.startPrice.onFocus,
+      onBlur: () => {
+        scaleOrder.onStartPriceBlur();
+        scaleKeyboardScroll?.startPrice.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.startPrice.realign,
       startAccessory: scaleOrder.startPrice ? (
         <Text variant={TextVariant.BodySm}>
           {strings('perps.tpsl.usd_label')}
@@ -497,10 +517,16 @@ const PerpsProOrderForm = ({
     {
       inputTestID: ids.SCALE_END_PRICE,
       inputRef: scaleEndPriceRef,
+      containerRef: scaleKeyboardScroll?.endPrice.cardRef,
       label: strings('perps.pro_order_form.scale.end_price'),
       value: scaleOrder.endPrice,
       onChangeText: scaleOrder.onEndPriceChange,
-      onBlur: scaleOrder.onEndPriceBlur,
+      onFocus: scaleKeyboardScroll?.endPrice.onFocus,
+      onBlur: () => {
+        scaleOrder.onEndPriceBlur();
+        scaleKeyboardScroll?.endPrice.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.endPrice.realign,
       startAccessory: scaleOrder.endPrice ? (
         <Text variant={TextVariant.BodySm}>
           {strings('perps.tpsl.usd_label')}
@@ -511,19 +537,32 @@ const PerpsProOrderForm = ({
     {
       inputTestID: ids.SCALE_TOTAL_ORDERS,
       inputRef: scaleTotalOrdersRef,
+      containerRef: scaleKeyboardScroll?.totalOrders.cardRef,
       label: strings('perps.pro_order_form.scale.total_orders'),
       value: scaleOrder.totalOrders,
       onChangeText: scaleOrder.onTotalOrdersChange,
-      onBlur: scaleOrder.onTotalOrdersBlur,
+      onFocus: scaleKeyboardScroll?.totalOrders.onFocus,
+      onBlur: () => {
+        scaleOrder.onTotalOrdersBlur();
+        scaleKeyboardScroll?.totalOrders.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.totalOrders.realign,
       placeholder: '',
+      keyboardType: 'number-pad',
     },
     {
       inputTestID: ids.SCALE_SIZE_SKEW,
       inputRef: scaleSizeSkewRef,
+      containerRef: scaleKeyboardScroll?.sizeSkew.cardRef,
       label: strings('perps.pro_order_form.scale.size_skew'),
       value: scaleOrder.sizeSkew,
       onChangeText: scaleOrder.onSizeSkewChange,
-      onBlur: scaleOrder.onSizeSkewBlur,
+      onFocus: scaleKeyboardScroll?.sizeSkew.onFocus,
+      onBlur: () => {
+        scaleOrder.onSizeSkewBlur();
+        scaleKeyboardScroll?.sizeSkew.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.sizeSkew.realign,
       endAccessory: (
         <ButtonIcon
           iconName={IconName.Info}

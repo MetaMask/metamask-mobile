@@ -113,6 +113,33 @@ const createScaleOrder = (): PerpsProOrderFormProps['scaleOrder'] => ({
   fees: '$1',
 });
 
+const createScaleKeyboardScroll = () => ({
+  startPrice: {
+    cardRef: React.createRef<View>(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    realign: jest.fn(),
+  },
+  endPrice: {
+    cardRef: React.createRef<View>(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    realign: jest.fn(),
+  },
+  totalOrders: {
+    cardRef: React.createRef<View>(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    realign: jest.fn(),
+  },
+  sizeSkew: {
+    cardRef: React.createRef<View>(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    realign: jest.fn(),
+  },
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
@@ -255,6 +282,38 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_END_PRICE)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.SCALE_TOTAL_ORDERS)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SCALE_TOTAL_ORDERS)).toHaveProp(
+        'keyboardType',
+        'number-pad',
+      );
+    });
+
+    it('wires every Scale field into keyboard scrolling', () => {
+      const scaleOrder = createScaleOrder();
+      const scaleKeyboardScroll = createScaleKeyboardScroll();
+      renderForm({ orderType: 'scale', scaleOrder, scaleKeyboardScroll });
+
+      const fields = [
+        [ids.SCALE_START_PRICE, scaleKeyboardScroll.startPrice],
+        [ids.SCALE_END_PRICE, scaleKeyboardScroll.endPrice],
+        [ids.SCALE_TOTAL_ORDERS, scaleKeyboardScroll.totalOrders],
+        [ids.SCALE_SIZE_SKEW, scaleKeyboardScroll.sizeSkew],
+      ] as const;
+
+      for (const [testID, keyboardScroll] of fields) {
+        fireEvent(screen.getByTestId(testID), 'focus');
+        fireEvent.press(screen.getByTestId(`${testID}-field`));
+        fireEvent(screen.getByTestId(testID), 'blur');
+
+        expect(keyboardScroll.onFocus).toHaveBeenCalledTimes(1);
+        expect(keyboardScroll.realign).toHaveBeenCalledTimes(1);
+        expect(keyboardScroll.onBlur).toHaveBeenCalledTimes(1);
+      }
+
+      expect(scaleOrder.onStartPriceBlur).toHaveBeenCalledTimes(1);
+      expect(scaleOrder.onEndPriceBlur).toHaveBeenCalledTimes(1);
+      expect(scaleOrder.onTotalOrdersBlur).toHaveBeenCalledTimes(1);
+      expect(scaleOrder.onSizeSkewBlur).toHaveBeenCalledTimes(1);
     });
 
     it('renders blank default Scale prices and order count without zero placeholders', () => {

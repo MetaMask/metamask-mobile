@@ -3,6 +3,7 @@ import {
   PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
+  TRADING_DEFAULTS,
   calculateMarginRequired,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
@@ -57,6 +58,7 @@ import {
   useHasExistingPosition,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
+  usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
@@ -64,7 +66,6 @@ import {
   usePerpsTrading,
   getPerpsToastLabels,
 } from '../../../../hooks';
-import { useMinimumOrderAmount } from '../../../../hooks/useMinimumOrderAmount';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
   usePerpsLivePrices,
@@ -654,7 +655,11 @@ export const usePerpsProOrderForm = ({
     asset: symbol,
     showErrorToast: false,
   });
-  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
+  const network = usePerpsNetwork();
+  const scaleMinimumOrderAmount =
+    network === 'mainnet'
+      ? TRADING_DEFAULTS.amount.mainnet
+      : TRADING_DEFAULTS.amount.testnet;
   const szDecimals =
     marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
   const maxLeverage =
@@ -687,9 +692,15 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const normalizeScaleInput = useCallback(
-    (value: string, previousValue: string, setter: (next: string) => void) => {
+    (
+      value: string,
+      previousValue: string,
+      setter: (next: string) => void,
+      maxDecimalPlaces?: number,
+    ) => {
       const result = normalizeNumericTextInput(value, previousValue, {
         maxDigits: MAX_PERPS_INPUT_DIGITS,
+        maxDecimalPlaces,
         acceptedDecimalSeparators: ['.', ','],
       });
       if (result.ok) {
@@ -1053,7 +1064,8 @@ export const usePerpsProOrderForm = ({
       }
       if (
         rungs.some(
-          (rung) => Number(rung.size) * Number(rung.price) < minimumOrderAmount,
+          (rung) =>
+            Number(rung.size) * Number(rung.price) < scaleMinimumOrderAmount,
         )
       ) {
         return { success: false, code: 'minimum_lot' };
@@ -1102,7 +1114,7 @@ export const usePerpsProOrderForm = ({
   }, [
     effectiveUsdAmount,
     exactFullCloseSize,
-    minimumOrderAmount,
+    scaleMinimumOrderAmount,
     scaleEndPrice,
     scaleProviderId,
     scaleSizeSkew,
@@ -2628,7 +2640,7 @@ export const usePerpsProOrderForm = ({
         }),
       onTotalOrdersChange: (value) =>
         guardScaleMutation(() => {
-          normalizeScaleInput(value, scaleTotalOrders, setScaleTotalOrders);
+          normalizeScaleInput(value, scaleTotalOrders, setScaleTotalOrders, 0);
         }),
       onTotalOrdersBlur: () =>
         guardScaleMutation(() => {

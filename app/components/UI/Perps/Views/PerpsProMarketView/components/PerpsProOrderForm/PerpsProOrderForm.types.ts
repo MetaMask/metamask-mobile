@@ -93,6 +93,20 @@ export interface PerpsProScaleOrderModel {
   fees: string;
 }
 
+export interface PerpsProFieldKeyboardScroll {
+  cardRef: Ref<View>;
+  onFocus: () => void;
+  onBlur: () => void;
+  realign: () => void;
+}
+
+export interface PerpsProScaleKeyboardScroll {
+  startPrice: PerpsProFieldKeyboardScroll;
+  endPrice: PerpsProFieldKeyboardScroll;
+  totalOrders: PerpsProFieldKeyboardScroll;
+  sizeSkew: PerpsProFieldKeyboardScroll;
+}
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
@@ -109,6 +123,7 @@ export interface PerpsProOrderFormProps {
   onLeveragePress?: () => void;
   orderType: OrderType;
   scaleOrder: PerpsProScaleOrderModel;
+  scaleKeyboardScroll?: PerpsProScaleKeyboardScroll;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;

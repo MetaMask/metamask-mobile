@@ -160,7 +160,6 @@ let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
-let mockMinimumOrderAmount = 10;
 let mockSizeDecimals = 3;
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
@@ -233,6 +232,7 @@ jest.mock('../../../../hooks', () => ({
     isLoading: mockMarketDataLoading,
     error: mockMarketDataError,
   }),
+  usePerpsNetwork: () => 'mainnet',
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
@@ -323,14 +323,6 @@ jest.mock('../../../../hooks/usePerpsMaxSlippage', () => ({
 
 jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
-}));
-
-jest.mock('../../../../hooks/useMinimumOrderAmount', () => ({
-  useMinimumOrderAmount: () => ({
-    minimumOrderAmount: mockMinimumOrderAmount,
-    isLoading: false,
-    error: null,
-  }),
 }));
 
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
@@ -457,7 +449,6 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
-    mockMinimumOrderAmount = 10;
     mockTotalFee = 5;
     mockSizeDecimals = 3;
     mockOrderValidationParams = undefined;
@@ -2425,63 +2416,24 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.startPrice).toBe('100');
     });
 
-    it('blocks a fractional Scale order count instead of truncating it', async () => {
+    it('keeps the previous Scale order count when a fractional edit arrives', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
 
       act(() => {
-        result.current.scaleOrder.onStartPriceChange('100');
-        result.current.scaleOrder.onEndPriceChange('200');
-        result.current.scaleOrder.onTotalOrdersChange('3.5');
+        result.current.scaleOrder.onTotalOrdersChange('3');
       });
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
-
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-      expect(result.current.notices).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: 'scale',
-            message: strings(
-              'perps.pro_order_form.scale.validation.invalid_order_count',
-              {
-                minOrderCount: SCALE_ORDER_COUNT.min,
-                maxOrderCount: SCALE_ORDER_COUNT.max,
-              },
-            ),
-          }),
-        ]),
-      );
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
-    });
-
-    it('tracks a fractional Scale order-count validation error', () => {
-      mockOrderForm.type = 'scale';
-      mockOrderForm.amount = '600';
-      const { result } = renderProForm();
-
       act(() => {
-        result.current.scaleOrder.onStartPriceChange('100');
-        result.current.scaleOrder.onEndPriceChange('200');
         result.current.scaleOrder.onTotalOrdersChange('3.5');
       });
 
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_UI_INTERACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
-          [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
-        }),
-      );
+      expect(result.current.scaleOrder.totalOrders).toBe('3');
     });
 
-    it('rejects a ladder when a rung is below the market minimum', () => {
+    it('rejects a ladder when a rung is below the controller minimum', () => {
       mockOrderForm.type = 'scale';
-      mockOrderForm.amount = '600';
-      mockMinimumOrderAmount = 500;
+      mockOrderForm.amount = '20';
       const { result } = renderProForm();
       configureScaleOrder(result);
 
@@ -2999,7 +2951,7 @@ describe('usePerpsProOrderForm', () => {
         placement = Promise.resolve(result.current.onPlaceOrderPress());
         await Promise.resolve();
       });
-      mockMinimumOrderAmount = 500;
+      mockOrderForm.amount = '20';
       rerender({});
 
       await act(async () => {

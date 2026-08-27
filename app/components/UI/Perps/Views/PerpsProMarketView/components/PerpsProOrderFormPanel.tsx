@@ -218,10 +218,26 @@ const PerpsProOrderFormPanel = ({
     realign: onSizeFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
-  // One instance per field rather than a single shared handler: each keeps its
-  // own card measurement and stays inert unless its own field holds focus, so
-  // moving between fields needs no hand-off. The measured card here is the
-  // order-type card, which wraps the limit price row.
+  // Each Scale row owns its measurement so focus navigation can realign the
+  // newly focused row instead of measuring the full four-row card.
+  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+
+  // Limit and trigger share the order-type card because only one is visible.
   const {
     cardRef: orderTypeCardRef,
     onFocus: onLimitPriceFocus,
@@ -274,6 +290,12 @@ const PerpsProOrderFormPanel = ({
         onLeveragePress={onLeveragePress}
         orderType={orderType}
         scaleOrder={scaleOrder}
+        scaleKeyboardScroll={{
+          startPrice: scaleStartKeyboardScroll,
+          endPrice: scaleEndKeyboardScroll,
+          totalOrders: scaleTotalOrdersKeyboardScroll,
+          sizeSkew: scaleSizeSkewKeyboardScroll,
+        }}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
