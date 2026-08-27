@@ -551,6 +551,50 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
+    it('completes Scale CUF when any accepted child order renders', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetOrdersSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: ['filled-child', 'resting-child'],
+          submittedSize: '0.2',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'resting-child' }]);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('does not use strategy child IDs for an ordinary limit order', async () => {
       jest.useFakeTimers();
       try {

@@ -26,6 +26,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  PERPS_CONSTANTS,
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
@@ -47,7 +48,6 @@ import PerpsProCompactInput, {
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
 import PerpsProTwapFields from './PerpsProTwapFields';
-import { SCALE_EMPTY_CURRENCY_DISPLAY } from './PerpsProOrderForm.constants';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
@@ -349,7 +349,9 @@ const ScalePreview = ({
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.start')}
         value={
-          first ? formatScalePrice(first.price) : SCALE_EMPTY_CURRENCY_DISPLAY
+          first
+            ? formatScalePrice(first.price)
+            : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}
         valueTextProps={{ testID: ids.SCALE_PREVIEW_START_VALUE }}
@@ -359,7 +361,9 @@ const ScalePreview = ({
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.end')}
         value={
-          last ? formatScalePrice(last.price) : SCALE_EMPTY_CURRENCY_DISPLAY
+          last
+            ? formatScalePrice(last.price)
+            : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}
         valueTextProps={{ testID: ids.SCALE_PREVIEW_END_VALUE }}
@@ -466,7 +470,11 @@ const PerpsProOrderForm = ({
       value: scaleOrder.startPrice,
       onChangeText: scaleOrder.onStartPriceChange,
       onBlur: scaleOrder.onStartPriceBlur,
-      startAccessory: <Text variant={TextVariant.BodySm}>$</Text>,
+      startAccessory: (
+        <Text variant={TextVariant.BodySm}>
+          {strings('perps.tpsl.usd_label')}
+        </Text>
+      ),
       placeholder: '0.00',
     },
     {
@@ -476,7 +484,11 @@ const PerpsProOrderForm = ({
       value: scaleOrder.endPrice,
       onChangeText: scaleOrder.onEndPriceChange,
       onBlur: scaleOrder.onEndPriceBlur,
-      startAccessory: <Text variant={TextVariant.BodySm}>$</Text>,
+      startAccessory: (
+        <Text variant={TextVariant.BodySm}>
+          {strings('perps.tpsl.usd_label')}
+        </Text>
+      ),
       placeholder: '0.00',
     },
     {
@@ -501,7 +513,8 @@ const PerpsProOrderForm = ({
           isDisabled={isScaleFormLocked}
           onPress={scaleOrder.onSizeSkewInfoPress}
           testID={ids.SCALE_SKEW_INFO}
-          accessibilityLabel={strings(
+          accessibilityLabel={strings('perps.pro_order_form.scale.size_skew')}
+          accessibilityHint={strings(
             'perps.pro_order_form.scale.size_skew_hint',
           )}
         />

@@ -27,6 +27,12 @@ import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
 
+export interface PerpsProInputKeyboardAccessoryProps {
+  inputTestID: string;
+  onPrevious?: () => void;
+  onNext?: () => void;
+}
+
 export const PerpsProInputKeyboardAccessory = ({
   inputTestID,
   onPrevious,
@@ -75,12 +81,6 @@ export const PerpsProInputKeyboardAccessory = ({
     </InputAccessoryView>
   ) : null;
 };
-
-export interface PerpsProInputKeyboardAccessoryProps {
-  inputTestID: string;
-  onPrevious?: () => void;
-  onNext?: () => void;
-}
 
 export interface PerpsProCompactInputProps {
   label: string;

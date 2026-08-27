@@ -460,6 +460,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
         ),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
     },
   );
 

@@ -3,7 +3,11 @@
 // covered by PerpsProMarketView.view.test.tsx with real Redux selectors.
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type OrderType,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
 import type {
   PerpsProScaleOrderModel,
@@ -21,7 +25,6 @@ import {
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
 import { selectPerpsProvider } from '../../../selectors/perpsController';
-import { SCALE_EMPTY_CURRENCY_DISPLAY } from './PerpsProOrderForm/PerpsProOrderForm.constants';
 
 const mockUseSelector = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
@@ -88,9 +91,9 @@ const DEFAULT_SCALE_ORDER: PerpsProScaleOrderModel = {
   onSizeSkewBlur: jest.fn(),
   onSizeSkewInfoPress: jest.fn(),
   rungs: [],
-  marginRange: SCALE_EMPTY_CURRENCY_DISPLAY,
-  liquidationRange: SCALE_EMPTY_CURRENCY_DISPLAY,
-  fees: SCALE_EMPTY_CURRENCY_DISPLAY,
+  marginRange: PERPS_CONSTANTS.FallbackPriceDisplay,
+  liquidationRange: PERPS_CONSTANTS.FallbackPriceDisplay,
+  fees: PERPS_CONSTANTS.FallbackPriceDisplay,
 };
 
 const DEFAULT_MOCK_HOOK_RESULT = {
@@ -344,6 +347,7 @@ describe('PerpsProOrderFormPanel', () => {
         isTwapEnabled: true,
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
+        checkTwapOrderSupport: expect.any(Function),
         isScaleOrdersEnabled: true,
         isScaleOrderSupportPending: false,
         checkScaleOrderSupport: expect.any(Function),

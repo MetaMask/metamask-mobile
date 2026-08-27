@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -7,6 +7,7 @@ import {
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
@@ -18,6 +19,7 @@ import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 // Mock scaffolding
 // ---------------------------------------------------------------------------
 const mockTrack = jest.fn();
+const mockLoggerError = jest.fn();
 const mockInsufficientFundsMessage = strings(
   'perps.order.validation.insufficient_funds',
 );
@@ -41,8 +43,9 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+let mockTotalFee = 5;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
-  totalFee: 5,
+  totalFee: mockTotalFee,
   undiscountedTotalFee: 6,
   protocolFee: 4,
   metamaskFee: 1,
@@ -198,6 +201,11 @@ const mockPerpsToastOptions = {
 
 jest.mock('../../../../contexts/PerpsOrderContext', () => ({
   usePerpsOrderContext: () => mockContextValue,
+}));
+
+jest.mock('../../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: (...args: unknown[]) => mockLoggerError(...args) },
 }));
 
 let mockPositionStreamLoading = false;
@@ -371,21 +379,26 @@ const renderProForm = (
   resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
   isTwapAvailabilityPending = false,
   scaleOptions: RenderProFormScaleOptions = {},
-) =>
-  renderHook(() =>
+) => {
+  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+  const checkScaleOrderSupport =
+    scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
+
+  return renderHook(() =>
     usePerpsProOrderForm({
       market,
       isTriggeredOrdersEnabled,
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
+      checkTwapOrderSupport,
       scaleProviderId: scaleOptions.providerId ?? 'hyperliquid',
       isScaleOrdersEnabled: scaleOptions.enabled ?? true,
       isScaleOrderSupportPending: scaleOptions.pending ?? false,
-      checkScaleOrderSupport:
-        scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true),
+      checkScaleOrderSupport,
     }),
   );
+};
 
 interface MutableScaleProps {
   isScaleOrdersEnabled: boolean;
@@ -394,8 +407,10 @@ interface MutableScaleProps {
   checkScaleOrderSupport: () => Promise<boolean>;
 }
 
-const renderMutableScaleForm = (initialProps: MutableScaleProps) =>
-  renderHook(
+const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
+  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+
+  return renderHook(
     (props: MutableScaleProps) =>
       usePerpsProOrderForm({
         market,
@@ -403,10 +418,12 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) =>
         isTwapEnabled: true,
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
+        checkTwapOrderSupport,
         ...props,
       }),
     { initialProps },
   );
+};
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
@@ -440,6 +457,7 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockMinimumOrderAmount = 10;
+    mockTotalFee = 5;
     mockSizeDecimals = 3;
     mockOrderValidationParams = undefined;
     mockValidateCalculatedMargin = false;
@@ -985,6 +1003,35 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('re-checks selected-route TWAP support immediately before placement', async () => {
+      const checkTwapOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'twap';
+      const { result } = renderHook(() =>
+        usePerpsProOrderForm({
+          market,
+          isTriggeredOrdersEnabled: true,
+          isTwapEnabled: true,
+          isTwapAvailabilityPending: false,
+          resolvedTwapProviderId: 'hyperliquid',
+          checkTwapOrderSupport,
+          scaleProviderId: 'hyperliquid',
+          isScaleOrdersEnabled: true,
+          isScaleOrderSupportPending: false,
+          checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+        }),
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkTwapOrderSupport).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
     it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
       let continuePlacement: (() => Promise<unknown>) | undefined;
       mockComplianceGate.mockImplementation((action) => {
@@ -1000,6 +1047,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
             scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
@@ -1045,6 +1093,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: providerId,
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
             scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
@@ -1084,6 +1133,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
             scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
@@ -1109,6 +1159,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
             scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
@@ -1147,6 +1198,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending,
             resolvedTwapProviderId,
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
             scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
@@ -1239,11 +1291,12 @@ describe('usePerpsProOrderForm', () => {
       let firstSubmission: Promise<unknown> | undefined;
       await act(async () => {
         firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
-        await Promise.resolve();
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      });
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
@@ -1957,6 +2010,35 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
 
+    it('reports unexpected controller ladder failures', () => {
+      const error = new Error('ladder failed');
+      const perpsController = jest.requireActual<
+        typeof import('@metamask/perps-controller')
+      >('@metamask/perps-controller');
+      const splitScaleSizesSpy = jest
+        .spyOn(perpsController, 'splitScaleSizes')
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      configureScaleOrder(result);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            component: 'usePerpsProOrderForm',
+            action: 'calculate_scale_ladder',
+          }),
+        }),
+      );
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      splitScaleSizesSpy.mockRestore();
+    });
+
     it('clears limit and trigger drafts when Scale is selected', () => {
       mockOrderForm.limitPrice = '90000';
       mockContextValue.triggerPrice = '91000';
@@ -2334,7 +2416,7 @@ describe('usePerpsProOrderForm', () => {
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            'scale_validation_error_shown',
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
           [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
         }),
       );
@@ -2539,9 +2621,11 @@ describe('usePerpsProOrderForm', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
-          [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'size_skew',
-          scale_skew: 2.35,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
+          [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
+          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
         }),
       );
     });
@@ -2654,6 +2738,174 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('restarts Scale validation when the live position changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'cross', value: 5 },
+      };
+      rerender({});
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(3);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+      });
+    });
+
+    it('uses fresh reduce-only position state after the Scale capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockExistingPosition = {
+        size: '-10',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockExistingPosition = {
+        size: '10',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('uses fresh sizing and fee inputs after the Scale capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockSizeDecimals = 2;
+      mockTotalFee = 9;
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      const submittedParams = mockExecuteOrder.mock.calls[0][0];
+      expect(submittedParams.size).not.toBe('3.725');
+      expect(submittedParams.trackingData.totalFee).toBe(9);
+    });
+
+    it('uses a fresh Scale ladder after the capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockMinimumOrderAmount = 500;
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.minimum_lot'),
+      );
+    });
+
     it('locks retained Scale callbacks before deferred compliance completes', async () => {
       let continueCompliance: (() => Promise<void>) | undefined;
       let resolveCompliance: (() => void) | undefined;
@@ -2669,7 +2921,7 @@ describe('usePerpsProOrderForm', () => {
       );
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm();
+      const { result, rerender } = renderProForm();
       configureScaleOrder(result);
       const staleScaleOrder = result.current.scaleOrder;
       const staleSizeInput = result.current.sizeInput;
@@ -2695,6 +2947,8 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.direction).toBe('long');
       expect(mockSetAmount).not.toHaveBeenCalled();
       expect(mockSetDirection).not.toHaveBeenCalled();
+      mockTotalFee = 9;
+      rerender({});
 
       await act(async () => {
         await continueCompliance?.();
@@ -2707,6 +2961,7 @@ describe('usePerpsProOrderForm', () => {
           isBuy: true,
           size: '3.725',
           scaleMinPrice: '100',
+          trackingData: expect.objectContaining({ totalFee: 9 }),
         }),
       );
     });

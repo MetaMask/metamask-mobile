@@ -37,6 +37,7 @@ const CUF_META = {
   SYMBOL: 'symbol',
   WATCH: 'watch',
   ORDER_ID: 'orderId',
+  ORDER_IDS: 'orderIds',
   SNAPSHOT: 'snapshot',
   // True when the positions cache was not loaded at submit, so the pre-order
   // baseline is unknown and must be captured from the first stream delivery.
@@ -482,17 +483,40 @@ export function watchPerpsCufOrderPriceUpdated(
  */
 export function watchPerpsCufLimitRendered(
   opId: string,
-  orderId: string,
+  orderIds: string | readonly string[],
   symbol: string,
   positionBaseline?: PerpsCufPositionLike | null,
   baselineLoaded: boolean = true,
 ): void {
   setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED,
-    [CUF_META.ORDER_ID]: orderId,
+    ...(typeof orderIds === 'string'
+      ? { [CUF_META.ORDER_ID]: orderIds }
+      : { [CUF_META.ORDER_IDS]: JSON.stringify(orderIds) }),
     [CUF_META.SYMBOL]: symbol,
     ...baselineMeta(positionBaseline, baselineLoaded),
   });
+}
+
+function watchedOrderIds(meta: Record<string, TraceValue>): string[] {
+  const orderId = meta[CUF_META.ORDER_ID];
+  if (typeof orderId === 'string') {
+    return [orderId];
+  }
+
+  const encodedOrderIds = meta[CUF_META.ORDER_IDS];
+  if (typeof encodedOrderIds !== 'string') {
+    return [];
+  }
+
+  try {
+    const decoded: unknown = JSON.parse(encodedOrderIds);
+    return Array.isArray(decoded)
+      ? decoded.filter((value): value is string => typeof value === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 /** End `opId` on the next positions delivery, whatever it contains. */
@@ -738,11 +762,10 @@ export function handlePerpsCufOrdersDelivered(
     TraceName.PerpsPlaceLimitOrderToOrderRendered,
   )) {
     const meta = pendingCufMeta.get(opId);
-    const orderId = meta?.[CUF_META.ORDER_ID];
+    const orderIds = meta ? watchedOrderIds(meta) : [];
     if (
       meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED &&
-      typeof orderId === 'string' &&
-      orders.some((o) => o.orderId === orderId)
+      orders.some((order) => orderIds.includes(order.orderId))
     ) {
       toEnd.push(opId);
     }

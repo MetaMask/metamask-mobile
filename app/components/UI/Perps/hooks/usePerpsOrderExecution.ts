@@ -315,8 +315,9 @@ export function usePerpsOrderExecution(
               orderParams.orderType === 'scale'
                 ? (result.childOrderIds ?? [])
                 : [result.orderId]
-            ).filter((orderId): orderId is string =>
-              Boolean(orderId && typeof orderId === 'string'),
+            ).filter(
+              (orderId): orderId is string =>
+                typeof orderId === 'string' && orderId.length > 0,
             );
             const renderedOrderId = orderIds.find((orderId) =>
               stream.orders
@@ -357,7 +358,7 @@ export function usePerpsOrderExecution(
               } else {
                 watchPerpsCufLimitRendered(
                   cufOpId,
-                  orderId,
+                  orderParams.orderType === 'scale' ? orderIds : orderId,
                   orderParams.symbol,
                   positionBaseline,
                   positionsLoaded,

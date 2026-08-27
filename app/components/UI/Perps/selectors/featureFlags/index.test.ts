@@ -2280,11 +2280,11 @@ describe('Perps Feature Flag Selectors', () => {
       };
     };
 
-    it('returns true when the version-gated Scale flag is enabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    it('returns true at the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
       const state = createStateWithFlag({
         enabled: true,
-        minimumVersion: '1.0.0',
+        minimumVersion: '8.10.0',
       });
 
       const result = selectPerpsMobileScaleEnabledFlag(state);
@@ -2303,8 +2303,8 @@ describe('Perps Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false below the Scale minimum version', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
+    it('returns false below the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
       const state = createStateWithFlag({
         enabled: true,
         minimumVersion: '8.10.0',

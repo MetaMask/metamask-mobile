@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
@@ -336,9 +337,9 @@ describe('PerpsProOrderForm', () => {
     it('always renders the five-row incomplete Scale summary', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.rungs = [];
-      scaleOrder.marginRange = '$ -';
-      scaleOrder.liquidationRange = '$ -';
-      scaleOrder.fees = '$ -';
+      scaleOrder.marginRange = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.liquidationRange = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.fees = PERPS_CONSTANTS.FallbackPriceDisplay;
       renderForm({
         orderType: 'scale',
         scaleOrder,
@@ -346,19 +347,19 @@ describe('PerpsProOrderForm', () => {
 
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
-      ).toHaveTextContent('$ -');
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
       expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
-        '$ -',
+        PERPS_CONSTANTS.FallbackPriceDisplay,
       );
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
-      ).toHaveTextContent('$ -');
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveTextContent('$ -');
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
-      ).toHaveTextContent('$ -');
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
 
     it('renders completed Scale prices and ranges with dedicated selectors', () => {
@@ -738,8 +739,17 @@ describe('PerpsProOrderForm', () => {
     it('opens the Size skew explainer from the info button', () => {
       const scaleOrder = createScaleOrder();
       renderForm({ orderType: 'scale', scaleOrder });
+      const infoButton = screen.getByTestId(ids.SCALE_SKEW_INFO);
 
-      fireEvent.press(screen.getByTestId(ids.SCALE_SKEW_INFO));
+      expect(infoButton).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.pro_order_form.scale.size_skew'),
+      );
+      expect(infoButton).toHaveProp(
+        'accessibilityHint',
+        strings('perps.pro_order_form.scale.size_skew_hint'),
+      );
+      fireEvent.press(infoButton);
 
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
     });

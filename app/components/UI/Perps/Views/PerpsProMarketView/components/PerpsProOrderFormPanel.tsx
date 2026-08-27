@@ -99,6 +99,10 @@ const PerpsProOrderFormPanel = ({
     () => checkOrderCapability('scale', resolvedProviderId),
     [checkOrderCapability, resolvedProviderId],
   );
+  const checkTwapOrderSupport = useCallback(
+    () => checkOrderCapability('twap', resolvedProviderId),
+    [checkOrderCapability, resolvedProviderId],
+  );
   const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [
@@ -166,6 +170,7 @@ const PerpsProOrderFormPanel = ({
     isTwapEnabled,
     isTwapAvailabilityPending,
     resolvedTwapProviderId: resolvedProviderId,
+    checkTwapOrderSupport,
     scaleProviderId: resolvedProviderId,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,

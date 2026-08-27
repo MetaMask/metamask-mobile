@@ -266,3 +266,139 @@ index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a4
      }
      // Add success-specific properties
      if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
+diff --git a/dist/constants/eventNames.cjs b/dist/constants/eventNames.cjs
+--- a/dist/constants/eventNames.cjs
++++ b/dist/constants/eventNames.cjs
+@@ -23,6 +23,10 @@ exports.PERPS_EVENT_PROPERTY = {
+     ORDER_SIZE: 'order_size',
+     MARGIN_USED: 'margin_used',
+     ORDER_TYPE: 'order_type', // lowercase per dashboard
++    SCALE_ORDER_COUNT: 'scale_order_count',
++    SCALE_RANGE_PCT: 'scale_range_pct',
++    SCALE_SKEW: 'scale_skew',
++    REDUCE_ONLY: 'reduce_only',
+     ORDER_TIMESTAMP: 'order_timestamp',
+     LIMIT_PRICE: 'limit_price',
+     FEES: 'fees',
+@@ -442,6 +446,8 @@ exports.PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -552,6 +558,10 @@ exports.PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
+diff --git a/dist/constants/eventNames.d.cts b/dist/constants/eventNames.d.cts
+--- a/dist/constants/eventNames.d.cts
++++ b/dist/constants/eventNames.d.cts
+@@ -17,6 +17,10 @@ export declare const PERPS_EVENT_PROPERTY: {
+     readonly ORDER_SIZE: "order_size";
+     readonly MARGIN_USED: "margin_used";
+     readonly ORDER_TYPE: "order_type";
++    readonly SCALE_ORDER_COUNT: "scale_order_count";
++    readonly SCALE_RANGE_PCT: "scale_range_pct";
++    readonly SCALE_SKEW: "scale_skew";
++    readonly REDUCE_ONLY: "reduce_only";
+     readonly ORDER_TIMESTAMP: "order_timestamp";
+     readonly LIMIT_PRICE: "limit_price";
+     readonly FEES: "fees";
+@@ -371,6 +375,8 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
+diff --git a/dist/constants/eventNames.d.mts b/dist/constants/eventNames.d.mts
+--- a/dist/constants/eventNames.d.mts
++++ b/dist/constants/eventNames.d.mts
+@@ -17,6 +17,10 @@ export declare const PERPS_EVENT_PROPERTY: {
+     readonly ORDER_SIZE: "order_size";
+     readonly MARGIN_USED: "margin_used";
+     readonly ORDER_TYPE: "order_type";
++    readonly SCALE_ORDER_COUNT: "scale_order_count";
++    readonly SCALE_RANGE_PCT: "scale_range_pct";
++    readonly SCALE_SKEW: "scale_skew";
++    readonly REDUCE_ONLY: "reduce_only";
+     readonly ORDER_TIMESTAMP: "order_timestamp";
+     readonly LIMIT_PRICE: "limit_price";
+     readonly FEES: "fees";
+@@ -371,6 +375,8 @@ export declare const PERPS_EVENT_VALUE: {
+         readonly SLIPPAGE_CONFIG_OPENED: "slippage_config_opened";
+         readonly SLIPPAGE_CONFIG_CHANGED: "slippage_config_changed";
+         readonly SLIPPAGE_LIMIT_BLOCKED_ORDER: "slippage_limit_blocked_order";
++        readonly SCALE_CONFIG_CHANGED: "scale_config_changed";
++        readonly SCALE_VALIDATION_ERROR_SHOWN: "scale_validation_error_shown";
+         readonly TPSL_ROE_SIGN_TOGGLED: "tpsl_roe_sign_toggled";
+         readonly MARKET_LIST_FILTER: "market_list_filter";
+         readonly SORT_APPLIED: "sort_applied";
+@@ -467,6 +473,10 @@ export declare const PERPS_EVENT_VALUE: {
+     readonly SETTING_TYPE: {
+         readonly LEVERAGE: "leverage";
+         readonly SLIPPAGE: "slippage";
++        readonly SCALE_START_PRICE: "start_price";
++        readonly SCALE_END_PRICE: "end_price";
++        readonly SCALE_TOTAL_ORDERS: "total_orders";
++        readonly SCALE_SIZE_SKEW: "size_skew";
+     };
+     readonly SCREEN_NAME: {
+         readonly CONNECTION_ERROR: "connection_error";
+diff --git a/dist/constants/eventNames.mjs b/dist/constants/eventNames.mjs
+--- a/dist/constants/eventNames.mjs
++++ b/dist/constants/eventNames.mjs
+@@ -20,6 +20,10 @@ export const PERPS_EVENT_PROPERTY = {
+     ORDER_SIZE: 'order_size',
+     MARGIN_USED: 'margin_used',
+     ORDER_TYPE: 'order_type', // lowercase per dashboard
++    SCALE_ORDER_COUNT: 'scale_order_count',
++    SCALE_RANGE_PCT: 'scale_range_pct',
++    SCALE_SKEW: 'scale_skew',
++    REDUCE_ONLY: 'reduce_only',
+     ORDER_TIMESTAMP: 'order_timestamp',
+     LIMIT_PRICE: 'limit_price',
+     FEES: 'fees',
+@@ -439,6 +443,8 @@ export const PERPS_EVENT_VALUE = {
+         SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+         SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+         SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
++        SCALE_CONFIG_CHANGED: 'scale_config_changed',
++        SCALE_VALIDATION_ERROR_SHOWN: 'scale_validation_error_shown',
+         // Auto Close TP/SL RoE sign toggle
+         TPSL_ROE_SIGN_TOGGLED: 'tpsl_roe_sign_toggled',
+         // Discovery analytics
+@@ -549,6 +555,10 @@ export const PERPS_EVENT_VALUE = {
+     SETTING_TYPE: {
+         LEVERAGE: 'leverage',
+         SLIPPAGE: 'slippage',
++        SCALE_START_PRICE: 'start_price',
++        SCALE_END_PRICE: 'end_price',
++        SCALE_TOTAL_ORDERS: 'total_orders',
++        SCALE_SIZE_SKEW: 'size_skew',
+     },
+     SCREEN_NAME: {
+         CONNECTION_ERROR: 'connection_error',
