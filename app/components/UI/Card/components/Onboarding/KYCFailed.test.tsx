@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import KYCFailed from './KYCFailed';
@@ -286,6 +287,24 @@ describe('KYCFailed Component', () => {
       const image = getByTestId('kyc-failed-image');
 
       expect(image).toBeTruthy();
+    });
+
+    it('renders the image as a full-bleed background', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const image = getByTestId('kyc-failed-image');
+      const style = StyleSheet.flatten(image.props.style);
+
+      // The asset has its own purple backdrop baked in, so any area it leaves
+      // uncovered shows the screen's flat fallback color as a visible seam.
+      expect(image.props.resizeMode).toBe('cover');
+      expect(style).toMatchObject({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+      });
     });
   });
 

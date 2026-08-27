@@ -23,6 +23,9 @@ import {
 } from '../../Perps.testIds';
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
@@ -47,7 +50,10 @@ interface MockRouteParams {
 interface MockChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
+  onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
+  currentPrice?: number;
+  onLatestPriceChange?: (price: number | undefined) => void;
 }
 
 interface MockCandlePeriodBottomSheetProps {
@@ -87,7 +93,12 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 // provider is a passthrough and the shared order-form setters are captured so
 // the order-book → order-form wiring (TAT-3643) can be asserted directly.
 const mockSetLimitPrice = jest.fn();
+const mockCommitLimitPrice = jest.fn();
+const mockCommitTriggerPrice = jest.fn();
 const mockSetOrderType = jest.fn();
+const mockSetTriggerPrice = jest.fn();
+let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
+  'market';
 const mockPerpsOrderProvider = jest.fn(
   ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
     children,
@@ -101,7 +112,12 @@ const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
 
 const mockPerpsProChartPanel = jest.fn(
-  ({ symbol, onMorePress }: MockChartPanelProps) => (
+  ({
+    symbol,
+    selectedCandlePeriod,
+    onCandlePeriodChange,
+    onMorePress,
+  }: MockChartPanelProps) => (
     <>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
@@ -116,6 +132,18 @@ const mockPerpsProChartPanel = jest.fn(
           twClassName="h-[344px]"
         />
         <ButtonBase testID="mock-pro-chart-more-button" onPress={onMorePress}>
+          <Box />
+        </ButtonBase>
+        <ButtonBase
+          testID="mock-pro-chart-period-option"
+          onPress={() => onCandlePeriodChange(CandlePeriod.FiveMinutes)}
+        >
+          <Box />
+        </ButtonBase>
+        <ButtonBase
+          testID="mock-pro-chart-current-period"
+          onPress={() => onCandlePeriodChange(selectedCandlePeriod)}
+        >
           <Box />
         </ButtonBase>
       </Box>
@@ -172,7 +200,7 @@ jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
 // need a lightweight placeholder so the layout scaffold assertions still pass.
 jest.mock('./components/PerpsProOrderFormPanel', () => {
   const ReactActual = jest.requireActual('react');
-  const { Box, ButtonBase } = jest.requireActual(
+  const { Box: MockBox, ButtonBase: MockButtonBase } = jest.requireActual(
     '@metamask/design-system-react-native',
   );
   const { PerpsProMarketViewSelectorsIDs: ids } = jest.requireActual(
@@ -185,16 +213,16 @@ jest.mock('./components/PerpsProOrderFormPanel', () => {
       onExpandOrderBook,
     }: MockOrderFormPanelProps) =>
       ReactActual.createElement(
-        Box,
+        MockBox,
         { testID: ids.ORDER_FORM_PANEL },
         isOrderBookCollapsed
           ? ReactActual.createElement(
-              ButtonBase,
+              MockButtonBase,
               {
                 testID: ids.ORDER_BOOK_EXPAND_BUTTON,
                 onPress: onExpandOrderBook,
               },
-              ReactActual.createElement(Box, null),
+              ReactActual.createElement(MockBox, null),
             )
           : null,
       ),
@@ -223,12 +251,24 @@ jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
   })),
 }));
 
+const mockRecordMarketViewed = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      recordMarketViewed: (...args: unknown[]) =>
+        mockRecordMarketViewed(...args),
+    },
+  },
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useRoute: () => ({ params: mockRouteParams }),
     useNavigation: () => ({ setParams: mockSetParams }),
+    useFocusEffect: (cb: () => void | (() => void)) => cb(),
   };
 });
 
@@ -248,6 +288,15 @@ jest.mock('../../hooks/stream', () => ({
     isInitialLoading: false,
   })),
   usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
+  usePerpsLiveCandles: jest.fn(() => ({
+    candleData: null,
+    isLoading: false,
+    hasHistoricalData: false,
+    fetchMoreHistory: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
@@ -284,6 +333,33 @@ jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
+const buildLiveBook = (bidPrice: string): OrderBookData => ({
+  bids: [
+    {
+      price: bidPrice,
+      size: '1.5',
+      total: '1.5',
+      notional: '134925',
+      totalNotional: '134925',
+    },
+  ],
+  asks: [],
+  spread: '100',
+  spreadPercentage: '0.11',
+  midPrice: '90000',
+  lastUpdated: 1700000000000,
+  maxTotal: '1.5',
+});
+
+let mockSzDecimals: number | undefined;
+jest.mock('../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: () => ({
+    marketData: { szDecimals: mockSzDecimals },
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: jest.fn(() => ({
     savedGrouping: undefined,
@@ -302,8 +378,12 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     return children;
   },
   usePerpsOrderContext: () => ({
+    orderForm: { type: mockOrderFormType },
     setLimitPrice: mockSetLimitPrice,
+    commitLimitPrice: mockCommitLimitPrice,
+    commitTriggerPrice: mockCommitTriggerPrice,
     setOrderType: mockSetOrderType,
+    setTriggerPrice: mockSetTriggerPrice,
   }),
 }));
 
@@ -385,6 +465,9 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderFormType = 'market';
+    mockSzDecimals = undefined;
+    jest.mocked(playSelection).mockClear();
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -450,6 +533,7 @@ describe('PerpsProMarketView', () => {
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
       direction: undefined,
     });
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('attributes order-row market switches with the orders source section', () => {
@@ -533,6 +617,7 @@ describe('PerpsProMarketView', () => {
     fireEvent.press(getByTestId(getPerpsProPositionRowSelector('BTC')));
 
     expect(mockSetParams).not.toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('scrolls to the top when the active market symbol changes', () => {
@@ -676,6 +761,23 @@ describe('PerpsProMarketView', () => {
         selectedCandlePeriod: CandlePeriod.FourHours,
       }),
     );
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when a visible candle period changes', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-period-option'));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps haptics silent when the current candle period is selected', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-current-period'));
+
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('closes the More candle periods sheet', () => {
@@ -702,6 +804,17 @@ describe('PerpsProMarketView', () => {
         PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('wires the chart-synced price into the compact header', () => {
+    renderView();
+
+    expect(mockPerpsProChartPanel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentPrice: expect.any(Number),
+        onLatestPriceChange: expect.any(Function),
+      }),
+    );
   });
 
   it('shows the asset name from route params in the header', () => {
@@ -900,6 +1013,165 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockSetOrderType).toHaveBeenCalledWith('limit');
-    expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+  });
+
+  it('fills the limit price without changing a stop-limit order type', () => {
+    mockOrderFormType = 'stop_limit';
+    const liveBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: liveBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockSetOrderType).not.toHaveBeenCalled();
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+  });
+
+  it('fills the trigger price for a stop-market order without changing type', () => {
+    mockOrderFormType = 'stop_market';
+    const liveBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: liveBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockSetOrderType).not.toHaveBeenCalled();
+    expect(mockCommitTriggerPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+    expect(mockCommitLimitPrice).not.toHaveBeenCalled();
+  });
+  it('commits a book price unchanged while the asset precision is unknown', () => {
+    // szDecimals arrives asynchronously. Canonicalizing against the fallback
+    // precision rounds a sub-dollar book price to 0, which would then be
+    // committed as the limit price.
+    mockSzDecimals = undefined;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: buildLiveBook('0.0682341'),
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682341');
+  });
+
+  it('canonicalizes a book price once the asset precision is known', () => {
+    mockSzDecimals = 2;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: buildLiveBook('0.0682341'),
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682');
+  });
+
+  describe('Recently viewed tracking', () => {
+    it('records the market view when the screen is focused', () => {
+      renderView();
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+    });
+
+    it('records the market symbol from route params', () => {
+      mockRouteParams = {
+        market: {
+          symbol: 'ETH',
+          price: '$3,000.00',
+          name: 'Ethereum',
+          maxLeverage: '25x',
+        },
+      };
+
+      renderView();
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
+    });
+
+    it('does not record a view when there is no market', () => {
+      mockRouteParams = {};
+
+      renderView();
+
+      expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
   });
 });

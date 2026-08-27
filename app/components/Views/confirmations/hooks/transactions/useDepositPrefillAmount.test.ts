@@ -15,12 +15,11 @@ import { selectAccountOverrideByTransactionId } from '../../../../../selectors/t
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
+jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 
@@ -416,6 +415,7 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.hasPrefilled).toBe(true);
       expect(result.current.prefillAmount).toBe('800');
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

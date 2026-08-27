@@ -87,6 +87,7 @@ import {
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -114,6 +115,7 @@ import {
   type ResolvedFirstPredictOnUsLaunch,
 } from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
 import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
   type: string;
@@ -207,6 +209,7 @@ const ChoosePassword = () => {
     contentReady: true,
     isEmpty: false,
     isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
   });
 
   useNavigationPerformance({
@@ -608,12 +611,14 @@ const ChoosePassword = () => {
         ...(socialAccountType && { account_type: socialAccountType }),
       });
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordSetupError,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: { errorMessage: caughtError.toString() },
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -660,12 +665,14 @@ const ChoosePassword = () => {
       );
       authType.oauth2Login = isSocialLogin;
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingSRPAccountCreationTime,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: {
             is_social_login: Boolean(provider),
             account_type: accountType,
@@ -793,12 +800,15 @@ const ChoosePassword = () => {
 
   useEffect(() => {
     const initBiometrics = async () => {
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         passwordSetupAttemptTraceCtx.current = trace({
           name: TraceName.OnboardingPasswordSetupAttempt,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
         });
       }
 
@@ -819,7 +829,7 @@ const ChoosePassword = () => {
     };
 
     initBiometrics();
-  }, [route.params?.onboardingTraceCtx]);
+  }, []);
 
   // End password-setup trace on unmount
   useEffect(
@@ -1118,6 +1128,7 @@ const ChoosePassword = () => {
             </Box>
           </KeyboardAwareScrollView>
         )}
+        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };

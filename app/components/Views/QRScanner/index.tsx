@@ -815,6 +815,23 @@ const QRScanner = ({
     );
   }, []);
 
+  useEffect(() => {
+    if (isAddDeviceScanner || !permissionCheckCompleted || hasPermission) {
+      return;
+    }
+
+    navigation.goBack();
+    InteractionManager.runAfterInteractions(() => {
+      showCameraNotAuthorizedAlert();
+    });
+  }, [
+    hasPermission,
+    isAddDeviceScanner,
+    navigation,
+    permissionCheckCompleted,
+    showCameraNotAuthorizedAlert,
+  ]);
+
   const getScannerOverlayLabel = useCallback(() => {
     if (isAddDeviceScanner) {
       if (addDeviceScannerUiState === AddDeviceScannerUiState.Detected) {
@@ -839,9 +856,6 @@ const QRScanner = ({
     [onScanError, navigation],
   );
 
-  // Only show the camera permission alert if:
-  // 1. Permission check has been completed
-  // 2. Permission is not granted
   if (isAddDeviceScanner && permissionCheckCompleted && !hasPermission) {
     return (
       <View style={styles.container}>
@@ -851,7 +865,6 @@ const QRScanner = ({
   }
 
   if (permissionCheckCompleted && !hasPermission) {
-    showCameraNotAuthorizedAlert();
     return null;
   }
 

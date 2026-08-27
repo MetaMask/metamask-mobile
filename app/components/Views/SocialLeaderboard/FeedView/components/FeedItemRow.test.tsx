@@ -25,6 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+      'social_leaderboard.feed.action.traded': 'Traded',
     };
     return literals[key] ?? key;
   },
@@ -36,7 +37,7 @@ const spotItem: FeedSpotItem = {
   traderId: 'trader-spot-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
-  action: 'bought',
+  action: 'opened',
   timestamp: Date.now() - 21_000,
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
@@ -162,6 +163,19 @@ describe('FeedItemRow', () => {
     expect(screen.queryByText('+12%')).toBeNull();
   });
 
+  it('renders Traded when the lifecycle action is missing', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={{ ...spotItem, action: undefined }}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Traded')).toBeOnTheScreen();
+  });
+
   it('calls onTradePress with the item when Trade is pressed', () => {
     const onTradePress = jest.fn();
     renderWithProvider(
@@ -250,7 +264,7 @@ describe('FeedItemRow', () => {
   it('shows the "Holding" label on an empty open spot row', () => {
     const item: FeedSpotItem = {
       ...spotItem,
-      action: 'bought',
+      action: 'opened',
       valueLabel: '',
       pnlLabel: '',
       hasValueData: false,
@@ -270,7 +284,7 @@ describe('FeedItemRow', () => {
       screen.getByTestId(getFeedNewPositionTestId('spot-1')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.feed.new_position.bought'),
+      screen.getByText('social_leaderboard.feed.new_position.spot'),
     ).toBeOnTheScreen();
   });
 
@@ -294,7 +308,7 @@ describe('FeedItemRow', () => {
     );
 
     expect(
-      screen.getByText('social_leaderboard.feed.new_position.opened'),
+      screen.getByText('social_leaderboard.feed.new_position.perps'),
     ).toBeOnTheScreen();
   });
 

@@ -1,4 +1,6 @@
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   HeaderStandardAnimated,
   IconName,
@@ -7,8 +9,15 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -28,6 +37,7 @@ import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { useOpenSocialNotificationPreferences } from '../hooks/useOpenSocialNotificationPreferences';
 import {
   SocialLeaderboardEventProperties,
@@ -39,6 +49,7 @@ import FeedView from '../FeedView';
 import FeedSpotBuyAction, {
   type FeedSpotBuyActionHandle,
 } from '../FeedView/components/FeedSpotBuyAction';
+import { usePrefetchTraderFeeds } from '../FeedView/hooks/usePrefetchTraderFeeds';
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -52,21 +63,33 @@ import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testI
 const LEADERBOARD_INDEX = 0;
 const FEED_INDEX = 1;
 
+// How long the post-onboarding "turn on notifications" nudge stays up before it
+// auto-dismisses (ms). Long enough to notice and act on after landing here, but
+// still transient so it never becomes permanent chrome.
+const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
+
 const getTabAnalyticsValue = (index: number) =>
   index === FEED_INDEX
     ? SocialLeaderboardEventValues.TAB.FEED
     : SocialLeaderboardEventValues.TAB.LEADERBOARD;
 
 /**
- * Container that adds the Leaderboard | Feed tabs on top of the Follow Trading
- * surface. Rendered in place of `TopTradersView` when the `aiSocialFeedEnabled`
- * flag is on. Keeps the existing header (title + notification bell) and shows
- * two swipeable pages: the existing leaderboard and the new activity feed.
+ * Follow Trading surface: Leaderboard | Feed tabs, collapsing title, and
+ * notification bell. The leaderboard page and activity feed sit in swipeable
+ * pages under a shared header.
  */
 const SocialTradersTabsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const { track } = useSocialLeaderboardAnalytics();
+  // Wait until the visible leaderboard query settles before warming feed
+  // pages, so those requests never contend with the landing list fetch.
+  const [isLeaderboardSettled, setIsLeaderboardSettled] = useState(false);
+  const handleVisibleLeaderboardSettled = useCallback(() => {
+    setIsLeaderboardSettled(true);
+  }, []);
+  usePrefetchTraderFeeds(isLeaderboardSettled);
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
@@ -250,6 +273,33 @@ const SocialTradersTabsView: React.FC = () => {
   const { openNotificationPreferences } =
     useOpenSocialNotificationPreferences();
 
+  // One-shot nudge shown when onboarding reports the user tapped "Allow
+  // notifications" but the OS denied it. Seeded from the route param so it only
+  // appears on that hand-off, never on normal tab visits.
+  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
+    Boolean(route.params?.showNotificationsBanner),
+  );
+
+  useEffect(() => {
+    if (!showNotificationsBanner) {
+      return undefined;
+    }
+    const timeoutId = setTimeout(
+      () => setShowNotificationsBanner(false),
+      NOTIFICATIONS_BANNER_AUTO_DISMISS_MS,
+    );
+    return () => clearTimeout(timeoutId);
+  }, [showNotificationsBanner]);
+
+  const handleDismissNotificationsBanner = useCallback(() => {
+    setShowNotificationsBanner(false);
+  }, []);
+
+  const handleOpenNotificationSettings = useCallback(() => {
+    setShowNotificationsBanner(false);
+    NotificationService.openSystemSettings();
+  }, []);
+
   // `content` is unused: the pages live in the PagerView below so they stay
   // swipeable, and TabsBar renders the bar only.
   const tabs: TabItem[] = useMemo(
@@ -350,6 +400,23 @@ const SocialTradersTabsView: React.FC = () => {
         testID={SocialTradersTabsViewSelectorsIDs.HEADER}
       />
 
+      {showNotificationsBanner && (
+        <Box twClassName="px-4 pt-2">
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.description',
+            )}
+            actionButtonLabel={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+            )}
+            actionButtonOnPress={handleOpenNotificationSettings}
+            onClose={handleDismissNotificationsBanner}
+            testID={SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER}
+          />
+        </Box>
+      )}
+
       {/* `overflow-hidden` clips the title as the block slides up so it
           disappears *under* the fixed header (revealing the compact title)
           instead of scrolling over the back button / notification bell. */}
@@ -396,9 +463,9 @@ const SocialTradersTabsView: React.FC = () => {
               testID={SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE}
             >
               <TopTradersView
-                embeddedInTabs
                 onScroll={leaderboardScrollHandler}
                 pageRef={leaderboardPageRef}
+                onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
               />
             </View>
             <View

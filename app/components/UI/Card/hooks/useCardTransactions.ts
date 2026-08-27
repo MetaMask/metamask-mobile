@@ -13,12 +13,9 @@ import type {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { cardQueries } from '../queries';
 
-const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_LIMIT = 20;
 
 export interface UseCardTransactionsOptions {
-  /** Server-side merchant-name search (debounced). */
-  searchQuery?: string;
   /** Epoch ms. Must be paired with `toDate` (the API rejects a lone bound). */
   fromDate?: number;
   /** Epoch ms. Must be paired with `fromDate`. */
@@ -37,12 +34,14 @@ export interface UseCardTransactionsResult {
   /** True while the first page is being fetched. */
   isLoading: boolean;
   error: unknown;
-  refetch: () => void;
+  /** True when `error` came from `loadMore` rather than the initial fetch or a refresh. */
+  isLoadMoreError: boolean;
+  refetch: () => Promise<unknown>;
   isFetching: boolean;
 }
 
 /**
- * Paginated card transaction history from the active card provider (Baanx),
+ * Paginated card transaction history from the active card provider,
  * via `CardController.listTransactions`. Includes merchant details, statuses
  * (including declined transactions), and on-chain settlement hashes in
  * `fundingSources[].txHash` for enriching Accounts API activity.
@@ -53,8 +52,7 @@ export interface UseCardTransactionsResult {
 export function useCardTransactions(
   options: UseCardTransactionsOptions = {},
 ): UseCardTransactionsResult {
-  const { searchQuery, fromDate, toDate } = options;
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery ?? '');
+  const { fromDate, toDate } = options;
   const queryClient = useQueryClient();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const providerId = useSelector(selectCardActiveProviderId);
@@ -62,14 +60,6 @@ export function useCardTransactions(
   // Existing production Card auth tokens predate providerUserId. Keep those
   // users isolated by provider until their next login stores the stable ID.
   const transactionCacheUserId = providerUserId ?? 'legacy';
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery ?? '');
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const cardController = Engine.context?.CardController;
 
@@ -85,7 +75,6 @@ export function useCardTransactions(
     queryKey: cardQueries.transactions.keys.list(
       providerId,
       transactionCacheUserId,
-      debouncedSearch,
       fromDate,
       toDate,
     ),
@@ -96,7 +85,6 @@ export function useCardTransactions(
       return cardController.listTransactions({
         limit: PAGE_LIMIT,
         cursor: pageParam,
-        searchQuery: debouncedSearch || undefined,
         fromDate,
         toDate,
       });
@@ -117,12 +105,35 @@ export function useCardTransactions(
     isAuthenticated &&
     Boolean(query.data?.pages[query.data.pages.length - 1]?.nextCursor);
 
-  const { isFetchingNextPage, fetchNextPage } = query;
+  const [fetchKind, setFetchKind] = useState<
+    'initial' | 'refresh' | 'loadMore'
+  >('initial');
+
+  const { isFetchingNextPage, fetchNextPage, refetch: refetchQuery } = query;
   const loadMore = useCallback(() => {
     if (hasMore && !isFetchingNextPage) {
-      fetchNextPage();
+      setFetchKind('loadMore');
+      fetchNextPage()
+        .then((result) => {
+          if (!result.error) {
+            setFetchKind('initial');
+          }
+        })
+        .catch(() => {
+          // Keep fetchKind as 'loadMore' so the footer retries this page.
+        });
     }
   }, [hasMore, isFetchingNextPage, fetchNextPage]);
+
+  const refetch = useCallback(() => {
+    setFetchKind('refresh');
+    return refetchQuery().then((result) => {
+      if (!result.error) {
+        setFetchKind('initial');
+      }
+      return result;
+    });
+  }, [refetchQuery]);
 
   return {
     items,
@@ -133,7 +144,8 @@ export function useCardTransactions(
     // loading and a background refetch doesn't flash the spinner.
     isLoading: query.isInitialLoading,
     error: query.error,
-    refetch: query.refetch,
+    isLoadMoreError: Boolean(query.error) && fetchKind === 'loadMore',
+    refetch,
     isFetching: query.isFetching,
   };
 }

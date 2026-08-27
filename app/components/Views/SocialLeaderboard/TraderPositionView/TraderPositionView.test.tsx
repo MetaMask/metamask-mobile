@@ -14,6 +14,7 @@ import { CandlePeriodBottomSheetSelectorsIDs as PerpsCandlePeriodBottomSheetSele
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
+import type { TradeAction } from '../utils/tradeAction';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
@@ -35,15 +36,21 @@ interface MockRouteParams {
   traderImageUrl?: string;
   traderAddress?: string;
   tokenSymbol?: string;
-  position?: Position;
+  position?: PositionWithActions;
   source?: string;
   originalEntryPoint?: string;
 }
 
-const makeMockTrades = (): Trade[] => [
+type TradeWithAction = Trade & { action: TradeAction };
+type PositionWithActions = Omit<Position, 'trades'> & {
+  trades: TradeWithAction[];
+};
+
+const makeMockTrades = (): TradeWithAction[] => [
   {
     intent: 'enter',
     direction: 'buy',
+    action: 'opened',
     tokenAmount: 1000,
     usdCost: 2200,
     timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
@@ -52,6 +59,7 @@ const makeMockTrades = (): Trade[] => [
   {
     intent: 'exit',
     direction: 'sell',
+    action: 'reduced',
     tokenAmount: 500,
     usdCost: 1100,
     timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
@@ -59,7 +67,7 @@ const makeMockTrades = (): Trade[] => [
   },
 ];
 
-const makeDefaultPosition = (): Position => ({
+const makeDefaultPosition = (): PositionWithActions => ({
   positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
@@ -1239,6 +1247,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'enter',
           direction: 'buy',
+          action: 'opened',
           tokenAmount: 1000,
           usdCost: 2200,
           timestamp: now - 30 * 60 * 1000,
@@ -1247,6 +1256,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'exit',
           direction: 'sell',
+          action: 'reduced',
           tokenAmount: 500,
           usdCost: 1100,
           timestamp: now - 2 * 24 * 60 * 60 * 1000,

@@ -194,6 +194,7 @@ const TraderPositionView = () => {
     pnlPercent,
     isPnlPositive,
     allTrades,
+    tradeActions,
     activeTimePeriod,
     isTimePeriodAutoSelected,
     setActiveTimePeriod,

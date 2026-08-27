@@ -1,12 +1,12 @@
-import { assertResolvedElementId } from './PlaywrightGestures.ts';
-import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import { assertResolvedElementId } from './AppiumGestures.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 
 describe('assertResolvedElementId', () => {
   const mockElement = (opts: {
     elementId?: unknown;
     selector?: unknown;
     elementIdError?: Error;
-  }): PlaywrightElement =>
+  }): AppiumElement =>
     ({
       unwrap: () => ({
         get elementId() {
@@ -19,7 +19,7 @@ describe('assertResolvedElementId', () => {
           return Promise.resolve(opts.selector);
         },
       }),
-    }) as unknown as PlaywrightElement;
+    }) as unknown as AppiumElement;
 
   it('returns elementId when present', async () => {
     const elem = mockElement({ elementId: 'abc-123' });

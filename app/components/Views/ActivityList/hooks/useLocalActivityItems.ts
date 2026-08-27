@@ -1,9 +1,10 @@
 /**
  * Builds enriched TransactionGroups from Mobile's local transactions and maps them
- * to ActivityListItem[] using the shared mapLocalTransaction adapter.
+ * to ActivityListItem[] using mapLocalTransaction from @metamask/client-utils.
  */
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { mapLocalTransaction } from '@metamask/client-utils';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -22,8 +23,8 @@ import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
-  mapLocalTransaction,
-  mobileActivityAdapterEnvironment,
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
   type TransactionGroup,
   type ActivityListItem,
   type Status,
@@ -225,15 +226,15 @@ function tokenFromQuoteAsset(
  * Unified swaps store their token metadata in the bridge/swaps quote, not on the
  * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
  * `swapMetaData` / native fallback) can miss a leg — most visibly a native
- * destination — leaving the row as `swapIncomplete` (empty "You received", no
- * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * destination — leaving the row as a `swap` with an empty received amount
+ * until the indexer backfills a full copy. Prefer the
  * quote (symbol always, amount/decimals/assetId when present) so the row resolves
  * to a complete swap immediately and reactively; fall back to the legacy
  * on-device fields for older SwapsController transactions with no bridge quote.
  *
  * Exported for the per-asset activity lists, which would otherwise re-derive
- * this and drift — an asset page that skips it renders every unified swap as
- * `swapIncomplete`.
+ * this and drift — an asset page that skips it would miss destination tokens
+ * on unified swaps.
  */
 export function getSwapTokenEnrichment(
   tx: TransactionMeta,
@@ -373,8 +374,18 @@ export function useLocalActivityItems(): ActivityListItem[] {
         isHardwareWalletAccount,
       };
 
-      const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
-      items.push({ ...item, isEarliestNonce });
+      const prepared = prepareLocalTransactionGroup(group);
+      const item = enrichLocalActivity(
+        mapLocalTransaction(
+          prepared as Parameters<typeof mapLocalTransaction>[0],
+        ) as ActivityListItem,
+        prepared,
+      );
+      items.push({
+        ...item,
+        raw: { type: 'localTransaction' as const, data: group },
+        isEarliestNonce,
+      });
     }
 
     return items;

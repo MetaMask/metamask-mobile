@@ -38,6 +38,13 @@ describe('PerpsOrderContext', () => {
     setTakeProfitPrice: jest.fn(),
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
+    commitLimitPrice: jest.fn(),
+    commitTriggerPrice: jest.fn(),
+    hasBlurredLimitPrice: false,
+    hasBlurredTriggerPrice: false,
+    triggerPrice: undefined,
+    setTriggerPrice: jest.fn(),
+    resetPriceInputInteraction: jest.fn(),
     setOrderType: jest.fn(),
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
@@ -138,6 +145,8 @@ describe('PerpsOrderContext', () => {
       expect(result.current.setTakeProfitPrice).toBeDefined();
       expect(result.current.setStopLossPrice).toBeDefined();
       expect(result.current.setLimitPrice).toBeDefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.setTriggerPrice).toBeDefined();
       expect(result.current.setOrderType).toBeDefined();
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();

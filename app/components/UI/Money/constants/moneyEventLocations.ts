@@ -13,6 +13,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
+  VBA_GET_PIX_KEY = 'vba_get_pix_key',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -77,6 +78,7 @@ export enum COMPONENT_NAMES {
   MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
   MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
   MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
+  MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT = 'money_add_money_sheet_bank_account',
 
   // — Transfer Money Sheet —
   MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
@@ -90,7 +92,6 @@ export enum COMPONENT_NAMES {
 
   // — Miscellaneous —
   MONEY_WHAT_YOU_GET_SECTION = 'money_what_you_get_section',
-  MONEY_MUSD_TOKEN_SECTION = 'money_musd_token_row_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
   MONEY_BALANCE_PROJECTION = 'money_balance_projection',
