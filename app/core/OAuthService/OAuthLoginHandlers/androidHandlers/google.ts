@@ -37,6 +37,57 @@ const ACM_ERRORS_REGEX = {
     /no provider dependencies|provider.{0,20}not available|provider.{0,20}configuration/i,
 };
 
+type AndroidGoogleAcmErrorKind =
+  | 'no_credential'
+  | 'user_disabled_feature'
+  | 'no_provider_dependencies'
+  | 'no_matching_credential'
+  | 'one_tap_failure';
+
+/**
+ * Classify the native ACM / legacy Google error string for Sentry.
+ * Login outcome mapping is unchanged: no-credential still throws UserCancelled.
+ */
+const classifyAndroidGoogleAcmError = (
+  message: string,
+): AndroidGoogleAcmErrorKind | undefined => {
+  if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(message)) {
+    return 'no_credential';
+  }
+  if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(message)) {
+    return 'user_disabled_feature';
+  }
+  if (ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(message)) {
+    return 'no_provider_dependencies';
+  }
+  if (ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(message)) {
+    return 'no_matching_credential';
+  }
+  if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(message)) {
+    return 'one_tap_failure';
+  }
+  return undefined;
+};
+
+const reportAndroidGoogleAcmError = (
+  nativeError: Error,
+  kind: AndroidGoogleAcmErrorKind,
+): void => {
+  Logger.error(nativeError, {
+    tags: {
+      feature: 'onboarding',
+      view: 'AndroidGoogleLogin',
+      acm_error: kind,
+    },
+    context: {
+      name: 'android_google_acm',
+      data: {
+        native_message: nativeError.message.slice(0, 500),
+      },
+    },
+  });
+};
+
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
@@ -110,10 +161,20 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
-        if (
+        const acmKind = classifyAndroidGoogleAcmError(error.message);
+        const mapsToUserCancelled =
           isOAuthUserCancellationMessage(error.message) ||
-          ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)
+          ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message);
+        // UserCancelled is swallowed in Onboarding and skipped in OAuthService traces.
+        // Report ACM strings that still throw UserCancelled (no-credential) plus
+        // the specific GoogleLogin* buckets. Skip explicit cancel wording.
+        if (
+          acmKind &&
+          (!mapsToUserCancelled || acmKind === 'no_credential')
         ) {
+          reportAndroidGoogleAcmError(error, acmKind);
+        }
+        if (mapsToUserCancelled) {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
