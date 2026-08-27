@@ -36,7 +36,7 @@ export async function importNewSecretRecoveryPhrase(
     options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
   ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
-  const { KeyringController, MultichainAccountService } = Engine.context;
+  const { MultichainAccountService } = Engine.context;
   const { shouldSelectAccount, skipDiscovery = false } = options;
 
   // Convert mnemonic
