@@ -179,7 +179,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8226,9 +8335,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8226,10 +8335,5 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -190,6 +190,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..e1a9a1441a44d6d096f8d6d8ea82224a
 -        submittedSize: formattedSize,
 -    };
 +    return buildAcceptedResult();
+ }, _HyperLiquidProvider_startChaseSession = 
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
 index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717e45ba73a 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
@@ -371,7 +372,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717
          const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
              a: assetId,
              o: Number(orderId),
-@@ -8222,9 +8331,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8222,10 +8331,5 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
      });
@@ -382,6 +383,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ee4ecee3b4a11b4101499a3bbfe47717
 -        submittedSize: formattedSize,
 -    };
 +    return buildAcceptedResult();
+ }, _HyperLiquidProvider_startChaseSession = 
 diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
 index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fbf320ee22 100644
 --- a/dist/services/TradingService.cjs

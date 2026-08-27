@@ -4,3 +4,6 @@
 
 # Shell scripts must keep LF so they run in WSL on Windows.
 *.sh text eol=lf
+
+# Yarn patches may contain required context from generated upstream artifacts.
+.yarn/patches/** whitespace=-trailing-space

@@ -9631,7 +9631,7 @@ __metadata:
 
 "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch":
   version: 13.0.0
-  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch::version=13.0.0&hash=3d9c85"
+  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch::version=13.0.0&hash=635ea4"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
