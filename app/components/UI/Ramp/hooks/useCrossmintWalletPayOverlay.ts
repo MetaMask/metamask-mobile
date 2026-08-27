@@ -217,12 +217,12 @@ export default function useCrossmintWalletPayOverlay(
             buyWidget.orderId,
           );
 
-        if (effectiveOrderId && effectiveWallet) {
+        if (effectiveOrderId && effectiveWallet && network) {
           addPrecreatedOrder({
             orderId: effectiveOrderId,
             providerCode: quote.provider,
             walletAddress: effectiveWallet,
-            ...(network ? { chainId: network } : {}),
+            chainId: network,
           });
         }
 
