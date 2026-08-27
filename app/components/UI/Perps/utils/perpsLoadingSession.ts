@@ -718,7 +718,6 @@ function requiresFreshMarkets(
 ): boolean {
   return (
     data.success !== false &&
-    data.content_state !== 'empty' &&
     (data.content_variant === 'trending' || data.content_variant === 'pills') &&
     (activeLifecycle === 'cold_no_cache' ||
       activeLifecycle === 'background_reconnect' ||

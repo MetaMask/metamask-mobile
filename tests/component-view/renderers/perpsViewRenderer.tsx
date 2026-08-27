@@ -94,6 +94,8 @@ function setTestMarketContext(
 ): void {
   const manager = PerpsConnectionManager as unknown as {
     initializedMarketContextKey: string | null;
+    initializedConnectionGeneration: number | null;
+    connectionGeneration: number;
   };
   const rootState = state as RootState;
   manager.initializedMarketContextKey = isInitialized
@@ -102,6 +104,9 @@ function setTestMarketContext(
         selectPerpsProvider(rootState),
         selectHip3ConfigVersion(rootState),
       )
+    : null;
+  manager.initializedConnectionGeneration = isInitialized
+    ? manager.connectionGeneration
     : null;
 }
 

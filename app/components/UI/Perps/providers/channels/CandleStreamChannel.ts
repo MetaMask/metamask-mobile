@@ -136,6 +136,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     { force: boolean; promise: Promise<void> }
   >();
   private prewarmGeneration = 0;
+  private generation = 0;
+  private contextGeneration = 0;
+  private readonly activeSubscriptionGenerations = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
@@ -230,6 +233,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   public override clearCache(): void {
+    this.contextGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.clear();
     this.prewarmGeneration += 1;
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);
@@ -471,12 +476,21 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const subscribedNetwork = Engine.context.PerpsController.state?.isTestnet
       ? 'testnet'
       : 'mainnet';
+    const subscriptionGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.set(cacheKey, subscriptionGeneration);
 
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
       duration,
       callback: (candleData: CandleData) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         if (__DEV__) {
           deliveryCount += 1;
           if (deliveryCount === 2) {
@@ -501,6 +515,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         // Log initialization failure
         DevLogger.log(
           'CandleStreamChannel: Subscription initialization failed',
@@ -521,6 +542,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         });
 
         // Clean up failed subscription
+        this.activeSubscriptionGenerations.delete(cacheKey);
         this.wsSubscriptions.delete(cacheKey);
       },
     });
@@ -546,6 +568,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.disconnectAll();
       return;
     }
+    this.activeSubscriptionGenerations.delete(cacheKey);
     // Cancel any pending deferred connect for this cacheKey
     const timer = this.deferConnectTimers.get(cacheKey);
     if (timer) {
@@ -601,6 +624,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   ): Promise<void> {
     const cacheKey = this.getCacheKey(symbol, interval);
     const cachedData = this.cache.get(cacheKey);
+    const contextGeneration = this.contextGeneration;
 
     // If no cached data or no candles, nothing to extend
     if (!cachedData || cachedData.candles.length === 0) {
@@ -656,6 +680,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
           limit,
           endTime,
         });
+
+      if (contextGeneration !== this.contextGeneration) {
+        return;
+      }
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
@@ -840,6 +868,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
+    this.activeSubscriptionGenerations.clear();
     // Cancel all deferred connect timers
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);

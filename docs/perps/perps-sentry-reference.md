@@ -161,6 +161,8 @@ setMeasurement(
 - **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
 - **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
 
+**CUF shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
+
 ### 4. `Perps Loading Session` (Homepage Readiness)
 
 **Use for:** Correlating Homepage Perps readiness milestones within one mounted surface and one account/provider/network/HIP-3 generation.
@@ -197,12 +199,12 @@ See the Market-detail readiness section in
 [`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the
 measurement names and dashboard filters.
 
-**Shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
-
-Market-detail Live adds two bounded unsuccessful reasons:
+Market-detail Live uses four bounded unsuccessful reasons:
 `generation_changed` when a newer symbol/account/network generation supersedes
-the open span, and `stats_error` when stats subscription setup fails. Dashboard
-latency filters exclude both; reliability widgets count them by reason.
+the open span, `stats_error` when stats subscription setup fails,
+`app_backgrounded` when the app leaves the foreground, and `owner_cancelled`
+when the screen stops owning the span. Dashboard latency filters exclude all
+four; reliability widgets count them by reason.
 
 ## Event Catalog
 
@@ -213,7 +215,7 @@ latency filters exclude both; reliability widgets count them by reason.
 | TraceName                             | Boundary (gesture → render-complete with live data)                             | Approach                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `PerpsEntryToLiveMarketList`          | Home mount → live market list (positions + markets + orders loaded)             | `usePerpsMeasurement` (`endConditions`)         |
-| `PerpsMarketDetailLive`               | Market detail mount → stats + price + account loaded                            | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsMarketDetailLive`               | Market detail mount → market + stats + price + account loaded                   | `usePerpsMeasurement` (`endConditions`)         |
 | `PerpsMarketDetailSession`            | Market detail mount → per-section resolved offsets for one Lite/Pro generation  | `usePerpsMarketDetailSession`                   |
 | `PerpsTradePageRender`                | Order view mount → price + fresh account (`!isLoadingAccount`)                  | `usePerpsMeasurement` (`endConditions`)         |
 | `PerpsPlaceOrderToPositionRendered`   | Market submit → matching position stream-rendered (+ `toast_position_delta_ms`) | `perpsCufTrace` (single-flight resolver)        |

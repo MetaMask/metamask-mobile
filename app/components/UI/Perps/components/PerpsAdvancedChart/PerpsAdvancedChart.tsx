@@ -341,6 +341,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     startedAt: number;
     transition: PerpsChartTransitionType;
   } | null>(null);
+  const settleSignalRef = useRef<{
+    seriesKey: string;
+    payload?: ChartRangeSettlePayload;
+  } | null>(null);
 
   useEffect(() => {
     const previousSeriesKey = visibilityTraceStartedRef.current;
@@ -438,6 +442,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         reportedResolutionRef.current = resolutionKey;
         onResolved?.(ohlcvSeriesKey, state);
       }
+      settleSignalRef.current = null;
     },
     [
       isLoading,
@@ -451,17 +456,39 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     ],
   );
 
+  const markSeriesSettled = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      const previousSignal = settleSignalRef.current;
+      settleSignalRef.current = {
+        seriesKey: ohlcvSeriesKey,
+        payload:
+          payload ??
+          (previousSignal?.seriesKey === ohlcvSeriesKey
+            ? previousSignal.payload
+            : undefined),
+      };
+      settleSeries(settleSignalRef.current.payload);
+    },
+    [ohlcvSeriesKey, settleSeries],
+  );
+
+  useEffect(() => {
+    const settleSignal = settleSignalRef.current;
+    if (settleSignal?.seriesKey !== ohlcvSeriesKey) return;
+    settleSeries(settleSignal.payload);
+  }, [ohlcvSeriesKey, settleSeries]);
+
   const handleSkeletonHidden = useCallback(
     (payload?: ChartRangeSettlePayload) => {
-      settleSeries(payload);
+      markSeriesSettled(payload);
       onSkeletonHidden?.(payload);
     },
-    [onSkeletonHidden, settleSeries],
+    [markSeriesSettled, onSkeletonHidden],
   );
 
   const handleChartLayoutSettled = useCallback(() => {
-    settleSeries();
-  }, [settleSeries]);
+    markSeriesSettled();
+  }, [markSeriesSettled]);
 
   // ---- Error fallback ----
 

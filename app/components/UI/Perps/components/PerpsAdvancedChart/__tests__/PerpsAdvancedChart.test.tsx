@@ -404,6 +404,77 @@ describe('PerpsAdvancedChart', () => {
     expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
   });
 
+  it('resolves content when data arrives after the layout settles', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: true,
+      hasCurrentSeriesData: false,
+    });
+    const { rerender } = renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).not.toHaveBeenCalled();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvData: [
+        { time: 1, open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 },
+      ],
+      isLoading: false,
+      hasCurrentSeriesData: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
+  });
+
+  it('resolves empty when the first delivery arrives after the layout settles', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: true,
+      hasCurrentSeriesData: false,
+    });
+    const { rerender } = renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).not.toHaveBeenCalled();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: false,
+      hasCurrentSeriesData: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+  });
+
   it('supersedes the active trace and starts an interval trace when only the interval changes', () => {
     const { rerender } = renderChart();
 
