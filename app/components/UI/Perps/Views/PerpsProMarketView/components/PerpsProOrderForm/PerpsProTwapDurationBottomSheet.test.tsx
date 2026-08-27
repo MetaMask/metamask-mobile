@@ -1,13 +1,25 @@
 import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { IconName } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Platform, TextInput } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
 import PerpsProTwapDurationBottomSheet from './PerpsProTwapDurationBottomSheet';
 
-jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
+const mockDateTimePicker = jest.fn();
+jest.mock('@react-native-community/datetimepicker', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockDateTimePicker(props);
+      return ReactActual.createElement('DateTimePicker', props);
+    },
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -22,6 +34,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const originalPlatform = Platform.OS;
+const iosCountdownReferenceMs = new Date(2026, 7, 27, 16, 0, 0).getTime();
 
 const createTwap = (
   overrides: Partial<PerpsProTwapModel> = {},
@@ -38,6 +51,13 @@ const createTwap = (
 });
 
 const pickerDate = (hours: number, minutes: number) => {
+  if (Platform.OS === 'ios') {
+    const date = new Date(iosCountdownReferenceMs);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 1);
+    date.setMinutes(hours * 60 + minutes);
+    return date;
+  }
   const date = new Date(0);
   date.setUTCHours(hours, minutes);
   return date;
@@ -51,14 +71,33 @@ const pickerEvent = (
   nativeEvent: { timestamp: date.getTime(), utcOffset: 0 },
 });
 
-const renderSheet = (twap = createTwap(), onClose = jest.fn()) => {
+const renderSheet = (
+  twap = createTwap(),
+  onClose = jest.fn(),
+  triggerNativeLayout = true,
+) => {
   render(<PerpsProTwapDurationBottomSheet twap={twap} onClose={onClose} />);
-  return { picker: screen.getByTestId(ids.TWAP_DURATION_PICKER), onClose };
+  const picker = screen.getByTestId(ids.TWAP_DURATION_PICKER);
+  if (triggerNativeLayout) {
+    fireEvent(picker, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 216 } },
+    });
+  }
+  return {
+    picker: screen.getByTestId(ids.TWAP_DURATION_PICKER),
+    onClose,
+  };
 };
 
 describe('PerpsProTwapDurationBottomSheet', () => {
   beforeEach(() => {
     Platform.OS = 'ios';
+    mockDateTimePicker.mockClear();
+    jest.spyOn(Date, 'now').mockReturnValue(iosCountdownReferenceMs);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -71,9 +110,64 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(screen.getByTestId(ids.TWAP_DURATION_SHEET)).toBeOnTheScreen();
     expect(picker).toHaveProp('mode', 'countdown');
     expect(picker).toHaveProp('display', 'spinner');
-    expect(picker).toHaveProp('timeZoneName', 'UTC');
     expect(picker).toHaveProp('themeVariant', 'light');
+    expect(picker).not.toHaveProp('timeZoneName');
+    expect(picker.props.value.getHours()).toBe(0);
+    expect(picker.props.value.getMinutes()).toBe(5);
+    expect(picker.props.value.getTime()).toBeGreaterThan(Date.now());
+    expect(screen.getByTestId(ids.TWAP_DURATION_SHEET_CLOSE)).toBeOnTheScreen();
+    expect(
+      screen.UNSAFE_getByProps({ name: IconName.ArrowDown }).props.name,
+    ).toBe(IconName.ArrowDown);
     expect(screen.UNSAFE_queryAllByType(TextInput)).toHaveLength(0);
+  });
+
+  it('passes a future 30-minute countdown value to the native iOS picker', () => {
+    const { picker } = renderSheet(
+      createTwap({ minutes: '30' }),
+      jest.fn(),
+      false,
+    );
+
+    expect(picker.props.value.getHours()).toBe(0);
+    expect(picker.props.value.getMinutes()).toBe(30);
+    expect(mockDateTimePicker).toHaveBeenCalledTimes(1);
+    const initialTimestamp = picker.props.value.getTime();
+
+    fireEvent(picker, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 216 } },
+    });
+
+    const renderedClockValues = mockDateTimePicker.mock.calls.map(([props]) => [
+      props.value.getHours(),
+      props.value.getMinutes(),
+    ]);
+
+    expect(renderedClockValues).toEqual([
+      [0, 30],
+      [0, 30],
+    ]);
+    const updatedPicker = screen.getByTestId(ids.TWAP_DURATION_PICKER);
+    expect(updatedPicker.props.value.getHours()).toBe(0);
+    expect(updatedPicker.props.value.getMinutes()).toBe(30);
+    expect(updatedPicker.props.value.getTime()).toBeGreaterThan(Date.now());
+    expect(updatedPicker.props.value.getTime()).toBe(initialTimestamp + 1);
+  });
+
+  it('omits duplicate running-time copy from the native picker sheet', () => {
+    renderSheet();
+
+    expect(
+      screen.queryByText(strings('perps.pro_order_form.twap.running_time')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings(
+          'perps.pro_order_form.twap.valid_range',
+          PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+        ),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('maps iOS midnight to 24 hours without closing the sheet', () => {
@@ -116,7 +210,8 @@ describe('PerpsProTwapDurationBottomSheet', () => {
         selectedDate,
       );
 
-      expect(picker.props.value).toEqual(selectedDate);
+      expect(picker.props.value.getHours()).toBe(0);
+      expect(picker.props.value.getMinutes()).toBe(minutes);
       expect(twap.onDaysChange).toHaveBeenCalledWith('');
       expect(twap.onHoursChange).toHaveBeenCalledWith('0');
       expect(twap.onMinutesChange).toHaveBeenCalledWith(String(minutes));
@@ -151,11 +246,20 @@ describe('PerpsProTwapDurationBottomSheet', () => {
         createTwap({ days: '1', hours: '0', minutes: '0' }),
       );
 
-      expect(picker.props.value).toEqual(pickerDate(0, 0));
+      expect(
+        platform === 'ios'
+          ? picker.props.value.getHours()
+          : picker.props.value.getUTCHours(),
+      ).toBe(0);
+      expect(
+        platform === 'ios'
+          ? picker.props.value.getMinutes()
+          : picker.props.value.getUTCMinutes(),
+      ).toBe(0);
     },
   );
 
-  it('closes from the sheet header without changing the duration', () => {
+  it('closes from the sheet dismiss control without changing the duration', () => {
     const twap = createTwap();
     const onClose = jest.fn();
     renderSheet(twap, onClose);
@@ -193,6 +297,7 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(picker).toHaveProp('mode', 'time');
     expect(picker).toHaveProp('display', 'spinner');
     expect(picker).toHaveProp('is24Hour', true);
+    expect(picker).toHaveProp('timeZoneName', 'UTC');
 
     fireEvent(
       picker,

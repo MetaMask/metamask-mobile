@@ -729,6 +729,18 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('handlePlaceOrder', () => {
+    it('starts a new TWAP draft at the Figma default of 30 minutes', () => {
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(result.current.twap).toMatchObject({
+        days: '',
+        hours: '',
+        minutes: '30',
+      });
+    });
+
     it('submits valid TWAP params with live mid price and Randomize', async () => {
       mockOrderForm.type = 'twap';
       const { result } = renderProForm();

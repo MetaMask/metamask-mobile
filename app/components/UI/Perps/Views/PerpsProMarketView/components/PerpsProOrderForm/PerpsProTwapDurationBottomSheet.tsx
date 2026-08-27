@@ -1,7 +1,9 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -11,7 +13,7 @@ import { Theme, useTheme } from '@metamask/design-system-twrnc-preset';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
@@ -21,6 +23,22 @@ import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
 const ids = PerpsProOrderFormSelectorsIDs;
 const { HoursPerDay, MaximumDurationMinutes, MinutesPerHour } =
   PERPS_TWAP_UI_CONFIG;
+const NativeCountdownReapplyOffsetMs = 1;
+
+const createFutureIosCountdownDate = (
+  clockMinutes: number,
+  referenceMs: number,
+  reapplyAfterLayout: boolean,
+) => {
+  const date = new Date(referenceMs);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 1);
+  date.setMinutes(clockMinutes);
+  if (reapplyAfterLayout) {
+    date.setMilliseconds(NativeCountdownReapplyOffsetMs);
+  }
+  return date;
+};
 
 interface PerpsProTwapDurationBottomSheetProps {
   twap: PerpsProTwapModel;
@@ -34,28 +52,44 @@ const PerpsProTwapDurationBottomSheet = ({
   const theme = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
   const pendingAndroidDateRef = useRef<Date | undefined>(undefined);
+  const iosCountdownReferenceMs = useRef(Date.now()).current;
+  const [isIosCountdownReady, setIsIosCountdownReady] = useState(false);
   const durationMinutes =
     (Number.parseInt(twap.days, 10) || 0) * HoursPerDay * MinutesPerHour +
     (Number.parseInt(twap.hours, 10) || 0) * MinutesPerHour +
     (Number.parseInt(twap.minutes, 10) || 0);
-  const pickerValue = new Date(0);
   // The native clock wraps at midnight, so 0:00 represents the 24h maximum.
   const pickerMinutes =
     durationMinutes === MaximumDurationMinutes
       ? 0
       : Math.min(durationMinutes, MaximumDurationMinutes - 1);
-  pickerValue.setUTCHours(
-    Math.floor(pickerMinutes / MinutesPerHour),
-    pickerMinutes % MinutesPerHour,
-  );
+  const pickerValue =
+    Platform.OS === 'ios'
+      ? createFutureIosCountdownDate(
+          pickerMinutes,
+          iosCountdownReferenceMs,
+          isIosCountdownReady,
+        )
+      : new Date(0);
+  if (Platform.OS === 'android') {
+    const pickerHours = Math.floor(pickerMinutes / MinutesPerHour);
+    const remainingPickerMinutes = pickerMinutes % MinutesPerHour;
+    pickerValue.setUTCHours(pickerHours, remainingPickerMinutes);
+  }
   const themeVariant = theme === Theme.Dark ? 'dark' : 'light';
   const pickerModeProps =
     Platform.OS === 'ios'
       ? { mode: 'countdown' as const, themeVariant }
-      : { mode: 'time' as const, is24Hour: true };
+      : { mode: 'time' as const, is24Hour: true, timeZoneName: 'UTC' };
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
+  }, []);
+
+  const handlePickerLayout = useCallback(() => {
+    // Fabric applies `date` before `mode`. A 1 ms timestamp change after native
+    // layout reapplies the same clock minute after countdown mode is mounted.
+    setIsIosCountdownReady(true);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -65,11 +99,17 @@ const PerpsProTwapDurationBottomSheet = ({
   const applyDuration = useCallback(
     (date: Date) => {
       const clockMinutes =
-        date.getUTCHours() * MinutesPerHour + date.getUTCMinutes();
+        Platform.OS === 'ios'
+          ? date.getHours() * MinutesPerHour + date.getMinutes()
+          : date.getUTCHours() * MinutesPerHour + date.getUTCMinutes();
       const isMaximumDuration = clockMinutes === 0;
       twap.onDaysChange(isMaximumDuration ? '1' : '');
-      twap.onHoursChange(String(isMaximumDuration ? 0 : date.getUTCHours()));
-      twap.onMinutesChange(String(date.getUTCMinutes()));
+      twap.onHoursChange(
+        String(
+          isMaximumDuration ? 0 : Math.floor(clockMinutes / MinutesPerHour),
+        ),
+      );
+      twap.onMinutesChange(String(clockMinutes % MinutesPerHour));
     },
     [twap],
   );
@@ -101,25 +141,22 @@ const PerpsProTwapDurationBottomSheet = ({
       onClose={handleSheetClose}
       testID={ids.TWAP_DURATION_SHEET}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{ testID: ids.TWAP_DURATION_SHEET_CLOSE }}
-      >
-        {strings('perps.pro_order_form.twap.running_time')}
-      </BottomSheetHeader>
+      <Box twClassName="items-end px-4 pt-1">
+        <ButtonIcon
+          iconName={IconName.ArrowDown}
+          size={ButtonIconSize.Md}
+          onPress={handleClose}
+          testID={ids.TWAP_DURATION_SHEET_CLOSE}
+          accessibilityLabel={strings('perps.pro_order_form.twap.running_time')}
+        />
+      </Box>
       <Box twClassName="items-center gap-3 px-4 pb-4">
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {strings(
-            'perps.pro_order_form.twap.valid_range',
-            PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
-          )}
-        </Text>
         <DateTimePicker
           testID={ids.TWAP_DURATION_PICKER}
           value={pickerValue}
           display="spinner"
-          timeZoneName="UTC"
           onChange={handleChange}
+          onLayout={handlePickerLayout}
           {...pickerModeProps}
         />
         {twap.durationError ? (
