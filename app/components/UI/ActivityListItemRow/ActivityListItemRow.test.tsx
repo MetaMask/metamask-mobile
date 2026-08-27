@@ -2132,11 +2132,11 @@ const EXPECTED_TITLES = {
   rampBuy: 'Bought',
   sell: 'Sold',
   rampSell: 'Sold',
-  claim: 'Claimed Ethereum',
+  claim: 'Claimed ETH',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
-  stake: 'Staked Ethereum',
-  unstake: 'Unstaked Ethereum',
+  stake: 'Staked ETH',
+  unstake: 'Unstaked ETH',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
@@ -2224,7 +2224,7 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     );
 
     expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
-    expect(getByText('Unstaked Ethereum')).toBeOnTheScreen();
+    expect(getByText('Unstaked ETH')).toBeOnTheScreen();
     // The asset is named for the avatar only — no amount is invented.
     expect(queryByText('+0 ETH')).toBeNull();
   });
@@ -2242,7 +2242,7 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(queryByTestId('avatar-token-ETH')).toBeNull();
   });
 
-  it('reads the full asset name for an EVM ETH claim', () => {
+  it('reads the ticker for an EVM ETH claim', () => {
     const item = makeItem({
       type: 'claim',
       status: 'success',
@@ -2250,11 +2250,11 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     });
     const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
 
-    expect(getByText('Claimed Ethereum')).toBeOnTheScreen();
+    expect(getByText('Claimed ETH')).toBeOnTheScreen();
   });
 
   it.each(['claim', 'unstake'] as const)(
-    'reads the asset name for a tokenless EVM %s',
+    'falls back to the ETH ticker for a tokenless EVM %s',
     (type) => {
       const item = makeItem({ type, status: 'success' });
       const { getByText } = render(
@@ -2262,7 +2262,7 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
       );
 
       expect(
-        getByText(type === 'claim' ? 'Claimed Ethereum' : 'Unstaked Ethereum'),
+        getByText(type === 'claim' ? 'Claimed ETH' : 'Unstaked ETH'),
       ).toBeOnTheScreen();
     },
   );
@@ -2541,7 +2541,7 @@ describe('ActivityListItemRow — pending rows', () => {
     const amount = getByTestId(`activity-primary-amount-${item.hash}`);
     const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
 
-    expect(title).toHaveTextContent('Unstaking Ethereum');
+    expect(title).toHaveTextContent('Unstaking ETH');
     expect(amount).toHaveTextContent('+0.0007901 ETH');
     expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
       flexShrink: 1,
