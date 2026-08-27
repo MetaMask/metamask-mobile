@@ -14,6 +14,15 @@ import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useSectionTracking } from './useSectionTracking';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { getAddressAccountType } from '../../../../../util/address';
+import {
+  normalizeOnboardingCompletedAccountType,
+  OnboardingCompletedAccountType,
+} from '../../../../../util/analytics/onboardingCompletedAnalytics';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
+import { KeyringType } from '@metamask/keyring-api/v2';
 
 export type { SectionTrackingResult as PaySectionSourceMetrics } from './useSectionTracking';
 
@@ -32,6 +41,18 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
+  const payingAccount = useTransactionPayingAccount();
+  const payingAccountKeyringType = useSelector((state: RootState) =>
+    payingAccount
+      ? getMemoizedInternalAccountByAddress(state, payingAccount)?.metadata
+          .keyring.type
+      : undefined,
+  );
+  const cryptoAccountType = getCryptoAccountType(
+    payingAccount,
+    payingAccountKeyringType,
+  );
+  const accountOverride = useTransactionAccountOverride();
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
@@ -39,6 +60,11 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const isPayingAccountReady =
+    !isMoneyAccountDeposit || Boolean(accountOverride);
 
   // Track whether any payment override has been applied
   const overrideAppliedRef = useRef(false);
@@ -56,9 +82,13 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
     isPredictBalanceSelected:
       isPredictDepositAndOrder && isPredictBalanceSelected,
     hasFiatPaymentSelected,
+    cryptoAccountType,
   });
 
-  return useSectionTracking(currentSection, hasPayToken);
+  return useSectionTracking(
+    currentSection,
+    hasPayToken && isPayingAccountReady,
+  );
 }
 
 function getActiveSectionId({
@@ -66,15 +96,96 @@ function getActiveSectionId({
   isPerpsBalanceSelected,
   isPredictBalanceSelected,
   hasFiatPaymentSelected,
+  cryptoAccountType,
 }: {
   isMoneyAccountActive: boolean;
   isPerpsBalanceSelected: boolean;
   isPredictBalanceSelected: boolean;
   hasFiatPaymentSelected: boolean;
+  cryptoAccountType: PayWithSectionId;
 }): PayWithSectionId {
   if (isMoneyAccountActive) return 'money-account';
   if (isPerpsBalanceSelected) return 'perps';
   if (isPredictBalanceSelected) return 'predict';
   if (hasFiatPaymentSelected) return 'bank-card';
-  return 'crypto';
+  return cryptoAccountType;
+}
+
+function getCryptoAccountType(
+  address: string | undefined,
+  keyringType: string | undefined,
+): PayWithSectionId {
+  const accountTypeFromKeyring = getAccountTypeFromKeyring(keyringType);
+  if (accountTypeFromKeyring) {
+    return accountTypeFromKeyring;
+  }
+
+  if (!address) {
+    return 'crypto';
+  }
+
+  try {
+    const accountType = getAddressAccountType(address);
+
+    return (
+      normalizeOnboardingCompletedAccountType(
+        accountType === 'MetaMask' || accountType === 'Imported'
+          ? accountType.toLowerCase()
+          : accountType,
+      ) ?? 'crypto'
+    );
+  } catch {
+    return 'crypto';
+  }
+}
+
+function getAccountTypeFromKeyring(
+  keyringType: string | undefined,
+): OnboardingCompletedAccountType | undefined {
+  const normalizedKeyringType = keyringType?.toLowerCase();
+  if (!normalizedKeyringType) {
+    return undefined;
+  }
+
+  if (
+    normalizedKeyringType === KeyringType.Hd ||
+    normalizedKeyringType === 'hd key tree'
+  ) {
+    return OnboardingCompletedAccountType.Metamask;
+  }
+
+  if (
+    normalizedKeyringType === KeyringType.PrivateKey ||
+    normalizedKeyringType === 'simple key pair'
+  ) {
+    return OnboardingCompletedAccountType.Imported;
+  }
+
+  if (
+    normalizedKeyringType === KeyringType.Snap ||
+    normalizedKeyringType.includes('snap keyring')
+  ) {
+    return OnboardingCompletedAccountType.Snap;
+  }
+
+  if (normalizedKeyringType.includes(KeyringType.Ledger)) {
+    return OnboardingCompletedAccountType.Ledger;
+  }
+
+  if (normalizedKeyringType.includes(KeyringType.Trezor)) {
+    return OnboardingCompletedAccountType.Trezor;
+  }
+
+  if (normalizedKeyringType.includes(KeyringType.Lattice)) {
+    return OnboardingCompletedAccountType.Lattice;
+  }
+
+  if (
+    normalizedKeyringType.includes(KeyringType.Qr) ||
+    normalizedKeyringType.includes(KeyringType.OneKey)
+  ) {
+    return OnboardingCompletedAccountType.QrHardware;
+  }
+
+  return undefined;
 }

@@ -11,12 +11,21 @@ import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/select
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { getAddressAccountType } from '../../../../../util/address';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
+import { KeyringType } from '@metamask/keyring-api/v2';
 
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../UI/Predict/selectors/predictController');
 jest.mock('./useIsMoneyAccountFlagDefault');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('../transactions/useTransactionPayingAccount');
+jest.mock('../transactions/useTransactionAccountOverride');
+jest.mock('../../../../../util/address');
+jest.mock('../../../../../selectors/accountsController');
 
 const selectPaymentOverrideMock = jest.mocked(
   selectPaymentOverrideByTransactionId,
@@ -31,6 +40,18 @@ const useIsMoneyAccountFlagDefaultMock = jest.mocked(
 const useTransactionPayFiatPaymentMock = jest.mocked(
   useTransactionPayFiatPayment,
 );
+const useTransactionPayingAccountMock = jest.mocked(
+  useTransactionPayingAccount,
+);
+const useTransactionAccountOverrideMock = jest.mocked(
+  useTransactionAccountOverride,
+);
+const getAddressAccountTypeMock = jest.mocked(getAddressAccountType);
+const getInternalAccountByAddressMock = jest.mocked(
+  getMemoizedInternalAccountByAddress,
+);
+
+const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
 
 function runHook({
   type,
@@ -62,16 +83,78 @@ describe('usePaySectionSourceMetrics', () => {
     });
     useIsMoneyAccountFlagDefaultMock.mockReturnValue(false);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useTransactionPayingAccountMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
+    getAddressAccountTypeMock.mockReturnValue('MetaMask');
+    getInternalAccountByAddressMock.mockReturnValue(undefined);
   });
 
-  it('defaults to crypto', () => {
+  it('defaults to the MetaMask account type', () => {
     const { result } = runHook();
 
     expect(result.current).toEqual({
-      presented: 'crypto',
-      selected: 'crypto',
+      presented: 'metamask',
+      selected: 'metamask',
       switchCount: 0,
     });
+  });
+
+  it.each([
+    ['Imported', 'imported'],
+    ['Ledger', 'Ledger'],
+    ['QR Hardware', 'QR Hardware'],
+  ] as const)(
+    'returns %s as %s for a crypto source',
+    (accountType, expected) => {
+      getAddressAccountTypeMock.mockReturnValue(accountType);
+
+      const { result } = runHook();
+
+      expect(result.current.selected).toBe(expected);
+    },
+  );
+
+  it('falls back to crypto when the account type is unavailable', () => {
+    getAddressAccountTypeMock.mockImplementation(() => {
+      throw new Error('Account unavailable');
+    });
+
+    const { result } = runHook();
+
+    expect(result.current.selected).toBe('crypto');
+  });
+
+  it.each([
+    ['Snap Keyring', 'snap'],
+    [KeyringType.Trezor, 'Trezor'],
+    [KeyringType.Lattice, 'Lattice'],
+  ] as const)(
+    'returns %s from the internal account as %s',
+    (keyringType, expected) => {
+      getInternalAccountByAddressMock.mockReturnValue({
+        metadata: { keyring: { type: keyringType } },
+      } as never);
+
+      const { result } = runHook();
+
+      expect(result.current.selected).toBe(expected);
+      expect(getAddressAccountTypeMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it('captures the payer type after a Money Account deposit override loads', () => {
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(result.current.presented).toBeNull();
+
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+    getAddressAccountTypeMock.mockReturnValue('Ledger');
+    rerender({});
+
+    expect(result.current.presented).toBe('Ledger');
+    expect(result.current.selected).toBe('Ledger');
   });
 
   it('returns money-account when payment override is MoneyAccount', () => {
@@ -101,12 +184,12 @@ describe('usePaySectionSourceMetrics', () => {
     expect(result.current.selected).toBe('perps');
   });
 
-  it('returns crypto when perps balance selected but not perpsDepositAndOrder', () => {
+  it('returns the account type when perps balance is unused', () => {
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
 
     const { result } = runHook({ type: TransactionType.perpsDeposit });
 
-    expect(result.current.selected).toBe('crypto');
+    expect(result.current.selected).toBe('metamask');
   });
 
   it('returns predict when predict balance selected for predictDepositAndOrder', () => {
@@ -151,12 +234,12 @@ describe('usePaySectionSourceMetrics', () => {
   it('captures presented on first render and preserves it', () => {
     const { result, rerender } = runHook();
 
-    expect(result.current.presented).toBe('crypto');
+    expect(result.current.presented).toBe('metamask');
 
     selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
     rerender({});
 
-    expect(result.current.presented).toBe('crypto');
+    expect(result.current.presented).toBe('metamask');
     expect(result.current.selected).toBe('money-account');
   });
 

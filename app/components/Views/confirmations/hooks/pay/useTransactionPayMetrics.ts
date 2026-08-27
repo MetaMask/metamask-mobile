@@ -30,6 +30,11 @@ import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPayS
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { OnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
+
+const CRYPTO_ACCOUNT_TYPES = new Set<string>(
+  Object.values(OnboardingCompletedAccountType),
+);
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -70,7 +75,10 @@ export function useTransactionPayMetrics() {
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
-  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+  const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
+    ? 'crypto'
+    : source.selected;
+  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
