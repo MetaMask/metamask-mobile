@@ -976,12 +976,66 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('keeps a selected TWAP while capability discovery is pending', () => {
+    it('preserves a selected TWAP draft through capability reinitialization', () => {
       mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({
+          isTwapEnabled,
+          isTwapAvailabilityPending,
+          resolvedTwapProviderId,
+        }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending,
+            resolvedTwapProviderId,
+          }),
+        {
+          initialProps: {
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid' as
+              | PerpsProviderType
+              | undefined,
+          },
+        },
+      );
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('2');
+        result.current.twap.onMinutesChange('30');
+        result.current.twap.onRandomizeChange(true);
+      });
+      mockSetOrderType.mockClear();
 
-      renderProForm(true, false, undefined, true);
+      rerender({
+        isTwapEnabled: false,
+        isTwapAvailabilityPending: true,
+        resolvedTwapProviderId: undefined,
+      });
 
       expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(result.current.twap).toMatchObject({
+        days: '1',
+        hours: '2',
+        minutes: '30',
+        randomize: true,
+      });
+
+      rerender({
+        isTwapEnabled: true,
+        isTwapAvailabilityPending: false,
+        resolvedTwapProviderId: 'hyperliquid',
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(result.current.twap).toMatchObject({
+        days: '1',
+        hours: '2',
+        minutes: '30',
+        randomize: true,
+      });
     });
 
     it('keeps ordinary placement on controller default routing', async () => {

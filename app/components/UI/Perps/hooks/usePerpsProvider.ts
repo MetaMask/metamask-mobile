@@ -14,6 +14,10 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
+import {
+  PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
+  PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
+} from '../constants/perpsConfig';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -25,9 +29,6 @@ const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
 };
-
-const ORDER_CAPABILITIES_MAX_RETRIES = 2;
-const ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
 
 /**
  * Hook for managing perps provider selection
@@ -116,9 +117,13 @@ export function usePerpsProvider(
   const orderCapabilities = isCurrentCapabilityRequest
     ? orderCapabilitiesState.capabilities
     : null;
+  const isAwaitingCapabilityInitialization =
+    Boolean(orderCapabilitiesParams?.symbol) &&
+    initializationState === InitializationState.Initializing;
   const isLoadingOrderCapabilities =
-    capabilityRequestKey !== undefined &&
-    (!isCurrentCapabilityRequest || orderCapabilitiesState.isLoading);
+    isAwaitingCapabilityInitialization ||
+    (capabilityRequestKey !== undefined &&
+      (!isCurrentCapabilityRequest || orderCapabilitiesState.isLoading));
 
   useEffect(() => {
     let isCurrent = true;
@@ -159,14 +164,14 @@ export function usePerpsProvider(
         if (
           capabilities.status === 'unavailable' &&
           capabilities.reason === 'provider_unavailable' &&
-          retryCount < ORDER_CAPABILITIES_MAX_RETRIES
+          retryCount < PERPS_ORDER_CAPABILITIES_MAX_RETRIES
         ) {
           retryTimeout = setTimeout(
             () => {
               retryTimeout = undefined;
               loadCapabilities(retryCount + 1);
             },
-            ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS * 2 ** retryCount,
+            PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS * 2 ** retryCount,
           );
           return;
         }

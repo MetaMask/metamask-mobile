@@ -221,6 +221,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   RetryDelayMs: 1000,
 } as const;
 
+/** Extra capability requests after transient provider unavailability. */
+export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
+
+/** Initial delay for exponential capability-request retries. */
+export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
+
 /**
  * Development-only configuration for testing and debugging
  * These constants are only active when __DEV__ is true

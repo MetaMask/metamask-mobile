@@ -20,6 +20,7 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
@@ -37,7 +38,8 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
   'take_profit_market',
 ];
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
-const TWAP_SUPPORTED_PROVIDER: PerpsProviderType = 'hyperliquid';
+const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;

@@ -323,6 +323,7 @@ describe('usePerpsProvider', () => {
 
     it('refetches capabilities when the same provider returns to initialized', async () => {
       let initializationState = InitializationState.Initialized;
+      const refreshedCapabilities = createDeferredCapabilities();
       mockAggregatedProviderSelectors(() => initializationState);
       mockGetOrderCapabilities
         .mockResolvedValueOnce({
@@ -330,11 +331,7 @@ describe('usePerpsProvider', () => {
           providerId: 'hyperliquid',
           supportedStrategies: ['twap'],
         })
-        .mockResolvedValueOnce({
-          status: 'ready',
-          providerId: 'hyperliquid',
-          supportedStrategies: [],
-        });
+        .mockReturnValueOnce(refreshedCapabilities.promise);
       const { result, rerender } = renderHook(() =>
         usePerpsProvider({ symbol: 'BTC' }),
       );
@@ -345,14 +342,26 @@ describe('usePerpsProvider', () => {
       initializationState = InitializationState.Initializing;
       rerender(undefined);
       expect(result.current.supportsTwapOrders).toBe(false);
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+
       initializationState = InitializationState.Initialized;
       rerender(undefined);
-
       await waitFor(() => {
         expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
-        expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
-      expect(result.current.supportsTwapOrders).toBe(false);
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+
+      await act(async () => {
+        refreshedCapabilities.resolve({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap'],
+        });
+        await refreshedCapabilities.promise;
+      });
+
+      expect(result.current.isLoadingOrderCapabilities).toBe(false);
+      expect(result.current.supportsTwapOrders).toBe(true);
     });
 
     it('ignores a late response from a prior controller initialization', async () => {
