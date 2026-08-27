@@ -1,6 +1,7 @@
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import type { LaunchArgs } from '../../types.ts';
 import {
+  isUiAutomator2SessionDeadError,
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../../Constants.ts';
@@ -9,6 +10,7 @@ import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
 import AppiumUtilities from '../../AppiumUtilities.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
+import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import {
   isDeviceHealthError,
@@ -25,6 +27,31 @@ const sleep = (ms: number): Promise<void> =>
       timer.unref();
     }
   });
+
+/**
+ * Soft-reload can leave the WDIO session alive while UiAutomator2 instrumentation
+ * is dead. Element probes then burn the full waitForAppReady budget as false
+ * "rehydration" timeouts. Fail fast and request session recreate.
+ */
+async function assertAndroidInstrumentationAlive(
+  drv: WebdriverIO.Browser | undefined,
+): Promise<void> {
+  if (!drv || !PlatformDetector.isAndroid()) {
+    return;
+  }
+
+  try {
+    // Any element command hits the instrumentation process. Use a cheap,
+    // non-existent id so a healthy session returns quickly with no match.
+    await drv.$('id=mm-soft-reload-uia2-health-probe').isExisting();
+  } catch (error) {
+    if (isUiAutomator2SessionDeadError(error) || isDeviceHealthError(error)) {
+      requestSharedSessionRecreate();
+      throw error;
+    }
+    // Other lookup failures are unrelated to instrumentation liveness.
+  }
+}
 
 /**
  * Minimal fixture-server surface needed for soft reload bootstrap wait.
@@ -161,6 +188,8 @@ export async function softReloadAppForFixtures(
     }
     throw error;
   }
+
+  await assertAndroidInstrumentationAlive(drv);
 
   logger.info(
     `Soft reload complete: clearAppData=${clearAppDataMs}ms, ` +

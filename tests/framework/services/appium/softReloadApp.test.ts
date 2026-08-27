@@ -8,6 +8,7 @@ import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
 import AppiumUtilities from '../../AppiumUtilities.ts';
 import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
+import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import {
@@ -42,6 +43,13 @@ jest.mock('../../Constants.ts', () => ({
   shouldHandleMetroDevLauncherLocally: jest.fn(() => false),
 }));
 
+jest.mock('../../PlatformLocator.ts', () => ({
+  PlatformDetector: {
+    isAndroid: jest.fn(() => true),
+    isIOS: jest.fn(() => false),
+  },
+}));
+
 jest.mock('./sessionHealth.ts', () => ({
   switchToNativeContext: jest.fn().mockResolvedValue(true),
 }));
@@ -66,6 +74,20 @@ const dismissMetroMock =
   dismissDevelopmentServerPickerPlaywright as jest.MockedFunction<
     typeof dismissDevelopmentServerPickerPlaywright
   >;
+const isAndroidMock = PlatformDetector.isAndroid as jest.MockedFunction<
+  typeof PlatformDetector.isAndroid
+>;
+
+const createDrv = (
+  overrides: Partial<{ isExisting: jest.Mock }> = {},
+): WebdriverIO.Browser => {
+  const isExisting =
+    overrides.isExisting ?? jest.fn().mockResolvedValue(false);
+  return {
+    sessionId: 's1',
+    $: jest.fn().mockReturnValue({ isExisting }),
+  } as unknown as WebdriverIO.Browser;
+};
 
 describe('softReloadAppForFixtures', () => {
   const currentDeviceDetails: CurrentDeviceDetails = {
@@ -88,6 +110,7 @@ describe('softReloadAppForFixtures', () => {
     fixtureServer = { waitForNextStateRequest };
     deviceCommands = { clearAppData };
     shouldHandleMetroMock.mockReturnValue(false);
+    isAndroidMock.mockReturnValue(true);
     switchToNativeContextMock.mockResolvedValue(true);
     launchAppMock.mockResolvedValue(undefined);
     dismissMetroMock.mockResolvedValue(undefined);
@@ -100,7 +123,7 @@ describe('softReloadAppForFixtures', () => {
   });
 
   it('clears app data, resets NATIVE_APP context, launches, and waits for bootstrap', async () => {
-    const drv = { sessionId: 's1' } as unknown as WebdriverIO.Browser;
+    const drv = createDrv();
     const launchArgs = { fixtureServerPort: '1234' };
 
     const result = await softReloadAppForFixtures({
@@ -119,6 +142,7 @@ describe('softReloadAppForFixtures', () => {
     expect(launchAppMock).toHaveBeenCalledWith(currentDeviceDetails, {
       launchArgs,
     });
+    expect(drv.$).toHaveBeenCalled();
     expect(result.attemptedMetroDevLauncherDismissal).toBe(false);
     expect(result.clearAppDataMs).toBeGreaterThanOrEqual(0);
     expect(result.contextResetMs).toBeGreaterThanOrEqual(0);
@@ -131,7 +155,7 @@ describe('softReloadAppForFixtures', () => {
       currentDeviceDetails,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(clearAppData).not.toHaveBeenCalled();
@@ -152,7 +176,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(callOrder.indexOf('wait')).toBeLessThan(callOrder.indexOf('launch'));
@@ -166,7 +190,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(result.attemptedMetroDevLauncherDismissal).toBe(true);
@@ -183,7 +207,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
@@ -201,11 +225,33 @@ describe('softReloadAppForFixtures', () => {
         deviceCommands,
         launchArgs: {},
         fixtureServer,
-        drv: {} as WebdriverIO.Browser,
+        drv: createDrv(),
       }),
     ).rejects.toThrow(/pm clear/);
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
+    expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
+  it('fails fast and requests recreate when UiAutomator2 is dead after soft reload', async () => {
+    const drv = createDrv({
+      isExisting: jest.fn().mockRejectedValue(
+        new Error(
+          "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+        ),
+      ),
+    });
+
+    await expect(
+      softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv,
+      }),
+    ).rejects.toThrow(/instrumentation process is not running/);
+
     expect(consumeSharedSessionRecreate()).toBe(true);
   });
 });
