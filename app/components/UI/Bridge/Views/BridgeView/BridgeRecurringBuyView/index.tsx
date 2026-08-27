@@ -5,8 +5,10 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   selectBridgeBalanceRefreshKey,
+  selectRecurringEveryUnit,
   selectRecurringPriceRange,
   selectSourceToken,
+  setRecurringEveryUnit,
   setRecurringPriceRange,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
@@ -15,6 +17,7 @@ import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOpt
 import OrdersTabs from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
 import PriceRangeSheet from '../../../components/PriceRangeSheet';
+import RecurringIntervalSheet from '../../../components/RecurringIntervalSheet';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
@@ -35,6 +38,7 @@ import {
   isPriceRangeInCurrentCurrency,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
+import type { RecurringIntervalUnit } from '../../../utils/recurringSchedule';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
@@ -54,6 +58,7 @@ const BridgeRecurringBuyViewContent = ({
   const inputRef = useRef<TokenInputAreaRef>(null);
   const [isPriceRangeSheetVisible, setIsPriceRangeSheetVisible] =
     useState(false);
+  const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
 
   const {
     destToken,
@@ -73,6 +78,7 @@ const BridgeRecurringBuyViewContent = ({
   } = useRecurringBuySwapInputs({ latestSourceBalance });
 
   const priceRange = useSelector(selectRecurringPriceRange);
+  const everyUnit = useSelector(selectRecurringEveryUnit);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceFiatRate = useTokenFiatRate(sourceToken);
   const destFiatRate = useTokenFiatRate(destToken);
@@ -119,6 +125,22 @@ const BridgeRecurringBuyViewContent = ({
   const handlePriceRangeConfirm = useCallback(
     (nextPriceRange?: RecurringPriceRange) => {
       dispatch(setRecurringPriceRange(nextPriceRange));
+    },
+    [dispatch],
+  );
+
+  const handleUnitPress = useCallback(() => {
+    dismissInputAndKeypad();
+    setIsIntervalSheetVisible(true);
+  }, [dismissInputAndKeypad]);
+
+  const handleIntervalSheetClosed = useCallback(() => {
+    setIsIntervalSheetVisible(false);
+  }, []);
+
+  const handleIntervalConfirm = useCallback(
+    (unit: RecurringIntervalUnit) => {
+      dispatch(setRecurringEveryUnit(unit));
     },
     [dispatch],
   );
@@ -184,6 +206,7 @@ const BridgeRecurringBuyViewContent = ({
             onEveryPress={focusEvery}
             onRepeatPress={focusRepeat}
             onDismissKeypad={dismissInputAndKeypad}
+            onUnitPress={handleUnitPress}
           />
 
           <PriceRangeRow
@@ -238,6 +261,13 @@ const BridgeRecurringBuyViewContent = ({
           initialMax={effectiveRange?.max}
           onClose={handlePriceRangeSheetClosed}
           onConfirm={handlePriceRangeConfirm}
+        />
+
+        <RecurringIntervalSheet
+          isVisible={isIntervalSheetVisible}
+          currentUnit={everyUnit}
+          onClose={handleIntervalSheetClosed}
+          onConfirm={handleIntervalConfirm}
         />
       </Box>
     </Box>

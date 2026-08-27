@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -21,19 +21,15 @@ import {
   selectRecurringEveryValue,
   selectRecurringRepeatCount,
   selectRecurringScheduleValidation,
-  setRecurringEveryUnit,
 } from '../../../../../core/redux/slices/bridge';
-import RecurringIntervalSheet from '../RecurringIntervalSheet';
-import {
-  RecurringScheduleErrorCode,
-  type RecurringIntervalUnit,
-} from '../../utils/recurringSchedule';
+import { RecurringScheduleErrorCode } from '../../utils/recurringSchedule';
 import { RecurringScheduleFieldsSelectorsIDs } from './RecurringScheduleFields.testIds';
 
 interface RecurringScheduleFieldsProps {
   onEveryPress: () => void;
   onRepeatPress: () => void;
   onDismissKeypad: () => void;
+  onUnitPress: () => void;
 }
 
 function RecurringNumberCard({
@@ -97,9 +93,8 @@ const RecurringScheduleFields = ({
   onEveryPress,
   onRepeatPress,
   onDismissKeypad,
+  onUnitPress,
 }: RecurringScheduleFieldsProps) => {
-  const dispatch = useDispatch();
-  const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const repeatCount = useSelector(selectRecurringRepeatCount);
@@ -116,22 +111,6 @@ const RecurringScheduleFields = ({
     (error) =>
       error === RecurringScheduleErrorCode.RepeatInvalid ||
       error === RecurringScheduleErrorCode.DurationExceedsMax,
-  );
-
-  const handleUnitPress = useCallback(() => {
-    onDismissKeypad();
-    setIsIntervalSheetVisible(true);
-  }, [onDismissKeypad]);
-
-  const handleIntervalSheetClosed = useCallback(() => {
-    setIsIntervalSheetVisible(false);
-  }, []);
-
-  const handleIntervalConfirm = useCallback(
-    (unit: RecurringIntervalUnit) => {
-      dispatch(setRecurringEveryUnit(unit));
-    },
-    [dispatch],
   );
 
   return (
@@ -153,7 +132,7 @@ const RecurringScheduleFields = ({
               size={ButtonBaseSize.Sm}
               endIconName={IconName.ArrowDown}
               endIconProps={{ size: IconSize.Sm }}
-              onPress={handleUnitPress}
+              onPress={onUnitPress}
               testID={RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON}
               accessibilityLabel={strings(
                 `bridge.recurring.unit_option.${everyUnit}`,
@@ -181,12 +160,6 @@ const RecurringScheduleFields = ({
           }
         />
       </Box>
-      <RecurringIntervalSheet
-        isVisible={isIntervalSheetVisible}
-        currentUnit={everyUnit}
-        onClose={handleIntervalSheetClosed}
-        onConfirm={handleIntervalConfirm}
-      />
     </Box>
   );
 };
