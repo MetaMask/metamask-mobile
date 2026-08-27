@@ -11,13 +11,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
 import EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
 import { useEarnSearchFeed } from '../../../../Views/TrendingView/feeds/earn/useEarnSearchFeed';
 import type { EarnSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import { earnAssetToToken, hasEarnAssetBalance } from '../../utils/earnAssets';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const EarnSearchListSkeleton = () => (
   <Box testID="earn-search-list-loading" twClassName="px-4">
@@ -40,6 +39,9 @@ const EarnSearchListSkeleton = () => (
 const EarnSearchListView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
+    tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const { data, isLoading } = useEarnSearchFeed({ query: searchQuery });
 
@@ -54,22 +56,9 @@ const EarnSearchListView = () => {
         return;
       }
 
-      const { asset } = item;
-      if (hasEarnAssetBalance(asset)) {
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.STRATEGY_SELECTION,
-          params: { assetId: asset.assetId },
-        });
-        return;
-      }
-
-      const token = earnAssetToToken(asset);
-      navigation.navigate('Asset', {
-        ...token,
-        source: TokenDetailsSource.ExploreEarn,
-      });
+      navigateToEarnOpportunity(item.asset);
     },
-    [navigateToMoneyHome, navigation],
+    [navigateToEarnOpportunity, navigateToMoneyHome],
   );
 
   const renderItem: ListRenderItem<EarnSearchItem> = useCallback(

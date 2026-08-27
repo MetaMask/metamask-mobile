@@ -47,6 +47,7 @@ import {
   getEarnAssetMetadata,
   hasEarnAssetSubsidizedFee,
 } from '../../utils/earnAssets';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
@@ -123,6 +124,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
+    const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
+      tokenDetailsSource,
+    });
     const isHomepageSection = homeAnalytics !== undefined;
     const homepageTelemetryEnabled = isHomepageSection && enabled;
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
@@ -218,32 +222,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     }, [navigation]);
 
     const handleAssetCardPress = useCallback(
-      (asset: EarnAsset) => {
-        const token = earnAssetToToken(asset);
-        if (isEarnAssetBalanceBelowMinDepositAmount(asset)) {
-          navigation.navigate('Asset', {
-            address: token.address,
-            chainId: token.chainId,
-            symbol: token.symbol,
-            name: token.name,
-            decimals: token.decimals,
-            image: token.image,
-            balance: token.balance,
-            isNative: token.isNative,
-            isETH: token.isETH,
-            aggregators: token.aggregators,
-            rwaData: token.rwaData,
-            source: tokenDetailsSource,
-          });
-          return;
-        }
-
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.STRATEGY_SELECTION,
-          params: { assetId: asset.assetId },
-        });
-      },
-      [navigation, tokenDetailsSource],
+      (asset: EarnAsset) => navigateToEarnOpportunity(asset),
+      [navigateToEarnOpportunity],
     );
 
     const moneyAccountCardSecondaryText = useMemo(() => {
