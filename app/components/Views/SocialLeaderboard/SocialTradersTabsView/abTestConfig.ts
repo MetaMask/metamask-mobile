@@ -9,6 +9,10 @@ import type { FeedAudience } from '../FeedView/types';
 // - control: the Leaderboard tab (current behavior)
 // - treatment: the Feed tab with the "All" audience preselected
 //
+// In both variants the preselected option is the leftmost one, so treatment
+// also swaps the tab order (Feed | Leaderboard) and the audience toggle order
+// (All | Following).
+//
 // The homepage resolves the assignment without emitting exposure and forwards
 // the landing target as route params; `SocialTradersTabsView` emits exposure
 // when it receives those params, so only users who actually opened the surface

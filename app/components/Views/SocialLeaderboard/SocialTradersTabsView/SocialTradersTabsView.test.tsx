@@ -456,6 +456,58 @@ describe('SocialTradersTabsView', () => {
       ).toBe(false);
     });
 
+    it('keeps Leaderboard as the leftmost tab by default', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(
+          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0-label`,
+        ),
+      ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
+      expect(
+        screen.getByTestId(
+          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1-label`,
+        ),
+      ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
+    });
+
+    it('moves Feed to the leftmost tab when the feed is the landing tab', () => {
+      mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
+
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(
+          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0-label`,
+        ),
+      ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
+      expect(
+        screen.getByTestId(
+          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1-label`,
+        ),
+      ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
+    });
+
+    it('deactivates the feed when the second tab is selected in a feed-first order', () => {
+      mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
+      renderWithProvider(<SocialTradersTabsView />);
+
+      fireEvent.press(
+        screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+      );
+
+      expect(
+        screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+      ).toBe(false);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({
+          interaction_type: 'tab_changed',
+          tab: 'tab_leaderboard',
+        }),
+      );
+    });
+
     it('tracks exposure only for entry points that carry a landing tab', () => {
       mockRouteParams = { landingTab: 'leaderboard' };
       renderWithProvider(<SocialTradersTabsView />);

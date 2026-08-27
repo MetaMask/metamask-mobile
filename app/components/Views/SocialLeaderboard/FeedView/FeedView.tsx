@@ -57,7 +57,10 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import FeedAudienceToggle from './components/FeedAudienceToggle';
+import FeedAudienceToggle, {
+  DEFAULT_FEED_AUDIENCE_ORDER,
+  type FeedAudienceOrder,
+} from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
@@ -159,6 +162,16 @@ const FeedView: React.FC<FeedViewProps> = ({
   // Defaults to "Following" unless the entry point requested a landing scope
   // (see `initialAudience`).
   const [audience, setAudience] = useState<FeedAudience>(initialAudience);
+  // Keep the preselected audience as the leftmost segment. Read from the
+  // landing audience only (not the live selection) so toggling never reshuffles
+  // the segments under the user's finger.
+  const audienceOrder = useMemo<FeedAudienceOrder>(
+    () =>
+      initialAudience === 'all'
+        ? ['all', 'following']
+        : DEFAULT_FEED_AUDIENCE_ORDER,
+    [initialAudience],
+  );
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
   const audienceRef = useRef(audience);
   const typeFilterRef = useRef(typeFilter);
@@ -506,10 +519,14 @@ const FeedView: React.FC<FeedViewProps> = ({
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
-        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
+        <FeedAudienceToggle
+          value={audience}
+          order={audienceOrder}
+          onChange={handleAudienceChange}
+        />
       </Box>
     ),
-    [typeFilter, audience, handleAudienceChange],
+    [typeFilter, audience, audienceOrder, handleAudienceChange],
   );
 
   const content = useMemo(() => {
