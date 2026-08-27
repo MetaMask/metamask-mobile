@@ -675,6 +675,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
               timeMs,
               ...(options?.spanMs != null ? { spanMs: options.spanMs } : {}),
               ...(options?.animate != null ? { animate: options.animate } : {}),
+              ...(options?.force != null ? { force: options.force } : {}),
             },
           });
         },
