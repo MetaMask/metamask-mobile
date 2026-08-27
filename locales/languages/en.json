@@ -8723,6 +8723,7 @@
       "confirm": "Confirm",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
         "not_set": "Not set",

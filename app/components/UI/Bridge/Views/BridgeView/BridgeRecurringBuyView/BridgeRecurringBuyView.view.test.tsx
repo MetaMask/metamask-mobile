@@ -96,6 +96,21 @@ async function openEveryKeypad(
   });
 }
 
+async function openRepeatKeypad(
+  renderResult: ReturnType<typeof renderBridgeView>,
+) {
+  fireEvent(
+    renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
+    'pressIn',
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+}
+
 async function openAmountKeypad(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
@@ -321,6 +336,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps repeat at 0 and invalid after the keypad is closed', async () => {
@@ -371,6 +391,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps a 0 every value after leaving and returning to the recurring tab', async () => {
@@ -622,46 +647,115 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveDisplayValue('1');
   });
 
-  it('marks the every value invalid when it exceeds the unit max', async () => {
+  it('shows Max is 24 when every exceeds the hour unit max', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
     await openEveryKeypad(renderResult);
-    fireEvent.press(renderResult.getByTestId('keypad-key-5'));
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
     fireEvent.press(renderResult.getByTestId('keypad-key-5'));
     await waitFor(() => {
       expect(
         renderResult.getByTestId(
           RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
         ),
-      ).toHaveDisplayValue('155');
+      ).toHaveDisplayValue('25');
     });
 
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveStyle({ color: errorColor });
     expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR),
+    ).toHaveTextContent(strings('bridge.recurring.max_is', { max: 24 }));
+    expect(
       renderResult.getByTestId(
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Max is 180 on repeat when 1 day times 181 exceeds 180 days', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('day'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.day'));
+    });
+
+    await openRepeatKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-1'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-8'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-1'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('181');
+    });
+
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR),
+    ).toHaveTextContent(strings('bridge.recurring.max_is', { max: 180 }));
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('marks the repeat value invalid when it is 0', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
-    fireEvent(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ),
-      'pressIn',
-    );
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
-      ).toBeOnTheScreen();
-    });
+    await openRepeatKeypad(renderResult);
     fireEvent.press(
       renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
     );
@@ -684,6 +778,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   describe('swap inputs', () => {

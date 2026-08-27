@@ -38,7 +38,7 @@ export const RECURRING_EVERY_MAX_BY_UNIT: Record<
   minute: 60,
   hour: 24,
   day: 7,
-  week: 25,
+  week: 4,
   month: 6,
 };
 
@@ -119,4 +119,13 @@ export function validateRecurringSchedule(
     isValid: errors.length === 0,
     errors,
   };
+}
+
+export function getMaxRepeatCount(
+  every: number,
+  unit: RecurringIntervalUnit,
+): number {
+  return Math.floor(
+    RECURRING_MAX_DURATION_MINUTES / (every * RECURRING_INTERVAL_MINUTES[unit]),
+  );
 }

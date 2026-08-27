@@ -25,7 +25,12 @@ import {
   selectRecurringRepeatCount,
   selectRecurringScheduleValidation,
 } from '../../../../../core/redux/slices/bridge';
-import { RecurringScheduleErrorCode } from '../../utils/recurringSchedule';
+import {
+  RecurringScheduleErrorCode,
+  RECURRING_EVERY_MAX_BY_UNIT,
+  getMaxRepeatCount,
+  parsePositiveInteger,
+} from '../../utils/recurringSchedule';
 import { RecurringScheduleFieldsSelectorsIDs } from './RecurringScheduleFields.testIds';
 
 interface RecurringScheduleFieldsProps {
@@ -39,6 +44,8 @@ interface RecurringScheduleFieldsProps {
 function RecurringNumberCard({
   label,
   labelAccessory,
+  errorMessage,
+  errorTestID,
   value,
   testID,
   inputTestID,
@@ -48,6 +55,8 @@ function RecurringNumberCard({
 }: {
   label: string;
   labelAccessory?: React.ReactNode;
+  errorMessage?: string;
+  errorTestID?: string;
   value: string;
   testID: string;
   inputTestID: string;
@@ -73,6 +82,15 @@ function RecurringNumberCard({
           {label}
         </Text>
         {labelAccessory}
+        {errorMessage ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            testID={errorTestID}
+          >
+            {errorMessage}
+          </Text>
+        ) : null}
       </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -115,17 +133,30 @@ const RecurringScheduleFields = ({
   const { errors: scheduleErrors } = useSelector(
     selectRecurringScheduleValidation,
   );
-  const hasEveryError = scheduleErrors.some(
-    (error) =>
-      error === RecurringScheduleErrorCode.EveryInvalid ||
-      error === RecurringScheduleErrorCode.EveryExceedsUnitMax ||
-      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  const hasEveryUnitMax = scheduleErrors.includes(
+    RecurringScheduleErrorCode.EveryExceedsUnitMax,
   );
-  const hasRepeatError = scheduleErrors.some(
-    (error) =>
-      error === RecurringScheduleErrorCode.RepeatInvalid ||
-      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  const hasDurationMax = scheduleErrors.includes(
+    RecurringScheduleErrorCode.DurationExceedsMax,
   );
+  const hasEveryError =
+    scheduleErrors.includes(RecurringScheduleErrorCode.EveryInvalid) ||
+    hasEveryUnitMax;
+  const hasRepeatError =
+    scheduleErrors.includes(RecurringScheduleErrorCode.RepeatInvalid) ||
+    hasDurationMax;
+  const every = parsePositiveInteger(everyValue);
+  const everyErrorMessage = hasEveryUnitMax
+    ? strings('bridge.recurring.max_is', {
+        max: RECURRING_EVERY_MAX_BY_UNIT[everyUnit],
+      })
+    : undefined;
+  const repeatErrorMessage =
+    hasDurationMax && every !== undefined
+      ? strings('bridge.recurring.max_is', {
+          max: getMaxRepeatCount(every, everyUnit),
+        })
+      : undefined;
 
   return (
     <Box
@@ -136,6 +167,8 @@ const RecurringScheduleFields = ({
       <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
         <RecurringNumberCard
           label={strings('bridge.recurring.every')}
+          errorMessage={everyErrorMessage}
+          errorTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR}
           value={everyValue}
           testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
@@ -168,6 +201,8 @@ const RecurringScheduleFields = ({
               accessibilityLabel={strings('bridge.recurring.repeat_info_title')}
             />
           }
+          errorMessage={repeatErrorMessage}
+          errorTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR}
           value={repeatCount}
           testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}

@@ -1,5 +1,6 @@
 import {
   capRecurringKeypadValue,
+  getMaxRepeatCount,
   parsePositiveInteger,
   RecurringScheduleErrorCode,
   RECURRING_MAX_DURATION_MINUTES,
@@ -103,7 +104,7 @@ describe('validateRecurringSchedule', () => {
     { unit: 'minute' as const, max: '60' },
     { unit: 'hour' as const, max: '24' },
     { unit: 'day' as const, max: '7' },
-    { unit: 'week' as const, max: '25' },
+    { unit: 'week' as const, max: '4' },
     { unit: 'month' as const, max: '6' },
   ])('accepts the max every value of $max for $unit', ({ unit, max }) => {
     const schedule = makeSchedule({
@@ -215,5 +216,15 @@ describe('validateRecurringSchedule', () => {
       RecurringScheduleErrorCode.EveryExceedsUnitMax,
       RecurringScheduleErrorCode.DurationExceedsMax,
     ]);
+  });
+});
+
+describe('getMaxRepeatCount', () => {
+  it('returns 180 for every 1 day', () => {
+    expect(getMaxRepeatCount(1, 'day')).toBe(180);
+  });
+
+  it('returns 90 for every 2 days', () => {
+    expect(getMaxRepeatCount(2, 'day')).toBe(90);
   });
 });
