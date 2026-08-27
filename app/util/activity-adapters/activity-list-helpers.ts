@@ -65,6 +65,16 @@ function shouldPreferLocalActivityItem(
   localItem: ActivityListItem,
   apiItem: ActivityListItem,
 ): boolean {
+  // The local mapper can only label a bridge when `TransactionMeta.type` is
+  // `bridge`, and otherwise degrades it to a plain transfer, so the API's
+  // bridge classification is the better one.
+  if (
+    apiItem.type === 'bridge' &&
+    (localItem.type === 'send' || localItem.type === 'receive')
+  ) {
+    return false;
+  }
+
   const localOutCategorizesApi =
     apiItem.type !== localItem.type && localItem.type !== 'contractInteraction';
 
