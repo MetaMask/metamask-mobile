@@ -63,6 +63,7 @@ import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
 import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
+import { useFeedNow } from './hooks/useFeedNow';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
   FeedAudience,
@@ -203,13 +204,13 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
-    // Doubles as the clock for relative timestamps and as the signal that busts
-    // the memoized rows. Sourcing it from the fetch (rather than from mount or
-    // from a render-time `Date.now()`) keeps ages consistent with the snapshot
-    // on screen and makes them recompute after a refetch that returned an
-    // unchanged payload.
+    // Bumps the shared wall clock immediately after PTR / load more so labels
+    // do not wait for the next 30s tick. Relative ages themselves come from
+    // `useFeedNow`, not from this fetch instant.
     dataUpdatedAt,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  const now = useFeedNow({ enabled: isActive, dataUpdatedAt });
 
   // Report spot availability up to the parent so it can mount the Buy Action
   // orchestrator (and scope its A/B exposure) only when the loaded feed offers
@@ -381,10 +382,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
-        now={dataUpdatedAt}
+        now={now}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress, dataUpdatedAt],
+    [handleTradePress, handlePositionPress, handleTraderPress, now],
   );
 
   const renderSectionHeader = useCallback(
@@ -550,7 +551,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
-        extraData={dataUpdatedAt}
+        extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -569,7 +570,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
-    dataUpdatedAt,
+    now,
   ]);
 
   return (

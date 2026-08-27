@@ -489,12 +489,14 @@ describe('FeedView', () => {
       // the promise can settle under fake timers.
       await act(async () => {
         const refreshPromise = refreshControl.props.onRefresh();
-        jest.runAllTimers();
+        // 1s min-duration only — runAllTimers would loop the 30s age clock.
+        jest.advanceTimersByTime(1000);
         await refreshPromise;
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     } finally {
+      jest.clearAllTimers();
       jest.useRealTimers();
     }
   });
@@ -528,7 +530,7 @@ describe('FeedView', () => {
       const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
       await act(async () => {
         const refreshPromise = list.props.refreshControl.props.onRefresh();
-        jest.runAllTimers();
+        jest.advanceTimersByTime(1000);
         await refreshPromise;
       });
 
@@ -550,33 +552,36 @@ describe('FeedView', () => {
       expect(screen.getByText(/1m/)).toBeOnTheScreen();
       expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
     } finally {
+      jest.clearAllTimers();
       jest.useRealTimers();
     }
   });
 
-  // The pager mounts both tabs, so FeedView can sit mounted with a disabled
-  // query for a long time before the Feed tab is opened and the first fetch
-  // lands. Reading the clock at mount would understate every age by that gap,
-  // so ages are formatted against the fetch instant instead.
-  it('formats ages against the fetch instant, not the mount instant', () => {
+  it('advances relative timestamps on the shared clock without refetching', () => {
     jest.useFakeTimers();
-    const fetchedAt = 1_700_000_000_000;
-    const item: FeedItem = { ...spotItem, timestamp: fetchedAt - 29_000 };
-    // Ten minutes of drift between whenever this component mounted and the
-    // paint we are asserting on.
-    jest.setSystemTime(fetchedAt + 600_000);
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const item: FeedItem = { ...spotItem, timestamp: t0 - 55_000 };
     mockFeedResult = buildResult({
       items: [item],
       sections: [{ dateLabel: 'Today', data: [item] }],
-      dataUpdatedAt: fetchedAt,
+      dataUpdatedAt: t0,
     });
 
     try {
       renderWithProvider(<FeedView />);
 
       expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
-      expect(screen.queryByText(/10m/)).not.toBeOnTheScreen();
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
+      expect(mockRefresh).not.toHaveBeenCalled();
     } finally {
+      jest.clearAllTimers();
       jest.useRealTimers();
     }
   });
