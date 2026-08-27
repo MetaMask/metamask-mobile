@@ -88,7 +88,10 @@ export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
-export { default as usePerpsToasts } from './usePerpsToasts';
+export {
+  default as usePerpsToasts,
+  getPerpsToastLabels,
+} from './usePerpsToasts';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

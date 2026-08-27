@@ -60,6 +60,7 @@ import {
   usePerpsOrderValidation,
   usePerpsToasts,
   usePerpsTrading,
+  getPerpsToastLabels,
 } from '../../../../hooks';
 import { useMinimumOrderAmount } from '../../../../hooks/useMinimumOrderAmount';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
@@ -1616,24 +1617,24 @@ export const usePerpsProOrderForm = ({
         // Haptics are non-critical feedback; a device haptics failure must not
         // prevent the already-validated controller request from being placed.
         playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+        const scaleSubmissionSummary = strings(
+          'perps.pro_order_form.scale.submission_summary',
+          {
+            totalCount: scaleLadderResult.orderCount,
+            size: submissionPositionSize,
+            assetSymbol: orderForm.asset,
+          },
+        );
         showToast({
           ...PerpsToastOptions.orderManagement.limit.submitted(
             orderForm.direction,
             submissionPositionSize,
             orderForm.asset,
           ),
-          labelOptions: [
-            {
-              label: strings('perps.pro_order_form.scale.orders_submitted'),
-            },
-            {
-              label: strings('perps.pro_order_form.scale.submission_summary', {
-                totalCount: scaleLadderResult.orderCount,
-                size: submissionPositionSize,
-                assetSymbol: orderForm.asset,
-              }),
-            },
-          ],
+          labelOptions: getPerpsToastLabels(
+            strings('perps.pro_order_form.scale.orders_submitted'),
+            scaleSubmissionSummary,
+          ),
         });
 
         const orderResult = await executeOrder(scaleOrderParams);
@@ -1647,34 +1648,32 @@ export const usePerpsProOrderForm = ({
           orderResult.submittedSize ?? submissionPositionSize;
         const isPartialPlacement =
           submittedOrderCount < scaleLadderResult.orderCount;
+        const scalePlacementTitle = strings(
+          isPartialPlacement
+            ? 'perps.pro_order_form.scale.orders_partially_placed'
+            : 'perps.pro_order_form.scale.orders_placed',
+        );
+        const scalePlacementSummary = strings(
+          isPartialPlacement
+            ? 'perps.pro_order_form.scale.partial_placement_summary'
+            : 'perps.pro_order_form.scale.placement_summary',
+          {
+            submittedCount: submittedOrderCount,
+            totalCount: scaleLadderResult.orderCount,
+            size: submittedSize,
+            assetSymbol: orderForm.asset,
+          },
+        );
         showToast({
           ...PerpsToastOptions.orderManagement.limit.confirmed(
             orderForm.direction,
             submittedSize,
             orderForm.asset,
           ),
-          labelOptions: [
-            {
-              label: strings(
-                isPartialPlacement
-                  ? 'perps.pro_order_form.scale.orders_partially_placed'
-                  : 'perps.pro_order_form.scale.orders_placed',
-              ),
-            },
-            {
-              label: strings(
-                isPartialPlacement
-                  ? 'perps.pro_order_form.scale.partial_placement_summary'
-                  : 'perps.pro_order_form.scale.placement_summary',
-                {
-                  submittedCount: submittedOrderCount,
-                  totalCount: scaleLadderResult.orderCount,
-                  size: submittedSize,
-                  assetSymbol: orderForm.asset,
-                },
-              ),
-            },
-          ],
+          labelOptions: getPerpsToastLabels(
+            scalePlacementTitle,
+            scalePlacementSummary,
+          ),
         });
         Engine.context.PerpsController?.clearPendingTradeConfiguration(
           orderForm.asset,

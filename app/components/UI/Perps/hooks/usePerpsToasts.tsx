@@ -242,7 +242,7 @@ export interface PerpsToastOptionsConfig {
   };
 }
 
-const getPerpsToastLabels = (
+export const getPerpsToastLabels = (
   primary: string | React.ReactNode,
   secondary?: string | React.ReactNode,
 ) => {

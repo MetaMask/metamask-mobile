@@ -2,7 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
-import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import usePerpsToasts, {
+  getPerpsToastLabels,
+  PerpsToastOptions,
+} from './usePerpsToasts';
 import {
   ButtonIconVariant,
   ToastVariants,
@@ -89,6 +92,18 @@ jest.mock('../utils/translatePerpsError', () => ({
     fallbackMessage: string;
   }) => error || fallbackMessage,
 }));
+
+describe('getPerpsToastLabels', () => {
+  it('separates the emphasized title from the secondary copy', () => {
+    const labels = getPerpsToastLabels('Scale orders placed', '3 orders');
+
+    expect(labels).toEqual([
+      { label: 'Scale orders placed', isBold: true },
+      { label: '\n', isBold: false },
+      { label: '3 orders', isBold: false },
+    ]);
+  });
+});
 
 describe('usePerpsToasts', () => {
   let mockShowToast: jest.Mock;

@@ -21,6 +21,17 @@ const mockInsufficientFundsMessage = strings(
   'perps.order.validation.insufficient_funds',
 );
 const mockShowToast = jest.fn();
+const mockGetPerpsToastLabels = jest.fn(
+  (primary: string, secondary?: string) => [
+    { label: primary, isBold: true },
+    ...(secondary
+      ? [
+          { label: '\n', isBold: false },
+          { label: secondary, isBold: false },
+        ]
+      : []),
+  ],
+);
 const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
@@ -197,6 +208,8 @@ let mockMarketData: { szDecimals: number; maxLeverage: number } | null = {
 let mockIsPlacing = false;
 
 jest.mock('../../../../hooks', () => ({
+  getPerpsToastLabels: (primary: string, secondary?: string) =>
+    mockGetPerpsToastLabels(primary, secondary),
   useHasExistingPosition: () => ({
     existingPosition: mockExistingPosition,
     isLoading: mockPositionStreamLoading,
@@ -1977,6 +1990,11 @@ describe('usePerpsProOrderForm', () => {
           labelOptions: [
             {
               label: strings('perps.pro_order_form.scale.orders_submitted'),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
             },
             {
               label: strings('perps.pro_order_form.scale.submission_summary', {
@@ -1984,6 +2002,7 @@ describe('usePerpsProOrderForm', () => {
                 size: '3.725',
                 assetSymbol: 'BTC',
               }),
+              isBold: false,
             },
           ],
         }),
@@ -2010,6 +2029,11 @@ describe('usePerpsProOrderForm', () => {
           labelOptions: [
             {
               label: strings('perps.pro_order_form.scale.orders_placed'),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
             },
             {
               label: strings('perps.pro_order_form.scale.placement_summary', {
@@ -2018,6 +2042,7 @@ describe('usePerpsProOrderForm', () => {
                 size: '3.725',
                 assetSymbol: 'BTC',
               }),
+              isBold: false,
             },
           ],
         }),
@@ -2046,6 +2071,11 @@ describe('usePerpsProOrderForm', () => {
               label: strings(
                 'perps.pro_order_form.scale.orders_partially_placed',
               ),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
             },
             {
               label: strings(
@@ -2057,6 +2087,7 @@ describe('usePerpsProOrderForm', () => {
                   assetSymbol: 'BTC',
                 },
               ),
+              isBold: false,
             },
           ],
         }),
