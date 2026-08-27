@@ -28,7 +28,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+jest.mock('../useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: () => ({
     destTokenAmount: undefined,
     isLoading: false,
@@ -36,21 +36,21 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
-jest.mock('../../../hooks/useBridgeQuoteRequest', () => ({
+jest.mock('../useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: () => mockUpdateQuoteParams,
 }));
 
-jest.mock('../../../hooks/useIsNetworkEnabled', () => ({
+jest.mock('../useIsNetworkEnabled', () => ({
   useIsNetworkEnabled: () => true,
 }));
 
 let mockIsHardwareWallet = false;
-jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
+jest.mock('../useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
 }));
 
 const mockSyncFiatAmountToTokenAmount = jest.fn();
-jest.mock('../../../hooks/useSourceAmountInput', () => ({
+jest.mock('../useSourceAmountInput', () => ({
   useSourceAmountInput: () => ({
     amount: '',
     selection: undefined,
@@ -71,7 +71,7 @@ jest.mock('../../../hooks/useSourceAmountInput', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useSwitchTokens', () => ({
+jest.mock('../useSwitchTokens', () => ({
   useSwitchTokens: () => ({ handleSwitchTokens: jest.fn(() => jest.fn()) }),
 }));
 
