@@ -9,6 +9,7 @@ import type { GenericQuoteRequest } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
+  QUICK_BUY_QUOTE_TOTAL_FOR_10_USD,
   clearQuickBuyApiMocks,
   createQuickBuyFetchedQuote,
   setupQuickBuyApiMock,
@@ -104,9 +105,15 @@ describeForPlatforms('QuickBuySheet', () => {
     await waitForSheetReady(screen);
     fireEvent.press(await screen.findByTestId(getQuickBuyBuyPillTestId(10)));
 
-    expect(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.RATE_TAG),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        const rateTag = screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG);
+        expect(
+          within(rateTag).getByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD),
+        ).toBeOnTheScreen();
+      },
+      { timeout: WAIT_MS },
+    );
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {

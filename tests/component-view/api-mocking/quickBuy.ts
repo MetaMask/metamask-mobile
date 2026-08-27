@@ -24,6 +24,24 @@ export const mockQuickBuyUsdcMetadata = {
   address: USDC_DEST.address,
 };
 
+const QUICK_BUY_ETH_ASSET = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: 1,
+  assetId: 'eip155:1/slip44:60',
+  symbol: 'ETH',
+  decimals: 18,
+  name: 'Ethereum',
+};
+
+/** 0.001 ETH. At the deterministic $2000/ETH rate this is a $2 network fee. */
+export const QUICK_BUY_QUOTE_TX_FEE_AMOUNT = '1000000000000000';
+
+/**
+ * Fiat total shown after selecting the $10 buy pill with this fixture
+ * ($10 entered + $2 network fee from {@link QUICK_BUY_QUOTE_TX_FEE_AMOUNT}).
+ */
+export const QUICK_BUY_QUOTE_TOTAL_FOR_10_USD = '$12.00';
+
 export function setupQuickBuyApiMock(): void {
   disableNetConnect();
 
@@ -43,6 +61,10 @@ export function clearQuickBuyApiMocks(): void {
 /**
  * Pre-v2 quote shape returned by BridgeController.fetchQuotes. Echo
  * `srcTokenAmount` from the request so the CTA matching check passes.
+ *
+ * `network` / `relayer` / `txFee` are required for `networkFeeFiat` after
+ * quote enrichment. Gas-included quotes read `txFee`; non-gasless quotes
+ * read `network` + `relayer`. Without them the total stays a formatted zero.
  */
 export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
   return {
@@ -51,14 +73,7 @@ export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
       bridgeId: 'quick-buy-quote-1',
       bridges: ['provider-1'],
       steps: [],
-      srcAsset: {
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: 1,
-        assetId: 'eip155:1/slip44:60',
-        symbol: 'ETH',
-        decimals: 18,
-        name: 'Ethereum',
-      },
+      srcAsset: QUICK_BUY_ETH_ASSET,
       destAsset: {
         address: USDC_DEST.address,
         chainId: 1,
@@ -70,14 +85,21 @@ export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
       feeData: {
         metabridge: {
           amount: '0',
-          asset: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: 1,
-            assetId: 'eip155:1/slip44:60',
-            symbol: 'ETH',
-            decimals: 18,
-            name: 'Ethereum',
-          },
+          asset: QUICK_BUY_ETH_ASSET,
+        },
+        network: {
+          amount: QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
+          asset: QUICK_BUY_ETH_ASSET,
+        },
+        relayer: {
+          amount: '0',
+          asset: QUICK_BUY_ETH_ASSET,
+        },
+        txFee: {
+          amount: QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
+          asset: QUICK_BUY_ETH_ASSET,
+          maxFeePerGas: '4667609171',
+          maxPriorityFeePerGas: '1000000004',
         },
       },
       srcChainId: 1,
