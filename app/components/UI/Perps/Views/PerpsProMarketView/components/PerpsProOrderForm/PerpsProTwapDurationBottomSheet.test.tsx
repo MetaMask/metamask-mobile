@@ -7,7 +7,9 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
-import PerpsProTwapDurationBottomSheet from './PerpsProTwapDurationBottomSheet';
+import PerpsProTwapDurationBottomSheet, {
+  createFutureIosCountdownDate,
+} from './PerpsProTwapDurationBottomSheet';
 
 const mockDateTimePicker = jest.fn();
 jest.mock('@react-native-community/datetimepicker', () => {
@@ -152,6 +154,40 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(updatedPicker.props.value.getMinutes()).toBe(30);
     expect(updatedPicker.props.value.getTime()).toBeGreaterThan(Date.now());
     expect(updatedPicker.props.value.getTime()).toBe(initialTimestamp + 1);
+  });
+
+  it('skips a requested midnight normalized forward by a DST transition', () => {
+    const createCandidate = jest.fn(
+      (
+        referenceMs: number,
+        dayOffset: number,
+        hours: number,
+        minutes: number,
+        milliseconds: number,
+      ) => {
+        const date = new Date(referenceMs);
+        date.setDate(date.getDate() + dayOffset);
+        date.setHours(
+          dayOffset === 1 ? hours + 1 : hours,
+          minutes,
+          0,
+          milliseconds,
+        );
+        return date;
+      },
+    );
+
+    const date = createFutureIosCountdownDate(
+      30,
+      iosCountdownReferenceMs,
+      false,
+      createCandidate,
+    );
+
+    expect(createCandidate).toHaveBeenCalledTimes(2);
+    expect(date.getHours()).toBe(0);
+    expect(date.getMinutes()).toBe(30);
+    expect(date.getTime()).toBeGreaterThan(iosCountdownReferenceMs);
   });
 
   it('omits duplicate running-time copy from the native picker sheet', () => {

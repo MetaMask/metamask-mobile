@@ -24,20 +24,61 @@ const ids = PerpsProOrderFormSelectorsIDs;
 const { HoursPerDay, MaximumDurationMinutes, MinutesPerHour } =
   PERPS_TWAP_UI_CONFIG;
 const NativeCountdownReapplyOffsetMs = 1;
+const NativeCountdownDateSearchDays = 7;
 
-const createFutureIosCountdownDate = (
+type CreateIosCountdownDateCandidate = (
+  referenceMs: number,
+  dayOffset: number,
+  hours: number,
+  minutes: number,
+  milliseconds: number,
+) => Date;
+
+const createIosCountdownDateCandidate: CreateIosCountdownDateCandidate = (
+  referenceMs,
+  dayOffset,
+  hours,
+  minutes,
+  milliseconds,
+) => {
+  const date = new Date(referenceMs);
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + dayOffset);
+  date.setHours(hours, minutes, 0, milliseconds);
+  return date;
+};
+
+export const createFutureIosCountdownDate = (
   clockMinutes: number,
   referenceMs: number,
   reapplyAfterLayout: boolean,
+  createCandidate: CreateIosCountdownDateCandidate = createIosCountdownDateCandidate,
 ) => {
-  const date = new Date(referenceMs);
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + 1);
-  date.setMinutes(clockMinutes);
-  if (reapplyAfterLayout) {
-    date.setMilliseconds(NativeCountdownReapplyOffsetMs);
+  const requestedHours = Math.floor(clockMinutes / MinutesPerHour);
+  const requestedMinutes = clockMinutes % MinutesPerHour;
+
+  for (
+    let dayOffset = 1;
+    dayOffset <= NativeCountdownDateSearchDays;
+    dayOffset++
+  ) {
+    const date = createCandidate(
+      referenceMs,
+      dayOffset,
+      requestedHours,
+      requestedMinutes,
+      reapplyAfterLayout ? NativeCountdownReapplyOffsetMs : 0,
+    );
+    if (
+      date.getTime() > referenceMs &&
+      date.getHours() === requestedHours &&
+      date.getMinutes() === requestedMinutes
+    ) {
+      return date;
+    }
   }
-  return date;
+
+  throw new Error('Unable to create a future iOS countdown date');
 };
 
 interface PerpsProTwapDurationBottomSheetProps {
