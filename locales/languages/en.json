@@ -1171,14 +1171,17 @@
       "all": "All",
       "trade": "Trade",
       "action": {
-        "bought": "bought",
-        "sold": "sold",
-        "opened": "opened",
-        "closed": "closed"
+        "perps_opened": "opened",
+        "perps_added": "added",
+        "perps_reduced": "reduced",
+        "perps_closed": "closed",
+        "spot_bought": "bought",
+        "spot_sold": "sold",
+        "traded": "traded"
       },
       "new_position": {
-        "bought": "Holding",
-        "opened": "Open"
+        "spot": "Holding",
+        "perps": "Open"
       },
       "empty_following": {
         "title": "No activity yet",
@@ -1281,8 +1284,15 @@
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
-      "bought": "Bought",
-      "sold": "Sold",
+      "action": {
+        "perps_opened": "Opened",
+        "perps_added": "Added",
+        "perps_reduced": "Reduced",
+        "perps_closed": "Closed",
+        "spot_bought": "Bought",
+        "spot_sold": "Sold",
+        "traded": "Traded"
+      },
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
@@ -1291,9 +1301,7 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short",
-      "opened": "Opened",
-      "closed_action": "Closed"
+      "short": "Short"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
