@@ -23,7 +23,6 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
-export { usePerpsSelectedOrderType } from './usePerpsSelectedOrderType';
 export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
 export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
 export { usePerpsProOrdersPreferences } from './usePerpsProOrdersPreferences';

@@ -72,6 +72,39 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
+  IconName: {
+    Close: 'Close',
+    Expand: 'Expand',
+  },
+  IconColor: {
+    Default: 'Default',
+  },
+}));
+
+jest.mock(
+  '../../../../../component-library/components/Buttons/ButtonIcon',
+  () => ({
+    __esModule: true,
+    default: jest.fn(
+      ({ onPress, testID }: { onPress: () => void; testID: string }) => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+        const { TouchableOpacity } = require('react-native');
+        return (
+          <TouchableOpacity onPress={onPress} testID={testID}>
+            Close Button
+          </TouchableOpacity>
+        );
+      },
+    ),
+    ButtonIconSizes: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+  }),
+);
+
 jest.mock('../TradingViewChart', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const ReactMock = require('react');

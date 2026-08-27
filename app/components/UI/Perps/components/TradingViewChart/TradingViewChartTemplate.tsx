@@ -415,8 +415,7 @@ export const createTradingViewChartTemplate = (
                         return;
                     }
 
-                    // Debounce pinch/pan settle so we persist zoom without
-                    // posting on every frame (avoids RN re-renders mid-gesture).
+                    // Debounce zoom persist so pinch/pan does not post every frame.
                     const rawCount = range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
                     const nextCount = Math.round(rawCount);
                     if (Number.isFinite(nextCount)) {

@@ -815,7 +815,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
-      // Reset chart to default zoom (persisted default, currently 30 candles)
+      // Reset chart zoom to the default candle count
       setVisibleCandleCount(PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT);
 
       // Reset chart view to default position

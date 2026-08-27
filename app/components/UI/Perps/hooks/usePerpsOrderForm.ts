@@ -202,10 +202,8 @@ export function usePerpsOrderForm(
     defaultLeverage,
   ]);
 
-  // Priority for order type: navigation param > persisted global > pending draft.
-  // Pending is per-market; putting it first would undo a type change made on
-  // another market (limit on ETH, then back to BTC whose stale draft still
-  // says market).
+  // Navigation param > persisted global type > pending draft.
+  // Pending is per-market, so it must not override a type chosen on another market.
   const defaultOrderType =
     initialType || persistedOrderType || pendingConfig?.orderType || 'market';
 

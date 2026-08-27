@@ -137,6 +137,17 @@ const createWrapper = (mockStore = createPerpsStore()) =>
     });
   };
 
+const createPerpsControllerStore = (perpsController: Record<string, unknown>) =>
+  configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: { PerpsController: perpsController },
+        },
+      ) => state,
+    },
+  });
+
 // Helper to create mock positions
 const createMockPosition = (
   symbol: string,
@@ -254,136 +265,65 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('prioritizes a pending amount over an empty surface fallback', () => {
-      const mockStoreWithPendingConfig = configureStore({
-        reducer: {
-          engine: (
-            state = {
-              backgroundState: {
-                PerpsController: {
-                  isTestnet: false,
-                  tradeConfigurations: {
-                    mainnet: {
-                      BTC: {
-                        pendingConfig: {
-                          amount: '125',
-                          timestamp: Date.now(),
-                        },
-                      },
-                    },
-                    testnet: {},
-                  },
-                },
-              },
-            },
-          ) => state,
-        },
-      });
-      const WrapperWithPendingConfig = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const streamProvider = React.createElement(PerpsStreamProvider, {
-          testStreamManager: createMockStreamManager(),
-          children,
-        } as React.ComponentProps<typeof PerpsStreamProvider>);
-
-        return React.createElement(Provider, {
-          store: mockStoreWithPendingConfig,
-          children: streamProvider,
-        });
-      };
-
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({
             initialAsset: 'BTC',
             fallbackAmount: '',
           }),
-        { wrapper: WrapperWithPendingConfig },
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
       );
 
       expect(result.current.orderForm.amount).toBe('125');
     });
 
     it('uses the persisted market-agnostic order type when no pending or navigation type exists', () => {
-      const mockStoreWithSelectedOrderType = configureStore({
-        reducer: {
-          engine: (
-            state = {
-              backgroundState: {
-                PerpsController: {
-                  selectedOrderType: 'limit',
-                },
-              },
-            },
-          ) => state,
-        },
-      });
-      const WrapperWithSelectedOrderType = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const streamProvider = React.createElement(PerpsStreamProvider, {
-          testStreamManager: createMockStreamManager(),
-          children,
-        } as React.ComponentProps<typeof PerpsStreamProvider>);
-
-        return React.createElement(Provider, {
-          store: mockStoreWithSelectedOrderType,
-          children: streamProvider,
-        });
-      };
-
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: WrapperWithSelectedOrderType,
+        wrapper: createWrapper(
+          createPerpsControllerStore({ selectedOrderType: 'limit' }),
+        ),
       });
 
       expect(result.current.orderForm.type).toBe('limit');
     });
 
     it('prefers the persisted global order type over a stale per-market pending type', () => {
-      const mockStore = configureStore({
-        reducer: {
-          engine: (
-            state = {
-              backgroundState: {
-                PerpsController: {
-                  isTestnet: false,
-                  selectedOrderType: 'limit',
-                  tradeConfigurations: {
-                    mainnet: {
-                      BTC: {
-                        pendingConfig: {
-                          amount: '125',
-                          orderType: 'market',
-                          timestamp: Date.now(),
-                        },
-                      },
-                    },
-                    testnet: {},
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            isTestnet: false,
+            selectedOrderType: 'limit',
+            tradeConfigurations: {
+              mainnet: {
+                BTC: {
+                  pendingConfig: {
+                    amount: '125',
+                    orderType: 'market',
+                    timestamp: Date.now(),
                   },
                 },
               },
+              testnet: {},
             },
-          ) => state,
-        },
-      });
-      const Wrapper = ({ children }: { children: React.ReactNode }) => {
-        const streamProvider = React.createElement(PerpsStreamProvider, {
-          testStreamManager: createMockStreamManager(),
-          children,
-        } as React.ComponentProps<typeof PerpsStreamProvider>);
-
-        return React.createElement(Provider, {
-          store: mockStore,
-          children: streamProvider,
-        });
-      };
-
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: Wrapper,
+          }),
+        ),
       });
 
       expect(result.current.orderForm.type).toBe('limit');

@@ -4,7 +4,6 @@ import {
   PerpsMode,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
-  DEFAULT_SELECTED_ORDER_TYPE,
   DEFAULT_ORDER_BOOK_PREFERENCES,
   VISIBLE_CANDLE_COUNT_CONFIG,
   type AccountState,
@@ -23,7 +22,6 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
-  selectPerpsSelectedOrderType,
   selectPerpsVisibleCandleCount,
   selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
@@ -998,7 +996,6 @@ describe('PerpsController Selectors', () => {
     it('returns the controller default when the preference is unset', () => {
       const mockState = createMockState({});
 
-      expect(DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded).toBe(true);
       expect(selectPerpsProChartExpanded(mockState)).toBe(true);
     });
 
@@ -1096,32 +1093,6 @@ describe('PerpsController Selectors', () => {
         field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
         direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
       });
-    });
-  });
-
-  describe('selectPerpsSelectedOrderType', () => {
-    it('returns the persisted order type', () => {
-      const mockState = createMockState({ selectedOrderType: 'limit' });
-
-      expect(selectPerpsSelectedOrderType(mockState)).toBe('limit');
-    });
-
-    it('returns the controller default when the preference is unset', () => {
-      const mockState = createMockState({});
-
-      expect(selectPerpsSelectedOrderType(mockState)).toBe(
-        DEFAULT_SELECTED_ORDER_TYPE,
-      );
-    });
-
-    it('falls back to the default when PerpsController state is missing', () => {
-      const mockState = {
-        engine: { backgroundState: { PerpsController: undefined } },
-      } as unknown as RootState;
-
-      expect(selectPerpsSelectedOrderType(mockState)).toBe(
-        DEFAULT_SELECTED_ORDER_TYPE,
-      );
     });
   });
 

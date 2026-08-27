@@ -438,7 +438,7 @@ export const usePerpsProOrderForm = ({
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
 
-  // Local (Pro-only) state. Restore reduce-only from the 30s pending draft.
+  // Restore reduce-only from the 30s pending draft.
   const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
