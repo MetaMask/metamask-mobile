@@ -21,6 +21,7 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProOrderBookExpanded,
   selectPerpsProOrderBookPosition,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
@@ -1024,6 +1025,36 @@ describe('PerpsController Selectors', () => {
 
       expect(selectPerpsProChartExpanded(mockState)).toBe(
         DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrderBookExpanded', () => {
+    it('returns the persisted visibility', () => {
+      // `false` is the non-default, so this fails if the selector ignores
+      // stored state and always answers with the mobile default.
+      const mockState = createMockState({
+        proLayoutPreferences: { orderBookExpanded: false },
+      });
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(false);
+    });
+
+    it('returns the mobile default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookExpanded,
+      );
+    });
+
+    it('falls back to the mobile default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookExpanded,
       );
     });
   });
