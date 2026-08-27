@@ -142,6 +142,9 @@ function ActivityDetailsWithProviders() {
   );
 }
 
+/** ActivityDetails wrapped for CV route registration (HardwareWalletProvider). */
+export { ActivityDetailsWithProviders };
+
 function buildActivityState(options: {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;

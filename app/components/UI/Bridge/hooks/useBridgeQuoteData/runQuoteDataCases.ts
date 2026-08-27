@@ -135,6 +135,8 @@ export const runQuoteDataCases = ({
     };
   };
 
+  const isCombinedQuoteHook = name === 'useQuoteData';
+
   return describe(name, () => {
     let isQuoteExpired: jest.SpyInstance;
     let shouldRefreshQuote: jest.SpyInstance;
@@ -241,6 +243,10 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [mockQuoteWithMetadata],
         isActiveQuoteForCurrentTokenPair: true,
+        ...(isCombinedQuoteHook && {
+          refreshQuotes: expect.any(Function),
+          debouncedUpdateQuoteParams: expect.any(Function),
+        }),
       });
     });
 
@@ -395,6 +401,10 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: RequestStatus.FETCHED,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
+        ...(isCombinedQuoteHook && {
+          refreshQuotes: expect.any(Function),
+          debouncedUpdateQuoteParams: expect.any(Function),
+        }),
       });
     });
 
@@ -595,6 +605,10 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
+        ...(isCombinedQuoteHook && {
+          refreshQuotes: expect.any(Function),
+          debouncedUpdateQuoteParams: expect.any(Function),
+        }),
       });
     });
 
@@ -631,6 +645,10 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: RequestStatus.LOADING,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
+        ...(isCombinedQuoteHook && {
+          refreshQuotes: expect.any(Function),
+          debouncedUpdateQuoteParams: expect.any(Function),
+        }),
       });
     });
 
@@ -668,6 +686,10 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
+        ...(isCombinedQuoteHook && {
+          refreshQuotes: expect.any(Function),
+          debouncedUpdateQuoteParams: expect.any(Function),
+        }),
       });
     });
 
