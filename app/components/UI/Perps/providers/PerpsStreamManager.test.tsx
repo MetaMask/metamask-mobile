@@ -1392,6 +1392,44 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
+    it('drops a late direct-price callback after prewarm takes ownership', async () => {
+      const makePrice = (price: string): PriceUpdate => ({
+        symbol: 'BTC',
+        price,
+        timestamp: Date.now(),
+        isTradable: true,
+      });
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+      const directCall = mockSubscribeToPrices.mock.calls.at(-1);
+      if (!directCall) throw new Error('Direct subscription did not start');
+      const directCallback = directCall[0].callback;
+
+      await testStreamManager.prices.prewarm();
+      await waitFor(() =>
+        expect(mockSubscribeToPrices.mock.calls.length).toBeGreaterThan(1),
+      );
+      const prewarmCall = mockSubscribeToPrices.mock.calls.at(-1);
+      if (!prewarmCall) throw new Error('Prewarm subscription did not start');
+      const prewarmCallback = prewarmCall[0].callback;
+      directCallback([makePrice('1')]);
+      prewarmCallback([makePrice('2')]);
+
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          BTC: expect.objectContaining({ price: '1' }),
+        }),
+      );
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          BTC: expect.objectContaining({ price: '2' }),
+        }),
+      );
+    });
+
     it('keeps the first live price update immediate after cached prewarm data', async () => {
       let prewarmCallback: ((updates: PriceUpdate[]) => void) | undefined;
       const makePrice = (price: string): PriceUpdate => ({
@@ -3045,6 +3083,27 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('drops a late OI-cap callback after reconnect', async () => {
+      const callbacks: ((caps: string[]) => void)[] = [];
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          callbacks.push(params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const callback = jest.fn();
+      testStreamManager.oiCaps.subscribe({ callback, throttleMs: 0 });
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+
+      testStreamManager.oiCaps.reconnect();
+      await waitFor(() => expect(callbacks).toHaveLength(2));
+      act(() => callbacks[0](['STALE']));
+      act(() => callbacks[1](['BTC']));
+
+      expect(callback).not.toHaveBeenCalledWith(['STALE']);
+      expect(callback).toHaveBeenCalledWith(['BTC']);
+    });
+
     it('notifies subscribers when markets reach OI cap', async () => {
       let oiCapCallback: ((caps: string[]) => void) | null = null;
       mockSubscribeToOICaps.mockImplementation(
@@ -3897,6 +3956,27 @@ describe('PerpsStreamManager', () => {
         bestAsk: '50001',
         spread: undefined,
       });
+    });
+
+    it('drops a late top-of-book callback after reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const staleCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      testStreamManager.topOfBook.reconnect();
+      const currentCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      staleCallback([{ symbol: 'BTC', bestBid: '1', bestAsk: '2' }]);
+      currentCallback([{ symbol: 'BTC', bestBid: '3', bestAsk: '4' }]);
+
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '1' }),
+      );
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
     });
 
     it('does not subscribe when symbol is empty', () => {

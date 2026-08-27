@@ -340,6 +340,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         if (id) {
           const traceName = traceNamesById.get(id);
           if (!traceName) {
+            DevLogger.log(
+              'Perps tracing dropped a measurement for an unknown trace id',
+              {
+                traceId: id,
+                measurement: name,
+              },
+            );
             return;
           }
           setTraceMeasurement(

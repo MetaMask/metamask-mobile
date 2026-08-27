@@ -10,6 +10,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     fills: {
       subscribe: mockSubscribe,
+      getSnapshot: jest.fn(() => []),
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>

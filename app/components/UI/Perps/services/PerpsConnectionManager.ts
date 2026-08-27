@@ -73,6 +73,8 @@ interface PendingReconnectRequest {
   force: boolean;
 }
 
+const MAX_SERIALIZED_RECONNECT_ATTEMPTS = 3;
+
 function logPerpsConnectionProof(
   stage: string,
   data: Record<string, string | number | boolean> = {},
@@ -1180,10 +1182,15 @@ class PerpsConnectionManagerClass {
       // Clear connection timeout if active
       this.clearConnectionTimeout();
 
-      // Cancel pending initialization. An in-flight reconnect cannot be
-      // cancelled, so force requests join it and queue another pass below.
-      this.isConnecting = false;
-      this.initPromise = null;
+      // Initialization cannot be cancelled safely. Let it settle before the
+      // forced reconnect replaces its controller and stream ownership.
+      if (this.initPromise) {
+        try {
+          await this.initPromise;
+        } catch {
+          // The forced reconnect below owns recovery from the failed init.
+        }
+      }
     } else {
       // Wait for pending initialization if exists
       if (this.initPromise) {
@@ -1230,18 +1237,43 @@ class PerpsConnectionManagerClass {
   }
 
   private async performSerializedReconnection(): Promise<void> {
-    let pendingRequest: PendingReconnectRequest | null;
+    let lastError: unknown;
 
-    do {
+    for (
+      let attempt = 1;
+      attempt <= MAX_SERIALIZED_RECONNECT_ATTEMPTS;
+      attempt += 1
+    ) {
       this.pendingReconnectRequest = null;
-      await this.performReconnection();
-      pendingRequest = this.getPendingReconnectRequest();
-    } while (
-      pendingRequest?.force ||
-      (this.isConnected &&
-        (!this.isSelectedUserContextReady() ||
-          (pendingRequest !== null &&
-            pendingRequest.userContextKey !== this.initializedUserContextKey)))
+      try {
+        await this.performReconnection();
+        lastError = undefined;
+      } catch (error) {
+        lastError = error;
+      }
+
+      const pendingRequest = this.getPendingReconnectRequest();
+      const shouldRetry =
+        pendingRequest?.force === true ||
+        (pendingRequest !== null &&
+          pendingRequest.userContextKey !== this.initializedUserContextKey) ||
+        (this.isConnected && !this.isSelectedUserContextReady());
+      if (!shouldRetry) {
+        if (lastError) {
+          throw lastError;
+        }
+        return;
+      }
+    }
+
+    logPerpsConnectionProof('reconnect_attempt_limit_reached', {
+      max_attempts: MAX_SERIALIZED_RECONNECT_ATTEMPTS,
+    });
+    throw (
+      lastError ??
+      new Error(
+        `Perps reconnect did not settle after ${MAX_SERIALIZED_RECONNECT_ATTEMPTS} attempts`,
+      )
     );
   }
 
@@ -1313,10 +1345,8 @@ class PerpsConnectionManagerClass {
       const connectionGenerationAlreadyAdvanced =
         this.pendingConnectionGenerationAdvanced;
       this.pendingConnectionGenerationAdvanced = false;
-      if (!skipMarketNotify) {
-        if (!connectionGenerationAlreadyAdvanced) {
-          this.advanceConnectionGeneration();
-        }
+      if (!connectionGenerationAlreadyAdvanced) {
+        this.advanceConnectionGeneration();
       }
 
       // Stage 1: Clean up existing connections and clear caches
@@ -1450,11 +1480,12 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
 
-      // Focused price and candle subscriptions are screen-driven and are not
-      // part of the global preload. Restore mounted consumers only after the
-      // new context is ready.
-      streamManager.candles.reconnect();
+      // Screen-driven subscriptions are not part of the global preload.
+      // Restore mounted consumers only after the new context is ready.
+      streamManager.oiCaps.reconnect();
+      streamManager.topOfBook.reconnect();
       streamManager.focusedPrice.reconnect();
+      streamManager.candles.reconnect();
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();

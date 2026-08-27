@@ -90,9 +90,17 @@ const mockStreamManagerInstance = {
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
-  oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  oiCaps: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  topOfBook: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
   focusedPrice: { clearCache: jest.fn(), reconnect: jest.fn() },
   candles: {
     clearCache: jest.fn(),
@@ -1012,6 +1020,33 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.reconnectWithNewContext.mockResolvedValue();
     });
 
+    it('runs a queued force request after the current reconnect fails', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+        reconnectWithNewContext: (options?: {
+          force?: boolean;
+        }) => Promise<void>;
+      };
+      let rejectFirst: ((error: Error) => void) | undefined;
+      const firstAttempt = new Promise<void>((_resolve, reject) => {
+        rejectFirst = reject;
+      });
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementationOnce(() => firstAttempt)
+        .mockResolvedValueOnce();
+
+      const first = manager.reconnectWithNewContext();
+      await Promise.resolve();
+      const queued = manager.reconnectWithNewContext({ force: true });
+      rejectFirst?.(new Error('first reconnect failed'));
+
+      await expect(first).resolves.toBeUndefined();
+      await expect(queued).resolves.toBeUndefined();
+      expect(reconnect).toHaveBeenCalledTimes(2);
+      reconnect.mockRestore();
+    });
+
     it('reconnects again when account changes during reconnection preload', async () => {
       jest.useFakeTimers();
       const addressA = '0x1111111111111111111111111111111111111111';
@@ -1145,6 +1180,8 @@ describe('PerpsConnectionManager', () => {
         reconnectWithNewContext: () => Promise<void>;
       };
       const selectedMarketContextKey = manager.getSelectedMarketContextKey();
+      const initialConnectionGeneration =
+        PerpsConnectionManager.getConnectionGeneration();
       manager.initializedMarketContextKey = selectedMarketContextKey;
       manager.initializedConnectionGeneration = 0;
       manager.pendingSkipMarketNotify = true;
@@ -1154,9 +1191,12 @@ describe('PerpsConnectionManager', () => {
 
       await manager.reconnectWithNewContext();
 
-      expect(listener).not.toHaveBeenCalled();
+      expect(listener).toHaveBeenCalledTimes(1);
       expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
         selectedMarketContextKey,
+      );
+      expect(PerpsConnectionManager.getConnectionGeneration()).toBe(
+        initialConnectionGeneration + 1,
       );
       unsubscribe();
     });

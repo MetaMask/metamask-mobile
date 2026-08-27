@@ -12,6 +12,9 @@ empty, or error and all required fresh data has arrived.
 
 The foundation does not mount a screen or start a session by itself. Homepage
 and other screen integrations are separate changes.
+It does own shared connection replacement and stream subscription isolation,
+including restoring mounted market-detail channels after the controller
+connection changes. Screen readiness and presentation remain outside this PR.
 
 ## Identity
 
@@ -28,13 +31,15 @@ cannot complete the current session.
 
 ## Generations
 
-- `account_generation` advances when the selected account changes.
+- `account_generation` advances when a session starts for a different account.
 - `context_generation` advances for every new loading session.
 - `connection_generation` advances when the connection is replaced.
 
 Fresh socket milestones must use the active connection generation. When a
 newer connection takes ownership, previously recorded live milestones are
 cleared and must arrive again from that connection.
+Account-owned streams establish the connection generation. A global price tick
+cannot establish it before positions, orders, or account data arrives.
 
 Generation values are trace data for individual-run correlation. Dashboards
 must not group by them.

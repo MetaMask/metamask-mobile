@@ -593,6 +593,13 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(3);
       expect(valuesReadyRecords()).toHaveLength(2);
+      expect(valuesReadyRecords()).toEqual(
+        expect.arrayContaining([expect.objectContaining({ pre_session: true })]),
+      );
+      expect(annotateTrace).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        { has_pre_session_milestone: true },
+      );
     });
 
     it('preserves initial values when the Homepage prepares the pending session', () => {
@@ -877,6 +884,28 @@ describe('perpsLoadingSession', () => {
       );
       unsubscribe();
       jest.useRealTimers();
+    });
+
+    it('continues notifying after a listener throws', () => {
+      const throwingListener = jest.fn(() => {
+        throw new Error('listener failed');
+      });
+      const receivingListener = jest.fn();
+      const unsubscribeThrowing =
+        subscribeToPerpsLoadingSession(throwingListener);
+      const unsubscribeReceiving =
+        subscribeToPerpsLoadingSession(receivingListener);
+
+      expect(() => startPerpsLoadingSession()).not.toThrow();
+      expect(receivingListener).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'started' }),
+      );
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Perps loading session listener failed',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
+      unsubscribeThrowing();
+      unsubscribeReceiving();
     });
 
     it('keeps recorded cache provenance ahead of Terminal row provenance', () => {

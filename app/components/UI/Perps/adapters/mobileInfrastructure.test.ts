@@ -2,6 +2,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   PerpsMeasurementName,
   PerpsTraceNames,
@@ -224,6 +225,10 @@ describe('createMobileInfrastructure', () => {
 
       expect(setTraceMeasurement).not.toHaveBeenCalled();
       expect(setSentryMeasurement).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Perps tracing dropped a measurement for an unknown trace id',
+        { traceId: 'missing-trace-id', measurement: 'unknown.measurement' },
+      );
     });
 
     it.each([
