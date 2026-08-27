@@ -3,6 +3,12 @@ import { truncateNumber } from '../../utils';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../earnAssets/earnAssetBalance';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
+/**
+ * Gets localized rate copy for a ranked Earn asset.
+ *
+ * @param asset - Ranked Earn asset whose highest rate should be formatted.
+ * @returns Localized rate text, including unavailable or get-started copy.
+ */
 export const getEarnAssetRateText = ({
   asset,
 }: {
