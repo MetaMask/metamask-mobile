@@ -63,6 +63,7 @@ import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
 import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
+import { useFeedNow } from './hooks/useFeedNow';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
   FeedAudience,
@@ -89,9 +90,10 @@ type AnimatedScrollHandler = React.ComponentProps<
 
 export interface FeedViewProps {
   /**
-   * Whether the Feed tab is the active page. The feed fetch only fires when
-   * active so simply opening the Follow Trading surface (which mounts both tab
-   * pages) doesn't request the feed until the user actually views it. Defaults
+   * Whether the Feed tab is the active page. The visible feed query only
+   * subscribes when active so the off-screen page doesn't keep a live
+   * observer. First-page data for both audiences is still prefetched when
+   * Follow Trading opens, so tapping Feed can render from cache. Defaults
    * to `true` for standalone use.
    */
   isActive?: boolean;
@@ -203,7 +205,13 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
+    // Bumps the shared wall clock immediately after PTR / load more so labels
+    // do not wait for the next 30s tick. Relative ages themselves come from
+    // `useFeedNow`, not from this fetch instant.
+    dataUpdatedAt,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  const now = useFeedNow({ enabled: isActive, dataUpdatedAt });
 
   // Report spot availability up to the parent so it can mount the Buy Action
   // orchestrator (and scope its A/B exposure) only when the loaded feed offers
@@ -290,7 +298,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         [SocialLeaderboardEventProperties.SOURCE]: 'trader_feed',
         [SocialLeaderboardEventProperties.TRADER_ADDRESS]: item.traderAddress,
         [SocialLeaderboardEventProperties.TRADER_USERNAME]: item.username,
-        [SocialLeaderboardEventProperties.FEED_ACTION]: item.action,
+        ...(item.action
+          ? { [SocialLeaderboardEventProperties.FEED_ACTION]: item.action }
+          : {}),
         [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
         [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
       };
@@ -373,9 +383,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
+        now={now}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress, now],
   );
 
   const renderSectionHeader = useCallback(
@@ -541,6 +552,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
+        extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -559,6 +571,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
+    now,
   ]);
 
   return (

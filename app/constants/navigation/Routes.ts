@@ -38,6 +38,9 @@ const Routes = {
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
+    // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+    GET_PIX_KEY: 'RampGetPixKey',
+    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -463,6 +466,7 @@ const Routes = {
   },
   EARN: {
     ROOT: 'EarnScreens',
+    STRATEGY_SELECTION: 'EarnStrategySelection',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
@@ -549,6 +553,9 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    TRANSACTION_HISTORY: 'CardTransactionHistory',
+    TRANSACTION_DETAILS: 'CardTransactionDetails',
+    REPORT_TRANSACTION: 'CardReportTransaction',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
@@ -616,6 +623,8 @@ const Routes = {
     ROOT: 'ProHub',
     /** Membership details screen — plan info, payment details, and manage actions. */
     MEMBERSHIP: 'ProHubMembership',
+    /** Lifetime Pro earnings breakdown — interest, card cashback, and add-money CTA. */
+    EARNED: 'ProHubEarned',
     /** Cancel membership screen — cancellation survey and confirmation. */
     CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },

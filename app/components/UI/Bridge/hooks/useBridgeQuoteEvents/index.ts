@@ -13,7 +13,7 @@ import {
 } from '@metamask/bridge-controller';
 import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from '../useHasSufficientGasEvenIfGasIncludedOrSponsored';
-import { endTrace, TraceName } from '../../../../../util/trace';
+import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -29,6 +29,7 @@ export const useBridgeQuoteEvents = ({
   isSubmitDisabled,
   isPriceImpactWarningVisible,
   hasDestAssetRequireActivate,
+  hasUsableQuote,
 }: {
   hasInsufficientBalance: boolean;
   hasInsufficientNativeReserveError: boolean;
@@ -39,13 +40,18 @@ export const useBridgeQuoteEvents = ({
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
   hasDestAssetRequireActivate: boolean;
+  hasUsableQuote?: boolean;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
   );
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
-  const firstQuoteRequestId = recommendedQuote?.quote.requestId;
+  const isFirstQuoteUsable =
+    hasUsableQuote ?? Boolean(activeQuote && recommendedQuote?.quote.requestId);
+  const firstUsableQuoteRequestId = isFirstQuoteUsable
+    ? (activeQuote?.quote.requestId ?? recommendedQuote?.quote.requestId)
+    : undefined;
 
   const sourceToken = useSelector(selectSourceToken);
   const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
@@ -87,12 +93,6 @@ export const useBridgeQuoteEvents = ({
   // Emit QuotesReceived event each time quotes are fetched successfully
   useEffect(() => {
     if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
-      if (!firstQuoteRequestId) {
-        endTrace({
-          name: TraceName.SwapQuoteFetch,
-          timestamp: Date.now(),
-        });
-      }
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
         getQuotesReceivedProperties(
@@ -108,24 +108,28 @@ export const useBridgeQuoteEvents = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotesRefreshCount]);
 
-  // End the trace as soon as the first quote becomes available, including
-  // while the controller is still streaming additional quotes.
+  // End the trace as soon as the first usable quote becomes available,
+  // including while the controller is still streaming additional quotes.
   useEffect(() => {
-    if (firstQuoteRequestId) {
-      endTrace({
-        name: TraceName.SwapQuoteFetch,
-        timestamp: Date.now(),
-      });
+    if (firstUsableQuoteRequestId) {
+      swapQuoteFetchTrace.finish('success');
     }
-  }, [firstQuoteRequestId]);
+  }, [firstUsableQuoteRequestId]);
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      quotesRefreshCount > 0 &&
+      !quoteFetchError &&
+      hasNoQuotesAvailable
+    ) {
+      swapQuoteFetchTrace.finish('no_quotes');
+    }
+  }, [hasNoQuotesAvailable, isLoading, quoteFetchError, quotesRefreshCount]);
 
   useEffect(() => {
     if (quoteFetchError) {
-      endTrace({
-        name: TraceName.SwapQuoteFetch,
-        timestamp: Date.now(),
-        data: { success: false },
-      });
+      swapQuoteFetchTrace.finish('error');
     }
   }, [quoteFetchError]);
 };
