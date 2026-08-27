@@ -15,10 +15,12 @@ import type {
 
 interface UseEarnSearchFeedOptions {
   query?: string;
+  enabled?: boolean;
 }
 
 export const useEarnSearchFeed = ({
   query = '',
+  enabled = true,
 }: UseEarnSearchFeedOptions = {}): EarnSearchFeedResult => {
   const {
     assets,
@@ -27,13 +29,15 @@ export const useEarnSearchFeed = ({
     moneyApyPercent,
     moneyRateStatus,
     refresh,
-  } = useEarnAssetCatalogue();
+  } = useEarnAssetCatalogue({ enabled });
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     totalFiatRaw: balanceRaw,
     totalFiatFormatted: balanceFiat,
     isBalanceLoading,
-  } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+  } = useMoneyAccountBalance({
+    enabled: enabled && isMoneyAccountVisible,
+  });
   const retryInFlightRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
 

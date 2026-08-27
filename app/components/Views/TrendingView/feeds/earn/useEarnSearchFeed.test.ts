@@ -183,6 +183,24 @@ describe('useEarnSearchFeed', () => {
     mockCatalogue();
   });
 
+  it('enables catalogue and Money balance loading when Earn search is enabled', () => {
+    mockMoneyVisible(true);
+
+    renderHook(() => useEarnSearchFeed({ query: '', enabled: true }));
+
+    expect(mockUseEarnAssetCatalogue).toHaveBeenCalledWith({ enabled: true });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('disables catalogue and Money balance loading when Earn search is disabled', () => {
+    mockMoneyVisible(true);
+
+    renderHook(() => useEarnSearchFeed({ query: '', enabled: false }));
+
+    expect(mockUseEarnAssetCatalogue).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
+  });
+
   it('pins visible Money before all ranked assets', () => {
     mockMoneyVisible(true);
     mockCatalogue({ assets: [discoveryUsdt, heldUsdc, discoveryDai] });

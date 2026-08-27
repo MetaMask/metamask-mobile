@@ -67,6 +67,7 @@ export const useExploreSearch = (
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
     query: debouncedQuery,
+    enabled: isExploreEarnEnabled,
   });
 
   return useMemo<ExploreSearchResult>(() => {

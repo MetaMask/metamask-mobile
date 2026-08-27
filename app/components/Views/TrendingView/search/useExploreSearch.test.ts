@@ -114,6 +114,7 @@ import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
+import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 
 const renderExploreSearch = (query = '') =>
   renderHook(() => useExploreSearch(query, { exposePagination: true }));
@@ -431,6 +432,26 @@ describe('useExploreSearch', () => {
         }),
       );
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
+    });
+
+    it('passes the enabled Earn flag to the Earn feed', () => {
+      mockIsEarnEnabled = true;
+
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: true,
+      });
+    });
+
+    it('passes disabled state to the Earn feed when the flag is disabled', () => {
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: false,
+      });
     });
   });
 });
