@@ -5,6 +5,8 @@ import {
   SCALE_ORDER_COUNT,
   calculateMarginRequired,
   computeScalePriceLadder,
+  formatHyperLiquidPrice,
+  formatPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -108,6 +110,7 @@ import {
 } from '../../../../utils/triggerOrderValidation';
 import {
   MAX_PERPS_INPUT_DIGITS,
+  PROVIDER_CONFIG,
   PERPS_TWAP_UI_CONFIG,
 } from '../../../../constants/perpsConfig';
 import {
@@ -132,14 +135,18 @@ const SCALE_SKEW_DECIMAL_PLACES = 2;
 const SCALE_SIZE_SEARCH_MAX_STEPS = Math.ceil(
   Math.log2(Number.MAX_SAFE_INTEGER),
 );
+const SCALE_VALIDATION_MAX_ATTEMPTS = 2;
 type ScaleOrderValidationCode =
   | 'prices_required'
   | 'size_required'
   | 'invalid_range'
   | 'invalid_order_count'
   | 'invalid_skew'
-  | 'minimum_lot';
+  | 'minimum_lot'
+  | 'calculation_error';
 
+// The authorized controller-v13 Yarn patch backports this shared Scale
+// analytics contract until a published controller release includes it.
 type ScaleSettingType =
   | typeof PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE
   | typeof PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE
@@ -173,6 +180,7 @@ const SCALE_ERROR_I18N_KEYS: Record<ScaleOrderValidationCode, string> = {
     'perps.pro_order_form.scale.validation.invalid_order_count',
   invalid_skew: 'perps.pro_order_form.scale.validation.invalid_skew',
   minimum_lot: 'perps.pro_order_form.scale.validation.minimum_lot',
+  calculation_error: 'perps.order.validation.error',
 };
 
 const getScaleValidationMessage = (code: ScaleOrderValidationCode): string =>
@@ -608,6 +616,19 @@ export const usePerpsProOrderForm = ({
     maxSlippageBps,
     maxSlippageSource,
   });
+
+  const formatScalePriceForProvider = ({
+    price,
+    providerId,
+    szDecimals,
+  }: {
+    price: number;
+    providerId: PerpsProviderType | undefined;
+    szDecimals: number;
+  }): string =>
+    providerId === PROVIDER_CONFIG.DefaultProvider
+      ? formatHyperLiquidPrice({ price, szDecimals })
+      : new BigNumber(price).toFixed();
   const { isAtCap } = usePerpsOICap(symbol);
   const vipTier = useVipTier();
 
@@ -839,13 +860,14 @@ export const usePerpsProOrderForm = ({
       return undefined;
     }
 
-    return absolutePositionSize.toFixed();
+    return formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
   }, [
     currentMarketPosition?.size,
     isAtMaxAmount,
     isReduceOnlyPositionLoading,
     keepReduceOnlySizeEmpty,
     reduceOnly,
+    szDecimals,
   ]);
   const isExactFullClose = exactFullCloseSize !== undefined;
 
@@ -889,7 +911,13 @@ export const usePerpsProOrderForm = ({
         minPrice,
         maxPrice,
         count: orderCount,
-      }).map((price) => new BigNumber(price).toFixed());
+      }).map((price) =>
+        formatScalePriceForProvider({
+          price,
+          providerId: scaleProviderId,
+          szDecimals,
+        }),
+      );
       if (new Set(scalePrices).size !== scalePrices.length) {
         return { success: false, code: 'invalid_range' };
       }
@@ -1041,25 +1069,41 @@ export const usePerpsProOrderForm = ({
         totalSize: new BigNumber(totalSize).toFixed(),
       };
     } catch (error) {
-      Logger.error(
-        ensureError(error, 'usePerpsProOrderForm.calculateScaleLadder'),
-        {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsProOrderForm',
-            action: 'calculate_scale_ladder',
-          },
-        },
+      const normalizedError = ensureError(
+        error,
+        'usePerpsProOrderForm.calculateScaleLadder',
       );
-      // Controller preview helpers reject values that cannot survive venue
-      // precision; translate that expected validation outcome into form copy.
-      return { success: false, code: 'minimum_lot' };
+      if (
+        normalizedError.message === PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID
+      ) {
+        return { success: false, code: 'invalid_order_count' };
+      }
+      if (
+        normalizedError.message === PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID
+      ) {
+        return { success: false, code: 'invalid_range' };
+      }
+      if (
+        normalizedError.message === PERPS_ERROR_CODES.ORDER_SCALE_SIZE_TOO_SMALL
+      ) {
+        return { success: false, code: 'minimum_lot' };
+      }
+
+      Logger.error(normalizedError, {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsProOrderForm',
+          action: 'calculate_scale_ladder',
+        },
+      });
+      return { success: false, code: 'calculation_error' };
     }
   }, [
     effectiveUsdAmount,
     exactFullCloseSize,
     minimumOrderAmount,
     scaleEndPrice,
+    scaleProviderId,
     scaleSizeSkew,
     scaleStartPrice,
     scaleTotalOrders,
@@ -1424,7 +1468,11 @@ export const usePerpsProOrderForm = ({
     scalePlacementSnapshotRef.current = currentScalePlacementSnapshot;
   }, [currentScalePlacementSnapshot]);
   const validateLatestScalePlacement = useCallback(async () => {
-    while (true) {
+    for (
+      let attempt = 0;
+      attempt < SCALE_VALIDATION_MAX_ATTEMPTS;
+      attempt += 1
+    ) {
       const snapshot = scalePlacementSnapshotRef.current;
       const validationResult = await snapshot.validateNow();
       const latestSnapshot = scalePlacementSnapshotRef.current;
@@ -1435,6 +1483,7 @@ export const usePerpsProOrderForm = ({
         return { snapshot: latestSnapshot, validationResult };
       }
     }
+    return undefined;
   }, []);
 
   const filteredErrors = useMemo(() => {
@@ -1686,6 +1735,10 @@ export const usePerpsProOrderForm = ({
       const initialScaleValidation = isScaleOrder
         ? await validateLatestScalePlacement()
         : undefined;
+      if (isScaleOrder && !initialScaleValidation) {
+        reportValidationFailure(strings('perps.order.validation.error'));
+        return;
+      }
       const validationResult = initialScaleValidation
         ? initialScaleValidation.validationResult
         : await validateNow();
@@ -1773,6 +1826,10 @@ export const usePerpsProOrderForm = ({
         }
 
         const latestScaleValidation = await validateLatestScalePlacement();
+        if (!latestScaleValidation) {
+          reportValidationFailure(strings('perps.order.validation.error'));
+          return;
+        }
         if (!latestScaleValidation.validationResult.isValid) {
           const firstFieldIssue =
             latestScaleValidation.validationResult.fieldIssues[0];

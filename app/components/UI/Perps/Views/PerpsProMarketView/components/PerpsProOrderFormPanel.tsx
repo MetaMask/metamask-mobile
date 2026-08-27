@@ -1,6 +1,10 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
+import type {
+  OrderType,
+  PerpsMarketData,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -12,6 +16,7 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -36,6 +41,8 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
 ];
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
+const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -89,7 +96,13 @@ const PerpsProOrderFormPanel = ({
     orderCapabilities?.status === 'ready'
       ? orderCapabilities.providerId
       : undefined;
-  const isTwapEnabled = isTwapRolloutEnabled && supportsTwapOrders;
+  // Controller v13 exposes executable TWAP limits for Hyperliquid only.
+  // Keep other providers undiscoverable until the capability contract owns
+  // each provider's complete placement limits.
+  const isTwapEnabled =
+    isTwapRolloutEnabled &&
+    supportsTwapOrders &&
+    resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
   const isScaleOrdersEnabled = isScaleBaseEnabled && supportsScaleOrders;

@@ -4,6 +4,8 @@ import {
 } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
   trace,
   endTrace,
@@ -478,6 +480,8 @@ export function watchPerpsCufOrderPriceUpdated(
 /**
  * Limit place confirmation: end `opId` when the order renders as resting in the
  * orders stream OR fills into a position (a marketable limit never rests).
+ * Strategy placements may supply every accepted child id. The span measures
+ * time to the first child render, matching the single-order metric boundary.
  * `positionBaseline` is the symbol's pre-order position, so a fill is detected
  * as a new/changed position rather than a pre-existing one.
  */
@@ -514,7 +518,8 @@ function watchedOrderIds(meta: Record<string, TraceValue>): string[] {
     return Array.isArray(decoded)
       ? decoded.filter((value): value is string => typeof value === 'string')
       : [];
-  } catch {
+  } catch (error) {
+    Logger.error(ensureError(error, 'perpsCufTrace.watchedOrderIds'));
     return [];
   }
 }

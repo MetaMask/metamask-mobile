@@ -1540,8 +1540,7 @@
       "available_balance_unavailable": "-- 사용 가능",
       "est_liquidation": "예상 강제 청산가",
       "tpsl": "익절/손절",
-      "place_order": "주문하기",
-      "close_keyboard": "키보드 닫기"
+      "place_order": "주문하기"
     },
     "pro_positions_panel": {
       "order_history": "주문 내역",

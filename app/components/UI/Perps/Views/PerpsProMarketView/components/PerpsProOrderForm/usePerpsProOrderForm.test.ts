@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
   type PerpsMarketData,
   type PerpsProviderType,
@@ -2036,7 +2037,62 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'scale',
+        variant: 'banner',
+        message: strings('perps.order.validation.error'),
+      });
       splitScaleSizesSpy.mockRestore();
+    });
+
+    it('normalizes known controller ladder failures into Scale validation', () => {
+      const perpsController = jest.requireActual<
+        typeof import('@metamask/perps-controller')
+      >('@metamask/perps-controller');
+      const splitScaleSizesSpy = jest
+        .spyOn(perpsController, 'splitScaleSizes')
+        .mockImplementationOnce(() => {
+          throw new Error(PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID);
+        });
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      configureScaleOrder(result);
+
+      expect(mockLoggerError).not.toHaveBeenCalled();
+      expect(result.current.notices).toContainEqual({
+        id: 'scale',
+        variant: 'banner',
+        message: strings('perps.pro_order_form.scale.validation.invalid_range'),
+      });
+      splitScaleSizesSpy.mockRestore();
+    });
+
+    it('uses the capability-resolved provider price contract for Scale preview', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockSizeDecimals = 3;
+      const hyperliquid = renderProForm();
+      act(() => {
+        hyperliquid.result.current.scaleOrder.onStartPriceChange('100.123456');
+        hyperliquid.result.current.scaleOrder.onEndPriceChange('100.123457');
+        hyperliquid.result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(hyperliquid.result.current.scaleOrder.rungs).toEqual([]);
+      hyperliquid.unmount();
+
+      const myx = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+      act(() => {
+        myx.result.current.scaleOrder.onStartPriceChange('100.123456');
+        myx.result.current.scaleOrder.onEndPriceChange('100.123457');
+        myx.result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(myx.result.current.scaleOrder.rungs).toHaveLength(3);
     });
 
     it('clears limit and trigger drafts when Scale is selected', () => {
@@ -2783,6 +2839,57 @@ describe('usePerpsProOrderForm', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
       });
+    });
+
+    it('fails closed after bounded Scale validation refreshes', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirst: ((value: typeof validResult) => void) | undefined;
+      let resolveSecond: ((value: typeof validResult) => void) | undefined;
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+        )
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+        );
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockLivePrice = '90001';
+      rerender({});
+      await act(async () => {
+        resolveFirst?.(validResult);
+        await Promise.resolve();
+      });
+      mockLivePrice = '90002';
+      rerender({});
+      await act(async () => {
+        resolveSecond?.(validResult);
+        await placement;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.error'),
+      );
     });
 
     it('uses fresh reduce-only position state after the Scale capability gap', async () => {

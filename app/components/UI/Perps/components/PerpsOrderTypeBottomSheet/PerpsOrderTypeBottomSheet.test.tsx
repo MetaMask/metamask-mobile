@@ -75,16 +75,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
+      'perps.order.type.stop_limit.description':
+        'Place a limit order if trigger price hits',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Market fills at trigger price',
+        'Place a market order if trigger price hits',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Limit take-profit at trigger price',
+        'Place a limit order if trigger price is reached',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Market take-profit at trigger price',
+        'Place a market order if trigger price is reached',
       'perps.order.type.twap.title': 'TWAP',
       'perps.order.type.twap.description':
         'Split orders to execute at regular time interval',
@@ -182,16 +183,16 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(
-        screen.getByText('Limit fills at trigger price'),
+        screen.getByText('Place a limit order if trigger price hits'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Market fills at trigger price'),
+        screen.getByText('Place a market order if trigger price hits'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Limit take-profit at trigger price'),
+        screen.getByText('Place a limit order if trigger price is reached'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Market take-profit at trigger price'),
+        screen.getByText('Place a market order if trigger price is reached'),
       ).toBeOnTheScreen();
     });
 

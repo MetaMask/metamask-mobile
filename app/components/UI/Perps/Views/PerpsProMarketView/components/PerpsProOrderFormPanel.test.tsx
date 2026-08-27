@@ -322,23 +322,6 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
   });
 
-  it('discovers Scale capabilities while the TWAP flag is disabled', () => {
-    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
-
-    renderPanel();
-
-    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
-      symbol: 'BTC',
-      providerId: 'hyperliquid',
-    });
-    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isTwapEnabled: false,
-        isScaleOrdersEnabled: true,
-      }),
-    );
-  });
-
   it('forwards the provider route resolved by capabilities to the order form', () => {
     renderPanel();
 
@@ -642,7 +625,7 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('trusts TWAP support from the routed capability contract', () => {
+  it('omits TWAP when controller v13 resolves a non-Hyperliquid route', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
@@ -667,7 +650,6 @@ describe('PerpsProOrderFormPanel', () => {
           'stop_market',
           'take_profit_limit',
           'take_profit_market',
-          'twap',
           'scale',
         ],
       }),

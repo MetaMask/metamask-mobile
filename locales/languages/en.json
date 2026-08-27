@@ -1836,19 +1836,19 @@
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Limit fills at trigger price"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Market fills at trigger price"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Limit take-profit at trigger price"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Market take-profit at trigger price"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",

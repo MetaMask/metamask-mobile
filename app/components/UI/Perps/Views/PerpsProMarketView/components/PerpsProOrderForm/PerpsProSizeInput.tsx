@@ -99,14 +99,65 @@ const PerpsProSizeInput = ({
     onToggleDenomination?.();
   }, [canPressDenominationToggle, onToggleDenomination, playSelection]);
 
+  const handleChangeText = useCallback(
+    (nextValue: string) => {
+      if (!isDisabled) {
+        onChangeText(nextValue);
+      }
+    },
+    [isDisabled, onChangeText],
+  );
+
+  const handleFocus = useCallback(() => {
+    if (!isDisabled) {
+      onFocus?.();
+    }
+  }, [isDisabled, onFocus]);
+
+  const handleBlur = useCallback(() => {
+    if (!isDisabled) {
+      onBlur?.();
+    }
+  }, [isDisabled, onBlur]);
+
+  const handleFieldPress = useCallback(() => {
+    if (!isDisabled) {
+      onFieldPress?.();
+    }
+  }, [isDisabled, onFieldPress]);
+
+  const handleSliderValueChange = useCallback(
+    (nextValue: number) => {
+      if (!isDisabled) {
+        sizeSlider.onValueChange(nextValue);
+      }
+    },
+    [isDisabled, sizeSlider],
+  );
+
+  const handleSliderDragEnd = useCallback(
+    (nextValue: number) => {
+      if (!isDisabled) {
+        sizeSlider.onDragEnd(nextValue);
+      }
+    },
+    [isDisabled, sizeSlider],
+  );
+
+  const handleSliderDragCancel = useCallback(() => {
+    if (!isDisabled) {
+      sizeSlider.onDragCancel();
+    }
+  }, [isDisabled, sizeSlider]);
+
   const handleAddFundsPress = useCallback(() => {
-    if (!onAddFundsPress) {
+    if (isDisabled || !onAddFundsPress) {
       return;
     }
 
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onAddFundsPress();
-  }, [onAddFundsPress, playImpact]);
+  }, [isDisabled, onAddFundsPress, playImpact]);
 
   return (
     <Box
@@ -144,19 +195,19 @@ const PerpsProSizeInput = ({
                 twClassName="font-semibold"
                 testID={ids.SIZE_PREFIX}
               >
-                $
+                {strings('perps.tpsl.usd_label')}
               </Text>
             ) : null}
             <Input
               ref={inputRef}
               value={value}
-              onChangeText={onChangeText}
-              onFocus={onFocus}
-              onBlur={onBlur}
+              onChangeText={handleChangeText}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               isDisabled={isDisabled}
               // A tap landing here is consumed by the input, so the wrapping
               // ButtonBase never fires.
-              onPressIn={onFieldPress}
+              onPressIn={handleFieldPress}
               keyboardType="decimal-pad"
               inputAccessoryViewID={inputAccessoryViewID}
               placeholder="0.00"
@@ -196,13 +247,13 @@ const PerpsProSizeInput = ({
       </Box>
       <Box
         twClassName="overflow-visible px-3 pb-4 pt-6"
-        onTouchCancel={sizeSlider.onDragCancel}
+        onTouchCancel={handleSliderDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
         <PerpsSlider
           value={sizeSlider.value}
-          onValueChange={sizeSlider.onValueChange}
-          onDragEnd={sizeSlider.onDragEnd}
+          onValueChange={handleSliderValueChange}
+          onDragEnd={handleSliderDragEnd}
           minimumValue={0}
           maximumValue={sizeSlider.maximumValue}
           step={1}

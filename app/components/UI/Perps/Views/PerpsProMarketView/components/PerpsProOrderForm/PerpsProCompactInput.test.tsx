@@ -115,6 +115,14 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
+    it('uses the shared 48px compact-row height token', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      expect(
+        screen.getByTestId(`${defaultProps.testID}-container`),
+      ).toHaveStyle({ height: 48 });
+    });
+
     it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
       const onFieldPress = jest.fn();
       render(
