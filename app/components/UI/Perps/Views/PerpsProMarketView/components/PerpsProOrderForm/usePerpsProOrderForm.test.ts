@@ -378,6 +378,27 @@ const renderProForm = (
     }),
   );
 
+interface MutableScaleProps {
+  isScaleOrdersEnabled: boolean;
+  isScaleOrderSupportPending: boolean;
+  scaleProviderId: PerpsProviderType;
+  checkScaleOrderSupport: () => Promise<boolean>;
+}
+
+const renderMutableScaleForm = (initialProps: MutableScaleProps) =>
+  renderHook(
+    (props: MutableScaleProps) =>
+      usePerpsProOrderForm({
+        market,
+        isTriggeredOrdersEnabled: true,
+        isTwapEnabled: true,
+        isTwapAvailabilityPending: false,
+        resolvedTwapProviderId: 'hyperliquid',
+        ...props,
+      }),
+    { initialProps },
+  );
+
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -2610,6 +2631,236 @@ describe('usePerpsProOrderForm', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'validationError' }),
       );
+    });
+
+    it('locks retained Scale callbacks before deferred compliance completes', async () => {
+      let continueCompliance: (() => Promise<void>) | undefined;
+      let resolveCompliance: (() => void) | undefined;
+      mockComplianceGate.mockImplementation(
+        (action: () => Promise<unknown>) =>
+          new Promise<void>((resolve) => {
+            resolveCompliance = resolve;
+            continueCompliance = async () => {
+              await action();
+              resolveCompliance?.();
+            };
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      const staleOnDirectionChange = result.current.onDirectionChange;
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      mockSetAmount.mockClear();
+      mockSetDirection.mockClear();
+      act(() => {
+        staleScaleOrder.onStartPriceChange('999');
+        staleSizeInput.onChange('900');
+        staleOnDirectionChange('short');
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('100');
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(result.current.direction).toBe('long');
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetDirection).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await continueCompliance?.();
+        await placement;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          isBuy: true,
+          size: '3.725',
+          scaleMinPrice: '100',
+        }),
+      );
+    });
+
+    it('blocks Scale placement when its flag turns off during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      mockSetOrderType.mockClear();
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      rerender({
+        isScaleOrdersEnabled: false,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.unavailable'),
+      );
+    });
+
+    it('blocks Scale placement when its provider changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      rerender({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'myx',
+        checkScaleOrderSupport,
+      });
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.unavailable'),
+      );
+    });
+
+    it('keeps Scale locked when capability support is lost during placement', async () => {
+      let resolveOrder:
+        | ((value: { success: boolean; childOrderIds: string[] }) => void)
+        | undefined;
+      mockExecuteOrder.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      mockSetOrderType.mockClear();
+      mockUpdateOrderForm.mockClear();
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+
+      rerender({
+        isScaleOrdersEnabled: false,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      mockSetAmount.mockClear();
+      act(() => {
+        staleScaleOrder.onEndPriceChange('999');
+        staleSizeInput.onChange('900');
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      expect(result.current.scaleOrder.endPrice).toBe('200');
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveOrder?.({ success: true, childOrderIds: ['1', '2', '3'] });
+        await placement;
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(false);
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
     });
 
     it('rejects stale Scale mutations during the capability recheck and submits the original snapshot', async () => {

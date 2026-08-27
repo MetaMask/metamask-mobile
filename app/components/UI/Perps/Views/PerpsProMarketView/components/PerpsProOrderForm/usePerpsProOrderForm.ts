@@ -589,6 +589,18 @@ export const usePerpsProOrderForm = ({
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
   const isSubmittingRef = useRef(false);
+  const isScalePlacementLockedRef = useRef(false);
+  const scalePlacementProviderIdRef = useRef<PerpsProviderType | undefined>(
+    undefined,
+  );
+  const isScaleOrdersEnabledRef = useRef(isScaleOrdersEnabled);
+  const isScaleOrderSupportPendingRef = useRef(isScaleOrderSupportPending);
+  const scaleProviderIdRef = useRef(scaleProviderId);
+  const checkScaleOrderSupportRef = useRef(checkScaleOrderSupport);
+  isScaleOrdersEnabledRef.current = isScaleOrdersEnabled;
+  isScaleOrderSupportPendingRef.current = isScaleOrderSupportPending;
+  scaleProviderIdRef.current = scaleProviderId;
+  checkScaleOrderSupportRef.current = checkScaleOrderSupport;
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
@@ -631,24 +643,28 @@ export const usePerpsProOrderForm = ({
     marketData?.maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage;
   const isLoadingMarketData = isMarketDataLoading && marketData === null;
   const isScaleOrder = orderForm.type === 'scale';
-  const guardScaleMutation = useCallback(
-    (mutation: () => void) => {
-      if (isScaleOrder && isSubmittingRef.current) {
-        return;
-      }
-      mutation();
-    },
-    [isScaleOrder],
-  );
+  const guardScaleMutation = useCallback((mutation: () => void) => {
+    if (isScalePlacementLockedRef.current) {
+      return;
+    }
+    mutation();
+  }, []);
 
   useEffect(() => {
-    if (isScaleOrder && !isScaleOrderSupportPending && !isScaleOrdersEnabled) {
+    if (
+      isScaleOrder &&
+      !isScalePlacementPending &&
+      !isScaleOrderSupportPending &&
+      !isScaleOrdersEnabled &&
+      !isScalePlacementLockedRef.current
+    ) {
       setOrderType('market');
     }
   }, [
     isScaleOrder,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
+    isScalePlacementPending,
     setOrderType,
   ]);
 
@@ -1496,7 +1512,12 @@ export const usePerpsProOrderForm = ({
       });
     };
 
-    if ((!isScaleOrdersEnabled || isScaleOrderSupportPending) && isScaleOrder) {
+    if (
+      isScaleOrder &&
+      (!isScaleOrdersEnabledRef.current ||
+        isScaleOrderSupportPendingRef.current ||
+        scaleProviderIdRef.current !== scalePlacementProviderIdRef.current)
+    ) {
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.pro_order_form.scale.validation.unavailable'),
@@ -1560,9 +1581,6 @@ export const usePerpsProOrderForm = ({
     }
 
     isSubmittingRef.current = true;
-    if (isScaleOrder) {
-      setIsScalePlacementPending(true);
-    }
 
     try {
       const validationResult = await validateNow();
@@ -1621,7 +1639,19 @@ export const usePerpsProOrderForm = ({
       }
 
       if (isScaleOrder) {
-        if (!(await checkScaleOrderSupport())) {
+        const expectedProviderId = scalePlacementProviderIdRef.current;
+        const checkCurrentScaleSupport = checkScaleOrderSupportRef.current;
+        if (
+          !expectedProviderId ||
+          !isScaleOrdersEnabledRef.current ||
+          isScaleOrderSupportPendingRef.current ||
+          scaleProviderIdRef.current !== expectedProviderId ||
+          !(await checkCurrentScaleSupport()) ||
+          !isScaleOrdersEnabledRef.current ||
+          isScaleOrderSupportPendingRef.current ||
+          scaleProviderIdRef.current !== expectedProviderId ||
+          checkScaleOrderSupportRef.current !== checkCurrentScaleSupport
+        ) {
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               strings('perps.pro_order_form.scale.validation.unavailable'),
@@ -1661,7 +1691,7 @@ export const usePerpsProOrderForm = ({
             leverage: orderForm.leverage,
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly,
-            providerId: orderProviderId,
+            providerId: expectedProviderId,
             isFullClose: reduceOnly
               ? reduceOnlyValidation.isFullClose || isExactFullClose
               : undefined,
@@ -1879,7 +1909,6 @@ export const usePerpsProOrderForm = ({
       resetTwapDraft();
     } finally {
       isSubmittingRef.current = false;
-      setIsScalePlacementPending(false);
     }
   }, [
     track,
@@ -1900,9 +1929,6 @@ export const usePerpsProOrderForm = ({
     isTriggeredOrdersEnabled,
     isMarketDataBlocking,
     isAtCap,
-    isScaleOrdersEnabled,
-    isScaleOrderSupportPending,
-    checkScaleOrderSupport,
     orderProviderId,
     isScaleOrder,
     scaleLadderResult,
@@ -2561,7 +2587,11 @@ export const usePerpsProOrderForm = ({
     szDecimals,
   ]);
 
-  const onPlaceOrderPress = useCallback(() => {
+  const onPlaceOrderPress = useCallback(async () => {
+    if (isScalePlacementLockedRef.current) {
+      return;
+    }
+
     // Gesture cancellation can bypass both onDragEnd and RN onTouchCancel.
     // Flush a pending preview and wait for canonical order state to re-render
     // before submitting, matching Lite's interrupted-drag guard.
@@ -2569,20 +2599,36 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    // Compliance first, then geographic eligibility — matches Lite trade entry
-    // and the canonical compliance gate ordering (docs/compliance.md).
-    return gate(async () => {
-      if (!isEligible) {
-        showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
-        return;
+    const locksScalePlacement = isScaleOrder;
+    if (locksScalePlacement) {
+      isScalePlacementLockedRef.current = true;
+      scalePlacementProviderIdRef.current = scaleProviderIdRef.current;
+      setIsScalePlacementPending(true);
+    }
+
+    try {
+      // Compliance first, then geographic eligibility — matches Lite trade entry
+      // and the canonical compliance gate ordering (docs/compliance.md).
+      await gate(async () => {
+        if (!isEligible) {
+          showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
+          return;
+        }
+        await handlePlaceOrder();
+      });
+    } finally {
+      if (locksScalePlacement) {
+        isScalePlacementLockedRef.current = false;
+        scalePlacementProviderIdRef.current = undefined;
+        setIsScalePlacementPending(false);
       }
-      await handlePlaceOrder();
-    });
+    }
   }, [
     commitPendingSliderPreview,
     gate,
     handlePlaceOrder,
     isEligible,
+    isScaleOrder,
     showEligibilityModal,
   ]);
 
