@@ -63,6 +63,7 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import { EarnSectionTestIds } from './EarnSection.testIds';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -77,7 +78,7 @@ export interface EarnSectionProps {
   enabled?: boolean;
 }
 
-const renderEarnAssetIcon = (token: TokenI) => {
+const renderEarnAssetIcon = (token: TokenI, index: number) => {
   const networkImageSource = token.chainId
     ? getNetworkImageSource({ chainId: token.chainId })
     : undefined;
@@ -93,7 +94,10 @@ const renderEarnAssetIcon = (token: TokenI) => {
         />
       }
     >
-      <AssetLogo asset={token} />
+      <AssetLogo
+        asset={token}
+        testID={EarnSectionTestIds.ASSET_AVATAR(index)}
+      />
     </BadgeWrapper>
   );
 };
@@ -354,7 +358,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           return (
             <EarnSectionAssetCard
               key={slot.key}
-              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
+              icon={renderEarnAssetIcon(earnAssetToToken(asset), index)}
               tag={
                 hasSubsidizedFee ? (
                   <EarnNoFeeTag
@@ -370,7 +374,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   : (metadata.name ?? metadata.ticker ?? metadata.symbol)
               }
               tertiaryText={rateText}
-              testID={`earn-section-asset-${index}-card`}
+              testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />
           );
@@ -380,7 +384,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box testID="earn-section">
+        <Box testID={EarnSectionTestIds.ROOT}>
           {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
@@ -419,7 +423,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   />
                 }
                 tag={
-                  moneyAccountBalanceRaw === '0' ? <EarnNewTag /> : undefined
+                  moneyAccountBalanceRaw === '0' ? (
+                    <EarnNewTag
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_NEW_TAG}
+                    />
+                  ) : undefined
                 }
                 primaryText={strings('earn_module.money_account')}
                 secondaryText={
@@ -448,7 +456,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     })
                   )
                 }
-                testID="earn-section-money-account-card"
+                testID={EarnSectionTestIds.MONEY_ACCOUNT_CARD}
                 onPress={handleMoneyAccountCardPress}
               />
             )}

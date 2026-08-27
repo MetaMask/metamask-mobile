@@ -1,9 +1,11 @@
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { initialStateEarn } from './earn';
 
 interface InitialStateTrendingOptions {
   deterministicFiat?: boolean;
+  earnSectionEnabled?: boolean;
 }
 
 /**
@@ -30,6 +32,10 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
         featureVersion: '1.0.0',
         minimumVersion: '0.0.1',
       },
+      earnExploreSectionEnabled: {
+        enabled: options?.earnSectionEnabled ?? false,
+        minimumVersion: '0.0.0',
+      },
     })
     .withOverrides({
       browser: {
@@ -49,6 +55,14 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
         },
       },
     } as unknown as DeepPartial<RootState>);
+
+  if (options?.earnSectionEnabled) {
+    builder.withOverrides(
+      initialStateEarn({
+        deterministicFiat: options.deterministicFiat,
+      }).build(),
+    );
+  }
 
   if (options?.deterministicFiat) {
     builder.withOverrides({

@@ -15,6 +15,7 @@ import { initialStateTrending } from '../presets/trending';
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  earnSectionEnabled?: boolean;
   initialParams?: Record<string, unknown>;
 }
 
@@ -59,9 +60,13 @@ function withExploreFeedProviders(
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat, initialParams } = options;
+  const { overrides, deterministicFiat, earnSectionEnabled, initialParams } =
+    options;
 
-  const builder = initialStateTrending({ deterministicFiat });
+  const builder = initialStateTrending({
+    deterministicFiat,
+    earnSectionEnabled,
+  });
   if (overrides) {
     builder.withOverrides(overrides);
   }
