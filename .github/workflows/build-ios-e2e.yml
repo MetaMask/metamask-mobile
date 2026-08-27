@@ -49,10 +49,6 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
         'namespace-profile-metamask-ios-build' ||
-        inputs.runner_provider == 'bitrise' &&
-        (vars.BITRISE_BUILD_MACHINE_TYPE != '' &&
-         fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) ||
-         'bitrise_pool_name:bitrise-metamask-ios-build') ||
         (startsWith(github.base_ref, 'release/') &&
          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') ||
          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]'))
@@ -107,37 +103,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        with:
-          # BITRISE-SHADOW: preserve prewarmed node_modules / Pods (INFRA-3679)
-          clean: ${{ inputs.runner_provider != 'bitrise' }}
-
-      # Bitrise Build Hub VMs use Vagrant (user=vagrant, HOME=/Users/vagrant).
-      # GitHub Actions tooling expects /Users/runner — symlink for compatibility (INFRA-3591 POC).
-      - name: Fix Vagrant environment paths (Bitrise runners)
-        if: ${{ inputs.runner_provider == 'bitrise' }}
-        run: |
-          if [ -L /Users/runner ]; then
-            current_target="$(readlink /Users/runner)"
-            if [ "$current_target" = "/Users/vagrant" ]; then
-              echo "Symlink already correct: /Users/runner -> /Users/vagrant"
-            else
-              echo "Replacing incorrect symlink /Users/runner -> $current_target"
-              sudo rm /Users/runner
-              sudo ln -s /Users/vagrant /Users/runner
-              echo "Recreated symlink: /Users/runner -> /Users/vagrant"
-            fi
-          elif [ -e /Users/runner ]; then
-            echo "Error: /Users/runner exists but is not a symlink"
-            ls -ld /Users/runner
-            exit 1
-          else
-            sudo ln -s /Users/vagrant /Users/runner
-            echo "Created symlink /Users/runner -> /Users/vagrant"
-          fi
-          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
-          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
-          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
-        shell: bash
 
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -169,8 +134,7 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        # BITRISE-SHADOW: skip GitHub artifact reuse; Bitrise uses actions/cache app fingerprint cache (INFRA-3591).
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -268,7 +232,7 @@ jobs:
       # artifact is named after), on top of the fingerprint itself.
       - name: Restore iOS app matching fingerprint from branch cache (Cirrus)
         id: ios-app-cache-restore
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -278,7 +242,7 @@ jobs:
 
       - name: Restore iOS app matching fingerprint from main cache (Cirrus)
         id: ios-app-cache-restore-main
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -304,9 +268,6 @@ jobs:
               echo "::warning::Test-only PR could not reuse main iOS builds yet (GitHub artifacts or main app cache). Falling back to fresh native build."
               echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             fi
-          elif [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
-            echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
-            echo "BITRISE_FORCE_NATIVE_BUILD=true — skipping GitHub artifact reuse to exercise Bitrise RN Build Cache."
           elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
              && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
              && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
@@ -331,11 +292,9 @@ jobs:
       # Heavy native setup — only runs on a full native-build path.
       # -------------------------------------------------------------------------
 
-      # Bitrise skips cirruslabs DerivedData caches below; RN Build Cache replaces them (INFRA-3591).
-
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -345,7 +304,7 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -394,7 +353,7 @@ jobs:
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -427,7 +386,7 @@ jobs:
         shell: bash
 
       - name: Restore yarn cache (reuse-hit path)
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/cache@v4
         with:
           path: |
@@ -447,7 +406,7 @@ jobs:
           YARN_ENABLE_GLOBAL_CACHE: 'true'
 
       - name: Restore .metamask folder (reuse-hit path)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
         uses: actions/cache@v4
         with:
@@ -465,19 +424,6 @@ jobs:
             echo "📦 Setting up project (lightweight, skips Xcode build)..."
             yarn setup:github-ci --no-build-ios --no-build-android
 
-      - name: Activate Bitrise Build Cache for React Native
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
-        env:
-          BITRISE_BUILD_CACHE_AUTH_TOKEN: ${{ secrets.BITRISE_BUILD_CACHE_AUTH_TOKEN }}
-          BITRISE_BUILD_CACHE_WORKSPACE_ID: ${{ vars.BITRISE_BUILD_CACHE_WORKSPACE_ID }}
-        run: |
-          #!/usr/bin/env bash
-          set -euxo pipefail
-          curl --retry 5 -sSfL 'https://raw.githubusercontent.com/bitrise-io/bitrise-build-cache-cli/main/install/installer.sh' | sh -s -- -b /tmp/bin -d
-          /tmp/bin/bitrise-build-cache activate react-native
-          echo "/tmp/bin" >> "$GITHUB_PATH"
-        shell: bash
-
       # Roughly ten minutes elapse between the lookup near the top of this job and
       # the build step below, spent installing the toolchain and dependencies. A
       # donor can finish uploading inside that window: the native build publishes
@@ -488,7 +434,7 @@ jobs:
       # appeared while we were busy anyway.
       - name: Re-check for a reusable build published since the first lookup
         id: find-reusable-build-late
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -589,64 +535,9 @@ jobs:
           echo "Source SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}"
           echo "Source branch: ${{ steps.find-reusable-build-late.outputs.source-branch }}"
 
-      - name: Generate current fingerprint
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
-        id: generate-fingerprint
-        run: |
-          if [[ -n "${{ inputs.source-fingerprint }}" ]]; then
-            FINGERPRINT="${{ inputs.source-fingerprint }}"
-          else
-            FINGERPRINT=$(yarn fingerprint:generate)
-          fi
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
-
-      - name: Restore iOS app matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
-        id: cache-restore
-        uses: actions/cache@v4
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: bitrise-ios-app-${{ inputs.build_type }}-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
-      - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
-        id: cache-restore-main
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: bitrise-ios-app-${{ inputs.build_type }}-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
-      - name: Build iOS E2E App (Bitrise RN cache)
-        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
-        run: |
-          echo "Building iOS E2E App on Bitrise runner..."
-          bitrise-build-cache react-native run yarn build:ios:${{ inputs.build_type }}:e2e
-        shell: bash
-        env:
-          PLATFORM: ios
-          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          HAS_TEST_OVERRIDES: true
-          IS_SIM_BUILD: 'true'
-          IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: 'true'
-          CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.download-late-app.outcome != 'success' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.download-late-app.outcome != 'success' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -676,7 +567,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || steps.download-late-app.outcome == 'success' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true'))) }}
+        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || steps.download-late-app.outcome == 'success') }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
