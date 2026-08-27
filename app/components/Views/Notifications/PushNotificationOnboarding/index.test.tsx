@@ -62,6 +62,10 @@ jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
     __esModule: true,
+    default: {
+      requestPushNotificationsPermission: jest.fn(),
+    },
+    canOsPromptForPushPermission: jest.fn(),
     isPushPermissionPromptable: jest.fn(),
   }),
 );
@@ -70,6 +74,10 @@ const mockNotificationService = jest.requireMock(
 );
 const mockIsPushPermissionPromptable =
   mockNotificationService.isPushPermissionPromptable as jest.Mock;
+const mockCanOsPromptForPushPermission =
+  mockNotificationService.canOsPromptForPushPermission as jest.Mock;
+const mockRequestPushNotificationsPermission = mockNotificationService.default
+  .requestPushNotificationsPermission as jest.Mock;
 
 jest.mock('./NewUserSheet', () => ({
   __esModule: true,
@@ -237,6 +245,8 @@ describe('PushNotificationOnboarding', () => {
     mockEnableMarketingConsent.mockResolvedValue(undefined);
     mockRequestPushPermission.mockResolvedValue(false);
     mockIsPushPermissionPromptable.mockResolvedValue(true);
+    mockCanOsPromptForPushPermission.mockReturnValue(true);
+    mockRequestPushNotificationsPermission.mockResolvedValue(undefined);
     mockIdentifyMarketingConsent.mockResolvedValue(undefined);
     mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
   });
@@ -329,6 +339,114 @@ describe('PushNotificationOnboarding', () => {
     },
   );
 
+  // Regression: Android <13 has no POST_NOTIFICATIONS permission, so
+  // requestPermission() can never show a dialog and just re-reports the current
+  // denied state. Requesting anyway logged an `OS Push Notification Button
+  // Clicked` / deny for a refusal the user was never asked for.
+  describe('when the OS cannot show a push permission dialog', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+      mockIsPushPermissionPromptable.mockResolvedValue(true);
+      mockCanOsPromptForPushPermission.mockReturnValue(false);
+    });
+
+    it('routes to system settings instead of requesting permission', async () => {
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockRequestPushNotificationsPermission).toHaveBeenCalledTimes(1);
+      expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    });
+
+    it('does not record an OS prompt response the user never gave', async () => {
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
+      expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
+    });
+
+    it('still grants marketing consent and initializes preferences without push', async () => {
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
+      expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
+    });
+
+    it('suppresses the notifications-off toast that would contradict the settings prompt', async () => {
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not route to settings when the OS permission is already granted', async () => {
+      const { getByTestId } = renderPushNotificationOnboarding({
+        nativeOsPermissionEnabled: true,
+      });
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockRequestPushNotificationsPermission).not.toHaveBeenCalled();
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+      expectNotificationsOnToast();
+    });
+
+    it('does not route to settings when the state is not promptable at all', async () => {
+      mockIsPushPermissionPromptable.mockResolvedValue(false);
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockRequestPushNotificationsPermission).not.toHaveBeenCalled();
+      expect(mockRequestPushPermission).not.toHaveBeenCalled();
+      expectNotificationsOffToast();
+    });
+  });
+
+  it('requests OS permission normally when the OS can show a dialog', async () => {
+    Platform.OS = 'android';
+    mockCanOsPromptForPushPermission.mockReturnValue(true);
+    mockRequestPushPermission.mockResolvedValue(true);
+    const { getByTestId } = renderPushNotificationOnboarding();
+
+    fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalledWith('engage');
+    });
+    expect(mockRequestPushNotificationsPermission).not.toHaveBeenCalled();
+    expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
+    expect(mockTrackOsPromptResponse).toHaveBeenCalledWith(
+      'push_permission',
+      'allowed',
+    );
+  });
+
   it('keeps the pre-prompt pending until the OS prompt result resolves', async () => {
     let resolveRequestPushPermission: (isEnabled: boolean) => void = jest.fn();
     mockRequestPushPermission.mockReturnValue(
@@ -393,6 +511,7 @@ describe('PushNotificationOnboarding', () => {
 
   it('sets marketing consent when the marketing prompt is confirmed', () => {
     const { getByTestId } = renderPushNotificationOnboarding({
+      nativeOsPermissionEnabled: true,
       prePromptVariant: 'marketing_consent',
     });
 
@@ -400,13 +519,40 @@ describe('PushNotificationOnboarding', () => {
 
     expect(mockOnComplete).toHaveBeenCalledWith('engage');
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
-    expect(mockEnableNotificationsInBackground).not.toHaveBeenCalled();
     expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
       'marketing_consent',
       'confirm',
     );
     expectPersonalizedAlertsOnToast();
+  });
+
+  // Regression: the marketing-consent sheet is the only sheet an Android <13 user
+  // with notifications enabled can ever see, because OS permission is granted at
+  // install and the push-permission variant is therefore unreachable. Without this
+  // the AUS preferences row is never created, so the backend has nothing to sync
+  // and no `notifications_*` attributes ever reach Braze.
+  it('initializes notification preferences when the marketing prompt is confirmed', () => {
+    const { getByTestId } = renderPushNotificationOnboarding({
+      nativeOsPermissionEnabled: true,
+      prePromptVariant: 'marketing_consent',
+    });
+
+    fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
+
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+  });
+
+  it('does not register push when confirming the marketing prompt without OS permission', () => {
+    const { getByTestId } = renderPushNotificationOnboarding({
+      nativeOsPermissionEnabled: null,
+      prePromptVariant: 'marketing_consent',
+    });
+
+    fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
+
+    // Preferences are still initialized, only push registration is skipped.
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
   });
 
   it('does not enable marketing notifications when the marketing prompt is skipped', () => {

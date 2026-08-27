@@ -11,6 +11,7 @@ import {
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
 import NotificationService, {
+  canOsPromptForPushPermission,
   getPushPermission,
   getPushPermissionStatus,
   isPushPermissionGranted,
@@ -56,7 +57,7 @@ jest.mock('@notifee/react-native', () => ({
 }));
 jest.mock('react-native', () => ({
   Linking: { openSettings: jest.fn() },
-  Platform: { OS: 'ios' },
+  Platform: { OS: 'ios', Version: 33 },
   Alert: { alert: jest.fn() },
 }));
 jest.mock('../settings', () => ({
@@ -262,6 +263,59 @@ describe('isPushPermissionPromptable', () => {
       .mocked(notifee.getNotificationSettings)
       .mockRejectedValue(new Error('TEST ERROR'));
     expect(await isPushPermissionPromptable()).toBe(false);
+  });
+});
+
+describe('canOsPromptForPushPermission', () => {
+  // `Platform.Version` is exposed as a getter, so it has to be redefined rather
+  // than assigned.
+  const setPlatformVersion = (version: number | string) =>
+    Object.defineProperty(Platform, 'Version', {
+      get: () => version,
+      configurable: true,
+    });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(Platform).OS = 'ios';
+    setPlatformVersion(33);
+  });
+
+  afterEach(() => {
+    // Leaving `OS` as android would break unrelated suites below.
+    jest.mocked(Platform).OS = 'ios';
+  });
+
+  it.each(['ios', 'macos', 'windows'] as const)(
+    'returns true on %s regardless of version',
+    (platform) => {
+      jest.mocked(Platform).OS = platform;
+      setPlatformVersion(15);
+      expect(canOsPromptForPushPermission()).toBe(true);
+    },
+  );
+
+  // Android gained POST_NOTIFICATIONS in API 33. Below that there is no runtime
+  // permission, so requestPermission() can never surface a dialog and would
+  // report a "denied" the user was never asked for.
+  it.each([
+    { version: 28, expected: false, label: 'Android 9 (P)' },
+    { version: 29, expected: false, label: 'Android 10 (Q)' },
+    { version: 30, expected: false, label: 'Android 11' },
+    { version: 31, expected: false, label: 'Android 12' },
+    { version: 32, expected: false, label: 'Android 12L' },
+    { version: 33, expected: true, label: 'Android 13' },
+    { version: 34, expected: true, label: 'Android 14' },
+  ])('returns $expected on $label (API $version)', ({ version, expected }) => {
+    jest.mocked(Platform).OS = 'android';
+    setPlatformVersion(version);
+    expect(canOsPromptForPushPermission()).toBe(expected);
+  });
+
+  it('handles a stringified Android version', () => {
+    jest.mocked(Platform).OS = 'android';
+    setPlatformVersion('31');
+    expect(canOsPromptForPushPermission()).toBe(false);
   });
 });
 

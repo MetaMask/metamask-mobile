@@ -14,7 +14,10 @@ import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/
 import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
-import { isPushPermissionPromptable } from '../../../../util/notifications/services/NotificationService';
+import NotificationService, {
+  canOsPromptForPushPermission,
+  isPushPermissionPromptable,
+} from '../../../../util/notifications/services/NotificationService';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -177,6 +180,10 @@ const PushNotificationOnboarding = ({
 
   const handlePushPermissionYes = useCallback(async () => {
     let nativePermissionEnabled = nativeOsPermissionEnabled === true;
+    // Set when the OS cannot show a dialog and we hand off to system settings
+    // instead, so we suppress the "notifications are off" toast that would
+    // otherwise contradict the settings prompt the user is looking at.
+    let didRouteToSystemSettings = false;
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
       // Accepting push notifications also opts the user into marketing consent.
@@ -188,7 +195,19 @@ const PushNotificationOnboarding = ({
         // Android <13 when the user disabled notifications in Settings).
         // Skip the request and treat it as denied in all those cases.
         const isPromptable = await isPushPermissionPromptable();
-        if (isPromptable) {
+
+        if (isPromptable && !canOsPromptForPushPermission()) {
+          // Android < 13 has no POST_NOTIFICATIONS permission, so no dialog can
+          // ever appear and requesting would silently re-report the current
+          // denied state — recording a refusal the user never expressed. Hand
+          // off to system settings instead. Deliberately skipped here:
+          // `trackOsPromptShown`/`trackOsPromptResponse` (no prompt happened)
+          // and `requestPushPermissions`, which would also dispatch
+          // `markPushNotificationOsPromptRequested` and cause the wallet-home
+          // checklist to drop its notifications step.
+          didRouteToSystemSettings = true;
+          await NotificationService.requestPushNotificationsPermission();
+        } else if (isPromptable) {
           trackOsPromptShown('push_permission');
           nativePermissionEnabled = await requestPushPermission();
           trackOsPromptResponse(
@@ -200,7 +219,9 @@ const PushNotificationOnboarding = ({
       identifyPushNotificationsEnabled(nativePermissionEnabled).catch(
         () => undefined,
       );
-      showPushPermissionToast(nativePermissionEnabled);
+      if (!didRouteToSystemSettings) {
+        showPushPermissionToast(nativePermissionEnabled);
+      }
     } finally {
       dismissPrePrompt();
       onComplete('engage');
@@ -238,9 +259,23 @@ const PushNotificationOnboarding = ({
     trackPrePromptButtonClicked('marketing_consent', 'confirm');
     enableMarketingConsent().catch(() => undefined);
     showMarketingConsentToast(true);
+    // This sheet is only reachable when OS push permission is already granted, so
+    // no OS prompt runs and this handler used to end the flow here — leaving the
+    // AUS notification-preferences row uncreated. Without it the backend has
+    // nothing to sync, no `notifications_*` custom attributes ever reach Braze,
+    // and every later settings toggle silently no-ops because it guards on an
+    // existing preferences blob.
+    //
+    // This is every Android < 13 user with notifications enabled: permission is
+    // granted at install, so the push-permission variant is unreachable for them
+    // and this is the only sheet they can ever see. It also covers iOS and
+    // Android 13+ users who granted permission at an earlier entry point.
+    enableNotificationsInBackground(nativeOsPermissionEnabled === true);
   }, [
     dismissPrePrompt,
     enableMarketingConsent,
+    enableNotificationsInBackground,
+    nativeOsPermissionEnabled,
     onComplete,
     showMarketingConsentToast,
     trackPrePromptButtonClicked,

@@ -387,3 +387,29 @@ export async function isPushPermissionPromptable(): Promise<boolean> {
 
   return (await getPushPermissionStatus()) === 'promptable';
 }
+
+/** Android API level that introduced the `POST_NOTIFICATIONS` runtime permission. */
+export const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
+
+/**
+ * Returns true when the OS is capable of showing a push permission dialog at all.
+ *
+ * Android only gained the `POST_NOTIFICATIONS` runtime permission in API 33
+ * (Android 13). Below that level notifications are granted at install and there is
+ * no permission to request: `notifee.requestPermission()` merely re-reads
+ * `areNotificationsEnabled()` and resolves to the state it started in, without ever
+ * surfacing a dialog.
+ *
+ * `isPushPermissionPromptable` cannot express this — on Android it reports any
+ * not-granted state as promptable and defers to `requestPermission` to decide
+ * whether a dialog is possible. Requesting anyway on Android < 13 records a
+ * "denied" response the user was never asked for. Check this before calling
+ * `requestPushPermissions` and route these users to system settings instead.
+ */
+export function canOsPromptForPushPermission(): boolean {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
+
+  return Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL;
+}
