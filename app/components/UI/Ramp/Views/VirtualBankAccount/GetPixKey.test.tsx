@@ -20,7 +20,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./hooks/useKycDisclaimers');
 jest.mock('./ironKycFlow');
-
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockStartIronKycFlow = jest.mocked(startIronKycFlow);
 const mockRetry = jest.fn();
@@ -34,6 +33,7 @@ const loadedDisclaimer = {
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockStartIronKycFlow.mockResolvedValue(undefined);
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
@@ -41,10 +41,6 @@ describe('GetPixKey', () => {
       error: null,
       retry: mockRetry,
     });
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -73,9 +69,10 @@ describe('GetPixKey', () => {
   it('starts the Iron KYC flow and navigates to verify identity when agree and continue is pressed after disclaimers load', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
-    fireEvent.press(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
+    const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
+    expect(button).toBeEnabled();
+
+    fireEvent.press(button);
 
     await waitFor(() => {
       expect(mockStartIronKycFlow).toHaveBeenCalledTimes(1);
@@ -99,6 +96,7 @@ describe('GetPixKey', () => {
       );
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
@@ -114,12 +112,9 @@ describe('GetPixKey', () => {
     expect(
       getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
   });
 
   it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
@@ -138,12 +133,9 @@ describe('GetPixKey', () => {
     expect(
       queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
   });
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
@@ -170,12 +162,9 @@ describe('GetPixKey', () => {
     expect(
       getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
+    expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
-    );
-    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    ).toBeDisabled();
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);

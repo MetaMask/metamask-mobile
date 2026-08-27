@@ -3,11 +3,16 @@ import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   createGamePresentation,
   getEventGame,
@@ -17,14 +22,34 @@ import {
 import type { PredictEvent, PredictTeam } from '../../../types';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
-const EventTitle = ({ children }: { children: string }) => (
-  <Text
-    testID={PredictEventScreenTestIds.TITLE}
-    accessibilityRole="header"
-    variant={TextVariant.HeadingLg}
-  >
-    {children}
-  </Text>
+const EventTitle = ({
+  children,
+  onRulesPress,
+}: {
+  children: string;
+  onRulesPress?: () => void;
+}) => (
+  <Box twClassName="flex-row items-center gap-2">
+    <Text
+      testID={PredictEventScreenTestIds.TITLE}
+      accessibilityRole="header"
+      variant={TextVariant.HeadingLg}
+      twClassName="min-w-0 flex-1"
+    >
+      {children}
+    </Text>
+    {onRulesPress ? (
+      <ButtonIcon
+        iconName={IconName.Question}
+        size={ButtonIconSize.Sm}
+        iconProps={{ color: IconColor.IconAlternative }}
+        onPress={onRulesPress}
+        testID={PredictEventScreenTestIds.EVENT_RULES_BUTTON}
+        accessibilityLabel={strings('predict.rules.event_accessibility_label')}
+        accessibilityRole="button"
+      />
+    ) : null}
+  </Box>
 );
 
 export const EventLoadingHeader = ({ title }: { title: string }) => (
@@ -32,7 +57,7 @@ export const EventLoadingHeader = ({ title }: { title: string }) => (
     <EventTitle>{title}</EventTitle>
     <Box
       testID={PredictEventScreenTestIds.LOADING}
-      accessibilityLabel="Loading event"
+      accessibilityLabel={strings('predict.event.loading_accessibility_label')}
       twClassName="gap-3"
     >
       <Box twClassName="h-24 rounded-xl bg-muted" />
@@ -41,7 +66,13 @@ export const EventLoadingHeader = ({ title }: { title: string }) => (
   </Box>
 );
 
-export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
+export const StandardEventHeader = ({
+  event,
+  onRulesPress,
+}: {
+  event: PredictEvent;
+  onRulesPress?: () => void;
+}) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -60,7 +91,7 @@ export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
           />
         ) : null}
         <Box twClassName="min-w-0 flex-1 gap-1">
-          <EventTitle>{event.title}</EventTitle>
+          <EventTitle onRulesPress={onRulesPress}>{event.title}</EventTitle>
           {event.subtitle ? (
             <Text
               testID={PredictEventScreenTestIds.SUBTITLE}
@@ -185,7 +216,13 @@ const GameStatus = ({
   </Box>
 );
 
-export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
+export const GameEventHeader = ({
+  event,
+  onRulesPress,
+}: {
+  event: PredictEvent;
+  onRulesPress?: () => void;
+}) => {
   const game = getEventGame(event);
   if (!game) {
     return null;
@@ -195,7 +232,7 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
 
   return (
     <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
-      <EventTitle>{event.title}</EventTitle>
+      <EventTitle onRulesPress={onRulesPress}>{event.title}</EventTitle>
       <Box twClassName="flex-row items-start gap-2">
         <GameTeam
           team={presentation.teams.away.team}

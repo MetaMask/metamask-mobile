@@ -27,18 +27,18 @@ jest.mock('@react-navigation/native', () => ({
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
+  it('renders the title, steps, and continue button', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity />,
+    );
 
-  it('renders the container and continue button', () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByText('Verify your identity')).toBeOnTheScreen();
+    expect(getByText('Upload ID document')).toBeOnTheScreen();
+    expect(getByText('Take a selfie')).toBeOnTheScreen();
+    expect(getByText('Confirm personal details')).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
@@ -72,44 +72,36 @@ describe('VbaVerifyIdentity', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps the data and privacy sub-topics collapsed by default, and shows their titles once opened', () => {
-    const { queryByTestId, getByTestId } = renderWithProvider(
+  it('keeps the data and privacy sub-topics collapsed by default', () => {
+    const { queryByText } = renderWithProvider(<VbaVerifyIdentity />);
+
+    expect(queryByText('What we collect')).not.toBeOnTheScreen();
+    expect(queryByText('How we store data')).not.toBeOnTheScreen();
+    expect(queryByText('How to delete')).not.toBeOnTheScreen();
+  });
+
+  it('shows sub-topic titles but keeps their body copy folded once data and privacy opens', () => {
+    const { getByText, queryByText, getByTestId } = renderWithProvider(
       <VbaVerifyIdentity />,
     );
-
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE),
-    ).not.toBeOnTheScreen();
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
 
-    // Sub-topic titles are visible once "Data and privacy" opens, but each
-    // sub-topic's own body copy stays folded until it's individually
-    // expanded.
+    expect(getByText('What we collect')).toBeOnTheScreen();
+    expect(getByText('How we store data')).toBeOnTheScreen();
+    expect(getByText('How to delete')).toBeOnTheScreen();
+    // Each sub-topic's body copy stays folded until individually expanded.
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_CONTENT),
+      queryByText(
+        'We collect personal information as part of identity verification, including legal full name, address, and more.',
+      ),
     ).not.toBeOnTheScreen();
   });
 
   it('expands an individual sub-topic without affecting the others', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <VbaVerifyIdentity />,
     );
 
@@ -121,13 +113,15 @@ describe('VbaVerifyIdentity', () => {
     );
 
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_CONTENT),
+      getByText(
+        'We collect personal information as part of identity verification, including legal full name, address, and more.',
+      ),
     ).toBeOnTheScreen();
+    expect(getByText('How we store data')).toBeOnTheScreen();
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_CONTENT),
+      queryByText(
+        'You can delete your data anytime by going to Settings > Manage data.',
+      ),
     ).not.toBeOnTheScreen();
   });
 

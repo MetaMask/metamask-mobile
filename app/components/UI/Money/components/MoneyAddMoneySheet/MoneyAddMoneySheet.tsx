@@ -157,8 +157,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.VBA_GET_PIX_KEY,
     });
 
-    // Standalone screen, not part of the crypto deposit flow, so it pushes
-    // directly onto the stack instead of going through startDeposit.
+    // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.RAMP.GET_PIX_KEY);
     });
@@ -245,7 +244,10 @@ const MoneyAddMoneySheet: React.FC = () => {
       };
 
   const baseOptions: MoneySheetOption[] = [
-    bankAccountOption,
+    // Flag on: the enabled Bank account row is promoted to the top of the
+    // sheet. Flag off: the coming-soon row keeps its pre-flag position
+    // further down so ordering is unchanged for existing users.
+    ...(isVirtualBankAccountEnabled ? [bankAccountOption] : []),
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -280,6 +282,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
+    ...(isVirtualBankAccountEnabled ? [] : [bankAccountOption]),
     {
       label: strings('money.add_money_sheet.receive_external'),
       icon: IconName.QrCode,

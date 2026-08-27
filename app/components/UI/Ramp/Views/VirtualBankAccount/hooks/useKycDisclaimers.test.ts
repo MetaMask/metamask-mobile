@@ -20,6 +20,7 @@ describe('useKycDisclaimers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockGetBearerToken.mockResolvedValue('mock-bearer-token');
     globalFetchSpy = jest.spyOn(global, 'fetch');
   });
@@ -46,6 +47,41 @@ describe('useKycDisclaimers', () => {
     expect(calledOptions.headers.Authorization).toBe(
       'Bearer mock-bearer-token',
     );
+  });
+
+  it('treats an empty successful response as an error so the CTA is not soft-locked', async () => {
+    globalFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.disclaimers).toStrictEqual([]);
+    expect(result.current.error).toBe('No KYC disclaimers returned');
+  });
+
+  it('times out when getting the bearer token hangs', async () => {
+    jest.useFakeTimers();
+    try {
+      // A token call that never settles used to leave isLoading true forever.
+      mockGetBearerToken.mockReturnValueOnce(new Promise(() => undefined));
+
+      const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+      act(() => {
+        jest.advanceTimersByTime(10_000);
+      });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.error).toBe('Request timed out');
+      expect(globalFetchSpy).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('sets an error and empty list when the request fails', async () => {

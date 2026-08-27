@@ -30,10 +30,9 @@ import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { startIronKycFlow } from './ironKycFlow';
+import LegalLink from './components/LegalLink';
 
-// Pix's badge always renders bold italic white text on its brand teal,
-// regardless of app theme, so this is a plain style object rather than a
-// twClassName.
+// Pix's badge is bold italic white on brand teal regardless of app theme.
 const PIX_TAG_TEXT_STYLE = {
   color: brandColor.white,
   fontStyle: 'italic' as const,
@@ -59,36 +58,6 @@ const BenefitRow = ({
   </Box>
 );
 
-const LegalLink = ({
-  onPress,
-  testID,
-  children,
-}: {
-  onPress: () => void;
-  testID: string;
-  children: string;
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-1 py-1"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="underline"
-      onPress={onPress}
-      testID={testID}
-    >
-      {children}
-    </Text>
-    <Icon
-      name={IconName.Export}
-      size={IconSize.Sm}
-      color={IconColor.IconDefault}
-    />
-  </Box>
-);
-
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -96,9 +65,8 @@ const GetPixKey = () => {
   const { disclaimers, isLoading, error, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
-  // The user must be able to see the disclaimers before agreeing to them, so
-  // the CTA stays disabled until they've successfully loaded. Also block while
-  // Iron `initialize` is in flight so Agree can't be double-tapped.
+  // The user can't agree to disclaimers they haven't been shown. Also
+  // block while Iron `initialize` is in flight so Agree can't be double-tapped.
   const canAgreeAndContinue =
     !isLoading && !error && disclaimers.length > 0 && !isStartingKyc;
 
@@ -159,8 +127,6 @@ const GetPixKey = () => {
                   'virtual_bank_account.get_pix_key.benefit_deposit_pix',
                 )}
               </Text>
-              {/* Pix has no design-system token — this is its brand teal,
-              matched to the vendor's own badge styling. */}
               <TagBase
                 shape={TagShape.Rectangle}
                 style={{ backgroundColor: PIX_BRAND_COLOR }}

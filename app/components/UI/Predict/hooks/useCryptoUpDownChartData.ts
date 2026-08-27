@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
 import {
@@ -401,23 +401,31 @@ export const useCryptoUpDownChartData = (
     }
   }, [liveStreamStale]);
 
+  const historicalQueryOptions = predictQueries.cryptoPriceHistory.options({
+    symbol: symbol ?? '',
+    eventStartTime: historyStartDate ?? '',
+    variant,
+    endDate: historyEndDate,
+    ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+  });
+
   const historicalQuery = useQuery({
-    ...predictQueries.cryptoPriceHistory.options({
-      symbol: symbol ?? '',
-      eventStartTime: historyStartDate ?? '',
-      variant,
-      endDate: historyEndDate,
-    }),
-    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
-    keepPreviousData: true,
+    ...historicalQueryOptions,
+    queryFn: async (context) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const result = await historicalQueryOptions.queryFn!(context);
+        consecutivePollFailuresRef.current = 0;
+        return result;
+      } catch (error) {
+        consecutivePollFailuresRef.current += 1;
+        throw error;
+      }
+    },
+    enabled: enabled && !!symbol && !!historyStartDate,
+    placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    onError: () => {
-      consecutivePollFailuresRef.current += 1;
-    },
-    onSuccess: () => {
-      consecutivePollFailuresRef.current = 0;
-    },
     // Only poll while streaming live AND the live stream is not currently
     // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
     // the historical baseline once; while the socket streams real-time ticks the
@@ -431,10 +439,9 @@ export const useCryptoUpDownChartData = (
         : false,
   });
 
-  const historicalData =
-    twapWindowSeconds === undefined && !hasPriceSourceChanged
-      ? (historicalQuery.data ?? EMPTY_DATA)
-      : EMPTY_DATA;
+  const historicalData = !hasPriceSourceChanged
+    ? (historicalQuery.data ?? EMPTY_DATA)
+    : EMPTY_DATA;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;
