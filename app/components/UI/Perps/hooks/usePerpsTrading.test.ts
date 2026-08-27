@@ -8,6 +8,7 @@ import {
   type CancelOrderParams,
   type CancelOrderResult,
   type ClosePositionParams,
+  type FeeCalculationParams,
   type GetAccountStateParams,
   type MarketInfo,
   type OrderParams,
@@ -154,6 +155,48 @@ describe('usePerpsTrading', () => {
 
       await expect(result.current.placeOrder(orderParams)).rejects.toThrow(
         'Order placement failed',
+      );
+    });
+
+    it('routes strategy placement to the selected provider', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.01',
+        orderType: 'twap',
+        twapDuration: 30,
+        providerId: 'hyperliquid',
+      };
+      jest
+        .mocked(Engine.context.PerpsController.placeOrder)
+        .mockResolvedValue({ success: true, orderId: 'twap-1' });
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      await result.current.placeOrder(orderParams);
+
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        orderParams,
+      );
+    });
+
+    it('forwards strategy placement without a provider route to controller default routing', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.placeOrder)
+        .mockResolvedValue({ success: true, orderId: 'twap-1' });
+      const { result } = renderHook(() => usePerpsTrading());
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.01',
+        orderType: 'twap',
+        twapDuration: 30,
+      };
+
+      await result.current.placeOrder(orderParams);
+
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        orderParams,
       );
     });
   });
@@ -806,6 +849,43 @@ describe('usePerpsTrading', () => {
       });
       expect(limitResult).toEqual(mockLimitFeeResult);
     });
+
+    it('routes strategy fee quotes to the selected provider', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.calculateFees)
+        .mockResolvedValue({ protocolFeeRate: 0.00045, metamaskFeeRate: 0 });
+      const { result } = renderHook(() => usePerpsTrading());
+      const params = {
+        orderType: 'twap',
+        amount: '1000',
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      } satisfies FeeCalculationParams;
+
+      await result.current.calculateFees(params);
+
+      expect(Engine.context.PerpsController.calculateFees).toHaveBeenCalledWith(
+        params,
+      );
+    });
+
+    it('forwards strategy fee quotes without a provider route to controller default routing', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.calculateFees)
+        .mockResolvedValue({ protocolFeeRate: 0.00045, metamaskFeeRate: 0 });
+      const { result } = renderHook(() => usePerpsTrading());
+      const params = {
+        orderType: 'twap',
+        amount: '1000',
+        symbol: 'BTC',
+      } satisfies FeeCalculationParams;
+
+      await result.current.calculateFees(params);
+
+      expect(Engine.context.PerpsController.calculateFees).toHaveBeenCalledWith(
+        params,
+      );
+    });
   });
 
   describe('validateOrder', () => {
@@ -855,6 +935,47 @@ describe('usePerpsTrading', () => {
 
       expect(response.isValid).toBe(false);
       expect(response.error).toBe('Minimum order size is $10.00');
+    });
+
+    it('routes strategy validation to the selected provider', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.validateOrder)
+        .mockResolvedValue({ isValid: true });
+      const { result } = renderHook(() => usePerpsTrading());
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.01',
+        orderType: 'twap',
+        twapDuration: 30,
+        providerId: 'hyperliquid',
+      };
+
+      await result.current.validateOrder(orderParams);
+
+      expect(Engine.context.PerpsController.validateOrder).toHaveBeenCalledWith(
+        orderParams,
+      );
+    });
+
+    it('forwards strategy validation without a provider route to controller default routing', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.validateOrder)
+        .mockResolvedValue({ isValid: true });
+      const { result } = renderHook(() => usePerpsTrading());
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.01',
+        orderType: 'twap',
+        twapDuration: 30,
+      };
+
+      await result.current.validateOrder(orderParams);
+
+      expect(Engine.context.PerpsController.validateOrder).toHaveBeenCalledWith(
+        orderParams,
+      );
     });
   });
 

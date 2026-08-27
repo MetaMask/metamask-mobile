@@ -14,7 +14,6 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import {
-  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -40,6 +39,7 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   CandlePeriod,
+  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -55,7 +55,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
@@ -134,11 +133,16 @@ import {
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
+import {
+  buildChartOverlayLines,
+  getChartLimitOrderLines,
+} from '../../utils/chartOverlayLines';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -178,12 +182,13 @@ import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
 } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 
-interface MarketDetailsRouteParams {
+interface MarketDetailsRouteParams extends NavigationAnalyticsRouteParams {
   market: PerpsMarketData;
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
@@ -226,6 +231,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     source,
     source_section,
     transactionActiveAbTests,
+    analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
   const isRelatedMarketsEnabled = useSelector(
@@ -358,17 +364,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Record the view for the Recently Viewed rail — fires for every entry
   // path into this screen (market list, watchlist, related markets,
   // homepage, deep links, trade-again), not just market-list taps.
-  // useFocusEffect (rather than a mount-keyed useEffect) is required because
-  // navigation.navigate() can reveal an already-mounted MARKET_DETAILS
-  // instance (e.g. from the homepage) instead of remounting it, which would
-  // otherwise skip the view recording entirely.
-  useFocusEffect(
-    useCallback(() => {
-      if (market?.symbol) {
-        Engine.context.PerpsController.recordMarketViewed(market.symbol);
-      }
-    }, [market?.symbol]),
-  );
+  usePerpsRecordMarketViewed(market?.symbol);
 
   const {
     scrollY: scrollYShared,
@@ -625,27 +621,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [sortedOrders, existingPosition],
   );
 
-  // Compute TP/SL lines for the chart based on existing position
-  // Use the active chart candle close so the header and current price line stay in sync.
+  // Position TP/SL/liq plus resting limit orders for the chart overlay.
+  // Limit lines are memoized off openOrders only so price ticks do not
+  // allocate a new array and tear down Advanced Chart overlays.
+  const limitOrders = useMemo(
+    () => getChartLimitOrderLines(openOrders),
+    [openOrders],
+  );
+
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       syncedChartCurrentPrice > 0
         ? syncedChartCurrentPrice.toString()
         : undefined;
 
-    if (existingPosition) {
-      return {
-        entryPrice: existingPosition.entryPrice,
-        takeProfitPrice: existingPosition.takeProfitPrice,
-        stopLossPrice: existingPosition.stopLossPrice,
-        liquidationPrice: existingPosition.liquidationPrice || undefined,
-        currentPrice: chartPriceStr,
-      };
-    }
-
-    // Even without position, show current price line on chart
-    return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-  }, [existingPosition, syncedChartCurrentPrice]);
+    return buildChartOverlayLines({
+      currentPrice: chartPriceStr,
+      existingPosition,
+      limitOrders,
+    });
+  }, [existingPosition, syncedChartCurrentPrice, limitOrders]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
@@ -791,6 +786,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     resetKey: marketDetailsScreenViewResetKey,
     conditions: [isMarketDetailsScreenViewReady],
+    navigationAnalyticsContext: source ? undefined : analyticsContext,
     properties: marketDetailsScreenViewedProperties,
   });
 
@@ -1531,6 +1527,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isFavorite={isWatchlist}
         mode={isPerpsProModeEnabled ? perpsMode : undefined}
         onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
+        enableHaptics={perpsMode === PerpsMode.Pro}
+        enableModeHaptics={isPerpsProModeEnabled}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         currentPrice={syncedChartCurrentPrice}

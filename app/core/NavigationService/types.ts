@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
 // Import types from their source files
@@ -554,6 +555,10 @@ export type RootStackParamList = {
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
   RampsServiceDisruptionModal: undefined;
 
+  // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampGetPixKey: undefined;
+  RampVbaVerifyIdentity: undefined;
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -632,7 +637,6 @@ export type RootStackParamList = {
   RewardsOndoCampaignWinning: RewardsNavigationParamList['RewardsOndoCampaignWinning'];
   RewardsSeasonOneCampaignDetails: RewardsNavigationParamList['RewardsSeasonOneCampaignDetails'];
   RewardsCampaignMechanics: RewardsNavigationParamList['RewardsCampaignMechanics'];
-  RewardsMusdCalculatorView: RewardsNavigationParamList['RewardsMusdCalculatorView'];
   RewardsOndoCampaignLeaderboard: RewardsNavigationParamList['RewardsOndoCampaignLeaderboard'];
   RewardsOndoRwaAssetSelector: RewardsNavigationParamList['RewardsOndoRwaAssetSelector'];
   RewardsOndoCampaignPortfolioView: RewardsNavigationParamList['RewardsOndoCampaignPortfolioView'];
@@ -671,6 +675,9 @@ export type RootStackParamList = {
   Pna25BottomSheet: undefined;
   RewardsBottomSheetModal:
     | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsInfoSheetModal:
+    | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
@@ -852,9 +859,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: { source?: string } | undefined;
+  DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
-  TokensFullView: { source?: string } | undefined;
+  TokensFullView: NavigationAnalyticsRouteParams | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -995,6 +1002,12 @@ export type RootStackParamList = {
          * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
          * on the leaderboard with a CTA to open device settings. */
         showNotificationsBanner?: boolean;
+        /** Tab the Follow Trading surface should open on. Set by the homepage
+         * Top Traders entry points from the TSA-1042 landing A/B test; absent
+         * for every other entry point, which keeps the leaderboard landing. */
+        landingTab?: 'leaderboard' | 'feed';
+        /** Audience preselected on the Feed tab when `landingTab` is `feed`. */
+        landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
   TraderProfileView: {
@@ -1033,6 +1046,7 @@ export type RootStackParamList = {
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;
+  ProHubEarned: undefined;
   ProHubCancelMembership: undefined;
 
   // Notification routes
@@ -1061,6 +1075,7 @@ export type RootStackParamList = {
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
+  EarnStrategySelection: EarnScreensStackParamList['EarnStrategySelection'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
@@ -1115,6 +1130,9 @@ export type RootStackParamList = {
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
+  CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
+  CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
@@ -1215,8 +1233,8 @@ export type AppNavigationProp = Omit<
  * that type unless you need the stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
-  NativeStackNavigationProp<ReactNavigation.RootParamList>,
+  NativeStackNavigationProp<RootStackParamList>,
   'getState'
 > & {
-  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+  getState(): NavigationState<RootStackParamList> | undefined;
 };

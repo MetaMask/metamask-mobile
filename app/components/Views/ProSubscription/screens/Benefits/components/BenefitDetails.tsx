@@ -14,9 +14,18 @@ import { BenefitsTestIds } from '../Benefits.testIds';
 interface BenefitDetailsProps {
   onClose: () => void;
   details: BenefitDetailItem;
+  selectedPlan?: string;
 }
 
-const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
+const BenefitDetails = ({
+  onClose,
+  details,
+  selectedPlan,
+}: BenefitDetailsProps) => {
+  const descriptionKey =
+    selectedPlan === 'monthly' && details?.descriptionMonthly
+      ? details.descriptionMonthly
+      : details.description;
   const handleLearnMorePress = useCallback(() => {
     if (details.learnMoreUrl) {
       Linking.openURL(details.learnMoreUrl);
@@ -41,7 +50,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
           color={TextColor.TextAlternative}
           twClassName="mb-4"
         >
-          {strings(details.description)}
+          {strings(descriptionKey)}
         </Text>
         {details.subDescription && (
           <Text
@@ -70,8 +79,8 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
         {details.learnMore && details.learnMoreUrl && (
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            color={TextColor.TextDefault}
+            twClassName="mb-4 self-start border-b-2 border-border-default"
             onPress={handleLearnMorePress}
             accessibilityRole="link"
           >
@@ -80,7 +89,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
         )}
 
         {details.notes && (
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
             {strings(details.notes)}
           </Text>
         )}

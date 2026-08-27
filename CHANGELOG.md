@@ -7,6 +7,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.8.2]
+
+### Fixed
+
+- Fixed transactions from dapps that send a numeric `chainId` being rejected with an "Invalid params" error instead of opening a confirmation (#35291)
+
+## [8.8.1]
+
+### Fixed
+
+- Fixed a swap page crash after fetching quotes when intent quote metadata could not be applied to read-only quote state (#35206)
+
+## [8.8.0]
+
+### Added
+
+- Added triggered order types to the Perps Pro order selector (#34714)
+- Added support for UEFA Super Cup, FA Cup, Club Friendlies, and South Africa Premiership live sports markets (#34704)
+- Added an inline notifications enablement sheet on Price Alerts so users can turn on notifications without leaving the feature screen (#33821)
+- Added 0G network and native-asset icons (#34205)
+- Added an A/B test for Money Account deposit amount prefill (#34672)
+- Added chain and timeframe filters for Explore trending deep links (#34528)
+- Added an animation that reveals a new virtual card on the card dashboard after card onboarding (#34600)
+- Added toast confirmations and haptic feedback when favoriting or unfavoriting a Perps market (#34617)
+- Added the Gravity Mainnet network logo (#34653)
+- Added an A/B test for the Money deposit call to action on token details (#34501)
+- Added a paginated MetaMask Card transaction history with merchant details and settlement transaction hashes (#34452)
+- Added the card tilt animation to the Link card module on the Money home screen (#34459)
+- Added an experiment to order Swaps network pickers by account holdings value and optionally promote remote networks (#34418)
+- Added Bitcoin to Explore Crypto search results (#34494)
+- Added an estimated equity multiplier section and current-points pointer to the VIP rewards dashboard (#34365)
+- Added an Add funds option when Pay with Any Token payments fail in Predict (#34569)
+
+### Changed
+
+- Improved wallet home performance by preventing unnecessary header re-renders (#34766)
+- Improved Token Details performance by preventing unrelated wallet updates from re-rendering the screen (#34744)
+- Reduced on-device storage used for logs by expiring older log entries (#34732)
+- Updated Arc USDC's bridge asset identity to prevent duplicate token entries (#34389)
+- Replaced the Set Card PIN success screen with a dismissible top toast and returned users to Card Home (#34571)
+- Paused the Predict Crypto Up/Down live stream when the homepage is not in focus (#34610)
+- Refactored Money vault APY fetching to avoid unnecessary balance requests (#34561)
+- Added remote configuration support to retire legacy asset data services when their unified replacements are available (#34457)
+- Reduced unnecessary Predict market requests during wallet unlock (#34550)
+- Recorded when users disable notification permissions in device settings (#33799)
+- Increased the responsiveness of the card tilt animation on the Money home screen (#34403)
+- Updated the Explore search placeholder to "Search" (#34738)
+- Updated Crypto Up/Down markets to show the average settlement price and explain market resolution (#34585)
+- Updated asset data handling dependencies (#34565)
+- Updated Perps Markets empty search and filter states to use the design system empty state (#34588)
+- Updated Homepage balance breakdown formatting, interaction states, and Perps branding (#34538)
+- Improved the readability of Benefits cards in Rewards (#34568)
+- Updated MetaMask Card Set PIN to use a keypad and multi-screen flow (#34564)
+- Updated watchlist toast styling to use the default toast icon background (#34536)
+- Updated notification settings section titles and descriptions (#32922)
+- Updated quote response handling as part of the first migration phase (#33621)
+- Added performance tracing for Money Home APY and earnings content (#34594)
+- Improved confirmation test stability (#34603)
+
+### Removed
+
+- Removed the account API cache (#34748)
+- Removed the Predict onboarding modal to improve wallet startup performance (#33384)
+- Removed the attention badge from the wallet Card button after its experiment concluded (#34567)
+
+### Fixed
+
+- Restored the watchlist star and market-list access in the Perps Lite market header (#34799)
+- Restored the Perps Pro order form Reduce only checkbox and take-profit/stop-loss arrow controls (#34599)
+- Restored the scroll-linked animated header on Perps Home while retaining the Lite/Pro mode control (#34620)
+- Fixed Money Account transaction details to show the correct sent amount after a quote (#33937)
+- Fixed a crash when enabling notifications during wallet onboarding on Android (#34870)
+- Fixed Tron staked TRX, energy, and bandwidth values not displaying correctly on token details (#34801)
+- Fixed Predictions loading indefinitely when Polymarket could not be reached (#34558)
+- Fixed the Reduce only size slider maximum and preserved an empty size when an order cannot close (#34745)
+- Fixed App Installed analytics by sending the event after analytics consent is granted (#33931)
+- Fixed a brief "No quotes" error after selecting Max for Money Account deposits (#34607)
+- Fixed Perps charts not refreshing after changing networks (#34521)
+- Hid the Quick Buy header toggle when Buy is the only available option (#34544)
+- Fixed inconsistent decimal and thousand separators in Activity lists and details (#34640)
+- Fixed Quick Buy for unfunded accounts by showing the purchase option and an Add funds action (#34661)
+- Fixed Quick Buy appearing unresponsive for unfunded accounts by showing an Add funds action (#34674)
+- Fixed maximum Perps deposits funded from the Money Account sometimes failing during quoting (#34590)
+- Fixed Predict Pay with Any Token bets to retry once after a successful deposit and explain that funds are in the Predict balance (#34622)
+- Fixed confirmation bottom sheets displaying an opaque background instead of a translucent overlay (#34616)
+- Fixed Perps Pro order tags so take-profit and stop-loss orders show the correct closing position and color (#34634)
+- Fixed the offline screen remaining open after connectivity recovered (#34508)
+- Fixed delayed Perps order updates on the wallet homepage (#34505)
+- Fixed inconsistent empty-state messages when searching the Perps market list (#34584)
+- Fixed geo-restricted users being able to place Perps Pro orders (#34650)
+- Fixed the Explore search keyboard flashing dark gray and reduced stuttering when opening search from Home or Explore (#34575)
+- Fixed delayed Perps positions and orders after loading cached homepage content (#34474)
+- Fixed Perps Pro bottom-sheet gestures on Android, including the leverage slider and other modal controls (#34578)
+- Fixed View PIN being shown for virtual international cards without a PIN (#34633)
+- Fixed claims for prediction markets that resolved as a push (#34513)
+- Fixed the What's Happening AI disclaimer shifting the Watchlist section on Perps Home (#34579)
+- Fixed extra indentation for Perps results in Explore search (#34574)
+- Fixed missing or incorrect entry prices on Follow trading feed rows, including shorts and sub-cent assets (#34601)
+- Fixed truncated labels on the Top Traders feed audience toggle (#34546)
+- Fixed importing longer Secret Recovery Phrases when the first 12 words formed a valid phrase (#34587)
+- Fixed the Link card animation starting before its bottom sheet finished opening (#34542)
+- Fixed staked token balances from briefly displaying as zero after deposit or unstake actions (#34178)
+- Fixed the Money onboarding card graphic not responding to device tilt (#34484)
+- Fixed the misleading "optional" label on the Market Insights feedback field (#34530)
+- Fixed excess space below the last row on Top Traders and Trader Profile screens (#34525)
+- Fixed the iOS network connection banner so the Update RPC link displays inline with surrounding text (#34434)
+- Fixed truncated Perps market names and improved Perps Pro order-summary fee layout (#34476)
+- Fixed Perps Pro Reduce only validation to show clear warnings before order submission and improved the validation banner layout (#34381)
+- Fixed the Quick Buy Sell button remaining disabled after entering a valid amount (#34422)
+- Fixed Money Account Max deposits for some BNB stablecoins failing because of amount rounding (#34456)
+- Fixed gas estimation on networks whose RPC nodes reject hexadecimal values with leading zeros (#34412)
+- Fixed wallet activity push notifications so they remain visible when the app is backgrounded or closed (#34411)
+- Fixed MetaMask Pay back navigation so the results page returns to the amount page (#34396)
+
+### Security
+
+- Updated transaction request validation to prevent malformed requests from bypassing security scans (#34392)
+
 ## [8.7.0]
 
 ### Added
@@ -203,7 +321,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token imports to return to the full token list after completion (#34039)
 - Fixed Money activity filters so card transactions appear only in the appropriate tabs (#33862)
 - Fixed stale destination exchange rates in Swap and Bridge quotes (#33955)
-- Updated in-app toast styling for consistency (#33766) (#33767) (#33769) (#33770) (#33771) (#33772) (#33773) (#33774) (#33775)
+- Updated in-app toast styling for consistency (#33766, #33767, #33769, #33770, #33771, #33772, #33773, #33774, #33775)
 - Fixed fullscreen Perps charts so older price history can load when using the fallback chart (#33881)
 - Fixed Android push notifications showing the MetaMask fox icon twice (#34065)
 - Fixed Perps Home being reachable while Pro mode is active; Pro-mode users now always land on a market page instead (#34052)
@@ -13298,7 +13416,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...HEAD
+[8.8.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.1...v8.8.2
+[8.8.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...v8.8.1
+[8.8.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...v8.8.0
 [8.7.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.1...v8.7.0
 [8.6.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.0...v8.6.1
 [8.6.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.5.0...v8.6.0

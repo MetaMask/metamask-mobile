@@ -39,19 +39,12 @@
       "alert_details": "Alert details"
     },
     "confirm_modal": {
-      "title": "High risk request",
+      "title": "High-risk request",
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
-      "title_blockaid": "Your assets may be at risk",
-      "blockaid": {
-        "message": "If you confirm this request, you could lose your assets. We recommend that you cancel this request.",
-        "message1": "If you confirm this request, you’re allowing a scammer to withdraw and spend your assets. You won’t get them back.",
-        "message2": "You’re sending your assets to a scammer. If you continue, you’ll lose those assets.",
-        "message3": "If you continue, all the assets you’ve listed on OpenSea could be at risk.",
-        "message4": "If you continue, all the assets you’ve listed on Blur could be at risk.",
-        "message5": "You’re interacting with a malicious site. If you continue, you will lose your assets."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
@@ -171,12 +164,12 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
-        "title": "Malicious address"
+        "message": "Security partners have flagged this address for malicious activity.",
+        "title": "Address flagged as high risk"
       },
       "warning": {
-        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        "title": "Address needs review"
+        "message": "Security partners don't have enough reliable history to verify this address.",
+        "title": "Limited or mixed address signals"
       }
     },
     "url_trust_signal": {
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
-    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
-    "deceptive_request_title": "This is a deceptive request",
-    "failed_title": "Request may not be safe",
-    "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
-    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
-    "other_description": "If you approve this request, you might lose your assets.",
-    "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
-    "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "See details",
     "does_not_look_right": "Something doesn’t look right?",
     "report_an_issue": "Report an issue",
-    "suspicious_request_title": "This is a suspicious request",
-    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "before_you_proceed": "Before you proceed",
     "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
     "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
@@ -1098,6 +1100,42 @@
       "see_more": "See more"
     }
   },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "Send funds directly to your Money account from any bank account.",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
+      "button": "Agree and continue"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
+      "step_upload_id": "Upload ID document",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm personal details",
+      "data_and_privacy_title": "Data and privacy",
+      "what_we_collect_title": "What we collect",
+      "what_we_collect_description": "We collect personal information as part of identity verification, including legal full name, address, and more.",
+      "how_we_store_data_title": "How we store data",
+      "how_we_store_data_description": "Verification info is securely stored on MetaMask-managed servers. It's encrypted with your Secret Recovery Phrase entropy and we can't access the data. Your consent will be required for future use with another provider.",
+      "how_to_delete_title": "How to delete",
+      "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask T&C",
+      "idos_privacy_policy": "idOS Privacy Policy",
+      "idos_terms": "idOS T&C",
+      "sumsub_privacy_policy": "Sumsub Privacy Policy",
+      "sumsub_terms": "Sumsub T&C",
+      "button": "Continue"
+    }
+  },
   "social_leaderboard": {
     "top_traders_view": {
       "notifications_banner": {
@@ -1132,15 +1170,19 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
-        "bought": "bought",
-        "sold": "sold",
-        "opened": "opened",
-        "closed": "closed"
+        "perps_opened": "opened",
+        "perps_added": "added",
+        "perps_reduced": "reduced",
+        "perps_closed": "closed",
+        "spot_bought": "bought",
+        "spot_sold": "sold",
+        "traded": "traded"
       },
       "new_position": {
-        "bought": "Holding",
-        "opened": "Open"
+        "spot": "Holding",
+        "perps": "Open"
       },
       "empty_following": {
         "title": "No activity yet",
@@ -1243,8 +1285,15 @@
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
-      "bought": "Bought",
-      "sold": "Sold",
+      "action": {
+        "perps_opened": "Opened",
+        "perps_added": "Added",
+        "perps_reduced": "Reduced",
+        "perps_closed": "Closed",
+        "spot_bought": "Bought",
+        "spot_sold": "Sold",
+        "traded": "Traded"
+      },
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
@@ -1253,9 +1302,7 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short",
-      "opened": "Opened",
-      "closed_action": "Closed"
+      "short": "Short"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -1541,11 +1588,29 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
-      "close_keyboard": "Close keyboard"
+      "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
+      "close_keyboard": "Close keyboard",
+      "twap": {
+        "running_time": "Running time",
+        "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
+        "valid_range": "{{minDurationMinutes}} minutes–{{maxDurationHours}} hours",
+        "days_short": "d",
+        "hours_short": "h",
+        "minutes_short": "m",
+        "randomize": "Randomize",
+        "randomize_description": "Vary each suborder size by up to ±{{randomizeVariancePercent}}%.",
+        "minimum_size": "TWAP total size must be at least ${{minNotionalUsd}}.",
+        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours."
+      }
     },
     "pro_positions_panel": {
       "order_history": "Order history",
       "close_count": "Close ({{count}})",
+      "cancel_all": "Cancel all",
+      "open_orders": {
+        "one": "{{count}} order",
+        "other": "{{count}} orders"
+      },
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
@@ -1648,10 +1713,17 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
-        "reduce_only_too_large": "Reduce only order is larger than your open position"
+        "reduce_only_too_large": "Reduce only order is larger than your open position",
+        "twap_unavailable": "TWAP placement is not available for this provider."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1722,6 +1794,7 @@
         "title": "Order type",
         "basic": "Basic",
         "triggered": "Triggered",
+        "advanced": "Advanced",
         "market": {
           "title": "Market",
           "description": "Execute instantly at best available price"
@@ -1745,6 +1818,10 @@
         "take_profit_market": {
           "title": "Take market",
           "description": "Place a market order if trigger price is reached"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "Split orders to execute at regular time interval"
         }
       },
       "payment_token": "Payment token",
@@ -1783,7 +1860,15 @@
       "submitting_your_trade": "Submitting your trade",
       "order_filled": "Order filled",
       "order_placed": "Order placed",
+      "twap_started": "TWAP started",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} over {{duration}}",
+      "twap_duration_day": "{{count}} day",
+      "twap_duration_days": "{{count}} days",
+      "twap_duration_hour": "{{count}} hour",
+      "twap_duration_hours": "{{count}} hours",
+      "twap_duration_minute": "{{count}} minute",
+      "twap_duration_minutes": "{{count}} minutes",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
@@ -1804,6 +1889,7 @@
       "use_custom_title": "Use custom slippage",
       "row_format": "Est: {{est}}% / Max: {{value}}%",
       "row_format_pending": "Est: -- / Max: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Max slippage percentage",
       "decrement_label": "Decrease slippage",
       "increment_label": "Increase slippage",
@@ -2411,13 +2497,17 @@
     },
     "close_all_modal": {
       "title": "Close all positions",
-      "description": "We'll close all your open positions at current market price.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "includes {{pnlAmount}}",
       "fees": "Fees",
       "you_will_receive": "You'll receive",
       "keep_positions": "Keep positions",
-      "close_all": "Close all",
+      "close_count": "Close ({{count}})",
       "closing": "Closing...",
       "success_title": "Positions closed",
       "success_message": "Successfully closed {{count}} position(s)",
@@ -2426,10 +2516,13 @@
       "error_message": "Failed to close {{count}} position(s)"
     },
     "cancel_all_modal": {
-      "title": "Cancel all orders",
-      "description": "We'll cancel all your open orders.",
+      "title": "Cancel orders",
+      "description": {
+        "one": "We'll cancel {{count}} pending order. Any unfilled orders will be removed immediately.",
+        "other": "We'll cancel {{count}} pending orders. Any unfilled orders will be removed immediately."
+      },
       "keep_orders": "Keep orders",
-      "confirm": "Confirm",
+      "confirm": "Cancel all",
       "canceling": "Canceling...",
       "success_title": "Orders canceled",
       "success_message": "Successfully canceled {{count}} order(s)",
@@ -2470,7 +2563,8 @@
       "past_24_hours": "Past 24 hours",
       "time": "Time",
       "apply": "Apply",
-      "clear": "Clear"
+      "clear": "Clear",
+      "reset": "Reset"
     },
     "provider_selector": {
       "title": "Select Provider"
@@ -2699,8 +2793,8 @@
     "card_footer_disclaimer": "AI generated",
     "footer_disclaimer": "AI summary for information only",
     "disclaimer_modal": {
-      "title": "AI generated content",
-      "body": "This summary is AI-generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Got it"
     },
     "swap_button": "Swap",
@@ -2766,6 +2860,35 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
+    "market": {
+      "volume": "{{value}} Vol."
+    },
+    "rules": {
+      "event_accessibility_label": "View event rules",
+      "market_accessibility_label": "View market rules",
+      "close_accessibility_label": "Close rules",
+      "event_title": "Event rules",
+      "market_title": "Market rules",
+      "title": "Rules",
+      "settlement_sources": {
+        "prefix": "Outcome verified from ",
+        "separator": ", ",
+        "last_separator": " and ",
+        "suffix": ".",
+        "open_hint": "Opens the source in your browser."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Loading event",
+      "unable_to_load": "Unable to load this event."
+    },
+    "history": {
+      "loading_accessibility_label": "Loading market history",
+      "unable_to_load": "Market history could not be loaded.",
+      "unavailable_for_range": "Market history is not available for this range.",
+      "chart_accessibility_label": "Market probability history. {{values}}",
+      "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
@@ -4858,19 +4981,19 @@
     "malicious": "Malicious",
     "risky": "Risky",
     "malicious_token_title": "Malicious token",
-    "malicious_token_description": "{{symbol}} is a malicious token. Avoid interacting with it or trading it.",
-    "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
-    "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
-    "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
-    "suspicious_token_description": "{{symbol}} is a suspicious token.",
-    "suspicious_token_description_no_symbol": "This is a suspicious token.",
+    "malicious_token_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_description_no_symbol": "Security partners flag this token as high risk.",
+    "malicious_token_banner_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_banner_description_no_symbol": "Security partners flag this token as high risk.",
+    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
+    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
-    "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
-    "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
-    "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
-    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
+    "risky_token_description": "{{symbol}} has limited history or risk signals.",
+    "risky_token_description_no_symbol": "This token has limited history or risk signals.",
+    "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
     "proceed": "Proceed",
     "continue_anyway": "Continue anyway",
@@ -4878,8 +5001,8 @@
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
     "subtitle_no_issues": "No risk signals detected. Always research any asset before trading.",
-    "subtitle_suspicious": "Cautionary signals detected. Review the flagged issues carefully before trading this asset.",
-    "subtitle_malicious": "Serious risk signals detected. We recommend avoiding this asset.",
+    "subtitle_suspicious": "This token has limited history or risk signals.",
+    "subtitle_malicious": "Security partners flag this token as high risk.",
     "subtitle_unavailable": "Security analysis could not be loaded for this token.",
     "token_distribution": "Token distribution",
     "total_supply": "Total supply",
@@ -5423,7 +5546,7 @@
     "mint": "Mint",
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
-    "smart_contract_interaction": "Smart contract interaction",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Deposit to Money Account",
     "money_account_withdraw": "Transfer from Money Account",
     "swaps_transaction": "Swaps transaction",
@@ -6100,6 +6223,15 @@
         "preview": {
           "title": "ETH is up 4.2% today",
           "message": "Now at $2,668.51 — above your price alert",
+          "timestamp": "now"
+        }
+      },
+      "social_ai": {
+        "title": "Don't miss a trading signal",
+        "description": "Turn on notifications so we can alert you when traders you follow make a move.",
+        "preview": {
+          "title": "New trade from a trader you follow",
+          "message": "ETH long · $10,000",
           "timestamp": "now"
         }
       },
@@ -7468,6 +7600,64 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Choose how to earn",
+      "subtitle": "Choose an earning strategy for your {{asset}}.",
+      "tags": {
+        "recommended": "Recommended",
+        "low_risk": "Low risk",
+        "medium_risk": "Medium risk",
+        "high_risk": "High risk"
+      },
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "Failed to navigate to deposit screen for selected strategy"
+        } 
+      },
+      "strategies": {
+        "money": {
+          "subtitle": "Money account",
+          "tertiary_text": "Variable yield · auto-earning"
+        },
+        "lending": {
+          "subtitle": "Lend {{asset}}",
+          "tertiary_text": "Variable yield"
+        },
+        "pooled_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "Pooled staking · variable yield"
+        },
+        "trx_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "TRON staking · variable yield"
+        }
+      },
+      "info_rows": {
+        "money_account": {
+          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
+          "row_1_unavailable": "Rate unavailable — auto-earning, compounding yield",
+          "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
+          "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
+        },
+        "lending": {
+          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
+          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
+          "row_3": "Rates can change with market demand, and smart contract risks apply."
+        },
+        "pooled_staking": {
+          "row_1": "Earn variable staking rewards on your ETH.",
+          "row_2": "Your ETH is pooled with other MetaMask users.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        },
+        "trx_staking": {
+          "row_1": "Earn variable rewards by staking TRX.",
+          "row_2": "Staked TRX supports the TRON network.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        }
+      },
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    },
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "percentage_bonus": "{{percentage}}% bonus",
@@ -7637,6 +7827,21 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "earn_module": {
+    "new_tag": "New",
+    "money_account": "Money account",
+    "get_started": "Get started",
+    "rate_apy": "{{percentage}}% APY",
+    "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Get {{percentage}}% APY",
+    "get_rate_apr": "Get {{percentage}}% APR",
+    "rate_unavailable": "Rate unavailable",
+    "balance_unavailable": "Balance unavailable",
+    "asset_unavailable": "Asset unavailable",
+    "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
+    "retry": "Retry",
+    "view_more": "View more"
+  },
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
@@ -7803,7 +8008,8 @@
       "bank_account": "Bank account",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
-      "coming_soon": "Coming soon"
+      "coming_soon": "Coming soon",
+      "new_badge": "New"
     },
     "more_sheet": {
       "title": "More",
@@ -8499,11 +8705,36 @@
         "history": "Order history appears here"
       }
     },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
     "recurring": {
+      "you_get": "You get",
       "every": "Every",
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "price_range": {
+        "label": "Price range",
+        "not_set": "Not set",
+        "token": "Token",
+        "price": "Price",
+        "exchange_rate": "Exchange rate",
+        "min_token_price": "Min {{symbol}} price",
+        "max_token_price": "Max {{symbol}} price",
+        "min_placeholder": "Min price",
+        "max_placeholder": "Max price",
+        "clear_all": "Clear all",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
       "unit": {
         "minute": "minute",
         "hour": "hour",
@@ -8515,7 +8746,11 @@
         "hour": "Hour",
         "day": "Day",
         "week": "Week"
-      }
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
@@ -9500,6 +9735,12 @@
       }
     },
     "transactions": {
+      "title": "Transactions",
+      "empty": "No transactions yet",
+      "load_error": "Can't load transactions",
+      "load_error_more": "Couldn't load more",
+      "retry": "Try again",
+      "end_of_list": "You're all caught up",
       "pending": "Pending",
       "completed": "Completed",
       "reversed": "Reversed",
@@ -9524,7 +9765,21 @@
         "misc": "Other"
       },
       "view_on_explorer": "View on block explorer",
-      "report_cta": "Report Transaction"
+      "report_cta": "Report an issue",
+      "report_title": "Have you contacted the merchant?",
+      "report_body_merchant": "Most transaction issues get resolved faster when you reach out to the merchant directly.",
+      "report_body_continue": "If you've already tried that, we're here to help.",
+      "report_file": "File a report",
+      "report_open_error": "Couldn't open your mail app",
+      "report_link_error": "Couldn't open the report form",
+      "report_email_subject": "Card transaction report — {{transactionId}}",
+      "report_email_body": "Transaction ID: {{transactionId}}",
+      "report_back": "Cancel",
+      "you_withdrew": "You withdrew",
+      "you_deposited": "You deposited",
+      "you_received": "You received",
+      "manage_entry_title": "Transaction history",
+      "manage_entry_description": "Card purchases and activity"
     },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
@@ -10174,10 +10429,12 @@
       "geo_locked_cta": "Check eligibility",
       "geo_loading": "Checking region...",
       "remind_me_success_toast": "We'll let you know when this campaign starts.",
-      "remind_me_save_error": "Could not save your reminder. Please try again."
+      "remind_me_save_error": "Could not save your reminder. Please try again.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mechanics"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",
@@ -10194,6 +10451,12 @@
       "swap_ondo_assets": "Swap Ondo Assets",
       "open_position": "Trade now",
       "how_it_works": "How it works",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
+      "last_checked_at": "Last checked at",
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
@@ -10482,8 +10745,8 @@
       "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Predictions Account 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Steps ({{count}} completed)",
       "summary": "Summary"
     },
@@ -10852,6 +11115,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",
@@ -10873,7 +11137,6 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
-    "ai_generated": "AI Generated",
     "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
@@ -10923,6 +11186,28 @@
     "title": "MetaMask Pro",
     "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
+    "manage_plan": "Manage plan",
+    "earned_with_pro": "Earned with Pro",
+    "saved_with_pro": "Saved with Pro",
+    "your_benefits": "Your benefits",
+    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "physical_card": {
+      "title": "Get your physical card.",
+      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
+      "cta": "Get card"
+    },
+    "earned": {
+      "total_label": "Earned since joining Pro",
+      "interest_title": "Interest",
+      "interest_subtitle": "Up to 7% APY on Money balance",
+      "card_cashback_title": "Card cashback",
+      "card_cashback_subtitle": "3% in mUSD on {{amount}}",
+      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
+      "grow_title": "Grow your balance",
+      "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
+      "add_money": "Add money"
+    },
     "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
@@ -10956,7 +11241,13 @@
       "reason_support": "Unhappy with customer support",
       "reason_other": "Other",
       "keep_membership": "Keep membership",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
     }
   },
   "pro_subscription": {
@@ -10978,7 +11269,8 @@
       },
       "atm_fees": {
         "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "subtitle": "Physical card included",
+        "subtitle_monthly": "Physical card available separately"
       },
       "protection": {
         "title": "Up to $10,000 in protection",
@@ -11023,7 +11315,8 @@
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask.",
+        "description_monthly": "MetaMask Card is available separately for monthly members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
       },
       "protection": {
         "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",

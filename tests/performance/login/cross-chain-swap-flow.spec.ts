@@ -2,7 +2,7 @@ import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { Performance, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
@@ -29,8 +29,8 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
       await WalletView.tapWalletSwapButton();
 
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(QuoteView.bridgeViewScroll),
+        await AppiumAssertions.expectElementToBeVisible(
+          QuoteView.bridgeViewScroll,
         );
       });
 
