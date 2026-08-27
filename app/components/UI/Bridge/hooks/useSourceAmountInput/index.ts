@@ -20,6 +20,7 @@ import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import {
   FIAT_INPUT_DECIMALS,
+  FIAT_KEYPAD_CURRENCY,
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
   formatTokenInputAmountFromFiat,
@@ -35,7 +36,6 @@ import {
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 
-const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
 
