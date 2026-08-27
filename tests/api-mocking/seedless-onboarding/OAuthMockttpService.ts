@@ -114,6 +114,32 @@ export class OAuthMockttpService {
   }
 
   /**
+   * Configure for Telegram New User flow
+   * @returns this for method chaining
+   */
+  configureTelegramNewUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.TELEGRAM_NEW_USER,
+    };
+    return this;
+  }
+
+  /**
+   * Configure for Telegram Existing User flow
+   * @returns this for method chaining
+   */
+  configureTelegramExistingUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.TELEGRAM_EXISTING_USER,
+    };
+    return this;
+  }
+
+  /**
    * Configure for error scenario
    * @param errorType - Type of error to simulate
    * @returns this for method chaining
@@ -303,16 +329,21 @@ export class OAuthMockttpService {
    *
    */
   private async setupAuthServerProxy(server: Mockttp): Promise<void> {
-    // Proxy token requests to backend QA mock
+    // Proxy token/mint requests to backend QA mock.
+    // Google/Apple use /oauth/token; Telegram's mock handler uses /oauth/mint.
     const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
     console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
+    console.log(
+      `[E2E MockServer] Registering mock for: ${AUTH_SERVICE_BASE_URL}/api/v1/oauth/mint`,
+    );
 
     await server
       .forPost('/proxy')
       .matching((request) => {
         const url = this.getDecodedProxiedURL(request.url);
         return (
-          url.includes('/api/v1/oauth/token') &&
+          (url.includes('/api/v1/oauth/token') ||
+            url.includes('/api/v1/oauth/mint')) &&
           !url.includes('/api/v1/qa/mock/oauth/token')
         );
       })
@@ -331,7 +362,7 @@ export class OAuthMockttpService {
           );
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -339,9 +370,11 @@ export class OAuthMockttpService {
             email_id: emailForMock,
             client_id:
               body.client_id ||
-              defaultMockOAuthClientIdForTokenRequest(
-                this.config.loginProvider,
-              ),
+              (this.config.loginProvider === E2ELoginProvider.TELEGRAM
+                ? 'e2e-mock-client-id'
+                : defaultMockOAuthClientIdForTokenRequest(
+                    this.config.loginProvider,
+                  )),
             login_provider: this.config.loginProvider,
             access_type: 'offline',
           };
@@ -436,7 +469,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -512,7 +545,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 

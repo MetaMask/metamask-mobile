@@ -1567,13 +1567,20 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.build-android-apks.result == 'success'
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1591,6 +1598,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   appium-smoke-tests-ios:
@@ -1603,6 +1611,9 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure') &&
         (
           (
             github.event_name == 'push' &&
@@ -1625,7 +1636,11 @@ jobs:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1643,6 +1658,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -1657,6 +1673,9 @@ jobs:
       contents: read
       checks: write
       id-token: write
+      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
+      actions: read
+      pull-requests: read
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
