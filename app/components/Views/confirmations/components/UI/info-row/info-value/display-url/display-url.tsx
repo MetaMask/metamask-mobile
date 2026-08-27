@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../../component-library/components/Icons/Icon';
+  Text,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './display-url.styles';
-import { Text } from '@metamask/design-system-react-native';
 
 interface DisplayURLProps {
   url: string;
@@ -42,7 +43,7 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
       {isHTTP && (
         <View style={styles.warningContainer}>
           <Icon
-            color={IconColor.Warning}
+            color={IconColor.WarningDefault}
             size={IconSize.Md}
             name={IconName.Danger}
           />

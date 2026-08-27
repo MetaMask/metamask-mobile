@@ -2,17 +2,16 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { Alert, AlertSeverity, Severity } from '../../../types/alerts';
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import {
+  ButtonIcon,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import AlertModal from '../alert-modal';
 import { HeaderBaseProps } from '../../../../../../component-library/components/HeaderBase/HeaderBase.types';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
-import { getSeverityStyle } from '../../../utils/alert-system';
-import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './multiple-alert-modal.styles';
 
@@ -33,7 +32,6 @@ const PreviousButton: React.FC<{
 
   return (
     <ButtonIcon
-      iconColor={IconColor.Default}
       iconName={IconName.ArrowLeft}
       onPress={onBackButtonClick}
       testID="alert-button-icon-arrow-left"
@@ -52,7 +50,6 @@ const NextButton: React.FC<{
 
   return (
     <ButtonIcon
-      iconColor={IconColor.Default}
       iconName={IconName.ArrowRight}
       onPress={onNextButtonClick}
       testID="alert-button-icon-arrow-right"
@@ -92,14 +89,12 @@ const NavigationAlertHeader: React.FC<NavigationAlertHeaderProps> = ({
 
 const PageNavigation: React.FC<{
   alerts: Alert[];
-  iconColor: string;
   onBackButtonClick: () => void;
   onNextButtonClick: () => void;
   selectedIndex: number;
   severity: AlertSeverity;
 }> = ({
   alerts,
-  iconColor,
   onBackButtonClick,
   onNextButtonClick,
   selectedIndex,
@@ -109,6 +104,13 @@ const PageNavigation: React.FC<{
   if (alerts.length <= 1) {
     return null;
   }
+
+  const iconColor =
+    severity === Severity.Danger
+      ? IconColor.ErrorDefault
+      : severity === Severity.Warning
+        ? IconColor.WarningDefault
+        : IconColor.InfoDefault;
 
   return (
     <View style={styles.pageNavigation}>
@@ -131,7 +133,6 @@ const PageNavigation: React.FC<{
 };
 
 const MultipleAlertModal: React.FC = () => {
-  const { colors } = useTheme();
   const { alertKey, fieldAlerts, hideAlertModal, setAlertKey } = useAlerts();
   const initialAlertIndex = fieldAlerts.findIndex(
     (selectedAlert: Alert) => selectedAlert.key === alertKey,
@@ -184,8 +185,6 @@ const MultipleAlertModal: React.FC = () => {
     return null;
   }
 
-  const severityStyle = getSeverityStyle(selectedAlert.severity, colors);
-
   if (fieldAlerts.length <= 1) {
     return <AlertModal />;
   }
@@ -195,7 +194,6 @@ const MultipleAlertModal: React.FC = () => {
       headerAccessory={
         <PageNavigation
           alerts={fieldAlerts}
-          iconColor={severityStyle.icon}
           onBackButtonClick={handleBackButtonClick}
           onNextButtonClick={handleNextButtonClick}
           selectedIndex={selectedIndex}

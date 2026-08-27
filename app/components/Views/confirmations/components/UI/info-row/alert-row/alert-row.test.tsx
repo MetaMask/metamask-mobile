@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useAlerts } from '../../../../context/alert-system-context';
 import AlertRow, { AlertRowProps } from './alert-row';
 import { Severity } from '../../../../types/alerts';
-import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 import { InfoRowVariant } from '../info-row';
 import styleSheet from './alert-row.styles';

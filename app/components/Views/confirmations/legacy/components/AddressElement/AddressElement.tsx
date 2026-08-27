@@ -12,18 +12,18 @@ import {
 import Identicon from '../../../../../UI/Identicon';
 import { useTheme } from '../../../../../../util/theme';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-
-import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
@@ -144,7 +144,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
           <Icon
             name={IconName.Danger}
             size={IconSize.Lg}
-            color={styles.warningIcon.color}
+            color={IconColor.IconDefault}
           />
         </TouchableOpacity>
       )}

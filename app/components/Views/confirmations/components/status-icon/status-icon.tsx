@@ -1,9 +1,10 @@
 import React from 'react';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import Tooltip from '../UI/Tooltip';
 import styleSheet from './status-icon.styles';
@@ -59,10 +60,10 @@ function getStatusIcon(severity: Severity): IconName {
 function getIconColour(severity: Severity): IconColor {
   switch (severity) {
     case 'success':
-      return IconColor.Success;
+      return IconColor.SuccessDefault;
     case 'error':
-      return IconColor.Error;
+      return IconColor.ErrorDefault;
     default:
-      return IconColor.Warning;
+      return IconColor.WarningDefault;
   }
 }

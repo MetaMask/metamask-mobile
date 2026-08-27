@@ -1,7 +1,4 @@
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
+import { IconColor, IconName } from '@metamask/design-system-react-native';
 import { TrustSignalDisplayState } from '../types/trustSignals';
 import { getTrustSignalIcon, TrustSignalIcon } from './trust-signals';
 
@@ -11,7 +8,7 @@ describe('getTrustSignalIcon', () => {
 
     expect(result).toEqual<TrustSignalIcon>({
       name: IconName.VerifiedFilled,
-      color: IconColor.Info,
+      color: IconColor.InfoDefault,
     });
   });
 
@@ -20,7 +17,7 @@ describe('getTrustSignalIcon', () => {
 
     expect(result).toEqual<TrustSignalIcon>({
       name: IconName.Danger,
-      color: IconColor.Error,
+      color: IconColor.ErrorDefault,
     });
   });
 
@@ -29,7 +26,7 @@ describe('getTrustSignalIcon', () => {
 
     expect(result).toEqual<TrustSignalIcon>({
       name: IconName.Warning,
-      color: IconColor.Warning,
+      color: IconColor.WarningDefault,
     });
   });
 

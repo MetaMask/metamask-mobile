@@ -2,10 +2,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import CopyIcon from './copy-icon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+import { IconColor, IconName } from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../../../../../core/ClipboardManager';
 
 jest.mock('../../../../../../../core/ClipboardManager', () => ({
@@ -15,7 +12,7 @@ jest.mock('../../../../../../../core/ClipboardManager', () => ({
 describe('CopyIcon', () => {
   const mockProps = {
     textToCopy: 'text to copy',
-    color: IconColor.Primary,
+    color: IconColor.PrimaryDefault,
   };
 
   beforeEach(() => {
@@ -56,12 +53,12 @@ describe('CopyIcon', () => {
   it('sets the correct color prop on the icon', () => {
     const customColorProps = {
       ...mockProps,
-      color: IconColor.Success,
+      color: IconColor.SuccessDefault,
     };
 
     const { UNSAFE_getByProps } = render(<CopyIcon {...customColorProps} />);
     const icon = UNSAFE_getByProps({ name: IconName.Copy });
 
-    expect(icon.props.color).toBe(IconColor.Success);
+    expect(icon.props.color).toBe(IconColor.SuccessDefault);
   });
 });

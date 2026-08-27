@@ -32,17 +32,16 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { resolveTransactionType } from '../../../utils/transaction';
-import {
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { resolveTransactionType } from '../../../utils/transaction';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -151,7 +150,7 @@ function TransactionFeeRow({
       }
       tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       tooltipDisabled={tooltipDisabled}
-      tooltipColor={isDisabled ? IconColor.Muted : undefined}
+      tooltipColor={isDisabled ? IconColor.IconMuted : undefined}
       rowVariant={InfoRowVariant.Small}
       variant={labelColor}
     >
@@ -180,7 +179,7 @@ function PaidByLabel() {
     >
       <Icon
         name={IconName.CheckBold}
-        color={IconColor.Success}
+        color={IconColor.SuccessDefault}
         size={IconSize.Sm}
       />
       <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>

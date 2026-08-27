@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
 import {
   Text,
@@ -9,13 +8,12 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  IconName as DesignSystemIconName,
-} from '@metamask/design-system-react-native';
-import Checkbox from '../../../../../../component-library/components/Checkbox';
-import Icon, {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import Checkbox from '../../../../../../component-library/components/Checkbox';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAlerts } from '../../../context/alert-system-context';
@@ -34,7 +32,6 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
   onReject,
   onConfirm,
 }) => {
-  const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const {
     showAlertModal,
@@ -80,7 +77,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
-            color={colors.error.default}
+            color={IconColor.ErrorDefault}
           />
         </View>
         <View style={styles.headerContainer}>
@@ -101,7 +98,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           <Button
             style={styles.reviewAlertsLink}
             onPress={showAlertModal}
-            startIconName={DesignSystemIconName.SecuritySearch}
+            startIconName={IconName.SecuritySearch}
             size={ButtonSize.Lg}
             variant={ButtonVariant.Tertiary}
             testID={ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON}
@@ -142,7 +139,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             variant={ButtonVariant.Primary}
             isFullWidth
             isDisabled={!confirmCheckbox}
-            startIconName={DesignSystemIconName.Danger}
+            startIconName={IconName.Danger}
             isDanger
             testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON}
           >

@@ -14,17 +14,17 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import Icon, {
+import {
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './info-section-accordion.styles';
-import {
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './info-section-accordion.styles';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -128,7 +128,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={styles.icon.color}
+            color={IconColor.IconMuted}
             testID={`${testID}-arrow`}
           />
         </Animated.View>

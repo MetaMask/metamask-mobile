@@ -1,5 +1,8 @@
 import React from 'react';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import {
+  BoxBackgroundColor,
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
@@ -7,10 +10,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import {
   useUnifiedTxActions,
@@ -449,7 +449,7 @@ describe('useUnifiedTxActions', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           backgroundColor: BoxBackgroundColor.Transparent,
           descriptionOptions: { description: 'failed' },
           hasNoTimeout: false,
@@ -597,7 +597,7 @@ describe('useUnifiedTxActions', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           backgroundColor: BoxBackgroundColor.Transparent,
           descriptionOptions: { description: 'nope' },
           hasNoTimeout: false,
@@ -880,7 +880,7 @@ describe('useUnifiedTxActions', () => {
             expect.objectContaining({
               variant: ToastVariants.Icon,
               iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
+              iconColor: IconColor.ErrorDefault,
               backgroundColor: BoxBackgroundColor.Transparent,
               descriptionOptions: { description: 'gas error' },
               hasNoTimeout: false,
@@ -905,7 +905,7 @@ describe('useUnifiedTxActions', () => {
             expect.objectContaining({
               variant: ToastVariants.Icon,
               iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
+              iconColor: IconColor.ErrorDefault,
               backgroundColor: BoxBackgroundColor.Transparent,
               descriptionOptions: {
                 description: 'Missing transaction id for speed up',
@@ -1103,7 +1103,7 @@ describe('useUnifiedTxActions', () => {
             expect.objectContaining({
               variant: ToastVariants.Icon,
               iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
+              iconColor: IconColor.ErrorDefault,
               backgroundColor: BoxBackgroundColor.Transparent,
               descriptionOptions: { description: 'cancel error' },
               hasNoTimeout: false,
@@ -1128,7 +1128,7 @@ describe('useUnifiedTxActions', () => {
             expect.objectContaining({
               variant: ToastVariants.Icon,
               iconName: IconName.CircleX,
-              iconColor: IconColor.Error,
+              iconColor: IconColor.ErrorDefault,
               backgroundColor: BoxBackgroundColor.Transparent,
               descriptionOptions: {
                 description: 'Missing transaction id for cancel',
@@ -1334,7 +1334,7 @@ describe('useUnifiedTxActions', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           backgroundColor: BoxBackgroundColor.Transparent,
         }),
       );
@@ -1356,7 +1356,7 @@ describe('useUnifiedTxActions', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           backgroundColor: BoxBackgroundColor.Transparent,
         }),
       );

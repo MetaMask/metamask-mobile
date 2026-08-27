@@ -11,6 +11,10 @@ import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -20,11 +24,6 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import stylesheet from './account-picker-row.styles';
@@ -155,7 +154,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={IconColor.IconAlternative}
             />
           </View>
         </TouchableOpacity>
@@ -183,7 +182,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
                 <Icon
                   name={IconName.Search}
                   size={IconSize.Md}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                 />
                 <TextInput
                   testID={testIDs.SEARCH_INPUT}

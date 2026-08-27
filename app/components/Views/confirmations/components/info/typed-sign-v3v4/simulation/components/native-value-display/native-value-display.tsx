@@ -9,11 +9,12 @@ import { selectConversionRateByChainId } from '../../../../../../../../../select
 import { useTheme } from '../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
-  IconName,
+  ButtonIcon,
   IconColor,
-} from '../../../../../../../../../component-library/components/Icons/Icon';
+  IconName,
+  Text,
+} from '@metamask/design-system-react-native';
 
 import AssetPill from '../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
@@ -32,7 +33,6 @@ import BottomModal from '../../../../../UI/bottom-modal';
  * @see {@link https://github.com/MetaMask/metamask-mobile/issues/12974}
  */
 import styleSheet from '../value-display/value-display.styles';
-import { Text } from '@metamask/design-system-react-native';
 
 const NATIVE_DECIMALS = 18;
 
@@ -139,10 +139,10 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             <View style={styles.valueModal}>
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
-                  iconColor={IconColor.Default}
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}
+                  iconProps={{ color: IconColor.IconDefault }}
                 />
                 <Text style={styles.valueModalHeaderText}>
                   {modalHeaderText}

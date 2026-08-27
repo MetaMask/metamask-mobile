@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { STATUS_ICON_TOOLTIP_TEST_ID } from '../status-icon/status-icon.testIds';
 import { ProgressList } from './progress-list';
 import { ProgressListItem } from './progress-list-item';

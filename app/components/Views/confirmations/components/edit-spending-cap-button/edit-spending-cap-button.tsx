@@ -1,10 +1,12 @@
 import React, { useCallback, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   EditSpendingCapModal,
@@ -20,7 +22,7 @@ export const EditSpendingCapButton = ({
   children?: React.ReactNode;
 }) => {
   const [isModalVisible, setModalVisibility] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const openModal = useCallback(
     () => setModalVisibility(true),
@@ -48,7 +50,7 @@ export const EditSpendingCapButton = ({
       <Icon
         name={IconName.Edit}
         size={IconSize.Md}
-        color={theme.colors.info.default}
+        color={IconColor.InfoDefault}
       />
       {children}
     </TouchableOpacity>

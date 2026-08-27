@@ -1,11 +1,15 @@
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
@@ -13,11 +17,6 @@ import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAcco
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 export function TransactionDetailsFeeSection() {
   const { transactionMeta } = useTransactionDetails();
@@ -46,7 +45,7 @@ export function TransactionDetailsFeeSection() {
         >
           <Icon
             name={IconName.CheckBold}
-            color={IconColor.Success}
+            color={IconColor.SuccessDefault}
             size={IconSize.Sm}
           />
           <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>

@@ -13,7 +13,9 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../../../reducers';
@@ -30,7 +32,6 @@ import NestedTransactionData from '../../../nested-transaction-data/nested-trans
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './advanced-details-row.styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
 
@@ -83,7 +84,7 @@ const AdvancedDetailsRow = () => {
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
-                color: IconColor.Muted,
+                color: IconColor.IconMuted,
                 size: IconSize.Sm,
                 name: IconName.ArrowDown,
               }}

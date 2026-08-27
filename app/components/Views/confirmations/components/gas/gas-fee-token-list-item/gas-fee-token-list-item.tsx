@@ -9,19 +9,18 @@ import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity, View } from 'react-native';
-import Icon, {
+import {
+  FontWeight,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import styleSheet from './gas-fee-token-list-item.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 export interface GasFeeTokenListItemProps {
   isSelected?: boolean;
@@ -146,7 +145,7 @@ function WarningIndicator({ text }: { text: string }) {
       <Icon
         name={IconName.Warning}
         size={IconSize.Xs}
-        color={IconColor.Muted}
+        color={IconColor.IconMuted}
       />
       <Text
         variant={TextVariant.BodySm}
