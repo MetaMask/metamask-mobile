@@ -1,0 +1,30 @@
+diff --git a/dist/constants/hyperLiquidConfig.cjs b/dist/constants/hyperLiquidConfig.cjs
+index 96c6436963c201e05f4837bd36f90b384eb1a7c7..e9632ca36f0d98ec42d10ee6ef74cf71cf65ccd9 100644
+--- a/dist/constants/hyperLiquidConfig.cjs
++++ b/dist/constants/hyperLiquidConfig.cjs
+@@ -336,8 +336,8 @@ exports.HIP3_ASSET_MARKET_TYPES = {
+     'xyz:SOFTBANK': index_js_1.MarketCategory.Stock,
+     'xyz:KIOXIA': index_js_1.MarketCategory.Stock,
+     // xyz DEX - Pre-IPO
+-    'xyz:CBRS': index_js_1.MarketCategory.PreIpo,
+-    'xyz:SPCX': index_js_1.MarketCategory.PreIpo,
++    'xyz:CBRS': index_js_1.MarketCategory.Stock,
++    'xyz:SPCX': index_js_1.MarketCategory.Stock,
+     'xyz:IPOP': index_js_1.MarketCategory.PreIpo,
+     // xyz DEX - Indices
+     'xyz:SP500': index_js_1.MarketCategory.Index,
+diff --git a/dist/constants/hyperLiquidConfig.mjs b/dist/constants/hyperLiquidConfig.mjs
+index 6500e230f7cedc25170b04618ae3e12d83a0b828..9f963b1452931054a7e14d740f54aff2d09a36a0 100644
+--- a/dist/constants/hyperLiquidConfig.mjs
++++ b/dist/constants/hyperLiquidConfig.mjs
+@@ -326,8 +326,8 @@ export const HIP3_ASSET_MARKET_TYPES = {
+     'xyz:SOFTBANK': MarketCategory.Stock,
+     'xyz:KIOXIA': MarketCategory.Stock,
+     // xyz DEX - Pre-IPO
+-    'xyz:CBRS': MarketCategory.PreIpo,
+-    'xyz:SPCX': MarketCategory.PreIpo,
++    'xyz:CBRS': MarketCategory.Stock,
++    'xyz:SPCX': MarketCategory.Stock,
+     'xyz:IPOP': MarketCategory.PreIpo,
+     // xyz DEX - Indices
+     'xyz:SP500': MarketCategory.Index,
