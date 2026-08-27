@@ -8744,6 +8744,13 @@
         "week": "week",
         "month": "month"
       },
+      "unit_plural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
+      },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
@@ -8753,6 +8760,7 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",
+      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "filled": "Filled"
     },
