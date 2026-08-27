@@ -8610,7 +8610,17 @@
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
-      "expired_after": "Expired after {{duration}}"
+      "expired_after": "Expired after {{duration}}",
+      "buy_when": "Buy when",
+      "sell_when": "Sell when",
+      "is_at_or_below": "is at or below",
+      "is_at_or_above": "is at or above",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% from market)",
+      "from_market_above": "(+{{percent}}% from market)",
+      "market": "Market",
+      "custom": "Custom"
     },
     "recurring": {
       "you_get": "You get",

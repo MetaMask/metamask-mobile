@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
+import { useLimitOrderSwapInputs } from '.';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -8,13 +8,13 @@ import {
   setDestToken,
   setSourceAmount,
   setSourceToken,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectBridgeLimitOrderFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
-import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { getNativeSourceToken } from '../../../utils/tokenUtils';
-import { createMockToken } from '../../../testUtils/fixtures';
-import { TokenSelectorType, type BridgeToken } from '../../../types';
-import Routes from '../../../../../../constants/navigation/Routes';
+} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { createMockToken } from '../../testUtils/fixtures';
+import { TokenSelectorType, type BridgeToken } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockDispatch = jest.fn();
 
