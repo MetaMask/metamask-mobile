@@ -112,6 +112,9 @@ let _artifactList = null;
  * (it pinned QA Stats to a July 2026 push on 19 Aug 2026). Page completed
  * runs and keep the newest with `conclusion === 'success'`.
  *
+ * Namespace jobs dual-upload Playwright JSON and coverage results to GitHub
+ * so this collector can still see them via the GitHub artifacts API.
+ *
  * The GitHub API only supports a single `event` filter per request, so both
  * event types are fetched in parallel and the most recently created run wins.
  *
@@ -995,7 +998,13 @@ async function collectE2ETestTimes() {
     .filter(({ dims }) => dims);
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
-  if (e2eArtifacts.length === 0) return {};
+  if (e2eArtifacts.length === 0) {
+    console.warn(
+      '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
+        'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+    );
+    return {};
+  }
 
   const acc = {};
   for (const { artifact, dims } of e2eArtifacts) {
@@ -1127,6 +1136,13 @@ async function main() {
   const outputPath = './qa-stats.json';
   await writeFile(outputPath, JSON.stringify(stats, null, 2), 'utf8');
   console.log(`✅ QA stats written to ${outputPath}:`, stats);
+
+  if (!stats.e2e_test_times || Object.keys(stats.e2e_test_times).length === 0) {
+    console.warn(
+      '⚠️  qa-stats.json has no e2e_test_times — check that Appium Playwright JSON reports ' +
+        'were uploaded to GitHub Artifacts on the selected main CI run',
+    );
+  }
 }
 
 if (isExecutedDirectly()) {

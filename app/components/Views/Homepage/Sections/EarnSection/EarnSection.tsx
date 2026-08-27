@@ -60,6 +60,7 @@ import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
 import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -202,6 +203,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           });
           return;
         }
+
+        navigation.navigate(Routes.EARN.ROOT, {
+          screen: Routes.EARN.STRATEGY_SELECTION,
+          params: { assetId: asset.assetId },
+        });
       },
       [navigation],
     );
@@ -255,6 +261,64 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         setIsRetrying(false);
       }
     }, [refresh]);
+
+    const renderedAssetCards = useMemo(
+      () =>
+        assetSlots.map((slot, index) => {
+          if (slot.kind === 'unavailable') {
+            return renderUnavailableAssetCard(slot.key);
+          }
+
+          const { asset } = slot;
+          const metadata = getEarnAssetMetadata(asset);
+          const hasMinDepositAmount =
+            !isEarnAssetBalanceBelowMinDepositAmount(asset);
+          const hasSubsidizedFee = asset.experiences.some(
+            ({ isFeeSubsidized }) => isFeeSubsidized,
+          );
+          const isApr = asset.highestRateExperience?.rate.type === 'APR';
+          const rateText =
+            asset.highestRatePercent === undefined
+              ? strings('earn_module.rate_unavailable')
+              : strings(
+                  hasMinDepositAmount
+                    ? isApr
+                      ? 'earn_module.get_rate_apr'
+                      : 'earn_module.get_rate_apy'
+                    : isApr
+                      ? 'earn_module.rate_apr'
+                      : 'earn_module.rate_apy',
+                  {
+                    percentage: truncateNumber(asset.highestRatePercent),
+                  },
+                );
+
+          return (
+            <EarnSectionAssetCard
+              key={slot.key}
+              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
+              tag={
+                hasSubsidizedFee ? (
+                  <EarnNoFeeTag
+                    testID={`earn-section-asset-${index}-no-fee-tag`}
+                  />
+                ) : undefined
+              }
+              primaryText={metadata.ticker ?? metadata.symbol}
+              secondaryText={
+                hasMinDepositAmount
+                  ? (getEarnAssetFiatDisplay(asset) ??
+                    strings('earn_module.balance_unavailable'))
+                  : (metadata.name ?? metadata.ticker ?? metadata.symbol)
+              }
+              tertiaryText={rateText}
+              testID={`earn-section-asset-${index}-card`}
+              onPress={() => handleAssetCardPress(asset)}
+            />
+          );
+        }),
+      [assetSlots, handleAssetCardPress],
+    );
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
@@ -332,64 +396,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             )}
             {isLoading
               ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
-              : assetSlots.map((slot, index) => {
-                  if (slot.kind === 'unavailable') {
-                    return renderUnavailableAssetCard(slot.key);
-                  }
-
-                  const { asset } = slot;
-                  const metadata = getEarnAssetMetadata(asset);
-                  const hasMinDepositAmount =
-                    !isEarnAssetBalanceBelowMinDepositAmount(asset);
-                  const hasSubsidizedFee = asset.experiences.some(
-                    ({ isFeeSubsidized }) => isFeeSubsidized,
-                  );
-                  const isApr =
-                    asset.highestRateExperience?.rate.type === 'APR';
-                  const rateText =
-                    asset.highestRatePercent === undefined
-                      ? strings('earn_module.rate_unavailable')
-                      : strings(
-                          hasMinDepositAmount
-                            ? isApr
-                              ? 'earn_module.get_rate_apr'
-                              : 'earn_module.get_rate_apy'
-                            : isApr
-                              ? 'earn_module.rate_apr'
-                              : 'earn_module.rate_apy',
-                          {
-                            percentage: truncateNumber(
-                              asset.highestRatePercent,
-                            ),
-                          },
-                        );
-
-                  return (
-                    <EarnSectionAssetCard
-                      key={slot.key}
-                      icon={renderEarnAssetIcon(earnAssetToToken(asset))}
-                      tag={
-                        hasSubsidizedFee ? (
-                          <EarnNoFeeTag
-                            testID={`earn-section-asset-${index}-no-fee-tag`}
-                          />
-                        ) : undefined
-                      }
-                      primaryText={metadata.ticker ?? metadata.symbol}
-                      secondaryText={
-                        hasMinDepositAmount
-                          ? (getEarnAssetFiatDisplay(asset) ??
-                            strings('earn_module.balance_unavailable'))
-                          : (metadata.name ??
-                            metadata.ticker ??
-                            metadata.symbol)
-                      }
-                      tertiaryText={rateText}
-                      testID={`earn-section-asset-${index}-card`}
-                      onPress={() => handleAssetCardPress(asset)}
-                    />
-                  );
-                })}
+              : renderedAssetCards}
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard
                 testID="earn-section-view-more-card"

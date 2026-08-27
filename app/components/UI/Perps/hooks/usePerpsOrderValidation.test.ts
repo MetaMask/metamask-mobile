@@ -1,9 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
   type OrderFormState,
 } from '@metamask/perps-controller';
-import { usePerpsOrderValidation } from './usePerpsOrderValidation';
+import {
+  usePerpsOrderValidation,
+  type ValidationAttempt,
+} from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -29,6 +33,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.order.validation.minimum_amount': `Minimum order size is $${values?.amount}`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
+      'perps.order.validation.failed': 'Order validation failed',
+      'perps.failed_to_load_market_data': 'Failed to load market data',
       'perps.order.validation.error': 'Validation error',
       'perps.order.validation.please_set_a_trigger_price':
         'Please set a trigger price',
@@ -92,7 +98,7 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
-    it('clears existing errors when position size changes to zero', async () => {
+    it('keeps zero position size invalid without an amount message', async () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({
         isValid: false,
@@ -117,11 +123,13 @@ describe('usePerpsOrderValidation', () => {
 
       // Assert
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
-      expect(result.current.errors).toEqual([]);
+      await fastWaitFor(() => {
+        expect(result.current.errors).toEqual([]);
+      });
       expect(result.current.isValid).toBe(false);
     });
 
-    it('should pass when protocol validation passes', async () => {
+    it('passes when protocol validation passes', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -146,7 +154,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toEqual([]);
     });
 
-    it('should fail when protocol validation fails', async () => {
+    it('returns false when protocol validation fails', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
         error: 'Minimum order size is $10.00',
@@ -176,7 +184,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('existing position validation', () => {
-    it('should allow user to place order when has existing position', async () => {
+    it('allows an order when the account has an existing position', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -200,7 +208,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('balance validation', () => {
-    it('should fail when insufficient balance', async () => {
+    it('returns an error when the balance is insufficient', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -211,24 +219,19 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
-      // Advance timers to trigger debounced validation
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
-
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
     });
   });
 
   describe('leverage warnings', () => {
-    it('should warn about high leverage', async () => {
+    it('warns about high leverage', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -254,7 +257,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.warnings).toContain('High leverage warning');
     });
 
-    it('should not warn about normal leverage', async () => {
+    it('does not warn about normal leverage', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -313,7 +316,7 @@ describe('usePerpsOrderValidation', () => {
       ]);
     });
 
-    it('should pass with limit price for limit orders', async () => {
+    it('passes with a limit price for limit orders', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -342,7 +345,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('error handling', () => {
-    it('should handle validation errors gracefully', async () => {
+    it('reports validation errors gracefully', async () => {
       mockValidateOrder.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() =>
@@ -360,6 +363,45 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain('Validation error');
+    });
+
+    it('reports a generic message when protocol validation rejects without an error', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({ isValid: false });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation(defaultParams),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Assert
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.isValid).toBe(false);
+      expect(result.current.errors).toContain('Order validation failed');
+    });
+
+    it('keeps unavailable market data invalid without requesting protocol validation', async () => {
+      // Arrange
+      const params = { ...defaultParams, assetPrice: 0 };
+
+      // Act
+      const { result } = renderHook(() => usePerpsOrderValidation(params));
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Assert
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.isValid).toBe(false);
+      expect(mockValidateOrder).not.toHaveBeenCalled();
     });
   });
 
@@ -416,6 +458,7 @@ describe('usePerpsOrderValidation', () => {
 
       // Validation should not fire yet (debouncing)
       expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.isValidating).toBe(true);
 
       // Advance timers to fire the debounced callback
       act(() => {
@@ -428,6 +471,160 @@ describe('usePerpsOrderValidation', () => {
 
       // Now the debounced validation should have fired
       expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('reports a new local error while protocol validation remains debounced', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      rerender({
+        ...defaultParams,
+        spendableBalance: 5,
+        marginRequired: '10.00',
+      });
+
+      expect(result.current.errors).toContain(
+        'Insufficient balance: need 10.00, have 5',
+      );
+      expect(result.current.isValid).toBe(false);
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
+      });
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('validates immediately when the amount crosses above the minimum', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+      const belowMinimumParams = {
+        ...defaultParams,
+        originalUsdAmount: '1',
+      };
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: belowMinimumParams },
+      );
+      expect(result.current.errors).toContain('Minimum order size is $10');
+      expect(result.current.isValid).toBe(false);
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      mockValidateOrder.mockClear();
+
+      rerender({
+        ...belowMinimumParams,
+        originalUsdAmount: '10',
+      });
+
+      expect(result.current.errors).not.toContain('Minimum order size is $10');
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      await fastWaitFor(() => {
+        expect(result.current.isValid).toBe(true);
+      });
+    });
+
+    it('runs the current validation immediately when requested for submission', async () => {
+      // Arrange
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      mockValidateOrder.mockClear();
+      rerender({
+        ...defaultParams,
+        assetPrice: 50100,
+      });
+
+      // Act
+      let attempt: { isValid: boolean } | undefined;
+      await act(async () => {
+        attempt = await result.current.validateNow();
+      });
+
+      // Assert
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(attempt?.isValid).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the submit result and re-arms validation after a live price update', async () => {
+      // Arrange
+      const submitValidation = createDeferred<{
+        isValid: boolean;
+        error?: string;
+      }>();
+      const latestValidation = createDeferred<{
+        isValid: boolean;
+        error?: string;
+      }>();
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      mockValidateOrder.mockClear();
+      mockValidateOrder
+        .mockReturnValueOnce(submitValidation.promise)
+        .mockReturnValueOnce(latestValidation.promise);
+      let validationPromise!: Promise<ValidationAttempt>;
+      let attempt: ValidationAttempt | undefined;
+
+      // Act
+      act(() => {
+        validationPromise = result.current.validateNow();
+      });
+      rerender({
+        ...defaultParams,
+        assetPrice: 50100,
+      });
+      expect(result.current.isValidating).toBe(true);
+      act(() => {
+        jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+      expect(result.current.isValidating).toBe(true);
+      await act(async () => {
+        submitValidation.resolve({ isValid: true });
+        attempt = await validationPromise;
+      });
+
+      // The tap-time request returns its own result without overwriting the
+      // newer background request's pending state.
+      expect(attempt?.isValid).toBe(true);
+      expect(attempt?.errors).toEqual([]);
+      expect(result.current.isValidating).toBe(true);
+
+      await act(async () => {
+        latestValidation.resolve({
+          isValid: false,
+          error: 'latest validation error',
+        });
+        await Promise.resolve();
+      });
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.isValid).toBe(false);
     });
 
     it('cleans up debounce timer on unmount', async () => {
@@ -509,7 +706,7 @@ describe('usePerpsOrderValidation', () => {
       ]);
     });
 
-    it('retains confirmed validity while a protocol validation is pending', async () => {
+    it('retains confirmed validity while marking debounced validation pending', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result, rerender } = renderHook(
@@ -591,7 +788,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('multiple errors', () => {
-    it('should combine multiple validation errors', async () => {
+    it('combines multiple validation errors', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
         error: 'Order too small',
@@ -684,9 +881,78 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('trigger orders', () => {
+    const triggerRequirementCases = (
+      [
+        { orderType: 'stop_market', direction: 'long' },
+        { orderType: 'stop_market', direction: 'short' },
+        { orderType: 'stop_limit', direction: 'long' },
+        { orderType: 'stop_limit', direction: 'short' },
+        { orderType: 'take_profit_market', direction: 'long' },
+        { orderType: 'take_profit_market', direction: 'short' },
+        { orderType: 'take_profit_limit', direction: 'long' },
+        { orderType: 'take_profit_limit', direction: 'short' },
+      ] as const
+    ).flatMap((orderCase) => [
+      {
+        ...orderCase,
+        triggerPrice: undefined,
+        expectedCode: 'required' as const,
+      },
+      { ...orderCase, triggerPrice: '0', expectedCode: 'positive' as const },
+    ]);
+
+    it.each(triggerRequirementCases)(
+      'reports $expectedCode for $direction $orderType trigger price',
+      async ({ orderType, direction, triggerPrice, expectedCode }) => {
+        mockValidateOrder.mockResolvedValue({ isValid: true });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            orderForm: {
+              ...defaultOrderForm,
+              type: orderType,
+              direction,
+              ...(orderType.endsWith('_limit') ? { limitPrice: '50000' } : {}),
+            },
+            triggerPrice,
+            assetPrice: 50000,
+            midPrice: 50000,
+            szDecimals: 4,
+          }),
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        await fastWaitFor(() => {
+          expect(result.current.isValidating).toBe(false);
+        });
+
+        expect(result.current.isValid).toBe(false);
+        expect(result.current.fieldIssues).toContainEqual({
+          field: 'triggerPrice',
+          issue: { code: expectedCode },
+        });
+      },
+    );
+
     it.each([
       {
         orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '49999',
+        requiredSide: 'above',
+      },
+      {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '50001',
+        requiredSide: 'below',
+      },
+      {
+        orderType: 'stop_limit',
         direction: 'long',
         triggerPrice: '49999',
         requiredSide: 'above',
@@ -699,6 +965,18 @@ describe('usePerpsOrderValidation', () => {
       },
       {
         orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '50001',
+        requiredSide: 'below',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '49999',
+        requiredSide: 'above',
+      },
+      {
+        orderType: 'take_profit_limit',
         direction: 'long',
         triggerPrice: '50001',
         requiredSide: 'below',
@@ -763,6 +1041,20 @@ describe('usePerpsOrderValidation', () => {
         expectedPrice: undefined,
       },
       {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '49000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '51000',
+        limitPrice: '50500',
+        expectedPrice: '50500',
+      },
+      {
         orderType: 'stop_limit',
         direction: 'short',
         triggerPrice: '49000',
@@ -775,6 +1067,20 @@ describe('usePerpsOrderValidation', () => {
         triggerPrice: '49000',
         limitPrice: '48000',
         expectedPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '51000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'long',
+        triggerPrice: '49000',
+        limitPrice: '49500',
+        expectedPrice: '49500',
       },
       {
         orderType: 'take_profit_limit',

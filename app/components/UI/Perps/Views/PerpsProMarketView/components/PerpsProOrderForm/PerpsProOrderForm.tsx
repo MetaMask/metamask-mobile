@@ -546,7 +546,11 @@ const PerpsProOrderForm = ({
               onFocus={onLimitPriceFocus}
               onBlur={onLimitPriceBlur}
               onFieldPress={onLimitPriceFieldPress}
-              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              onUseMidPress={
+                showsLimitPrice && onUseMidPricePress
+                  ? handleUseMidPricePress
+                  : undefined
+              }
               testID={ids.LIMIT_PRICE_INPUT}
               prefixTestID={ids.LIMIT_PRICE_PREFIX}
               midButtonTestID={ids.MID_PRICE_BUTTON}

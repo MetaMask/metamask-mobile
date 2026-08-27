@@ -1579,6 +1579,7 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
+      "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
       "close_keyboard": "Close keyboard"
     },
     "pro_positions_panel": {
@@ -7564,6 +7565,64 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Choose how to earn",
+      "subtitle": "Choose an earning strategy for your {{asset}}.",
+      "tags": {
+        "recommended": "Recommended",
+        "low_risk": "Low risk",
+        "medium_risk": "Medium risk",
+        "high_risk": "High risk"
+      },
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "Failed to navigate to deposit screen for selected strategy"
+        } 
+      },
+      "strategies": {
+        "money": {
+          "subtitle": "Money account",
+          "tertiary_text": "Variable yield · auto-earning"
+        },
+        "lending": {
+          "subtitle": "Lend {{asset}}",
+          "tertiary_text": "Variable yield"
+        },
+        "pooled_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "Pooled staking · variable yield"
+        },
+        "trx_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "TRON staking · variable yield"
+        }
+      },
+      "info_rows": {
+        "money_account": {
+          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
+          "row_1_unavailable": "Rate unavailable — auto-earning, compounding yield",
+          "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
+          "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
+        },
+        "lending": {
+          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
+          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
+          "row_3": "Rates can change with market demand, and smart contract risks apply."
+        },
+        "pooled_staking": {
+          "row_1": "Earn variable staking rewards on your ETH.",
+          "row_2": "Your ETH is pooled with other MetaMask users.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        },
+        "trx_staking": {
+          "row_1": "Earn variable rewards by staking TRX.",
+          "row_2": "Staked TRX supports the TRON network.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        }
+      },
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    },
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "percentage_bonus": "{{percentage}}% bonus",
@@ -8627,6 +8686,20 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "price_range": {
+        "label": "Price range",
+        "not_set": "Not set",
+        "token": "Token",
+        "price": "Price",
+        "exchange_rate": "Exchange rate",
+        "min_token_price": "Min {{symbol}} price",
+        "max_token_price": "Max {{symbol}} price",
+        "min_placeholder": "Min price",
+        "max_placeholder": "Max price",
+        "clear_all": "Clear all",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
       "unit": {
         "minute": "minute",
         "hour": "hour",
