@@ -22,6 +22,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -139,9 +140,17 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByText('On-ramp fee')).toBeOnTheScreen();
-    expect(getByText('$0.40')).toBeOnTheScreen();
-    expect(getByText('$0.60')).toBeOnTheScreen();
-    expect(getByText('$1.23')).toBeOnTheScreen();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+    ).toHaveTextContent('$0.40');
+    // The two rows still sum to the combined provider fee, so the itemised
+    // tooltip agrees with the single total on the first screen.
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+    ).toHaveTextContent('$0.60');
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE),
+    ).toHaveTextContent('$1.23');
   });
 
   it.each([undefined, '0'])(
@@ -158,14 +167,20 @@ describe('BridgeFeeRow', () => {
           metaMask: { usd: '0', fiat: '0' },
         },
       } as TransactionPayTotals);
-      const { getByTestId, getByText, queryByText } = render();
+      const { getByTestId, queryByText } = render();
 
       await act(async () => {
         fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
       });
 
       expect(queryByText('On-ramp fee')).toBeNull();
-      expect(getByText('$1')).toBeOnTheScreen();
+      expect(
+        queryByText(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+      ).toBeNull();
+      // The whole provider fee stays on the provider row.
+      expect(
+        getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+      ).toHaveTextContent('$1');
     },
   );
 
@@ -176,17 +191,25 @@ describe('BridgeFeeRow', () => {
         providerFiat: { usd: '2.00' },
         sourceNetwork: { estimate: { usd: '0.20' } },
         targetNetwork: { usd: '0.03' },
-        metaMask: { usd: '0', fiat: '0' },
+        // Deliberately non-zero so the clamped provider fee is the only
+        // "$0" in the tooltip.
+        metaMask: { usd: '0.05', fiat: '0.05' },
       },
     } as TransactionPayTotals);
-    const { getByTestId, getByText, queryByText } = render();
+    const { getByTestId } = render();
 
     await act(async () => {
       fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
     });
 
-    expect(getByText('$0')).toBeOnTheScreen();
-    expect(queryByText('-$1')).toBeNull();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+    ).toHaveTextContent('$0');
+    // The on-ramp fee is capped at the combined provider fee rather than
+    // pushing the provider row negative.
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+    ).toHaveTextContent('$1');
   });
 
   it('renders skeletons if quotes loading', async () => {

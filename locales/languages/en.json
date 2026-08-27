@@ -8510,6 +8510,7 @@
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
       "provider_fee": "Provider fee",
+      "onramp_fee": "On-ramp fee",
       "sending": "Sending"
     },
     "title": {
@@ -10727,7 +10728,6 @@
     "label": {
       "bridge_fee": "Bridge fee",
       "provider_fee": "Provider fee",
-      "onramp_fee": "On-ramp fee",
       "network_fee": "Network fee",
       "transaction_fee": "Transaction fee",
       "transaction_fees": "Transaction fees",

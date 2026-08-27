@@ -94,6 +94,22 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
+    // Both operands come from quote data, so a malformed or oversized
+    // `providerFiat` can leave this non-finite or at/below zero. Submitting
+    // that would ask the ramp to buy a nonsense amount, so stop rather than
+    // guess a fallback: falling back to the untouched total would charge the
+    // on-ramp provider fee twice.
+    if (!Number.isFinite(totalAmountToBuy) || totalAmountToBuy <= 0) {
+      log('Fiat payment resolved an unusable buy amount', {
+        providerFiatUsd: totals?.fees.providerFiat?.usd,
+        totalAmountToBuy,
+        totalUsd: totals?.total?.usd,
+      });
+      setIsHeadlessBuyInProgress(false);
+      setHeadlessBuyError(strings('alert_system.headless_buy_error.message'));
+      return;
+    }
+
     // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]

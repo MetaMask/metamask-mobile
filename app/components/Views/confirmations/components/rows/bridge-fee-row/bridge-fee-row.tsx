@@ -38,6 +38,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { resolveTransactionType } from '../../../utils/transaction';
+import { splitProviderFee } from './bridge-fee-row.utils';
 import {
   Text,
   TextVariant,
@@ -257,20 +258,14 @@ function FeesTooltip({
   }, [totals, formatFiat]);
 
   const { onRampFeeUsd, providerFeeUsd } = useMemo(() => {
-    const providerFee = new BigNumber(totals.fees.provider.usd);
-    const rawOnRampFee = new BigNumber(totals.fees.providerFiat?.usd ?? 0);
-    const onRampFee =
-      rawOnRampFee.isFinite() && rawOnRampFee.isGreaterThan(0)
-        ? BigNumber.minimum(rawOnRampFee, providerFee)
-        : new BigNumber(0);
+    const { onRampFee, remainingProviderFee } = splitProviderFee(
+      totals.fees.provider.usd,
+      totals.fees.providerFiat?.usd,
+    );
 
     return {
-      onRampFeeUsd: onRampFee.isGreaterThan(0)
-        ? formatFiat(onRampFee)
-        : undefined,
-      providerFeeUsd: formatFiat(
-        BigNumber.maximum(providerFee.minus(onRampFee), 0),
-      ),
+      onRampFeeUsd: onRampFee ? formatFiat(onRampFee) : undefined,
+      providerFeeUsd: formatFiat(remainingProviderFee),
     };
   }, [totals, formatFiat]);
 
@@ -298,7 +293,12 @@ function FeesTooltip({
         <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.provider_fee')}
         </Text>
-        <Text color={TextColor.TextAlternative}>{providerFeeUsd}</Text>
+        <Text
+          color={TextColor.TextAlternative}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER}
+        >
+          {providerFeeUsd}
+        </Text>
       </Box>
       {onRampFeeUsd ? (
         <Box
@@ -308,7 +308,12 @@ function FeesTooltip({
           <Text color={TextColor.TextAlternative}>
             {strings('confirm.label.onramp_fee')}
           </Text>
-          <Text color={TextColor.TextAlternative}>{onRampFeeUsd}</Text>
+          <Text
+            color={TextColor.TextAlternative}
+            testID={ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP}
+          >
+            {onRampFeeUsd}
+          </Text>
         </Box>
       ) : null}
       <Box
