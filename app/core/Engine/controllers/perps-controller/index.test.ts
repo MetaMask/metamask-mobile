@@ -56,6 +56,7 @@ jest.mock('@metamask/perps-controller', () => {
       actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
     DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
     VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
+    HYPERLIQUID_TWAP_LIMITS: actualConstants.HYPERLIQUID_TWAP_LIMITS,
   };
 });
 
