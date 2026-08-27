@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import os from 'os';
 import path from 'path';
 
 const SCRIPT_PATH = path.join(__dirname, 'dual-upload-artifact.mjs');
@@ -37,6 +38,25 @@ const runRetryDecision = (env: Record<string, string>) =>
       ...env,
     },
   });
+
+const runRetryDecisionWithOutputFile = (env: Record<string, string>) => {
+  const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'dual-upload-'));
+  const outputPath = path.join(tempDirectory, 'github-output');
+
+  try {
+    const result = runRetryDecision({
+      GITHUB_OUTPUT: outputPath,
+      ...env,
+    });
+    const output = fs.existsSync(outputPath)
+      ? fs.readFileSync(outputPath, 'utf8')
+      : '';
+
+    return { result, output };
+  } finally {
+    fs.rmSync(tempDirectory, { recursive: true, force: true });
+  }
+};
 
 const loadActionMetadata = () =>
   yaml.load(fs.readFileSync(ACTION_PATH, 'utf8')) as ActionMetadata;
@@ -141,7 +161,31 @@ describe('dual-upload-artifact', () => {
     expect(result.stdout).toContain('reason=non-retryable-error');
   });
 
-  it('classifies current providers as non-retryable for Namespace uploads', () => {
+  it('prevents retry steps from running for non-ECONNREFUSED errors', () => {
+    const retryWait = getStepByName('Wait before Namespace retry (attempt 2)');
+    const retryUpload = getStepById('ns-2');
+
+    const { result, output } = runRetryDecisionWithOutputFile({
+      RUNNER_PROVIDER: 'namespace',
+      ATTEMPT: '2',
+      PREVIOUS_OUTCOMES: 'failure',
+      ERROR_MESSAGE: 'Artifact name is not valid',
+    });
+
+    expect(result.status).toBe(0);
+    expect(output).toContain('retryable=false');
+    expect(output).toContain('reason=non-retryable-error');
+    expect(retryWait?.if).toBe(
+      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
+    );
+    expect(retryUpload?.if).toBe(
+      "${{ steps.ns-retry-2.outputs.retryable == 'true' }}",
+    );
+  });
+
+  it('skips Namespace upload attempts for non-Namespace providers', () => {
+    const retryDecision = getStepById('ns-retry-2');
+
     const result = runRetryDecision({
       RUNNER_PROVIDER: 'current',
       ATTEMPT: '2',
@@ -151,6 +195,9 @@ describe('dual-upload-artifact', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('retryable=false');
     expect(result.stdout).toContain('reason=not-namespace-runner');
+    expect(retryDecision?.if).toBe(
+      "${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}",
+    );
   });
 
   it('uploads to GitHub once without retry orchestration', () => {
