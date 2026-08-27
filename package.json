@@ -782,7 +782,10 @@
   },
   "reanimated": {
     "staticFeatureFlags": {
-      "FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS": false
+      "FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS": false,
+      "USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS": false,
+      "USE_SYNCHRONIZABLE_FOR_MUTABLES": false,
+      "EXPERIMENTAL_CSS_ANIMATIONS_FOR_SVG_COMPONENTS": false
     }
   },
   "config": {
