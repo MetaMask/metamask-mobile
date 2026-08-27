@@ -206,14 +206,20 @@ const MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES: ProLayoutPreferences = {
  * defaulted one. Reading the raw slice keeps a stored choice authoritative
  * while still answering with mobile's values when nothing is stored yet —
  * before Engine init or migration 151, or in minimal test fixtures.
+ *
+ * Inputs on `proLayoutPreferences` rather than the whole controller slice:
+ * `update()` is immer-based, so this nested object keeps its identity across
+ * unrelated controller changes and the memo survives live ticks. Children that
+ * return objects (the sort configs) would otherwise churn on every update.
  */
 const selectPerpsProLayoutPreferences = createSelector(
-  selectPerpsControllerState,
-  (perpsControllerState): ProLayoutPreferences => {
+  (state: RootState) =>
+    state.engine.backgroundState.PerpsController?.proLayoutPreferences,
+  (proLayoutPreferences): ProLayoutPreferences => {
     try {
       return {
         ...MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES,
-        ...perpsControllerState?.proLayoutPreferences,
+        ...proLayoutPreferences,
       };
     } catch {
       return MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES;

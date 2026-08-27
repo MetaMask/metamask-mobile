@@ -1001,6 +1001,21 @@ describe('PerpsController Selectors', () => {
         ...MOBILE_PRO_LAYOUT_DEFAULTS,
       });
     });
+
+    it('keeps a stable reference when unrelated controller state changes', () => {
+      // Children that build objects from this (the sort configs) re-render
+      // their panels on every new identity, so live ticks must not invalidate.
+      const proLayoutPreferences = { orderBookPosition: 'left' };
+
+      const first = selectPerpsProLayoutPreferences(
+        createMockState({ proLayoutPreferences, lastUpdateTimestamp: 1 }),
+      );
+      const second = selectPerpsProLayoutPreferences(
+        createMockState({ proLayoutPreferences, lastUpdateTimestamp: 2 }),
+      );
+
+      expect(second).toBe(first);
+    });
   });
 
   describe('selectPerpsProChartExpanded', () => {
