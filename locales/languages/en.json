@@ -8747,6 +8747,7 @@
     "insufficient_native_reserve_title": "Minimum {{ticker}} reserve balance required",
     "stellar_trustline_warning_cta": "Activate {{token}}",
     "stellar_trustline_warning_message": "This swap may fail. On Stellar your account can't receive {{token}} until the token is activated in your wallet with a valid trustline.",
+    "stellar_trustline_warning_message_different_account": "This swap may fail. On Stellar {{account}} can't receive {{token}} until you switch to that account and activate the token with a valid trustline.",
     "stellar_trustline_warning_title": "Activate {{token}} on Stellar first",
     "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",

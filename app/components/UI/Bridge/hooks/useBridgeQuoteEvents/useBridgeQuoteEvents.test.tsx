@@ -85,6 +85,7 @@ describe('useBridgeQuoteEvents', () => {
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
             hasInsufficientNativeReserveError: false,
+            hasDestAssetRequireActivate: false,
           }),
         { state: testState },
       );
@@ -115,6 +116,7 @@ describe('useBridgeQuoteEvents', () => {
           isSubmitDisabled: false,
           isPriceImpactWarningVisible: false,
           hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
         }),
       { state: testState },
     );
@@ -143,6 +145,7 @@ describe('useBridgeQuoteEvents', () => {
       { hasTxAlert: true, isPriceImpactWarningVisible: true },
       ['tx_alert', 'price_impact'],
     ],
+    [{ hasDestAssetRequireActivate: true }, ['dest_asset_require_activate']],
     [{}, []],
   ])(
     'publishes QuotesReceived event with warnings: %s',
@@ -167,6 +170,7 @@ describe('useBridgeQuoteEvents', () => {
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
             hasInsufficientNativeReserveError: false,
+            hasDestAssetRequireActivate: false,
             ...hookArgs,
           }),
         { state: testState },
@@ -209,6 +213,7 @@ describe('useBridgeQuoteEvents', () => {
           isSubmitDisabled: false,
           isPriceImpactWarningVisible: false,
           hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
         }),
       { state: testState },
     );
@@ -240,6 +245,7 @@ describe('useBridgeQuoteEvents', () => {
           isSubmitDisabled: false,
           isPriceImpactWarningVisible: false,
           hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
         }),
       { state: testState },
     );

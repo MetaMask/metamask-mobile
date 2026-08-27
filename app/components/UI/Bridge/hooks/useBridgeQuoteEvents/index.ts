@@ -28,6 +28,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
+  hasDestAssetRequireActivate,
 }: {
   hasInsufficientBalance: boolean;
   hasInsufficientNativeReserveError: boolean;
@@ -37,6 +38,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
+  hasDestAssetRequireActivate: boolean;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
@@ -66,6 +68,9 @@ export const useBridgeQuoteEvents = ({
       latestWarnings.push('insufficient_native_reserve');
     hasTxAlert && latestWarnings.push('tx_alert');
     isPriceImpactWarningVisible && latestWarnings.push('price_impact');
+    // @ts-expect-error - 'dest_asset_require_activate' is not a valid QuoteWarning yet
+    hasDestAssetRequireActivate &&
+      latestWarnings.push('dest_asset_require_activate');
 
     return latestWarnings;
   }, [
@@ -76,6 +81,7 @@ export const useBridgeQuoteEvents = ({
     hasInsufficientNativeReserveError,
     hasTxAlert,
     isPriceImpactWarningVisible,
+    hasDestAssetRequireActivate,
   ]);
 
   // Emit QuotesReceived event each time quotes are fetched successfully

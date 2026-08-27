@@ -78,6 +78,7 @@ import {
 } from '../../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents/index.ts';
+import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
 import { SwapsKeypad } from '../../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength.ts';
@@ -390,6 +391,8 @@ const BridgeMarketViewContent = ({
     hasInsufficientGas ||
     !walletAddress;
 
+  const { isDestAssetRequireActivate } = useDestAssetRequireActivate();
+
   useBridgeQuoteEvents({
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
@@ -399,6 +402,7 @@ const BridgeMarketViewContent = ({
     isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    hasDestAssetRequireActivate: isDestAssetRequireActivate,
   });
 
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);

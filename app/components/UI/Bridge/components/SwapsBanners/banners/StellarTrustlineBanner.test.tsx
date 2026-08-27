@@ -3,8 +3,9 @@ import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { XlmScope } from '@metamask/keyring-api';
 import { strings } from '../../../../../../../locales/i18n';
-import { getIsAssetRequireActivate } from '../../../../../../selectors/stellar/stellar-assets';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
+import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
+import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
 import { createMockToken } from '../../../testUtils';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { StellarTrustlineBanner } from './StellarTrustlineBanner';
@@ -19,10 +20,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../../selectors/stellar/stellar-assets', () => ({
-  ...jest.requireActual('../../../../../../selectors/stellar/stellar-assets'),
-  getIsAssetRequireActivate: jest.fn(),
+jest.mock('../../../hooks/useDestAssetRequireActivate', () => ({
+  useDestAssetRequireActivate: jest.fn(),
 }));
+
+jest.mock(
+  '../../../hooks/useRecipientDisplayData/useRecipientDisplayData',
+  () => ({
+    useRecipientDisplayData: jest.fn(),
+  }),
+);
 
 const STELLAR_USDC_ADDRESS =
   'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
@@ -52,15 +59,18 @@ const mockStellarXlm = createMockToken({
 describe('StellarTrustlineBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(getIsAssetRequireActivate).mockImplementation(
-      (_state, { assetId }) =>
-        // Mirror real selector: only classic Stellar assets can require activation.
-        typeof assetId === 'string' &&
-        assetId.startsWith('stellar:pubnet/asset:'),
-    );
+    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
+      isDestAssetRequireActivate: true,
+      isDestSameAsActiveAccount: true,
+    });
+    jest.mocked(useRecipientDisplayData).mockReturnValue({
+      destinationDisplayName: 'Account 1',
+      destinationWalletName: undefined,
+      destinationAccountAddress: 'GDEST',
+    });
   });
 
-  it('shows a warning banner for cross-chain Stellar destinations that need a trustline', () => {
+  it('shows a warning banner with Activate CTA when dest is the active account', () => {
     const { getByTestId, getByText } = renderBanner(
       <StellarTrustlineBanner />,
       {
@@ -82,6 +92,11 @@ describe('StellarTrustlineBanner', () => {
     expect(
       getByText(
         strings('bridge.stellar_trustline_warning_message', { token: 'USDC' }),
+      ),
+    ).toBeTruthy();
+    expect(
+      getByText(
+        strings('bridge.stellar_trustline_warning_cta', { token: 'USDC' }),
       ),
     ).toBeTruthy();
   });
@@ -108,8 +123,50 @@ describe('StellarTrustlineBanner', () => {
     );
   });
 
+  it('uses different-account copy and omits the Activate CTA when dest differs from the active account', () => {
+    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
+      isDestAssetRequireActivate: true,
+      isDestSameAsActiveAccount: false,
+    });
+    jest.mocked(useRecipientDisplayData).mockReturnValue({
+      destinationDisplayName: 'Account 2',
+      destinationWalletName: undefined,
+      destinationAccountAddress: 'GOTHER',
+    });
+
+    const { getByTestId, getByText, queryByText } = renderBanner(
+      <StellarTrustlineBanner />,
+      {
+        state: createBannerState({
+          sourceToken: mockEthSource,
+          destToken: mockStellarUsdc,
+        }),
+      },
+    );
+
+    expect(
+      getByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+    ).toBeTruthy();
+    expect(
+      getByText(
+        strings('bridge.stellar_trustline_warning_message_different_account', {
+          account: 'Account 2',
+          token: 'USDC',
+        }),
+      ),
+    ).toBeTruthy();
+    expect(
+      queryByText(
+        strings('bridge.stellar_trustline_warning_cta', { token: 'USDC' }),
+      ),
+    ).toBeNull();
+  });
+
   it('renders nothing when the destination asset does not require activation', () => {
-    jest.mocked(getIsAssetRequireActivate).mockReturnValue(false);
+    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
+      isDestAssetRequireActivate: false,
+      isDestSameAsActiveAccount: true,
+    });
 
     const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
       state: createBannerState({
@@ -124,6 +181,11 @@ describe('StellarTrustlineBanner', () => {
   });
 
   it('renders nothing for same-chain Stellar swaps', () => {
+    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
+      isDestAssetRequireActivate: false,
+      isDestSameAsActiveAccount: true,
+    });
+
     const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
       state: createBannerState({
         sourceToken: mockStellarXlm,
@@ -137,6 +199,11 @@ describe('StellarTrustlineBanner', () => {
   });
 
   it('renders nothing for non-Stellar destinations', () => {
+    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
+      isDestAssetRequireActivate: false,
+      isDestSameAsActiveAccount: true,
+    });
+
     const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
       state: createBannerState({
         sourceToken: mockEthSource,

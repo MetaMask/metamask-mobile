@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
-import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { isCrossChain } from '@metamask/bridge-controller';
 import {
   BannerBase,
   ButtonSize,
@@ -11,34 +9,25 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { getIsAssetRequireActivate } from '../../../../../../selectors/stellar/stellar-assets';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
+import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
+import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
 import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
 
 /**
  * Non-blocking warning when a cross-chain swap destination is a Stellar classic
- * asset that still needs trustline activation. CTA opens token details so the
- * user can activate the asset.
+ * asset that still needs trustline activation on the destination account.
+ * Same as active account → Activate CTA. Different dest → no CTA + switch copy.
  */
 export const StellarTrustlineBanner = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { sourceToken, destToken } = useSwapsBannersContext();
-
-  const isDestAssetRequireActivate = useSelector((state) =>
-    destToken?.address
-      ? getIsAssetRequireActivate(state, { assetId: destToken.address })
-      : false,
-  );
-
-  const shouldShow = Boolean(
-    sourceToken &&
-      destToken &&
-      isCrossChain(sourceToken.chainId, destToken.chainId) &&
-      isDestAssetRequireActivate,
-  );
+  const { destToken } = useSwapsBannersContext();
+  const { isDestAssetRequireActivate, isDestSameAsActiveAccount } =
+    useDestAssetRequireActivate();
+  const { destinationDisplayName } = useRecipientDisplayData();
 
   const handleActivatePress = useCallback(() => {
     if (!destToken) {
@@ -55,9 +44,18 @@ export const StellarTrustlineBanner = () => {
     );
   }, [destToken, navigation]);
 
-  if (!shouldShow || !destToken) {
+  if (!isDestAssetRequireActivate || !destToken) {
     return null;
   }
+
+  const description = isDestSameAsActiveAccount
+    ? strings('bridge.stellar_trustline_warning_message', {
+        token: destToken.symbol,
+      })
+    : strings('bridge.stellar_trustline_warning_message_different_account', {
+        account: destinationDisplayName ?? '',
+        token: destToken.symbol,
+      });
 
   return (
     <BannerBase
@@ -73,17 +71,19 @@ export const StellarTrustlineBanner = () => {
       title={strings('bridge.stellar_trustline_warning_title', {
         token: destToken.symbol,
       })}
-      description={strings('bridge.stellar_trustline_warning_message', {
-        token: destToken.symbol,
-      })}
-      actionButtonLabel={strings('bridge.stellar_trustline_warning_cta', {
-        token: destToken.symbol,
-      })}
-      actionButtonOnPress={handleActivatePress}
-      actionButtonProps={{
-        size: ButtonSize.Sm,
-        twClassName: 'mt-1.5',
-      }}
+      description={description}
+      {...(isDestSameAsActiveAccount
+        ? {
+            actionButtonLabel: strings('bridge.stellar_trustline_warning_cta', {
+              token: destToken.symbol,
+            }),
+            actionButtonOnPress: handleActivatePress,
+            actionButtonProps: {
+              size: ButtonSize.Sm,
+              twClassName: 'mt-1.5',
+            },
+          }
+        : {})}
     />
   );
 };
