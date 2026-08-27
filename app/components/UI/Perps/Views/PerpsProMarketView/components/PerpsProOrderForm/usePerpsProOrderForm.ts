@@ -128,6 +128,9 @@ import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 const SCALE_DEFAULT_ORDERS = 5;
 const SCALE_DEFAULT_SKEW = '1.00';
 const SCALE_SKEW_DECIMAL_PLACES = 2;
+const SCALE_SIZE_SEARCH_MAX_STEPS = Math.ceil(
+  Math.log2(Number.MAX_SAFE_INTEGER),
+);
 const SCALE_EVENT_PROPERTY = {
   ORDER_COUNT: 'scale_order_count',
   RANGE_PERCENT: 'scale_range_pct',
@@ -867,9 +870,6 @@ export const usePerpsProOrderForm = ({
           new BigNumber(0),
         )
         .div(weightTotal);
-      const sizeIncrement = new BigNumber(1).div(
-        new BigNumber(10).pow(szDecimals),
-      );
       let totalSize =
         exactFullCloseSize ??
         targetOrderValue
@@ -899,14 +899,90 @@ export const usePerpsProOrderForm = ({
 
       let rungs = buildRungs(totalSize);
       let orderValue = getOrderValue(rungs);
-      if (exactFullCloseSize === undefined) {
-        while (orderValue.lt(targetOrderValue)) {
-          totalSize = new BigNumber(totalSize)
-            .plus(sizeIncrement)
+      if (exactFullCloseSize === undefined && orderValue.lt(targetOrderValue)) {
+        const sizeMultiplier = new BigNumber(10).pow(szDecimals);
+        const initialSizeUnits = new BigNumber(totalSize)
+          .times(sizeMultiplier)
+          .integerValue(BigNumber.ROUND_HALF_UP);
+        const maxSafeSizeUnits = new BigNumber(Number.MAX_SAFE_INTEGER);
+        let lowerSizeUnits = initialSizeUnits;
+        let upperLadder:
+          | {
+              sizeUnits: BigNumber;
+              rungs: PerpsProScaleOrderModel['rungs'];
+              orderValue: BigNumber;
+            }
+          | undefined;
+        let sizeStep = new BigNumber(1);
+
+        // Bracket a valid grid size exponentially so extreme accepted skews do
+        // not block the UI by advancing one venue increment at a time.
+        for (
+          let attempt = 0;
+          attempt < SCALE_SIZE_SEARCH_MAX_STEPS;
+          attempt += 1
+        ) {
+          const candidateSizeUnits = initialSizeUnits.plus(sizeStep);
+          if (candidateSizeUnits.gt(maxSafeSizeUnits)) {
+            break;
+          }
+          const candidateSize = candidateSizeUnits
+            .div(sizeMultiplier)
             .toFixed(szDecimals);
-          rungs = buildRungs(totalSize);
-          orderValue = getOrderValue(rungs);
+          const candidateRungs = buildRungs(candidateSize);
+          const candidateOrderValue = getOrderValue(candidateRungs);
+
+          if (candidateOrderValue.gte(targetOrderValue)) {
+            upperLadder = {
+              sizeUnits: candidateSizeUnits,
+              rungs: candidateRungs,
+              orderValue: candidateOrderValue,
+            };
+            break;
+          }
+
+          lowerSizeUnits = candidateSizeUnits;
+          sizeStep = sizeStep.times(2);
         }
+
+        if (!upperLadder) {
+          return { success: false, code: 'minimum_lot' };
+        }
+
+        // Refine the bracket in bounded time. The upper endpoint always holds
+        // a controller-accepted ladder that meets the requested notional.
+        for (
+          let attempt = 0;
+          attempt < SCALE_SIZE_SEARCH_MAX_STEPS &&
+          upperLadder.sizeUnits.minus(lowerSizeUnits).gt(1);
+          attempt += 1
+        ) {
+          const candidateSizeUnits = lowerSizeUnits
+            .plus(upperLadder.sizeUnits)
+            .div(2)
+            .integerValue(BigNumber.ROUND_FLOOR);
+          const candidateSize = candidateSizeUnits
+            .div(sizeMultiplier)
+            .toFixed(szDecimals);
+          const candidateRungs = buildRungs(candidateSize);
+          const candidateOrderValue = getOrderValue(candidateRungs);
+
+          if (candidateOrderValue.gte(targetOrderValue)) {
+            upperLadder = {
+              sizeUnits: candidateSizeUnits,
+              rungs: candidateRungs,
+              orderValue: candidateOrderValue,
+            };
+          } else {
+            lowerSizeUnits = candidateSizeUnits;
+          }
+        }
+
+        totalSize = upperLadder.sizeUnits
+          .div(sizeMultiplier)
+          .toFixed(szDecimals);
+        rungs = upperLadder.rungs;
+        orderValue = upperLadder.orderValue;
       }
       if (
         rungs.some(
@@ -1612,6 +1688,8 @@ export const usePerpsProOrderForm = ({
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
         });
+        setLimitPrice(undefined);
+        setTriggerPrice(undefined);
         setScaleStartPrice('');
         setScaleEndPrice('');
         setScaleTotalOrders(SCALE_DEFAULT_ORDERS.toString());
@@ -1958,6 +2036,8 @@ export const usePerpsProOrderForm = ({
         setStopLossPrice(undefined);
       }
       if (type === 'scale') {
+        setLimitPrice(undefined);
+        setTriggerPrice(undefined);
         setTakeProfitPrice(undefined);
         setStopLossPrice(undefined);
       }

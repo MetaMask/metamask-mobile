@@ -56,6 +56,12 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const SCALE_INPUT_TEST_IDS = [
+  ids.SCALE_START_PRICE,
+  ids.SCALE_END_PRICE,
+  ids.SCALE_TOTAL_ORDERS,
+  ids.SCALE_SIZE_SKEW,
+] as const;
 
 const formatScalePrice = (price: string) =>
   formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
@@ -793,6 +799,14 @@ const PerpsProOrderForm = ({
       <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
+      {isScaleOrder
+        ? SCALE_INPUT_TEST_IDS.map((inputTestID) => (
+            <PerpsProInputKeyboardAccessory
+              key={inputTestID}
+              inputTestID={inputTestID}
+            />
+          ))
+        : null}
     </>
   );
 };

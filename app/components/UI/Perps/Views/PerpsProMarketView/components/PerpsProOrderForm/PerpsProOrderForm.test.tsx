@@ -517,6 +517,12 @@ describe('PerpsProOrderForm', () => {
     const limitPriceAccessoryID = getPerpsProInputAccessoryID(
       ids.LIMIT_PRICE_INPUT,
     );
+    const scaleAccessoryIDs = [
+      ids.SCALE_START_PRICE,
+      ids.SCALE_END_PRICE,
+      ids.SCALE_TOTAL_ORDERS,
+      ids.SCALE_SIZE_SKEW,
+    ].map(getPerpsProInputAccessoryID);
     const expectedAccessoryIDs = [
       sizeAccessoryID,
       triggerAccessoryID,
@@ -572,6 +578,26 @@ describe('PerpsProOrderForm', () => {
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
       expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
+    });
+
+    it('connects every Scale input to a mounted keyboard accessory', () => {
+      renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
+
+      [
+        ids.SCALE_START_PRICE,
+        ids.SCALE_END_PRICE,
+        ids.SCALE_TOTAL_ORDERS,
+        ids.SCALE_SIZE_SKEW,
+      ].forEach((testID, index) => {
+        expect(screen.getByTestId(testID)).toHaveProp(
+          'inputAccessoryViewID',
+          scaleAccessoryIDs[index],
+        );
+      });
+      expect(mountedAccessoryIDs()).toEqual([
+        ...expectedAccessoryIDs,
+        ...scaleAccessoryIDs,
+      ]);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {

@@ -144,6 +144,7 @@ let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
 let mockMinimumOrderAmount = 10;
+let mockSizeDecimals = 3;
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
@@ -202,7 +203,9 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
-    marketData: mockMarketData,
+    marketData: mockMarketData
+      ? { ...mockMarketData, szDecimals: mockSizeDecimals }
+      : mockMarketData,
     isLoading: mockMarketDataLoading,
     error: mockMarketDataError,
   }),
@@ -390,6 +393,7 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockMinimumOrderAmount = 10;
+    mockSizeDecimals = 3;
     mockOrderValidationParams = undefined;
     mockValidateCalculatedMargin = false;
     mockContextValue.balanceForValidation = 500;
@@ -1847,6 +1851,41 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
+    it('bounds ladder sizing work for an extreme accepted skew', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '999999999';
+      mockSizeDecimals = 2;
+      const { result } = renderProForm();
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('1');
+        result.current.scaleOrder.onEndPriceChange('1000000');
+        result.current.scaleOrder.onTotalOrdersChange('2');
+      });
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0.00000001');
+      });
+
+      expect(result.current.scaleOrder.rungs).toHaveLength(2);
+      expect(
+        result.current.scaleOrder.rungs.every((rung) => Number(rung.size) > 0),
+      ).toBe(true);
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('clears limit and trigger drafts when Scale is selected', () => {
+      mockOrderForm.limitPrice = '90000';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onOrderTypeSelect('scale');
+      });
+
+      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+    });
+
     it('submits one controller Scale request with canonical strategy parameters', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
@@ -1894,6 +1933,33 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.totalOrders).toBe('5');
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
+
+    it.each([
+      ['full', ['101', '102', '103']],
+      ['partial', ['101', '102']],
+    ])(
+      'clears limit and trigger drafts after %s Scale placement',
+      async (_placement, childOrderIds) => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        mockOrderForm.limitPrice = '90000';
+        mockContextValue.triggerPrice = '91000';
+        mockExecuteOrder.mockResolvedValueOnce({
+          success: true,
+          childOrderIds,
+          submittedSize: '2.222',
+        });
+        const { result } = renderProForm();
+        configureScaleOrder(result);
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+        expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      },
+    );
 
     it('shows localized Scale-specific copy while the ladder is submitted', async () => {
       mockOrderForm.type = 'scale';
