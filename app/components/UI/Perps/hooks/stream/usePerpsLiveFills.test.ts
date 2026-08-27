@@ -5,11 +5,13 @@ import { type OrderFill } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
+const mockGetSnapshot = jest.fn((): OrderFill[] | null => []);
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     fills: {
       subscribe: mockSubscribe,
+      getSnapshot: mockGetSnapshot,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -32,6 +34,7 @@ describe('usePerpsLiveFills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetSnapshot.mockReturnValue([]);
     jest.useFakeTimers();
   });
 
@@ -184,6 +187,33 @@ describe('usePerpsLiveFills', () => {
     await waitFor(() => {
       expect(result.current.fills).toEqual(validFills);
     });
+  });
+
+  it('starts loading when the account context has no fills snapshot', () => {
+    mockGetSnapshot.mockReturnValue(null);
+    mockSubscribe.mockReturnValue(jest.fn());
+
+    const { result } = renderHook(() => usePerpsLiveFills());
+
+    expect(result.current.fills).toEqual([]);
+    expect(result.current.isInitialLoading).toBe(true);
+  });
+
+  it('returns to loading when the account context clears', () => {
+    let capturedCallback: ((fills: OrderFill[]) => void) | undefined;
+    mockSubscribe.mockImplementation(({ callback }) => {
+      capturedCallback = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() => usePerpsLiveFills());
+    act(() => capturedCallback?.([mockFill]));
+    expect(result.current.isInitialLoading).toBe(false);
+
+    mockGetSnapshot.mockReturnValue(null);
+    act(() => capturedCallback?.([]));
+
+    expect(result.current.fills).toEqual([]);
+    expect(result.current.isInitialLoading).toBe(true);
   });
 
   it('replaces fills on each update', async () => {

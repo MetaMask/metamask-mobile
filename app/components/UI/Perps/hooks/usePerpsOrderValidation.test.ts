@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_ERROR_CODES,
   PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
   type OrderFormState,
@@ -98,6 +99,64 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
+    it('passes TWAP fields and provider route to protocol validation', async () => {
+      const twapOrderForm: OrderFormState = {
+        ...defaultOrderForm,
+        type: 'twap',
+      };
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: twapOrderForm,
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        }),
+      );
+    });
+
+    it('suppresses protocol errors owned by the calling form by code', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, type: 'twap' },
+          twapDuration: 1,
+          suppressedProtocolErrorCodes: [
+            PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+          ],
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.errors).toEqual([]);
+    });
+
     it('keeps zero position size invalid without an amount message', async () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({

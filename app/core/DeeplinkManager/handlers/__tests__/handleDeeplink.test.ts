@@ -1,24 +1,25 @@
+import { waitFor } from '@testing-library/react-native';
 import { handleDeeplink, resetDeeplinkDeduplication } from '../handleDeeplink';
-import { checkForDeeplink } from '../../../../../actions/user';
-import { saveAttribution } from '../../../../redux/slices/attribution';
-import ReduxService from '../../../../redux';
-import Logger from '../../../../../util/Logger';
-import { AppStateEventProcessor } from '../../../../AppStateEventListener';
-import SDKConnectV2 from '../../../../SDKConnectV2';
-import { analytics } from '../../../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../Analytics/MetaMetrics.events';
+import { checkForDeeplink } from '../../../../actions/user';
+import { saveAttribution } from '../../../redux/slices/attribution';
+import ReduxService from '../../../redux';
+import Logger from '../../../../util/Logger';
+import { AppStateEventProcessor } from '../../../AppStateEventListener';
+import SDKConnectV2 from '../../../SDKConnectV2';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import {
   DeepLinkRoute,
   SignatureStatus,
-} from '../../../types/deepLinkAnalytics.types';
-import { detectAppInstallation } from '../../../util/deeplinks/deepLinkAnalytics';
+} from '../../types/deepLinkAnalytics.types';
+import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 
-jest.mock('../../../../../actions/user', () => ({
+jest.mock('../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
 }));
 
-jest.mock('../../../../redux', () => ({
+jest.mock('../../../redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -30,19 +31,19 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
 }));
 
-jest.mock('../../../../AppStateEventListener', () => ({
+jest.mock('../../../AppStateEventListener', () => ({
   AppStateEventProcessor: {
     setCurrentDeeplink: jest.fn(),
     promoteCurrentDeeplinkSource: jest.fn(),
   },
 }));
 
-jest.mock('../../../../SDKConnectV2', () => ({
+jest.mock('../../../SDKConnectV2', () => ({
   __esModule: true,
   default: {
     isMwpDeeplink: jest.fn(),
@@ -50,7 +51,7 @@ jest.mock('../../../../SDKConnectV2', () => ({
   },
 }));
 
-jest.mock('../../../../../util/analytics/analytics', () => ({
+jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
   },
@@ -58,7 +59,7 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
 
 const mockBuild = jest.fn().mockReturnValue({ event: 'mocked' });
 const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
-jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
   AnalyticsEventBuilder: {
     createEventBuilder: jest.fn().mockReturnValue({
       addProperties: (...args: unknown[]) => mockAddProperties(...args),
@@ -67,7 +68,7 @@ jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({
   },
 }));
 
-jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+jest.mock('../../util/deeplinks/deepLinkAnalytics', () => ({
   detectAppInstallation: jest.fn(),
 }));
 
@@ -329,7 +330,9 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
+      });
 
       expect(mockDetectAppInstallation).toHaveBeenCalled();
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
@@ -349,14 +352,15 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         route: DeepLinkRoute.MMC_MWP,
         signature: SignatureStatus.MISSING,
         was_app_installed: false,
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
     });
 
     it('logs error when detectAppInstallation rejects', async () => {
@@ -365,13 +369,14 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          installError,
+          'DeepLinkAnalytics: Failed to track MWP deep link event',
+        );
+      });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        installError,
-        'DeepLinkAnalytics: Failed to track MWP deep link event',
-      );
     });
 
     it('still routes to SDKConnectV2 even if analytics fails', async () => {
@@ -381,13 +386,11 @@ describe('handleDeeplink', () => {
 
       expect(mockHandleMwpDeeplink).toHaveBeenCalledWith(mwpUri);
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalled();
+      });
 
       expect(mockHandleMwpDeeplink).toHaveBeenCalledTimes(1);
     });
   });
 });
-
-function flushPromises(): Promise<void> {
-  return new Promise((resolve) => setImmediate(resolve));
-}
