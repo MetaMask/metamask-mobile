@@ -7,6 +7,8 @@ import { useSectionPerformance } from './useSectionPerformance';
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(),
+  annotateTrace: jest.fn(),
   TraceName: {
     HomepageSectionTimeToContent: 'Homepage Section Time To Content',
     HomepageSectionDataFetch: 'Homepage Section Data Fetch',
@@ -21,9 +23,12 @@ jest.mock('react-native-performance', () => ({
   now: jest.fn(() => mockPerfNowValue),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
-  '../../../../util/trace',
-);
+const {
+  trace: mockTrace,
+  endTrace: mockEndTrace,
+  getTraceContext: mockGetTraceContext,
+  annotateTrace: mockAnnotateTrace,
+} = jest.requireMock('../../../../util/trace');
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<
   typeof addBreadcrumb
 >;
@@ -38,19 +43,20 @@ describe('useSectionPerformance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerfNowValue = 0;
+    mockGetTraceContext.mockReturnValue({ spanId: 'section-span' });
   });
 
   describe('Time to Content', () => {
     it('starts a trace on mount', () => {
       renderHook(() => useSectionPerformance(defaultConfig));
 
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.HomepageSectionTimeToContent,
-          op: TraceOperation.HomepageSectionPerformance,
-          tags: { section_id: HomeSectionNames.TOKENS },
-        }),
-      );
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.HomepageSectionTimeToContent,
+        op: TraceOperation.HomepageSectionPerformance,
+        id: expect.any(String),
+        tags: { section_id: HomeSectionNames.TOKENS },
+        data: { section_id: HomeSectionNames.TOKENS },
+      });
     });
 
     it('ends the trace when contentReady flips to true', () => {
@@ -154,6 +160,41 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('keeps the latest TTC cohort metadata when unmounted', () => {
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
+      );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
+            success: false,
+          }),
+        }),
+      );
+    });
+
     it('does not end with failure on unmount if content was already ready', () => {
       const { rerender, unmount } = renderHook(
         ({ contentReady }) =>
@@ -167,6 +208,76 @@ describe('useSectionPerformance', () => {
       unmount();
 
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('restarts traces without relabelling the cancelled generation', () => {
+      const { rerender } = renderHook(
+        ({ enabled, generationKey, lifecycle, sessionId }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            enabled,
+            generationKey,
+            isLoading: true,
+            tags: { lifecycle },
+            data: sessionId ? { perps_session_id: sessionId } : undefined,
+          }),
+        {
+          initialProps: {
+            enabled: true,
+            generationKey: 'session-id-1' as string | undefined,
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1' as string | undefined,
+          },
+        },
+      );
+
+      rerender({
+        enabled: false,
+        generationKey: undefined,
+        lifecycle: 'background_short',
+        sessionId: undefined,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            reason: 'unfocused',
+            success: false,
+          }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            reason: 'unfocused',
+            success: false,
+          }),
+        }),
+      );
+
+      jest.clearAllMocks();
+      rerender({
+        enabled: true,
+        generationKey: 'session-id-2',
+        lifecycle: 'background_short',
+        sessionId: 'session-id-2',
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          tags: expect.objectContaining({ lifecycle: 'background_short' }),
+          data: expect.objectContaining({
+            perps_session_id: 'session-id-2',
+          }),
+        }),
+      );
     });
   });
 
@@ -264,6 +375,42 @@ describe('useSectionPerformance', () => {
           data: expect.objectContaining({
             success: false,
             reason: 'unmounted',
+          }),
+        }),
+      );
+    });
+
+    it('keeps the latest DFD cohort metadata when unmounted', () => {
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            isLoading: true,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
+      );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
+            success: false,
           }),
         }),
       );
@@ -426,6 +573,202 @@ describe('useSectionPerformance', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('applies bounded metadata to %s', (traceName) => {
+      const tags = {
+        content_variant: 'trending',
+        market_source: 'provider',
+        account_source: 'memory_cache',
+        lifecycle: 'cold_no_cache',
+      };
+      const { rerender } = renderHook(
+        ({ isLoading, contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            isLoading,
+            tags,
+            data: { perps_session_id: 'session-id-1' },
+          }),
+        { initialProps: { isLoading: true, contentReady: false } },
+      );
+
+      rerender({ isLoading: false, contentReady: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          tags: expect.objectContaining({
+            ...tags,
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as {
+        tags: Record<string, unknown>;
+        data: Record<string, unknown>;
+      };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
+      expect(start.data).toEqual({
+        perps_session_id: 'session-id-1',
+        section_id: HomeSectionNames.TOKENS,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          data: expect.objectContaining({
+            success: true,
+            content_state: 'filled',
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+    });
+
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('keeps hook-owned fields authoritative on %s', (traceName) => {
+      const { rerender } = renderHook(
+        ({ contentReady, isLoading }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            isLoading,
+            tags: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
+            data: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
+          }),
+        { initialProps: { contentReady: false, isLoading: true } },
+      );
+
+      rerender({ contentReady: true, isLoading: false });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          tags: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as { tags: Record<string, unknown> };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          data: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+            success: true,
+            content_state: 'filled',
+          }),
+        }),
+      );
+    });
+
+    it('updates later-resolved tags on the existing span', () => {
+      const initialTags = {
+        content_variant: 'trending',
+        market_source: 'memory_cache',
+        account_source: 'memory_cache',
+        lifecycle: 'cold_no_cache',
+      };
+      const resolvedTags = {
+        content_variant: 'positions',
+        market_source: 'terminal_v2',
+        account_source: 'fresh_socket',
+        lifecycle: 'cold_no_cache',
+      };
+      const span = { spanId: 'ttc-span' };
+      mockGetTraceContext.mockReturnValue(span);
+
+      const { rerender } = renderHook(
+        ({ contentReady, tags }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            tags,
+            data: { perps_session_id: 'session-id-1' },
+          }),
+        { initialProps: { contentReady: false, tags: initialTags } },
+      );
+
+      const ttcStart = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionTimeToContent,
+      )?.[0] as { id: string };
+
+      rerender({ contentReady: true, tags: resolvedTags });
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.HomepageSectionTimeToContent,
+        id: ttcStart.id,
+      });
+      expect(mockAnnotateTrace).toHaveBeenCalledWith(span, resolvedTags);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: ttcStart.id,
+          data: expect.objectContaining(resolvedTags),
+        }),
+      );
+    });
+
+    it('keeps existing error success and content_state when bounded tags are present', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            contentStateForTrace: 'error',
+            tags: {
+              content_variant: 'error',
+              market_source: 'provider',
+              account_source: 'fresh_socket',
+              lifecycle: 'cold_no_cache',
+            },
+            data: { perps_session_id: 'session-id-1' },
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            content_state: 'error',
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.not.objectContaining({
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+    });
+
     it('ends TTC with success when enabled becomes true while contentReady is already true', () => {
       const { rerender } = renderHook(
         ({ enabled }) =>
@@ -455,6 +798,43 @@ describe('useSectionPerformance', () => {
             section_id: HomeSectionNames.TOKENS,
             content_state: 'filled',
           }),
+        }),
+      );
+    });
+
+    it('waits for fresh content before ending a restarted TTC', () => {
+      const { rerender } = renderHook(
+        ({ contentReady, generationKey }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            generationKey,
+          }),
+        {
+          initialProps: {
+            contentReady: true,
+            generationKey: 'session-1',
+          },
+        },
+      );
+      jest.clearAllMocks();
+
+      rerender({ contentReady: true, generationKey: 'session-2' });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      rerender({ contentReady: false, generationKey: 'session-2' });
+      rerender({ contentReady: true, generationKey: 'session-2' });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({ success: true }),
         }),
       );
     });

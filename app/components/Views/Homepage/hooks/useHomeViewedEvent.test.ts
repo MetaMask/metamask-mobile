@@ -629,6 +629,24 @@ describe('useHomeViewedEvent', () => {
   });
 
   describe('scroll subscription lifecycle', () => {
+    it('uses shared visibility without creating another scroll subscription', () => {
+      const mockRef = createMockRef(800, 200);
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          isVisible: true,
+        }),
+      );
+
+      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
+        HomeSectionNames.TOKENS,
+        0,
+        true,
+      );
+      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+    });
+
     it('subscribes to scroll when a sectionRef is provided', () => {
       const mockRef = createMockRef(800, 200); // below viewport so no immediate fire
       renderHook(() =>
