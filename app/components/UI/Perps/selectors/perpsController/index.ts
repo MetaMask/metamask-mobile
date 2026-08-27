@@ -7,7 +7,6 @@ import {
   selectMarketFilterPreferences,
   selectRecentlyViewedMarkets,
   selectPerpsMode as selectPerpsModeCore,
-  selectProLayoutPreferences as selectProLayoutPreferencesCore,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   InitializationState,
@@ -15,6 +14,7 @@ import {
   type PerpsMode,
   type ProLayoutPreferences,
 } from '@metamask/perps-controller';
+import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -186,23 +186,34 @@ const selectPerpsMode = createSelector(
 );
 
 /**
- * Persisted Pro-mode layout preferences.
+ * Pro-mode layout defaults for this client. The shared controller defaults are
+ * Extension's; mobile ships the order book open and pinned right.
+ */
+const MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES: ProLayoutPreferences = {
+  ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+  ...MOBILE_PRO_LAYOUT_DEFAULTS,
+};
+
+/**
+ * Persisted Pro-mode layout preferences, over the mobile defaults.
  *
- * Wraps the core `selectProLayoutPreferences` from `@metamask/perps-controller`,
- * defaulting to `DEFAULT_PRO_LAYOUT_PREFERENCES` when controller state is
- * missing/partial (e.g. before Engine init, rehydration, or minimal E2E
- * fixtures). The core selector already merges over defaults, so the wrapper
- * only needs to guard the undefined-state path.
+ * Deliberately reads `proLayoutPreferences` directly rather than through the
+ * core `selectProLayoutPreferences`: that helper merges the Extension defaults
+ * in itself, so its output cannot distinguish a persisted `'left'` from a
+ * defaulted one. Reading the raw slice keeps a stored choice authoritative
+ * while still answering with mobile's values when nothing is stored yet —
+ * before Engine init or migration 151, or in minimal test fixtures.
  */
 const selectPerpsProLayoutPreferences = createSelector(
   selectPerpsControllerState,
   (perpsControllerState): ProLayoutPreferences => {
     try {
-      return perpsControllerState
-        ? selectProLayoutPreferencesCore(perpsControllerState)
-        : DEFAULT_PRO_LAYOUT_PREFERENCES;
+      return {
+        ...MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES,
+        ...perpsControllerState?.proLayoutPreferences,
+      };
     } catch {
-      return DEFAULT_PRO_LAYOUT_PREFERENCES;
+      return MOBILE_DEFAULT_PRO_LAYOUT_PREFERENCES;
     }
   },
 );
@@ -210,7 +221,7 @@ const selectPerpsProLayoutPreferences = createSelector(
 /**
  * Whether the Pro inline chart is expanded. Persisted globally across markets
  * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
- * Defaults to `false` (collapsed) per the controller default.
+ * Defaults to the shared controller value; mobile does not override it.
  */
 const selectPerpsProChartExpanded = createSelector(
   selectPerpsProLayoutPreferences,

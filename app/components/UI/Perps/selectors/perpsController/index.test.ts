@@ -6,6 +6,7 @@ import {
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   type AccountState,
 } from '@metamask/perps-controller';
+import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -966,18 +967,36 @@ describe('PerpsController Selectors', () => {
 
       expect(result).toEqual({
         ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        ...MOBILE_PRO_LAYOUT_DEFAULTS,
         chartExpanded: true,
       });
     });
 
-    it('falls back to the defaults when PerpsController state is missing', () => {
+    it('keeps a persisted choice over the mobile defaults', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          orderBookExpanded: false,
+          orderBookPosition: 'left',
+        },
+      });
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result.orderBookExpanded).toBe(false);
+      expect(result.orderBookPosition).toBe('left');
+    });
+
+    it('falls back to the mobile defaults when PerpsController state is missing', () => {
       const mockState = {
         engine: { backgroundState: { PerpsController: undefined } },
       } as unknown as RootState;
 
       const result = selectPerpsProLayoutPreferences(mockState);
 
-      expect(result).toEqual(DEFAULT_PRO_LAYOUT_PREFERENCES);
+      expect(result).toEqual({
+        ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        ...MOBILE_PRO_LAYOUT_DEFAULTS,
+      });
     });
   });
 
@@ -1011,28 +1030,30 @@ describe('PerpsController Selectors', () => {
 
   describe('selectPerpsProOrderBookPosition', () => {
     it('returns the persisted order book side', () => {
+      // 'left' is the non-default side, so this fails if the selector ignores
+      // stored state and always answers with the mobile default.
       const mockState = createMockState({
-        proLayoutPreferences: { orderBookPosition: 'right' },
+        proLayoutPreferences: { orderBookPosition: 'left' },
       });
 
-      expect(selectPerpsProOrderBookPosition(mockState)).toBe('right');
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe('left');
     });
 
-    it('returns the controller default when the preference is unset', () => {
+    it('returns the mobile default when the preference is unset', () => {
       const mockState = createMockState({});
 
       expect(selectPerpsProOrderBookPosition(mockState)).toBe(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.orderBookPosition,
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookPosition,
       );
     });
 
-    it('falls back to the default when PerpsController state is missing', () => {
+    it('falls back to the mobile default when PerpsController state is missing', () => {
       const mockState = {
         engine: { backgroundState: { PerpsController: undefined } },
       } as unknown as RootState;
 
       expect(selectPerpsProOrderBookPosition(mockState)).toBe(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.orderBookPosition,
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookPosition,
       );
     });
   });
