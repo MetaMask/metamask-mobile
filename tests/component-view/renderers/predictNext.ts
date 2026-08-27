@@ -1,3 +1,4 @@
+// PredictNext component-view renderer.
 import '../mocks';
 import React from 'react';
 import { renderScreenWithRoutes } from '../render';
