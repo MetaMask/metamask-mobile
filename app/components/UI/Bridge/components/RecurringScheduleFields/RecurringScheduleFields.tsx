@@ -7,6 +7,9 @@ import {
   BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
   IconName,
   IconSize,
   Input,
@@ -30,10 +33,12 @@ interface RecurringScheduleFieldsProps {
   onRepeatPress: () => void;
   onDismissKeypad: () => void;
   onUnitPress: () => void;
+  onRepeatInfoPress: () => void;
 }
 
 function RecurringNumberCard({
   label,
+  labelAccessory,
   value,
   testID,
   inputTestID,
@@ -42,6 +47,7 @@ function RecurringNumberCard({
   hasError,
 }: {
   label: string;
+  labelAccessory?: React.ReactNode;
   value: string;
   testID: string;
   inputTestID: string;
@@ -58,9 +64,16 @@ function RecurringNumberCard({
       padding={3}
       twClassName="min-w-px flex-1 rounded-2xl bg-muted"
     >
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -94,6 +107,7 @@ const RecurringScheduleFields = ({
   onRepeatPress,
   onDismissKeypad,
   onUnitPress,
+  onRepeatInfoPress,
 }: RecurringScheduleFieldsProps) => {
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
@@ -144,6 +158,16 @@ const RecurringScheduleFields = ({
         />
         <RecurringNumberCard
           label={strings('bridge.recurring.repeat')}
+          labelAccessory={
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onRepeatInfoPress}
+              testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
+              accessibilityLabel={strings('bridge.recurring.repeat_info_title')}
+            />
+          }
           value={repeatCount}
           testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}

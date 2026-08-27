@@ -8,6 +8,7 @@ import { setRecurringPriceRange } from '../../../../../../core/redux/slices/brid
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
+import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
@@ -486,6 +487,53 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
         ),
       ).toHaveTextContent(strings('bridge.recurring.unit.month'));
+    });
+  });
+
+  it('opens the repeat info sheet from the info icon', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.BODY),
+    ).toHaveTextContent(strings('bridge.recurring.repeat_info_body'));
+  });
+
+  it('closes the repeat info sheet from the close button', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringRepeatInfoSheetSelectorsIDs.CLOSE_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
     });
   });
 

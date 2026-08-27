@@ -18,6 +18,7 @@ import OrdersTabs from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
 import PriceRangeSheet from '../../../components/PriceRangeSheet';
 import RecurringIntervalSheet from '../../../components/RecurringIntervalSheet';
+import RecurringRepeatInfoSheet from '../../../components/RecurringRepeatInfoSheet';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
@@ -59,6 +60,8 @@ const BridgeRecurringBuyViewContent = ({
   const [isPriceRangeSheetVisible, setIsPriceRangeSheetVisible] =
     useState(false);
   const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
+  const [isRepeatInfoSheetVisible, setIsRepeatInfoSheetVisible] =
+    useState(false);
 
   const {
     destToken,
@@ -145,6 +148,15 @@ const BridgeRecurringBuyViewContent = ({
     [dispatch],
   );
 
+  const handleRepeatInfoPress = useCallback(() => {
+    dismissInputAndKeypad();
+    setIsRepeatInfoSheetVisible(true);
+  }, [dismissInputAndKeypad]);
+
+  const handleRepeatInfoSheetClosed = useCallback(() => {
+    setIsRepeatInfoSheetVisible(false);
+  }, []);
+
   return (
     <Box twClassName="flex-1 bg-default">
       <Box
@@ -207,6 +219,7 @@ const BridgeRecurringBuyViewContent = ({
             onRepeatPress={focusRepeat}
             onDismissKeypad={dismissInputAndKeypad}
             onUnitPress={handleUnitPress}
+            onRepeatInfoPress={handleRepeatInfoPress}
           />
 
           <PriceRangeRow
@@ -268,6 +281,11 @@ const BridgeRecurringBuyViewContent = ({
           currentUnit={everyUnit}
           onClose={handleIntervalSheetClosed}
           onConfirm={handleIntervalConfirm}
+        />
+
+        <RecurringRepeatInfoSheet
+          isVisible={isRepeatInfoSheetVisible}
+          onClose={handleRepeatInfoSheetClosed}
         />
       </Box>
     </Box>
