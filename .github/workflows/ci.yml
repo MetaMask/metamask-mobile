@@ -866,6 +866,16 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
+      # QA Stats reads artifacts through the GitHub API, which cannot see
+      # artifacts stored by namespace-actions/upload-artifact.
+      - name: Upload unit test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload coverage unit shard (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
@@ -1100,8 +1110,7 @@ jobs:
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload cv-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
@@ -1135,8 +1144,8 @@ jobs:
           path: ./tests/coverage-integration-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+      - name: Upload integration-test-coverage-summary (GitHub)
+        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-coverage-summary
@@ -1153,8 +1162,7 @@ jobs:
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload unit-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
@@ -1235,6 +1243,14 @@ jobs:
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload component view test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage CV shard (current)
@@ -1328,6 +1344,14 @@ jobs:
         with:
           name: coverage-integration-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage integration shard (current)
@@ -1526,6 +1550,13 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # PRs into main do not build iOS from path filters alone — it has to be
+    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
+    # path filters already require iOS. Both opt-ins are resolved into
+    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
+    # only built when iOS E2E will actually run. Pushes to main/release/*, the
+    # nightly schedule, and PRs into release/* are unaffected.
     if: >-
       ${{
         !cancelled() &&
@@ -1567,13 +1598,20 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.build-android-apks.result == 'success'
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1591,6 +1629,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   appium-smoke-tests-ios:
@@ -1603,6 +1642,9 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure') &&
         (
           (
             github.event_name == 'push' &&
@@ -1625,7 +1667,11 @@ jobs:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1643,9 +1689,14 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # Runs on iOS only, so on PRs into main it runs only when iOS was requested via
+  # run-appium-ios-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # release/* that build iOS. Moving this to Android would make it unconditional
+  # on PRs again — tracked separately.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
     if: >-
@@ -1657,6 +1708,9 @@ jobs:
       contents: read
       checks: write
       id-token: write
+      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
+      actions: read
+      pull-requests: read
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:

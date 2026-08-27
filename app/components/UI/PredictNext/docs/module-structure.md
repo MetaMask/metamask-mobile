@@ -13,8 +13,9 @@ PredictNext/
       EventCardStandard.tsx    # Public composition
       internal/                # Card primitives and private composition
     game/
-      index.ts                 # Game presentation for cards and Event Screen
+      index.ts                 # Game presentation and Game Selection quotes
       createGamePresentation.ts
+      findGameSelectionQuote.ts
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition

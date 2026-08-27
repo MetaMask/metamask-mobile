@@ -141,7 +141,7 @@ Workflow layout:
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
 - `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
 
-For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard Detox E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
+For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 
 `build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
 
@@ -598,7 +598,7 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # performance-test-runner for the flags API. See "CI Triggers".
 #
 # Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
-# procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
+# procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
 # build-android-upload-to-browserstack.yml:
 #   - miss → fresh dual Gradle builds
 #   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
@@ -725,6 +725,28 @@ Or compare all failed scenarios from that run:
 This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
+
+### Weekly app profiling report (Cursor Automation)
+
+For a weekly rollup of BrowserStack app-profiling averages across merged PRs
+that ran performance tests:
+
+```bash
+node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+```
+
+Outputs:
+
+| File             | Description                                                                   |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `report.json`    | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
+| `slack.md`       | Slack-ready markdown (leads include BrowserStack recording links for peaks)   |
+| `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings)            |
+
+Recommended automation: schedule the prompt in
+[`.cursor/automations/weekly-app-profiling-report.md`](../../.cursor/automations/weekly-app-profiling-report.md).
+That run collects metrics, adds a final **AI insights to investigate** section
+based on merged PR themes/hotspots, and DMs the report on Slack.
 
 ### HTML Dashboard Features
 
