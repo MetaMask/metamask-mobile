@@ -21,12 +21,21 @@ export interface PerpsProOrderBookGlyphProps {
 /**
  * Order-book half of the layout picker thumbnail — stacked depth bars, asks
  * above bids. Matches the Extension thumbnail geometry.
+ *
+ * Decorative: the enclosing option chip carries the accessible name, so this
+ * stays out of the a11y tree even if the bars ever gain labels.
  */
 const PerpsProOrderBookGlyph = ({ align }: PerpsProOrderBookGlyphProps) => {
   const { colors } = useTheme();
 
   return (
-    <Svg width={GLYPH_WIDTH} height={GLYPH_HEIGHT} fill="none">
+    <Svg
+      width={GLYPH_WIDTH}
+      height={GLYPH_HEIGHT}
+      fill="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       {BAR_WIDTHS.map((width, index) => (
         <Rect
           key={BAR_Y[index]}

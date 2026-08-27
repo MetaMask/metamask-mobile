@@ -10,12 +10,21 @@ const GLYPH_HEIGHT = 32;
 /**
  * Order-form half of the layout picker thumbnail — stacked input rows. Matches
  * the Extension thumbnail geometry.
+ *
+ * Decorative: the enclosing option chip carries the accessible name, so this
+ * stays out of the a11y tree even if the rows ever gain labels.
  */
 const PerpsProOrderFormGlyph = () => {
   const { colors } = useTheme();
 
   return (
-    <Svg width={GLYPH_WIDTH} height={GLYPH_HEIGHT} fill="none">
+    <Svg
+      width={GLYPH_WIDTH}
+      height={GLYPH_HEIGHT}
+      fill="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       {BAR_Y.map((y) => (
         <Rect
           key={y}

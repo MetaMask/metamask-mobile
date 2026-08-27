@@ -103,7 +103,7 @@ describe('perps controller init', () => {
       perpsControllerClassMock.mock.calls[0][0].state;
 
     // Mobile shows the order book pinned right; the shared default is the
-    // Extension behaviour (closed, left).
+    // Extension behavior (closed, left).
     expect(perpsControllerState).toEqual({
       ...defaultPerpsControllerState,
       proLayoutPreferences: {
