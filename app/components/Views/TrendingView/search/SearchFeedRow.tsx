@@ -28,6 +28,7 @@ interface SearchFeedRowProps {
 }
 
 export const PERPS_ROW_WRAPPER_TEST_ID = 'search-feed-row-perps-wrapper';
+export const EARN_ROW_WRAPPER_TEST_ID = 'search-feed-row-earn-wrapper';
 
 export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
@@ -98,7 +99,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         return <SiteRowItem site={item as SiteData} />;
       case 'earn':
         return (
-          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+          <Box twClassName="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>
             <EarnSearchRow item={item as EarnSearchItem} />
           </Box>
         );
