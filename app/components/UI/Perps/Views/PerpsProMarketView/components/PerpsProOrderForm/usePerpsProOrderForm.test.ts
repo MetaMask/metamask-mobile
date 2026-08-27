@@ -423,26 +423,31 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('notices', () => {
-    it('blocks TWAP durations below the controller-supported minimum', () => {
-      mockOrderForm.type = 'twap';
-      const { result } = renderProForm();
+    it.each([0, 1])(
+      'blocks a %s-minute TWAP duration below the controller minimum',
+      (minutes) => {
+        mockOrderForm.type = 'twap';
+        const { result } = renderProForm();
 
-      act(() => {
-        result.current.twap.onMinutesChange('1');
-      });
+        act(() => {
+          result.current.twap.onMinutesChange(String(minutes));
+        });
 
-      expect(
-        result.current.notices.find((notice) => notice.id === 'twap-duration'),
-      ).toEqual({
-        id: 'twap-duration',
-        variant: 'inline',
-        message: strings(
-          'perps.pro_order_form.twap.duration_range',
-          PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
-        ),
-      });
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-    });
+        expect(
+          result.current.notices.find(
+            (notice) => notice.id === 'twap-duration',
+          ),
+        ).toEqual({
+          id: 'twap-duration',
+          variant: 'inline',
+          message: strings(
+            'perps.pro_order_form.twap.duration_range',
+            PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+          ),
+        });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
 
     it('blocks TWAP totals below the controller-supported minimum', () => {
       mockOrderForm.type = 'twap';

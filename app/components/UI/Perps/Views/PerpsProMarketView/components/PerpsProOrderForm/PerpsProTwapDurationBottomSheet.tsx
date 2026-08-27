@@ -99,10 +99,13 @@ const PerpsProTwapDurationBottomSheet = ({
     (Number.parseInt(twap.days, 10) || 0) * HoursPerDay * MinutesPerHour +
     (Number.parseInt(twap.hours, 10) || 0) * MinutesPerHour +
     (Number.parseInt(twap.minutes, 10) || 0);
-  // The native clock wraps at midnight, so 0:00 represents the 24h maximum.
+  // Android time mode wraps 0:00 to 24h. iOS countdown cannot display 24h,
+  // so 23:59 is its safe display ceiling while the stored draft remains 24h.
   const pickerMinutes =
     durationMinutes === MaximumDurationMinutes
-      ? 0
+      ? Platform.OS === 'android'
+        ? 0
+        : MaximumDurationMinutes - 1
       : Math.min(durationMinutes, MaximumDurationMinutes - 1);
   const pickerValue =
     Platform.OS === 'ios'
@@ -143,7 +146,14 @@ const PerpsProTwapDurationBottomSheet = ({
         Platform.OS === 'ios'
           ? date.getHours() * MinutesPerHour + date.getMinutes()
           : date.getUTCHours() * MinutesPerHour + date.getUTCMinutes();
-      const isMaximumDuration = clockMinutes === 0;
+      const isMaximumDuration = Platform.OS === 'android' && clockMinutes === 0;
+      const isStoredIosMaximumAtDisplayCeiling =
+        Platform.OS === 'ios' &&
+        durationMinutes === MaximumDurationMinutes &&
+        clockMinutes === MaximumDurationMinutes - 1;
+      if (isStoredIosMaximumAtDisplayCeiling) {
+        return;
+      }
       twap.onDaysChange(isMaximumDuration ? '1' : '');
       twap.onHoursChange(
         String(
@@ -152,7 +162,7 @@ const PerpsProTwapDurationBottomSheet = ({
       );
       twap.onMinutesChange(String(clockMinutes % MinutesPerHour));
     },
-    [twap],
+    [durationMinutes, twap],
   );
 
   const handleSheetClose = useCallback(() => {

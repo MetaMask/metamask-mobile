@@ -206,7 +206,7 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('maps iOS midnight to 24 hours without closing the sheet', () => {
+  it('maps iOS zero to a zero-minute duration without closing', () => {
     const twap = createTwap();
     const onClose = jest.fn();
     const { picker } = renderSheet(twap, onClose);
@@ -219,7 +219,7 @@ describe('PerpsProTwapDurationBottomSheet', () => {
       selectedDate,
     );
 
-    expect(twap.onDaysChange).toHaveBeenCalledWith('1');
+    expect(twap.onDaysChange).toHaveBeenCalledWith('');
     expect(twap.onHoursChange).toHaveBeenCalledWith('0');
     expect(twap.onMinutesChange).toHaveBeenCalledWith('0');
     expect(onClose).not.toHaveBeenCalled();
@@ -273,27 +273,47 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(twap.onMinutesChange).toHaveBeenCalledWith('5');
   });
 
-  it.each(['ios', 'android'] as const)(
-    'maps an existing 24-hour duration to native midnight on %s',
-    (platform) => {
-      Platform.OS = platform;
+  it('displays an existing iOS 24-hour duration at the native ceiling', () => {
+    const twap = createTwap({ days: '1', hours: '0', minutes: '0' });
 
-      const { picker } = renderSheet(
-        createTwap({ days: '1', hours: '0', minutes: '0' }),
-      );
+    const { picker } = renderSheet(twap);
 
-      expect(
-        platform === 'ios'
-          ? picker.props.value.getHours()
-          : picker.props.value.getUTCHours(),
-      ).toBe(0);
-      expect(
-        platform === 'ios'
-          ? picker.props.value.getMinutes()
-          : picker.props.value.getUTCMinutes(),
-      ).toBe(0);
-    },
-  );
+    expect(picker.props.value.getHours()).toBe(23);
+    expect(picker.props.value.getMinutes()).toBe(59);
+    expect(twap.onDaysChange).not.toHaveBeenCalled();
+    expect(twap.onHoursChange).not.toHaveBeenCalled();
+    expect(twap.onMinutesChange).not.toHaveBeenCalled();
+  });
+
+  it('preserves stored iOS 24 hours when reopen echoes the native ceiling', () => {
+    const twap = createTwap({ days: '1', hours: '0', minutes: '0' });
+    const { picker } = renderSheet(twap);
+    const selectedDate = pickerDate(23, 59);
+
+    fireEvent(
+      picker,
+      'onChange',
+      pickerEvent('set', selectedDate),
+      selectedDate,
+    );
+
+    expect(twap.onDaysChange).not.toHaveBeenCalled();
+    expect(twap.onHoursChange).not.toHaveBeenCalled();
+    expect(twap.onMinutesChange).not.toHaveBeenCalled();
+  });
+
+  it('displays an existing Android 24-hour duration at midnight', () => {
+    Platform.OS = 'android';
+    const twap = createTwap({ days: '1', hours: '0', minutes: '0' });
+
+    const { picker } = renderSheet(twap);
+
+    expect(picker.props.value.getUTCHours()).toBe(0);
+    expect(picker.props.value.getUTCMinutes()).toBe(0);
+    expect(twap.onDaysChange).not.toHaveBeenCalled();
+    expect(twap.onHoursChange).not.toHaveBeenCalled();
+    expect(twap.onMinutesChange).not.toHaveBeenCalled();
+  });
 
   it('closes from the sheet dismiss control without changing the duration', () => {
     const twap = createTwap();
@@ -306,47 +326,63 @@ describe('PerpsProTwapDurationBottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('closes Android before applying midnight as 24 hours', () => {
-    Platform.OS = 'android';
-    const events: string[] = [];
-    const twap = createTwap({
-      onDaysChange: jest.fn((value) => events.push(`days:${value}`)),
-      onHoursChange: jest.fn((value) => events.push(`hours:${value}`)),
-      onMinutesChange: jest.fn((value) => events.push(`minutes:${value}`)),
-    });
-    const Harness = () => {
-      const [visible, setVisible] = React.useState(true);
-      return visible ? (
-        <PerpsProTwapDurationBottomSheet
-          twap={twap}
-          onClose={() => {
-            events.push('close');
-            setVisible(false);
-          }}
-        />
-      ) : null;
-    };
-    render(<Harness />);
-    const picker = screen.getByTestId(ids.TWAP_DURATION_PICKER);
-    const selectedDate = pickerDate(0, 0);
+  it.each([
+    {
+      label: 'midnight as 24 hours',
+      hours: 0,
+      minutes: 0,
+      expectedEvents: ['close', 'days:1', 'hours:0', 'minutes:0'],
+    },
+    {
+      label: 'selected hours and minutes',
+      hours: 5,
+      minutes: 30,
+      expectedEvents: ['close', 'days:', 'hours:5', 'minutes:30'],
+    },
+  ])(
+    'closes Android before applying $label',
+    ({ hours, minutes, expectedEvents }) => {
+      Platform.OS = 'android';
+      const events: string[] = [];
+      const twap = createTwap({
+        onDaysChange: jest.fn((value) => events.push(`days:${value}`)),
+        onHoursChange: jest.fn((value) => events.push(`hours:${value}`)),
+        onMinutesChange: jest.fn((value) => events.push(`minutes:${value}`)),
+      });
+      const Harness = () => {
+        const [visible, setVisible] = React.useState(true);
+        return visible ? (
+          <PerpsProTwapDurationBottomSheet
+            twap={twap}
+            onClose={() => {
+              events.push('close');
+              setVisible(false);
+            }}
+          />
+        ) : null;
+      };
+      render(<Harness />);
+      const picker = screen.getByTestId(ids.TWAP_DURATION_PICKER);
+      const selectedDate = pickerDate(hours, minutes);
 
-    expect(picker).toHaveProp('mode', 'time');
-    expect(picker).toHaveProp('display', 'spinner');
-    expect(picker).toHaveProp('is24Hour', true);
-    expect(picker).toHaveProp('timeZoneName', 'UTC');
+      expect(picker).toHaveProp('mode', 'time');
+      expect(picker).toHaveProp('display', 'spinner');
+      expect(picker).toHaveProp('is24Hour', true);
+      expect(picker).toHaveProp('timeZoneName', 'UTC');
 
-    fireEvent(
-      picker,
-      'onChange',
-      pickerEvent('set', selectedDate),
-      selectedDate,
-    );
+      fireEvent(
+        picker,
+        'onChange',
+        pickerEvent('set', selectedDate),
+        selectedDate,
+      );
 
-    expect(events).toEqual(['close', 'days:1', 'hours:0', 'minutes:0']);
-    expect(
-      screen.queryByTestId(ids.TWAP_DURATION_PICKER),
-    ).not.toBeOnTheScreen();
-  });
+      expect(events).toEqual(expectedEvents);
+      expect(
+        screen.queryByTestId(ids.TWAP_DURATION_PICKER),
+      ).not.toBeOnTheScreen();
+    },
+  );
 
   it('closes an Android dismissal without changing the duration', () => {
     Platform.OS = 'android';
