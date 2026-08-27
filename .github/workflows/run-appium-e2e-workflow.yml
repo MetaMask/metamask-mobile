@@ -354,23 +354,15 @@ jobs:
           OUTPUT_PATH: ./e2e-timings.json
 
       # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
-      - name: Download previous Playwright results (on re-run) (Namespace)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider == 'namespace' }}
-        id: download-previous-results-namespace
+      - name: Download previous Playwright results (on re-run)
+        if: ${{ github.run_attempt > 1 }}
+        id: download-previous-results
         continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        uses: ./.github/actions/download-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: ./previous-playwright-json/
-
-      - name: Download previous Playwright results (on re-run) (current)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider != 'namespace' }}
-        id: download-previous-results-current
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: ./previous-playwright-json/
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Select specs for this shard (timing bin-pack)
         id: select-specs
@@ -387,7 +379,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
-          PREVIOUS_RESULTS_PATH: ${{ (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') && './previous-playwright-json' || '' }}
+          PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}
 
       - name: Verify Appium runner connectivity (iOS)
         if: ${{ inputs.platform == 'ios' }}
