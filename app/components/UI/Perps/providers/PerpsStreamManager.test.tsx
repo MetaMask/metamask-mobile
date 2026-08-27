@@ -4023,6 +4023,27 @@ describe('PerpsStreamManager', () => {
       });
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
     });
+
+    it('restores the active symbol when another symbol remains mounted', () => {
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: jest.fn(),
+      });
+
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['ETH'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+    });
   });
 
   describe('FocusedPriceStreamChannel', () => {

@@ -2089,8 +2089,10 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public clearCache(): void {
+    const symbol = this.currentSymbol;
     this.cachedTopOfBook = undefined;
     super.clearCache();
+    this.currentSymbol = symbol;
   }
 
   subscribeToSymbol(params: {
@@ -2120,7 +2122,6 @@ class TopOfBookStreamChannel extends StreamChannel<
     }
 
     return this.subscribe({
-      symbols: [params.symbol],
       callback: params.callback,
     });
   }
@@ -2132,8 +2133,7 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public reconnect(): void {
-    const symbol =
-      this.currentSymbol ?? this.symbolSubscribers.keys().next().value;
+    const symbol = this.currentSymbol;
     this.disconnect();
     super.clearCache();
     if (symbol && this.subscribers.size > 0) {
