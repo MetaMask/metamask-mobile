@@ -1177,7 +1177,7 @@
         "perps_closed": "closed",
         "spot_bought": "bought",
         "spot_sold": "sold",
-        "traded": "Traded"
+        "traded": "traded"
       },
       "new_position": {
         "spot": "Holding",
