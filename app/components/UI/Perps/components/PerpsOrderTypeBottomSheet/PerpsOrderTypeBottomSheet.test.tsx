@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, within } from '@testing-library/react-native';
-import { Icon, IconName } from '@metamask/design-system-react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import {
   PERPS_EVENT_PROPERTY,
@@ -12,6 +12,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockTrack = jest.fn();
 
@@ -67,6 +68,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
         'Execute at your specified price or better',
+      'perps.order.type.chase.title': 'Chase',
+      'perps.order.type.chase.description':
+        'Auto adjust limit order to the best price',
       'perps.order.type.scale.title': 'Scale',
       'perps.order.type.scale.description':
         'Multiple limit orders spread across a price range',
@@ -74,17 +78,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description':
-        'Place a limit order if trigger price hits',
+      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Place a market order if trigger price hits',
+        'Market fills at trigger price',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Place a limit order if trigger price is reached',
+        'Limit take-profit at trigger price',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Place a market order if trigger price is reached',
+        'Market take-profit at trigger price',
       'perps.order.type.twap.title': 'TWAP',
       'perps.order.type.twap.description':
         'Split orders to execute at regular time interval',
@@ -170,6 +173,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
+    it('keeps the exact shared Chase description for its feature owner', () => {
+      expect(strings('perps.order.type.chase.description')).toBe(
+        'Auto adjust limit order to the best price',
+      );
+    });
+
     it('renders triggered order type descriptions when enabled', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -182,16 +191,16 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(
-        screen.getByText('Place a limit order if trigger price hits'),
+        screen.getByText('Limit fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price hits'),
+        screen.getByText('Market fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a limit order if trigger price is reached'),
+        screen.getByText('Limit take-profit at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price is reached'),
+        screen.getByText('Market take-profit at trigger price'),
       ).toBeOnTheScreen();
     });
 
@@ -521,7 +530,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
-    it('forwards the Pro title and selected-icon presentation', () => {
+    it('forwards the Pro title without a selected-row end accessory', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -536,8 +545,8 @@ describe('PerpsOrderTypeBottomSheet', () => {
           screen.getByTestId(
             PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
           ),
-        ).UNSAFE_getByType(Icon).props.name,
-      ).toBe(IconName.Check);
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 
@@ -653,7 +662,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
-    it('marks only the current triggered order type as selected', () => {
+    it('marks only the current triggered order type with a filled row', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -669,13 +678,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
-      expect(within(selectedOption).UNSAFE_getByType(Icon).props.name).toBe(
-        IconName.Check,
-      );
+      expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
+      expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
       expect(within(unselectedOption).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
-    it('preserves the selected background when selected icons are hidden', () => {
+    it('uses the selected background without a checkmark in every presentation', () => {
       const { rerender } = render(
         <PerpsOrderTypeBottomSheet {...defaultProps} />,
       );
@@ -696,7 +704,14 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-      ).toHaveStyle({ backgroundColor: 'transparent' });
+      ).toHaveStyle({ backgroundColor: 'muted' });
+      expect(
+        within(
+          screen.getByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+          ),
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 

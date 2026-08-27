@@ -212,6 +212,41 @@ export function usePerpsProvider(
   const supportsTwapOrders =
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.supportedStrategies.includes('twap');
+  const supportsScaleOrders =
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.supportedStrategies.includes('scale');
+  const checkOrderCapability = useCallback(
+    async (
+      strategy: 'twap' | 'scale',
+      expectedProviderId?: string,
+    ): Promise<boolean> => {
+      const symbol = orderCapabilitiesParams?.symbol;
+      if (!symbol || initializationState !== InitializationState.Initialized) {
+        return false;
+      }
+
+      try {
+        const capabilities =
+          await Engine.context.PerpsController.getOrderCapabilities({
+            symbol,
+            providerId: orderCapabilitiesParams?.providerId,
+          });
+        return (
+          capabilities.status === 'ready' &&
+          capabilities.supportedStrategies.includes(strategy) &&
+          (!expectedProviderId ||
+            capabilities.providerId === expectedProviderId)
+        );
+      } catch {
+        return false;
+      }
+    },
+    [
+      initializationState,
+      orderCapabilitiesParams?.providerId,
+      orderCapabilitiesParams?.symbol,
+    ],
+  );
 
   /**
    * Check if multi-provider mode is enabled (more than one provider available)
@@ -236,6 +271,8 @@ export function usePerpsProvider(
     isLoadingOrderCapabilities,
     orderCapabilities,
     supportsTwapOrders,
+    supportsScaleOrders,
+    checkOrderCapability,
     isMultiProviderEnabled,
   };
 }

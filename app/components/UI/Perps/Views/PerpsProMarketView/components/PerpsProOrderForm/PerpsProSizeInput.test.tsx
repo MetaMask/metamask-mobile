@@ -211,4 +211,41 @@ describe('PerpsProSizeInput', () => {
 
     expect(onDragCancel).toHaveBeenCalledTimes(1);
   });
+
+  it('blocks every size-card mutation while disabled', () => {
+    const onChangeText = jest.fn();
+    const onToggleDenomination = jest.fn();
+    const onValueChange = jest.fn();
+    const onDragEnd = jest.fn();
+    const onDragCancel = jest.fn();
+    const onAddFundsPress = jest.fn();
+    renderInput({
+      isDisabled: true,
+      onChangeText,
+      onToggleDenomination,
+      onAddFundsPress,
+      sizeSlider: createSizeSlider({
+        onValueChange,
+        onDragEnd,
+        onDragCancel,
+      }),
+    });
+
+    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '50');
+    fireEvent.press(screen.getByTestId(ids.SIZE_FIELD));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER_SECTION), 'touchCancel');
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+    slider.props.onValueChange(50);
+    slider.props.onDragEnd(50);
+
+    expect(onChangeText).not.toHaveBeenCalled();
+    expect(onToggleDenomination).not.toHaveBeenCalled();
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onDragEnd).not.toHaveBeenCalled();
+    expect(onDragCancel).not.toHaveBeenCalled();
+    expect(onAddFundsPress).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
+  });
 });

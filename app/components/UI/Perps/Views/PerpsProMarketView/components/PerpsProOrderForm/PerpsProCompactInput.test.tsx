@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Pressable, Text } from 'react-native';
+import { Keyboard, Pressable, Text } from 'react-native';
+import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
+  PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
@@ -33,6 +35,7 @@ const defaultProps = {
   onChangeText: jest.fn(),
   testID: 'size-input',
 };
+const ids = PerpsProOrderFormSelectorsIDs;
 
 describe('PerpsProCompactInput', () => {
   beforeEach(() => {
@@ -41,6 +44,10 @@ describe('PerpsProCompactInput', () => {
     // constant — not just `mockInputFocus`, so stale call counts can't bleed
     // between tests.
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('focuses the input when the label is pressed', () => {
@@ -160,6 +167,73 @@ describe('PerpsProCompactInput', () => {
     expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
       'onSubmitEditing',
     );
+  });
+
+  describe('keyboard accessory', () => {
+    it('routes Up and Down while disabling missing boundaries', () => {
+      const onNext = jest.fn();
+      const { rerender } = render(
+        <PerpsProInputKeyboardAccessory inputTestID="start" onNext={onNext} />,
+      );
+
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-start`),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_DONE}-start`),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_NEXT}-start`));
+      expect(onNext).toHaveBeenCalledTimes(1);
+
+      const onPrevious = jest.fn();
+      rerender(
+        <PerpsProInputKeyboardAccessory
+          inputTestID="end"
+          onPrevious={onPrevious}
+        />,
+      );
+
+      expect(screen.getByTestId(`${ids.KEYBOARD_NEXT}-end`)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-end`));
+      expect(onPrevious).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses the keyboard from Done', () => {
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(jest.fn());
+      render(<PerpsProInputKeyboardAccessory inputTestID="size" />);
+
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_CLOSE}-size`));
+
+      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_PREVIOUS}-size`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_NEXT}-size`),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('ignores field events while disabled', () => {
+    const onChangeText = jest.fn();
+    const onFieldPress = jest.fn();
+    render(
+      <PerpsProCompactInput
+        {...defaultProps}
+        onChangeText={onChangeText}
+        onFieldPress={onFieldPress}
+        isDisabled
+      />,
+    );
+
+    fireEvent.changeText(screen.getByTestId(defaultProps.testID), '25');
+    fireEvent.press(screen.getByText(defaultProps.label));
+
+    expect(onChangeText).not.toHaveBeenCalled();
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
   });
 
   it('adds top spacing above the footer to match the Figma slider row', () => {

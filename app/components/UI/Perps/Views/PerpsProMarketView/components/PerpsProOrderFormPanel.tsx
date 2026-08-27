@@ -1,10 +1,6 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type {
-  OrderType,
-  PerpsMarketData,
-  PerpsProviderType,
-} from '@metamask/perps-controller';
+import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -21,7 +17,6 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
-import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import { selectPerpsProvider } from '../../../selectors/perpsController';
 import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
@@ -30,7 +25,6 @@ import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
-import { usePerpsScaleOrderSupport } from './PerpsProOrderForm/usePerpsScaleOrderSupport';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
@@ -41,8 +35,6 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
   'take_profit_market',
 ];
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
-const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
-  PROVIDER_CONFIG.DefaultProvider;
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
 
 export interface PerpsProOrderFormPanelProps {
@@ -78,38 +70,35 @@ const PerpsProOrderFormPanel = ({
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
-  const {
-    supportsScaleOrders,
-    isScaleOrderSupportPending,
-    checkScaleOrderSupport,
-  } = usePerpsScaleOrderSupport({
-    enabled: isScaleBaseEnabled,
-    symbol: market.symbol,
-    providerId: selectedProviderId,
-  });
-  const isScaleOrdersEnabled = isScaleBaseEnabled && supportsScaleOrders;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
-  const { isLoadingOrderCapabilities, orderCapabilities, supportsTwapOrders } =
-    usePerpsProvider(
-      isTwapRolloutEnabled
-        ? {
-            symbol: market.symbol,
-            providerId: market.providerId,
-          }
-        : undefined,
-    );
-  const resolvedTwapProviderId =
+  const {
+    isLoadingOrderCapabilities,
+    orderCapabilities,
+    supportsTwapOrders,
+    supportsScaleOrders,
+    checkOrderCapability,
+  } = usePerpsProvider(
+    isScaleBaseEnabled || isTwapRolloutEnabled
+      ? {
+          symbol: market.symbol,
+          providerId: selectedProviderId,
+        }
+      : undefined,
+  );
+  const resolvedProviderId =
     orderCapabilities?.status === 'ready'
       ? orderCapabilities.providerId
       : undefined;
-  // Controller v13 exposes executable strategy limits for Hyperliquid only.
-  // Keep other providers undiscoverable until capabilities own their limits.
-  const isTwapEnabled =
-    isTwapRolloutEnabled &&
-    supportsTwapOrders &&
-    resolvedTwapProviderId === TWAP_SUPPORTED_PROVIDER;
+  const isTwapEnabled = isTwapRolloutEnabled && supportsTwapOrders;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
+  const isScaleOrdersEnabled = isScaleBaseEnabled && supportsScaleOrders;
+  const isScaleOrderSupportPending =
+    isScaleBaseEnabled && isLoadingOrderCapabilities;
+  const checkScaleOrderSupport = useCallback(
+    () => checkOrderCapability('scale', resolvedProviderId),
+    [checkOrderCapability, resolvedProviderId],
+  );
   const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [
@@ -176,8 +165,8 @@ const PerpsProOrderFormPanel = ({
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
     isTwapEnabled,
     isTwapAvailabilityPending,
-    resolvedTwapProviderId,
-    scaleProviderId: selectedProviderId,
+    resolvedTwapProviderId: resolvedProviderId,
+    scaleProviderId: resolvedProviderId,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
     checkScaleOrderSupport,

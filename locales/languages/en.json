@@ -1587,6 +1587,9 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
+      "keyboard_previous": "Previous field",
+      "keyboard_next": "Next field",
+      "keyboard_done": "Done",
       "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
       "close_keyboard": "Close keyboard",
       "scale": {
@@ -1595,13 +1598,9 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "preview": "Order preview",
         "start": "Start",
         "end": "End",
-        "order_value": "Order value",
-        "margin_required": "Margin required",
-        "show_ladder": "Show full ladder",
-        "hide_ladder": "Hide full ladder",
+        "margin": "Margin",
         "orders_submitted": "Scale orders submitted",
         "orders_placed": "Scale orders placed",
         "orders_partially_placed": "Scale orders partially placed",
@@ -1610,6 +1609,7 @@
         "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
         "validation": {
           "prices_required": "Enter both Scale range prices",
+          "size_required": "Enter a Scale order size",
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between 2 and 20",
           "invalid_skew": "Size skew must be greater than 0",
@@ -1830,25 +1830,29 @@
           "title": "Limit",
           "description": "Execute at your specified price or better"
         },
+        "chase": {
+          "title": "Chase",
+          "description": "Auto adjust limit order to the best price"
+        },
         "scale": {
           "title": "Scale",
           "description": "Multiple limit orders spread across a price range"
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Limit fills at trigger price"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Place a market order if trigger price hits"
+          "description": "Market fills at trigger price"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Limit take-profit at trigger price"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Market take-profit at trigger price"
         },
         "twap": {
           "title": "TWAP",

@@ -1884,6 +1884,14 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
+    it('starts with a blank Order count to match the default Scale form', () => {
+      mockOrderForm.type = 'scale';
+
+      const { result } = renderProForm();
+
+      expect(result.current.scaleOrder.totalOrders).toBe('');
+    });
+
     it('bounds ladder sizing work for an extreme accepted skew', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '999999999';
@@ -1984,7 +1992,7 @@ describe('usePerpsProOrderForm', () => {
       );
       expect(result.current.scaleOrder.startPrice).toBe('');
       expect(result.current.scaleOrder.endPrice).toBe('');
-      expect(result.current.scaleOrder.totalOrders).toBe('5');
+      expect(result.current.scaleOrder.totalOrders).toBe('');
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
 
@@ -2305,6 +2313,25 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('asks for a Scale size before applying minimum-lot validation', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: strings(
+              'perps.pro_order_form.scale.validation.size_required',
+            ),
+          }),
+        ]),
+      );
+    });
+
     it('validates margin from the whole rounded Scale ladder notional', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
@@ -2371,13 +2398,14 @@ describe('usePerpsProOrderForm', () => {
       expect(Number(middle.size)).toBeLessThan(Number(last.size));
     });
 
-    it('keeps the preview notional aligned with the entered USD amount', () => {
+    it('builds the per-rung Scale margin range', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
       configureScaleOrder(result);
 
-      expect(result.current.scaleOrder.orderValue).toBe('$600.10');
+      expect(result.current.scaleOrder.marginRange).toContain('→');
+      expect(result.current.scaleOrder.marginRange).not.toBe('$ -');
     });
 
     it('weights a below-one Scale skew toward the start of the range', () => {
@@ -2467,22 +2495,6 @@ describe('usePerpsProOrderForm', () => {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
           [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'size_skew',
           scale_skew: 2.35,
-        }),
-      );
-    });
-
-    it('tracks a Scale preview-expansion interaction', () => {
-      mockOrderForm.type = 'scale';
-      const { result } = renderProForm();
-
-      act(() => {
-        result.current.scaleOrder.onPreviewToggle(true);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_UI_INTERACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_preview_expanded',
         }),
       );
     });
@@ -2592,6 +2604,108 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'validationError' }),
+      );
+    });
+
+    it('rejects stale Scale mutations during the capability recheck and submits the original snapshot', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        checkSupport: checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      const staleSizeSlider = result.current.sizeSlider;
+      const staleOnDirectionChange = result.current.onDirectionChange;
+      const staleOnLeveragePress = result.current.onLeveragePress;
+      const staleOnLeverageConfirm = result.current.onLeverageConfirm;
+      const staleOnOrderTypeButtonPress = result.current.onOrderTypeButtonPress;
+      const staleOnOrderTypeSelect = result.current.onOrderTypeSelect;
+      const staleOnReduceOnlyChange = result.current.onReduceOnlyChange;
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+
+      expect(checkScaleOrderSupport).toHaveBeenCalledTimes(1);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      mockSetAmount.mockClear();
+      mockSetDirection.mockClear();
+      mockSetLeverage.mockClear();
+      mockSetOrderType.mockClear();
+
+      act(() => {
+        staleScaleOrder.onStartPriceChange('999');
+        staleScaleOrder.onStartPriceBlur();
+        staleScaleOrder.onEndPriceChange('1000');
+        staleScaleOrder.onEndPriceBlur();
+        staleScaleOrder.onTotalOrdersChange('20');
+        staleScaleOrder.onTotalOrdersBlur();
+        staleScaleOrder.onSizeSkewChange('9.00');
+        staleScaleOrder.onSizeSkewBlur();
+        staleScaleOrder.onSizeSkewInfoPress();
+        staleSizeInput.onChange('900');
+        staleSizeInput.onFocus();
+        staleSizeInput.onBlur();
+        staleSizeInput.onToggleDenomination();
+        staleSizeSlider.onValueChange(900);
+        staleSizeSlider.onDragEnd(900);
+        staleSizeSlider.onDragCancel();
+        staleOnDirectionChange('short');
+        staleOnLeveragePress();
+        staleOnLeverageConfirm(9);
+        staleOnOrderTypeButtonPress();
+        staleOnOrderTypeSelect('market');
+        staleOnReduceOnlyChange(true);
+      });
+
+      expect(result.current.scaleOrder).toMatchObject({
+        startPrice: '100',
+        endPrice: '200',
+        totalOrders: '3',
+        sizeSkew: '2.00',
+      });
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.direction).toBe('long');
+      expect(result.current.leverage).toBe(5);
+      expect(result.current.orderType).toBe('scale');
+      expect(result.current.reduceOnly).toBe(false);
+      expect(result.current.isLeverageVisible).toBe(false);
+      expect(result.current.isOrderTypeVisible).toBe(false);
+      expect(result.current.selectedTooltip).toBeNull();
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetDirection).not.toHaveBeenCalled();
+      expect(mockSetLeverage).not.toHaveBeenCalled();
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          isBuy: true,
+          leverage: 5,
+          size: '3.725',
+          scaleMinPrice: '100',
+          scaleMaxPrice: '200',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+        }),
       );
     });
   });

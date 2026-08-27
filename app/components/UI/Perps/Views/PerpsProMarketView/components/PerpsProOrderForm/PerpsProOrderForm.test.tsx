@@ -21,6 +21,27 @@ import {
 } from '../../../../../../../util/haptics';
 import { strings } from '../../../../../../../../locales/i18n';
 
+const mockInputFocus = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+  const { TextInput } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Input: MockReact.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+        MockReact.useImperativeHandle(ref, () => ({
+          focus: () => mockInputFocus(props.testID),
+          blur: jest.fn(),
+        }));
+        return MockReact.createElement(TextInput, props);
+      },
+    ),
+  };
+});
+
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
@@ -118,18 +139,18 @@ const createScaleOrder = (): NonNullable<
   onSizeSkewChange: jest.fn(),
   onSizeSkewBlur: jest.fn(),
   onSizeSkewInfoPress: jest.fn(),
-  onPreviewToggle: jest.fn(),
   rungs: [
     { index: 0, price: '100', size: '1' },
     { index: 1, price: '200', size: '1' },
   ],
-  orderValue: '$300',
-  marginRequired: '$100',
+  marginRange: '$50 → $100',
+  liquidationRange: '$80 → $160',
   fees: '$1',
 });
 
 describe('PerpsProOrderForm', () => {
   beforeEach(() => {
+    mockInputFocus.mockClear();
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
   });
@@ -236,6 +257,57 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
     });
 
+    it('locks every editable Scale control while placement is loading', () => {
+      const scaleOrder = createScaleOrder();
+      const sizeInput = createSizeInput();
+      renderForm({
+        orderType: 'scale',
+        scaleOrder,
+        sizeInput,
+        isPlaceOrderLoading: true,
+        onMarginModePress: jest.fn(),
+        onLeveragePress: jest.fn(),
+        onAddFundsPress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.DIRECTION_LONG)).toBeDisabled();
+      expect(screen.getByTestId(ids.DIRECTION_SHORT)).toBeDisabled();
+      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+        'isDisabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.SCALE_END_PRICE)).toHaveProp(
+        'isDisabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.SCALE_TOTAL_ORDERS)).toHaveProp(
+        'isDisabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toHaveProp(
+        'isDisabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('isDisabled', true);
+      expect(screen.getByTestId(ids.SIZE_FIELD)).toBeDisabled();
+      expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
+      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
+        'disabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeDisabled();
+
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '999');
+      fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '999');
+
+      expect(scaleOrder.onStartPriceChange).not.toHaveBeenCalled();
+      expect(sizeInput.onChange).not.toHaveBeenCalled();
+    });
+
     it('groups all four divided Scale rows inside the shared order card', () => {
       renderForm({
         orderType: 'scale',
@@ -264,24 +336,55 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_PREVIEW)).toBeOnTheScreen();
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
-      ).toHaveTextContent('1 @ $1,234.6');
+      ).toHaveTextContent('$1,234.6');
       expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
-        '1 @ $0.001235',
+        '$0.001235',
       );
     });
 
-    it('renders Scale aggregate preview values with dedicated selectors', () => {
+    it('always renders the five-row incomplete Scale summary', () => {
+      const scaleOrder = createScaleOrder();
+      scaleOrder.rungs = [];
+      scaleOrder.marginRange = '$ -';
+      scaleOrder.liquidationRange = '$ -';
+      scaleOrder.fees = '$ -';
       renderForm({
         orderType: 'scale',
-        scaleOrder: createScaleOrder(),
+        scaleOrder,
       });
 
       expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_ORDER_VALUE),
-      ).toHaveTextContent('$300');
+        screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
+      ).toHaveTextContent('$ -');
+      expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
+        '$ -',
+      );
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
+      ).toHaveTextContent('$ -');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
+      ).toHaveTextContent('$ -');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
+      ).toHaveTextContent('$ -');
+    });
+
+    it('renders completed Scale prices and ranges with dedicated selectors', () => {
+      renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
+
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
       ).toHaveTextContent('$100');
+      expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
+        '$200',
+      );
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
+      ).toHaveTextContent('$50 → $100');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
+      ).toHaveTextContent('$80 → $160');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
       ).toHaveTextContent('$1');
@@ -594,13 +697,13 @@ describe('PerpsProOrderForm', () => {
           scaleAccessoryIDs[index],
         );
       });
-      expect(mountedAccessoryIDs()).toEqual([
-        ...expectedAccessoryIDs,
-        ...scaleAccessoryIDs,
-      ]);
+      expect(mountedAccessoryIDs()).toHaveLength(7);
+      expect(mountedAccessoryIDs()).toEqual(
+        expect.arrayContaining([...expectedAccessoryIDs, ...scaleAccessoryIDs]),
+      );
     });
 
-    it('dismisses the keyboard from the custom minimize control', () => {
+    it('dismisses the keyboard from Done', () => {
       const dismissSpy = jest
         .spyOn(Keyboard, 'dismiss')
         .mockImplementation(jest.fn());
@@ -612,6 +715,32 @@ describe('PerpsProOrderForm', () => {
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('routes Scale keyboard navigation and disables both boundaries', () => {
+      renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
+
+      const firstPrevious = screen.getByTestId(
+        `${ids.KEYBOARD_PREVIOUS}-${ids.SCALE_START_PRICE}`,
+      );
+      const firstNext = screen.getByTestId(
+        `${ids.KEYBOARD_NEXT}-${ids.SCALE_START_PRICE}`,
+      );
+      const lastPrevious = screen.getByTestId(
+        `${ids.KEYBOARD_PREVIOUS}-${ids.SCALE_SIZE_SKEW}`,
+      );
+      const lastNext = screen.getByTestId(
+        `${ids.KEYBOARD_NEXT}-${ids.SCALE_SIZE_SKEW}`,
+      );
+
+      expect(firstPrevious).toBeDisabled();
+      expect(lastNext).toBeDisabled();
+
+      fireEvent.press(firstNext);
+      fireEvent.press(lastPrevious);
+
+      expect(mockInputFocus).toHaveBeenNthCalledWith(1, ids.SCALE_END_PRICE);
+      expect(mockInputFocus).toHaveBeenNthCalledWith(2, ids.SCALE_TOTAL_ORDERS);
+    });
   });
 
   describe('controls', () => {
@@ -622,28 +751,6 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.SCALE_SKEW_INFO));
 
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('reports the Scale preview expansion interaction', () => {
-      const scaleOrder = createScaleOrder();
-      renderForm({ orderType: 'scale', scaleOrder });
-
-      fireEvent.press(screen.getByTestId(ids.SCALE_PREVIEW_TOGGLE));
-
-      expect(scaleOrder.onPreviewToggle).toHaveBeenCalledWith(true);
-    });
-
-    it('expands the full Scale ladder with canonical fiat prices', () => {
-      const scaleOrder = createScaleOrder();
-      scaleOrder.rungs[0].price = '1234.5678';
-      renderForm({ orderType: 'scale', scaleOrder });
-
-      fireEvent.press(screen.getByTestId(ids.SCALE_PREVIEW_TOGGLE));
-
-      expect(screen.getByTestId(ids.SCALE_PREVIEW_LADDER)).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.scalePreviewRung(0))).toHaveTextContent(
-        '1 @ $1,234.6',
-      );
     });
 
     it('renders the order type chevron from Figma', () => {

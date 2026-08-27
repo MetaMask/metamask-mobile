@@ -576,6 +576,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
   SIZE_UNIT_LABEL: 'perps-pro-order-form-size-unit-label',
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
+  KEYBOARD_PREVIOUS: 'perps-pro-order-form-keyboard-previous',
+  KEYBOARD_NEXT: 'perps-pro-order-form-keyboard-next',
+  KEYBOARD_DONE: 'perps-pro-order-form-keyboard-done',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
   REDUCE_ONLY_CONTAINER: 'perps-pro-order-form-reduce-only-container',
@@ -609,13 +612,10 @@ export const PerpsProOrderFormSelectorsIDs = {
   SCALE_PREVIEW: 'perps-pro-order-form-scale-preview',
   SCALE_PREVIEW_START_VALUE: 'perps-pro-order-form-scale-preview-start-value',
   SCALE_PREVIEW_END_VALUE: 'perps-pro-order-form-scale-preview-end-value',
-  SCALE_PREVIEW_ORDER_VALUE: 'perps-pro-order-form-scale-preview-order-value',
   SCALE_PREVIEW_MARGIN_VALUE: 'perps-pro-order-form-scale-preview-margin-value',
+  SCALE_PREVIEW_LIQUIDATION_VALUE:
+    'perps-pro-order-form-scale-preview-liquidation-value',
   SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
-  SCALE_PREVIEW_TOGGLE: 'perps-pro-order-form-scale-preview-toggle',
-  SCALE_PREVIEW_LADDER: 'perps-pro-order-form-scale-preview-ladder',
-  scalePreviewRung: (index: number) =>
-    `perps-pro-order-form-scale-preview-rung-${index}`,
 };
 
 // ========================================

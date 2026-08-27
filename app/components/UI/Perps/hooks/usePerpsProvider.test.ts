@@ -232,6 +232,60 @@ describe('usePerpsProvider', () => {
       });
     });
 
+    it('returns Scale support and rechecks the exact resolved route', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['scale'],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+
+      await waitFor(() => {
+        expect(result.current.supportsScaleOrders).toBe(true);
+      });
+
+      let isSupported = false;
+      await act(async () => {
+        isSupported = await result.current.checkOrderCapability(
+          'scale',
+          'hyperliquid',
+        );
+      });
+
+      expect(isSupported).toBe(true);
+      expect(mockGetOrderCapabilities).toHaveBeenLastCalledWith({
+        symbol: 'BTC',
+        providerId: undefined,
+      });
+    });
+
+    it('fails a capability recheck when the resolved route changes', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'myx',
+        supportedStrategies: ['scale'],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+
+      await waitFor(() => {
+        expect(result.current.supportsScaleOrders).toBe(true);
+      });
+
+      let isSupported = true;
+      await act(async () => {
+        isSupported = await result.current.checkOrderCapability(
+          'scale',
+          'hyperliquid',
+        );
+      });
+
+      expect(isSupported).toBe(false);
+    });
+
     it('preserves the provider route resolved by default capability routing', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
