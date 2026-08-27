@@ -61,12 +61,16 @@ function retainFallbackSymbols(
  * This avoids a HyperLiquid `candleSnapshot` request per symbol on every
  * reconnect. Hourly trend freshness is sufficient for the Homepage preview.
  *
- * @param markets - Markets to build sparklines for.
+ * @param marketsOrSymbols - Terminal markets when available, or symbols for
+ * existing callers that still require candle data.
  */
 export function useHomepageSparklines(
-  markets: PerpsMarketData[],
+  marketsOrSymbols: PerpsMarketData[] | string[],
 ): UseHomepageSparklinesResult {
-  const safeMarkets = useMemo(() => markets ?? [], [markets]);
+  const safeMarketsOrSymbols = useMemo(
+    () => marketsOrSymbols ?? [],
+    [marketsOrSymbols],
+  );
   const stream = usePerpsStream();
   const { key: marketContextKey } = usePerpsMarketContext();
   const [fallbackState, setFallbackState] = useState<{
@@ -85,19 +89,27 @@ export function useHomepageSparklines(
   const { fallbackSymbolsKey, trendSparklines } = useMemo(() => {
     const fallbacks: string[] = [];
     const trends: Record<string, number[]> = {};
-    for (const market of safeMarkets) {
-      const closes = extractCloses(market.trend);
+    for (const marketOrSymbol of safeMarketsOrSymbols) {
+      const symbol =
+        typeof marketOrSymbol === 'string'
+          ? marketOrSymbol
+          : marketOrSymbol.symbol;
+      const closes = extractCloses(
+        typeof marketOrSymbol === 'string'
+          ? undefined
+          : marketOrSymbol.trend,
+      );
       if (closes.length < 2) {
-        fallbacks.push(market.symbol);
+        fallbacks.push(symbol);
       } else {
-        trends[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
+        trends[symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
       }
     }
     return {
       fallbackSymbolsKey: fallbacks.join(','),
       trendSparklines: trends,
     };
-  }, [safeMarkets]);
+  }, [safeMarketsOrSymbols]);
 
   useEffect(() => {
     let active = true;
@@ -192,14 +204,23 @@ export function useHomepageSparklines(
         ? lastSparklinesRef.current.values
         : {};
     const next = Object.fromEntries(
-      safeMarkets.flatMap(({ symbol }) => {
+      safeMarketsOrSymbols.flatMap((marketOrSymbol) => {
+        const symbol =
+          typeof marketOrSymbol === 'string'
+            ? marketOrSymbol
+            : marketOrSymbol.symbol;
         const values = current[symbol] ?? previous[symbol];
         return values ? [[symbol, values]] : [];
       }),
     );
     lastSparklinesRef.current = { contextKey: marketContextKey, values: next };
     return next;
-  }, [fallbackState, marketContextKey, safeMarkets, trendSparklines]);
+  }, [
+    fallbackState,
+    marketContextKey,
+    safeMarketsOrSymbols,
+    trendSparklines,
+  ]);
 
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
