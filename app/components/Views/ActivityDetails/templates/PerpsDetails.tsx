@@ -229,7 +229,8 @@ function OrderDetails({
     getOrderPriceRowVisibility(orderType);
   const priceRows: React.ReactElement[] = [];
 
-  if (order && showTriggerPrice && getValidPerpsPrice(order.triggerPrice)) {
+  const validTriggerPrice = getValidPerpsPrice(order?.triggerPrice);
+  if (order && showTriggerPrice && validTriggerPrice !== null) {
     priceRows.push(
       <ActivityDetailRow
         key="trigger-price"
@@ -240,7 +241,8 @@ function OrderDetails({
     );
   }
 
-  if (order && showLimitPrice && getValidPerpsPrice(order.limitPrice)) {
+  const validLimitPrice = getValidPerpsPrice(order?.limitPrice);
+  if (order && showLimitPrice && validLimitPrice !== null) {
     priceRows.push(
       <ActivityDetailRow
         key="limit-price"
