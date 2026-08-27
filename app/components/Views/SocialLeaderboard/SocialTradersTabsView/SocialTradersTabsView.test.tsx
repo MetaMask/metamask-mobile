@@ -86,11 +86,31 @@ jest.mock(
   }),
 );
 
+const mockUsePrefetchTraderFeeds = jest.fn();
+jest.mock('../FeedView/hooks/usePrefetchTraderFeeds', () => ({
+  usePrefetchTraderFeeds: (enabled?: boolean) =>
+    mockUsePrefetchTraderFeeds(enabled),
+}));
+
+let mockSettleLeaderboardOnMount = false;
+
 jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-top-traders" />,
+    default: ({
+      onVisibleLeaderboardSettled,
+    }: {
+      onVisibleLeaderboardSettled?: () => void;
+    }) => {
+      ReactActual.useEffect(() => {
+        if (mockSettleLeaderboardOnMount) {
+          onVisibleLeaderboardSettled?.();
+        }
+      }, [onVisibleLeaderboardSettled]);
+      return <View testID="mock-top-traders" />;
+    },
   };
 });
 
@@ -177,6 +197,7 @@ describe('SocialTradersTabsView', () => {
     mockOnSpotAvailabilityChange = undefined;
     mockHasNotificationPreferences.mockReturnValue(false);
     mockRouteParams = {};
+    mockSettleLeaderboardOnMount = false;
   });
 
   it('renders the header, tabs, and both pages', () => {
@@ -383,6 +404,21 @@ describe('SocialTradersTabsView', () => {
     expect(
       screen.getByTestId('mock-feed').props.accessibilityState?.selected,
     ).toBe(true);
+  });
+
+  it('holds feed prefetch back until the visible leaderboard query settles', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(mockUsePrefetchTraderFeeds).toHaveBeenCalledWith(false);
+    expect(mockUsePrefetchTraderFeeds).not.toHaveBeenCalledWith(true);
+  });
+
+  it('enables feed prefetch after the visible leaderboard query settles', () => {
+    mockSettleLeaderboardOnMount = true;
+
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(mockUsePrefetchTraderFeeds).toHaveBeenCalledWith(true);
   });
 
   it('mounts the spot Buy orchestrator (outside the pager) when the feed offers a spot Buy', () => {

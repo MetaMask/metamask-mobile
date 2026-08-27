@@ -1,6 +1,6 @@
-import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
-import WC2Manager from '../../../WalletConnect/WalletConnectV2';
-import extractURLParams from '../../utils/extractURLParams';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import WC2Manager from '../../WalletConnect/WalletConnectV2';
+import extractURLParams from '../utils/extractURLParams';
 
 export function connectWithWC({
   handled,

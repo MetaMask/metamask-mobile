@@ -1,21 +1,21 @@
 import { Platform } from 'react-native';
-import { ACTIONS, PREFIXES } from '../../../../../constants/deeplinks';
-import Routes from '../../../../../constants/navigation/Routes';
-import Device from '../../../../../util/device';
-import AppConstants from '../../../../AppConstants';
-import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
-import SDKConnect from '../../../../SDKConnect/SDKConnect';
-import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import extractURLParams from '../../../utils/extractURLParams';
+import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
+import Routes from '../../../../constants/navigation/Routes';
+import Device from '../../../../util/device';
+import AppConstants from '../../../AppConstants';
+import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
+import SDKConnect from '../../../SDKConnect/SDKConnect';
+import WC2Manager from '../../../WalletConnect/WalletConnectV2';
+import extractURLParams from '../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
-import handleRampUrl from '../handleRampUrl';
+import handleRampUrl from '../legacy/handleRampUrl';
 
-jest.mock('../../../../AppConstants');
-jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../../SDKConnect/SDKConnect');
-jest.mock('../../../../WalletConnect/WalletConnectV2');
-jest.mock('../handleRampUrl');
-jest.mock('../../../../NativeModules', () => ({
+jest.mock('../../../AppConstants');
+jest.mock('../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../SDKConnect/SDKConnect');
+jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../legacy/handleRampUrl');
+jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
@@ -415,22 +415,14 @@ describe('handleMetaMaskProtocol', () => {
   });
 
   describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.WC} or with ${PREFIXES.METAMASK}/${ACTIONS.WC}', () => {
-    beforeEach(() => {
-      const urls = [
-        `${PREFIXES.METAMASK}${ACTIONS.WC}`,
-        `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
-      ];
-
-      const randomIndex = Math.floor(Math.random() * urls.length);
-
-      url = urls[randomIndex];
-    });
-
-    it('calls WC2Manager.getInstance().connect', async () => {
+    it.each([
+      `${PREFIXES.METAMASK}${ACTIONS.WC}`,
+      `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
+    ])('calls WC2Manager.getInstance().connect for %s', async (wcUrl) => {
       await handleMetaMaskDeeplink({
         handled,
         params,
-        url,
+        url: wcUrl,
         origin,
         wcURL,
       });
