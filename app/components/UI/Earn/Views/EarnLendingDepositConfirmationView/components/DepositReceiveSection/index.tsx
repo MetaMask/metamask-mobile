@@ -3,19 +3,19 @@ import styleSheet from './DepositReceiveSection.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
-import ButtonIcon from '../../../../../../../component-library/components/Buttons/ButtonIcon';
-import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
   IconColor,
   IconName,
-} from '../../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import useTooltipModal from '../../../../../../hooks/useTooltipModal';
-import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import { TokenI } from '../../../../../Tokens/types';
 import { strings } from '../../../../../../../../locales/i18n';
 
@@ -42,13 +42,13 @@ const DepositReceiveSection = ({
     <InfoSection testID={DEPOSIT_RECEIVE_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
         <View style={styles.receiveRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('earn.receive')}
           </Text>
           <ButtonIcon
             style={styles.infoIcon}
-            size={TooltipSizes.Xs}
-            iconColor={IconColor.Alternative}
+            size={ButtonIconSize.Xs}
+            iconProps={{ color: IconColor.IconAlternative }}
             iconName={IconName.Info}
             accessibilityRole={strings('earn.button')}
             accessibilityLabel={strings('earn.receive_tooltip')}
@@ -64,18 +64,20 @@ const DepositReceiveSection = ({
           <View style={styles.receiptTokenRowLeft}>
             <AvatarToken
               name={token.symbol}
-              imageSource={{
+              src={{
                 uri: token.image,
               }}
-              size={AvatarSize.Xs}
+              size={AvatarTokenSize.Xs}
+              twClassName="bg-default"
               style={styles.receiveTokenIcon}
-              isIpfsGatewayCheckBypassed
             />
-            <Text variant={TextVariant.BodyMD}>{receiptTokenName}</Text>
+            <Text variant={TextVariant.BodyMd}>{receiptTokenName}</Text>
           </View>
           <View style={styles.receiptTokenRowRight}>
             <Text>{receiptTokenAmount}</Text>
-            <Text color={TextColor.Alternative}>{receiptTokenAmountFiat}</Text>
+            <Text color={TextColor.TextAlternative}>
+              {receiptTokenAmountFiat}
+            </Text>
           </View>
         </View>
       </View>
