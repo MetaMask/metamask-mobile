@@ -1,9 +1,9 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../constants/navigation/Routes';
-import type { RootState } from '../../../../../../reducers';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -12,21 +12,21 @@ import {
   setSourceAmount,
   setSourceAmountAsMax,
   setSourceToken,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectBridgeLimitOrderFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
-import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
-import { TokenSelectorType } from '../../../types';
-import { MAX_INPUT_LENGTH } from '../../../components/TokenInputArea';
-import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
-import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
-import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
-import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
-import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
-import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
+} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import { TokenSelectorType } from '../../types';
+import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
+import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteRequest } from '../useBridgeQuoteRequest';
+import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
+import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
+import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
+import { useLatestBalance } from '../useLatestBalance';
+import { useSourceAmountInput } from '../useSourceAmountInput';
+import { useSwitchTokens } from '../useSwitchTokens';
+import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
+import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
 
 interface UseLimitOrderSwapInputsOptions {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
