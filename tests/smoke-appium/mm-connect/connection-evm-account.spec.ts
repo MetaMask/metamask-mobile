@@ -11,12 +11,12 @@ import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroun
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -95,7 +95,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       const platform = currentDeviceDetails.platform;
       const DAPP_URL = getDappUrlForBrowser(platform);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -103,11 +103,11 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       });
       await sleep(5000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapEditAccountsButton();
@@ -123,17 +123,17 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         // Wait here to make sure UI is visible before attempted interaction
         await sleep(1000);
         // We're only using Android for now
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await Gestures.activateApp(currentDeviceDetails);
         await unlockIfLockScreenVisible();
 
         // Change selected account to Account 3 in MetaMask
@@ -145,24 +145,24 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Verify account changed to Account 3
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await refreshMobileBrowser();
       });
       await sleep(2000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapCancelButton({
           shouldCooldown: true,
@@ -174,7 +174,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue('rejected');
       }, DAPP_URL);
 
@@ -182,7 +182,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

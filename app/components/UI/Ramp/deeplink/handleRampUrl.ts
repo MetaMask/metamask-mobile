@@ -26,6 +26,8 @@ import { isRampsServiceDisruptionActive } from '../utils/rampsServiceDisruption'
 import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
 import { selectRampsServiceDisruptionRegions } from '../../../../selectors/featureFlagController/rampsServiceDisruption';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import { startRampsBuyCufTrace } from '../utils/rampsBuyCufTrace';
+import { RAMPS_BUY_CUF_SURFACE } from '../constants/rampsBuyCufTags';
 import Engine from '../../../../core/Engine';
 
 interface RampUrlOptions {
@@ -96,6 +98,8 @@ async function navigateUnifiedV2Buy(
     );
     return;
   }
+
+  startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK });
 
   if (rampIntent?.assetId) {
     const allTokens = selectTokens(state).data?.allTokens ?? [];

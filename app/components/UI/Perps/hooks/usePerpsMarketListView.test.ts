@@ -336,6 +336,7 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.searchState.clearSearch).toBe(
         mockSearchState.clearSearch,
       );
+      expect(result.current.searchState.searchResultCount).toBe(1);
     });
   });
 
@@ -892,6 +893,23 @@ describe('usePerpsMarketListView', () => {
       expect(
         result.current.recentlyViewedState.recentlyViewedMarketObjects,
       ).toEqual([]);
+    });
+
+    it('keeps only watchlisted markets in recently viewed when the watchlist filter is on', () => {
+      mockSelectorState({
+        recentlyViewed: ['SOL', 'BTC', 'ETH'],
+        watchlist: ['BTC', 'ETH'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ showWatchlistOnly: true }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects.map(
+          (m) => m.symbol,
+        ),
+      ).toEqual(['BTC', 'ETH']);
     });
   });
 

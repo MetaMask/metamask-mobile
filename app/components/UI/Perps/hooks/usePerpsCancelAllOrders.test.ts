@@ -29,6 +29,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
+const mockNavigateToPerpsHome = jest.fn();
+jest.mock('../utils/perpsModeSwitch', () => ({
+  useNavigateToPerpsHome: () => mockNavigateToPerpsHome,
+}));
+
 const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
   orderId: 'order-1',
   symbol: 'BTC',
@@ -53,6 +58,7 @@ describe('usePerpsCancelAllOrders', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigation.canGoBack.mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
@@ -328,6 +334,23 @@ describe('usePerpsCancelAllOrders', () => {
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
+  it('falls back to the mode-aware Perps home when there is nothing to go back to', () => {
+    // Arrange - a hardcoded Perps Home fallback would drop Pro-mode users into
+    // the Lite hub.
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const orders = [createMockOrder()];
+    const { result } = renderHook(() => usePerpsCancelAllOrders(orders));
+
+    // Act
+    act(() => {
+      result.current.handleKeepOrders();
+    });
+
+    // Assert
+    expect(mockNavigateToPerpsHome).toHaveBeenCalled();
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
+  });
+
   it('does nothing when handleCancelAll called with no orders', async () => {
     // Arrange
     const { result } = renderHook(() => usePerpsCancelAllOrders(null));
@@ -375,5 +398,94 @@ describe('usePerpsCancelAllOrders', () => {
     await waitFor(() => {
       expect(result.current.error).toBeNull();
     });
+  });
+  it('cancels only the passed orders when the view is filtered', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'eth-1', symbol: 'ETH' }),
+      createMockOrder({ orderId: 'eth-2', symbol: 'ETH' }),
+    ];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: true }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      orderIds: ['eth-1', 'eth-2'],
+    });
+    expect(
+      Engine.context.PerpsController.cancelOrders,
+    ).not.toHaveBeenCalledWith({ cancelAll: true });
+  });
+
+  it('cancels the whole book when the view is not filtered', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'eth-1', symbol: 'ETH' }),
+      createMockOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+    ];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: false }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      cancelAll: true,
+    });
+  });
+
+  it('scopes by order id rather than symbol so a side filter cannot over-cancel', async () => {
+    // Arrange - one market holding both a long and a short order, only the long listed
+    const orders = [createMockOrder({ orderId: 'eth-long', symbol: 'ETH' })];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: true }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      orderIds: ['eth-long'],
+    });
+    const [params] = (Engine.context.PerpsController.cancelOrders as jest.Mock)
+      .mock.calls[0];
+    expect(params.symbols).toBeUndefined();
   });
 });

@@ -9,6 +9,7 @@ import {
   mockPerpFeedItem,
   mockSpotFeedItem,
 } from '../mocks/coreFeed.mock';
+import { prefetchTraderFeeds } from './traderFeedQueries';
 
 const expectedFeedFetchOptions = {
   limit: 30,
@@ -47,12 +48,14 @@ jest.mock('../../../../../util/social/socialServiceTelemetry', () => ({
     error ? (error instanceof Error ? error.message : String(error)) : null,
 }));
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
-  });
+const createWrapper = (queryClient?: QueryClient) => {
+  const client =
+    queryClient ??
+    new QueryClient({
+      defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    });
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
+    React.createElement(QueryClientProvider, { client }, children);
 };
 
 describe('useTraderFeed', () => {
@@ -220,6 +223,89 @@ describe('useTraderFeed', () => {
     expect(result.current.items[0]?.type).toBe('perps');
   });
 
+  it('sorts loaded items newest-first so same-day rows share one section header', async () => {
+    const newerSameDay = mockSpotFeedItem({
+      positionId: 'pos-newer-same-day',
+      timestamp: 1_777_000_800,
+    });
+    const olderDifferentDay = mockPerpFeedItem({
+      positionId: 'pos-older-day',
+      timestamp: 1_776_800_000,
+    });
+    const olderSameDay = mockSpotFeedItem({
+      positionId: 'pos-older-same-day',
+      timestamp: 1_777_000_100,
+    });
+    mockCall.mockResolvedValue(
+      mockFeedResponse([olderSameDay, olderDifferentDay, newerSameDay]),
+    );
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(3));
+
+    expect(result.current.items.map((item) => item.timestamp)).toEqual([
+      1_777_000_800_000, 1_777_000_100_000, 1_776_800_000_000,
+    ]);
+    expect(result.current.sections).toHaveLength(2);
+    expect(result.current.sections[0]?.data).toHaveLength(2);
+    expect(result.current.sections[1]?.data).toHaveLength(1);
+  });
+
+  // Mirrors a real leaderboard response: the feed splices a notable position
+  // from two days earlier into the middle of the page, and the `olderThan`
+  // cursor is the last item's timestamp — so page 2 returns events that are
+  // newer than that spliced-in row. Without a global sort the day headers read
+  // Aug 20, Aug 18, Aug 20.
+  it('keeps one section per day when a later page is newer than a spliced-in row', async () => {
+    const newest = mockSpotFeedItem({
+      positionId: 'pos-aug-20-latest',
+      timestamp: 1_787_217_322, // Aug 20 05:15 EDT
+    });
+    const splicedInOlderDay = mockPerpFeedItem({
+      positionId: 'pos-aug-18-spliced',
+      timestamp: 1_787_069_401, // Aug 18 12:10 EDT
+    });
+    const pageBoundary = mockSpotFeedItem({
+      positionId: 'pos-aug-20-boundary',
+      timestamp: 1_787_215_115, // Aug 20 04:38 EDT
+    });
+    const nextPage = mockPerpFeedItem({
+      positionId: 'pos-aug-20-next-page',
+      timestamp: 1_787_209_200, // Aug 20 03:00 EDT
+    });
+    mockCall
+      .mockResolvedValueOnce(
+        mockFeedResponse(
+          [newest, splicedInOlderDay, pageBoundary],
+          'older-cursor',
+        ),
+      )
+      .mockResolvedValueOnce(mockFeedResponse([nextPage]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(4));
+
+    expect(result.current.items.map((item) => item.timestamp)).toEqual([
+      1_787_217_322_000, 1_787_215_115_000, 1_787_209_200_000,
+      1_787_069_401_000,
+    ]);
+    expect(result.current.sections).toHaveLength(2);
+    expect(result.current.sections[0]?.data).toHaveLength(3);
+    expect(result.current.sections[1]?.data).toHaveLength(1);
+  });
+
   it('does not refetch when the type filter changes', async () => {
     mockCall.mockResolvedValue(
       mockFeedResponse([mockSpotFeedItem(), mockPerpFeedItem()]),
@@ -244,5 +330,27 @@ describe('useTraderFeed', () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]?.type).toBe('perps');
     expect(result.current.hasLoadedItems).toBe(true);
+  });
+
+  it('does not refetch when first-page data is already in the cache', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 5 * 60 * 1000 },
+      },
+    });
+
+    await prefetchTraderFeeds(queryClient);
+    expect(mockCall).toHaveBeenCalledTimes(2);
+    mockCall.mockClear();
+
+    const { result } = renderHook(
+      () => useTraderFeed({ audience: 'following' }),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
   });
 });

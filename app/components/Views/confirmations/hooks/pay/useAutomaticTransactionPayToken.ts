@@ -45,6 +45,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -131,6 +132,17 @@ export function useAutomaticTransactionPayToken({
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
+  const {
+    isPending: isMoneyAccountPayPending,
+    shouldSelect: shouldSelectMoneyAccount,
+  } = useAutomaticMoneyAccountPayToken({
+    autoSelectFiatPayment,
+    disable,
+    hasFiatPaymentSelected,
+    hasTokenBalance: tokens.length > 0,
+    payTokenSelected: Boolean(payToken),
+  });
+
   const selectBestToken = useCallback(
     () =>
       getBestToken({
@@ -182,7 +194,22 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
+    // Let money-account fallback own the default when the EOA has no tokens.
+    if (isMoneyAccountPayPending || shouldSelectMoneyAccount) {
+      if (shouldSelectMoneyAccount) {
+        isUpdated.current = transactionId;
+      }
+      return;
+    }
+
     if (autoSelectFiatPayment || tokens.length === 0) {
+      // Do NOT set isUpdated.current here. This return is intentionally
+      // unlatch-able: if isFiatEnabled is false because an incompatible provider
+      // is selected (e.g. Coinbase left over from UB2), useEnsureCompatibleProvider
+      // will dispatch a switch and trigger a re-render. The effect must be free to
+      // re-run on that render and complete fiat selection. Setting the latch here
+      // would silently prevent that re-run and leave the "Pay with..." row as a
+      // permanent skeleton.
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
@@ -224,11 +251,13 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    isMoneyAccountPayPending,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
     requiredTokens,
     setPayToken,
+    shouldSelectMoneyAccount,
     tokens,
     transactionId,
   ]);

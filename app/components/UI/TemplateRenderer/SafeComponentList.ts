@@ -1,5 +1,5 @@
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import Icon from '../../../component-library/components/Icons/Icon';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
 import { View, ScrollView, TouchableHighlight } from 'react-native';

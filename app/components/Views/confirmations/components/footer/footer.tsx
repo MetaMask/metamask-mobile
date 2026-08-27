@@ -6,16 +6,15 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import {
+  BottomSheetFooter,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
+  ButtonsAlignment,
+  IconName,
+  Text,
+  TextButton,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -193,30 +192,6 @@ export const Footer = () => {
     (isMMPayTransaction && isPayAmountStale) ||
     isGaslessLoading;
 
-  const buttons = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('confirm.cancel'),
-      size: ButtonSize.Lg,
-      onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
-      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      isDanger:
-        !isPayLoading &&
-        (securityAlertResponse?.result_type === ResultType.Malicious ||
-          hasDangerAlerts),
-      isDisabled: isConfirmDisabled,
-      label: confirmButtonLabel(),
-      size: ButtonSize.Lg,
-      onPress: onSignConfirm,
-      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      startIconName: getStartIcon(),
-    },
-  ];
-
   const isFooterVisible =
     isFooterVisibleFlag ??
     (!transactionMetadata ||
@@ -246,38 +221,62 @@ export const Footer = () => {
       )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={buttons}
+        secondaryButtonProps={{
+          children: strings('confirm.cancel'),
+          size: ButtonSize.Lg,
+          onPress: () =>
+            onReject(
+              providerErrors.userRejectedRequest(),
+              undefined,
+              isMMSendReq,
+            ),
+          testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+        }}
+        primaryButtonProps={{
+          children: confirmButtonLabel(),
+          size: ButtonSize.Lg,
+          onPress: onSignConfirm,
+          isDisabled: isConfirmDisabled,
+          isDanger:
+            !isPayLoading &&
+            (securityAlertResponse?.result_type === ResultType.Malicious ||
+              hasDangerAlerts),
+          startIconName: getStartIcon(),
+          testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        }}
         style={styles.base}
       />
       {isStakingConfirmationBool && (
         <View style={styles.bottomTextContainer}>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
+              variant={TextVariant.BodySm}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
-            </Text>
+            </TextButton>
           </View>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={
+                ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
+              }
+              variant={TextVariant.BodySm}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
             >
               {strings('confirm.staking_footer.risk_disclosure')}
-            </Text>
-            <Text variant={TextVariant.BodySM}>
+            </TextButton>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>
           </View>

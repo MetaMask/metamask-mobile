@@ -3,6 +3,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -129,6 +131,12 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     isEnabled: mockIsEnabled,
   }),
+}));
+
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -394,6 +402,27 @@ describe('TrendingView', () => {
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+  });
+
+  it('tracks the search opened event with the explore entry point', () => {
+    const { getByTestId } = renderTrendingView();
+
+    fireEvent.press(getByTestId('explore-view-search-button'));
+
+    const openedEvent = (
+      analytics.trackEvent as jest.MockedFunction<typeof analytics.trackEvent>
+    ).mock.calls
+      .map(([event]) => event)
+      .find((event) => event.properties?.interaction_type === 'opened');
+
+    expect(openedEvent?.name).toBe(
+      MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+    );
+    expect(openedEvent?.properties).toEqual({
+      interaction_type: 'opened',
+      search_query: '',
+      entry_point: 'explore',
+    });
   });
 
   describe('tab switching', () => {

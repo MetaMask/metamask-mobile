@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   Text,
@@ -56,15 +57,18 @@ import {
 import {
   CardStatus,
   FundingAssetStatus,
+  CardProviderIds,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import useCreditBalance from '../../hooks/useCreditBalance';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
+import MoneyCardTiltAnimation from '../../../Money/components/MoneyCardTiltAnimation';
 import {
   ToastContext,
   ToastVariants,
@@ -91,14 +95,17 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeFooter from './components/CardHomeFooter';
+import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
+  fromCardOnboarding?: boolean;
 }
 
 const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
@@ -107,6 +114,7 @@ const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
+  const transactionHistoryDestination = useCardTransactionHistoryDestination();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
@@ -135,7 +143,23 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
-  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
+  const isImmersve =
+    useSelector(selectCardActiveProviderId) === CardProviderIds.Immersve;
+  const cardRegionCode = data?.card?.regionCode;
+  const {
+    permanentDocuments: immersveLegalDocuments,
+    isLoading: isImmersveLegalDocsLoading,
+    error: immersveLegalDocsError,
+    refetch: refetchImmersveLegalDocs,
+  } = useImmersveSupportedRegions(cardRegionCode, {
+    enabled: isImmersve && Boolean(cardRegionCode),
+  });
+  const immersveLegalDocsUnavailable = Boolean(
+    isImmersve &&
+      Boolean(cardRegionCode) &&
+      !isImmersveLegalDocsLoading &&
+      (immersveLegalDocsError || immersveLegalDocuments.length === 0),
+  );
   const cardTermsAndConditionsUrl = useMemo(
     () =>
       isImmersve
@@ -177,7 +201,7 @@ const CardHome = () => {
     startLinkFlow: startMoneyAccountLink,
     isLinking: isMoneyAccountLinkInProgress,
   } = useMoneyAccountCardLinkage();
-  const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
   const credit = useCreditBalance();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const hasMetalCard = data?.card?.type === CardType.METAL;
@@ -453,6 +477,16 @@ const CardHome = () => {
 
   const headerHandlers = useCardHeaderHandlers('back');
 
+  const arrival = useCardArrivalAnimation({
+    fromCardOnboarding: !!route.params?.fromCardOnboarding,
+    cardType: data?.card?.type,
+    isRevealingCardDetails:
+      actions.isCardDetailsLoading ||
+      actions.isSensitiveDetailsLoading ||
+      Boolean(actions.cardSensitiveDetails) ||
+      Boolean(actions.cardDetailsImageUrl),
+  });
+
   // --- Error state ---
   if (isError) {
     return (
@@ -548,30 +582,36 @@ const CardHome = () => {
         )}
 
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-          <Box twClassName="w-full relative">
-            <CardImageSection
-              isLoading={isLoading}
-              isCardDetailsLoading={
-                actions.isCardDetailsLoading ||
-                actions.isSensitiveDetailsLoading
-              }
-              cardDetailsImageUrl={actions.cardDetailsImageUrl}
-              isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-              onImageLoad={actions.onCardDetailsImageLoad}
-              onImageError={actions.onCardDetailsImageError}
-              cardSensitiveDetails={actions.cardSensitiveDetails}
-              onCopyDetail={actions.copyCardDetail}
-              cardType={data?.card?.type}
-              cardStatus={data?.card?.status}
-              walletAddress={
-                isAuthenticated
-                  ? primaryToken?.isMoneyAccountEntry
-                    ? strings('card.card_spending_limit.money_account_label')
-                    : data?.primaryFundingAsset?.walletAddress
-                  : undefined
-              }
-            />
-          </Box>
+          <Animated.View
+            style={[tw.style('w-full relative'), arrival.cardStyle]}
+          >
+            {arrival.usesRiveCard ? (
+              <MoneyCardTiltAnimation
+                key={arrival.revealKey}
+                isMetalCard={hasMetalCard}
+                fillWidth
+                playRevealOnMount={arrival.playReveal}
+                revealDelayMs={arrival.revealDelayMs}
+                testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
+              />
+            ) : (
+              <CardImageSection
+                isLoading={isLoading}
+                isCardDetailsLoading={
+                  actions.isCardDetailsLoading ||
+                  actions.isSensitiveDetailsLoading
+                }
+                cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+                onImageLoad={actions.onCardDetailsImageLoad}
+                onImageError={actions.onCardDetailsImageError}
+                cardSensitiveDetails={actions.cardSensitiveDetails}
+                onCopyDetail={actions.copyCardDetail}
+                cardType={data?.card?.type}
+                cardStatus={data?.card?.status}
+              />
+            )}
+          </Animated.View>
 
           {!hasSetupActions && !hasAlertOnlyState && (
             <CardBalanceDisplay
@@ -705,6 +745,7 @@ const CardHome = () => {
             }
             onViewCardDetails={actions.viewCardDetailsAction}
             onViewPin={actions.viewPinAction}
+            onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
@@ -716,6 +757,14 @@ const CardHome = () => {
             hasPriorityTokenBalance={hasPriorityTokenBalance}
             onCashback={actions.cashbackAction}
             onTravel={actions.navigateToTravelPage}
+            onTransactionHistory={
+              transactionHistoryDestination
+                ? () =>
+                    actions.transactionHistoryAction(
+                      transactionHistoryDestination,
+                    )
+                : undefined
+            }
           />
         )}
 
@@ -725,6 +774,22 @@ const CardHome = () => {
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
           supportEmail={supportEmail}
+          legalDocuments={
+            isImmersve && immersveLegalDocuments.length > 0
+              ? immersveLegalDocuments
+              : undefined
+          }
+          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+          showLegalDocumentsError={immersveLegalDocsUnavailable}
+          onRetryLegalDocuments={
+            immersveLegalDocsUnavailable
+              ? () => {
+                  refetchImmersveLegalDocs().catch(() => {
+                    // Error surfaces via hook state / footer retry UI.
+                  });
+                }
+              : undefined
+          }
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

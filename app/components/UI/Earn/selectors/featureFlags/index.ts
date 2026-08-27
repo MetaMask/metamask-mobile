@@ -370,19 +370,15 @@ export const selectMusdBalanceChainIds = createSelector(
 );
 
 /**
- * Selector for Merkl campaign claiming feature flag
- * Controls visibility of Merkl rewards claiming functionality in the UI
- *
- * @returns boolean - true if Merkl campaign claiming should be shown, false otherwise
+ * Selects whether the static Earn section is shown on Wallet Home.
  */
-export const selectMerklCampaignClaimingEnabledFlag = createSelector(
+export const selectEarnHomeSectionEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    const localFlag = process.env.MM_EARN_HOME_SECTION_ENABLED === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.earnHomeSectionEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );

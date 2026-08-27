@@ -1,6 +1,7 @@
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { initialRecurringState } from '../../../app/components/UI/Bridge/utils/recurringSchedule';
 
 interface InitialStateBridgeOptions {
   deterministicFiat?: boolean;
@@ -41,10 +42,25 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
           TokenBalancesController: { tokenBalances: {} },
         },
       },
+      bridge: {
+        recurring: initialRecurringState,
+      },
     } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
-    .withRemoteFeatureFlags({ enableFiatToggle: true });
+    .withRemoteFeatureFlags({
+      enableFiatToggle: true,
+      // Limit/Recurring tabs are WIP; enabled by default here so existing
+      // tab-behavior tests exercise them. Tests covering the disabled state
+      // override these back to `{ enabled: false }`. RemoteFeatureFlagController
+      // resolves the LaunchDarkly `{ versions: {...} }` config into this plain
+      // `{ enabled }` shape before it ever reaches Redux state.
+      swapsLimitOrder: { enabled: true },
+      swapsRecurringBuy: {
+        enabled: true,
+        enabledChainIds: ['eip155:1'],
+      },
+    });
 
   if (options?.deterministicFiat) {
     builder.withOverrides({

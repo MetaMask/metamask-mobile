@@ -7,15 +7,11 @@ import {
 
 const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
   'NetworkEnablementController:getState',
   'NetworkController:getState',
   'NetworkController:getNetworkClientById',
   'AccountsController:getSelectedAccount',
-  'BackendWebSocketService:subscribe',
-  'BackendWebSocketService:getConnectionInfo',
-  'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-  'BackendWebSocketService:addChannelCallback',
-  'BackendWebSocketService:removeChannelCallback',
   'SnapController:handleRequest',
   'SnapController:getRunnableSnaps',
   'PermissionController:getPermissions',
@@ -25,6 +21,8 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
+  'AccountTreeController:initialized',
+  'AccountTreeController:uninitialized',
   'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
@@ -34,7 +32,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'NetworkController:networkAdded',
   'NetworkController:networkRemoved',
   'NetworkController:stateChange',
-  'BackendWebSocketService:connectionStateChanged',
   'AccountsController:accountBalancesUpdated',
   'PermissionController:stateChange',
   'SnapController:snapInstalled',
@@ -42,6 +39,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
   'AccountActivityService:balanceUpdated',
+  'AccountActivityService:statusChanged',
   'RemoteFeatureFlagController:stateChange',
 ] as const;
 
@@ -127,6 +125,32 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
+  it('delegates AccountTreeController initialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:initialized']),
+      }),
+    );
+  });
+
+  it('delegates AccountTreeController uninitialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:uninitialized']),
+      }),
+    );
+  });
+
   it('delegates NetworkController networkDidChange event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
@@ -153,7 +177,7 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
-  it('delegates BackendWebsocketDataSource WebSocket actions', () => {
+  it('delegates AccountActivityService statusChanged event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -161,12 +185,8 @@ describe('getAssetsControllerMessenger', () => {
 
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        actions: expect.arrayContaining([
-          'BackendWebSocketService:subscribe',
-          'BackendWebSocketService:getConnectionInfo',
-          'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-          'BackendWebSocketService:addChannelCallback',
-          'BackendWebSocketService:removeChannelCallback',
+        events: expect.arrayContaining([
+          'AccountActivityService:statusChanged',
         ]),
       }),
     );

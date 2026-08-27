@@ -31,6 +31,7 @@ import { emptySignatureControllerMock } from '../../__mocks__/controllers/signat
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
+import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -135,8 +136,6 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      isMaxDeposit: false,
-      setIsMaxDeposit: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -206,23 +205,27 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('should open Terms of Use URL when terms link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Terms of Use URL when terms link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Terms of Use'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.TERMS_OF_USE,
     );
   });
 
-  it('should open Risk Disclosure URL when risk disclosure link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Risk Disclosure URL when risk disclosure link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk disclosure'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );
@@ -257,8 +260,6 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      isMaxDeposit: false,
-      setIsMaxDeposit: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -364,8 +365,6 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      isMaxDeposit: false,
-      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -406,8 +405,6 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      isMaxDeposit: false,
-      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -448,8 +445,6 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      isMaxDeposit: false,
-      setIsMaxDeposit: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {
@@ -497,7 +492,7 @@ describe('Footer', () => {
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
-      expect(getByText('High risk request')).toBeDefined();
+      expect(getByText('High-risk request')).toBeDefined();
       expect(
         getByText(
           'We suggest you reject this request. If you continue, you might put your assets at risk.',
@@ -608,11 +603,24 @@ describe('Footer', () => {
         transactionApprovalControllerMock,
         emptySignatureControllerMock,
         { securityAlerts: { alerts: {} } },
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [SCAM_QUESTIONNAIRE_FLAG_KEY]: { name: 'treatment' },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
       );
 
     beforeEach(() => {
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: false,
       });
     });
@@ -679,6 +687,7 @@ describe('Footer', () => {
       const setAlertConfirmed = jest.fn();
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: true,
         hasUnconfirmedDangerAlerts: true,
         setAlertConfirmed,
@@ -698,11 +707,21 @@ describe('Footer', () => {
       });
 
       // Answer all three questions with non-red-flag options → clean pass.
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });
@@ -717,6 +736,7 @@ describe('Footer', () => {
     it('skips the danger-alert checkbox modal and submits on the next confirm after the questionnaire is completed', async () => {
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: true,
         hasUnconfirmedDangerAlerts: true,
         setAlertConfirmed: jest.fn(),
@@ -735,11 +755,21 @@ describe('Footer', () => {
         );
       });
 
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });

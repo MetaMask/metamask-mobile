@@ -91,6 +91,13 @@ describe('Feature Flag Registry', () => {
             '8.6.0': expect.objectContaining({
               enabledSportsMarketTypes: expect.arrayContaining([
                 'first_half_moneyline',
+                'first_half_spreads',
+                'team_totals_home',
+                'team_totals_away',
+                'anytime_touchdowns',
+                'first_touchdowns',
+                'rushing_yards',
+                'receiving_yards',
               ]),
               leagues: expect.arrayContaining(extendedSportsLeagues),
             }),
@@ -103,6 +110,13 @@ describe('Feature Flag Registry', () => {
       expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
         expect.objectContaining({ enabled: true }),
       );
+    });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
     });
   });
 
@@ -139,6 +153,7 @@ describe('Feature Flag Registry', () => {
 
       expect(flagNames).toContain('bridgeConfigV2');
       expect(flagNames).toContain('bitcoinAccounts');
+      expect(flagNames).toContain('stellarAccounts');
       expect(flagNames).toContain('tronAccounts');
       expect(flagNames).toContain('tronClaimUnstakedTrxButtonEnabled');
     });
@@ -206,12 +221,16 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('returns empty array when no entries match deprecated', () => {
+    it('returns deprecated entries', () => {
       const deprecated = getRegistryEntriesByStatus(
         FeatureFlagStatus.Deprecated,
       );
-      // All current flags are active, so deprecated should be empty
-      expect(deprecated).toHaveLength(0);
+      for (const entry of deprecated) {
+        expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
+      }
+      expect(deprecated.map((entry) => entry.name)).toContain(
+        'earnMerklCampaignClaiming',
+      );
     });
   });
 

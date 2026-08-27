@@ -25,6 +25,7 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import SetCardPin, { ConfirmCardPin } from '../Views/SetCardPin';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
@@ -33,6 +34,9 @@ import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
+import CardTransactionHistory from '../Views/CardTransactionHistory/CardTransactionHistory';
+import CardTransactionDetails from '../Views/CardTransactionDetails/CardTransactionDetails';
+import CardReportTransaction from '../Views/CardReportTransaction/CardReportTransaction';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import {
@@ -99,6 +103,23 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.CREDIT_REDEEM}
         component={CreditRedeem}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.TRANSACTION_HISTORY}
+        component={CardTransactionHistory}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.TRANSACTION_DETAILS}
+        component={CardTransactionDetails}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.REPORT_TRANSACTION}
+        component={CardReportTransaction}
+      />
+      <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
+      <ScreensStack.Screen
+        name={Routes.CARD.CONFIRM_PIN}
+        component={ConfirmCardPin}
       />
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}

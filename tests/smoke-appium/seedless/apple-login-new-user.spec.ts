@@ -7,6 +7,10 @@ import {
   setupAppleNewUserOAuthMock,
 } from './helpers/seedless-helpers.js';
 
+/**
+ * Device smoke: Apple OAuth mock → password → wallet home.
+ * Screen-level UI belongs in component-view tests.
+ */
 appiumTest.describe(SmokeSeedlessOnboarding('Apple Login - New User'), () => {
   appiumTest(
     'creates a new wallet with Apple login',

@@ -3,9 +3,9 @@
 # Runway RC Builds
 #
 # Triggered from Runway to build the release-candidate iOS + Android binaries in one run.
-# Bumps the build version once, then dispatches build.yml with platform: both so iOS and Android
-# build in parallel against the same bumped commit. Uploads the iOS IPA to TestFlight and posts
-# a Slack notification with the resulting build numbers.
+# Generates the build number once, then dispatches build.yml with platform: both so iOS and Android
+# apply the same number locally at build time (no version-bump commit). Uploads the iOS IPA to
+# TestFlight and posts a Slack notification with the resulting build numbers.
 #
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-rc.yml workflow.
@@ -22,9 +22,18 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
+        type: choice
+        options:
+          - inherit
+          - namespace
+          - current
+        default: inherit
 
 permissions:
-  contents: write # required by commit-build-version.yml
+  contents: read
   pull-requests: read
   actions: write
   id-token: write # required by build.yml
@@ -34,25 +43,19 @@ jobs:
     name: Generate build version
     uses: ./.github/workflows/generate-build-version.yml
 
-  commit-build-version:
-    name: Commit build version
-    needs: generate-build-version
-    uses: ./.github/workflows/commit-build-version.yml
-    permissions:
-      id-token: write
-    with:
-      base-branch: ${{ inputs.source_branch || github.ref_name }}
-      build_number: ${{ needs.generate-build-version.outputs.build-version }}
-
   build:
     name: Build iOS + Android (main-rc)
-    needs: commit-build-version
+    needs: generate-build-version
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: both
-      source_branch: ${{ needs.commit-build-version.outputs.commit-hash }}
+      # Prefer an explicit input; otherwise pin to the dispatch SHA so iOS and
+      # Android do not race a moving branch tip under one build number.
+      source_branch: ${{ inputs.source_branch || github.sha }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
@@ -67,6 +70,7 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   slack-notification:

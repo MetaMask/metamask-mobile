@@ -230,6 +230,7 @@ const dashboardWithTiers: VipDashboardState = {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
   tiers: [
     {
@@ -258,6 +259,7 @@ const dashboardWithTiers: VipDashboardState = {
     },
   ],
   localizedText: {
+    equityLifetimePointsDescription: 'Lifetime total: {points}',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',
@@ -281,6 +283,8 @@ const dashboardWithTiers: VipDashboardState = {
     equityLockedDescription: 'Body copy',
     equityUnlockedTitle: 'VIP allocation unlocked',
     equityUnlockedDescription: 'Unlocked body copy',
+    equityMultiplierFailedTitle: 'Estimate failed',
+    equityMultiplierFailedDescription: 'Estimate failed body copy',
   },
   lastFetched: 0,
 };

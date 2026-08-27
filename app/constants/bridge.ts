@@ -1,9 +1,10 @@
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
   BRIDGE_UAT_API_BASE_URL,
+  QuoteMetadataMigrationPhase,
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
@@ -38,6 +39,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',
+  [XlmScope.Pubnet]: 'Stellar',
 };
 
 /**
@@ -75,3 +77,6 @@ export const getBridgeApiBaseUrlForMetaMaskEnv = (): string => {
 export const BRIDGE_API_BASE_URL = getBridgeApiBaseUrlForMetaMaskEnv();
 
 export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';
+
+export const BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE =
+  QuoteMetadataMigrationPhase.V2WithV1Fallback;

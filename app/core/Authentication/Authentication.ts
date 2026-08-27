@@ -169,6 +169,17 @@ class AuthenticationService {
     }
   };
 
+  private clearSessionScopedProviderTokens = async (): Promise<void> => {
+    try {
+      await depositResetProviderToken();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to clear deposit provider token during wallet setup',
+      );
+    }
+  };
+
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
   }
@@ -570,6 +581,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      await this.clearSessionScopedProviderTokens();
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -611,6 +623,8 @@ class AuthenticationService {
         parsedSeed,
         clearEngine,
       );
+
+      await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
         Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(

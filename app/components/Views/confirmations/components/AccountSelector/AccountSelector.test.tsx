@@ -35,63 +35,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactActual = require('react');
-  const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    style?: unknown;
-    variant?: string;
-    color?: string;
-    testID?: string;
-    twClassName?: string;
-  }) => <RNText {...props}>{children}</RNText>;
-  const MockSkeleton = (props: {
-    height?: number;
-    width?: number;
-    twClassName?: string;
-  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-        testID,
-      }: {
-        children: React.ReactNode;
-        onClose?: (hasPendingAction?: boolean) => void;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onCloseBottomSheet: (cb?: () => void) => void;
-        onOpenBottomSheet: (cb?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: (cb?: () => void) => {
-          onClose?.(false);
-          cb?.();
-        },
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return <RNView testID={testID}>{children}</RNView>;
-    },
-  );
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-    Text: MockText,
-    Skeleton: MockSkeleton,
-    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
-    TextColor: { TextAlternative: 'TextAlternative' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View } = jest.requireActual('react-native');
   return {

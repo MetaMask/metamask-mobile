@@ -4,6 +4,8 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { chainNameToId } from '../utils/chainMapping';
 import { isPerpPosition, isClosedPosition } from '../utils/perp';
+import { resolveTradeActions, type TradeAction } from '../utils/tradeAction';
+import { tradeTimestampToMs } from '../utils/tradeTimestamp';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { usePerpsTraderPositionPrices } from './usePerpsTraderPositionPrices';
 import { useSpotTraderPositionPrices } from './useSpotTraderPositionPrices';
@@ -16,9 +18,6 @@ import {
 
 export type { TimePeriod };
 export { TIME_PERIODS };
-
-const normalizeTradeTimestampMs = (timestamp: number): number =>
-  timestamp > 0 && timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
 const PERIODS_BY_SPAN: readonly TimePeriod[] = ['1H', '1D', '1W', '1M', 'All'];
 
@@ -38,7 +37,7 @@ function getTradeTimestampRange(
   let max = -Infinity;
 
   for (const trade of trades) {
-    const timestamp = normalizeTradeTimestampMs(trade.timestamp);
+    const timestamp = tradeTimestampToMs(trade.timestamp);
     if (!Number.isFinite(timestamp)) continue;
     min = Math.min(min, timestamp);
     max = Math.max(max, timestamp);
@@ -156,6 +155,11 @@ export interface TraderPositionData {
   isPnlPositive: boolean;
 
   allTrades: Position['trades'];
+  /**
+   * Server-provided lifecycle stage per entry in {@link allTrades}, same order.
+   * Missing action metadata leaves the corresponding entry undefined.
+   */
+  tradeActions: (TradeAction | undefined)[];
   chartTrades: Position['trades'];
 
   // Time period
@@ -235,10 +239,7 @@ export function useTraderPositionData(
     if (!trades?.length) return undefined;
     let min = Infinity;
     for (const trade of trades) {
-      const ms =
-        trade.timestamp > 0 && trade.timestamp < 1e12
-          ? trade.timestamp * 1000
-          : trade.timestamp;
+      const ms = tradeTimestampToMs(trade.timestamp);
       if (Number.isFinite(ms) && ms < min) min = ms;
     }
     return Number.isFinite(min) ? min : undefined;
@@ -361,15 +362,18 @@ export function useTraderPositionData(
     [positionParam?.trades],
   );
 
+  const tradeActions = useMemo(
+    () => (positionParam ? resolveTradeActions(positionParam) : []),
+    [positionParam],
+  );
+
   const chartTrades = useMemo(() => {
     const now = Date.now();
-    return allTrades.filter((t) => {
-      const tsMs =
-        t.timestamp > 0 && t.timestamp < 1e12
-          ? t.timestamp * 1000
-          : t.timestamp;
-      return tsMs >= now - PERIOD_DURATION_MS[activeTimePeriod];
-    });
+    return allTrades.filter(
+      (t) =>
+        tradeTimestampToMs(t.timestamp) >=
+        now - PERIOD_DURATION_MS[activeTimePeriod],
+    );
   }, [allTrades, activeTimePeriod]);
 
   return {
@@ -388,6 +392,7 @@ export function useTraderPositionData(
     pnlPercent,
     isPnlPositive,
     allTrades,
+    tradeActions,
     chartTrades,
     activeTimePeriod,
     isTimePeriodAutoSelected,

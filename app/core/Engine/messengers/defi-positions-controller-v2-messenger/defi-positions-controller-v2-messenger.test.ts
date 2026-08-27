@@ -33,6 +33,22 @@ describe('getDeFiPositionsControllerV2Messenger', () => {
 
     expect(defiPositionsControllerV2Messenger).toBeInstanceOf(Messenger);
   });
+
+  it('delegates external actions required by the controller', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getDeFiPositionsControllerV2Messenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: [
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          'RemoteFeatureFlagController:getState',
+        ],
+      }),
+    );
+  });
 });
 
 describe('getDeFiPositionsControllerV2InitMessenger', () => {

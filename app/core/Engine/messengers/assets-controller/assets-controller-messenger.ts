@@ -13,7 +13,12 @@ import { RootMessenger } from '../../types';
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // core#9388: RPC balance refresh on account-group switch / tree updates
   'AccountTreeController:selectedAccountGroupChange',
+  // core#9892: start asset tracking only after the account tree is fully built
+  'AccountTreeController:initialized',
+  // Stop asset tracking when the account tree is cleared
+  'AccountTreeController:uninitialized',
   // core#9478: use exported :stateChange (not local :stateChanged aliases)
+  // Still required for post-init account-set changes (e.g. snap accounts)
   'AccountTreeController:stateChange',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
@@ -28,8 +33,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'NetworkController:networkRemoved',
   // RpcDataSource + StakedBalanceDataSource
   'NetworkController:stateChange',
-  // Snap + WS + tx + preferences
-  'BackendWebSocketService:connectionStateChanged',
+  // Snap + tx + preferences
   'AccountsController:accountBalancesUpdated',
   'PermissionController:stateChange',
   'SnapController:snapInstalled',
@@ -38,6 +42,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:unapprovedTransactionAdded',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
+  'AccountActivityService:statusChanged',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
   'RemoteFeatureFlagController:stateChange',
 ] as const;
@@ -64,15 +69,11 @@ export function getAssetsControllerMessenger(
     actions: [
       // Account group + network context for RpcDataSource (core#9388)
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountsController:getSelectedAccount',
-      'BackendWebSocketService:subscribe',
-      'BackendWebSocketService:getConnectionInfo',
-      'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-      'BackendWebSocketService:addChannelCallback',
-      'BackendWebSocketService:removeChannelCallback',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',

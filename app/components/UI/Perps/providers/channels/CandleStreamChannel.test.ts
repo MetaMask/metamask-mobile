@@ -1247,6 +1247,25 @@ describe('CandleStreamChannel', () => {
       expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
     });
 
+    it('refreshes cached candles when prewarm is forced', async () => {
+      mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      mockFetchHistoricalCandles.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
     it('skips prewarm fetch when live subscription cache is fresh', async () => {
       let capturedCallback: ((data: CandleData) => void) | undefined;
       mockSubscribeToCandles.mockImplementation(({ callback }) => {
@@ -1323,6 +1342,61 @@ describe('CandleStreamChannel', () => {
 
       resolveFetch(warmedData);
       await Promise.all([firstPrewarm, secondPrewarm]);
+    });
+
+    it('coalesces concurrent forced prewarm requests', async () => {
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles.mockReturnValue(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      const firstRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+      const secondRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+      resolveFetch(mockCandleData);
+      await Promise.all([firstRefresh, secondRefresh]);
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs one forced refresh after an in-flight normal prewarm', async () => {
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          }),
+        )
+        .mockResolvedValueOnce(mockCandleData);
+
+      const normalPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      const forcedRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+      resolveFetch(mockCandleData);
+      await Promise.all([normalPrewarm, forcedRefresh]);
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
     });
 
     it('does not cache or notify subscribers when prewarm returns empty candles', async () => {
@@ -1436,20 +1510,31 @@ describe('CandleStreamChannel', () => {
       );
     });
 
-    it('returns from duplicate in-flight prewarm request', async () => {
-      let resolveFetch: (value: CandleData) => void = () => undefined;
-      mockFetchHistoricalCandles.mockReturnValue(
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        }),
-      );
+    it('starts a new prewarm after context clear and ignores stale data', async () => {
+      let resolveStaleFetch: (value: CandleData) => void = () => undefined;
+      let resolveCurrentFetch: (value: CandleData) => void = () => undefined;
+      const currentContextData = {
+        ...mockCandleData,
+        candles: [{ ...mockCandleData.candles[0], close: '60000' }],
+      };
+      mockFetchHistoricalCandles
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveStaleFetch = resolve;
+          }),
+        )
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveCurrentFetch = resolve;
+          }),
+        );
 
-      const firstPrewarm = channel.prewarmCandles(
+      const stalePrewarm = channel.prewarmCandles(
         'BTC',
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
       );
-      await channel.prewarmCandles(
+      const duplicateStalePrewarm = channel.prewarmCandles(
         'BTC',
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
@@ -1457,12 +1542,33 @@ describe('CandleStreamChannel', () => {
 
       expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
 
-      resolveFetch({
+      channel.clearCache();
+      const currentPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+
+      resolveStaleFetch({
         symbol: 'BTC',
         interval: CandlePeriod.FiveMinutes,
         candles: [mockCandleData.candles[0]],
       });
-      await firstPrewarm;
+      await Promise.all([stalePrewarm, duplicateStalePrewarm]);
+      const duplicateCurrentPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+
+      resolveCurrentFetch(currentContextData);
+      await Promise.all([currentPrewarm, duplicateCurrentPrewarm]);
+
+      expect(channel.getCachedData('BTC', CandlePeriod.FiveMinutes)).toEqual(
+        currentContextData,
+      );
     });
 
     it('logs stale cache refresh failures triggered by subscribe', async () => {
@@ -1507,6 +1613,8 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneWeek,
         callback: jest.fn(),
       });
+      await Promise.resolve();
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
 

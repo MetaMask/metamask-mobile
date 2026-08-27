@@ -65,22 +65,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
   'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
-  'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/SendTransaction/SendTransaction.tsx',
-  'app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx',
-  'app/components/UI/Ramp/Aggregator/components/OrderListItem/OrderListItem.tsx',
-  'app/components/UI/Ramp/Aggregator/components/Quote/Quote.tsx',
-  'app/components/UI/Ramp/Aggregator/hooks/useBalance.test.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useBalance.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useERC20GasLimitEstimation.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
-  'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/utils/depositUtils.ts',
-  'app/components/UI/Ramp/utils/getOrderAmount.ts',
-  'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
@@ -269,8 +253,6 @@ module.exports = {
         'tests/flows/**/*.test.js',
       ],
       rules: {
-        // UnifiedGestures Identifier stays out of this error list so legacy PO
-        // usages remain warn-only via no-restricted-imports (MMQA-2174).
         'no-restricted-syntax': [
           'error',
           {
@@ -281,15 +263,17 @@ module.exports = {
             selector: 'SequenceExpression',
             message: 'Sequence expressions are not allowed',
           },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in POs/flows. Use Gestures/Assertions/Matchers.',
+          },
         ],
       },
     },
     {
-      files: ['tests/smoke-appium/**/*.{js,ts}', 'tests/smoke/**/*.{js,ts}'],
-      excludedFiles: [
-        'tests/smoke-appium/**/*.test.ts',
-        'tests/smoke/**/*.test.ts',
-      ],
+      files: ['tests/smoke-appium/**/*.{js,ts}'],
+      excludedFiles: ['tests/smoke-appium/**/*.test.ts'],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -302,8 +286,9 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           {
-            selector: "Identifier[name='UnifiedGestures']",
-            message: 'Use Gestures instead of UnifiedGestures.',
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in specs. Use Gestures/Assertions/Matchers.',
           },
         ],
       },
@@ -656,6 +641,12 @@ module.exports = {
               ['builtin', 'external'],
               ['internal', 'parent', 'sibling', 'index'],
             ],
+            pathGroups: [
+              {
+                pattern: '#*/**',
+                group: 'internal',
+              },
+            ],
             alphabetize: { order: 'asc', caseInsensitive: true },
             'newlines-between': 'always',
           },
@@ -942,5 +933,5 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
 };

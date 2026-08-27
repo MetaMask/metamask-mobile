@@ -15,14 +15,14 @@
  * Catches the wiring between hook and controller in addition to the
  * controller wiring itself. Heavier setup, broader coverage.
  *
- * Reference: tests/integration/harnesses/perps-flow.ts
+ * Reference: tests/integration/harnesses/perps/perps-flow.ts
  *            tests/integration/STRATEGY.md (Shape A vs Shape B discussion)
  */
 
 import { act } from '@testing-library/react-native';
 import { type OrderResult, type Position } from '@metamask/perps-controller';
 
-import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
+import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
@@ -112,6 +112,45 @@ describe('Perps order lifecycle — FLOW integration', () => {
         source: 'perp_asset_screen',
         action: 'create_position',
       });
+    });
+
+    it('starts a TWAP through the hook, TradingService, and provider chain', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placeOrderResult: Awaited<
+        ReturnType<typeof result.current.placeOrder>
+      > | null = null;
+      await act(async () => {
+        placeOrderResult = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'twap',
+          currentPrice: 50_000,
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(placeOrderResult).toMatchObject({
+        success: true,
+        orderId: '123',
+      });
+      expect(perps.harness.mocks.exchangeClient.twapOrder).toHaveBeenCalledWith(
+        {
+          twap: {
+            a: 0, // venue asset id
+            b: true, // buy
+            s: '0.1', // size
+            r: false, // reduce only
+            m: 90, // duration in minutes
+            t: true, // randomize child sizes
+          },
+        },
+      );
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
 
     it('emits Perp Trade Transaction with status failed when the provider rejects the order', async () => {

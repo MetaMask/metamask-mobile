@@ -31,6 +31,7 @@ interface ManageCardOptionsProps {
   cardDetailsVisible: boolean;
   onViewCardDetails: () => void;
   onViewPin: () => void;
+  onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
   showUnlinkMoneyAccount: boolean;
@@ -41,6 +42,7 @@ interface ManageCardOptionsProps {
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
+  onTransactionHistory?: () => void;
 }
 
 const ManageCardOptions = ({
@@ -60,6 +62,7 @@ const ManageCardOptions = ({
   cardDetailsVisible,
   onViewCardDetails,
   onViewPin,
+  onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
   showUnlinkMoneyAccount,
@@ -70,6 +73,7 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   onCashback,
   onTravel,
+  onTransactionHistory,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -90,6 +94,9 @@ const ManageCardOptions = ({
     !!account?.shippingAddress &&
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
+
+  // Providers set hasPin on CardDetails; absent means treat as true.
+  const cardHasPin = card?.hasPin !== false;
 
   // Providers without funding limits (e.g. Immersve) expose manage options as
   // soon as a card exists; balance-gating only applies to funding-limit
@@ -167,6 +174,7 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
@@ -177,6 +185,23 @@ const ManageCardOptions = ({
             onPress={onViewPin}
             isLoading={isPinLoading}
             testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          />
+        )}
+        {((isAuthenticated &&
+          !isLoading &&
+          card &&
+          card.status === CardStatus.ACTIVE &&
+          capabilities?.supportsPinSet &&
+          cardHasPin &&
+          !hideManageOptions) ||
+          (showTeaserOptions && capabilities?.supportsPinSet)) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.set_pin')}
+            description={strings(
+              'card.card_home.manage_card_options.set_pin_description',
+            )}
+            onPress={onSetPin}
+            testID={CardHomeSelectors.SET_PIN_BUTTON}
           />
         )}
         {((isAuthenticated &&
@@ -221,6 +246,15 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
+        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
+          <ManageCardListItem
+            title={strings('card.transactions.manage_entry_title')}
+            description={strings('card.transactions.manage_entry_description')}
+            rightIcon={IconName.ArrowRight}
+            onPress={onTransactionHistory}
+            testID="card-transaction-history-item"
+          />
+        ) : null}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(

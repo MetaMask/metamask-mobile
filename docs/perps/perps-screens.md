@@ -205,9 +205,11 @@ usePerpsMarketStats → Statistics
 usePerpsPositionData → Existing position
 usePerpsDataMonitor → Data consistency
     ↓
-Render: Chart + Stats + Tabs
+Render: Chart (position TP/SL/liq plus resting Limit lines) + Stats + Tabs
     ↓
 User actions:
+  ├─ Chart overlay: Entry / TP / SL / Liq from the open position, plus
+     a Limit line per resting (non-trigger) limit order
   ├─ Trade → PerpsOrderView
   ├─ Manage position → PerpsClosePositionView or PerpsTPSLView
   └─ View orders → Market orders tab
@@ -288,7 +290,46 @@ User action:
 
 ---
 
-## PerpsPositionsView
+## Pro mode — open order edit (TAT-3642)
+
+**Location:** `app/components/UI/Perps/Views/PerpsProMarketView/` (orders tab within Pro market view)
+
+### Purpose & User Journey
+
+In Perps Pro mode, users can edit the **limit price** or **size** of eligible open limit orders in place (venue `modify`, not cancel+replace). Tapping the price/size row or the Edit button opens a bottom sheet; confirm applies an optimistic patch, calls `editOrder`, and rolls back on failure.
+
+### Key Components Used
+
+| Component                    | Purpose                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `PerpsProOrderCard`          | Order row with tappable price/size rows and edit affordances                                     |
+| `PerpsProOrderEditSheets`    | Renders limit-price or size sheet from shared edit state                                         |
+| `PerpsLimitPriceBottomSheet` | Limit price keypad (also used by `PerpsOrderView`; resting-order margin validation when editing) |
+| `PerpsOrderSizeBottomSheet`  | Size keypad with minimum-notional and incremental-margin checks                                  |
+
+### Hooks Consumed
+
+| Hook                               | Purpose                                                   |
+| ---------------------------------- | --------------------------------------------------------- |
+| `usePerpsProOrderEdit`             | Sheet state, confirm handler, optimistic apply/rollback   |
+| `usePerpsProPositionsPanelActions` | Wires panel handlers and portal `renderOrderEditSheets()` |
+
+### testIDs (`Perps.testIds.ts`)
+
+| Constant                                                | testID                              |
+| ------------------------------------------------------- | ----------------------------------- |
+| `PerpsProMarketViewSelectorsIDs.ORDER_EDIT`             | `perps-pro-market-order-edit`       |
+| `PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT`       | `perps-pro-market-order-price-edit` |
+| `PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT`        | `perps-pro-market-order-size-edit`  |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.SIZE_DISPLAY`    | `perps-order-size-display`          |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON`  | `perps-order-size-confirm-button`   |
+| `PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON` | `perps-limit-price-confirm-button`  |
+
+### Eligibility
+
+`isLimitOrderEditable` — open, unfilled, non-trigger limits only. Size edit is additionally blocked when TP/SL children are attached.
+
+---
 
 **Location:** `app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView.tsx`
 

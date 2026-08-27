@@ -17,7 +17,7 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
@@ -223,10 +223,12 @@ function syncMoneyAccountDepositRequiredAssets(
   if (!existing?.length || decimals === undefined) return;
 
   try {
+    // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+    // more than the source balance can fund (ROUND_UP was pushing past it).
     const amount = toHex(
       new BigNumber(amountHuman)
         .shiftedBy(decimals)
-        .decimalPlaces(0, BigNumber.ROUND_UP)
+        .decimalPlaces(0, BigNumber.ROUND_DOWN)
         .toFixed(0),
     ) as Hex;
     if (existing[0].amount === amount) return;

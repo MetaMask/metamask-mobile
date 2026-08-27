@@ -1,5 +1,6 @@
 import type { ServiceProvider } from '../../services';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
+import type { PhaseTimer } from '../../telemetry/PhaseTimer.ts';
 
 export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
@@ -56,4 +57,9 @@ export interface TestLevelFixtures {
    * It also handles quality gate validation and Sentry publishing.
    */
   performanceTracker: PerformanceTracker;
+
+  /**
+   * Appium smoke phase timer. Auto-fixture; attaches JSON timings.
+   */
+  phaseTimer: PhaseTimer;
 }

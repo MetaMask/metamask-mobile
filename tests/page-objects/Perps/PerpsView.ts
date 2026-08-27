@@ -15,17 +15,9 @@ import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
-import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-import {
-  EncapsulatedElementType,
-  FrameworkDetector,
-  PlatformDetector,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-  sleep,
-} from '../../framework';
+import { type AppiumElement, PlatformDetector, sleep } from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -47,7 +39,7 @@ class PerpsView {
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
@@ -63,7 +55,7 @@ class PerpsView {
     symbol: string,
     direction: 'long' | 'short',
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return Matchers.getElementByID(
       new RegExp(
@@ -79,11 +71,11 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton(): EncapsulatedElementType {
+  get editTpslButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Edit TP/SL');
   }
 
-  get closePositionBottomSheetButton(): EncapsulatedElementType {
+  get closePositionBottomSheetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
@@ -117,39 +109,39 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  get anchor(): EncapsulatedElementType {
+  get anchor(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
   /** Perps home header — use as swipe target when {@link anchor} is absent. */
-  get perpsHomeHeader(): EncapsulatedElementType {
+  get perpsHomeHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-home');
   }
 
-  get perpsHomeAddFunds(): EncapsulatedElementType {
+  get perpsHomeAddFunds(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
   }
 
-  private getPortfolioPositionCard(index = 0): EncapsulatedElementType {
+  private getPortfolioPositionCard(index = 0): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`,
     );
   }
 
-  private getPortfolioOrderCard(index = 0): EncapsulatedElementType {
+  private getPortfolioOrderCard(index = 0): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
     );
   }
 
-  private getWalletHomePositionRow(symbol: string): EncapsulatedElementType {
+  private getWalletHomePositionRow(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(`perps-position-row-${symbol}`);
   }
 
   private getPositionPrimaryLine(
     symbol: string,
     direction: 'long' | 'short',
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return Matchers.getElementByText(
       new RegExp(`${escapedSymbol} \\d+x ${direction}`),
@@ -157,11 +149,11 @@ class PerpsView {
   }
 
   // Orders section on the Perps main tab
-  get ordersSectionTitle(): EncapsulatedElementType {
+  get ordersSectionTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Orders');
   }
 
-  get anyOrderCardOnTab(): EncapsulatedElementType {
+  get anyOrderCardOnTab(): Promise<AppiumElement> {
     // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
     return Matchers.getElementByText('Limit');
   }
@@ -271,7 +263,7 @@ class PerpsView {
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
-    const positionLocators: EncapsulatedElementType[] = [
+    const positionLocators: Promise<AppiumElement>[] = [
       this.getPortfolioPositionCard(0),
       this.getWalletHomePositionRow(symbol),
       this.getPositionPrimaryLine(symbol, direction),
@@ -465,7 +457,7 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    const el = this.placeOrderButton as DetoxElement;
+    const el = this.placeOrderButton;
     await Utilities.waitForReadyState(el, {
       checkStability: false,
       timeout: 8000,
@@ -479,6 +471,7 @@ class PerpsView {
     await Gestures.waitAndTap(el, {
       timeout: 35000,
       elemDescription: 'Place order button',
+      checkStability: true,
     });
   }
 
@@ -528,52 +521,31 @@ class PerpsView {
 
   /** Perps portfolio home (orders/positions feed), not market details or explore list. */
   async isOnPerpsPortfolioHome(timeout = 2000): Promise<boolean> {
-    if (FrameworkDetector.isAppium()) {
-      const portfolioMarkers = [
-        'perps-home',
-        PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-        PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
-      ];
-
-      for (const testId of portfolioMarkers) {
-        try {
-          const el = await PlaywrightMatchers.getElementById(testId, {
-            exact: true,
-          });
-          await el.unwrap().waitForDisplayed({ timeout });
-          return true;
-        } catch {
-          // Try next marker.
-        }
-      }
-
-      if (PlatformDetector.isIOS()) {
-        return this.isIosElementVisibleByXPath(
-          "//*[@type='XCUIElementTypeButton' and (@name='Add funds' or @label='Add funds')]",
-          timeout,
-        );
-      }
-
-      return false;
-    }
-
-    const portfolioMarkers: EncapsulatedElementType[] = [
-      this.perpsHomeHeader,
-      PerpsHomeView.backHome,
-      this.perpsHomeAddFunds,
+    const portfolioMarkers = [
+      'perps-home',
+      PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+      PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
     ];
 
-    for (const marker of portfolioMarkers) {
-      if (await Utilities.isElementVisible(marker, timeout)) {
+    for (const testId of portfolioMarkers) {
+      if (
+        await Utilities.isElementVisible(
+          Matchers.getElementByID(testId),
+          timeout,
+        )
+      ) {
         return true;
       }
     }
 
-    return false;
-  }
+    if (PlatformDetector.isIOS()) {
+      return this.isIosElementVisibleByXPath(
+        "//*[@type='XCUIElementTypeButton' and (@name='Add funds' or @label='Add funds')]",
+        timeout,
+      );
+    }
 
-  private isIosAppium(): boolean {
-    return FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+    return false;
   }
 
   private get iosHeaderBackButtonXPath(): string {
@@ -592,15 +564,18 @@ class PerpsView {
     xpath: string,
     timeout = 2000,
   ): Promise<boolean> {
-    if (!this.isIosAppium()) {
+    if (!PlatformDetector.isIOS()) {
       return false;
     }
 
     try {
-      const el = await PlaywrightMatchers.getElementByXPath(xpath, {
-        lastElement: false,
-      });
-      await el.unwrap().waitForDisplayed({ timeout });
+      await Assertions.expectElementToBeVisible(
+        Matchers.getElementByNativeXPath(xpath, { lastElement: false }),
+        {
+          timeout,
+          description: 'iOS xpath element visibility check',
+        },
+      );
       return true;
     } catch {
       return false;
@@ -615,20 +590,21 @@ class PerpsView {
   }
 
   private async tapIosHeaderBackButton(): Promise<boolean> {
-    if (!this.isIosAppium()) {
+    if (!PlatformDetector.isIOS()) {
       return false;
     }
 
     try {
-      const backButton = await PlaywrightMatchers.getElementByXPath(
-        this.iosHeaderBackButtonXPath,
-        { lastElement: false },
+      await Gestures.waitAndTap(
+        Matchers.getElementByNativeXPath(this.iosHeaderBackButtonXPath, {
+          lastElement: false,
+        }),
+        {
+          checkEnabled: false,
+          timeout: 10000,
+          elemDescription: 'iOS header back button',
+        },
       );
-
-      await PlaywrightGestures.waitAndTap(backButton, {
-        checkForEnabled: false,
-        timeout: 10000,
-      });
 
       return true;
     } catch {
@@ -647,18 +623,6 @@ class PerpsView {
     testId: string,
     timeout = 2000,
   ): Promise<boolean> {
-    if (FrameworkDetector.isAppium()) {
-      try {
-        const el = await PlaywrightMatchers.getElementById(testId, {
-          exact: true,
-        });
-        await el.unwrap().waitForDisplayed({ timeout });
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
     return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
   }
 
@@ -733,9 +697,15 @@ class PerpsView {
     return this.tapIosHeaderBackButton();
   }
 
-  private async navigateToPerpsPortfolioHomeFromMarketOrderFlowAppium(
-    marketListBackTestId: string,
-  ): Promise<void> {
+  /**
+   * After placing an order from market details (explore → market → order), return to Perps
+   * portfolio home where open orders are listed. Uses market-details header back, then
+   * market-list header back — not {@link PerpsHomeView.tapBackHomeButton} (that control only
+   * exists on portfolio home and exits Perps toward wallet).
+   */
+  async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
+    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
+
     await this.waitForMarketOrderFlowNavigationTarget(
       marketListBackTestId,
       30000,
@@ -762,74 +732,6 @@ class PerpsView {
       } catch {
         // Let the next attempt decide whether we reached home or have no path.
       }
-    }
-
-    if (await this.isOnPerpsPortfolioHome(1000)) {
-      return;
-    }
-
-    throw new Error(
-      'Could not reach Perps portfolio home: no market list back or market header back visible',
-    );
-  }
-
-  /**
-   * After placing an order from market details (explore → market → order), return to Perps
-   * portfolio home where open orders are listed. Uses market-details header back, then
-   * market-list header back — not {@link PerpsHomeView.tapBackHomeButton} (that control only
-   * exists on portfolio home and exits Perps toward wallet).
-   */
-  async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
-    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
-
-    if (FrameworkDetector.isAppium()) {
-      await this.navigateToPerpsPortfolioHomeFromMarketOrderFlowAppium(
-        marketListBackTestId,
-      );
-      return;
-    }
-
-    await this.waitForMarketOrderFlowNavigationTarget(marketListBackTestId);
-
-    if (await this.isOnPerpsPortfolioHome(1000)) {
-      return;
-    }
-
-    if (
-      await this.isTestIdVisible(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON, 2000)
-    ) {
-      await Gestures.waitAndTap(
-        Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON),
-        {
-          elemDescription: 'Perps order header back (to market details)',
-          timeout: 15000,
-        },
-      );
-      await Utilities.waitUntil(
-        async () =>
-          (await this.isMarketDetailsBackVisible(1000)) ||
-          (await this.isOnPerpsPortfolioHome(1000)),
-        {
-          interval: 500,
-          timeout: 15000,
-        },
-      );
-    }
-
-    if (await this.isOnPerpsPortfolioHome(1000)) {
-      return;
-    }
-
-    if (await this.isMarketDetailsBackVisible(3000)) {
-      await PerpsMarketDetailsView.tapBackButton();
-    }
-
-    if (await this.isOnPerpsPortfolioHome(1000)) {
-      return;
-    }
-
-    if (await this.isTestIdVisible(marketListBackTestId, 3000)) {
-      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
     }
 
     if (await this.isOnPerpsPortfolioHome(1000)) {

@@ -2,25 +2,21 @@ import type { Mockttp } from 'mockttp';
 
 import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
+import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions.js';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
 import { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
-} from '../../../framework/PlaywrightUtilities.js';
+} from '../../../framework/AppiumUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   dismissExperienceEnhancerModal,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -61,14 +57,16 @@ const IOS_ONBOARDING_INDICATOR_IDS = [
   OnboardingSelectorIDs.SCREEN_TITLE,
 ] as const;
 
+interface AppiumElement {
+  isVisible: () => Promise<boolean>;
+}
+
 const isOnboardingIndicatorVisible = async (
   testId: string,
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -111,9 +109,7 @@ const isCreatePasswordIndicatorVisible = async (
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -151,18 +147,6 @@ const waitForCreatePasswordScreenPlaywright = async (
   );
 };
 
-/**
- * Disable Predict GTM full-screen modal so post-onboarding actions (accounts
- * menu → lock) are not blocked. Matches qr-sync / add-srp seedless smoke setup.
- */
-const disablePredictGtmOnboardingModal = async (
-  mockServer: Mockttp,
-): Promise<void> => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeaturePredictGtmOnboardingModalDisabled(),
-  });
-};
-
 export async function setupGoogleNewUserOAuthMock(
   mockServer: Mockttp,
 ): Promise<void> {
@@ -171,7 +155,6 @@ export async function setupGoogleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureGoogleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupGoogleExistingUserOAuthMock(
@@ -192,7 +175,6 @@ export async function setupAppleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureAppleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupAppleExistingUserOAuthMock(
@@ -205,11 +187,31 @@ export async function setupAppleExistingUserOAuthMock(
   await oAuthMockttpService.setup(mockServer);
 }
 
+export async function setupTelegramNewUserOAuthMock(
+  mockServer: Mockttp,
+): Promise<void> {
+  E2EOAuthHelpers.reset();
+  E2EOAuthHelpers.configureTelegramNewUser();
+  const oAuthMockttpService = createOAuthMockttpService();
+  oAuthMockttpService.configureTelegramNewUser();
+  await oAuthMockttpService.setup(mockServer);
+  // main-e2e does not bake MM_TELEGRAM_LOGIN_ENABLED; e2e/test LD defaults
+  // Telegram off. Override the client-config mock so the onboarding sheet
+  // renders the Telegram button.
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    telegram_login_enabled: true,
+  });
+}
+
+type SocialLoginProvider = 'google' | 'apple' | 'telegram';
+
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * Intermediate screen UI is covered by component-view / unit tests; this
+ * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
-  provider: 'google' | 'apple',
+  provider: SocialLoginProvider,
 ): Promise<void> => {
   await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 
@@ -221,13 +223,37 @@ export const completeSocialLoginOnboarding = async (
 
   if (provider === 'google') {
     await OnboardingSheet.tapGoogleLoginButton();
-  } else {
+  } else if (provider === 'apple') {
     await OnboardingSheet.tapAppleLoginButton();
+  } else {
+    await Assertions.expectElementToBeVisible(
+      OnboardingSheet.telegramLoginButton,
+      {
+        description:
+          'Telegram login button should be visible when telegram_login_enabled is mocked true',
+      },
+    );
+    await OnboardingSheet.tapTelegramLoginButton();
   }
 
   if (PlatformDetector.isIOS()) {
-    await SocialLoginView.isIosNewUserScreenVisible();
-    await SocialLoginView.tapIosNewUserSetPinButton();
+    if (provider === 'telegram') {
+      try {
+        await Assertions.expectElementToBeVisible(
+          SocialLoginView.iosNewUserTitle,
+          {
+            timeout: 8000,
+            description: 'iOS set-PIN screen may appear after Telegram login',
+          },
+        );
+        await SocialLoginView.tapIosNewUserSetPinButton();
+      } catch {
+        // Telegram can skip SocialLoginIosUser and land on create-password.
+      }
+    } else {
+      await SocialLoginView.isIosNewUserScreenVisible();
+      await SocialLoginView.tapIosNewUserSetPinButton();
+    }
   }
 
   await waitForCreatePasswordScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
@@ -290,9 +316,6 @@ export const completeSocialLoginOnboarding = async (
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
-  // Predict GTM can still appear if remote flags race the mock; dismiss if present
-  // so accounts-menu → lock is not blocked (Android lock/unlock / reset smokes).
-  await dismisspredictionsModalPlaywright();
 };
 
 export const completeGoogleNewUserOnboarding = (): Promise<void> =>
@@ -300,6 +323,9 @@ export const completeGoogleNewUserOnboarding = (): Promise<void> =>
 
 export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
+
+export const completeTelegramNewUserOnboarding = (): Promise<void> =>
+  completeSocialLoginOnboarding('telegram');
 
 /**
  * Confirms the native lock alert. On iOS the confirm button can go stale before
@@ -374,13 +400,10 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login screen should be visible before unlock',
-      timeout: 30_000,
-    },
-  );
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login screen should be visible before unlock',
+    timeout: 30_000,
+  });
   await LoginView.enterPassword(password);
   await LoginView.tapLoginButton();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));

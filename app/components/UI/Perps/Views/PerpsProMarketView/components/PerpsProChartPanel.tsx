@@ -26,6 +26,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
@@ -35,7 +36,12 @@ import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsLiveCandles } from '../../../hooks/stream/usePerpsLiveCandles';
+import { usePerpsLiveOrders } from '../../../hooks/stream/usePerpsLiveOrders';
 import { getPerpsChartAnalyticsProperties } from '../../../utils/chartAnalytics';
+import {
+  buildChartOverlayLines,
+  getChartLimitOrderLines,
+} from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector, {
   type PerpsCandlePeriodOption,
@@ -48,7 +54,7 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../../components/TradingViewChart';
-import PerpsProMarketSummary from './PerpsProMarketSummary';
+import PerpsMarketSummary from '../../../components/PerpsMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
 /**
@@ -77,6 +83,13 @@ interface PerpsProChartPanelProps {
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
   onChartError: (error?: Error | string) => void;
+  /**
+   * Parent-owned display price (`usePerpsSyncedChartPrice`), same value as
+   * the compact header. Shown in the summary and chart current-price line.
+   */
+  currentPrice: number;
+  /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
+  onLatestPriceChange?: (price: number | undefined) => void;
 }
 
 /**
@@ -90,27 +103,27 @@ const PerpsProChartPanel = ({
   onCandlePeriodChange,
   onMorePress,
   onChartError,
+  currentPrice,
+  onLatestPriceChange,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
+  const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
 
-  // Clear the Advanced Chart's synced price whenever it (un)mounts or changes
-  // subject: symbol/period/flag changes, and collapse/expand. While collapsed
-  // the Advanced Chart is unmounted and can no longer report prices, so the
-  // always-visible summary must fall back to the retained candle price instead
-  // of freezing on the last Advanced Chart value.
+  // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
+  // reported close. Symbol/period/flag resets are owned by
+  // `usePerpsSyncedChartPrice` (same as Lite).
   useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, isChartExpanded, selectedCandlePeriod, symbol]);
+    if (!isChartExpanded) {
+      onLatestPriceChange?.(undefined);
+    }
+  }, [isChartExpanded, onLatestPriceChange]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
@@ -128,41 +141,28 @@ const PerpsProChartPanel = ({
     asset: symbol,
     loadOnMount: true,
   });
+  const { orders: liveOrders } = usePerpsLiveOrders({ hideTpSl: true });
   const { marketData } = usePerpsMarketData({ asset: symbol });
   const {
     isDeviatedAboveThreshold: isTradingHalted,
     isLoading: isLoadingTradingHalted,
   } = useIsPriceDeviatedAboveThreshold(symbol);
 
-  const chartCurrentPrice = useMemo(() => {
-    const lastCandle = candleData?.candles.at(-1);
-    return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
-  const syncedChartCurrentPrice =
-    isChartExpanded &&
-    isAdvancedChartEnabled &&
-    advancedChartCurrentPrice !== undefined
-      ? advancedChartCurrentPrice
-      : chartCurrentPrice;
+  const limitOrders = useMemo(() => {
+    const marketOrders = liveOrders.filter((order) => order.symbol === symbol);
+    return getChartLimitOrderLines(marketOrders);
+  }, [liveOrders, symbol]);
 
   const tpslLines = useMemo(() => {
-    const currentPrice =
-      syncedChartCurrentPrice > 0
-        ? syncedChartCurrentPrice.toString()
-        : undefined;
+    const chartPriceStr =
+      currentPrice > 0 ? currentPrice.toString() : undefined;
 
-    if (!existingPosition) {
-      return currentPrice ? { currentPrice } : undefined;
-    }
-
-    return {
-      entryPrice: existingPosition.entryPrice,
-      takeProfitPrice: existingPosition.takeProfitPrice,
-      stopLossPrice: existingPosition.stopLossPrice,
-      liquidationPrice: existingPosition.liquidationPrice || undefined,
-      currentPrice,
-    };
-  }, [existingPosition, syncedChartCurrentPrice]);
+    return buildChartOverlayLines({
+      currentPrice: chartPriceStr,
+      existingPosition,
+      limitOrders,
+    });
+  }, [currentPrice, existingPosition, limitOrders]);
 
   useEffect(() => {
     const hasIntervalChanged =
@@ -176,6 +176,7 @@ const PerpsProChartPanel = ({
 
   const handleToggleChartExpanded = useCallback(
     (expanded: boolean) => {
+      playSelection().catch(() => undefined);
       setChartExpanded(expanded);
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -187,7 +188,7 @@ const PerpsProChartPanel = ({
         ...chartAnalyticsProperties,
       });
     },
-    [chartAnalyticsProperties, setChartExpanded, symbol, track],
+    [chartAnalyticsProperties, playSelection, setChartExpanded, symbol, track],
   );
 
   const handleFullscreenChartOpen = useCallback(() => {
@@ -212,7 +213,7 @@ const PerpsProChartPanel = ({
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
         onCrosshairDataChange={setOhlcData}
-        onLatestPriceChange={setAdvancedChartCurrentPrice}
+        onLatestPriceChange={onLatestPriceChange}
         onError={onChartError}
         fallbackCandleData={candleData}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -247,9 +248,12 @@ const PerpsProChartPanel = ({
 
   return (
     <>
-      <PerpsProMarketSummary
+      <PerpsMarketSummary
         symbol={symbol}
-        currentPrice={syncedChartCurrentPrice}
+        currentPrice={currentPrice}
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
+        testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
         endAccessory={
           <ButtonIcon
             iconName={IconName.Candlestick}

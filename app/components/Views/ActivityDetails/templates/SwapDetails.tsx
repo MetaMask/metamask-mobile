@@ -1,7 +1,11 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import type { CaipChainId } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
+  type TokenAmount,
   enrichTokenFromApi,
 } from '../../../../util/activity-adapters';
 import { useTokensData } from '../../../hooks/useTokensData/useTokensData';
@@ -17,14 +21,38 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
 import { getSwapAgainLabel } from './swapAgainLabel';
+
+function LendAgainButton({
+  token,
+  fallbackCaipChainId,
+}: {
+  token?: TokenAmount;
+  fallbackCaipChainId: CaipChainId;
+}) {
+  const { canLendAgain, onLendAgain } = useActivityDetailsLendAgain({
+    token,
+    fallbackCaipChainId,
+  });
+
+  if (!canLendAgain) {
+    return null;
+  }
+
+  return (
+    <ActivityDetailsDoItAgainButton
+      label={strings('activity_details.lend_again')}
+      onPress={onLendAgain}
+    />
+  );
+}
 
 type SwapDetailsItem = Extract<
   ActivityListItem,
   {
     type:
       | 'swap'
-      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
@@ -32,6 +60,16 @@ type SwapDetailsItem = Extract<
       | 'unwrap';
   }
 >;
+
+function markAmountHumanReadable(
+  token: TokenAmount | undefined,
+  enabled: boolean,
+): TokenAmount | undefined {
+  if (!token || !enabled) {
+    return token;
+  }
+  return { ...token, amountIsHumanReadable: true };
+}
 
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   const rawSourceToken = item.data.sourceToken;
@@ -43,14 +81,29 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  // Keep API decimals for Swap again, but keyring amounts are already
+  // human-readable so display/fiat must not run formatUnits on them.
+  const amountIsHumanReadable = isNonEvmChainId(item.chainId);
+  const sourceToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawSourceToken, tokenData),
+    amountIsHumanReadable,
+  );
+  const destinationToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawDestinationToken, tokenData),
+    amountIsHumanReadable,
+  );
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,
     destinationToken,
     fallbackCaipChainId: item.chainId,
   });
+
+  const swapAgainLabel =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal'
+      ? undefined
+      : getSwapAgainLabel(item.type);
+  const isLendingDeposit = item.type === 'lendingDeposit';
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
     sourceToken,
     item.chainId,
@@ -72,9 +125,15 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
             chainId={item.chainId}
             hash={item.hash}
           />
-          {canDoItAgain ? (
+          {isLendingDeposit ? (
+            <LendAgainButton
+              token={sourceToken}
+              fallbackCaipChainId={item.chainId}
+            />
+          ) : null}
+          {swapAgainLabel && canDoItAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={getSwapAgainLabel(item.type)}
+              label={swapAgainLabel}
               onPress={handleDoItAgain}
             />
           ) : null}
