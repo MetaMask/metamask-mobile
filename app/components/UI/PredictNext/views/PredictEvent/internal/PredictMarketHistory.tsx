@@ -290,7 +290,7 @@ export const PredictGameMarketHistory = ({
   // carries that Team's Game Selection.
   const series: MarketHistorySeries[] = [
     {
-      id: home.market.id,
+      id: home.outcome.id,
       label: getCompactTeamLabel(home.team),
       color: home.team.primaryColor ?? colors.success.default,
       points: toChartPoints(
@@ -299,7 +299,7 @@ export const PredictGameMarketHistory = ({
       ),
     },
     {
-      id: away.market.id,
+      id: away.outcome.id,
       label: getCompactTeamLabel(away.team),
       color: away.team.primaryColor ?? colors.info.default,
       points: toChartPoints(
