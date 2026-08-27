@@ -594,7 +594,9 @@ describe('perpsLoadingSession', () => {
       expect(setMeasurement).toHaveBeenCalledTimes(3);
       expect(valuesReadyRecords()).toHaveLength(2);
       expect(valuesReadyRecords()).toEqual(
-        expect.arrayContaining([expect.objectContaining({ pre_session: true })]),
+        expect.arrayContaining([
+          expect.objectContaining({ pre_session: true }),
+        ]),
       );
       expect(annotateTrace).toHaveBeenCalledWith(
         { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
