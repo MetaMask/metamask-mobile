@@ -111,6 +111,13 @@ describe('Feature Flag Registry', () => {
         expect.objectContaining({ enabled: true }),
       );
     });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
