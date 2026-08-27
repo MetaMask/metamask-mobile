@@ -9,6 +9,7 @@ import {
   mockPerpFeedItem,
   mockSpotFeedItem,
 } from '../mocks/coreFeed.mock';
+import { prefetchTraderFeeds } from './traderFeedQueries';
 
 const expectedFeedFetchOptions = {
   limit: 30,
@@ -47,12 +48,14 @@ jest.mock('../../../../../util/social/socialServiceTelemetry', () => ({
     error ? (error instanceof Error ? error.message : String(error)) : null,
 }));
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
-  });
+const createWrapper = (queryClient?: QueryClient) => {
+  const client =
+    queryClient ??
+    new QueryClient({
+      defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    });
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
+    React.createElement(QueryClientProvider, { client }, children);
 };
 
 describe('useTraderFeed', () => {
@@ -244,5 +247,27 @@ describe('useTraderFeed', () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]?.type).toBe('perps');
     expect(result.current.hasLoadedItems).toBe(true);
+  });
+
+  it('does not refetch when first-page data is already in the cache', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 5 * 60 * 1000 },
+      },
+    });
+
+    await prefetchTraderFeeds(queryClient);
+    expect(mockCall).toHaveBeenCalledTimes(2);
+    mockCall.mockClear();
+
+    const { result } = renderHook(
+      () => useTraderFeed({ audience: 'following' }),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
   });
 });

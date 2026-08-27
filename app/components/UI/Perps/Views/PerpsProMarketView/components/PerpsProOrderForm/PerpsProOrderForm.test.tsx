@@ -1,7 +1,12 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { Keyboard, type View } from 'react-native';
+import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -14,6 +19,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -48,6 +54,20 @@ const createSizeSlider = (
   ...overrides,
 });
 
+const createTwap = (
+  overrides: Partial<PerpsProOrderFormProps['twap']> = {},
+): PerpsProOrderFormProps['twap'] => ({
+  days: '',
+  hours: '',
+  minutes: '5',
+  randomize: false,
+  onDaysChange: jest.fn(),
+  onHoursChange: jest.fn(),
+  onMinutesChange: jest.fn(),
+  onRandomizeChange: jest.fn(),
+  ...overrides,
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
@@ -67,6 +87,8 @@ const createProps = (
     availableBalance: '-- available',
     reduceOnly: false,
     onReduceOnlyChange: jest.fn(),
+    twap: createTwap(),
+    onTwapDurationPress: jest.fn(),
     isTPSLConfigured: false,
     notices: [],
     summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
@@ -228,6 +250,50 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
+    it('groups TWAP runtime and Randomize inside the order card', () => {
+      renderForm({ orderType: 'twap' });
+      const orderCard = within(screen.getByTestId(ids.ORDER_TYPE_CARD));
+
+      expect(orderCard.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_DURATION_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_RANDOMIZE)).toBeOnTheScreen();
+    });
+
+    it('opens the TWAP duration sheet from the compact Runtime row', () => {
+      const onTwapDurationPress = jest.fn();
+      renderForm({ orderType: 'twap', onTwapDurationPress });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
+
+      expect(onTwapDurationPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the compact TWAP duration value', () => {
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ days: '1', hours: '2', minutes: '30' }),
+      });
+
+      expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
+        '1d 2h 30m',
+      );
+      expect(
+        screen.queryByTestId(ids.TWAP_DURATION_PICKER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('updates TWAP Randomize from the compact card row', () => {
+      const onRandomizeChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ onRandomizeChange }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
+
+      expect(onRandomizeChange).toHaveBeenCalledWith(true);
+    });
+
     it('passes raw trigger price text to onTriggerPriceChange', () => {
       const onTriggerPriceChange = jest.fn();
       renderForm({ orderType: 'stop_market', onTriggerPriceChange });
@@ -351,12 +417,17 @@ describe('PerpsProOrderForm', () => {
     const limitPriceAccessoryID = getPerpsProInputAccessoryID(
       ids.LIMIT_PRICE_INPUT,
     );
+    const expectedAccessoryIDs = [
+      sizeAccessoryID,
+      triggerAccessoryID,
+      limitPriceAccessoryID,
+    ];
     const mountedAccessoryIDs = () =>
       screen
         .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
         .map((accessory) => accessory.props.nativeID);
 
-    it('keeps size, trigger, and limit keyboard accessories mounted on market', () => {
+    it('keeps all keyboard accessories mounted on market', () => {
       renderForm({ orderType: 'market' });
 
       expect(
@@ -373,11 +444,7 @@ describe('PerpsProOrderForm', () => {
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
     it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
@@ -389,11 +456,7 @@ describe('PerpsProOrderForm', () => {
         triggerAccessoryID,
       );
       expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
     it('connects each visible iOS numeric input to its own keyboard accessory', () => {
@@ -408,11 +471,7 @@ describe('PerpsProOrderForm', () => {
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {
@@ -523,6 +582,14 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
 
       expect(onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the Mid price preset is pressed', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
       expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
@@ -667,6 +734,76 @@ describe('PerpsProOrderForm', () => {
       });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
+    });
+  });
+
+  describe('slippage edit control', () => {
+    const slippageSummary = {
+      margin: '--',
+      liquidationPrice: '--',
+      slippage: '0.50% / 1%',
+    };
+
+    const backgroundOf = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style)
+        ?.backgroundColor;
+
+    it('renders the slippage edit affordance as an icon-only button', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toBeOnTheScreen();
+      expect(
+        within(editButton).queryByText(slippageSummary.slippage),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).getByText(
+          slippageSummary.slippage,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('names the slippage edit affordance and keeps it reachable at the minimum tap size', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toHaveProp('accessibilityRole', 'button');
+      expect(editButton).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.slippage.config_title'),
+      );
+      expect(editButton).toHaveProp('hitSlop', 12);
+    });
+
+    it('applies a pressed background to the slippage edit affordance while held', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).not.toBe(
+        restingBackground,
+      );
+    });
+
+    it('restores the resting background once the slippage edit affordance is released', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressOut');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).toBe(restingBackground);
     });
   });
 
