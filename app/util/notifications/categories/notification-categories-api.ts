@@ -1,64 +1,49 @@
-import { NotificationCategoryMetadata } from './notification-categories.types';
+import type { NotificationCategoryMetadata } from './notification-categories.types';
 
-// TODO: replace with a real GET /api/v1/notifications/categories?locale=<locale>
-// call once the BE endpoint ships. Keep this function's signature stable so
-// useNotificationCategories doesn't need to change.
-//
-// label/description below are structural placeholders only — consumers
-// resolve the actual copy via the existing app_settings.notifications_opts.*
-// i18n keys, keyed off categoryId, so translations keep working.
+// TODO: replace with a real GET /api/v4/notifications/categories call once the
+// BE endpoint is consumed via the controller. Keep this function's signature
+// stable so consumers don't need to change.
 const MOCK_NOTIFICATION_CATEGORIES: NotificationCategoryMetadata[] = [
   {
-    categoryId: 'walletActivity',
-    ausKeys: ['walletActivity'],
-    label: 'Wallet activity',
-    description: 'Buys, sells, transfers, and swaps',
-    icon: 'Clock',
+    category_id: 'walletActivity',
+    aus_keys: ['walletActivity'],
+    visible_on: [],
+    notification_types: [],
   },
   {
-    categoryId: 'perps',
-    ausKeys: ['perps'],
-    label: 'Trading activity',
-    description:
-      'Perps position changes, liquidations, funding rates, and margin updates',
-    icon: 'Candlestick',
+    category_id: 'perps',
+    aus_keys: ['perps'],
+    visible_on: [],
+    notification_types: [],
   },
   {
-    categoryId: 'agenticCli',
-    ausKeys: ['agenticCli'],
-    label: 'Agentic CLI',
-    description:
-      'CLI connection requests, approvals, and session updates for Agentic',
-    icon: 'Code',
+    category_id: 'agenticCli',
+    aus_keys: ['agenticCli'],
+    visible_on: [],
+    notification_types: [],
   },
   {
-    categoryId: 'socialAI',
-    ausKeys: ['socialAI'],
-    label: 'Trading signals',
-    description:
-      'Updates from traders and assets you follow, plus curated market news',
-    icon: 'Flash',
+    category_id: 'socialAI',
+    aus_keys: ['socialAI'],
+    visible_on: [],
+    notification_types: [],
   },
   {
-    categoryId: 'marketing',
-    ausKeys: ['marketing'],
-    label: 'Updates and rewards',
-    description:
-      'Product updates, feature announcements, and new rewards campaigns',
-    icon: 'Campaign',
+    category_id: 'marketing',
+    aus_keys: ['marketing'],
+    visible_on: [],
+    notification_types: [],
   },
   {
-    categoryId: 'priceAlerts',
-    ausKeys: ['priceAlerts'],
-    label: 'Price alerts',
-    description:
-      "Get notified based on the alerts you've set for a token's price",
-    icon: 'Notification',
+    category_id: 'priceAlerts',
+    aus_keys: ['priceAlerts'],
+    visible_on: [],
+    notification_types: [],
   },
 ];
 
 export async function fetchNotificationCategories(
-  locale: string,
+  _locale: string,
 ): Promise<NotificationCategoryMetadata[]> {
   return new Promise((resolve) =>
     setTimeout(() => resolve(MOCK_NOTIFICATION_CATEGORIES), 100),

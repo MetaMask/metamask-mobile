@@ -2,15 +2,35 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import NotificationsCategory from './NotificationsCategory';
 import { NotificationsCategorySelectorsIDs } from './NotificationsCategory.testIds';
+import type { NotificationCategoryMetadata } from '../../../../util/notifications/categories';
 
 let mockIsMetamaskNotificationsEnabled = true;
 let mockIsSocialLeaderboardEnabled = false;
-let mockIsPriceAlertsEnabled = false;
-let mockCategories: Array<{ categoryId: string; ausKeys: string[] }> = [
-  { categoryId: 'walletActivity', ausKeys: ['walletActivity'] },
-  { categoryId: 'perps', ausKeys: ['perps'] },
-  { categoryId: 'socialAI', ausKeys: ['socialAI'] },
-  { categoryId: 'marketing', ausKeys: ['marketing'] },
+let mockCategories: NotificationCategoryMetadata[] = [
+  {
+    category_id: 'walletActivity',
+    aus_keys: ['walletActivity'],
+    visible_on: [],
+    notification_types: [],
+  },
+  {
+    category_id: 'perps',
+    aus_keys: ['perps'],
+    visible_on: [],
+    notification_types: [],
+  },
+  {
+    category_id: 'socialAI',
+    aus_keys: ['socialAI'],
+    visible_on: [],
+    notification_types: [],
+  },
+  {
+    category_id: 'marketing',
+    aus_keys: ['marketing'],
+    visible_on: [],
+    notification_types: [],
+  },
 ];
 let mockIsLoading = false;
 
@@ -30,14 +50,9 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
-  selectPriceAlertsEnabled: () => mockIsPriceAlertsEnabled,
-}));
-
-jest.mock('../../../../util/notifications/categories', () => ({
-  ...jest.requireActual('../../../../util/notifications/categories'),
-  useNotificationCategories: () => ({
-    categories: mockCategories,
+jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
+  useNotificationsCategories: () => ({
+    categoriesData: mockCategories,
     isLoading: mockIsLoading,
   }),
 }));
@@ -46,13 +61,32 @@ describe('NotificationsCategory', () => {
   beforeEach(() => {
     mockIsMetamaskNotificationsEnabled = true;
     mockIsSocialLeaderboardEnabled = false;
-    mockIsPriceAlertsEnabled = false;
     mockIsLoading = false;
     mockCategories = [
-      { categoryId: 'walletActivity', ausKeys: ['walletActivity'] },
-      { categoryId: 'perps', ausKeys: ['perps'] },
-      { categoryId: 'socialAI', ausKeys: ['socialAI'] },
-      { categoryId: 'marketing', ausKeys: ['marketing'] },
+      {
+        category_id: 'walletActivity',
+        aus_keys: ['walletActivity'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'perps',
+        aus_keys: ['perps'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'socialAI',
+        aus_keys: ['socialAI'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'marketing',
+        aus_keys: ['marketing'],
+        visible_on: [],
+        notification_types: [],
+      },
     ];
   });
 

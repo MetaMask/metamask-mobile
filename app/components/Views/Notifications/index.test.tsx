@@ -48,17 +48,28 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../util/notifications/categories', () => ({
-  ...jest.requireActual('../../../util/notifications/categories'),
-  useNotificationCategories: () => ({
-    categories: [
+jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
+  ...jest.requireActual('../../../util/notifications/hooks/useNotifications'),
+  useNotificationsCategories: () => ({
+    categoriesData: [
       {
-        categoryId: 'walletActivity',
-        ausKeys: ['walletActivity'],
-        icon: 'Clock',
+        category_id: 'walletActivity',
+        aus_keys: ['walletActivity'],
+        visible_on: [],
+        notification_types: [],
       },
-      { categoryId: 'perps', ausKeys: ['perps'], icon: 'Candlestick' },
-      { categoryId: 'marketing', ausKeys: ['marketing'], icon: 'Campaign' },
+      {
+        category_id: 'perps',
+        aus_keys: ['perps'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'marketing',
+        aus_keys: ['marketing'],
+        visible_on: [],
+        notification_types: [],
+      },
     ],
     isLoading: false,
   }),

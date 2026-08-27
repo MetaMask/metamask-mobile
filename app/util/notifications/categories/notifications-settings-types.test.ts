@@ -80,49 +80,24 @@ describe('targetAusKeysInPreferences', () => {
 describe('getNotificationsSettingsSectionConfigs', () => {
   const categories: NotificationCategoryMetadata[] = [
     {
-      categoryId: 'walletActivity',
-      ausKeys: ['walletActivity'],
-      label: '',
-      description: '',
-      icon: 'Clock',
+      category_id: 'walletActivity',
+      aus_keys: ['walletActivity'],
+      visible_on: [],
+      notification_types: [],
     },
     {
-      categoryId: 'socialAI',
-      ausKeys: ['socialAI'],
-      label: '',
-      description: '',
-      icon: 'Flash',
-    },
-    {
-      categoryId: 'priceAlerts',
-      ausKeys: ['priceAlerts'],
-      label: '',
-      description: '',
-      icon: 'Notification',
+      category_id: 'socialAI',
+      aus_keys: ['socialAI'],
+      visible_on: [],
+      notification_types: [],
     },
   ];
 
   it('filters out socialAI when the social leaderboard flag is off', () => {
     const sections = getNotificationsSettingsSectionConfigs(categories, {
       isSocialLeaderboardEnabled: false,
-      isPriceAlertsEnabled: true,
     });
 
-    expect(sections.map((s) => s.categoryId)).toEqual([
-      'walletActivity',
-      'priceAlerts',
-    ]);
-  });
-
-  it('filters out priceAlerts when the price alerts flag is off', () => {
-    const sections = getNotificationsSettingsSectionConfigs(categories, {
-      isSocialLeaderboardEnabled: true,
-      isPriceAlertsEnabled: false,
-    });
-
-    expect(sections.map((s) => s.categoryId)).toEqual([
-      'walletActivity',
-      'socialAI',
-    ]);
+    expect(sections.map((s) => s.category_id)).toEqual(['walletActivity']);
   });
 });

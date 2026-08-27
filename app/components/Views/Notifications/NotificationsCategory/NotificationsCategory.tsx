@@ -9,12 +9,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import {
   ALL_NOTIFICATIONS_CATEGORY_ID,
   getCategoryTitle,
   getNotificationsSettingsSectionConfigs,
-  useNotificationCategories,
 } from '../../../../util/notifications/categories';
 
 import { NotificationsCategoryProps } from './NotificationsCategory.types';
@@ -23,6 +21,7 @@ import {
   NotificationsCategorySelectorsIDs,
 } from './NotificationsCategory.testIds';
 import NotificationsCategorySkeleton from './NotificationsCategorySkeleton';
+import { useNotificationsCategories } from '../../../../util/notifications/hooks/useNotifications';
 
 interface CategoryTab {
   key: string;
@@ -47,8 +46,7 @@ const NotificationsCategory = ({
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
-  const { categories, isLoading } = useNotificationCategories();
+  const { categoriesData, isLoading } = useNotificationsCategories();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(
     ALL_NOTIFICATIONS_CATEGORY_ID,
@@ -67,26 +65,20 @@ const NotificationsCategory = ({
       },
     ];
 
-    const sectionConfigs = getNotificationsSettingsSectionConfigs(categories, {
+    const sectionConfigs = getNotificationsSettingsSectionConfigs(categoriesData, {
       isSocialLeaderboardEnabled,
-      isPriceAlertsEnabled,
     });
 
     sectionConfigs.forEach((category) => {
       items.push({
-        key: category.categoryId,
-        label: getCategoryTitle(category.categoryId),
-        testID: categoryTestID(category.categoryId),
+        key: category.category_id,
+        label: getCategoryTitle(category.category_id),
+        testID: categoryTestID(category.category_id),
       });
     });
 
     return items;
-  }, [
-    categories,
-    isMetamaskNotificationsEnabled,
-    isPriceAlertsEnabled,
-    isSocialLeaderboardEnabled,
-  ]);
+  }, [categoriesData, isMetamaskNotificationsEnabled, isSocialLeaderboardEnabled]);
 
   const handleSelect = useCallback(
     (key: string) => {

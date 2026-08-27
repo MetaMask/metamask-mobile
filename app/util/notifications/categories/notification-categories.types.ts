@@ -1,9 +1,3 @@
-export const ALL_NOTIFICATIONS_CATEGORY_ID = 'all';
+export type { NotificationsCategory as NotificationCategoryMetadata } from '@metamask/notification-services-controller/notification-services';
 
-export interface NotificationCategoryMetadata {
-  categoryId: string;
-  ausKeys: string[];
-  label: string;
-  description: string;
-  icon: string;
-}
+export const ALL_NOTIFICATIONS_CATEGORY_ID = 'all';
