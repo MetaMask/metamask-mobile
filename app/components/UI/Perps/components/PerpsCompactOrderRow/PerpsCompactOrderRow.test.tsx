@@ -27,6 +27,12 @@ jest.mock('../../utils/formatUtils', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  PERPS_CONSTANTS: {
+    FallbackPriceDisplay: '$---',
+  },
+  isLimitExecutionOrderType: jest.fn((orderType) =>
+    String(orderType).includes('limit'),
+  ),
   isTPSLOrder: jest.fn(
     (detailedOrderType?: string) =>
       (detailedOrderType ?? '').toLowerCase().includes('take profit') ||
@@ -107,15 +113,14 @@ describe('PerpsCompactOrderRow', () => {
     expect(screen.getByText('Stop market close short')).toBeOnTheScreen();
   });
 
-  it('uses trigger price for trigger orders when available', () => {
-    const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
+  it('renders market price for trigger-market with a valid trigger', () => {
     render(<PerpsCompactOrderRow order={mockTriggerOrder} />);
 
-    expect(formatPerpsFiat).toHaveBeenCalledWith(47000, expect.any(Object));
+    expect(screen.getByText('Market')).toBeOnTheScreen();
+    expect(screen.getByText('Market price')).toBeOnTheScreen();
   });
 
-  it('falls back to order price for trigger-market orders when trigger price is invalid', () => {
-    const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
+  it('ignores cap price for trigger-market without a valid trigger', () => {
     const triggerOrderWithInvalidTriggerPrice: Order = {
       ...mockTriggerOrder,
       orderType: 'market',
@@ -128,7 +133,7 @@ describe('PerpsCompactOrderRow', () => {
       <PerpsCompactOrderRow order={triggerOrderWithInvalidTriggerPrice} />,
     );
 
-    expect(formatPerpsFiat).toHaveBeenCalledWith(48000, expect.any(Object));
+    expect(screen.getByText('Market')).toBeOnTheScreen();
     expect(screen.getByText('Market price')).toBeOnTheScreen();
     expect(screen.queryByText('Trigger price')).toBeNull();
   });
@@ -147,6 +152,22 @@ describe('PerpsCompactOrderRow', () => {
 
     expect(screen.getByText('Limit price')).toBeOnTheScreen();
     expect(screen.queryByText('Trigger price')).toBeNull();
+  });
+
+  it('renders unavailable price for trigger-limit order without a limit price', () => {
+    const triggerLimitOrderWithoutPrice: Order = {
+      ...mockTriggerOrder,
+      triggerOrderType: 'take_profit_limit',
+      detailedOrderType: 'Take Profit Limit',
+      triggerPrice: '47000',
+      price: '0',
+    };
+
+    render(<PerpsCompactOrderRow order={triggerLimitOrderWithoutPrice} />);
+
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+    expect(screen.getByText('Limit price')).toBeOnTheScreen();
+    expect(screen.queryByText('Market')).toBeNull();
   });
 
   it('uses order price for limit orders', () => {

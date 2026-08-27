@@ -318,6 +318,7 @@ const PerpsOrderTypeBottomSheetView = ({
       showSelectedIcon={false}
       onPress={() => handleSelect(orderType.type)}
       testID={orderType.testID}
+      twClassName="min-h-[78px] py-4"
     />
   );
 

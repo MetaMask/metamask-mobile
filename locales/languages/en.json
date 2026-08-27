@@ -1170,6 +1170,7 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
@@ -1836,19 +1837,19 @@
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Limit fills at trigger price"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Place a market order if trigger price hits"
+          "description": "Market fills at trigger price"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Limit take-profit at trigger price"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Market take-profit at trigger price"
         },
         "twap": {
           "title": "TWAP",
@@ -8748,7 +8749,17 @@
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
-      "expired_after": "Expired after {{duration}}"
+      "expired_after": "Expired after {{duration}}",
+      "buy_when": "Buy when",
+      "sell_when": "Sell when",
+      "is_at_or_below": "is at or below",
+      "is_at_or_above": "is at or above",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% from market)",
+      "from_market_above": "(+{{percent}}% from market)",
+      "market": "Market",
+      "custom": "Custom"
     },
     "recurring": {
       "you_get": "You get",

@@ -53,6 +53,7 @@ import {
   resolvePerpsMaxSlippageBps,
 } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
+import { usePerpsSavePendingConfig } from '../../../../hooks/usePerpsSavePendingConfig';
 import {
   useHasExistingPosition,
   usePerpsLiquidationPrice,
@@ -556,13 +557,14 @@ export const usePerpsProOrderForm = ({
     setTriggerPrice,
     resetPriceInputInteraction,
     setOrderType,
+    pendingReduceOnly,
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
 
-  // Local (Pro-only) state
-  const [reduceOnly, setReduceOnly] = useState(false);
+  // Restore reduce-only from the 30s pending draft.
+  const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
   const [twapDays, setTwapDays] = useState('');
   const [twapHours, setTwapHours] = useState('');
   const [twapMinutes, setTwapMinutes] = useState(
@@ -610,6 +612,8 @@ export const usePerpsProOrderForm = ({
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
+
+  usePerpsSavePendingConfig(orderForm, { reduceOnly });
 
   const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
     usePerpsMaxSlippage();
@@ -2119,7 +2123,6 @@ export const usePerpsProOrderForm = ({
       updateOrderForm({
         amount: '',
         direction: 'long',
-        type: 'market',
         balancePercent: 0,
         limitPrice: undefined,
         takeProfitPrice: undefined,

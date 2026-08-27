@@ -12,7 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useImperativeHandle, useRef } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   InputAccessoryView,
   Keyboard,
@@ -140,6 +140,10 @@ const PerpsProCompactInput = React.forwardRef<
   ) => {
     const tw = useTailwind();
     const inputRef = useRef<TextInput>(null);
+    const [isFocused, setIsFocused] = useState(false);
+    const [shouldFocusInput, setShouldFocusInput] = useState(false);
+    const isInlineActive = isFocused || value.length > 0;
+    const isInputVisible = variant !== 'inline' || isInlineActive;
     useImperativeHandle<TextInput | null, TextInput | null>(
       ref,
       () => inputRef.current,
@@ -147,11 +151,19 @@ const PerpsProCompactInput = React.forwardRef<
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+
     useEffect(() => {
       if (isHidden) {
+        setShouldFocusInput(false);
+        setIsFocused(false);
         inputRef.current?.blur();
+        return;
       }
-    }, [isHidden]);
+      if (shouldFocusInput) {
+        setShouldFocusInput(false);
+        inputRef.current?.focus();
+      }
+    }, [isHidden, shouldFocusInput]);
 
     const hiddenProps = isHidden
       ? ({
@@ -161,12 +173,27 @@ const PerpsProCompactInput = React.forwardRef<
           style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
         } as const)
       : undefined;
+    const handleFocus = () => {
+      setIsFocused(true);
+      onFocus?.();
+    };
+    const handleBlur = () => {
+      setIsFocused(false);
+      onBlur?.();
+    };
+    const handleFieldPress = () => {
+      if (isDisabled) {
+        return;
+      }
+      setIsFocused(true);
+      onFieldPress?.();
+    };
     const focusInput = () => {
       if (isDisabled) {
         return;
       }
-      inputRef.current?.focus();
-      onFieldPress?.();
+      handleFieldPress();
+      setShouldFocusInput(true);
     };
 
     const input = (
@@ -175,20 +202,26 @@ const PerpsProCompactInput = React.forwardRef<
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
-        onFocus={onFocus}
-        onBlur={onBlur}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         isDisabled={isDisabled}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
-        onPressIn={onFieldPress}
+        onPressIn={handleFieldPress}
         inputAccessoryViewID={inputAccessoryViewID}
-        placeholder={placeholder}
+        placeholder={isInputVisible ? placeholder : ''}
         placeholderTextColor={tw.color(`text-${placeholderColor}`)}
         textVariant={TextVariant.BodySm}
         isStateStylesDisabled
-        twClassName="flex-1 border-0 bg-transparent p-0"
+        twClassName={
+          isInputVisible
+            ? 'flex-1 border-0 bg-transparent p-0'
+            : 'absolute h-1 w-1 opacity-0'
+        }
         testID={testID}
         accessibilityLabel={label}
+        accessibilityElementsHidden={!isInputVisible}
+        importantForAccessibility={isInputVisible ? 'yes' : 'no'}
       />
     );
 
@@ -240,21 +273,47 @@ const PerpsProCompactInput = React.forwardRef<
           testID={`${testID}-container`}
           {...hiddenProps}
         >
-          {/* The input's text occupies only ~20px of this 48px row, so most of
-            the row is dead space. Without a pressable filling it, taps there
-            reach the enclosing ScrollView instead, and its
-            `keyboardShouldPersistTaps="handled"` treats an unhandled tap as a
-            request to dismiss the keyboard. `endAccessory` stays outside so the
-            mid-price button keeps its own press. */}
+          {/* Empty fields hide the native input, so this pressable must stay in
+              the a11y tree as the control that focuses it. Once the input is
+              visible, drop out so VoiceOver/TalkBack can land on the TextInput
+              instead of a wrapping button. Mid stays outside either way. */}
           <Pressable
             onPress={focusInput}
             disabled={isDisabled}
-            accessible={false}
-            style={tw`h-full min-w-0 flex-1 flex-row items-center`}
+            accessible={!isInlineActive}
+            accessibilityRole={isInlineActive ? undefined : 'button'}
+            accessibilityLabel={isInlineActive ? undefined : label}
+            style={tw`h-full min-w-0 flex-1 justify-center`}
             testID={`${testID}-field`}
           >
-            {startAccessory}
-            {input}
+            <Text
+              variant={isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={labelNumberOfLines}
+              accessible={false}
+              importantForAccessibility="no"
+              testID={`${testID}-label`}
+            >
+              {label}
+            </Text>
+            <Box
+              twClassName={
+                isInlineActive
+                  ? 'w-full flex-row items-center'
+                  : 'absolute h-0 w-0 overflow-hidden'
+              }
+            >
+              {/* Keep the accessory slot stable so activating the field does not
+                  remount the focused native input. */}
+              <Box
+                twClassName={
+                  isInlineActive ? 'shrink-0' : 'h-0 w-0 overflow-hidden'
+                }
+              >
+                {startAccessory}
+              </Box>
+              {input}
+            </Box>
           </Pressable>
           {endAccessory}
         </Box>
@@ -269,7 +328,7 @@ const PerpsProCompactInput = React.forwardRef<
       >
         <Box twClassName="flex-row items-center justify-between">
           {/* Tapping the label focuses the input and opens the keyboard, same
-            as tapping the (visually small) input row itself. */}
+              as tapping the visually small input row itself. */}
           <Pressable onPress={focusInput} disabled={isDisabled}>
             <Text
               variant={labelVariant}

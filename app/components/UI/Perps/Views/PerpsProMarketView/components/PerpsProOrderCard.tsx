@@ -40,6 +40,7 @@ import { isClosingOrder } from '../../../utils/orderDirection';
 import {
   formatOrderTypeLabel,
   getOrderPositionDirection,
+  getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
   isTriggerOrder,
@@ -163,19 +164,26 @@ const PerpsProOrderCard = ({
     ? TagSeverity.Success
     : TagSeverity.Danger;
   const size = formatPositionSize(order.originalSize);
-  const { priceValue } = resolveOrderDisplayPriceAndLabel(order);
+  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+  const estimatedOrderPrice =
+    getValidOrderPrice(order) ?? getValidTriggerPrice(order);
   const validTriggerPrice = getValidTriggerPrice(order);
   const canEditPrice = Boolean(onEditPrice) && !isEditPriceDisabled;
   const canEditSize = Boolean(onEditSize) && !isEditSizeDisabled;
   const orderValue =
-    priceValue === null
+    estimatedOrderPrice === null
       ? PERPS_CONSTANTS.FallbackPriceDisplay
-      : formatPerpsFiat(Number.parseFloat(order.originalSize) * priceValue, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        });
+      : formatPerpsFiat(
+          Number.parseFloat(order.originalSize) * estimatedOrderPrice,
+          {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          },
+        );
   const price =
     priceValue === null
-      ? strings('perps.order.market')
+      ? labelKey === 'perps.order.market_price'
+        ? strings('perps.order.market')
+        : PERPS_CONSTANTS.FallbackPriceDisplay
       : formatPerpsFiat(priceValue, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });

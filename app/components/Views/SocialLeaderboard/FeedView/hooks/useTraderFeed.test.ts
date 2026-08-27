@@ -52,7 +52,7 @@ const createWrapper = (queryClient?: QueryClient) => {
   const client =
     queryClient ??
     new QueryClient({
-      defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
     });
   return ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client }, children);
@@ -146,6 +146,50 @@ describe('useTraderFeed', () => {
     expect(mockCall).toHaveBeenCalledTimes(1);
   });
 
+  // `dataUpdatedAt` is what consumers use both as the clock for relative ages
+  // and as the signal that busts memoized rows. It has to move on a refetch
+  // that returns an identical payload — the case where React Query's
+  // structural sharing keeps the previous `data` reference, so nothing else in
+  // the result changes.
+  it('advances dataUpdatedAt when a refetch returns a reference-identical payload', async () => {
+    // The same object every call, so structural sharing definitely kicks in.
+    const identicalPage = mockFeedResponse([mockSpotFeedItem()]);
+    mockCall.mockResolvedValue(identicalPage);
+
+    jest.useFakeTimers();
+    try {
+      const { result, rerender } = renderHook(
+        () => useTraderFeed({ audience: 'all' }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(result.current.dataUpdatedAt).toBeUndefined();
+
+      await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+      const firstFetchAt = result.current.dataUpdatedAt as number;
+      expect(typeof firstFetchAt).toBe('number');
+
+      jest.setSystemTime(firstFetchAt + 10_000);
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      // Nothing else in the result changed — the payload is the same object —
+      // so a render is needed to read the advanced instant back out.
+      act(() => {
+        rerender(undefined);
+      });
+
+      expect(result.current.dataUpdatedAt).toBeGreaterThanOrEqual(
+        firstFetchAt + 10_000,
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('resets to the first page and refetches the newest activity on refresh', async () => {
     mockCall
       .mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()], 'cursor-1'))
@@ -221,6 +265,89 @@ describe('useTraderFeed', () => {
     await waitFor(() => expect(result.current.hasLoadedItems).toBe(true));
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]?.type).toBe('perps');
+  });
+
+  it('sorts loaded items newest-first so same-day rows share one section header', async () => {
+    const newerSameDay = mockSpotFeedItem({
+      positionId: 'pos-newer-same-day',
+      timestamp: 1_777_000_800,
+    });
+    const olderDifferentDay = mockPerpFeedItem({
+      positionId: 'pos-older-day',
+      timestamp: 1_776_800_000,
+    });
+    const olderSameDay = mockSpotFeedItem({
+      positionId: 'pos-older-same-day',
+      timestamp: 1_777_000_100,
+    });
+    mockCall.mockResolvedValue(
+      mockFeedResponse([olderSameDay, olderDifferentDay, newerSameDay]),
+    );
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(3));
+
+    expect(result.current.items.map((item) => item.timestamp)).toEqual([
+      1_777_000_800_000, 1_777_000_100_000, 1_776_800_000_000,
+    ]);
+    expect(result.current.sections).toHaveLength(2);
+    expect(result.current.sections[0]?.data).toHaveLength(2);
+    expect(result.current.sections[1]?.data).toHaveLength(1);
+  });
+
+  // Mirrors a real leaderboard response: the feed splices a notable position
+  // from two days earlier into the middle of the page, and the `olderThan`
+  // cursor is the last item's timestamp — so page 2 returns events that are
+  // newer than that spliced-in row. Without a global sort the day headers read
+  // Aug 20, Aug 18, Aug 20.
+  it('keeps one section per day when a later page is newer than a spliced-in row', async () => {
+    const newest = mockSpotFeedItem({
+      positionId: 'pos-aug-20-latest',
+      timestamp: 1_787_217_322, // Aug 20 05:15 EDT
+    });
+    const splicedInOlderDay = mockPerpFeedItem({
+      positionId: 'pos-aug-18-spliced',
+      timestamp: 1_787_069_401, // Aug 18 12:10 EDT
+    });
+    const pageBoundary = mockSpotFeedItem({
+      positionId: 'pos-aug-20-boundary',
+      timestamp: 1_787_215_115, // Aug 20 04:38 EDT
+    });
+    const nextPage = mockPerpFeedItem({
+      positionId: 'pos-aug-20-next-page',
+      timestamp: 1_787_209_200, // Aug 20 03:00 EDT
+    });
+    mockCall
+      .mockResolvedValueOnce(
+        mockFeedResponse(
+          [newest, splicedInOlderDay, pageBoundary],
+          'older-cursor',
+        ),
+      )
+      .mockResolvedValueOnce(mockFeedResponse([nextPage]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(4));
+
+    expect(result.current.items.map((item) => item.timestamp)).toEqual([
+      1_787_217_322_000, 1_787_215_115_000, 1_787_209_200_000,
+      1_787_069_401_000,
+    ]);
+    expect(result.current.sections).toHaveLength(2);
+    expect(result.current.sections[0]?.data).toHaveLength(3);
+    expect(result.current.sections[1]?.data).toHaveLength(1);
   });
 
   it('does not refetch when the type filter changes', async () => {

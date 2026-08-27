@@ -6,4 +6,4 @@
 *.sh text eol=lf
 
 # Yarn patches may contain required context from generated upstream artifacts.
-.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch whitespace=-trailing-space
+.yarn/patches/@metamask-perps-controller-npm-13.1.0-7ae64ac2ec.patch whitespace=-trailing-space

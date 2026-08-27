@@ -120,6 +120,7 @@ const mockContextValue = {
   setTriggerPrice: mockSetTriggerPrice,
   resetPriceInputInteraction: mockResetPriceInputInteraction,
   setOrderType: mockSetOrderType,
+  pendingReduceOnly: undefined as boolean | undefined,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
@@ -345,6 +346,10 @@ jest.mock('../../../../../../../selectors/accountsController', () => ({
 
 jest.mock('../../../../../../../util/haptics');
 
+jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
+  usePerpsSavePendingConfig: jest.fn(),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -431,6 +436,7 @@ describe('usePerpsProOrderForm', () => {
     mockContextValue.triggerPrice = undefined;
     mockContextValue.hasBlurredLimitPrice = false;
     mockContextValue.hasBlurredTriggerPrice = false;
+    mockContextValue.pendingReduceOnly = undefined;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
     mockValidation.isValid = true;
@@ -945,7 +951,6 @@ describe('usePerpsProOrderForm', () => {
       expect(mockUpdateOrderForm).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: '',
-          type: 'market',
         }),
       );
     });
@@ -1395,7 +1400,6 @@ describe('usePerpsProOrderForm', () => {
       expect(mockUpdateOrderForm).toHaveBeenCalledWith({
         amount: '',
         direction: 'long',
-        type: 'market',
         balancePercent: 0,
         limitPrice: undefined,
         takeProfitPrice: undefined,
@@ -4218,6 +4222,14 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('reduceOnly toggle', () => {
+    it('restores reduceOnly from the pending trade draft', () => {
+      mockContextValue.pendingReduceOnly = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.reduceOnly).toBe(true);
+    });
+
     it('clears TP/SL state when Reduce Only turns on', () => {
       mockOrderForm.takeProfitPrice = '95000';
       mockOrderForm.stopLossPrice = '80000';

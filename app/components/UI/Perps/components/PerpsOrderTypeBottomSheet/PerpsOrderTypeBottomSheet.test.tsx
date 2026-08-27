@@ -39,13 +39,20 @@ function render(
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const resolveStyle = (...args: unknown[]) => {
     const classNames = JSON.stringify(args);
+    const style: Record<string, string | number> = {};
     if (classNames.includes('bg-transparent')) {
-      return { backgroundColor: 'transparent' };
+      style.backgroundColor = 'transparent';
     }
     if (classNames.includes('bg-background-muted')) {
-      return { backgroundColor: 'muted' };
+      style.backgroundColor = 'muted';
     }
-    return {};
+    if (classNames.includes('min-h-[78px]')) {
+      style.minHeight = 78;
+    }
+    if (classNames.includes('py-4')) {
+      style.paddingVertical = 16;
+    }
+    return style;
   };
   const tw = (...args: unknown[]) => resolveStyle(...args);
   tw.style = jest.fn(resolveStyle);
@@ -75,17 +82,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description':
-        'Place a limit order if trigger price hits',
+      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Place a market order if trigger price hits',
+        'Market fills at trigger price',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Place a limit order if trigger price is reached',
+        'Limit take-profit at trigger price',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Place a market order if trigger price is reached',
+        'Market take-profit at trigger price',
       'perps.order.type.twap.title': 'TWAP',
       'perps.order.type.twap.description':
         'Split orders to execute at regular time interval',
@@ -183,18 +189,61 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(
-        screen.getByText('Place a limit order if trigger price hits'),
+        screen.getByText('Limit fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price hits'),
+        screen.getByText('Market fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a limit order if trigger price is reached'),
+        screen.getByText('Limit take-profit at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price is reached'),
+        screen.getByText('Market take-profit at trigger price'),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      {
+        category: 'Basic',
+        currentOrderType: 'market' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      },
+      {
+        category: 'Triggered',
+        currentOrderType: 'stop_limit' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+      },
+      {
+        category: 'Advanced TWAP',
+        currentOrderType: 'twap' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+      },
+      {
+        category: 'Advanced Scale',
+        currentOrderType: 'scale' as const,
+        availableOrderTypes: proOrderTypesWithScale,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+      },
+    ])(
+      'renders $category rows at the Figma 78px minimum with 16px vertical inset',
+      ({ currentOrderType, availableOrderTypes, testID }) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            currentOrderType={currentOrderType}
+            availableOrderTypes={availableOrderTypes}
+          />,
+        );
+
+        expect(screen.getByTestId(testID)).toHaveStyle({
+          minHeight: 78,
+          paddingVertical: 16,
+        });
+      },
+    );
 
     it('renders both market and limit options', () => {
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
