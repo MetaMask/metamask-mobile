@@ -18,14 +18,16 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 
-let mockRouteParams: {
+const createDefaultRouteParams = (): {
   mode: 'open_position' | 'swap';
   campaignId: string;
   srcTokenAsset?: string;
   srcTokenSymbol?: string;
   srcTokenName?: string;
   srcTokenDecimals?: number;
-} = { mode: 'open_position', campaignId: 'campaign-1' };
+} => ({ mode: 'open_position', campaignId: 'campaign-1' });
+
+let mockRouteParams = createDefaultRouteParams();
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 
@@ -335,7 +337,7 @@ describe('OndoCampaignRwaSelectorView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-    mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+    mockRouteParams = createDefaultRouteParams();
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockIsTokenMarketFullyClosed.mockReturnValue(false);
     jest.mocked(useAnalytics).mockReturnValue(
@@ -352,6 +354,10 @@ describe('OndoCampaignRwaSelectorView', () => {
       if (selector === selectAllTokenBalances) return mockAllTokenBalances;
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    mockRouteParams = createDefaultRouteParams();
   });
 
   it('renders without crashing', () => {
@@ -492,7 +498,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     const ACCOUNT_ADDRESS = '0xaccount1';
 
     beforeEach(() => {
-      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+      mockRouteParams = createDefaultRouteParams();
     });
 
     it('prefers USDY as the source token when user holds a non-zero USDY balance', () => {
@@ -600,7 +606,7 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('page view tracking', () => {
     it('tracks ondo_campaign_open_position when mode is open_position', () => {
-      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+      mockRouteParams = createDefaultRouteParams();
       render(<OndoCampaignRwaSelectorView />);
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);

@@ -481,7 +481,7 @@ const FIXED_NOW = new Date('2024-06-15T12:00:00.000Z');
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
 ): CampaignDto => {
-  const now = new Date();
+  const now = new Date(FIXED_NOW);
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   const nextMonth = new Date(now);
@@ -882,9 +882,9 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('redirects to campaigns view when campaign is upcoming', () => {
-      const tomorrow = new Date();
+      const tomorrow = new Date(FIXED_NOW);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const nextMonth = new Date();
+      const nextMonth = new Date(FIXED_NOW);
       nextMonth.setMonth(nextMonth.getMonth() + 1);
 
       mockUseRewardCampaigns.mockReturnValue({
@@ -901,9 +901,9 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('does not render the CTA when campaign is complete and user is not opted in', () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
 
       mockUseRewardCampaigns.mockReturnValue({
@@ -957,9 +957,9 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('shows OndoLeaderboard when not opted in and campaign is complete', () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
 
       mockUseRewardCampaigns.mockReturnValue({
@@ -1001,9 +1001,9 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('shows leaderboard title when campaign is complete and not opted in', () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
 
       mockUseRewardCampaigns.mockReturnValue({
@@ -1100,9 +1100,9 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('renders OndoPrizePool when campaign is complete', () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
 
       mockUseRewardCampaigns.mockReturnValue({
@@ -1165,7 +1165,7 @@ describe('OndoCampaignDetailsView', () => {
     };
 
     it('passes isIneligible=true when campaign ends in fewer than 10 days', () => {
-      const now = new Date();
+      const now = new Date(FIXED_NOW);
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       const endDate = new Date(now);
@@ -1188,7 +1188,7 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('passes isIneligible=false when campaign has 10 or more days remaining', () => {
-      const now = new Date();
+      const now = new Date(FIXED_NOW);
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       const endDate = new Date(now);
@@ -1211,7 +1211,7 @@ describe('OndoCampaignDetailsView', () => {
     });
 
     it('passes isIneligible=false when user is already qualified', () => {
-      const now = new Date();
+      const now = new Date(FIXED_NOW);
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       const endDate = new Date(now);
@@ -1471,9 +1471,9 @@ describe('OndoCampaignDetailsView', () => {
 
   describe('CampaignEndedStats visibility', () => {
     const setupCompleteCampaign = () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
@@ -1544,9 +1544,9 @@ describe('OndoCampaignDetailsView', () => {
 
   describe('positions section visibility', () => {
     it('hides the positions section when campaign is complete, even if opted in with positions', () => {
-      const lastMonth = new Date();
+      const lastMonth = new Date(FIXED_NOW);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
+      const yesterday = new Date(FIXED_NOW);
       yesterday.setDate(yesterday.getDate() - 1);
 
       mockUseRewardCampaigns.mockReturnValue({
