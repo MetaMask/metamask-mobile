@@ -57,7 +57,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
     candles: {
       getDeliveryRevision: (symbol?: string, interval?: string) =>
         symbol && interval
-          ? mockCandleRevisionsByKey[`${symbol}-${interval}`] ?? 0
+          ? (mockCandleRevisionsByKey[`${symbol}-${interval}`] ?? 0)
           : mockDeliveryRevisions.candles,
     },
   }),
