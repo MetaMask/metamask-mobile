@@ -35,11 +35,13 @@ const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
 
   const getRateText = () => {
     if (item.rateStatus === 'loading') {
-      <Skeleton
-        height={20}
-        width={70}
-        testID="earn-search-money-apy-skeleton"
-      />;
+      return (
+        <Skeleton
+          height={20}
+          width={70}
+          testID="earn-search-money-apy-skeleton"
+        />
+      );
     }
     return (
       <Text
@@ -66,7 +68,17 @@ const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
       titleProps={{
         numberOfLines: 1,
       }}
-      description={balanceText}
+      description={
+        item.isBalanceLoading ? (
+          <Skeleton
+            height={20}
+            width={70}
+            testID="earn-search-money-balance-skeleton"
+          />
+        ) : (
+          balanceText
+        )
+      }
       descriptionProps={{
         numberOfLines: 1,
       }}

@@ -4,41 +4,6 @@ import { strings } from '../../../../../../locales/i18n';
 import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
 import EarnMoneyAccountRow from './EarnMoneyAccountRow';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const {
-    Pressable,
-    Text: TextComponent,
-    View,
-  } = jest.requireActual('react-native');
-
-  return {
-    Box: ({ children, ...props }: React.ComponentProps<typeof View>) => (
-      <View {...props}>{children}</View>
-    ),
-    BoxAlignItems: { Center: 'center', End: 'flex-end' },
-    BoxFlexDirection: { Row: 'row' },
-    ButtonBase: ({
-      children,
-      ...props
-    }: React.ComponentProps<typeof Pressable>) => (
-      <Pressable {...props}>{children}</Pressable>
-    ),
-    FontWeight: { Medium: '500' },
-    Skeleton: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    Text: ({
-      children,
-      ...props
-    }: React.ComponentProps<typeof TextComponent>) => (
-      <TextComponent {...props}>{children}</TextComponent>
-    ),
-    TextColor: {
-      TextAlternative: 'text-alternative',
-      TextDefault: 'text-default',
-    },
-    TextVariant: { BodyMd: 'body-md', BodySm: 'body-sm' },
-  };
-});
-
 jest.mock('../../../../../../images/money-balance.svg', () => {
   const { Text } = jest.requireActual('react-native');
 
@@ -52,22 +17,44 @@ jest.mock('../../../../UI/Earn/components/EarnNewTag', () => {
 });
 
 describe('EarnMoneyAccountRow', () => {
-  it('renders Money balance and APY skeletons independently', () => {
+  it('renders a balance skeleton while balance is loading', () => {
     const item = {
       kind: 'money-account',
       id: 'money-account',
       balanceRaw: '0',
       isBalanceLoading: true,
-      rateStatus: 'loading',
+      rateStatus: 'ready',
+      apyPercent: 4.2,
     } satisfies EarnMoneyAccountSearchItem;
 
-    const { getByTestId, queryByText } = render(
+    const { getByTestId, getByText, queryByText } = render(
       <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
     );
 
     expect(getByTestId('earn-search-money-balance-skeleton')).toBeOnTheScreen();
-    expect(getByTestId('earn-search-money-apy-skeleton')).toBeOnTheScreen();
+    expect(
+      getByText(strings('earn_module.rate_apy', { percentage: '4.2' })),
+    ).toBeOnTheScreen();
     expect(queryByText(strings('earn_module.get_started'))).toBeNull();
+  });
+
+  it('renders an APY skeleton while the rate is loading', () => {
+    const item = {
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '12',
+      balanceFiat: '$12.00',
+      isBalanceLoading: false,
+      rateStatus: 'loading',
+    } satisfies EarnMoneyAccountSearchItem;
+
+    const { getByTestId, getByText, queryByText } = render(
+      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+    );
+
+    expect(getByTestId('earn-search-money-apy-skeleton')).toBeOnTheScreen();
+    expect(getByText('$12.00')).toBeOnTheScreen();
+    expect(queryByText(strings('earn_module.rate_unavailable'))).toBeNull();
   });
 
   it('renders New and Get started for a zero balance', () => {
