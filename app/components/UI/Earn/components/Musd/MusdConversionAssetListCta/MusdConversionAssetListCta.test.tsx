@@ -28,7 +28,6 @@ import { EARN_TEST_IDS } from '../../../constants/testIds';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -662,7 +661,9 @@ describe('MusdConversionAssetListCta', () => {
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
       ).toBeOnTheScreen();
       // Badge wrapper is not rendered when showNetworkIcon is false
-      expect(queryByTestId(BADGE_WRAPPER_BADGE_TEST_ID)).toBeNull();
+      expect(
+        queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA_BADGE),
+      ).toBeNull();
     });
 
     it('renders with network badge when showNetworkIcon is true and mainnet selected', () => {
@@ -687,6 +688,9 @@ describe('MusdConversionAssetListCta', () => {
 
       expect(
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA_BADGE),
       ).toBeOnTheScreen();
     });
 
@@ -713,6 +717,9 @@ describe('MusdConversionAssetListCta', () => {
       expect(
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA_BADGE),
+      ).toBeOnTheScreen();
     });
 
     it('renders with network badge when showNetworkIcon is true and BSC selected', () => {
@@ -737,6 +744,9 @@ describe('MusdConversionAssetListCta', () => {
 
       expect(
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA_BADGE),
       ).toBeOnTheScreen();
     });
   });
