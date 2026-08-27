@@ -617,6 +617,7 @@ export type RootStackParamList = {
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
+  ExploreCards: undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
