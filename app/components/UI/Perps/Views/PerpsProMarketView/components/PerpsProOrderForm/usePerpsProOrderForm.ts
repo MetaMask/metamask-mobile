@@ -2007,6 +2007,7 @@ export const usePerpsProOrderForm = ({
         setScaleEndPrice('');
         setScaleTotalOrders('');
         setScaleSizeSkew(SCALE_DEFAULT_SKEW);
+        setHasScaleValidationInteraction(false);
         setReduceOnly(false);
         return;
       }

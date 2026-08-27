@@ -2297,6 +2297,16 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.endPrice).toBe('');
       expect(result.current.scaleOrder.totalOrders).toBe('');
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
     });
 
     it.each([
@@ -2512,6 +2522,16 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(mockUpdateOrderForm.mock.calls[0][0]).not.toHaveProperty('type');
       expect(result.current.scaleOrder.startPrice).toBe('');
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
     });
 
     it('does not retry placed children after a partial Scale success', async () => {
