@@ -209,6 +209,7 @@ const ChoosePassword = () => {
     contentReady: true,
     isEmpty: false,
     isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
   });
 
   useNavigationPerformance({

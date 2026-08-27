@@ -45,14 +45,12 @@ describe('PredictHome', () => {
         'kalshi',
         'sports-football-nfl-games',
         { limit: 2 },
-        undefined,
       );
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         'sports-football-ncaa-games',
         { limit: 2 },
-        undefined,
       );
     });
 
@@ -162,14 +160,12 @@ describe('PredictHome', () => {
         'kalshi',
         feedId,
         { limit: 20 },
-        undefined,
       );
       expect(messengerCall).not.toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         feedId,
         { limit: 2 },
-        undefined,
       );
     },
   );
@@ -316,7 +312,6 @@ describe('PredictHome', () => {
       'PredictMarketDataService:getEvent',
       'kalshi',
       'nfl-1',
-      undefined,
     );
 
     fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));

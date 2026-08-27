@@ -65,7 +65,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        cacheTime: 0,
+        gcTime: 0,
         retry: false,
       },
     },
@@ -104,6 +104,7 @@ const createMarket = (overrides: Partial<TestMarket> = {}): TestMarket => ({
 describe('useCryptoUpDownChartData', () => {
   let liveUpdateHandler: ((update: CryptoPriceUpdate) => void) | undefined;
   let historicalData: LivelinePoint[];
+  let queryFnShouldFail = false;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,6 +112,7 @@ describe('useCryptoUpDownChartData', () => {
     jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
 
     liveUpdateHandler = undefined;
+    queryFnShouldFail = false;
     historicalData = [
       { time: 100, value: 50000 },
       { time: 200, value: 51000 },
@@ -151,7 +153,10 @@ describe('useCryptoUpDownChartData', () => {
           endDate ?? '',
           twapWindowSeconds ?? '',
         ],
-        queryFn: async () => historicalData,
+        queryFn: async () => {
+          if (queryFnShouldFail) throw new Error('fetch failed');
+          return historicalData;
+        },
       }),
     );
   });
@@ -169,15 +174,18 @@ describe('useCryptoUpDownChartData', () => {
       return refetchInterval();
     };
 
-    const recordFailures = (count: number): void => {
-      const onError = mockLastUseQueryConfig.current?.onError as () => void;
+    const recordFailures = async (count: number): Promise<void> => {
+      queryFnShouldFail = true;
       for (let i = 0; i < count; i += 1) {
-        onError();
+        await (
+          mockLastUseQueryConfig.current?.queryFn as () => Promise<void>
+        )().catch(() => null);
       }
     };
 
-    const recordSuccess = (): void => {
-      (mockLastUseQueryConfig.current?.onSuccess as () => void)();
+    const recordSuccess = async (): Promise<void> => {
+      queryFnShouldFail = false;
+      await (mockLastUseQueryConfig.current?.queryFn as () => Promise<void>)();
     };
 
     const sendLiveTick = (price = 51000, timestamp = 100): void => {
@@ -235,32 +243,32 @@ describe('useCryptoUpDownChartData', () => {
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('backs off, stops, then recovers as failures accumulate and clear', () => {
+    it('backs off, stops, then recovers as failures accumulate and clear', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
       expect(evaluateRefetchInterval()).toBe(10000);
-      recordFailures(3);
+      await recordFailures(3);
       expect(evaluateRefetchInterval()).toBe(30000);
-      recordFailures(2); // 5 total
+      await recordFailures(2); // 5 total
       expect(evaluateRefetchInterval()).toBe(60000);
-      recordFailures(2); // 7 total
+      await recordFailures(2); // 7 total
       expect(evaluateRefetchInterval()).toBe(false);
       // A successful fetch resets the count and restores the base cadence.
-      recordSuccess();
+      await recordSuccess();
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('resets the circuit breaker when the live stream recovers', () => {
+    it('resets the circuit breaker when the live stream recovers', async () => {
       const { Wrapper } = createWrapper();
       const market = createLiveMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
       // Polling keeps failing until it disables itself.
-      recordFailures(7);
+      await recordFailures(7);
       expect(evaluateRefetchInterval()).toBe(false);
 
       // The socket recovers and delivers a tick -> breaker resets, polling paused.
@@ -273,7 +281,7 @@ describe('useCryptoUpDownChartData', () => {
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('does not poll for a non-live (historical-only) chart', () => {
+    it('does not poll for a non-live (historical-only) chart', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
@@ -287,7 +295,7 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(evaluateRefetchInterval()).toBe(false);
       // Even with many failures recorded, a disabled poll stays disabled.
-      recordFailures(99);
+      await recordFailures(99);
       expect(evaluateRefetchInterval()).toBe(false);
     });
   });
