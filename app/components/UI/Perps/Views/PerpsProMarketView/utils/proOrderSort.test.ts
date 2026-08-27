@@ -91,7 +91,7 @@ describe('sortProOrders', () => {
   });
 
   it.each(['price', 'orderValue'] as const)(
-    'sorts unavailable trigger-market %s as zero',
+    'sorts trigger-market %s using its estimated price',
     (field) => {
       const orders = [
         makeOrder({
@@ -115,8 +115,8 @@ describe('sortProOrders', () => {
       });
 
       expect(result.map((order) => order.orderId)).toEqual([
-        'trigger-market',
         'limit',
+        'trigger-market',
       ]);
     },
   );

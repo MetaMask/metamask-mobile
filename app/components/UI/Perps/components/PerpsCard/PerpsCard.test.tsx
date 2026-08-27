@@ -398,6 +398,26 @@ describe('PerpsCard', () => {
       expect(queryByText('perps.order.trigger_price')).toBeNull();
     });
 
+    it('shows unavailable price for trigger-limit order without a limit price', () => {
+      const triggerLimitOrderWithoutPrice = {
+        ...mockOrder,
+        isTrigger: true,
+        orderType: 'limit' as const,
+        triggerOrderType: 'take_profit_limit' as const,
+        detailedOrderType: 'Take Profit Limit',
+        triggerPrice: '2800',
+        price: '0',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={triggerLimitOrderWithoutPrice} testID="test-card" />,
+      );
+
+      expect(getByText('$---')).toBeOnTheScreen();
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
+      expect(queryByText('perps.order.market')).toBeNull();
+    });
+
     it('keeps limit price label for non-trigger limit orders when triggerPrice is "0"', () => {
       const limitOrderWithZeroTriggerPrice = {
         ...mockOrder,

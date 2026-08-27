@@ -27,6 +27,9 @@ jest.mock('../../utils/formatUtils', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  PERPS_CONSTANTS: {
+    FallbackPriceDisplay: '$---',
+  },
   isLimitExecutionOrderType: jest.fn((orderType) =>
     String(orderType).includes('limit'),
   ),
@@ -149,6 +152,22 @@ describe('PerpsCompactOrderRow', () => {
 
     expect(screen.getByText('Limit price')).toBeOnTheScreen();
     expect(screen.queryByText('Trigger price')).toBeNull();
+  });
+
+  it('renders unavailable price for trigger-limit order without a limit price', () => {
+    const triggerLimitOrderWithoutPrice: Order = {
+      ...mockTriggerOrder,
+      triggerOrderType: 'take_profit_limit',
+      detailedOrderType: 'Take Profit Limit',
+      triggerPrice: '47000',
+      price: '0',
+    };
+
+    render(<PerpsCompactOrderRow order={triggerLimitOrderWithoutPrice} />);
+
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+    expect(screen.getByText('Limit price')).toBeOnTheScreen();
+    expect(screen.queryByText('Market')).toBeNull();
   });
 
   it('uses order price for limit orders', () => {
