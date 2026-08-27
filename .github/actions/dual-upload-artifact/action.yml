@@ -1,11 +1,17 @@
-# Upload to both Namespace and GitHub artifact stores, retrying Namespace on
-# transient CreateArtifact ECONNREFUSED (INFRA-3902). Both stores must succeed:
+# Upload to both Namespace and GitHub artifact stores, retrying retryable
+# Namespace upload action failures to absorb transient CreateArtifact ECONNREFUSED
+# failures. Composite actions cannot inspect failure details from a
+# nested `uses:` action before deciding whether to retry, so nested action
+# failures are classified as retryable unless a non-retryable error is available.
+# Both stores must succeed:
 # GitHub API consumers (qa-stats, freeze-timings, gh run download) cannot see
 # Namespace storage. See "Runner provider switch" in .github/CONTRIBUTING.md.
 name: 'Dual upload artifact'
 description: >
-  Upload an artifact to the Namespace store and the GitHub store, retrying
-  Namespace up to 3 times. The step fails unless both stores succeed.
+  Upload an artifact to the Namespace store and the GitHub store. Namespace
+  upload failures are classified before retrying and may retry up to 3 times to
+  absorb transient artifact service errors. The step fails unless every required
+  store succeeds.
 
 inputs:
   name:
@@ -44,8 +50,18 @@ runs:
         if-no-files-found: ${{ inputs.if-no-files-found }}
         retention-days: ${{ inputs.retention-days }}
 
-    - name: Wait before Namespace retry (attempt 2)
+    - name: Classify Namespace retry (attempt 2)
+      id: ns-retry-2
       if: ${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}
+      shell: bash
+      env:
+        ATTEMPT: '2'
+        PREVIOUS_OUTCOMES: failure
+        RUNNER_PROVIDER: ${{ inputs.runner-provider }}
+      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" namespace-retry-decision
+
+    - name: Wait before Namespace retry (attempt 2)
+      if: ${{ steps.ns-retry-2.outputs.retryable == 'true' }}
       shell: bash
       env:
         ATTEMPT: '2'
@@ -54,7 +70,7 @@ runs:
 
     - name: Upload to Namespace (attempt 2)
       id: ns-2
-      if: ${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' }}
+      if: ${{ steps.ns-retry-2.outputs.retryable == 'true' }}
       continue-on-error: true
       uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
       with:
@@ -64,8 +80,18 @@ runs:
         retention-days: ${{ inputs.retention-days }}
         overwrite: true
 
-    - name: Wait before Namespace retry (attempt 3)
+    - name: Classify Namespace retry (attempt 3)
+      id: ns-retry-3
       if: ${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' && steps.ns-2.outcome == 'failure' }}
+      shell: bash
+      env:
+        ATTEMPT: '3'
+        PREVIOUS_OUTCOMES: failure,failure
+        RUNNER_PROVIDER: ${{ inputs.runner-provider }}
+      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" namespace-retry-decision
+
+    - name: Wait before Namespace retry (attempt 3)
+      if: ${{ steps.ns-retry-3.outputs.retryable == 'true' }}
       shell: bash
       env:
         ATTEMPT: '3'
@@ -74,7 +100,7 @@ runs:
 
     - name: Upload to Namespace (attempt 3)
       id: ns-3
-      if: ${{ contains(inputs.runner-provider, 'namespace') && steps.ns-1.outcome == 'failure' && steps.ns-2.outcome == 'failure' }}
+      if: ${{ steps.ns-retry-3.outputs.retryable == 'true' }}
       continue-on-error: true
       uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
       with:
