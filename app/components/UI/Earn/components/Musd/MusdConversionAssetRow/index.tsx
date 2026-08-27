@@ -1,29 +1,23 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   IconName,
   ButtonIcon,
   ButtonIconSize,
   IconSize,
   Spinner,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
-import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
@@ -61,7 +55,6 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
   errorMessage,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const networkName = useNetworkName(token.chainId as Hex | undefined);
 
   const formatFiat = useFiatFormatter();
   const fiatBalance = token?.fiat?.balance;
@@ -96,16 +89,15 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
           <View testID={MusdConversionAssetRowTestIds.TOKEN_ICON}>
             <View style={styles.tokenIconContainer}>
               <BadgeWrapper
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    name={networkName}
-                    imageSource={getNetworkImageSource({
-                      chainId: token.chainId ?? '',
-                    })}
-                    isScaled={false}
-                    size={AvatarSize.Xs}
+                position={BadgeWrapperPosition.BottomRight}
+                badge={
+                  <BadgeNetwork
+                    twClassName="h-4 w-4 rounded bg-default"
+                    src={
+                      getNetworkImageSource({
+                        chainId: token.chainId ?? '',
+                      }) as React.ComponentProps<typeof BadgeNetwork>['src']
+                    }
                   />
                 }
               >
@@ -115,7 +107,8 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
           </View>
           <View style={styles.tokenInfo}>
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
               ellipsizeMode="tail"
               testID={MusdConversionAssetRowTestIds.TOKEN_BALANCE}
@@ -123,8 +116,9 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
               {formattedBalance}
             </Text>
             <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
               numberOfLines={1}
               testID={MusdConversionAssetRowTestIds.TOKEN_NAME}
             >
@@ -146,7 +140,10 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
                 isDisabled={areActionsDisabled}
                 testID={MusdConversionAssetRowTestIds.MAX_BUTTON}
               >
-                <Text variant={TextVariant.BodyMDMedium}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
                   {strings('earn.musd_conversion.max')}
                 </Text>
               </Button>
@@ -164,7 +161,7 @@ const MusdConversionAssetRow: React.FC<MusdConversionAssetRowProps> = ({
         </View>
       </View>
       {errorMessage ? (
-        <Text variant={TextVariant.BodySM} style={styles.errorText}>
+        <Text variant={TextVariant.BodySm} style={styles.errorText}>
           {errorMessage}
         </Text>
       ) : null}
