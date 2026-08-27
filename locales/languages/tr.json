@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- kullanılabilir",
       "est_liquidation": "Tahmini Likidasyon",
       "tpsl": "KA / ZD",
-      "place_order": "Emir ver"
+      "place_order": "Emir ver",
+      "close_keyboard": "Klavyeyi kapat"
     },
     "pro_positions_panel": {
       "order_history": "Emir geçmişi",

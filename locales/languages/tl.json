@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Tinatayang Liquidation",
       "tpsl": "TP / SL",
-      "place_order": "Maglagay ng order"
+      "place_order": "Maglagay ng order",
+      "close_keyboard": "Isara ang keyboard"
     },
     "pro_positions_panel": {
       "order_history": "History ng order",

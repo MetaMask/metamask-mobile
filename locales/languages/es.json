@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- disponible",
       "est_liquidation": "Liquidación est.",
       "tpsl": "TG/LP",
-      "place_order": "Realizar orden"
+      "place_order": "Realizar orden",
+      "close_keyboard": "Cerrar teclado"
     },
     "pro_positions_panel": {
       "order_history": "Historial de órdenes",
