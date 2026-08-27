@@ -9,7 +9,7 @@ import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
 import { Authentication } from '../../core';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
-import type { EntropySourceId } from '@metamask/keyring-api';
+import { EthAccountType, type EntropySourceId } from '@metamask/keyring-api';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -47,14 +47,16 @@ export async function importNewSecretRecoveryPhrase(
     type: 'import',
     mnemonic,
   });
+
   const entropySource = wallet.entropySource;
 
-  const [newAccount] = await KeyringController.withKeyringV2(
-    {
-      id: entropySource,
-    },
-    async ({ keyring }) => keyring.getAccounts(),
-  );
+  const newAccount = wallet
+    .getMultichainAccountGroup(0)
+    ?.get({ type: EthAccountType.Eoa });
+
+  if (!newAccount) {
+    throw new Error('Failed to create new account');
+  }
 
   const { SeedlessOnboardingController } = Engine.context;
 
