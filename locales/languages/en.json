@@ -1170,6 +1170,7 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
@@ -1588,7 +1589,19 @@
       "tpsl": "TP / SL",
       "place_order": "Place order",
       "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
-      "close_keyboard": "Close keyboard"
+      "close_keyboard": "Close keyboard",
+      "twap": {
+        "running_time": "Running time",
+        "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
+        "valid_range": "{{minDurationMinutes}} minutes–{{maxDurationHours}} hours",
+        "days_short": "d",
+        "hours_short": "h",
+        "minutes_short": "m",
+        "randomize": "Randomize",
+        "randomize_description": "Vary each suborder size by up to ±{{randomizeVariancePercent}}%.",
+        "minimum_size": "TWAP total size must be at least ${{minNotionalUsd}}.",
+        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours."
+      }
     },
     "pro_positions_panel": {
       "order_history": "Order history",
@@ -1709,7 +1722,8 @@
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
-        "reduce_only_too_large": "Reduce only order is larger than your open position"
+        "reduce_only_too_large": "Reduce only order is larger than your open position",
+        "twap_unavailable": "TWAP placement is not available for this provider."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1780,6 +1794,7 @@
         "title": "Order type",
         "basic": "Basic",
         "triggered": "Triggered",
+        "advanced": "Advanced",
         "market": {
           "title": "Market",
           "description": "Execute instantly at best available price"
@@ -1803,6 +1818,10 @@
         "take_profit_market": {
           "title": "Take market",
           "description": "Place a market order if trigger price is reached"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "Split orders to execute at regular time interval"
         }
       },
       "payment_token": "Payment token",
@@ -1841,7 +1860,15 @@
       "submitting_your_trade": "Submitting your trade",
       "order_filled": "Order filled",
       "order_placed": "Order placed",
+      "twap_started": "TWAP started",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} over {{duration}}",
+      "twap_duration_day": "{{count}} day",
+      "twap_duration_days": "{{count}} days",
+      "twap_duration_hour": "{{count}} hour",
+      "twap_duration_hours": "{{count}} hours",
+      "twap_duration_minute": "{{count}} minute",
+      "twap_duration_minutes": "{{count}} minutes",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
@@ -8686,7 +8713,17 @@
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
-      "expired_after": "Expired after {{duration}}"
+      "expired_after": "Expired after {{duration}}",
+      "buy_when": "Buy when",
+      "sell_when": "Sell when",
+      "is_at_or_below": "is at or below",
+      "is_at_or_above": "is at or above",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% from market)",
+      "from_market_above": "(+{{percent}}% from market)",
+      "market": "Market",
+      "custom": "Custom"
     },
     "recurring": {
       "you_get": "You get",
@@ -8694,6 +8731,9 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "repeat_info_title": "Repeat orders",
+      "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
         "not_set": "Not set",
@@ -8712,16 +8752,26 @@
         "minute": "minute",
         "hour": "hour",
         "day": "day",
-        "week": "week"
+        "week": "week",
+        "month": "month"
+      },
+      "unit_plural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
       },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
         "day": "Day",
-        "week": "Week"
+        "week": "Week",
+        "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",
+      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "filled": "Filled"
     },

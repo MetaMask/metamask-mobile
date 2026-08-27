@@ -34,11 +34,6 @@ describe('useMarketInsights', () => {
     onlineManager.setOnline(true);
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
-      logger: {
-        log: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-      },
     });
   });
 

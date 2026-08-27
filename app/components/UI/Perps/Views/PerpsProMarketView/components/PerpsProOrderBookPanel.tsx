@@ -43,6 +43,7 @@ import {
 } from '../../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
+import { usePerpsOrderBookPreferences } from '../../../hooks/usePerpsOrderBookPreferences';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -408,8 +409,10 @@ const PerpsProOrderBookPanel = ({
   const buyColor = colors.success.default;
   const sellColor = colors.error.default;
 
-  const [currency, setCurrency] = useState<OrderBookListCurrency>('usd');
-  const [metric, setMetric] = useState<OrderBookListMetric>('total');
+  const { preferences: orderBookPreferences, setOrderBookPreferences } =
+    usePerpsOrderBookPreferences();
+  const currency = orderBookPreferences.currency;
+  const metric = orderBookPreferences.metric;
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
@@ -610,12 +613,14 @@ const PerpsProOrderBookPanel = ({
       metric: OrderBookListMetric;
       grouping: number;
     }) => {
-      setCurrency(next.currency);
-      setMetric(next.metric);
+      setOrderBookPreferences({
+        currency: next.currency,
+        metric: next.metric,
+      });
       setSelectedGrouping(next.grouping);
       saveGrouping(next.grouping);
     },
-    [saveGrouping],
+    [saveGrouping, setOrderBookPreferences],
   );
 
   const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
