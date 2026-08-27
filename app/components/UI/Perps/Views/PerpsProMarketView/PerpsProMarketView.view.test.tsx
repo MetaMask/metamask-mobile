@@ -165,11 +165,13 @@ const openTwapDurationSheet = async () => {
     { timeout: TIMEOUT_MS },
   );
 
-  return {
-    days: screen.getByTestId(ids.TWAP_DAYS),
-    hours: screen.getByTestId(ids.TWAP_HOURS),
-    minutes: screen.getByTestId(ids.TWAP_MINUTES),
-  };
+  return screen.getByTestId(ids.TWAP_DURATION_PICKER);
+};
+
+const createTwapPickerDate = (hours: number, minutes: number) => {
+  const date = new Date(0);
+  date.setUTCHours(hours, minutes);
+  return date;
 };
 
 const selectTriggeredOrderType = async (
@@ -302,9 +304,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       expect(section).toBeOnTheScreen();
       expect(durationValue).toHaveTextContent('0h 5m');
-      expect(screen.queryByTestId(ids.TWAP_DAYS)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TWAP_HOURS)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TWAP_MINUTES)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ids.TWAP_DURATION_PICKER),
+      ).not.toBeOnTheScreen();
       expect(randomize).not.toBeChecked();
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
@@ -342,13 +344,24 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     });
   });
 
-  itForPlatforms('configures a randomized TWAP duration', async () => {
+  itForPlatforms('configures a randomized TWAP duration', async ({ os }) => {
     renderProMarketWithTwapFlag(true);
     const { sizeInput, randomize } = await openTwapOrderForm();
-    const { minutes } = await openTwapDurationSheet();
+    const picker = await openTwapDurationSheet();
+    const selectedDate = createTwapPickerDate(0, 30);
 
-    fireEvent.changeText(minutes, '30');
-    fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_SHEET_CLOSE));
+    fireEvent(
+      picker,
+      'onChange',
+      {
+        type: 'set',
+        nativeEvent: { timestamp: selectedDate.getTime(), utcOffset: 0 },
+      },
+      selectedDate,
+    );
+    if (os === 'ios') {
+      fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_SHEET_CLOSE));
+    }
     fireEvent.changeText(sizeInput, '100');
     fireEvent.press(randomize);
 

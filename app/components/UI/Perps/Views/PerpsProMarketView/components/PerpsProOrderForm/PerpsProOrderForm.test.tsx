@@ -277,9 +277,9 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
         '1d 2h 30m',
       );
-      expect(screen.queryByTestId(ids.TWAP_DAYS)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TWAP_HOURS)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TWAP_MINUTES)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ids.TWAP_DURATION_PICKER),
+      ).not.toBeOnTheScreen();
     });
 
     it('updates TWAP Randomize from the compact card row', () => {

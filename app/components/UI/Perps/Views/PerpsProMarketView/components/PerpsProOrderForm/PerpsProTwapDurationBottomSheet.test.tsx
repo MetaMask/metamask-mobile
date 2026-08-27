@@ -1,8 +1,13 @@
+import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import React from 'react';
+import { Platform, TextInput } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
 import PerpsProTwapDurationBottomSheet from './PerpsProTwapDurationBottomSheet';
+
+jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -16,6 +21,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const originalPlatform = Platform.OS;
 
 const createTwap = (
   overrides: Partial<PerpsProTwapModel> = {},
@@ -31,81 +37,144 @@ const createTwap = (
   ...overrides,
 });
 
+const pickerDate = (hours: number, minutes: number) => {
+  const date = new Date(0);
+  date.setUTCHours(hours, minutes);
+  return date;
+};
+
+const pickerEvent = (
+  type: DateTimePickerEvent['type'],
+  date = pickerDate(0, 5),
+): DateTimePickerEvent => ({
+  type,
+  nativeEvent: { timestamp: date.getTime(), utcOffset: 0 },
+});
+
+const renderSheet = (twap = createTwap(), onClose = jest.fn()) => {
+  render(<PerpsProTwapDurationBottomSheet twap={twap} onClose={onClose} />);
+  return { picker: screen.getByTestId(ids.TWAP_DURATION_PICKER), onClose };
+};
+
 describe('PerpsProTwapDurationBottomSheet', () => {
-  it('renders the existing duration inputs inside the sheet', () => {
-    render(
-      <PerpsProTwapDurationBottomSheet
-        twap={createTwap()}
-        onClose={jest.fn()}
-      />,
-    );
+  beforeEach(() => {
+    Platform.OS = 'ios';
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatform;
+  });
+
+  it('renders the native iOS countdown spinner without custom inputs', () => {
+    const { picker } = renderSheet();
 
     expect(screen.getByTestId(ids.TWAP_DURATION_SHEET)).toBeOnTheScreen();
-    expect(screen.getByTestId(ids.TWAP_DAYS)).toBeOnTheScreen();
-    expect(screen.getByTestId(ids.TWAP_HOURS)).toBeOnTheScreen();
-    expect(screen.getByTestId(ids.TWAP_MINUTES)).toBeOnTheScreen();
+    expect(picker).toHaveProp('mode', 'countdown');
+    expect(picker).toHaveProp('display', 'spinner');
+    expect(picker).toHaveProp('timeZoneName', 'UTC');
+    expect(picker).toHaveProp('themeVariant', 'light');
+    expect(screen.UNSAFE_queryAllByType(TextInput)).toHaveLength(0);
   });
 
-  it('forwards day, hour, and minute edits to the TWAP model', () => {
-    const onDaysChange = jest.fn();
-    const onHoursChange = jest.fn();
-    const onMinutesChange = jest.fn();
-    render(
-      <PerpsProTwapDurationBottomSheet
-        twap={createTwap({
-          onDaysChange,
-          onHoursChange,
-          onMinutesChange,
-        })}
-        onClose={jest.fn()}
-      />,
+  it('updates the TWAP model live from the iOS picker', () => {
+    const twap = createTwap();
+    const onClose = jest.fn();
+    const { picker } = renderSheet(twap, onClose);
+    const selectedDate = pickerDate(1, 30);
+
+    fireEvent(
+      picker,
+      'onChange',
+      pickerEvent('set', selectedDate),
+      selectedDate,
     );
 
-    fireEvent.changeText(screen.getByTestId(ids.TWAP_DAYS), '1');
-    fireEvent.changeText(screen.getByTestId(ids.TWAP_HOURS), '2');
-    fireEvent.changeText(screen.getByTestId(ids.TWAP_MINUTES), '30');
-
-    expect(onDaysChange).toHaveBeenCalledWith('1');
-    expect(onHoursChange).toHaveBeenCalledWith('2');
-    expect(onMinutesChange).toHaveBeenCalledWith('30');
+    expect(twap.onDaysChange).toHaveBeenCalledWith('');
+    expect(twap.onHoursChange).toHaveBeenCalledWith('1');
+    expect(twap.onMinutesChange).toHaveBeenCalledWith('30');
+    expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('renders a duration error inside the open sheet', () => {
-    const durationError =
-      'Running time must be between 5 minutes and 24 hours.';
+  it('renders the existing validation error below five minutes', () => {
+    const durationError = strings('perps.pro_order_form.twap.duration_range', {
+      minDurationMinutes: 5,
+      maxDurationHours: 24,
+    });
+    const { picker } = renderSheet(createTwap({ minutes: '4', durationError }));
 
-    render(
-      <PerpsProTwapDurationBottomSheet
-        twap={createTwap({ durationError })}
-        onClose={jest.fn()}
-      />,
-    );
-
+    expect(picker.props.value).toEqual(pickerDate(0, 4));
     expect(screen.getByTestId(ids.TWAP_DURATION_ERROR)).toHaveTextContent(
       durationError,
     );
   });
 
-  it('closes from the standard sheet header affordance', () => {
-    const onClose = jest.fn();
-    render(
-      <PerpsProTwapDurationBottomSheet twap={createTwap()} onClose={onClose} />,
+  it('maps the five-minute native boundary', () => {
+    const twap = createTwap({ minutes: '30' });
+    const { picker } = renderSheet(twap);
+    const selectedDate = pickerDate(0, 5);
+
+    fireEvent(
+      picker,
+      'onChange',
+      pickerEvent('set', selectedDate),
+      selectedDate,
     );
+
+    expect(twap.onHoursChange).toHaveBeenCalledWith('0');
+    expect(twap.onMinutesChange).toHaveBeenCalledWith('5');
+  });
+
+  it('clamps an existing 24-hour duration to the native 23:59 ceiling', () => {
+    const { picker } = renderSheet(
+      createTwap({ days: '1', hours: '0', minutes: '0' }),
+    );
+
+    expect(picker.props.value).toEqual(pickerDate(23, 59));
+  });
+
+  it('closes from the sheet header without changing the duration', () => {
+    const twap = createTwap();
+    const onClose = jest.fn();
+    renderSheet(twap, onClose);
 
     fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_SHEET_CLOSE));
 
+    expect(twap.onMinutesChange).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('renders nothing while hidden', () => {
-    render(
-      <PerpsProTwapDurationBottomSheet
-        isVisible={false}
-        twap={createTwap()}
-        onClose={jest.fn()}
-      />,
+  it('uses the native Android time picker and closes after selection', () => {
+    Platform.OS = 'android';
+    const twap = createTwap();
+    const onClose = jest.fn();
+    const { picker } = renderSheet(twap, onClose);
+    const selectedDate = pickerDate(2, 15);
+
+    expect(picker).toHaveProp('mode', 'time');
+    expect(picker).toHaveProp('display', 'spinner');
+    expect(picker).toHaveProp('is24Hour', true);
+
+    fireEvent(
+      picker,
+      'onChange',
+      pickerEvent('set', selectedDate),
+      selectedDate,
     );
 
-    expect(screen.queryByTestId(ids.TWAP_DURATION_SHEET)).not.toBeOnTheScreen();
+    expect(twap.onHoursChange).toHaveBeenCalledWith('2');
+    expect(twap.onMinutesChange).toHaveBeenCalledWith('15');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes an Android dismissal without changing the duration', () => {
+    Platform.OS = 'android';
+    const twap = createTwap();
+    const onClose = jest.fn();
+    const { picker } = renderSheet(twap, onClose);
+
+    fireEvent(picker, 'onChange', pickerEvent('dismissed'));
+
+    expect(twap.onMinutesChange).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

@@ -307,7 +307,6 @@ const PerpsProOrderFormPanel = ({
           onRequestClose={closeTwapDuration}
         >
           <PerpsProTwapDurationBottomSheet
-            isVisible
             twap={twap}
             onClose={closeTwapDuration}
           />
