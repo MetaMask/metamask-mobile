@@ -1,4 +1,5 @@
 import type { Json } from '@metamask/utils';
+import { getVersion } from 'react-native-device-info';
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -61,6 +62,7 @@ describe('Perps Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    jest.mocked(getVersion).mockReturnValue('1.0.0');
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -2204,11 +2206,11 @@ describe('Perps Feature Flag Selectors', () => {
       };
     };
 
-    it('returns true when the remote flag is enabled for the app version', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    it('returns true at the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
       const state = createStateWithFlag({
         enabled: true,
-        minimumVersion: '1.0.0',
+        minimumVersion: '8.10.0',
       });
 
       const result = selectPerpsProTwapEnabledFlag(state);
@@ -2227,11 +2229,11 @@ describe('Perps Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the app version is below the minimum', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
+    it('returns false below the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
       const state = createStateWithFlag({
         enabled: true,
-        minimumVersion: '99.0.0',
+        minimumVersion: '8.10.0',
       });
 
       const result = selectPerpsProTwapEnabledFlag(state);
