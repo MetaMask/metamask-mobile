@@ -130,10 +130,11 @@ describe('AndroidGoogleLoginHandler', () => {
         new Error('user disabled the feature'),
       );
 
-      await expect(handler.login()).rejects.toThrow(OAuthError);
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
       });
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('throws GoogleLoginNoProviderDependencies when provider dependencies not found', async () => {

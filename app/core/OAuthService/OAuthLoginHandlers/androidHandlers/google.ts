@@ -44,6 +44,9 @@ type AndroidGoogleAcmErrorKind =
   | 'no_matching_credential'
   | 'one_tap_failure';
 
+/** Bound Sentry context so a runaway native message cannot blow extras. */
+const NATIVE_MESSAGE_SENTRY_MAX_CHARS = 500;
+
 /**
  * Classify the native ACM / legacy Google error string for Sentry.
  * Login outcome mapping is unchanged: no-credential still throws UserCancelled.
@@ -82,7 +85,10 @@ const reportAndroidGoogleAcmError = (
     context: {
       name: 'android_google_acm',
       data: {
-        native_message: nativeError.message.slice(0, 500),
+        native_message: nativeError.message.slice(
+          0,
+          NATIVE_MESSAGE_SENTRY_MAX_CHARS,
+        ),
       },
     },
   });
@@ -97,7 +103,11 @@ const throwMappedNativeAcmError = (error: Error): never => {
   const mapsToUserCancelled =
     isOAuthUserCancellationMessage(error.message) ||
     ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message);
-  if (acmKind && (!mapsToUserCancelled || acmKind === 'no_credential')) {
+  if (
+    acmKind &&
+    acmKind !== 'user_disabled_feature' &&
+    (!mapsToUserCancelled || acmKind === 'no_credential')
+  ) {
     reportAndroidGoogleAcmError(error, acmKind);
   }
   if (mapsToUserCancelled) {
