@@ -1191,7 +1191,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
 });
 
 describeForPlatforms('ActivityDetails — stake', () => {
-  it('shows confirmed Staked Ethereum with fee, total, tx id, and explorer', async () => {
+  it('shows confirmed Staked ETH with fee, total, tx id, and explorer', async () => {
     const stakeTransaction = buildConfirmedLocalStakingDepositTransaction();
     const state = initialStateActivityWithLocalTransactions([stakeTransaction])
       .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
@@ -1212,7 +1212,7 @@ describeForPlatforms('ActivityDetails — stake', () => {
     });
 
     expect(await findByTestId(SCREEN)).toBeOnTheScreen();
-    expect(await findByText('Staked Ethereum')).toBeOnTheScreen();
+    expect(await findByText('Staked ETH')).toBeOnTheScreen();
     expect(getByTestId(HEADER)).toBeOnTheScreen();
 
     const amountHeader = await findByTestId(AMOUNT_HEADER);
