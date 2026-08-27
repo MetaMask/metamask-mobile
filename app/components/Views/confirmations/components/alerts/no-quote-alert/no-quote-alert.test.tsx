@@ -5,6 +5,7 @@ import { NoQuoteAlert } from './no-quote-alert';
 import { strings } from '../../../../../../../locales/i18n';
 
 const DETAIL_MOCK = ['reason: INSUFFICIENT_BALANCE', 'required: 100 USDC'];
+const MESSAGE_MOCK = 'No quotes available for this route';
 const COLLAPSED_MESSAGE = strings('alert_system.no_pay_token_quotes.message');
 
 function createError(overrides?: Partial<QuoteErrorInfo>): QuoteErrorInfo {
@@ -90,6 +91,56 @@ describe('NoQuoteAlert', () => {
     DETAIL_MOCK.forEach((row) => {
       expect(queryByText(row)).toBeNull();
     });
+  });
+
+  it('hides the error message until expanded', () => {
+    const { queryByText } = render(
+      <NoQuoteAlert error={createError({ message: MESSAGE_MOCK })} />,
+    );
+
+    expect(queryByText(MESSAGE_MOCK)).toBeNull();
+  });
+
+  it('shows the error message alongside detail rows when expanded', () => {
+    const { getByTestId, getByText } = render(
+      <NoQuoteAlert error={createError({ message: MESSAGE_MOCK })} />,
+    );
+
+    tap(getByTestId('no-quote-alert'), 2);
+
+    expect(getByText(MESSAGE_MOCK)).toBeDefined();
+    DETAIL_MOCK.forEach((row) => {
+      expect(getByText(row)).toBeDefined();
+    });
+  });
+
+  it('renders the error message before the detail rows', () => {
+    const { getByTestId, toJSON } = render(
+      <NoQuoteAlert error={createError({ message: MESSAGE_MOCK })} />,
+    );
+
+    tap(getByTestId('no-quote-alert'), 2);
+
+    const tree = JSON.stringify(toJSON());
+    const messageIndex = tree.indexOf(MESSAGE_MOCK);
+    const detailIndex = tree.indexOf(DETAIL_MOCK[0]);
+
+    expect(messageIndex).toBeGreaterThan(-1);
+    expect(detailIndex).toBeGreaterThan(-1);
+    expect(messageIndex).toBeLessThan(detailIndex);
+  });
+
+  it('shows the error message when expanded with no detail rows', () => {
+    const { getByTestId, getByText } = render(
+      <NoQuoteAlert
+        error={createError({ detail: undefined, message: MESSAGE_MOCK })}
+      />,
+    );
+
+    tap(getByTestId('no-quote-alert'), 2);
+
+    expect(getByText(COLLAPSED_MESSAGE)).toBeDefined();
+    expect(getByText(MESSAGE_MOCK)).toBeDefined();
   });
 
   it('shows only the collapsed message when detail is empty', () => {

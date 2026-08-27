@@ -361,6 +361,28 @@ describe('PredictMarketChart', () => {
     expect(endpoint.props.strokeWidth).toBe(2);
   });
 
+  it('keeps plotted paths unchanged while scrubbing', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+    const homePath = view.getByTestId('market-chart-line-home').props
+      .d as string;
+    const awayPath = view.getByTestId('market-chart-line-away').props
+      .d as string;
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(90, 80));
+    const rendered = JSON.stringify(view.toJSON());
+
+    expect(homePath.length).toBeGreaterThan(0);
+    expect(awayPath.length).toBeGreaterThan(0);
+    expect(rendered).toContain(homePath);
+    expect(rendered).toContain(awayPath);
+  });
+
   it('removes the endpoint pulse while scrubbing and restores it on release', () => {
     const view = render(
       <PredictMarketChart series={testSeries} testID="market-chart" />,

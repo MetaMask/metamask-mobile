@@ -22,6 +22,7 @@ import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useTheme } from '../../../../../../util/theme';
 import { roundProbabilityToWhole } from '../../../utils/formatProbability';
 import {
+  applyChartScrub,
   CHART_PLOT_TOP,
   createChartModel,
   getScaledChartLayout,
@@ -96,16 +97,31 @@ export const PredictMarketChart = ({
       return value === undefined ? [] : [formatValue(value)];
     }),
   });
-  const model = createChartModel({
-    series,
-    width,
-    height: layout.height,
-    labelGutter: layout.labelGutter,
-    continuationWidth,
-    lineWidth,
-    fontScale: layout.fontScale,
-    scrub,
-  });
+  const baseModel = useMemo(
+    () =>
+      createChartModel({
+        series,
+        width,
+        height: layout.height,
+        labelGutter: layout.labelGutter,
+        continuationWidth,
+        lineWidth,
+        fontScale: layout.fontScale,
+      }),
+    [
+      continuationWidth,
+      layout.fontScale,
+      layout.height,
+      layout.labelGutter,
+      lineWidth,
+      series,
+      width,
+    ],
+  );
+  const model = useMemo(
+    () => (baseModel ? applyChartScrub(baseModel, scrub) : undefined),
+    [baseModel, scrub],
+  );
 
   const plotRight = model?.plotRight;
   const minTime = model?.timeDomain[0];

@@ -4088,6 +4088,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsMobileTwap: {
+    name: 'perpsMobileTwap',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,
@@ -5598,6 +5609,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             'spreads',
             'totals',
             'first_half_moneyline',
+            'first_half_spreads',
             'both_teams_to_score',
             'both_teams_to_score_first_half',
             'both_teams_to_score_second_half',
@@ -5608,6 +5620,12 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             'soccer_second_half_result',
             'soccer_player_goals',
             'team_totals',
+            'team_totals_home',
+            'team_totals_away',
+            'anytime_touchdowns',
+            'first_touchdowns',
+            'rushing_yards',
+            'receiving_yards',
             'soccer_team_totals',
             'basketball_team_to_score_first',
             'soccer_exact_score',

@@ -1,5 +1,7 @@
 import { Theme } from '../../../../../util/theme/models';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { hexToRgba } from '../../utils/chartColors';
+import { createLimitOrderOverlayScript } from './limitOrderOverlay';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
@@ -683,6 +685,27 @@ export const createTradingViewChartTemplate = (
                 window.chart.removeSeries(window.candlestickSeries);
             }
             // Create new candlestick series in pane 0 (top pane)
+            window.collectLimitOverlayPrices = function() {
+                var seen = {};
+                var prices = [];
+                function pushPrice(value) {
+                    var price = parseFloat(value);
+                    if (!isNaN(price) && isFinite(price) && !seen[price]) {
+                        seen[price] = true;
+                        prices.push(price);
+                    }
+                }
+                (window.lastLimitOrderPrices || []).forEach(pushPrice);
+                if (window.priceLines && window.priceLines.limitOrders) {
+                    window.priceLines.limitOrders.forEach(function(item) {
+                        if (item) {
+                            pushPrice(item.price);
+                        }
+                    });
+                }
+                return prices;
+            };
+
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '${theme.colors.success.default}',
                 downColor: '${theme.colors.error.default}',
@@ -700,6 +723,28 @@ export const createTradingViewChartTemplate = (
                     type: 'price',
                     precision: 6, // Allow up to 6 decimal places for very small values
                     minMove: 0.000001, // Very small minimum move for precision
+                },
+                // Keep resting Limit lines on-scale instead of clipping them
+                autoscaleInfoProvider: function(original) {
+                    var result = original();
+                    var overlayPrices = window.collectLimitOverlayPrices ? window.collectLimitOverlayPrices() : [];
+                    if (!result || !result.priceRange || overlayPrices.length === 0) {
+                        return result;
+                    }
+                    var minValue = result.priceRange.minValue;
+                    var maxValue = result.priceRange.maxValue;
+                    overlayPrices.forEach(function(price) {
+                        minValue = Math.min(minValue, price);
+                        maxValue = Math.max(maxValue, price);
+                    });
+                    var padding = (maxValue - minValue) * ${PERPS_CHART_CONFIG.LIMIT_AUTOSCALE_PADDING_FRACTION};
+                    return {
+                        priceRange: {
+                            minValue: minValue - padding,
+                            maxValue: maxValue + padding,
+                        },
+                        margins: result.margins,
+                    };
                 },
                 // Optimize for smooth panning
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
@@ -1075,8 +1120,14 @@ export const createTradingViewChartTemplate = (
             liquidationPrice: null, 
             takeProfitPrice: null,
             stopLossPrice: null,
-            currentPrice: null
+            currentPrice: null,
+            limitOrders: []
         };
+
+${createLimitOrderOverlayScript({
+  sell: theme.colors.error.default,
+  buy: theme.colors.success.default,
+})}
         
         // Store original price line data for restoration
         window.originalPriceLineData = null;
@@ -1090,7 +1141,10 @@ export const createTradingViewChartTemplate = (
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                limitOrders: (window.priceLines.limitOrders || []).map(function(item) {
+                    return { price: item.price, side: item.side };
+                })
             };
 
             // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
@@ -1104,6 +1158,8 @@ export const createTradingViewChartTemplate = (
                     }
                 }
             });
+            window.clearLimitOrderLines();
+            window.lastLimitOrderPrices = [];
         };
         
         window.showAllPriceLines = function() {
@@ -1165,6 +1221,10 @@ export const createTradingViewChartTemplate = (
                 } catch (error) {
                     // Silent error handling
                 }
+            }
+
+            if (window.originalPriceLineData.limitOrders && window.originalPriceLineData.limitOrders.length) {
+                window.updateLimitOrderLines(window.originalPriceLineData.limitOrders);
             }
 
             // Clear stored data
@@ -1334,6 +1394,7 @@ export const createTradingViewChartTemplate = (
                     console.error('TradingView: Error creating liquidation line:', error);
                 }
             }
+            window.updateLimitOrderLines(lines.limitOrders || []);
         };
         // Message handling from React Native
         window.addEventListener('message', function(event) {
@@ -1573,6 +1634,8 @@ export const createTradingViewChartTemplate = (
                                     console.error('TradingView: Error removing liquidation line:', error);
                                 }
                             }
+
+                            window.clearLimitOrderLines();
 
                             // Note: currentPrice line is intentionally preserved
                         }
