@@ -519,7 +519,13 @@ function watchedOrderIds(meta: Record<string, TraceValue>): string[] {
       ? decoded.filter((value): value is string => typeof value === 'string')
       : [];
   } catch (error) {
-    Logger.error(ensureError(error, 'perpsCufTrace.watchedOrderIds'));
+    Logger.error(ensureError(error, 'perpsCufTrace.watchedOrderIds'), {
+      tags: {
+        feature: PERPS_CONSTANTS.FeatureName,
+        component: 'perpsCufTrace',
+        action: 'parse_watched_order_ids',
+      },
+    });
     return [];
   }
 }

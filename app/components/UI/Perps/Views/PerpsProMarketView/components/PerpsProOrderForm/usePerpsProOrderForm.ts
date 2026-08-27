@@ -208,6 +208,19 @@ const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
     ? ((maxPrice - minPrice) / minPrice) * 100
     : undefined;
 
+const formatScalePriceForProvider = ({
+  price,
+  providerId,
+  szDecimals,
+}: {
+  price: number;
+  providerId: PerpsProviderType | undefined;
+  szDecimals: number;
+}): string =>
+  providerId === PROVIDER_CONFIG.DefaultProvider
+    ? formatHyperLiquidPrice({ price, szDecimals })
+    : new BigNumber(price).toFixed();
+
 /** Prefix of the interpolated insufficient-balance message (stable across amounts). */
 const INSUFFICIENT_BALANCE_PREFIX = strings(
   'perps.order.validation.insufficient_balance',
@@ -617,18 +630,6 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const formatScalePriceForProvider = ({
-    price,
-    providerId,
-    szDecimals,
-  }: {
-    price: number;
-    providerId: PerpsProviderType | undefined;
-    szDecimals: number;
-  }): string =>
-    providerId === PROVIDER_CONFIG.DefaultProvider
-      ? formatHyperLiquidPrice({ price, szDecimals })
-      : new BigNumber(price).toFixed();
   const { isAtCap } = usePerpsOICap(symbol);
   const vipTier = useVipTier();
 
