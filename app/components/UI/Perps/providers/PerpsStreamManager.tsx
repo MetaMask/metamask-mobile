@@ -2063,7 +2063,7 @@ class TopOfBookStreamChannel extends StreamChannel<
             spread: update.spread,
           };
           this.cachedTopOfBook = topOfBook;
-          this.notifySubscribers(topOfBook);
+          this.notifySubscribersForSymbols(topOfBook, [subscribedSymbol]);
         }
       },
     });
@@ -2103,6 +2103,9 @@ class TopOfBookStreamChannel extends StreamChannel<
         | undefined,
     ) => void;
   }): () => void {
+    if (!params.symbol) {
+      return () => undefined;
+    }
     if (this.currentSymbol && this.currentSymbol !== params.symbol) {
       DevLogger.log(
         'TopOfBookStreamChannel: Warning - different symbol requested, staying on current',
@@ -2121,9 +2124,31 @@ class TopOfBookStreamChannel extends StreamChannel<
       this.currentSymbol = params.symbol;
     }
 
-    return this.subscribe({
+    const unsubscribe = this.subscribe({
+      symbols: [params.symbol],
       callback: params.callback,
     });
+
+    return () => {
+      unsubscribe();
+      this.refocusToRemainingSymbol();
+    };
+  }
+
+  private refocusToRemainingSymbol(): void {
+    if (this.subscribers.size === 0) {
+      return;
+    }
+    if (this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)) {
+      return;
+    }
+    const nextSymbol = this.symbolSubscribers.keys().next().value;
+    if (!nextSymbol) {
+      return;
+    }
+    this.disconnect();
+    this.currentSymbol = nextSymbol;
+    this.connect();
   }
 
   public disconnect() {
@@ -2133,7 +2158,10 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public reconnect(): void {
-    const symbol = this.currentSymbol;
+    const symbol =
+      this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)
+        ? this.currentSymbol
+        : this.symbolSubscribers.keys().next().value;
     this.disconnect();
     super.clearCache();
     if (symbol && this.subscribers.size > 0) {

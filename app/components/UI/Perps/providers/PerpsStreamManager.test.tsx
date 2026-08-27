@@ -3988,6 +3988,20 @@ describe('PerpsStreamManager', () => {
       });
 
       expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
     });
 
     it('clears top of book cache when clearCache called', () => {
@@ -4025,13 +4039,15 @@ describe('PerpsStreamManager', () => {
     });
 
     it('restores the active symbol when another symbol remains mounted', () => {
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
       testStreamManager.topOfBook.subscribeToSymbol({
         symbol: 'BTC',
-        callback: jest.fn(),
+        callback: btcCallback,
       });
       testStreamManager.topOfBook.subscribeToSymbol({
         symbol: 'ETH',
-        callback: jest.fn(),
+        callback: ethCallback,
       });
 
       testStreamManager.topOfBook.clearCache();
@@ -4043,6 +4059,38 @@ describe('PerpsStreamManager', () => {
         callback: expect.any(Function),
       });
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+
+      const currentCallback = mockSubscribeToPrices.mock.lastCall?.[0].callback;
+      currentCallback([{ symbol: 'ETH', bestBid: '3', bestAsk: '4' }]);
+      expect(ethCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
+      expect(btcCallback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
+    });
+
+    it('refocuses to a surviving symbol after the active subscriber leaves', () => {
+      const btcCallback = jest.fn();
+      const unsubscribeBtc = testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+      const unsubscribeEth = testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: jest.fn(),
+      });
+
+      unsubscribeEth();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+
+      unsubscribeBtc();
     });
   });
 
