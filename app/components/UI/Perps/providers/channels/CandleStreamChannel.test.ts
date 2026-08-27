@@ -1247,6 +1247,25 @@ describe('CandleStreamChannel', () => {
       expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
     });
 
+    it('refreshes cached candles when prewarm is forced', async () => {
+      mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      mockFetchHistoricalCandles.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
     it('skips prewarm fetch when live subscription cache is fresh', async () => {
       let capturedCallback: ((data: CandleData) => void) | undefined;
       mockSubscribeToCandles.mockImplementation(({ callback }) => {
@@ -1323,6 +1342,61 @@ describe('CandleStreamChannel', () => {
 
       resolveFetch(warmedData);
       await Promise.all([firstPrewarm, secondPrewarm]);
+    });
+
+    it('coalesces concurrent forced prewarm requests', async () => {
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles.mockReturnValue(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      const firstRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+      const secondRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+      resolveFetch(mockCandleData);
+      await Promise.all([firstRefresh, secondRefresh]);
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs one forced refresh after an in-flight normal prewarm', async () => {
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          }),
+        )
+        .mockResolvedValueOnce(mockCandleData);
+
+      const normalPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      const forcedRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+      resolveFetch(mockCandleData);
+      await Promise.all([normalPrewarm, forcedRefresh]);
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
     });
 
     it('does not cache or notify subscribers when prewarm returns empty candles', async () => {

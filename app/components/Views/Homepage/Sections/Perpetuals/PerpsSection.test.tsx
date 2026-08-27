@@ -958,6 +958,11 @@ describe('PerpsSection', () => {
 
     it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {
       const refresh = jest.fn().mockResolvedValue(undefined);
+      const refreshSparklines = jest.fn().mockResolvedValue(undefined);
+      mockUseHomepageSparklines.mockReturnValue({
+        refresh: refreshSparklines,
+        sparklines: {},
+      });
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
@@ -973,9 +978,12 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} ref={ref} />,
       );
 
-      await ref.current?.refresh();
+      await act(async () => {
+        await ref.current?.refresh();
+      });
 
       expect(refresh).toHaveBeenCalledTimes(1);
+      expect(refreshSparklines).toHaveBeenCalledTimes(1);
     });
 
     it('does not show trending carousel when user has positions', () => {

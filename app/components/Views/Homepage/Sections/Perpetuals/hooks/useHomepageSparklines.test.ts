@@ -9,7 +9,7 @@ import {
 
 const mockSubscribe = jest.fn();
 const mockPrewarmCandles = jest.fn().mockResolvedValue(undefined);
-let mockMarketContextKey = 'testnet:hyperliquid:0|1';
+let mockMarketContextKey = 'testnet|hyperliquid|0';
 const mockStream = {
   candles: {
     prewarmCandles: mockPrewarmCandles,
@@ -23,7 +23,7 @@ jest.mock('../../../../../UI/Perps/providers/PerpsStreamManager', () => ({
 
 jest.mock('../../../../../UI/Perps/hooks/usePerpsMarketContext', () => ({
   usePerpsMarketContext: jest.fn(() => ({
-    key: mockMarketContextKey,
+    identityKey: mockMarketContextKey,
     isReady: true,
     isUserReady: true,
     isConnectionInitialized: true,
@@ -67,7 +67,7 @@ function makeCandles(count: number, startPrice = 100): CandleData['candles'] {
 describe('useHomepageSparklines', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockMarketContextKey = 'testnet:hyperliquid:0|1';
+    mockMarketContextKey = 'testnet|hyperliquid|0';
     mockSubscribe.mockReturnValue(jest.fn());
   });
 
@@ -149,6 +149,32 @@ describe('useHomepageSparklines', () => {
     );
   });
 
+  it('keeps symbol-only callers on the candle fallback', () => {
+    renderHook(() => useHomepageSparklines(['BTC', 'ETH']));
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'BTC' }),
+    );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH' }),
+    );
+  });
+
+  it('unsubscribes from each candle fallback on unmount', () => {
+    const unsubscribes = [jest.fn(), jest.fn()];
+    mockSubscribe
+      .mockReturnValueOnce(unsubscribes[0])
+      .mockReturnValueOnce(unsubscribes[1]);
+    const { unmount } = renderHook(() => useHomepageSparklines(['BTC', 'ETH']));
+
+    unmount();
+
+    unsubscribes.forEach((unsubscribe) =>
+      expect(unsubscribe).toHaveBeenCalledTimes(1),
+    );
+  });
+
   it('keeps the last fallback data and only replaces it on explicit refresh', async () => {
     let callback: ((candleData: CandleData) => void) | undefined;
     mockSubscribe.mockImplementation(
@@ -226,7 +252,7 @@ describe('useHomepageSparklines', () => {
     });
     expect(result.current.sparklines.BTC?.[0]).toBe(100);
 
-    mockMarketContextKey = 'mainnet:hyperliquid:0|2';
+    mockMarketContextKey = 'mainnet|hyperliquid|0';
     rerender({ value: markets });
     expect(result.current.sparklines.BTC).toBeUndefined();
 

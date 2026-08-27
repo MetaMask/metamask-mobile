@@ -9,7 +9,7 @@ import { usePerpsMarketContext } from '../../../../../UI/Perps/hooks/usePerpsMar
 import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
 
 const SPARKLINE_TARGET_POINTS = 50;
-const SPARKLINE_CANDLE_COUNT = 96;
+const SPARKLINE_CANDLE_COUNT = 96; // 24h of 15-minute candles
 
 export interface UseHomepageSparklinesResult {
   refresh: () => Promise<void>;
@@ -72,13 +72,15 @@ export function useHomepageSparklines(
     [marketsOrSymbols],
   );
   const stream = usePerpsStream();
-  const { key: marketContextKey } = usePerpsMarketContext();
+  const { identityKey: marketContextKey } = usePerpsMarketContext();
   const [fallbackState, setFallbackState] = useState<{
     contextKey: string;
     values: Record<string, number[]>;
   }>(() => ({ contextKey: marketContextKey, values: {} }));
   const fallbackDataRef = useRef<Record<string, number[]>>({});
   const fallbackContextKeyRef = useRef(marketContextKey);
+  const marketContextKeyRef = useRef(marketContextKey);
+  marketContextKeyRef.current = marketContextKey;
   const refreshCountBySymbolRef = useRef(new Map<string, number>());
   const flushScheduledRef = useRef(false);
   const lastSparklinesRef = useRef<{
@@ -94,6 +96,7 @@ export function useHomepageSparklines(
         typeof marketOrSymbol === 'string'
           ? marketOrSymbol
           : marketOrSymbol.symbol;
+      if (!symbol) continue;
       const closes = extractCloses(
         typeof marketOrSymbol === 'string' ? undefined : marketOrSymbol.trend,
       );
@@ -112,7 +115,7 @@ export function useHomepageSparklines(
   useEffect(() => {
     let active = true;
     const fallbackSymbols = fallbackSymbolsKey
-      ? fallbackSymbolsKey.split(',')
+      ? fallbackSymbolsKey.split(',').filter(Boolean)
       : [];
     const contextChanged = fallbackContextKeyRef.current !== marketContextKey;
     fallbackContextKeyRef.current = marketContextKey;
@@ -201,26 +204,34 @@ export function useHomepageSparklines(
           typeof marketOrSymbol === 'string'
             ? marketOrSymbol
             : marketOrSymbol.symbol;
+        if (!symbol) return [];
         const values = current[symbol] ?? previous[symbol];
         return values ? [[symbol, values]] : [];
       }),
     );
-    lastSparklinesRef.current = { contextKey: marketContextKey, values: next };
     return next;
   }, [fallbackState, marketContextKey, safeMarketsOrSymbols, trendSparklines]);
 
+  useEffect(() => {
+    lastSparklinesRef.current = {
+      contextKey: marketContextKey,
+      values: sparklines,
+    };
+  }, [marketContextKey, sparklines]);
+
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
-    const symbols = fallbackSymbolsKey.split(',');
+    const symbols = fallbackSymbolsKey.split(',').filter(Boolean);
+    const refreshContextKey = marketContextKeyRef.current;
     symbols.forEach((symbol) => {
-      const key = `${marketContextKey}:${symbol}`;
+      const key = `${refreshContextKey}:${symbol}`;
       refreshCountBySymbolRef.current.set(
         key,
         (refreshCountBySymbolRef.current.get(key) ?? 0) + 1,
       );
     });
     try {
-      await Promise.all(
+      await Promise.allSettled(
         symbols.map((symbol) =>
           stream.candles.prewarmCandles(
             symbol,
@@ -232,7 +243,7 @@ export function useHomepageSparklines(
       );
     } finally {
       symbols.forEach((symbol) => {
-        const key = `${marketContextKey}:${symbol}`;
+        const key = `${refreshContextKey}:${symbol}`;
         const count = (refreshCountBySymbolRef.current.get(key) ?? 1) - 1;
         if (count > 0) {
           refreshCountBySymbolRef.current.set(key, count);
@@ -241,7 +252,7 @@ export function useHomepageSparklines(
         }
       });
     }
-  }, [fallbackSymbolsKey, marketContextKey, stream]);
+  }, [fallbackSymbolsKey, stream]);
 
   return useMemo(() => ({ refresh, sparklines }), [refresh, sparklines]);
 }

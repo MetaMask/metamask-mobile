@@ -125,7 +125,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     ReturnType<typeof setTimeout>
   >();
   private connectRetryCounts = new Map<string, number>();
-  private readonly prewarmRequests = new Map<string, Promise<void>>();
+  private readonly prewarmRequests = new Map<
+    string,
+    { force: boolean; promise: Promise<void> }
+  >();
   private prewarmGeneration = 0;
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
@@ -753,13 +756,20 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const pendingRequest = this.prewarmRequests.get(requestKey);
     if (pendingRequest) {
       try {
-        await pendingRequest;
-      } catch {
+        await pendingRequest.promise;
+      } catch (error) {
         if (!force || generation !== this.prewarmGeneration) {
           return;
         }
+        if (pendingRequest.force) {
+          throw error;
+        }
       }
-      if (force && generation === this.prewarmGeneration) {
+      if (
+        force &&
+        !pendingRequest.force &&
+        generation === this.prewarmGeneration
+      ) {
         if (this.prewarmRequests.get(requestKey) === pendingRequest) {
           this.prewarmRequests.delete(requestKey);
         }
@@ -809,11 +819,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         });
       }
     })();
-    this.prewarmRequests.set(requestKey, request);
+    const requestEntry = { force, promise: request };
+    this.prewarmRequests.set(requestKey, requestEntry);
     try {
       await request;
     } finally {
-      if (this.prewarmRequests.get(requestKey) === request) {
+      if (this.prewarmRequests.get(requestKey) === requestEntry) {
         this.prewarmRequests.delete(requestKey);
       }
     }
