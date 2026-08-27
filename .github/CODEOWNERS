@@ -173,7 +173,8 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 app/core/RPCMethods/                 @MetaMask/core-platform
 app/util/permissions/                @MetaMask/core-platform
 ## UI-level messengers
-app/contexts/route-messenger.ts                           @MetaMask/core-platform
+app/contexts/route-messenger.tsx                          @MetaMask/core-platform
+app/contexts/route-messenger.test.tsx                     @MetaMask/core-platform
 app/contexts/ui-messenger.tsx                             @MetaMask/core-platform
 app/hooks/useMessenger.ts                                 @MetaMask/core-platform
 app/messengers/configs/helpers.ts                         @MetaMask/core-platform
@@ -181,8 +182,6 @@ app/messengers/helpers/route-messenger-helpers.test.tsx   @MetaMask/core-platfor
 app/messengers/helpers/route-messenger-helpers.tsx        @MetaMask/core-platform
 app/messengers/route-messenger.test.ts                    @MetaMask/core-platform
 app/messengers/route-messenger.ts                         @MetaMask/core-platform
-app/messengers/route-with-messenger.test.tsx              @MetaMask/core-platform
-app/messengers/route-with-messenger.tsx                   @MetaMask/core-platform
 app/messengers/ui-messenger.test.ts                       @MetaMask/core-platform
 app/messengers/ui-messenger.ts                            @MetaMask/core-platform
 app/util/test/mock-route-messenger.ts                     @MetaMask/core-platform
@@ -206,6 +205,8 @@ app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
+**/EarnSection/**    @MetaMask/earn
+
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
@@ -368,6 +369,7 @@ tests/*.js                                                      @MetaMask/qa
 tests/*.ts                                                      @MetaMask/qa
 tests/api-mocking/                                              @MetaMask/qa
 tests/component-view/                                           @MetaMask/qa
+tests/component-view/renderers/predictNext.ts                   @MetaMask/qa @MetaMask/predict
 tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa

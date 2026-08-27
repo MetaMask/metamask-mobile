@@ -687,6 +687,28 @@ export function useCardHomeActions({
     activeProviderId,
   ]);
 
+  const transactionHistoryAction = useCallback(
+    (destination: 'card' | 'money') => {
+      if (destination === 'money') {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.ACTIVITY },
+        });
+        return;
+      }
+
+      if (isAuthenticated) {
+        navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
+      } else {
+        navigation.navigate(Routes.CARD.AUTHENTICATION, {
+          showAuthPrompt: true,
+          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+        });
+      }
+    },
+    [isAuthenticated, navigation],
+  );
+
   return {
     freeze,
     unfreeze,
@@ -712,6 +734,7 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
+    transactionHistoryAction,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

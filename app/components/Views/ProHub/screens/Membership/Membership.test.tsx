@@ -7,16 +7,18 @@ import {
   MOCK_MEMBERSHIP_STATS,
   MOCK_PAYMENT_DETAILS,
 } from './Membership.constants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 let mockGoBack: jest.Mock;
+let mockNavigate: jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   };
 });
 
@@ -45,6 +47,7 @@ describe('Membership', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
+    mockNavigate = jest.fn();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -183,6 +186,26 @@ describe('Membership', () => {
       expect(
         getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW),
       ).toHaveTextContent(strings('pro_hub.membership.cancel_membership'));
+    });
+  });
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+
+  describe('navigation', () => {
+    it('navigates to CancelMembership when cancel membership row is pressed', () => {
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PRO_HUB.CANCEL_MEMBERSHIP,
+      );
+    });
+
+    it('does not navigate before any row is pressed', () => {
+      renderMembership();
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

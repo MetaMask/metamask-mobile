@@ -8,9 +8,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import MultichainTransactionsView, {
-  getMultichainTransactionItemType,
-} from './MultichainTransactionsView';
+import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -25,7 +23,6 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 import Routes from '../../../constants/navigation/Routes';
-jest.useFakeTimers();
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
@@ -141,20 +138,6 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
-  it('uses distinct recycle pools for standard and bridge transactions', () => {
-    expect(
-      getMultichainTransactionItemType(mockTransactions[0], false, {}),
-    ).toBe('transaction');
-    expect(
-      getMultichainTransactionItemType(mockTransactions[1], false, {}),
-    ).toBe('transaction');
-    expect(
-      getMultichainTransactionItemType(mockTransactions[0], false, {
-        [mockTransactions[0].id]: {},
-      }),
-    ).toBe('bridge-transaction');
-  });
-
   const customRender = (ui: React.ReactElement) => {
     const utils = render(ui);
 
@@ -171,7 +154,6 @@ describe('MultichainTransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.clearAllTimers();
 
     const { default: MockButton } = jest.requireMock(
       '../../../component-library/components/Buttons/Button',

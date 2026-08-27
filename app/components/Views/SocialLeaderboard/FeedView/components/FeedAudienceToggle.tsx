@@ -38,6 +38,12 @@ const SPRING_CONFIG = {
   dampingRatio: 0.75,
 } as const;
 
+/**
+ * Extra horizontal padding vs. the previous `px-4` so Android has room for
+ * the full "Following" / "All" glyphs. Do not shrink the font to fit.
+ */
+const SEGMENT_TW_CLASS = 'rounded-xl px-6 h-8 items-center justify-center';
+
 const styles = StyleSheet.create({
   row: {
     position: 'relative',
@@ -52,9 +58,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
+  },
+  container: {
+    flexShrink: 0,
+  },
+  touchable: {
+    overflow: 'visible',
+    flexShrink: 0,
   },
   labelActive: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -182,6 +196,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       twClassName="shrink-0 border border-muted rounded-2xl p-1"
+      style={styles.container}
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
@@ -206,26 +221,29 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityRole="button"
           accessibilityState={{ selected: displayValue === 'following' }}
           testID={getFeedAudienceOptionTestId('following')}
+          style={styles.touchable}
         >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
+          <Box twClassName={SEGMENT_TW_CLASS}>
             <Box style={styles.labelWrap}>
-              <Animated.View style={followingBaseStyle}>
+              {/* In-flow Medium label sets the segment width so the wider
+                  selected weight never clips (e.g. Android "Followin[g]"). */}
+              <Animated.View style={followingActiveStyle}>
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                 >
                   {strings('social_leaderboard.feed.following')}
                 </Text>
               </Animated.View>
               <Animated.View
-                style={[styles.labelActive, followingActiveStyle]}
+                style={[styles.labelActive, followingBaseStyle]}
                 pointerEvents="none"
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('social_leaderboard.feed.following')}
                 </Text>
@@ -244,26 +262,27 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityRole="button"
           accessibilityState={{ selected: displayValue === 'all' }}
           testID={getFeedAudienceOptionTestId('all')}
+          style={styles.touchable}
         >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
+          <Box twClassName={SEGMENT_TW_CLASS}>
             <Box style={styles.labelWrap}>
-              <Animated.View style={allBaseStyle}>
+              <Animated.View style={allActiveStyle}>
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                 >
                   {strings('social_leaderboard.feed.all')}
                 </Text>
               </Animated.View>
               <Animated.View
-                style={[styles.labelActive, allActiveStyle]}
+                style={[styles.labelActive, allBaseStyle]}
                 pointerEvents="none"
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('social_leaderboard.feed.all')}
                 </Text>

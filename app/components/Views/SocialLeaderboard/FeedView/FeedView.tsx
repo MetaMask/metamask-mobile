@@ -290,7 +290,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         [SocialLeaderboardEventProperties.SOURCE]: 'trader_feed',
         [SocialLeaderboardEventProperties.TRADER_ADDRESS]: item.traderAddress,
         [SocialLeaderboardEventProperties.TRADER_USERNAME]: item.username,
-        [SocialLeaderboardEventProperties.FEED_ACTION]: item.action,
+        ...(item.action
+          ? { [SocialLeaderboardEventProperties.FEED_ACTION]: item.action }
+          : {}),
         [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
         [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
       };
