@@ -249,18 +249,19 @@ const BridgeLimitOrderViewContent = ({
             <Box
               twClassName="flex-grow-0 pb-3"
               onTouchEnd={dismissInputAndKeypad}
-              onLayout={handleBannersLayout}
             >
-              <SwapsBanners
-                latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-                onAdjustSourceAmount={handleSourcePresetAmountSelect}
-              >
-                <HardwareWalletUnsupportedBanner />
-                <QuoteErrorBanner />
-                <TokenWarningBanner />
-                <InsufficientNativeReserveBanner />
-                <MissingQuoteAndAssetsPriceDataBanner />
-              </SwapsBanners>
+              <Box onLayout={handleBannersLayout}>
+                <SwapsBanners
+                  latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+                  onAdjustSourceAmount={handleSourcePresetAmountSelect}
+                >
+                  <HardwareWalletUnsupportedBanner />
+                  <QuoteErrorBanner />
+                  <TokenWarningBanner />
+                  <InsufficientNativeReserveBanner />
+                  <MissingQuoteAndAssetsPriceDataBanner />
+                </SwapsBanners>
+              </Box>
             </Box>
 
             <Box onTouchEnd={dismissInputAndKeypad}>
