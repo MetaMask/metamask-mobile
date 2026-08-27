@@ -1,12 +1,14 @@
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  PERPS_ERROR_CODES,
   formatHyperLiquidSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
   type OrderType,
   type PerpsMarketData,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -81,10 +83,7 @@ import {
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
-import {
-  getOrderManagementToastKey,
-  willFlipPosition,
-} from '../../../../utils/orderUtils';
+import { willFlipPosition } from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -100,7 +99,10 @@ import {
   getOrderFormFieldIssueMessage,
   getOrderFormFieldIssues,
 } from '../../../../utils/triggerOrderValidation';
-import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
+import {
+  MAX_PERPS_INPUT_DIGITS,
+  PERPS_TWAP_UI_CONFIG,
+} from '../../../../constants/perpsConfig';
 import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
@@ -112,6 +114,7 @@ import type {
   PerpsProOrderSummaryProps,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
+  PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 
@@ -126,6 +129,18 @@ const INSUFFICIENT_BALANCE_PREFIX = strings(
   'perps.order.validation.insufficient_balance',
   { required: '__REQ__', available: '__AVAIL__' },
 ).split('__REQ__')[0];
+
+const TWAP_OWNED_PROTOCOL_ERROR_CODES = [
+  PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED,
+  PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+  PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL,
+] as const;
+
+const normalizeTwapDurationPart = (value: string): string =>
+  value
+    .replace(/\D/gu, '')
+    .replace(/^0+(?=\d)/u, '')
+    .slice(0, MAX_PERPS_INPUT_DIGITS);
 
 const isMarginValidationError = (message: string): boolean =>
   message.startsWith(INSUFFICIENT_BALANCE_PREFIX) ||
@@ -313,7 +328,13 @@ const getTpslNotices = ({
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
   /** Feature-gate trigger order placement as well as the type picker. */
-  isTriggeredOrdersEnabled?: boolean;
+  isTriggeredOrdersEnabled: boolean;
+  /** Gate Hyperliquid TWAP placement as well as the type picker. */
+  isTwapEnabled: boolean;
+  /** True while a rollout-enabled market capability query is unresolved. */
+  isTwapAvailabilityPending: boolean;
+  /** Concrete provider route returned by the ready capability response. */
+  resolvedTwapProviderId?: PerpsProviderType;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -342,6 +363,7 @@ export interface UsePerpsProOrderFormResult {
   onAddFundsPress: () => void;
   reduceOnly: boolean;
   onReduceOnlyChange: (value: boolean) => void;
+  twap: PerpsProTwapModel;
   isTPSLConfigured: boolean;
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
@@ -393,7 +415,10 @@ export interface UsePerpsProOrderFormResult {
  */
 export const usePerpsProOrderForm = ({
   market,
-  isTriggeredOrdersEnabled = true,
+  isTriggeredOrdersEnabled,
+  isTwapEnabled,
+  isTwapAvailabilityPending,
+  resolvedTwapProviderId,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
 
@@ -438,6 +463,18 @@ export const usePerpsProOrderForm = ({
 
   // Local (Pro-only) state
   const [reduceOnly, setReduceOnly] = useState(false);
+  const [twapDays, setTwapDays] = useState('');
+  const [twapHours, setTwapHours] = useState('');
+  const [twapMinutes, setTwapMinutes] = useState(
+    PERPS_TWAP_UI_CONFIG.DefaultMinutes,
+  );
+  const [twapRandomize, setTwapRandomize] = useState(false);
+  const resetTwapDraft = useCallback(() => {
+    setTwapDays('');
+    setTwapHours('');
+    setTwapMinutes(PERPS_TWAP_UI_CONFIG.DefaultMinutes);
+    setTwapRandomize(false);
+  }, []);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
@@ -597,10 +634,33 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
 
+  const isTwapOrder = orderForm.type === 'twap';
+  const orderProviderId = isTwapOrder ? resolvedTwapProviderId : undefined;
+  const isTwapEnabledRef = useRef(isTwapEnabled);
+  const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
+
+  useLayoutEffect(() => {
+    isTwapEnabledRef.current = isTwapEnabled;
+    resolvedTwapProviderIdRef.current = resolvedTwapProviderId;
+  }, [isTwapEnabled, resolvedTwapProviderId]);
+
+  useEffect(() => {
+    if (isTwapOrder && !isTwapEnabled && !isTwapAvailabilityPending) {
+      setOrderType('market');
+      resetTwapDraft();
+    }
+  }, [
+    isTwapAvailabilityPending,
+    isTwapEnabled,
+    isTwapOrder,
+    resetTwapDraft,
+    setOrderType,
+  ]);
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: effectiveUsdAmount,
     symbol: orderForm.asset,
+    providerId: orderProviderId,
     isClosing: reduceOnly,
     limitPrice: normalizedLimitPrice,
     direction: orderForm.direction,
@@ -618,13 +678,54 @@ export const usePerpsProOrderForm = ({
   const isTriggerMarketOrder =
     isTriggerOrderType(orderForm.type) &&
     getTriggerExecution(orderForm.type) === 'market';
-  const hidesSlippage = isLimitExecutionOrderType(orderForm.type);
+  const hidesSlippage =
+    isLimitExecutionOrderType(orderForm.type) || isTwapOrder;
   const hasValidAmount = Number.parseFloat(effectiveUsdAmount) > 0;
 
   const orderUsdAmount = useMemo(
     () => Number.parseFloat(effectiveUsdAmount) || 0,
     [effectiveUsdAmount],
   );
+  const twapDuration = useMemo(
+    () =>
+      (Number.parseInt(twapDays, 10) || 0) *
+        PERPS_TWAP_UI_CONFIG.HoursPerDay *
+        PERPS_TWAP_UI_CONFIG.MinutesPerHour +
+      (Number.parseInt(twapHours, 10) || 0) *
+        PERPS_TWAP_UI_CONFIG.MinutesPerHour +
+      (Number.parseInt(twapMinutes, 10) || 0),
+    [twapDays, twapHours, twapMinutes],
+  );
+  const hasTwapDurationInput =
+    twapDays !== '' || twapHours !== '' || twapMinutes !== '';
+  const twapDurationMissing = isTwapOrder && !hasTwapDurationInput;
+  const twapPartError =
+    isTwapOrder &&
+    ((twapDays !== '' &&
+      Number.parseInt(twapDays, 10) > PERPS_TWAP_UI_CONFIG.MaximumDays) ||
+      (twapHours !== '' &&
+        Number.parseInt(twapHours, 10) > PERPS_TWAP_UI_CONFIG.MaximumHours) ||
+      (twapMinutes !== '' &&
+        Number.parseInt(twapMinutes, 10) >
+          PERPS_TWAP_UI_CONFIG.MaximumMinutes));
+  const twapDurationError =
+    isTwapOrder &&
+    hasTwapDurationInput &&
+    (twapPartError ||
+      twapDuration < PERPS_TWAP_UI_CONFIG.MinimumDurationMinutes ||
+      twapDuration > PERPS_TWAP_UI_CONFIG.MaximumDurationMinutes);
+  const twapDurationErrorMessage = twapDurationError
+    ? strings(
+        'perps.pro_order_form.twap.duration_range',
+        PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+      )
+    : twapDurationMissing
+      ? strings('perps.errors.orderValidation.twapDurationRequired')
+      : undefined;
+  const twapMinimumSizeError =
+    isTwapOrder &&
+    orderUsdAmount > 0 &&
+    orderUsdAmount < PERPS_TWAP_UI_CONFIG.MinimumNotionalUsd;
   const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
@@ -764,6 +865,12 @@ export const usePerpsProOrderForm = ({
     triggerPrice: normalizedTriggerPrice,
     midPrice: assetData.price,
     szDecimals,
+    twapDuration: isTwapOrder ? twapDuration : undefined,
+    twapRandomize: isTwapOrder ? twapRandomize : undefined,
+    providerId: orderProviderId,
+    suppressedProtocolErrorCodes: isTwapOrder
+      ? TWAP_OWNED_PROTOCOL_ERROR_CODES
+      : undefined,
   });
   const { validateNow } = orderValidation;
 
@@ -793,25 +900,33 @@ export const usePerpsProOrderForm = ({
     liquidationPrice,
     marketPrice: assetData.price,
   });
+  const standardOrderToastOptions =
+    isLimitExecutionOrderType(orderForm.type) ||
+    isTriggerOrderType(orderForm.type)
+      ? PerpsToastOptions.orderManagement.limit
+      : PerpsToastOptions.orderManagement.market;
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
-      showToast(
-        PerpsToastOptions.orderManagement[
-          getOrderManagementToastKey(orderForm.type)
-        ].confirmed(
-          orderForm.direction,
-          submissionPositionSize,
-          orderForm.asset,
-        ),
-      );
+      const toast = isTwapOrder
+        ? PerpsToastOptions.orderManagement.twap.confirmed(
+            orderForm.direction,
+            submissionPositionSize,
+            orderForm.asset,
+            twapDuration,
+          )
+        : standardOrderToastOptions.confirmed(
+            orderForm.direction,
+            submissionPositionSize,
+            orderForm.asset,
+          );
+      showToast(toast);
     },
     onError: (error) => {
-      showToast(
-        PerpsToastOptions.orderManagement[
-          getOrderManagementToastKey(orderForm.type)
-        ].creationFailed(error),
-      );
+      const toast = isTwapOrder
+        ? PerpsToastOptions.orderManagement.twap.creationFailed(error)
+        : standardOrderToastOptions.creationFailed(error);
+      showToast(toast);
     },
   });
 
@@ -844,6 +959,15 @@ export const usePerpsProOrderForm = ({
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.order.validation.trigger_orders_unavailable'),
+        ),
+      );
+      return;
+    }
+
+    if (!isTwapEnabledRef.current && isTwapOrder) {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(
+          strings('perps.order.validation.twap_unavailable'),
         ),
       );
       return;
@@ -911,6 +1035,10 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    if (twapDurationMissing || twapDurationError || twapMinimumSizeError) {
+      return;
+    }
+
     if (
       isReduceOnlyPositionLoading ||
       (reduceOnly && !reduceOnlyValidation.isValid)
@@ -930,6 +1058,17 @@ export const usePerpsProOrderForm = ({
             ? getOrderFormFieldIssueMessage(firstFieldIssue)
             : strings('perps.order.validation.error'));
         reportValidationFailure(firstError);
+        return;
+      }
+
+      if (
+        isTwapOrder &&
+        (!isTwapEnabledRef.current ||
+          resolvedTwapProviderIdRef.current !== orderProviderId)
+      ) {
+        reportValidationFailure(
+          strings('perps.order.validation.twap_unavailable'),
+        );
         return;
       }
 
@@ -994,6 +1133,9 @@ export const usePerpsProOrderForm = ({
           ? undefined
           : orderForm.stopLossPrice,
         reduceOnly,
+        twapDuration: isTwapOrder ? twapDuration : undefined,
+        twapRandomize: isTwapOrder ? twapRandomize : undefined,
+        providerId: orderProviderId,
         isFullClose: reduceOnly
           ? reduceOnlyValidation.isFullClose || isExactFullClose
           : undefined,
@@ -1012,17 +1154,22 @@ export const usePerpsProOrderForm = ({
       });
 
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
-      showToast(
-        PerpsToastOptions.orderManagement[
-          getOrderManagementToastKey(orderForm.type)
-        ].submitted(
-          orderForm.direction,
-          submissionPositionSize,
-          orderForm.asset,
-        ),
-      );
+      const submittedToast = isTwapOrder
+        ? PerpsToastOptions.orderManagement.twap.submitted(
+            orderForm.direction,
+            submissionPositionSize,
+            orderForm.asset,
+            twapDuration,
+          )
+        : standardOrderToastOptions.submitted(
+            orderForm.direction,
+            submissionPositionSize,
+            orderForm.asset,
+          );
+      showToast(submittedToast);
 
       const shouldHandleTPSLSeparately =
+        !isTwapOrder &&
         !reduceOnly &&
         !isTriggerOrderType(orderForm.type) &&
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
@@ -1077,6 +1224,7 @@ export const usePerpsProOrderForm = ({
       setLimitPrice(undefined);
       setTriggerPrice(undefined);
       setReduceOnly(false);
+      resetTwapDraft();
     } finally {
       isSubmittingRef.current = false;
     }
@@ -1100,6 +1248,9 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking,
     isAtCap,
     hasTpslBlocker,
+    twapDurationMissing,
+    twapDurationError,
+    twapMinimumSizeError,
     isReduceOnlyPositionLoading,
     reduceOnlyValidation.isValid,
     reduceOnlyValidation.isFullClose,
@@ -1111,6 +1262,10 @@ export const usePerpsProOrderForm = ({
     submissionPositionSize,
     effectivePrice,
     reduceOnly,
+    isTwapOrder,
+    orderProviderId,
+    twapDuration,
+    twapRandomize,
     marginRequired,
     feeResults,
     assetData.price,
@@ -1129,6 +1284,8 @@ export const usePerpsProOrderForm = ({
     PerpsToastOptions.formValidation.orderForm,
     PerpsToastOptions.orderManagement,
     PerpsToastOptions.positionManagement.tpsl,
+    standardOrderToastOptions,
+    resetTwapDraft,
   ]);
 
   const onTPSLPress = useCallback(() => {
@@ -1261,17 +1418,32 @@ export const usePerpsProOrderForm = ({
         setIsOrderTypeVisible(false);
         return;
       }
+      if (!isTwapEnabled && type === 'twap') {
+        setIsOrderTypeVisible(false);
+        return;
+      }
       if (type !== orderForm.type) {
         resetPriceInputInteraction();
       }
       setOrderType(type);
+      if (type === 'twap') {
+        setLimitPrice(undefined);
+        setTriggerPrice(undefined);
+        setTakeProfitPrice(undefined);
+        setStopLossPrice(undefined);
+      }
       setIsOrderTypeVisible(false);
     },
     [
       isTriggeredOrdersEnabled,
+      isTwapEnabled,
       orderForm.type,
       resetPriceInputInteraction,
+      setLimitPrice,
       setOrderType,
+      setStopLossPrice,
+      setTakeProfitPrice,
+      setTriggerPrice,
     ],
   );
 
@@ -1333,6 +1505,33 @@ export const usePerpsProOrderForm = ({
       });
     }
 
+    if (twapMinimumSizeError) {
+      list.push({
+        id: 'twap-min-size',
+        variant: 'inline',
+        message: strings(
+          'perps.pro_order_form.twap.minimum_size',
+          PERPS_TWAP_UI_CONFIG.MinimumSizeI18nValues,
+        ),
+      });
+    }
+
+    if (twapDurationError && twapDurationErrorMessage) {
+      list.push({
+        id: 'twap-duration',
+        variant: 'inline',
+        message: twapDurationErrorMessage,
+      });
+    }
+
+    if (twapDurationMissing && twapDurationErrorMessage) {
+      list.push({
+        id: 'twap-duration-required',
+        variant: 'inline',
+        message: twapDurationErrorMessage,
+      });
+    }
+
     return list;
   }, [
     reduceOnly,
@@ -1348,6 +1547,10 @@ export const usePerpsProOrderForm = ({
     orderForm.direction,
     orderForm.type,
     tpslPriceType,
+    twapDurationMissing,
+    twapDurationError,
+    twapDurationErrorMessage,
+    twapMinimumSizeError,
   ]);
 
   const summary = useMemo<PerpsProOrderSummaryProps>(() => {
@@ -1414,8 +1617,12 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
+    (!isTwapEnabled && isTwapOrder) ||
     hasTpslBlocker ||
-    isTriggerOrderUnavailable;
+    isTriggerOrderUnavailable ||
+    twapDurationMissing ||
+    twapDurationError ||
+    twapMinimumSizeError;
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) => {
@@ -1555,6 +1762,47 @@ export const usePerpsProOrderForm = ({
     [setTakeProfitPrice, setStopLossPrice],
   );
 
+  const onTwapDaysChange = useCallback(
+    (value: string) => setTwapDays(normalizeTwapDurationPart(value)),
+    [],
+  );
+  const onTwapHoursChange = useCallback(
+    (value: string) => setTwapHours(normalizeTwapDurationPart(value)),
+    [],
+  );
+  const onTwapMinutesChange = useCallback(
+    (value: string) => setTwapMinutes(normalizeTwapDurationPart(value)),
+    [],
+  );
+  const onTwapRandomizeChange = useCallback(
+    (value: boolean) => setTwapRandomize(value),
+    [],
+  );
+  const twap = useMemo<PerpsProTwapModel>(
+    () => ({
+      days: twapDays,
+      hours: twapHours,
+      minutes: twapMinutes,
+      randomize: twapRandomize,
+      durationError: twapDurationErrorMessage,
+      onDaysChange: onTwapDaysChange,
+      onHoursChange: onTwapHoursChange,
+      onMinutesChange: onTwapMinutesChange,
+      onRandomizeChange: onTwapRandomizeChange,
+    }),
+    [
+      onTwapDaysChange,
+      onTwapHoursChange,
+      onTwapMinutesChange,
+      onTwapRandomizeChange,
+      twapDays,
+      twapDurationErrorMessage,
+      twapHours,
+      twapMinutes,
+      twapRandomize,
+    ],
+  );
+
   // Single owner for the Reduce Only size-max override. Toggle and submit only
   // flip `reduceOnly`; this effect applies or clears the cap.
   useEffect(() => {
@@ -1623,6 +1871,7 @@ export const usePerpsProOrderForm = ({
     onAddFundsPress: handleAddFunds,
     reduceOnly,
     onReduceOnlyChange,
+    twap,
     isTPSLConfigured: Boolean(
       orderForm.takeProfitPrice || orderForm.stopLossPrice,
     ),

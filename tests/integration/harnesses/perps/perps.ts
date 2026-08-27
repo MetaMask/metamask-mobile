@@ -236,7 +236,7 @@ function createMockInfoClient() {
 }
 
 /**
- * Minimal SDK exchange-client mock — covers .order / .modify / .cancel and
+ * Minimal SDK exchange-client mock — covers .order / .twapOrder / .modify / .cancel and
  * the readiness setup methods (approveBuilderFee, setReferrer, etc.). Default
  * .order() returns success with orderId 123. Tests that need failure responses
  * use `mocks.exchangeClient.order.mockResolvedValueOnce({ status: 'error', ... })`.
@@ -246,6 +246,10 @@ function createMockExchangeClient() {
     order: jest.fn().mockResolvedValue({
       status: 'ok',
       response: { data: { statuses: [{ resting: { oid: 123 } }] } },
+    }),
+    twapOrder: jest.fn().mockResolvedValue({
+      status: 'ok',
+      response: { data: { status: { running: { twapId: 123 } } } },
     }),
     modify: jest.fn().mockResolvedValue({
       status: 'ok',
