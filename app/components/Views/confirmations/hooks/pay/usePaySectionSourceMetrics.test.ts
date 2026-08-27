@@ -137,6 +137,7 @@ describe('usePaySectionSourceMetrics', () => {
     [KeyringType.PrivateKey, 'imported'],
     [KeyringType.Money, 'money-account'],
     ['Money Keyring', 'money-account'],
+    ['MONEY', 'money-account'],
     ['Snap Keyring', 'snap'],
     [KeyringType.Ledger, 'Ledger'],
     [KeyringType.Trezor, 'Trezor'],
