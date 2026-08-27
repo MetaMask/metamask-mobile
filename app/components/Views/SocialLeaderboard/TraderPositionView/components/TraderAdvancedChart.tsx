@@ -618,14 +618,17 @@ const TraderPerpAdvancedChart = ({
         }),
       )
         .then((response) => {
-          if (
-            focusRequestRef.current?.nonce !== requestedNonce ||
-            selectedCandlePeriodRef.current !== requestedPeriod
-          ) {
+          // Period changes invalidate this fetch entirely. A newer focus nonce
+          // on the same period still needs the layout-settle gate: SET_OHLCV_DATA
+          // from prepended bars would otherwise race focusTime.
+          if (selectedCandlePeriodRef.current !== requestedPeriod) {
             return;
           }
           if (!response.noData) {
             historyLayoutPendingRef.current = true;
+          }
+          if (focusRequestRef.current?.nonce !== requestedNonce) {
+            return;
           }
           if (response.error) {
             handledFocusNonceRef.current = requestedNonce;
