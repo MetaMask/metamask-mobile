@@ -13,6 +13,7 @@ import {
   SensitiveText,
   SensitiveTextLength,
   Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -41,6 +42,8 @@ export interface MoneySheetOption {
   testID: string;
   disabled?: boolean;
   comingSoon?: boolean;
+  /** Renders a "✦ New" tag after the label to highlight a new option. */
+  newBadge?: boolean;
 }
 
 interface MoneySheetOptionsListProps {
@@ -126,13 +129,32 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                   ) : null}
                 </Box>
               ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={item.disabled ? TextColor.TextAlternative : undefined}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
                 >
-                  {item.label}
-                </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={
+                      item.disabled ? TextColor.TextAlternative : undefined
+                    }
+                  >
+                    {item.label}
+                  </Text>
+                  {item.newBadge ? (
+                    <Tag
+                      severity={TagSeverity.Info}
+                      startIconName={IconName.Sparkle}
+                      // Optically center the tag against the label — mathematical
+                      // centering leaves it looking slightly high next to the text.
+                      twClassName="mt-[1.25px]"
+                    >
+                      {strings('money.add_money_sheet.new_badge')}
+                    </Tag>
+                  ) : null}
+                </Box>
               )}
             </View>
           )}

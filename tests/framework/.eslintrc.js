@@ -1,12 +1,76 @@
 /* eslint-disable import-x/no-commonjs -- ESLint config must use CommonJS */
 
+/** Dual-framework import restrictions. Error everywhere; no allowlist. */
+const dualFrameworkRestrictedImportOptions = {
+  patterns: [
+    {
+      group: [
+        '**/FrameworkDetector',
+        '**/FrameworkDetector.ts',
+        '**/FrameworkDetector.js',
+      ],
+      message:
+        'Do not import FrameworkDetector in POs/specs. Use Gestures/Assertions/Matchers (Appium-only).',
+    },
+    {
+      group: [
+        '**/AppiumMatchers',
+        '**/AppiumMatchers.ts',
+        '**/AppiumGestures',
+        '**/AppiumGestures.ts',
+        '**/AppiumAssertions',
+        '**/AppiumAssertions.ts',
+        '**/AppiumWebMatchers',
+        '**/AppiumWebMatchers.ts',
+      ],
+      message:
+        'Do not import AppiumMatchers/AppiumGestures/AppiumAssertions backends in POs/specs. Use Gestures/Assertions/Matchers.',
+    },
+    {
+      // Only bare `from '.../framework'` / index re-exports
+      group: [
+        '**/framework/index',
+        '**/framework/index.ts',
+        '**/framework/index.js',
+      ],
+      importNames: [
+        'FrameworkDetector',
+        'AppiumMatchers',
+        'AppiumGestures',
+        'AppiumAssertions',
+        'AppiumWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+    // Bare package-style imports that resolve to tests/framework/index
+    {
+      group: [
+        '../../framework',
+        '../framework',
+        '../../../framework',
+        '../../../../framework',
+        '../../../../../framework',
+      ],
+      importNames: [
+        'FrameworkDetector',
+        'AppiumMatchers',
+        'AppiumGestures',
+        'AppiumAssertions',
+        'AppiumWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+  ],
+};
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   overrides: [
     {
       files: ['**/*.{js,ts}'],
       rules: {
-        // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
       },
     },
@@ -73,6 +137,26 @@ module.exports = {
             message:
               'All E2E spec files must use withFixtures() or other with*Fixtures() methods for consistent test setup, mocking, and fixture management.',
           },
+        ],
+      },
+    },
+    {
+      files: [
+        '**/page-objects/**/*.{js,ts}',
+        '**/flows/**/*.{js,ts}',
+        '**/smoke-appium/**/*.{js,ts}',
+      ],
+      excludedFiles: [
+        '**/page-objects/**/*.test.ts',
+        '**/page-objects/**/*.test.js',
+        '**/flows/**/*.test.ts',
+        '**/flows/**/*.test.js',
+        '**/smoke-appium/**/*.test.ts',
+      ],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          dualFrameworkRestrictedImportOptions,
         ],
       },
     },

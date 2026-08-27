@@ -19,7 +19,6 @@ import TransactionPayConfirmation from '../../../page-objects/Confirmation/Trans
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
 import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet.js';
 
 import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView.js';
@@ -89,7 +88,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
 
           await PerpsHomeView.tapBackHomeButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await TabBarComponent.tapActivity();
+          await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('perps');
