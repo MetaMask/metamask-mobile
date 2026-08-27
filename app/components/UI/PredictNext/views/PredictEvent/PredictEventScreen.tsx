@@ -19,7 +19,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { getEventGame } from '../../events/game';
+import { findGameSelectionQuote, getEventGame } from '../../events/game';
 import { MarketList, MarketStandardCard } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
@@ -131,24 +131,24 @@ export const PredictEventScreen = () => {
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
     const game = getEventGame(event);
-    const homeMarket = event.markets.find((market) =>
-      market.outcomes.some(
-        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'home',
-      ),
-    );
-    const awayMarket = event.markets.find((market) =>
-      market.outcomes.some(
-        (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'away',
-      ),
-    );
+    const homeQuote = findGameSelectionQuote(event, 'home');
+    const awayQuote = findGameSelectionQuote(event, 'away');
 
     const renderMarketHistory = () => {
-      if (game && homeMarket && awayMarket) {
+      if (game && homeQuote && awayQuote) {
         return (
           <PredictGameMarketHistory
             venueId={event.venueId}
-            home={{ market: homeMarket, team: game.homeTeam }}
-            away={{ market: awayMarket, team: game.awayTeam }}
+            home={{
+              market: homeQuote.market,
+              outcome: homeQuote.outcome,
+              team: game.homeTeam,
+            }}
+            away={{
+              market: awayQuote.market,
+              outcome: awayQuote.outcome,
+              team: game.awayTeam,
+            }}
           />
         );
       }
@@ -179,7 +179,7 @@ export const PredictEventScreen = () => {
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           )}
-          {event.markets.length > 1 && !(game && homeMarket && awayMarket) ? (
+          {event.markets.length > 1 && !(game && homeQuote && awayQuote) ? (
             <FilterButtonGroup
               value={historyMarket?.id ?? ''}
               onChange={setSelectedMarketId}

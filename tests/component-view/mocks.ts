@@ -435,6 +435,11 @@ jest.mock('../../app/core/Engine', () => {
             : 'https://app.hyperliquid.xyz/explorer',
         ),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
+        getOrderCapabilities: jest.fn().mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap'],
+        }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),

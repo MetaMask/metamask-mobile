@@ -44,6 +44,8 @@ export interface BenefitDetailItem {
   title: string;
   /** i18n key for the main description paragraph. */
   description: string;
+  /** i18n key for monthly-plan variant of the description (used when plan = monthly). */
+  descriptionMonthly?: string;
   /** i18n keys for bullet-point list items (cashback, member_pricing). */
   points?: string[];
   /** i18n key for the secondary description paragraph (protection). */
@@ -86,6 +88,8 @@ export const BENEFIT_DETAILS: BenefitDetailItem[] = [
     id: 'atm_fees',
     title: 'pro_subscription.benefits.atm_fees.title',
     description: 'pro_subscription.benefits_description.atm_fees.description',
+    descriptionMonthly:
+      'pro_subscription.benefits_description.atm_fees.description_monthly',
   },
   {
     id: 'protection',
