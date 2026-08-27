@@ -1,7 +1,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
@@ -20,6 +20,7 @@ import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
+import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
@@ -149,19 +150,27 @@ const PerpsProOrderFormPanel = ({
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
   const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+  const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
+  const openTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(true),
+    [],
+  );
+  const closeTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(false),
+    [],
+  );
+
+  useEffect(() => {
+    if (orderType !== 'twap') {
+      setIsTwapDurationVisible(false);
+    }
+  }, [orderType]);
 
   const {
     cardRef: sizeCardRef,
     onFocus: onSizeCardFocus,
     onBlur: onSizeCardBlur,
     realign: onSizeFieldPress,
-  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
-
-  const {
-    cardRef: twapSectionRef,
-    onFocus: onTwapFieldFocus,
-    onBlur: onTwapFieldBlur,
-    realign: onTwapFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
   // One instance per field rather than a single shared handler: each keeps its
@@ -242,10 +251,7 @@ const PerpsProOrderFormPanel = ({
         reduceOnly={reduceOnly}
         onReduceOnlyChange={onReduceOnlyChange}
         twap={twap}
-        twapSectionRef={twapSectionRef}
-        onTwapFieldFocus={onTwapFieldFocus}
-        onTwapFieldBlur={onTwapFieldBlur}
-        onTwapFieldPress={onTwapFieldPress}
+        onTwapDurationPress={openTwapDuration}
         isTPSLConfigured={isTPSLConfigured}
         onTPSLPress={onTPSLPress}
         notices={notices}
@@ -280,6 +286,18 @@ const PerpsProOrderFormPanel = ({
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
             availableOrderTypes={availableOrderTypes}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isTwapDurationVisible && orderType === 'twap' && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeTwapDuration}
+        >
+          <PerpsProTwapDurationBottomSheet
+            isVisible
+            twap={twap}
+            onClose={closeTwapDuration}
           />
         </PerpsProModalPortal>
       )}

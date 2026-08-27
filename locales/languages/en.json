@@ -1582,6 +1582,7 @@
       "close_keyboard": "Close keyboard",
       "twap": {
         "running_time": "Running time",
+        "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
         "valid_range": "{{minDurationMinutes}} minutes–{{maxDurationHours}} hours",
         "days": "Day(s)",
         "hours": "Hour(s)",

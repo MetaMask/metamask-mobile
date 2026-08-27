@@ -118,12 +118,7 @@ export interface PerpsProOrderFormProps {
   reduceOnly: boolean;
   onReduceOnlyChange: (value: boolean) => void;
   twap: PerpsProTwapModel;
-  /** Forwarded to the TWAP section for keyboard-clearance measurement. */
-  twapSectionRef?: Ref<View>;
-  onTwapFieldFocus?: () => void;
-  onTwapFieldBlur?: () => void;
-  /** Fires on every TWAP duration-field tap, including while focused. */
-  onTwapFieldPress?: () => void;
+  onTwapDurationPress: () => void;
   isTPSLConfigured: boolean;
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];

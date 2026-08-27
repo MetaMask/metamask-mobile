@@ -30,12 +30,7 @@ import {
   isTriggerOrderType,
 } from '@metamask/perps-controller';
 import React, { useCallback } from 'react';
-import {
-  InputAccessoryView,
-  Keyboard,
-  Platform,
-  Pressable,
-} from 'react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
 import {
@@ -44,7 +39,7 @@ import {
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsProCompactInput, {
-  getPerpsProInputAccessoryID,
+  PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
 import PerpsProTwapFields from './PerpsProTwapFields';
@@ -112,23 +107,6 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
     </Pressable>
   );
 };
-
-const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
-  <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
-    <Box
-      twClassName="border-t border-muted bg-default px-3 py-2"
-      alignItems={BoxAlignItems.End}
-    >
-      <ButtonIcon
-        iconName={IconName.ArrowDown}
-        size={ButtonIconSize.Sm}
-        onPress={Keyboard.dismiss}
-        testID={`${ids.KEYBOARD_CLOSE}-${inputTestID}`}
-        accessibilityLabel={strings('perps.pro_order_form.close_keyboard')}
-      />
-    </Box>
-  </InputAccessoryView>
-);
 
 interface PriceFieldProps {
   label: string;
@@ -343,10 +321,7 @@ const PerpsProOrderForm = ({
   reduceOnly,
   onReduceOnlyChange,
   twap,
-  twapSectionRef,
-  onTwapFieldFocus,
-  onTwapFieldBlur,
-  onTwapFieldPress,
+  onTwapDurationPress,
   onTPSLPress,
   notices,
   summary,
@@ -405,6 +380,11 @@ const PerpsProOrderForm = ({
     playSelection().catch(() => undefined);
     onOrderTypeButtonPress();
   }, [onOrderTypeButtonPress, playSelection]);
+
+  const handleTwapDurationPress = useCallback(() => {
+    playSelection().catch(() => undefined);
+    onTwapDurationPress();
+  }, [onTwapDurationPress, playSelection]);
 
   const handleUseMidPricePress = useCallback(() => {
     if (!onUseMidPricePress) {
@@ -520,6 +500,7 @@ const PerpsProOrderForm = ({
           <Box
             ref={orderTypeCardRef}
             twClassName="overflow-hidden rounded-xl border border-muted bg-muted"
+            testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
@@ -559,16 +540,13 @@ const PerpsProOrderForm = ({
               midButtonTestID={ids.MID_PRICE_BUTTON}
               isHidden={!showsLimitPrice}
             />
+            {isTwap ? (
+              <PerpsProTwapFields
+                twap={twap}
+                onDurationPress={handleTwapDurationPress}
+              />
+            ) : null}
           </Box>
-          {isTwap ? (
-            <PerpsProTwapFields
-              twap={twap}
-              sectionRef={twapSectionRef}
-              onFieldFocus={onTwapFieldFocus}
-              onFieldBlur={onTwapFieldBlur}
-              onFieldPress={onTwapFieldPress}
-            />
-          ) : null}
           {priceCardMessage ? (
             <HelpText
               severity={
@@ -643,16 +621,9 @@ const PerpsProOrderForm = ({
           }
         />
       </Box>
-      {Platform.OS === 'ios' ? (
-        <>
-          <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
-          <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
-          <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-          <KeyboardAccessory inputTestID={ids.TWAP_DAYS} />
-          <KeyboardAccessory inputTestID={ids.TWAP_HOURS} />
-          <KeyboardAccessory inputTestID={ids.TWAP_MINUTES} />
-        </>
-      ) : null}
+      <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
+      <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
+      <PerpsProInputKeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
     </>
   );
 };

@@ -151,10 +151,24 @@ const openTwapOrderForm = async () => {
   return {
     sizeInput,
     section: await screen.findByTestId(ids.TWAP_DURATION_SECTION),
+    durationButton: screen.getByTestId(ids.TWAP_DURATION_BUTTON),
+    durationValue: screen.getByTestId(ids.TWAP_DURATION_VALUE),
+    randomize: screen.getByTestId(ids.TWAP_RANDOMIZE),
+  };
+};
+
+const openTwapDurationSheet = async () => {
+  fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
+  await screen.findByTestId(
+    ids.TWAP_DURATION_SHEET,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+
+  return {
     days: screen.getByTestId(ids.TWAP_DAYS),
     hours: screen.getByTestId(ids.TWAP_HOURS),
     minutes: screen.getByTestId(ids.TWAP_MINUTES),
-    randomize: screen.getByTestId(ids.TWAP_RANDOMIZE),
   };
 };
 
@@ -284,22 +298,14 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     'renders TWAP fields and hides incompatible inputs',
     async () => {
       renderProMarketWithTwapFlag(true);
-      const { section, days, hours, minutes, randomize } =
-        await openTwapOrderForm();
+      const { section, durationValue, randomize } = await openTwapOrderForm();
 
       expect(section).toBeOnTheScreen();
-      expect(days).toHaveProp('keyboardType', 'number-pad');
-      expect(hours).toHaveProp('keyboardType', 'number-pad');
-      expect(minutes).toHaveProp('keyboardType', 'number-pad');
+      expect(durationValue).toHaveTextContent('0h 5m');
+      expect(screen.queryByTestId(ids.TWAP_DAYS)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TWAP_HOURS)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TWAP_MINUTES)).not.toBeOnTheScreen();
       expect(randomize).not.toBeChecked();
-      expect(
-        screen.getByText(
-          strings(
-            'perps.pro_order_form.twap.randomize_description',
-            PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
-          ),
-        ),
-      ).toBeOnTheScreen();
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(
@@ -338,16 +344,20 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
   itForPlatforms('configures a randomized TWAP duration', async () => {
     renderProMarketWithTwapFlag(true);
-    const { sizeInput, minutes, randomize } = await openTwapOrderForm();
+    const { sizeInput, randomize } = await openTwapOrderForm();
+    const { minutes } = await openTwapDurationSheet();
 
-    fireEvent.changeText(sizeInput, '100');
     fireEvent.changeText(minutes, '30');
+    fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_SHEET_CLOSE));
+    fireEvent.changeText(sizeInput, '100');
     fireEvent.press(randomize);
 
     await waitFor(
       () => {
         expect(randomize).toBeChecked();
-        expect(minutes).toHaveProp('value', '30');
+        expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
+          '0h 30m',
+        );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
       },
       { timeout: TIMEOUT_MS },

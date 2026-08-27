@@ -1,5 +1,9 @@
 import {
   Box,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Input,
   Text,
   TextColor,
@@ -8,14 +12,40 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
 import {
+  InputAccessoryView,
+  Keyboard,
   Platform,
   Pressable,
   type KeyboardTypeOptions,
   type TextInput,
 } from 'react-native';
+import { strings } from '../../../../../../../../locales/i18n';
+import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
+
+export const PerpsProInputKeyboardAccessory = ({
+  inputTestID,
+}: {
+  inputTestID: string;
+}) =>
+  Platform.OS === 'ios' ? (
+    <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
+      <Box
+        twClassName="border-t border-muted bg-default px-3 py-2"
+        alignItems={BoxAlignItems.End}
+      >
+        <ButtonIcon
+          iconName={IconName.ArrowDown}
+          size={ButtonIconSize.Sm}
+          onPress={Keyboard.dismiss}
+          testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_CLOSE}-${inputTestID}`}
+          accessibilityLabel={strings('perps.pro_order_form.close_keyboard')}
+        />
+      </Box>
+    </InputAccessoryView>
+  ) : null;
 
 interface PerpsProCompactInputProps {
   label: string;

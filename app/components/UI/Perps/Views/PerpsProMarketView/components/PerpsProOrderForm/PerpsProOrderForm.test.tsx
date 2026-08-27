@@ -88,6 +88,7 @@ const createProps = (
     reduceOnly: false,
     onReduceOnlyChange: jest.fn(),
     twap: createTwap(),
+    onTwapDurationPress: jest.fn(),
     isTPSLConfigured: false,
     notices: [],
     summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
@@ -249,22 +250,49 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
-    it('forwards TWAP duration focus for keyboard clearance', () => {
-      const onTwapFieldFocus = jest.fn();
-      renderForm({ orderType: 'twap', onTwapFieldFocus });
+    it('groups TWAP runtime and Randomize inside the order card', () => {
+      renderForm({ orderType: 'twap' });
+      const orderCard = within(screen.getByTestId(ids.ORDER_TYPE_CARD));
 
-      fireEvent(screen.getByTestId(ids.TWAP_HOURS), 'focus');
-
-      expect(onTwapFieldFocus).toHaveBeenCalledTimes(1);
+      expect(orderCard.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_DURATION_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_RANDOMIZE)).toBeOnTheScreen();
     });
 
-    it('reports every TWAP duration tap for keyboard realignment', () => {
-      const onTwapFieldPress = jest.fn();
-      renderForm({ orderType: 'twap', onTwapFieldPress });
+    it('opens the TWAP duration sheet from the compact Runtime row', () => {
+      const onTwapDurationPress = jest.fn();
+      renderForm({ orderType: 'twap', onTwapDurationPress });
 
-      fireEvent(screen.getByTestId(ids.TWAP_MINUTES), 'pressIn');
+      fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
 
-      expect(onTwapFieldPress).toHaveBeenCalledTimes(1);
+      expect(onTwapDurationPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the compact TWAP duration value', () => {
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ days: '1', hours: '2', minutes: '30' }),
+      });
+
+      expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
+        '1d 2h 30m',
+      );
+      expect(screen.queryByTestId(ids.TWAP_DAYS)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TWAP_HOURS)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TWAP_MINUTES)).not.toBeOnTheScreen();
+    });
+
+    it('updates TWAP Randomize from the compact card row', () => {
+      const onRandomizeChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ onRandomizeChange }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
+
+      expect(onRandomizeChange).toHaveBeenCalledWith(true);
     });
 
     it('passes raw trigger price text to onTriggerPriceChange', () => {
@@ -394,9 +422,6 @@ describe('PerpsProOrderForm', () => {
       sizeAccessoryID,
       triggerAccessoryID,
       limitPriceAccessoryID,
-      getPerpsProInputAccessoryID(ids.TWAP_DAYS),
-      getPerpsProInputAccessoryID(ids.TWAP_HOURS),
-      getPerpsProInputAccessoryID(ids.TWAP_MINUTES),
     ];
     const mountedAccessoryIDs = () =>
       screen

@@ -3,7 +3,7 @@
 // covered by PerpsProMarketView.view.test.tsx with real Redux selectors.
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
 import type {
   PerpsProSizeInputModel,
@@ -73,7 +73,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onDirectionChange: jest.fn(),
   leverage: 5,
   onLeveragePress: jest.fn(),
-  orderType: 'market' as 'market' | 'limit',
+  orderType: 'market' as OrderType,
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
@@ -363,6 +363,29 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens and closes the TWAP duration sheet from the compact Runtime row', () => {
+    mockHookResult.orderType = 'twap';
+    renderPanel();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET_CLOSE,
+      ),
+    );
+
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the size denomination returned by the hook', () => {
