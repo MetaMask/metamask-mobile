@@ -54,7 +54,14 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  # Scheduled runs must not share the main-branch SHA group. A schedule that
+  # takes longer than the hourly cadence would otherwise replace the previous
+  # pending run when the next schedule is created.
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event_name == 'schedule' && github.run_id ||
+      (github.ref == 'refs/heads/main' && github.sha || github.ref)
+    }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
@@ -70,7 +77,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -194,7 +201,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -253,7 +260,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -305,7 +312,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        matrix.profile || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -318,16 +325,30 @@ jobs:
     needs:
       - get_requirements
     strategy:
+      # `include` with no base axis yields exactly these combinations, and `name`
+      # already interpolates a matrix value, so the rendered job names stay
+      # `Run <script>` and the required status checks keep reporting (MCWP-813).
+      # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
-        scripts:
-          - lint
-          - lint:tsc
-          - lint:changelog
-          - format:check
-          - audit:ci
-          - test:depcheck
-          - test:tgz-check
-          - constraints
+        include:
+          # Stay on 8x16: peak RAM above the 8 GB line.
+          - scripts: lint # 12.3 GB peak
+            profile: namespace-profile-metamask-ci-linux
+          - scripts: lint:tsc # 8.9 GB peak
+            profile: namespace-profile-metamask-ci-linux
+          # Right-sized to 4x8: worst observed peak <= 5.6 GB.
+          - scripts: lint:changelog
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: format:check
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: audit:ci
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: test:depcheck
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: test:tgz-check
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: constraints
+            profile: namespace-profile-metamask-ci-linux-small
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -371,6 +392,10 @@ jobs:
           fi
 
   js-bundle-size-check:
+    # Stays on 8x16 (MCWP-813). It is the thinnest margin on the profile — 14.3 GB
+    # peak of 16 post-#35071, ~11% headroom — but the heap fix took it from a 13.6%
+    # to a 2.3% failure rate, so the cheap remedy is already applied. Revisit with
+    # MCWP-812 if failures recur; `ci-linux-large` exists for that.
     name: JS bundle size check
     runs-on: >-
       ${{
@@ -440,7 +465,9 @@ jobs:
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
         env:
-          NODE_OPTIONS: --max_old_space_size=12288
+          # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
+          # into gen-bundle:ios, an inline value silently shadows it.
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
@@ -637,7 +664,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -710,7 +737,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -742,7 +769,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -863,7 +890,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1222,11 +1249,16 @@ jobs:
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
-    name: Integration tests
+    # Renders exactly as GitHub's own matrix suffix did for `name: Integration tests`
+    # with a single `shard` axis, so the `Integration tests (1)` / `(2)` required
+    # checks keep reporting. Spelling it out is load-bearing: the auto-suffix joins
+    # *every* matrix value, so adding `profile` below would otherwise rename these
+    # checks to `Integration tests (1, namespace-profile-...)` (MCWP-813).
+    name: Integration tests (${{ matrix.shard }})
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        matrix.profile || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1241,7 +1273,18 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        shard: [1, 2]
+        include:
+          # Shard 1 peaks at 9.3 GB — above the 8 GB line, so it keeps 8x16.
+          - shard: 1
+            profile: namespace-profile-metamask-ci-linux
+            heap_mb: 12288
+          # Shard 2 peaks at 5.3 GB. On the 4x8 shape the heap ceiling has to come
+          # down with it: 12288 would let V8 grow past physical RAM before it
+          # self-limits, and RAM overrun is a hard exit-137. 6144 sits above the
+          # observed peak, and the profile carries 8 GB of swap as a backstop.
+          - shard: 2
+            profile: namespace-profile-metamask-ci-linux-small
+            heap_mb: 6144
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1271,7 +1314,7 @@ jobs:
             --json \
             --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -1301,7 +1344,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1483,6 +1526,13 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # PRs into main do not build iOS from path filters alone — it has to be
+    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
+    # path filters already require iOS. Both opt-ins are resolved into
+    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
+    # only built when iOS E2E will actually run. Pushes to main/release/*, the
+    # nightly schedule, and PRs into release/* are unaffected.
     if: >-
       ${{
         !cancelled() &&
@@ -1524,13 +1574,20 @@ jobs:
     if: >-
       ${{
         !cancelled() &&
-        needs.build-android-apks.result == 'success'
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1548,6 +1605,7 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   appium-smoke-tests-ios:
@@ -1560,6 +1618,9 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure') &&
         (
           (
             github.event_name == 'push' &&
@@ -1582,7 +1643,11 @@ jobs:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+      # Nested smoke workflows need these; callers cannot inherit from this job alone.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1600,9 +1665,14 @@ jobs:
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # Runs on iOS only, so on PRs into main it runs only when iOS was requested via
+  # run-appium-ios-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # release/* that build iOS. Moving this to Android would make it unconditional
+  # on PRs again — tracked separately.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
     if: >-
@@ -1614,6 +1684,9 @@ jobs:
       contents: read
       checks: write
       id-token: write
+      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
+      actions: read
+      pull-requests: read
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -1639,7 +1712,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1763,7 +1836,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1902,7 +1975,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1956,7 +2029,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider

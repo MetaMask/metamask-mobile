@@ -4,6 +4,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -22,6 +23,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -161,6 +163,10 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
+}));
+
+jest.mock('../../../selectors/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
@@ -462,6 +468,7 @@ beforeEach(() => {
   jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
     [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
   } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+  jest.mocked(selectMultichainAssetsRates).mockReturnValue({});
 });
 
 // ---------------------------------------------------------------------------
@@ -531,20 +538,17 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'out',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: ETH DeFi',
+    );
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
-  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+  it('renders the account name for a non-EVM (Solana) owned counterparty', () => {
     const item = makeItem({
       type: 'send',
       status: 'success',
@@ -559,14 +563,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('Solana');
-    // The non-hex address is passed straight through to the avatar (no
-    // checksumming), so the multichain row renders without error.
-    expect(
-      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: Solana',
+    );
   });
 
   it('renders the account name in the subtitle when receiving from an owned account', () => {
@@ -580,19 +579,14 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
-      'From: ',
+      'From: ETH DeFi',
     );
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -1914,6 +1908,31 @@ describe('ActivityListItemRow — network badge', () => {
 });
 
 describe('ActivityListItemRow — amount display', () => {
+  it('renders fiat for a non-EVM token using its multichain asset rate', () => {
+    const solanaChainId = SolScope.Mainnet;
+    const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    jest.mocked(selectMultichainAssetsRates).mockReturnValue({
+      [usdcAssetId]: { rate: '1', conversionTime: 0 },
+    } as ReturnType<typeof selectMultichainAssetsRates>);
+
+    const item = makeItem({
+      status: 'success',
+      chainId: solanaChainId,
+      token: {
+        amount: '524800',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: usdcAssetId,
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.5248 USDC')).toBeOnTheScreen();
+    expect(getByText('-$0.52')).toBeOnTheScreen();
+  });
+
   it('formats raw token base units and renders fiat when rates are available', () => {
     const item = makeItem({
       status: 'success',
@@ -2047,7 +2066,6 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
   'rampBuy',
@@ -2109,7 +2127,6 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
   rampBuy: 'Bought',
@@ -2403,6 +2420,58 @@ describe('ActivityListItemRow — pending rows', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'To: 0x1234...',
     );
+  });
+
+  it('keeps the pending spinner inside the title column when an amount is present', () => {
+    const item: ActivityListItem = {
+      type: 'unstake',
+      chainId: 'eip155:1',
+      status: 'pending',
+      timestamp: 1_787_646_540_000,
+      hash: '0xactivitypendingunstakelayout',
+      isEarliestNonce: true,
+      data: {
+        token: {
+          direction: 'in',
+          symbol: 'ETH',
+          decimals: 18,
+          amount: '790100000000000',
+        },
+      },
+    };
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    const title = getByTestId(`activity-title-${item.hash}`);
+    const spinnerContainer = getByTestId(
+      `activity-pending-spinner-container-${item.hash}`,
+    );
+    const amount = getByTestId(`activity-primary-amount-${item.hash}`);
+    const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
+
+    expect(title).toHaveTextContent('Unstaking Ethereum');
+    expect(amount).toHaveTextContent('+0.0007901 ETH');
+    expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(title.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(spinnerContainer.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(amountColumn.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
   });
 
   it('renders queued rows with an hourglass prefix and no title spinner', () => {

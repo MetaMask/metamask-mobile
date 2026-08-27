@@ -38,6 +38,12 @@ const SPRING_CONFIG = {
   dampingRatio: 0.75,
 } as const;
 
+/**
+ * Extra horizontal padding vs. the previous `px-4` so Android has room for
+ * the full "Following" / "All" glyphs. Do not shrink the font to fit.
+ */
+const SEGMENT_TW_CLASS = 'rounded-xl px-6 h-8 items-center justify-center';
+
 const styles = StyleSheet.create({
   row: {
     position: 'relative',
@@ -54,8 +60,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'visible',
   },
+  container: {
+    flexShrink: 0,
+  },
   touchable: {
     overflow: 'visible',
+    flexShrink: 0,
   },
   labelActive: {
     ...StyleSheet.absoluteFill,
@@ -186,6 +196,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       twClassName="shrink-0 border border-muted rounded-2xl p-1"
+      style={styles.container}
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
@@ -212,7 +223,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           testID={getFeedAudienceOptionTestId('following')}
           style={styles.touchable}
         >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
+          <Box twClassName={SEGMENT_TW_CLASS}>
             <Box style={styles.labelWrap}>
               {/* In-flow Medium label sets the segment width so the wider
                   selected weight never clips (e.g. Android "Followin[g]"). */}
@@ -253,7 +264,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           testID={getFeedAudienceOptionTestId('all')}
           style={styles.touchable}
         >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
+          <Box twClassName={SEGMENT_TW_CLASS}>
             <Box style={styles.labelWrap}>
               <Animated.View style={allActiveStyle}>
                 <Text

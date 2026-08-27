@@ -10,7 +10,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { EventCardGame, EventCardStandard } from '../../../events/cards';
+import { PredictEventCard } from '../../../events/cards';
 import type { FeedScreenId } from '../../../navigation/feedScreens';
 import type { PredictEvent } from '../../../types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
@@ -26,9 +26,6 @@ interface FeedPreviewSectionProps {
   onRetry: () => void;
 }
 
-const isAmericanFootballGameEvent = (event: PredictEvent): boolean =>
-  event.sports?.sport.id === 'american-football' && Boolean(event.sports.game);
-
 export const FeedPreviewSection = ({
   feedScreenId,
   title,
@@ -41,10 +38,8 @@ export const FeedPreviewSection = ({
 }: FeedPreviewSectionProps) => {
   const renderEvent = (event: PredictEvent) => {
     const handlePress = () => onOpenEvent(event);
-    return isAmericanFootballGameEvent(event) ? (
-      <EventCardGame key={event.id} event={event} onPress={handlePress} />
-    ) : (
-      <EventCardStandard key={event.id} event={event} onPress={handlePress} />
+    return (
+      <PredictEventCard key={event.id} event={event} onPress={handlePress} />
     );
   };
 

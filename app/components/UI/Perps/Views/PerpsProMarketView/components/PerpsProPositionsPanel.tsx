@@ -21,6 +21,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
 import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
@@ -38,6 +39,7 @@ import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
+import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
@@ -93,6 +95,7 @@ const PerpsProPositionsPanel = ({
   onSelectMarket,
   onHistoryPress,
 }: PerpsProPositionsPanelProps) => {
+  const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -109,6 +112,16 @@ const PerpsProPositionsPanel = ({
     setSideFilter: setOrdersSideFilter,
     setSortConfig: setOrderSortConfig,
   } = usePerpsProOrdersPreferences();
+  const handleTickerOnlyChange = useCallback(
+    (nextIsTickerOnly: boolean) => {
+      if (nextIsTickerOnly === isTickerOnly) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setIsTickerOnly(nextIsTickerOnly);
+    },
+    [isTickerOnly, playSelection],
+  );
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
     useLivePnl: true,
@@ -125,6 +138,7 @@ const PerpsProPositionsPanel = ({
     handleEditOrderPrice,
     handleEditOrderSize,
     handleCloseAllPress,
+    handleCancelAllPress,
     cancelingOrderId,
     editingOrderId,
     isOrderCancelable,
@@ -202,10 +216,16 @@ const PerpsProPositionsPanel = ({
     [positionsSideFilter, visiblePositions],
   );
 
+  const isPositionsFiltered =
+    isTickerOnly || positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER;
+
   const sideFilteredOrders = useMemo(
     () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
     [ordersSideFilter, visibleOrders],
   );
+
+  const areOrdersFiltered =
+    isTickerOnly || ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER;
 
   const sortedVisiblePositions = useMemo(
     () =>
@@ -295,10 +315,7 @@ const PerpsProPositionsPanel = ({
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
             positionCount={sideFilteredPositions.length}
-            isFiltered={
-              isTickerOnly ||
-              positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
-            }
+            isFiltered={isPositionsFiltered}
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -338,6 +355,10 @@ const PerpsProPositionsPanel = ({
     if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
+          <PerpsProOrdersSummary
+            orderCount={sideFilteredOrders.length}
+            onCancelAll={handleCancelAllPress}
+          />
           {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
@@ -388,7 +409,7 @@ const PerpsProPositionsPanel = ({
         ticker: displaySymbol,
       })}
       isSelected={isTickerOnly}
-      onChange={setIsTickerOnly}
+      onChange={handleTickerOnlyChange}
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
     />
   );
@@ -464,7 +485,12 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(sideFilteredPositions)}
+      {renderActionSheets(
+        sideFilteredPositions,
+        isPositionsFiltered,
+        sideFilteredOrders,
+        areOrdersFiltered,
+      )}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}

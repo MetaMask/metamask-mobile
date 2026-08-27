@@ -1,6 +1,6 @@
 # Appium Smoke E2E Tests
 
-Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`. Detox smoke and `wdio/` have been removed.
+Appium smoke is the mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`.
 
 |                         | Appium smoke                                           |
 | ----------------------- | ------------------------------------------------------ |
@@ -10,7 +10,7 @@ Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs liv
 | **Build**               | **main-e2e release** (`HAS_TEST_OVERRIDES=true`)       |
 | **Local yarn commands** | `yarn appium-smoke:ios` / `yarn appium-smoke:android`  |
 
-Appium iOS on PRs remains opt-in via `run-appium-ios-tests` or when shared smoke infra / `tests/smoke-appium/**` paths change (see [E2E decision tree](../.github/guidelines/E2E_DECISION_TREE.md)). Dual-framework lint freeze: [tests/AGENTS.md](../tests/AGENTS.md).
+On PRs into `main`, iOS is built and Appium iOS runs **only on request** — add `run-appium-ios-tests`, or `skip-smart-e2e-selection` when path filters already require iOS. Path filters and smoke-infra changes alone do not trigger it, and the app is never built unless it will be tested. On PRs into `release/*` the older policy still applies: opt in via `run-appium-ios-tests`, via `skip-smart-e2e-selection` when path filters already require iOS, or when shared smoke infra / `tests/smoke-appium/**` paths change. Unrequested iOS coverage comes from pushes to `main`/`release/*` and the overnight schedule (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md#ios-builds-on-prs-into-main-are-on-request-only)). Dual-framework imports are ESLint errors: [tests/AGENTS.md](../../tests/AGENTS.md).
 
 ## Architecture
 
@@ -210,14 +210,14 @@ Helpers:
 
 ## Phase timing telemetry
 
-Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). Aggregate with:
+Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). On Namespace runners the same files are also published to GitHub Artifacts so `gh` / the GitHub API can download them. Aggregate with:
 
 ```bash
 yarn appium-smoke:aggregate-timings
 yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
 ```
 
-Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` once jobs upload them.
+Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` (`gh run download <run> -n appium-timings-<suite>`).
 
 ## Reports and artifacts
 
@@ -228,13 +228,13 @@ Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare aga
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
 | Phase timings                 | `test-reports/appium-timings/`        |
 
-CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`.
+CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`. `appium-timings-<suite>` is always published to GitHub Artifacts (plus Namespace storage on Namespace runners).
 
 ## CI
 
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
-- **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
-- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per smoke tag.
+- **Tests:** `appium-smoke-tests-android` in PR CI; `appium-smoke-tests-ios` on pushes to `main`/`release/*`, the overnight schedule, opted-in `release/*` PRs, and PRs into `main` only when iOS was requested by label (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md#ios-builds-on-prs-into-main-are-on-request-only)).
+- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — selects specs per fixed `split`/`total_splits` via `e2e-split-tags-shards.mjs` (qa-stats timing bin-pack when available), then runs Playwright with `--grep` and those files.
 - **Seedless:** `SmokeSeedlessOnboarding` uses **2** shards per platform (thin keep list in `tests/smoke-appium/seedless/`). Smart E2E selects this tag from `tests/tags.js` — prefer CV/unit for Account Already Exists, attribution props, and Import SRP UI.
 
 ## Adding a new Appium smoke spec
@@ -242,7 +242,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 1. Add the spec under `tests/smoke-appium/<feature>/`.
 2. Use `appiumTest` from `tests/framework/fixtures/playwright/index.js`.
 3. Pass `currentDeviceDetails` into `withFixtures`; use `loginToAppPlaywright`.
-4. Reuse existing page objects — avoid Detox-only `device.*` calls.
+4. Reuse existing page objects — use `Gestures` instead of raw driver calls.
 5. Lint: `yarn lint tests/smoke-appium/<path> --fix` and `yarn lint:tsc`.
 6. Run locally with main-e2e build before opening a PR.
 
@@ -258,7 +258,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 ## Related docs
 
-- [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
-- [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
+- [E2E testing guidelines](./e2e-testing.md) — POM, Matchers, Gestures, Assertions
+- [E2E setup](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`

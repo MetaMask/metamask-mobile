@@ -1,5 +1,4 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import type { AssetType } from '../../../Views/confirmations/types/token';
 import {
   isSubsidizedRoute,
   type RelayFixedSpreadConfig,
@@ -23,7 +22,7 @@ const isMonadMusd = (address: string, chainId: string) =>
  */
 export const isMoneyDepositFeeSubsidized = (
   relayFixedSpread: RelayFixedSpreadConfig,
-  token: Pick<AssetType, 'address' | 'chainId'>,
+  token: { address: string; chainId?: string },
 ): boolean => {
   if (!token.chainId) return false;
 

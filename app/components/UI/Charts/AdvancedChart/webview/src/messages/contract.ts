@@ -189,6 +189,7 @@ export interface PositionLines {
   takeProfitPrice?: number;
   stopLossPrice?: number;
   liquidationPrice?: number;
+  limitOrders?: { price: number; side: 'long' | 'short' }[];
 }
 
 export interface PositionLineColors {
@@ -197,6 +198,8 @@ export interface PositionLineColors {
   takeProfit: string;
   stopLoss: string;
   liquidation: string;
+  limitBuy?: string;
+  limitSell?: string;
 }
 
 export interface SetPositionLinesMessage {

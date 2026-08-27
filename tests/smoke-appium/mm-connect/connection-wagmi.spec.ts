@@ -10,7 +10,7 @@ import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroun
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
@@ -103,7 +103,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       //
       // Login and navigate to dapp
       //
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -116,11 +116,11 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Connect via WAGMI
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton();
@@ -134,7 +134,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Verify connection and sign message on Ethereum
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
@@ -143,7 +143,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Ethereum');
         await SignModal.tapConfirmButton();
@@ -153,7 +153,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
       }, DAPP_URL);
 
@@ -161,12 +161,12 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Resume from refresh
       //
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await refreshMobileBrowser();
       });
       await sleep(2000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         // Note: Chain may reset to 1 after refresh
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
@@ -176,7 +176,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapCancelButton();
       });
@@ -189,13 +189,13 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Terminate and connect
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.assertWagmiConnected(false);
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton();
       });
@@ -204,7 +204,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
@@ -214,12 +214,12 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Wait for incomplete session timeout on refresh and reconnect after
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         // Purposely not interacting with the approval
       });
@@ -228,7 +228,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await refreshMobileBrowser();
       });
       await sleep(2000);
@@ -236,12 +236,12 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // After timeout, should be disconnected
       await sleep(10000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(false);
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         // TODO: We're having a double connect prompt. After approving the
         // connection, a second prompt with empty accounts is shown.
@@ -255,7 +255,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
@@ -265,7 +265,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

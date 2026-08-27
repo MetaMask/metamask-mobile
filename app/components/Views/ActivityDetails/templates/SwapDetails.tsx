@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -52,7 +53,6 @@ type SwapDetailsItem = Extract<
   {
     type:
       | 'swap'
-      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
@@ -60,6 +60,16 @@ type SwapDetailsItem = Extract<
       | 'unwrap';
   }
 >;
+
+function markAmountHumanReadable(
+  token: TokenAmount | undefined,
+  enabled: boolean,
+): TokenAmount | undefined {
+  if (!token || !enabled) {
+    return token;
+  }
+  return { ...token, amountIsHumanReadable: true };
+}
 
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   const rawSourceToken = item.data.sourceToken;
@@ -71,8 +81,17 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  // Keep API decimals for Swap again, but keyring amounts are already
+  // human-readable so display/fiat must not run formatUnits on them.
+  const amountIsHumanReadable = isNonEvmChainId(item.chainId);
+  const sourceToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawSourceToken, tokenData),
+    amountIsHumanReadable,
+  );
+  const destinationToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawDestinationToken, tokenData),
+    amountIsHumanReadable,
+  );
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,
