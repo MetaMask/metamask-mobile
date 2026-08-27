@@ -38,9 +38,9 @@ flowchart TD
 Path filters alone **never** build the iOS app on a pull request targeting
 `main`. iOS has to be requested, and there are exactly two ways to do it:
 
-| Request | Effect |
-| --- | --- |
-| `run-appium-ios-tests` label | Builds iOS and runs Appium iOS, **even when path filters selected Android only**. Widening is the whole point of this label. |
+| Request                          | Effect                                                                                                                                                                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run-appium-ios-tests` label     | Builds iOS and runs Appium iOS, **even when path filters selected Android only**. Widening is the whole point of this label.                                                                                                           |
 | `skip-smart-e2e-selection` label | Builds iOS and runs Appium iOS with the full `ALL` tag set, **but only when path filters already selected iOS**. This label expands the tag set, not the platform list, so it never adds a platform path filters deliberately skipped. |
 
 Nothing else opts in. In particular, shared smoke/Appium infrastructure changes
@@ -51,13 +51,13 @@ no longer pull in an iOS build on a `main` PR the way they do on `release/*`.
 so they are always equal — CI never spends a macOS build on an app nothing will
 test. A unit test asserts this invariant across every combination.
 
-Consequences when iOS is *not* requested:
+Consequences when iOS is _not_ requested:
 
 - A PR that touches shared or cross-platform code runs **Android only**.
 - A PR that touches **only** iOS files (`ios/**`, `Podfile`, native iOS code)
   runs **no E2E at all** — there is no Android build to test either, so
   `native_build_needed` and Smart E2E Selection both turn off. Adding either
-  label restores iOS *and* Smart E2E Selection.
+  label restores iOS _and_ Smart E2E Selection.
 - `validate-e2e-fixtures` is iOS-only, so **fixture validation only runs on a
   `main` PR when iOS was requested**. It still runs unconditionally on PRs into
   `release/*` that build iOS.
