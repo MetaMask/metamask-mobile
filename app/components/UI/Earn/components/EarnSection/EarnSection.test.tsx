@@ -1,9 +1,15 @@
 import React, { createRef } from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
   Icon,
   IconColor,
@@ -12,21 +18,20 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import { selectIsMoneyAccountVisible } from '../../../../UI/Money/selectors/visibility';
-import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
-import useEarnSectionAssets from '../../../../UI/Earn/hooks/useEarnSectionAssets';
-import useHomeViewedEvent from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import type { SectionRefreshHandle } from '../../types';
-import type { EarnAssetId } from '../../../../UI/Earn/types/earnAssets';
-import type {
-  EarnSectionAssetSlot,
-  EarnSectionRankedAsset,
-} from '../../../../UI/Earn/utils/earnSection';
-import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
-import EarnSection from './EarnSection';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
+import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
+import type { EarnAssetId } from '../../types/earnAssets';
+import type { EarnSectionRankedAsset } from '../../utils/earnSection';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
+import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -40,6 +45,7 @@ jest.mock('../../../../UI/Money/selectors/visibility');
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
 jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
 jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
+jest.mock('../../../../../util/Logger');
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
   () => () => null,
@@ -47,6 +53,9 @@ jest.mock(
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+const mockUseIsFocused = useIsFocused as jest.MockedFunction<
+  typeof useIsFocused
 >;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
@@ -62,6 +71,7 @@ const mockUseHomeViewedEvent = useHomeViewedEvent as jest.MockedFunction<
 const mockUseSectionPerformance = useSectionPerformance as jest.MockedFunction<
   typeof useSectionPerformance
 >;
+const mockLoggerError = jest.mocked(Logger.error);
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
@@ -136,20 +146,24 @@ const navigate = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 
+const createSectionResult = (
+  overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
+): ReturnType<typeof useEarnSectionAssets> => ({
+  assetSlots: [assetSlot],
+  hasMoreAssets: false,
+  moneyApyPercent: 6.2,
+  moneyRateStatus: 'ready',
+  isLoading: false,
+  hasError: false,
+  errors: [],
+  refresh: jest.fn(),
+  ...overrides,
+});
+
 const mockSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
 ) => {
-  mockUseEarnSectionAssets.mockReturnValue({
-    assetSlots: [assetSlot],
-    hasMoreAssets: false,
-    moneyApyPercent: 6.2,
-    moneyRateStatus: 'ready',
-    isLoading: false,
-    hasError: false,
-    errors: [],
-    refresh: jest.fn(),
-    ...overrides,
-  });
+  mockUseEarnSectionAssets.mockReturnValue(createSectionResult(overrides));
 };
 
 const getSuccessArrowIcons = () =>
@@ -161,9 +175,21 @@ const getSuccessArrowIcons = () =>
         props.color === IconColor.SuccessDefault,
     );
 
+const renderEarnSection = (
+  props: Partial<React.ComponentProps<typeof EarnSection>> = {},
+) =>
+  render(
+    <EarnSection
+      tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+      {...props}
+    />,
+  );
+
 describe('EarnSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetEarnSectionRefreshForTests();
+    mockUseIsFocused.mockReturnValue(true);
     mockMoneyAccountVisible = false;
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
@@ -194,15 +220,62 @@ describe('EarnSection', () => {
   });
 
   it('renders the Earn section title', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByText(strings('homepage.sections.earn')),
     ).toBeOnTheScreen();
   });
 
+  it('disables Homepage telemetry for shared Explore rendering', () => {
+    renderEarnSection();
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionRef: null,
+        sectionIndex: -1,
+        totalSectionsLoaded: 0,
+        fireImmediateWhenNoView: false,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('passes required section metadata to Homepage telemetry', () => {
+    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionIndex: 2,
+        totalSectionsLoaded: 5,
+        fireImmediateWhenNoView: true,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('disables Homepage telemetry while Home is unfocused', () => {
+    mockUseIsFocused.mockReturnValue(false);
+
+    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionRef: null,
+        fireImmediateWhenNoView: false,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('renders funded lending assets with Get APY copy', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
     expect(
@@ -237,7 +310,7 @@ describe('EarnSection', () => {
       ],
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByText(
@@ -274,7 +347,7 @@ describe('EarnSection', () => {
       ],
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByTestId('earn-section-asset-0-no-fee-tag'),
@@ -282,7 +355,7 @@ describe('EarnSection', () => {
   });
 
   it('hides No fee when asset experiences are not subsidized', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.queryByTestId('earn-section-asset-0-no-fee-tag'),
@@ -293,7 +366,7 @@ describe('EarnSection', () => {
     mockMoneyAccountVisible = true;
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByTestId('earn-section-money-account-card'),
@@ -309,7 +382,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.queryByText(strings('earn_module.new_tag')),
@@ -324,7 +397,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.queryByText(strings('earn_module.new_tag')),
@@ -343,7 +416,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByTestId('earn-section-money-account-balance-skeleton'),
@@ -361,7 +434,7 @@ describe('EarnSection', () => {
       moneyRateStatus: 'loading',
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByTestId('earn-section-money-account-apy-skeleton'),
@@ -379,7 +452,7 @@ describe('EarnSection', () => {
       moneyRateStatus: 'unavailable',
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(
       screen.getByText(strings('earn_module.rate_unavailable')),
@@ -392,7 +465,7 @@ describe('EarnSection', () => {
   it('uses the asset name for zero-balance tiles', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
     expect(
@@ -406,15 +479,26 @@ describe('EarnSection', () => {
   it('removes green arrows from Money and asset tiles', () => {
     mockMoneyAccountVisible = true;
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(getSuccessArrowIcons()).toHaveLength(0);
+  });
+
+  it('navigates with the selected CAIP-19 asset ID', () => {
+    renderEarnSection();
+
+    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+
+    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+      screen: Routes.EARN.STRATEGY_SELECTION,
+      params: { assetId },
+    });
   });
 
   it('navigates zero-balance assets to Asset Overview', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
 
@@ -440,7 +524,7 @@ describe('EarnSection', () => {
   });
 
   it('navigates funded assets to Earn strategy selection', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
 
@@ -455,10 +539,109 @@ describe('EarnSection', () => {
       hasError: true,
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(screen.getByTestId('earn-section-error')).toBeOnTheScreen();
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
+  });
+
+  it('does not refresh for the initial Explore trigger', () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({ refresh });
+
+    renderEarnSection({
+      refresh: { trigger: 0, silentRefresh: true },
+    });
+
+    expect(refresh).not.toHaveBeenCalled();
+    expect(mockRefetchBalance).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh or query Money balance while disabled', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({ refresh });
+
+    renderEarnSection({
+      enabled: false,
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockUseEarnSectionAssets).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(refresh).not.toHaveBeenCalled();
+    expect(mockRefetchBalance).not.toHaveBeenCalled();
+  });
+
+  it('refreshes catalogue and Money balance for an Explore trigger', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({ refresh });
+
+    renderEarnSection({
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs when an Explore refresh fails', async () => {
+    const error = new Error('Explore refresh failed');
+    const refresh = jest.fn().mockRejectedValue(error);
+    mockSectionResult({ refresh });
+
+    renderEarnSection({
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        error,
+        'EarnSection: Failed to refresh section data',
+      );
+    });
+  });
+
+  it('coalesces concurrent Explore refreshes across EarnSection instances', async () => {
+    const firstRefresh = jest.fn().mockResolvedValue(undefined);
+    const secondRefresh = jest.fn().mockResolvedValue(undefined);
+    mockUseEarnSectionAssets
+      .mockImplementationOnce(() =>
+        createSectionResult({ refresh: firstRefresh }),
+      )
+      .mockImplementationOnce(() =>
+        createSectionResult({ refresh: secondRefresh }),
+      );
+
+    render(
+      <>
+        <EarnSection
+          tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          refresh={{ trigger: 1, silentRefresh: true }}
+        />
+        <EarnSection
+          tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          refresh={{ trigger: 1, silentRefresh: true }}
+        />
+      </>,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(firstRefresh).toHaveBeenCalledTimes(1);
+    expect(secondRefresh).not.toHaveBeenCalled();
+    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes catalogue sources from the error action', async () => {
@@ -467,7 +650,7 @@ describe('EarnSection', () => {
       hasError: true,
       refresh,
     });
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('earn-section-error-retry-button'));
@@ -481,7 +664,13 @@ describe('EarnSection', () => {
     mockSectionResult({ refresh });
     const ref = createRef<SectionRefreshHandle>();
 
-    render(<EarnSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />);
+    render(
+      <HomepageEarnSection
+        ref={ref}
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+      />,
+    );
 
     await act(async () => {
       await ref.current?.refresh();
@@ -493,17 +682,18 @@ describe('EarnSection', () => {
 
   it('prevents duplicate retries while a refresh is pending', async () => {
     let resolveRefresh: (() => void) | undefined;
-    const refresh = jest.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveRefresh = resolve;
-        }),
-    );
+    let refreshPromise: Promise<void> | undefined;
+    const refresh = jest.fn(() => {
+      refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      return refreshPromise;
+    });
     mockSectionResult({
       hasError: true,
       refresh,
     });
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     const retryButton = screen.getByTestId('earn-section-error-retry-button');
     fireEvent.press(retryButton);
@@ -513,17 +703,26 @@ describe('EarnSection', () => {
 
     await act(async () => {
       resolveRefresh?.();
+      await refreshPromise;
     });
 
-    fireEvent.press(retryButton);
+    await act(async () => {
+      fireEvent.press(retryButton);
+      await Promise.resolve();
+    });
 
     expect(refresh).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      resolveRefresh?.();
+      await refreshPromise;
+    });
   });
 
   it('renders skeleton slots while catalogue data loads', () => {
     mockSectionResult({ isLoading: true });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderEarnSection();
 
     expect(screen.getByTestId(assetId)).toBeOnTheScreen();
     expect(

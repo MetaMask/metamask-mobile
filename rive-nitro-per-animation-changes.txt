@@ -1,0 +1,160 @@
+RIVE NITRO UPGRADE — PER-ANIMATION CODE CHANGES
+Branch: chore/rive-nitro-migration
+Packages: remove rive-react-native ^9.8.0
+          add @rive-app/react-native 0.4.19
+          react-native-nitro-modules 0.35.5 → 0.35.10
+
+Common mechanical changes (almost every site):
+  <Rive> → <RiveView>
+  source={asset} → useRiveFile(asset) + file={riveFile}
+  autoplay → autoPlay
+  ref / onPlay gate → useRive() hybridRef + riveViewRef ready
+  fireState(sm, name) → triggerInput(name)  (sm stays on stateMachineName prop)
+  RNRiveError → RiveError (+ map type for perf hooks where needed)
+
+No .riv binary files were edited in this upgrade — JS/API ports only
+(except behavior approximations noted below).
+
+================================================================
+MECHANICAL (trigger / play only)
+================================================================
+
+1. StackCardEmpty
+   Asset:  Carousel_Confetti.riv
+   File:   app/components/UI/Carousel/StackCardEmpty/StackCardEmpty.tsx
+   Change: fireState('Confetti','Start') → triggerInput('Start')
+           gate render on riveFile
+
+2. FoxAnimation
+   Asset:  fox_appear.riv
+   File:   app/components/UI/FoxAnimation/FoxAnimation.tsx
+   Change: drop onPlay; fire trigger when riveViewRef ready
+           fireState('FoxRaiseUp', trigger) → triggerInput(trigger)
+           onError shape adapted for useRivePerformance
+
+3. HwSwapAnimation
+   Asset:  generic_hardware_wallet.riv
+   File:   app/components/UI/HardwareWallet/Swaps/HwSwapAnimation.tsx
+   Change: drop onPlay/isRivePlaying; gate on riveViewRef
+           fireState(sm, trigger) → triggerInput(trigger)
+           status→trigger map unchanged
+
+4. OnboardingAnimation
+   Asset:  metamask_wordmark_animation_build-up.riv
+   File:   app/components/UI/OnboardingAnimation/OnboardingAnimation.tsx
+   Change: onPlay → riveViewRef ready; fireState → triggerInput
+           perf onPlay still called when view ready
+
+5. PerpsTutorialCarousel
+   Assets: perps-onboarding-carousel-light.riv / -dark.riv
+   File:   app/components/UI/Perps/components/PerpsTutorialCarousel/PerpsTutorialCarousel.tsx
+   Change: pure view swap (useRiveFile + RiveView + autoPlay)
+           no triggers
+
+6. RewardPointsAnimation + useRewardsAnimation
+   Asset:  rewards_icon_animations.riv
+   Files:  Rewards/components/RewardPointsAnimation/index.tsx
+           Rewards/hooks/useRewardsAnimation.ts
+   Change: RiveView + hybridRef; fireState → triggerInput in hook
+           stateMachineName kept on view
+
+7. RiveOnboardingStepper
+   Asset:  (passed in via props)
+   File:   app/components/UI/RiveOnboardingStepper/RiveOnboardingStepper.tsx
+   Change: onPlay → riveViewRef; fireState → triggerInput
+           Fit/Alignment types import from Nitro
+
+8. WalletHomeOnboardingSteps
+   Asset:  onboard_checklist_v07.riv
+   File:   app/components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.tsx
+   Change: fireState → triggerInput; useRiveFile + RiveView
+
+9. FoxRiveLoaderAnimation (ChoosePassword)
+   Asset:  fox_loading.riv
+   File:   Views/ChoosePassword/FoxRiveLoaderAnimation/FoxRiveLoaderAnimation.tsx
+   Change: fireState → triggerInput('Loader2'); stateMachine on view
+
+10. SearchingForDevice
+    Asset:  hardware_wallet.riv
+    File:   Views/ConnectHardware/SearchingForDevice/index.tsx
+    Change: onPlay gate → riveViewRef; fireState → triggerInput
+
+11. DiscoveryErrorScreenLayout
+    Asset:  hardware_wallet.riv
+    File:   .../DiscoveryErrorScreenLayout.tsx
+    Change: same as SearchingForDevice
+
+12. OnboardingSuccessEndAnimation
+    Asset:  onboarding_loader.riv
+    File:   Views/OnboardingSuccess/OnboardingSuccessEndAnimation/index.tsx
+    Change: fireState → triggerInput('Only_End'); stateMachine on view
+
+================================================================
+DATA-BINDING PORTS (AutoBind → explicit ViewModel)
+================================================================
+
+13. MoneyFirstTimeDepositView
+    Asset:  money_account_first_time_deposit_v4.riv
+    File:   Money/Views/MoneyFirstTimeDepositView/MoneyFirstTimeDepositView.tsx
+    Change: useViewModelInstance(file, { artboardName:'Intro', async:true })
+            dataBind={instance}
+            useRiveString/Number/Trigger(path, instance)  [arg order flipped]
+            parallax: riveRef.setNumber + viewTag guard
+                     → useRiveNumber setValue (xValue/yValue)
+            done trigger / i18n text / onError→goHome unchanged in intent
+
+14. MoneyNextBestActionParallax
+    Asset:  next_best_action_module_v1.riv
+    File:   Money/components/MoneyNextBestActionParallax/MoneyNextBestActionParallax.tsx
+    Change: same ViewModel pattern; parallax numbers via useRiveNumber
+
+15. SocialLeaderboardOnboarding
+    Asset:  onboarding_nux_v6.riv
+    File:   Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx
+    Change: AutoBind + property hooks → useViewModelInstance + dataBind
+            onPlay reveal → riveViewRef ready (+ fallback timer kept)
+            triggers/booleans/numbers/strings via Nitro hooks
+
+================================================================
+BEHAVIOR APPROXIMATIONS (Nitro missing APIs)
+================================================================
+
+16. FoxLoader  ★ approx
+    Asset:  splash_screen.riv
+    File:   app/components/UI/FoxLoader/FoxLoader.tsx
+    Change: fireState Start/Stop → triggerInput Start/Stop
+            onPlay → riveViewRef ready
+            REMOVED onStateChanged (idle + ExitState)
+            NEW: after Stop, complete after EXIT_ANIMATION_MS (800ms)
+                 (was: wait for ExitState). Global 3s timeout kept.
+            Dropped RiveRenderer / platform renderer props
+
+17. MoneyOnboardingView  ★ approx
+    Asset:  onboarding_flow_v25.riv
+    File:   Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx
+    Change: AutoBind → useViewModelInstance + dataBind
+            APY / button / transitionSpeed via Nitro string/number hooks
+            REMOVED onStateChanged step/transition tracking
+            NEW: listen to continue/back ViewModel triggers; advance
+                 step index in JS; overlay + VIEWED/COMPLETE timed to
+                 STEP_TRANSITION_MS (300ms) instead of Rive state names
+            close trigger still navigates away
+
+================================================================
+NOT MIGRATED YET
+================================================================
+
+18. MoneyCardFlipAnimation  ✗ still on rive-react-native
+    Asset:  card_tilt_v1.2.riv
+    File:   Money/components/MoneyCardFlipAnimation/MoneyCardFlipAnimation.tsx
+    Why:    uses animationName="yAnimation" (raw timeline) — unsupported
+            on Nitro without a .riv state-machine fix or static fallback
+
+================================================================
+TESTS / INFRA ALSO TOUCHED
+================================================================
+- New mock: app/__mocks__/rive-app-react-native.tsx
+- Updated: HardwareWalletsSwaps.test.tsx, StackCardEmpty.test.tsx
+- Still legacy mocks (need port): MoneyFirstTimeDepositView.test.tsx,
+  MoneyNextBestActionParallax.test.tsx, (+ others not yet updated)
+- jest.config.js touched for mock resolution

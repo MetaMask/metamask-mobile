@@ -1,0 +1,100 @@
+================================================================================
+ NITRO FETCH — MISSING WHATWG GLOBALS ("Headers is not defined")
+ Incident Summary
+================================================================================
+
+Date     : 2026-07-16
+Branch   : fix/fetch-globals-bootstrap (commit ed514baf12)
+Related  : Yarn patch react-native-nitro-fetch@1.3.3 (fix/nitro-fetch-headers-guard)
+Status   : Resolved — verified at runtime on iOS simulator (all checks passing)
+
+--------------------------------------------------------------------------------
+ 1. WHAT HAPPENED
+--------------------------------------------------------------------------------
+Network requests carrying headers could throw before reaching the native
+network client:
+
+    ReferenceError: Can't find variable: Headers
+
+Root cause was the combination of two facts:
+
+  a) JS language trap — `x instanceof Headers` does not return false when
+     `Headers` is an undeclared global; it throws a hard ReferenceError.
+     react-native-nitro-fetch's request builder (headersToPairs) evaluates
+     exactly this expression on every request with a truthy `headers` value,
+     without importing or existence-checking the constructor.
+
+  b) Missing globals — the RN runtime does not provide Headers/Request/
+     Response (@react-native/js-polyfills omits them; Expo winter runtime
+     installs URL/TextDecoder etc. but not the fetch constructors). The app
+     installs them itself in app/core/NitroFetchSetup.ts, but the assignment
+     lived INSIDE installProductionNitroFetch(), which is skipped entirely
+     when hasTestOverrides is true.
+
+Contexts where the globals were therefore absent:
+  - Test-override / E2E builds (globals never installed at all)
+  - Worklet runtimes (separate JS contexts; do not inherit main-thread
+    globals) — surfaced as a silent Perps request failure
+  - A narrow theoretical startup window before NitroFetchSetup is imported
+
+Since nearly every request carries headers, the failure presented as
+"all networking broken" in affected contexts.
+
+--------------------------------------------------------------------------------
+ 2. WHAT WE DID
+--------------------------------------------------------------------------------
+Two complementary fixes:
+
+  1) Library guard (Yarn patch, pinned to 1.3.3 — no version bump):
+         - if (headers instanceof Headers) {
+         + if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+     If the global is ever absent (e.g. worklets), the builder falls through
+     to the plain-object/array branches instead of crashing.
+
+  2) App-side environment invariant (commit ed514baf12):
+     Extracted installFetchGlobals() in app/core/NitroFetchSetup.ts and call
+     it unconditionally at module load — outside the !hasTestOverrides guard.
+     Headers/Request/Response now exist in every build variant, independent
+     of the production fetch swap and startup prefetching.
+
+Verification:
+  - Unit tests: NitroFetchSetup.test.ts (globals installed under test
+    overrides) and NitroFetchDependency.test.ts (real patched dependency,
+    globalThis.Headers deleted, plain-object headers, no throw)
+  - Runtime probe on iOS simulator: globals defined and identity-match
+    nitro's exports; new Headers() and instanceof succeed; fetch succeeds
+    (status 200) with plain-object headers, a Headers instance, and a
+    Request object; response body readable end-to-end; prefetchKey
+    injection path exercised on every probe request.
+
+--------------------------------------------------------------------------------
+ 3. WHAT WAS AFFECTED
+--------------------------------------------------------------------------------
+Production users : Effectively NOT affected. In production builds
+                   hasTestOverrides is false, so the old code did install
+                   the globals — and NitroFetchSetup is imported at
+                   index.js:9, near-first at startup. Consistent with zero
+                   alerts/user reports on v8.1.0+ (first release with
+                   nitro-fetch).
+
+Worklet path     : Only realistic prod exposure (Perps flow, silent request
+                   failure); closed by the library Yarn patch.
+
+Dev / E2E builds : Affected — test-override builds ran with undefined
+                   WHATWG globals, breaking any code doing new Headers()
+                   or fetching with headers; fixed by this branch.
+
+Optional belt-and-braces: Sentry search for "Can't find variable: Headers"
+across v8.1.0+ to confirm zero production occurrences.
+
+--------------------------------------------------------------------------------
+ 4. FOLLOW-UPS
+--------------------------------------------------------------------------------
+  - Upstream the library fix (use its own imported NitroHeaders instead of
+    the ambient global).
+  - RN 0.85 upgrade: when react-native-nitro-fetch is bumped (>=1.4.1),
+    re-verify or drop the 1.3.3 Yarn patch so the guard is not lost.
+  - Remove the TEMP[nitro-verify] runtime probe from NitroFetchSetup.ts
+    before merge.
+
+================================================================================

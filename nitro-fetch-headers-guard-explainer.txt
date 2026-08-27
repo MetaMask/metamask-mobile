@@ -1,0 +1,156 @@
+================================================================================
+ NITRO FETCH — "Headers is not defined" CRASH
+ Root-Cause Analysis & Fix (PR: fix/nitro-fetch-headers-guard)
+================================================================================
+
+Author  : Engineering
+Status   : Resolved (dependency-level Yarn patch)
+Severity : High (silent request failure in Perps flow)
+Scope    : react-native-nitro-fetch@1.3.3 — request-building path
+Risk     : Low (additive runtime guard; no version bump; no behavior change)
+
+--------------------------------------------------------------------------------
+ 1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+A network request could crash BEFORE ever reaching the native network client.
+
+react-native-nitro-fetch evaluated `headers instanceof Headers` while building a
+request. When the global `Headers` constructor was not defined in the current
+runtime, evaluating that expression threw:
+
+    ReferenceError: Can't find variable: Headers
+
+...instead of simply sending the request. This surfaced in the Perps flow, which
+passes plain-object ("record-style") headers. Position setup stopped during
+request assembly, so the failure looked like a Perps setup/fixture problem rather
+than what it actually was: a transport-layer bug.
+
+The fix is a Mobile-owned Yarn patch that checks the constructor exists before
+using it:
+
+    BEFORE:  if (headers instanceof Headers) { ... }
+    AFTER:   if (typeof Headers !== 'undefined' && headers instanceof Headers) { ... }
+
+--------------------------------------------------------------------------------
+ 2. WHY IT FAILS (THE MECHANISM)
+--------------------------------------------------------------------------------
+The crash lives in `headersToPairs`, the function that converts your `headers`
+value into the native request shape:
+
+    // node_modules/react-native-nitro-fetch/lib/module/fetch.js
+    function headersToPairs(headers) {
+      'worklet';
+      if (!headers) return undefined;
+      const pairs = [];
+      if (headers instanceof Headers) {   // <-- line that throws
+        ...
+      }
+    }
+
+Key JavaScript detail:
+`x instanceof Y` evaluates `Y` as an expression. If `Y` is an UNDECLARED global,
+you do NOT get `false` — you get a hard `ReferenceError`.
+
+The library references the bare global identifier `Headers`. It never imports it
+and never checks that it exists. So the instant a request carries any truthy
+`headers` value while `global.Headers` is undefined, request-building throws
+before a single byte reaches the native client.
+
+Perps passes record-style (plain object) headers, which is exactly the value
+that reaches this branch check first — hence Perps was the first place it bit.
+
+--------------------------------------------------------------------------------
+ 3. WHY `global.Headers` WAS MISSING (THE ROOT CAUSE)
+--------------------------------------------------------------------------------
+This is not purely a library bug — it is the collision of the library's
+assumption with MetaMask Mobile's networking architecture.
+
+MetaMask Mobile has replaced the entire React Native networking stack with
+nitro-fetch. The app OWNS the `Headers` / `Request` / `Response` globals and
+installs them itself in `app/core/NitroFetchSetup.ts`:
+
+    global.fetch   = (input, init) => nitroFetch(input, withPrefetchKey(input, init));
+    _g.Headers     = Headers;    // Headers === NitroHeaders
+    _g.Request     = Request;
+    _g.Response    = Response;
+
+Because the app manages these globals manually, there are legitimate runtime
+contexts where `global.Headers` is genuinely absent — and each one detonates the
+unguarded `instanceof`:
+
+  (a) STARTUP ORDERING
+      `installProductionNitroFetch()` runs from index.js AFTER shim.js. Any nitro
+      request that fires before that assignment lands has no `global.Headers`.
+      (shim.js documents this exact ordering.)
+
+  (b) TEST / E2E OVERRIDES
+      Setup is guarded by `if (!hasTestOverrides)`. In test-override builds the
+      globals are never assigned, yet requests may still route through nitro —
+      a permanent no-`Headers` context.
+
+  (c) WORKLET RUNTIMES
+      `headersToPairs` is tagged `'worklet'`. Worklet runtimes are separate JS
+      contexts that do NOT inherit the main thread's globals, so the app-installed
+      `global.Headers` is not present there.
+
+  (d) NO DEPENDABLE FALLBACK
+      RN's default `Headers` global (whatwg-fetch via setUpXHR) is not relied upon
+      here; `@react-native/js-polyfills` does not provide it, and the app
+      intentionally overrides the stack. There is no guaranteed constructor to
+      fall back on.
+
+In short — two things had to line up:
+  1. Library flaw : depends on an ambient global `Headers` it does not own,
+                    import, or existence-check.
+  2. App design   : owns/replaces the networking globals, creating real windows
+                    where `global.Headers` is undefined.
+
+--------------------------------------------------------------------------------
+ 4. THE FIX
+--------------------------------------------------------------------------------
+A Mobile-owned Yarn patch applied to all three shipped source variants of the
+library (lib/module/fetch.js, src/fetch.js, src/fetch.ts):
+
+    - if (headers instanceof Headers) {
+    + if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+
+Delivered as:
+  * .yarn/patches/react-native-nitro-fetch-npm-1.3.3-*.patch
+  * package.json + yarn.lock updated to resolve through the patch
+  * Dependency stays pinned at 1.3.3 (NO version bump)
+
+Behavior:
+  * When `Headers` IS defined  -> identical to before (guard is true).
+  * When `Headers` is absent    -> falls through to the existing plain-object /
+                                   array / duck-typed branches instead of crashing.
+
+--------------------------------------------------------------------------------
+ 5. WHY THE FIX IS SAFE
+--------------------------------------------------------------------------------
+  * Additive, not destructive — only widens a guard with a `typeof` check.
+  * No behavior change when a `Headers` global exists.
+  * No version bump — staying on 1.3.3 means no other library changes leak in.
+  * Covered by a focused real-dependency regression test
+    (app/core/NitroFetchDependency.test.ts) that deletes `globalThis.Headers`,
+    loads the real patched dependency, passes plain-object headers, and asserts
+    the native request is forwarded without throwing.
+  * Passed full CI, security scans, and CodeQL.
+
+--------------------------------------------------------------------------------
+ 6. VERIFICATION CHECKLIST
+--------------------------------------------------------------------------------
+  [ ] yarn install --immutable --check-cache      (patch resolves cleanly)
+  [ ] yarn jest app/core/NitroFetchDependency.test.ts
+  [ ] Perps flow: request with plain-object headers reaches native client
+
+--------------------------------------------------------------------------------
+ 7. FOLLOW-UPS
+--------------------------------------------------------------------------------
+  * UPSTREAM: the durable fix belongs in the library — it should use its own
+    imported `NitroHeaders` (already imported in the same file) instead of the
+    ambient global `Headers`. Consider filing/pushing this upstream.
+  * RN 0.85 UPGRADE: this is a Yarn patch pinned to 1.3.3. When
+    react-native-nitro-fetch is bumped (tracked: >=1.4.1 in the RN 0.85 work),
+    the patch MUST be re-verified or dropped so the guard is not silently lost.
+
+================================================================================

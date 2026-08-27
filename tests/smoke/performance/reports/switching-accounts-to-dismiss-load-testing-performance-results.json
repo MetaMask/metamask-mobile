@@ -1,0 +1,35 @@
+{
+  "suiteName": "Switching Accounts to Dismiss Load Testing",
+  "startTime": "2026-03-27T15:34:27.562Z",
+  "endTime": "2026-03-27T15:35:46.955Z",
+  "platform": "IOS",
+  "totalTests": 2,
+  "passedTests": 0,
+  "failedTests": 2,
+  "results": [
+    {
+      "testName": "benchmark switching accounts from the account list",
+      "userProfile": "CORE_USER",
+      "platform": "IOS",
+      "totalTime": 39.39,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-03-27T15:35:07.024Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "benchmark switching accounts from the account list",
+      "userProfile": "POWER_USER",
+      "platform": "IOS",
+      "totalTime": 37.45,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-03-27T15:35:45.902Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    }
+  ]
+}

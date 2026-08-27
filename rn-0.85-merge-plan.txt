@@ -1,0 +1,140 @@
+================================================================================
+RN 0.85 UPGRADE — MERGE PLAN (updated 2026-08-14, trimmed to minimal set)
+Rule: after every merge to main -> merge main INTO react-native-upgrade-0.85.
+================================================================================
+
+LIBRARY PR LEDGER (all states verified via GitHub 2026-08-14)
+================================================================================
+
+MERGED ON MAIN — done, nothing to do (13)
+  #33118  react-native-svg 15.15.5 (+ retargeted patch)
+  #33201  @react-native/jest-preset migration
+  #33214  ContextContainer JNI alias fix
+  #33323  react-native-get-random-values 2.0.0
+  #33415  notifee 9.1.8
+  #33472  react-native-safe-area-context 5.8.0
+  #33473  lottie-react-native 7.3.8
+  #33474  @react-native-community/slider 5.2.0
+  #33541  axios ^1.18.0
+  #33597  react-native-permissions 5.6.0
+  #33602  react-native-share 12.3.1 (+ regenerated patch)
+  #33603  react-native-view-shot 5.1.1
+  + absoluteFillObject codemod part 1 (2f447d0044, direct commit)
+
+OPEN — required, in Wave 1 below (7)
+  #34467  blob-util Gradle-9 patch + dedupe
+  #34468  gradle9 compat batch (4 libs)
+  #33919  nitro-fetch 1.5.1
+  #33717  Sentry 8.18.0                 (approved, rebase)
+  #33347  video 6.19.2                  (approved, rebase)
+  #32966  reanimated/worklets/GH        (critical path)
+  #34424  absoluteFillObject remnants
+
+OPEN — discard, not needed (5): #33720, #34472, #34473, #34419, #34415
+OPEN — orthogonal, not a 0.85 gate: #33422 fetch-globals, #34007 Rive Nitro
+CLOSED — superseded/de-scoped: #33331 transformer (rides upgrade PR),
+  #33417 blob-util 0.24 (not required), #33650 checkbox (not required),
+  #33192 + #33838-44 absoluteFill splits (close after #34424), #32888 spike
+
+
+MISSING A PR — work with no PR yet (4) 
+  pager-view 8.0.1 -> 8.0.4      no PR; do on the branch (Wave 2 step 2)
+  detox 20.51.4 + reflection     no PR; needed for Android E2E (#4963) —
+    guard patch                  build before un-draft (Wave 2 validation)
+  react-native-os 1.2.6 patch    rides upgrade branch; optional micro-PR
+
+================================================================================
+WAVE 1 — LAND REQUIRED PACKAGE PRs ON MAIN (RN 0.83)
+================================================================================
+
+A) READY — just need review + merge
+--------------------------------------------------------------------------------
+  #34467  blob-util Gradle-9 patch + dedupe      Branch build fails without it;
+                                                 dedupe fixed mass CI failures.
+  #34468  gradle9 batch (cookies, aes-crypto,    Branch build fails without it.
+          launch-arguments, performance)
+  #33919  nitro-fetch 1.5.1 + Headers patch      1.3.3 peers worklets ^0.8.0 —
+                                                 broken by worklets 0.10.1.
+                                                 Ceiling 1.5.1, never 1.5.2.
+  (only the permanently-broken "Add team label" check is red — label manually)
+
+B) APPROVED — rebase (went CONFLICTING), re-run CI, merge
+--------------------------------------------------------------------------------
+  #33717  Sentry 8.18.0    NOT a build gate — app runs fine on 7.11 — but 7.x
+                           is EOL and RN 0.85 release source maps are broken
+                           pre-8.15.1 (#6319): prod crash reports would be
+                           unsymbolicated. Ship-quality gate. Already approved.
+  #33347  video 6.19.2     6.19.1 still uses removed absoluteFillObject ->
+                           runtime crash when a video mounts (boot smoke
+                           never exercises it). Already approved.
+
+C) CRITICAL PATH — #32966 reanimated 4.5.1 / worklets 0.10.1 / GH 2.32
+--------------------------------------------------------------------------------
+  Reanimated 4.2.x caps at RN 0.84 — this is the one true hard blocker.
+  Conflicting, 32 red checks, no review since 07-08.
+  1. Rebase onto main
+  2. Fix CI by root cause (expect one worklets jest-mock cluster, not 32 bugs)
+  3. Ping reviewers the moment it's green
+
+D) CODE FIX — #34424 absoluteFillObject remnants
+--------------------------------------------------------------------------------
+  41 usages crash at runtime on 0.85. Recut codemod off fresh main (drifted
+  again), merge, then close superseded #33192 + #33838-44.
+
+WAVE 1 = 7 PRs total: 34467, 34468, 33919, 33717, 33347, 32966, 34424.
+
+DISCARDED — NOT NEEDED FOR THE UPGRADE (verified 2026-08-14)
+--------------------------------------------------------------------------------
+  #33720  Firebase 25.1.0        Xcode 26 floor claim disproven: branch builds
+                                 + runs with firebase-ios-sdk 10.29 under
+                                 Xcode 26.4. Pure hygiene -> post-upgrade.
+  #34472  screens 4.26.2         4.25.2 peers >=0.82; 4.26 only becomes a hard
+                                 bump at RN 0.86. Branch's 4.26.0 stays in the
+                                 upgrade PR (proven); no risky 0.83 pairing.
+  #34473  CLI 20.1.0             Minor dev-tooling bump; rides the upgrade PR.
+  #34419  keyboard-ctrl 1.21.14  1.20.7 and 1.21.x have identical peers
+                                 (reanimated >=3); bump fixes a warning only.
+                                 Branch's proven 1.21.6 rides the upgrade PR.
+  #34415  typescript 5.8.3       Toolchain-only; branch carries 5.8.3 with
+                                 tsc clean. Rides the upgrade PR.
+
+================================================================================
+WAVE 2 — THE UPGRADE PR #34283
+================================================================================
+
+1. Merge main -> react-native-upgrade-0.85 (Wave 1 falls out of the diff;
+   use NODE_OPTIONS max-old-space-size for the hook, never --no-verify)
+2. Bump pager-view 8.0.1 -> 8.0.4 on the branch
+3. Decide + document expo/fetch vs nitro-fetch global collision
+   (EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering)
+4. Push, full CI, fix by root cause only
+
+FINAL DIFF = RN core + everything that rides it:
+   react-native 0.85.3 (+ hermes patch) | @react-native/* 0.85.3 configs
+   react / react-dom / react-test-renderer 19.2.3
+   expo ^56 + all expo-* + @expo/metro-config + fingerprint 0.19.9
+   typescript 5.8.3 | CLI 20.1.0 | screens 4.26.0 | keyboard-ctrl 1.21.6
+   pager-view 8.0.4 | react-native-os patch
+   Gradle 9.3.1 | Xcode 26.4 | iOS min 15.1 -> 16.4 (needs product sign-off)
+
+VALIDATE BEFORE UN-DRAFT:
+   [ ] iOS Detox: one canary spec locally, full suite on CI
+   [ ] Android Detox: bump 20.51.4 + extend our yarn patch (try/catch
+       getMountItemDispatcher in FabricUIManagerIdlingResources.kt) — #4963
+   [ ] Physical device boot: one iOS + one Android
+   [ ] Release builds compile: iOS archive + assembleProdRelease
+   [ ] iOS 16.4 sign-off in writing
+
+SHIP: un-draft #34283, request reviews, label manually.
+Close: #32888 spike + the 5 discarded PRs above.
+Post-upgrade backlog (not gates): Firebase 25, Braze 21, cookies fork,
+quick-crypto/base64 pair, checkbox, blob-util 0.24.x, linear-gradient.
+
+================================================================================
+STANDING RULES
+================================================================================
+- Never `expo install --fix` (clobbers deliberate pins)
+- nitro-modules stays 0.35.5 everywhere
+- Edit yarn patch FILES manually; `yarn patch` without -u discards patches
+- Verify node_modules/Pods versions after branch switch, before device tests
+================================================================================

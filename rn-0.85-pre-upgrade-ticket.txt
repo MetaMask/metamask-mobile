@@ -1,0 +1,63 @@
+TITLE: RN 0.85 Upgrade — Pre-Upgrade Foundation
+Type: Epic | Labels: react-native, upgrade-0.85, tech-debt | Priority: High
+Source: rn-0.85-blockers.txt (2026-07-14), rn-085-plan.md
+
+DESCRIPTION
+Land all preparatory work ahead of the RN 0.83.6 -> 0.85.3 core bump so the
+final upgrade PR is version-only. Each item ships as its own PR and soaks in
+`main`. Land foundation first, then blockers, then chores.
+
+FOUNDATION (do first)
+- Merge in-flight PRs: #33192 (absoluteFillObject), #32966 (reanimated/worklets/
+  gesture-handler), #33118 (svg), #33121 (screens), #33201 (jest preset),
+  #33214 (ContextContainer JNI fix).
+- Swap Metro babel transformer -> @react-native/metro-babel-transformer.
+
+REQUIRED BLOCKERS (app won't build/run on 0.85 without these)
+- Bump get-random-values -> 2.0.0 (TurboModule; verify entropy path). Land first.
+- Bump quick-base64 -> 3.0.1 AND quick-crypto -> 1.1.5 together (nitro-modules
+  stays 0.35.5).
+- Bump nitro-fetch -> >=1.4.1 (after #32966).
+- Bump Firebase app+messaging -> 25.1.0 (+ Podfile RCT_USE_PREBUILT_RNCORE=0).
+- Bump Sentry -> 8.18.0 (rework init patch; align @sentry/* devDeps).
+- Bump Braze -> 22.0.0 (re-verify ReactModuleInfo patch).
+- Bump permissions -> 5.6.0, blob-util -> 0.24.10 (+ resolutions pin),
+  view-shot -> 5.1.1, video -> >=6.19.1.
+- Bump react-native-share -> 12.3.1 (patch regen).
+- Replace cookies -> @preeternal/react-native-cookie-manager 6.3.3.
+- Bump notifee -> 9.1.8 (maven workaround).
+- Replace @react-native-community/checkbox (design-system / expo-checkbox).
+
+VERIFY VIA SPIKE #32888 (PR only if it breaks)
+- Verify segment trackDeepLinks on bridgeless; ble-plx patch; §B natives
+  (os, i18n, sensors, fast-crypto, randombytes, background-timer,
+  material-textfield); §F unknowns (rive, branch, veriff, gzip,
+  confirmation-code-field, skeleton-placeholder, scrollable-tab-view);
+  fs / default-preference.
+
+SAFE CHORES (one batch PR)
+- Bump: safe-area-context 5.8.0, lottie 7.3.8, flash-list 2.3.2,
+  walletconnect/core 2.23.10, clipboard 1.16.3, slider 5.2.0,
+  keyboard-controller 1.22.0, branch 6.10.0, rive 9.8.3, masked-view 0.3.2,
+  aes-crypto 3.3.0, inappbrowser 3.7.1, react-dom 19.2.3.
+
+DECISIONS TO CLOSE (gate the bump)
+- Decide Expo 55 -> 56 (pulls Xcode 26 / iOS 16.4 / TS 6 floors).
+- Sign off CI runner / Xcode audit.
+- Decide global fetch collision (EXPO_PUBLIC_USE_RN_FETCH=1 vs ordering + boot
+  assertion).
+- Decide webview fork 14.6.0 vs upstream v15.
+- Complete Hermes V1 validation (boot/memory/bytecode/Sentry symbolication).
+
+BLOCKER — Detox #4963 (Android New Arch)
+- FabricUIManagerIdlingResources NoSuchFieldException (mMountItemDispatcher);
+  crashes on first synchronized tap. Not RN-version-specific (identical
+  0.83.8->0.85.3; already reproduces on 0.83.6). No upstream fix.
+- Mitigate (pick one): patch Detox (try/catch -> idle) | per-spec
+  disableSynchronization() before first tap | migrate Android smoke to Appium.
+
+ACCEPTANCE CRITERIA
+- All PRs above merged, soaking in `main`, CI green (unit + E2E).
+- Detox #4963 mitigated; Android smoke green.
+- All gating decisions closed and documented.
+- RN 0.85 core bump reduced to a version-only change.

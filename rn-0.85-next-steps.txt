@@ -1,0 +1,82 @@
+wRN 0.85 UPGRADE — NEXT STEPS PLAN (created 2026-08-05, post platform smoke)
+============================================================================
+Context: #34283 (react-native-upgrade-0.85) builds+boots on BOTH platforms.
+Latest push 25755c3414 fixes the two CI root causes found today:
+  - blob-util dedupe (nested unpatched copy escaped jest mock -> mass unit/
+    component/integration failures; verified fixed: ResetPassword 40/40)
+  - prettier on TradeWalletActions.tsx (only real format:check offender)
+Strategy: do NOT run full local test suites. Let CI shards run, then fix by
+ROOT CAUSE — today proved dozens of "failures" collapse into one dep issue.
+
+PHASE 0 — CI TRIAGE ON 25755c3414 (today/tomorrow, ~blocks everything)
+----------------------------------------------------------------------
+[ ] Wait for full CI run on 25755c3414; diff failures vs run 31021893031.
+    Expectation: unit/component/integration shards + format now green.
+[ ] lint job: was failing, NOT yet explained (tsc was just a cancellation,
+    lint may be real). If red: run `yarn lint --quiet` locally, fix, push.
+[ ] check-pr-labels: known-permanently-broken for adnxy (not in topology
+    .json) — add team label MANUALLY on #34283, don't chase the job.
+[ ] Socket Security alerts: expected — patch: descriptors changed for 7 deps.
+    Review + dismiss/accept each; they're our own patches, no new code.
+[ ] If any test shard still red: pull ONLY the failing suite names from CI
+    logs (gh api .../jobs/<id>/logs), cluster by error signature, fix the
+    shared root cause, reproduce ONE representative suite locally, push.
+
+PHASE 1 — DRAIN THE PRE-UPGRADE PR LADDER INTO MAIN (parallel to Phase 0)
+-------------------------------------------------------------------------
+Merge order matters: upgrade branch RIDES on these; after each merge into
+main, merge main -> react-native-upgrade-0.85 (never re-bump on the branch).
+[ ] #33717 Sentry 8.18.0 — APPROVED, REQUIRED (7.x EOL + source maps broken
+    pre-8.15.1 = blind prod crashes). Merge first.
+[ ] #33347 video 6.19.2 — APPROVED, required (absoluteFillObject removal).
+[ ] #33720 Firebase 25.1 — APPROVED, downgraded to hygiene (Xcode 26 floor
+    disproven) but it's ready: merge; then re-verify RNFB #8883 Podfile
+    workaround + pod install on the upgrade branch after it flows in.
+[ ] #32966 reanimated 4.5.1/worklets 0.10.1/GH 2.32 — LAST HARD BLOCKER,
+    still REVIEW_REQUIRED. Action: ping reviewers/team today; everything
+    downstream (nitro-fetch #33919, final un-draft) queues behind it.
+[ ] #33919 nitro-fetch 1.5.1 — merge after #32966 (peer dep on worklets).
+[ ] Verify absoluteFill split PRs #33837-#33844 status; nudge stragglers —
+    each unmerged one is future conflict surface for the upgrade branch.
+[ ] #33331 transformer swap shows CLOSED — confirm whether superseded by
+    the upgrade PR's babel changes or needs a re-open. Don't assume.
+[ ] #34007 Rive Nitro — CONFLICTING, orthogonal: rebase later, NOT a gate.
+    (It also kills the 24x Rive interop SoftExceptions seen in logcat.)
+
+PHASE 2 — E2E, WITHOUT RUNNING THE WORLD
+----------------------------------------
+[ ] iOS Detox: build once (yarn test:e2e:ios:debug:build) + run ONE smoke
+    spec as a canary. Full suite only on CI, not locally.
+[ ] Android Detox: blocked by wix/Detox#4963 (FabricUIManager reflection
+    crash; NO released version avoids it). Mitigation already researched:
+    bump detox -> 20.51.4 AND extend our existing detox yarn patch with
+    try/catch around getMountItemDispatcher() in
+    FabricUIManagerIdlingResources.kt (~10 lines, keeps sync ON). We build
+    detox from source (android/settings.gradle:58-59) so the patch takes.
+    Fallback if flaky: Mattermost disable/enable-synchronization helper;
+    last resort appium-smoke for the gap.
+[ ] Only after canary passes: let the full smoke pipelines run on CI.
+
+PHASE 3 — RELEASE-SHAPE VALIDATION (before un-draft)
+----------------------------------------------------
+[ ] Physical device sanity: one iOS device, one Android device (dev build).
+[ ] Release configs compile: iOS Release archive + android assembleProdRelease
+    (Gradle 9 issues can hide in release-only tasks: minify/publishing).
+[ ] Firebase push smoke on the branch once #33720 flows in (still the one
+    unverified claim on v25 + 0.85).
+[ ] Confirm iOS min 15.1 -> 16.4 sign-off with product (Expo 56 hard
+    requirement; support-matrix change visible to users).
+
+PHASE 4 — SHIP
+--------------
+[ ] All CI green + Phases 1-3 done -> un-draft #34283, request reviews.
+[ ] Keep rn-0.85-remaining-required.txt as canonical scope doc; this file
+    tracks sequencing only.
+
+RISK REGISTER (watch, don't work)
+---------------------------------
+- One-off Hermes SIGSEGV on iOS startup (ExpoModulesJSI prepareRuntime) —
+  did not recur; if seen again on device, escalate.
+- Segment queue-restoration timeout + Branch dev-key warning: pre-existing.
+- Detox #4963 is the ONLY structural Android E2E gate; everything else is
+  normal PR hygiene.

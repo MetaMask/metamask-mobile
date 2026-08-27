@@ -1,0 +1,124 @@
+MUST-BUMP BEFORE RN 0.85 UPGRADE PR — VERIFIED LIST
+Verified 2026-07-27 against npm registry peer ranges, upstream changelogs/issues,
+and grep of installed packages for APIs deleted in RN 0.84/0.85.
+Baseline: RN 0.83.6 + Expo SDK 55 (New Arch) | Target: RN 0.85.3 + Expo SDK 56
+Status: [DONE]=on main  [PR]=open PR  [TODO]=not started
+
+Supersedes the "MUST BUMP" sections of rn-0.85-pre-upgrade-libraries.txt where
+they conflict. Corrections to old plan noted inline as "was:".
+
+================================================================
+TIER 1 — HARD BLOCKERS (verified: peer ranges / removed APIs / vendor fixes)
+================================================================
+[PR #32966] react-native-reanimated   4.2.1 -> 4.5.1
+    4.2.x compat matrix maxes at RN 0.84. Min version covering 0.85 is 4.3.x
+    (peer "0.81 - 0.85"); 4.5.1 peers RN "0.83 - 0.86" + worklets 0.10.x.
+[PR #32966] react-native-worklets     0.7.4(patched) -> 0.10.1
+    0.7.x maxes at RN 0.84; 0.10.x peers RN "0.83 - 0.86" and is the required
+    pair for reanimated 4.5.1. Drop/re-evaluate the 0.7.4 yarn patch.
+[PR #32966] react-native-gesture-handler 2.30.0 -> 2.32.0
+    No npm peer block (both peer RN "*"), but official RN 0.85 support starts
+    at 2.31.1 ("Support React Native 0.85", PR #4014). Min supported: 2.31.1.
+[TODO]      react-native-nitro-fetch  1.3.3 -> 1.4.1..1.5.1  (AFTER #32966)
+    1.3.3 peers worklets ^0.8.0 -> broken by worklets 0.10.1. 1.4.1+ relaxes
+    to >=0.8.0 optional. CEILING 1.5.1 while on nitro-modules 0.35.x — peer
+    flips to nitro-modules ^0.36.1 at 1.5.2 (latest 1.5.4).
+[PR #33347] react-native-video        6.19.0 -> 6.19.2  (min is 6.19.2, was: 6.19.1)
+    6.19.1 fixes the RCTVideoManager bridgeless crash on 0.84+ (PR #4855) but
+    STILL uses StyleSheet.absoluteFillObject (removed in 0.85); 6.19.2 fixes
+    that (PR #4880). expo-video migration remains the longer-term plan.
+[PR #33717] @sentry/react-native      7.11.0 -> 8.18.0  (min safe 8.15.1)
+    7.x line ended at 7.13.0 (2026-02-12), before RN 0.85 existed; all RN 0.85
+    / Expo 56 fixes are 8.x-only. Avoid 8.14.0 (Android sourcemap upload broken,
+    #6319, fixed 8.14.1/8.15.1) and 8.17.0/8.17.1 (Android 16KB regression,
+    fixed 8.17.2). was: "#6256 events-never-POSTed regression" — WRONG, that
+    issue closed as user config error, not an SDK bug.
+[PR #33720] @react-native-firebase/app+messaging 20.5.0 -> 25.1.0
+    Toolchain-forced: Expo SDK 56 mandates Xcode 26.4+, firebase-ios-sdk 12.12+
+    (RNFB 25.x) is the Xcode 26.2+ line; RNFB 20.5.0 pins firebase-ios-sdk
+    10.29.0 which predates Xcode 26. GOTCHA STILL OPEN: invertase#8883 —
+    prebuilt iOS rncore on RN 0.84+ breaks RNFB at any version; plan the
+    Podfile workaround (RCT_USE_PREBUILT_RNCORE=0 or forceStaticLinking).
+    Note: v25 messaging deprecates some permission APIs — check call sites.
+
+Code changes (also hard blockers):
+[PR #33837-44] StyleSheet.absoluteFillObject codemod (API removed in 0.85)
+    (close stale combined PR #33192 once these land)
+[PR #33331] metro-react-native-babel-transformer -> @react-native/metro-babel-transformer
+[DONE]      ContextContainer::Shared C++ fix (MainComponentsRegistry.cpp:37)
+[UPGRADE-PR] jest preset 'react-native' -> '@react-native/jest-preset'
+
+Already landed, verified compatible:
+[DONE] react-native-screens 4.25.2 (peer RN >=0.82) | react-native-svg 15.15.5
+
+================================================================
+TIER 2 — VENDOR-SUPPORT BOUNDARY (no proven compile break, but below the
+version the vendor validates against RN 0.85 / required toolchain)
+================================================================
+[TODO] @braze/react-native-sdk  19.1.0 -> 21.0.0 minimum (22.0.0 optional)
+    21.0.0 is the first version vendor-validated against RN 0.85.3 AND where
+    the Xcode 26 requirement lands (Braze Swift SDK 15.0.1). was: "22.x
+    requires Xcode 26" — WRONG, it's 21.0.0; 22.0.0 only bumps Swift SDK to
+    16.0.0 + breaking rename placementID->placementId. 19.1.0 has no known
+    0.85 breakage, but is validated only to RN 0.83 and has a known Android
+    push-deeplink cold-start bug fixed in 20.1.0. Re-check ReactModuleInfo patch.
+
+================================================================
+TIER 3 — RECOMMENDED DE-RISKING, NOT PROVEN 0.85 BLOCKERS
+(grep-verified: none reference APIs deleted in RN 0.84/0.85; zero upstream
+0.85 breakage reports. Bump for hygiene/soak, or consciously defer.)
+================================================================
+Nitro cluster (one PR, after #32966):
+  react-native-quick-crypto   0.7.15 -> 1.1.6  (dead pre-Nitro line; 1.1.6 adds HKDF)
+  react-native-quick-base64   2.2.0  -> 3.0.1  (ONLY as quick-crypto 1.x peer;
+                                                NOT 3.0.0 — Android crash #1052)
+  react-native-nitro-modules  KEEP 0.35.5      (0.36.0/0.36.1 have zero RN-compat
+                                                changes; 0.36.2 is for RN 0.87+)
+Other natives (all PRECAUTIONARY per upstream evidence):
+  react-native-keychain       9.0.0 -> 10.0.0  (9.0.0 already ships TurboModule
+      codegen; 10.0.0 = minSdk 23 + cleanup, nothing 0.85-related. was: Tier-2 must)
+  @react-native-community/netinfo 11.5.2 -> 12.0.1 (12.0.0 breaking = iOS wifi
+      API only; 11.5.2 has codegen, compiles on 0.85)
+  @react-native-async-storage/async-storage 2.2.0 -> 3.1.1
+      WARNING: 3.x is a big API rewrite (scoped storage, multi* renamed, extra
+      Android step) and 3.0.0 itself is broken (use 3.0.1+). Bumping mid-upgrade
+      ADDS risk — consider deferring to post-0.85. 2.2.0 has codegen, no 0.85 issues.
+  react-native-device-info    9.0.2 -> 15.0.2  (even 15.0.2 has NO codegen —
+      interop-reliant either way; bump buys 4 majors of fixes, not arch compat)
+  react-native-ble-plx        3.4.0 -> 3.5.1   (pure bugfixes; new-arch issues
+      #1277/#1278 open even on latest)
+  @react-native-community/datetimepicker 8.5.1 -> 9.1.0 (9.0.0 breaking =
+      removed deprecated Android props, unrelated to RN)
+  react-native-blob-util      0.19.9 -> 0.24.10 [PR #33417] (hygiene; open
+      issues #465/#479 affect new versions too)
+Dead-lib replacements (ALL compile-clean on 0.85 per grep; replace for
+maintenance risk, not compile risk — runtime-on-0.85 still unproven for dead libs):
+  react-native-fs -> expo-file-system | get-random-values -> expo-crypto
+  in-app-review -> expo-store-review  | default-preference -> mmkv
+  @react-native-cookies/cookies (repo ARCHIVED 2026-01-31) -> fork
+  react-native-vector-icons -> @react-native-vector-icons/* 13.x (active)
+  react-native-background-timer: bump to 2.4.1 BUYS NOTHING (identical
+      deprecated hasActiveCatalystInstance call) — removal is the better play
+  react-native-linear-gradient 2.8.3: dead (last publish 2023-09), NO stable
+      3.x (only 3.0.0-beta.2), known 0.84 Fabric view-recycle crash (#718,
+      closed w/ workaround). Not proven broken on 0.85, but no upgrade path —
+      switch to expo-linear-gradient as planned.
+
+================================================================
+OPEN GATE — NOT A PACKAGE BUMP
+================================================================
+Detox: wix/Detox#4963 STILL OPEN (maintainer reply 2026-07-14: "I wouldn't
+recommend upgrading"; sync-disabled workaround = flaky taps). Latest release
+is 20.51.3 (2026-05-30) — no RN 0.85 fix shipped. was: "bump to 20.51.4" —
+that version DOES NOT EXIST. This is the sole unresolved hard gate for
+Android E2E on upgrade day.
+
+================================================================
+CRITICAL PATH
+================================================================
+1. Merge #32966 (reanimated/worklets/gesture-handler) — unblocks nitro-fetch
+2. nitro-fetch bump (Tier 1) + optional nitro cluster (Tier 3) in its wake
+3. Land #33717 (Sentry), #33720 (Firebase incl. #8883 Podfile workaround),
+   #33347 (video 6.19.2), #33331 (transformer), absoluteFill PRs #33837-44
+4. Braze -> 21.0.0+ (Tier 2)
+5. Track Detox #4963 continuously; decide fallback before upgrade PR

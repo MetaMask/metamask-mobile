@@ -53,3 +53,23 @@ index 58e003985c6dc3cd664d434339bf68ec09bce5bd..50029d487672f5ece7ec987c59eab025
        }
      end
  
+diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+index 598c500ef5e03ad59bc57758f266066f03139973..fa4a41cbd1c88c53a10967e7d0e28d90a1394f79 100644
+--- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
++++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+@@ -29,5 +29,15 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+   {
+     return true;
+   }
++  bool fuseboxFrameRecordingEnabled() override
++  {
++#if defined(DEBUG) && defined(__APPLE__)
++    // React Native DevTools uses this flag to emit native frame events only
++    // while an explicit CDP Tracing session is active.
++    return true;
++#else
++    return false;
++#endif
++  }
+ };
+ } // namespace facebook::react

@@ -1,0 +1,90 @@
+================================================================================
+RN 0.85 — TODAY'S EXECUTION PLAN (2026-08-17)
+Source of truth for scope: rn-0.85-consolidation-plan.txt (same date)
+All PR states below live-verified via GitHub today.
+================================================================================
+
+STEP 1 — DISCARD: close not-needed PRs (5)                          [~10 min]
+--------------------------------------------------------------------------------
+Safe because the upgrade branch already carries equivalent versions
+(live-verified: screens 4.26.0, CLI 20.1.0, kb-ctrl 1.21.6, TS 5.8.3).
+Closing never deletes branches; each is one `gh pr reopen` away.
+
+  gh pr close 34472 -c "4.25.2 peers >=0.82 on RN 0.83; branch already carries 4.26.0 which rides the upgrade PR #34283. 4.26.x only becomes a hard requirement at RN 0.86."
+  gh pr close 34473 -c "Dev-tooling only; branch already carries 20.1.0 — rides the upgrade PR #34283."
+  gh pr close 34419 -c "1.20.7 and 1.21.x have identical peer requirements; bump fixes a warning only. Branch's proven 1.21.6 rides the upgrade PR #34283."
+  gh pr close 34415 -c "Toolchain only; branch carries 5.8.3 with tsc clean — rides the upgrade PR #34283."
+  gh pr close 32888 -c "Spike superseded by #34283."
+
+  DO NOT CLOSE: #33720 Firebase — parked until the iOS release-archive gate
+  passes on v20 (see consolidation plan A1b). Zero effort while parked.
+
+STEP 2 — CHASE the 3 mergeable PRs (review is the only blocker)     [~15 min]
+--------------------------------------------------------------------------------
+  #34467  blob-util Gradle-9 + dedupe     MERGEABLE — request/ping reviewers
+  #34468  gradle9 compat batch            MERGEABLE — request/ping reviewers
+  #33919  nitro-fetch 1.5.1               MERGEABLE — request/ping reviewers
+  Label all three manually ("Add team label" check is permanently broken).
+  Merge the moment approvals land; after EACH merge to main ->
+  merge main INTO react-native-upgrade-0.85.
+
+STEP 3 — REBASE the 2 approved PRs (conflicting from main drift)    [~1 h]
+--------------------------------------------------------------------------------
+  #33717  Sentry 8.18.0    rebase -> push -> CI -> merge (approval retained
+                           if diff unchanged; re-ping reviewer if dismissed)
+  #33347  video 6.19.2     same treatment
+  Order: Sentry first (bigger patch surface, more likely to conflict again).
+
+STEP 4 — absoluteFillObject: RE-SPLIT into 3 reviewable PRs         [~2 h]
+--------------------------------------------------------------------------------
+Strategy change (Adnan, 2026-08-17): neither 1 mega-PR (#34424 — drifted
+conflicting 3x, stuck) nor 8 micro-PRs (#33838-44 — stalled since 07-27).
+Cut 3 mid-size PRs bucketed by CODEOWNERS clusters so each needs only
+1-3 approver groups:
+
+  1. Re-run the string codemod fresh off today's origin/main
+     (usage set drifts weekly — do not cherry-pick from old branches)
+  2. Bucket changed files by owning team into 3 branches:
+       PR-A  trading:     Perps, Predict, Bridge/Swaps, Ramp
+       PR-B  money/card:  Card, Money, Earn, assets
+       PR-C  platform:    shared UI (no owner), Notifications, Social,
+                          HardwareWallet, Onboarding, remaining
+     (adjust buckets to whatever the fresh codemod actually touches;
+      rule: no PR spans more than 3 CODEOWNERS groups)
+  3. Per branch: run adjacent unit tests + eslint, push, open PR,
+     label manually, request owners
+  4. AFTER all 3 are open: close the superseded set in one sweep —
+     #34424 (mega), #33192 (original), #33838 #33839 #33840 #33841
+     #33842 #33843 #33844 (old splits) — comment linking the 3 new PRs
+
+STEP 5 — CRITICAL PATH: start #32966 rebase (spans beyond today)
+--------------------------------------------------------------------------------
+  reanimated 4.5.1 / worklets 0.10.1 / GH 2.32 — the one true hard blocker.
+  Today: rebase onto main, push, let CI run overnight.
+  Expect one worklets jest-mock failure cluster, not 32 distinct bugs.
+  Ping reviewers as soon as it is green.
+
+================================================================================
+WHAT IS LEFT AFTER TODAY (for visibility — not today's work)
+================================================================================
+  - Merge whatever of Steps 2-4 is still awaiting review
+  - #32966 CI fixes + review (critical path)
+  - Detox 20.51.4 + reflection-guard patch (Android E2E, #4963) —
+    THE ONLY UNSTARTED WORK ITEM in the whole upgrade
+  - Wave 2 on the branch: main merge, pager-view 8.0.1->8.0.4,
+    expo/fetch vs nitro-fetch decision, full CI
+  - Validation gates: iOS+Android Detox, physical-device boots,
+    release builds (iOS archive also decides parked #33720 Firebase),
+    iOS 16.4 min sign-off in writing
+  - Un-draft #34283
+  - Parallel, non-gating: #34007 Rive on-device verification, #33422 review
+
+================================================================================
+END-OF-DAY SUCCESS CRITERIA
+================================================================================
+  [ ] 5 PRs closed (review queue decluttered)
+  [ ] Reviews requested + labels on #34467 #34468 #33919
+  [ ] #33717 #33347 rebased, CI running or merged
+  [ ] 3 new absoluteFill PRs open; 9 old ones closed
+  [ ] #32966 rebased and pushed, CI running overnight
+================================================================================

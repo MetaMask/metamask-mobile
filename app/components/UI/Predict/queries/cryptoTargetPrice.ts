@@ -65,5 +65,5 @@ export const predictCryptoTargetPriceOptions = ({
     },
 
     staleTime: Infinity,
-    cacheTime: Infinity,
+    gcTime: Infinity,
   });

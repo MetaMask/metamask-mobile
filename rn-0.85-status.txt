@@ -1,0 +1,117 @@
+RN 0.85 UPGRADE — STATUS BOARD (done / in progress / todo)
+Updated: 2026-07-23.
+Scope: REQUIRED work only — every item below is verified necessary for the
+RN 0.83.6 -> 0.85.3 (+ Expo SDK 55 -> 56) upgrade. Optional/hygiene items
+live in rn-0.85-remaining-required.txt under NOT REQUIRED.
+Verdict source: rn-0.85-blockers.txt (web-verified 2026-07-14) + repo/npm
+peer-dep verification 2026-07-22.
+
+================================================================
+1. DONE — merged on main
+================================================================
+[x] react-native-svg 15.15.5 + patch retarget          #33118
+[x] react-native-screens ~4.25.2                       #33121
+[x] Jest preset -> @react-native/jest-preset 0.85.3    #33201
+[x] ContextContainer::Shared JNI fix (C++ alias)       #33214
+[x] react-native-get-random-values 2.0.0 (TurboModule) #33323
+
+DECISIONS RESOLVED:
+[x] Expo 55 -> 56 = YES, required. RE-VERIFIED 2026-07-22:
+      - SDK 55 is built against RN 0.83.6 EXACTLY (expo/bundledNativeModules.json
+        pins react-native 0.83.6; the `*` peer ranges are cosmetic — each Expo
+        SDK supports exactly one RN version).
+      - Official Expo changelog: SDK 56 ships RN 0.85 (0.85.2 at beta) +
+        React 19.2.3 (expo.dev/changelog/sdk-56).
+      - We ship 15+ expo-* runtime modules incl. expo-local-authentication
+        (biometrics), expo-updates, expo-dev-client — SDK 55 atop RN 0.85 is
+        unsupported and expected to fail native compile (New Arch-only,
+        prebuilt iOS core, Hermes V1).
+    Consequences binding: Xcode 26.4 / iOS 16.4 / TS 6.0.3 floors,
+    Braze >=21 required, expo/fetch collision must be decided.
+[x] nitro-modules stays 0.35.5 (0.36.x forbidden by nitro-fetch +
+    nitro-text-decoder peers ^0.35.2)
+[x] Keep current majors: mmkv v3, vision-camera v4, keychain 9.x
+[x] netinfo/async-storage/device-info/datetimepicker/ble-plx bumps = optional,
+    off the critical path
+
+================================================================
+2. IN PROGRESS — PR open or work started
+================================================================
+--- PRs open, awaiting review/merge (land these first) ---
+[~] #32966  reanimated 4.5.1 + worklets 0.10.1 + gesture-handler 2.32.0
+            HARD BLOCKER — also gates the Nitro cluster (nitro-fetch peer)
+[~] #33192  StyleSheet.absoluteFillObject -> absoluteFill (API removed in 0.85)
+[~] #33331  metro-react-native-babel-transformer swap (pkg removed in 0.85)
+[~] #33347  react-native-video 6.19.2 floor (bridgeless crash <6.19.1)
+[~] #33415  notifee 9.1.8 (below 9.1.4 new-arch floor) — needs full on-device
+            retest (earlier test ran on wrong branch)
+[~] #33417  react-native-blob-util 0.24.10 + resolutions pin
+[~] #33597  react-native-permissions 5.6.0 (v3 dead on 0.85 toolchain)
+[~] #33602  react-native-share 12.3.1 + regenerated patch
+[~] #33603  react-native-view-shot 5.1.1 (Paper -> Fabric)
+[~] #33650  checkbox -> design-system Checkbox (expo-doctor: no New Arch)
+[~] #33717  @sentry/react-native 7.11.0 -> 8.18.0 + @sentry/* 10.64.0
+            (regenerated 8.18.0 patch; opened 2026-07-23).
+            Required: v7 risks silent event drops on Hermes V1; floor 8.15.1.
+
+================================================================
+3. TODO — required, not started
+================================================================
+--- Library PRs ---
+[ ] Nitro cluster (ONE atomic PR, AFTER #32966 merges):
+      quick-base64  patched 2.2.0 -> 3.0.1  (3.0.0 broken — no Android codegen)
+      quick-crypto  patched 0.7.15 -> 1.1.5 (patch rewrite; forces base64 3.x)
+      nitro-fetch   patched 1.3.3 -> >=1.4.1 (1.3.3 peers worklets ^0.8.0 —
+                    broken the moment #32966 lands)
+      KEEP nitro-modules 0.35.5 — do NOT bump to 0.36.x
+[~] Firebase app+messaging ^20.5.0 -> 25.1.0 — DONE on branch
+      chore/bump-firebase (commit 3b06b6eb29, pushed 2026-07-23, PR not
+      opened). firebase-ios-sdk lands at 12.15.0 (not 12.13). Verified:
+      tsc, FCMService 24/24 (test mock rewritten — requireActual throws
+      under v25), pod install, lint (deprecation warnings only, non-gating).
+      Zero app-code changes: namespaced API retained in v25; Android
+      hasPermission still functional (checked native source).
+      DEFERRED to upgrade PR: Podfile RCT_USE_PREBUILT_RNCORE=0 /
+      forceStaticLinking (#8883) — prebuilt RNCore doesn't exist on 0.83,
+      untestable here. NOTE: Firebase drops CocoaPods dist after Oct 2026.
+      Remaining: on-device smoke (push token + receive) before PR.
+--- Process / verification blockers ---
+[ ] Detox wix/Detox#4963 — #1 unsolved hard blocker (Android New Arch E2E).
+      No release fixes it. Pick mitigation: disableSynchronization + waitFor,
+      patch the reflection, or Appium for the window.
+[ ] CI runner / toolchain audit — Xcode 26.4, iOS min 16.4, TS 6.0.3 now
+      binding (Expo 56). LEAD-TIME RISK — start early.
+[ ] Global fetch decision — EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering
+      (nitro-fetch vs expo/fetch); add boot assertion. Related: #33422.
+[ ] Spike build #32888 rebuild vs 0.85 — only reliable detector for patched
+      dead natives (os, i18n, sensors, fast-crypto, randombytes,
+      material-textfield, default-preference, fs) + vision-camera v4 verify.
+[ ] @metamask/react-native-webview fork 14.6.0 — build vs 0.85; decide v15 rebase
+[ ] segment 2.23.0 — verify patch covers trackDeepLinks bridgeless crash
+[ ] keyboard-controller #1470 — re-check after #32966 lands
+[ ] NEW (found 2026-07-22): expo-modules-core 55 peers
+      react-native-worklets ^0.7.4 || ^0.8.0 (OPTIONAL peer — no install
+      failure). #32966 bumps worklets to 0.10.1 => SDK 55 + worklets 0.10 is
+      an untested combo during the soak window until the upgrade PR. Smoke
+      expo module flows (biometrics/expo-image/updates) after #32966 merges;
+      resolved permanently by Expo 56 in the upgrade PR.
+
+--- Final step (interlocked, single upgrade PR) ---
+[ ] react-native 0.85.3 + @react-native/* 0.85.3 (babel-preset, metro-config,
+    eslint-config, typescript-config) + CLI 20.1.0 + Expo SDK 56 (~56.0.15,
+    pin sdk-56 dist-tag) + react/react-dom 19.2.3 + pager-view 8.0.4 +
+    Podfile deploy-target / RCT_USE_PREBUILT_RNCORE decision
+
+================================================================
+SCOREBOARD
+================================================================
+Done:        5 merged + 4 decisions resolved
+In progress: 11 PRs open
+Todo:        2 library PRs + 8 process/verify items + 1 upgrade PR
+De-scoped 2026-07-23 (see rn-0.85-remaining-required.txt NOT REQUIRED):
+  - cookies -> preeternal fork: uses no removed APIs; 0.85 keeps the
+    legacy-module interop layer. Post-upgrade hygiene.
+  - Braze >=21: Xcode 26 floor claim was wrong — swift-sdk 14.x (pinned by
+    19.1.0) already supports Xcode 26. Post-upgrade validation hygiene;
+    cover 19.x in spike build.
+Critical path: #32966 -> Nitro cluster ; Detox #4963 ; CI/Xcode 26 audit

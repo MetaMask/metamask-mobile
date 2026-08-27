@@ -1,0 +1,206 @@
+================================================================================
+RN 0.85 UPGRADE — PR CONSOLIDATION PLAN
+Prepared: 2026-08-17 | All PR states verified live via GitHub on this date
+Supersedes: rn-0.85-merge-plan.txt (2026-08-14)
+Goal: a clean, minimal big upgrade PR (#34283) — land true prerequisites on
+main first, discard everything that is not a gate, keep the final diff to
+RN core + packages that genuinely cannot ship on 0.83.
+================================================================================
+
+STATUS SNAPSHOT
+--------------------------------------------------------------------------------
+Big PR #34283 (react-native-upgrade-0.85): DRAFT, last pushed 08-05, 7 failing
+checks (lint:tsc, unit tests, check-diff, max-lines, labels — all stale; branch
+predates Wave-1 landings and last main merge). Expected to go green only after
+Wave 1 lands and main is merged in.
+
+Open PRs authored for this effort: 24 total
+  -> 6 to merge before the big PR        (Section C)
+  -> 13 to discard / close (+1 on hold)  (Section A)
+  -> 2 independent, not upgrade gates    (Section B)
+  -> 1 the big PR itself (#34283)
+  -> +1 code fix to recut (#34424, conflicting again)
+
+================================================================================
+SECTION A — DISCARD: CLOSE THESE PRs (13 + 1 HOLD)
+================================================================================
+
+A1. Not needed for the upgrade — close now (4)
+--------------------------------------------------------------------------------
+Live-verified 2026-08-17 (package.json on main vs react-native-upgrade-0.85):
+the branch already carries an equivalent version of each — closing loses no
+work. Closing never deletes the branch; every PR is one `gh pr reopen` away.
+
+  #34472  screens 4.26.2          main 4.25.2 / branch 4.26.0 (verified).
+                                  4.25.2 peers >=0.82; 4.26 only becomes a hard
+                                  requirement at RN 0.86. Rides #34283.
+  #34473  CLI 20.1.0              main 20.0.0 / branch 20.1.0 (verified) —
+                                  delta fully subsumed. Dev-tooling only.
+  #34419  keyboard-ctrl 1.21.14   (draft) main 1.20.7 / branch 1.21.6
+                                  (verified). 1.20.7 and 1.21.x have identical
+                                  peers; only loses the 1.21.6->.14 patch delta
+                                  (warning fix) — bump on-branch if wanted.
+  #34415  typescript 5.8.3        (draft) main 5.4.5 / branch 5.8.3 (verified)
+                                  — delta fully subsumed, tsc clean on branch.
+
+A1b. HOLD — close only after iOS release-archive gate passes (1)
+--------------------------------------------------------------------------------
+  #33720  Firebase 25.1.0         DIFFERENT from the four above: neither main
+                                  nor branch carries 25.1.0 (both ^20.5.0,
+                                  verified) — closing means the bump happens
+                                  NOWHERE. "Not a gate" rests on one data
+                                  point: 08-05 iOS SIM smoke built+ran
+                                  firebase-ios-sdk 10.29 under Xcode 26.4.
+                                  Unverified on v20+0.85: (a) iOS release
+                                  ARCHIVE under Xcode 26.4, (b) push smoke.
+                                  Both already on the Section D checklist.
+                                  -> Park (no rebase effort). If the archive
+                                  gate passes on v20: close, move to backlog.
+                                  If it fails: Firebase 25 re-promotes to gate;
+                                  work preserved on chore/bump-firebase
+                                  (3b06b6eb29 incl. FCMService mock rewrite).
+
+A2. Superseded by #34424 — close AFTER #34424 merges (8)
+--------------------------------------------------------------------------------
+  #33192                          Original monolithic absoluteFill codemod.
+  #33838 #33839 #33840 #33841     Per-team splits of the same codemod; the
+  #33842 #33843 #33844            drift-proof recut in #34424 replaces all of
+                                  them in one pass.
+  NOTE: do not close these before #34424 is merged — they are the fallback if
+  the recut stalls on code-owner reviews again.
+
+A3. Historical — close now (1)
+--------------------------------------------------------------------------------
+  #32888  Spike/RN-85             Exploration branch; fully superseded by
+                                  #34283. Keep the branch, close the PR.
+
+================================================================================
+SECTION B — INDEPENDENT: NOT UPGRADE GATES, OWN TIMELINE (2 PRs + backlog)
+================================================================================
+
+  #33422  fetch-globals bootstrap    Networking correctness fix; merge whenever
+                                     reviewed. Interacts with the expo/fetch
+                                     vs nitro-fetch decision (Section D step 3)
+                                     but does not block either ordering.
+  #34007  Rive Nitro migration       Independent runtime migration; currently
+                                     in on-device verification. Merging before
+                                     the upgrade is PREFERRED (removes the old
+                                     rive-react-native from the 0.85 compat
+                                     matrix) but not required.
+
+  Post-upgrade backlog (no PRs, explicitly NOT gates):
+    Firebase 25, Braze 21, cookies fork, quick-crypto/base64 pair,
+    checkbox, blob-util 0.24.x, linear-gradient.
+
+================================================================================
+SECTION C — MERGE BEFORE THE BIG PR (7 PRs, priority order)
+================================================================================
+Rule: after every merge to main -> merge main INTO react-native-upgrade-0.85.
+(Use NODE_OPTIONS=--max-old-space-size for the pre-commit hook on merge
+commits; never --no-verify.)
+
+C1. CRITICAL PATH — start immediately, longest pole
+--------------------------------------------------------------------------------
+  #32966  reanimated 4.5.1 / worklets 0.10.1 / gesture-handler 2.32.0
+          State: CONFLICTING, review required, stale CI (32 red at last run).
+          Reanimated 4.2.x caps at RN 0.84 — the one true hard blocker.
+          1. Rebase onto main
+          2. Fix CI by root cause (expect one worklets jest-mock cluster,
+             not 32 distinct bugs)
+          3. Ping reviewers the moment it is green
+
+C2. READY — mergeable, only waiting on review (3)
+--------------------------------------------------------------------------------
+  #34467  blob-util Gradle-9 patch + dedupe     MERGEABLE/BLOCKED(review).
+                                                Branch build fails without it.
+  #34468  gradle9 compat batch (cookies,        MERGEABLE/BLOCKED(review).
+          aes-crypto, launch-args, perf)        Branch build fails without it.
+  #33919  nitro-fetch 1.5.1 + Headers patch     MERGEABLE/BLOCKED(review).
+                                                1.3.3 peers worklets ^0.8.0 —
+                                                broken by worklets 0.10.1.
+                                                Ceiling 1.5.1, never 1.5.2.
+  Action: chase reviews this week; label manually ("Add team label" check is
+  permanently broken for this author).
+
+C3. APPROVED — rebase only, then merge (2)
+--------------------------------------------------------------------------------
+  #33717  Sentry 8.18.0     APPROVED but CONFLICTING. Not a build gate, but
+                            7.x is EOL and RN 0.85 release source maps are
+                            broken pre-8.15.1 — ship-quality gate.
+  #33347  video 6.19.2      APPROVED but CONFLICTING. 6.19.1 still uses the
+                            removed absoluteFillObject -> runtime crash when
+                            a video mounts. Rebase, re-run CI, merge.
+
+C4. CODE FIX — DONE 2026-08-17: recut as 3-way split, old PRs closed
+--------------------------------------------------------------------------------
+  #34883  trading & assets (10 files, 13 usages — perps/predict/swaps/assets)
+  #34884  money, card, ramps (5 files, 5 usages — card/earn/money-movement)
+  #34885  platform, social, notifications (15 files, 23 usages — social-ai/
+          engagement/accounts/web3auth + unowned shared UI)
+  All cut fresh off main 65a4d3273b; 41 usages total, matches old scope.
+  CLOSED same day: #34424 (mega) + #33192 + #33838-44 (old splits) — A2 done.
+  Remaining action: chase per-team reviews, merge, main -> branch after each.
+
+================================================================================
+SECTION D — THE BIG PR (#34283): FINAL SHAPE AND GATES
+================================================================================
+
+1. After Section C lands: merge main -> react-native-upgrade-0.85
+   (Section C content falls out of the diff — this is what makes the PR clean)
+2. pager-view: DONE AS OWN PR — #34881 (8.0.0 -> 8.0.4 on main, opened
+   2026-08-17; peers react/rn "*" registry-verified, bugfix-only range).
+   Supersedes the on-branch bump; branch picks up 8.0.4 via main merge
+   (trivial package.json/yarn.lock conflict vs branch's 8.0.1 — take main).
+2b. react trio: DONE AS OWN PR — #34886 (react/react-dom/react-test-renderer
+   19.2.0 -> 19.2.3 on main, opened 2026-08-17). Verified: RN 0.83.6 peers
+   react ^19.2.0; dom/rtr 19.2.3 peer react ^19.2.3 (atomic trio). Exact
+   versions already proven on the upgrade branch. Removes React from the
+   #34283 diff after main merge. LAST extractable separate PR — dependency
+   diff main vs branch fully classified 2026-08-17: everything else is
+   either branch-behind (resolves via main merge), already an open PR
+   (#32966/#34467/#34468/#33919/#34881), or RN/Expo-locked to #34283.
+3. Decide + document expo/fetch vs nitro-fetch global collision
+   (EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering) — coordinate with #33422
+4. Push, full CI, fix by root cause only
+
+FINAL DIFF (RN core + only what genuinely rides it):
+   react-native 0.85.3 (+ hermes patch) | @react-native/* 0.85.3 configs
+   react / react-dom / react-test-renderer 19.2.3
+   expo ^56 + all expo-* + @expo/metro-config + fingerprint 0.19.9
+   typescript 5.8.3 | CLI 20.1.0 | screens 4.26.0 | keyboard-ctrl 1.21.6
+   pager-view 8.0.4 | react-native-os patch
+   Gradle 9.3.1 | Xcode 26.4 | iOS min 15.1 -> 16.4 (needs product sign-off)
+
+VALIDATION GATES BEFORE UN-DRAFT:
+   [ ] iOS Detox: one canary spec locally, full suite on CI
+   [ ] Android Detox: bump 20.51.4 + extend yarn patch (try/catch
+       getMountItemDispatcher in FabricUIManagerIdlingResources.kt) — #4963.
+       NO PR EXISTS YET — this is the only unstarted work item.
+   [ ] Physical device boot: one iOS + one Android
+   [ ] Release builds compile: iOS archive + assembleProdRelease
+   [ ] iOS 16.4 minimum sign-off in writing
+
+SHIP: un-draft #34283, request reviews, label manually.
+
+================================================================================
+EXECUTION ORDER (summary)
+================================================================================
+  1. NOW      Close A1 (4 PRs) + A3 (#32888)          -> declutters review queue
+              (#33720 Firebase stays PARKED until iOS archive gate — A1b)
+  2. NOW      Rebase #32966, fix CI, chase review      -> critical path
+  3. NOW      Chase reviews on #34467 #34468 #33919    -> mergeable today
+  4. NEXT     Rebase #33717 #33347 (already approved)  -> quick wins
+  5. THEN     Recut #34424 off fresh main, merge       -> close A2 (8 PRs)
+  6. THEN     main -> branch, pager-view, fetch decision, full CI
+  7. GATE     Detox Android patch + validation checklist
+  8. SHIP     Un-draft #34283
+  Parallel:   #34007 Rive Nitro device verification; #33422 review
+
+================================================================================
+STANDING RULES (unchanged)
+================================================================================
+- Never `expo install --fix` (clobbers deliberate pins)
+- nitro-modules stays 0.35.5 everywhere
+- Edit yarn patch FILES manually; `yarn patch` without -u discards patches
+- Verify node_modules/Pods versions after branch switch, before device tests
+================================================================================

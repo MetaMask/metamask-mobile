@@ -1,0 +1,71 @@
+RIVE NITRO — CHANGES NEEDED FOR 3 ANIMATIONS
+Branch: chore/rive-nitro-migration
+Why: Nitro has no onStateChanged / onPlay / animationName. These three need
+.asset work and/or JS rewrites before the migration PR can leave draft.
+
+----------------------------------------------------------------
+1. FoxLoader (splash_screen.riv)
+----------------------------------------------------------------
+DESIGN / RIVE (preferred):
+  - Fire a named Rive Event when exit completes (e.g. "splashComplete")
+    when the SM reaches ExitState after Stop.
+  - Optional: event when idle starts ("Blink and look around (Shorter)")
+    if we still need idle detection.
+
+ENG (with new events):
+  - Replace onPlay → Nitro file/view ready callback; still fire Start.
+  - Replace onStateChanged → subscribe to the new event(s); call
+    onAnimationComplete on splashComplete.
+
+ENG JS-only approx (no .riv change):
+  - On ready: fire Start; fade static → Rive.
+  - On app ready: fire Stop; complete after fixed delay or existing 3s timeout.
+  - Tradeoff: exit timing may not match the real ExitState.
+
+----------------------------------------------------------------
+2. MoneyOnboardingView (onboarding_flow_v25.riv)
+----------------------------------------------------------------
+DESIGN / RIVE (preferred):
+  - Emit named Rive Events (or ViewModel outputs) for:
+      Steps:        UI1 | APY | Card | Coins | FinalState
+      Transitions:  UI to APY, APY to Wallet, Card to Coins, Coins to Fox
+                    (+ reverses: APY to UI, Wallet to APY, Coins to Card,
+                    Fox to Coins)
+  - Keep existing: State Machine 1, close trigger, APY data bindings
+    (apyValue / digit count) — those already work on Nitro.
+
+ENG (with new events):
+  - Replace onStateChanged handler with event listeners mapped to the
+    same step index / haptic / overlay / FinalState completion logic.
+
+ENG JS-only approx (no .riv change):
+  - Only viable if every step advance is already driven by triggers we
+    own in JS. Timers will desync overlay text from the animation.
+  - Tradeoff: high risk of wrong step UI / analytics / early complete.
+
+----------------------------------------------------------------
+3. MoneyCardFlipAnimation (card_tilt_v1.2.riv)
+----------------------------------------------------------------
+DESIGN / RIVE (required for real flip):
+  - Make the flip playable via a state machine (not raw timeline
+    "yAnimation").
+  - Fix/wire MainTilt + ViewModel so startAnimation (or equivalent
+    trigger) actually plays the one-shot flip on both artboards:
+      "Card Tilt Y Animation - Digital"
+      "Card Tilt Y Animation - Metal"
+  - Prefer autoplay-on-enter or a single trigger JS can fire once.
+
+ENG (with fixed .riv):
+  - Drop animationName; use artboard + stateMachine + trigger/input
+    (cardType / startAnimation) via Nitro APIs.
+
+ENG JS-only approx (no .riv change):
+  - Keep static card image fallback (already in code).
+  - Tradeoff: no flip animation.
+
+----------------------------------------------------------------
+SUMMARY — ASK PER ANIMATION
+----------------------------------------------------------------
+1. FoxLoader:     Event on exit?              OR accept timeout approx?
+2. Money onboard: Events per step/transition? OR accept trigger-only / risk?
+3. Card flip:     Fix SM to play flip?        OR accept static image?

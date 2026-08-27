@@ -1,0 +1,98 @@
+================================================================
+RN 0.85 UPGRADE PR #34283 — PACKAGE EXTRACTION ROADMAP
+Created 2026-08-06. Goal: shrink the upgrade PR to only the
+interlocked core set. Everything below lands on main (RN 0.83)
+BEFORE the upgrade PR is rebased.
+================================================================
+
+ORDER: PRs 1-6 are independent of each other — open in parallel.
+Step 7 (slim the upgrade PR) is blocked on all of them.
+
+----------------------------------------------------------------
+PR 1 — typescript ~5.4.5 -> ~5.8.3
+----------------------------------------------------------------
+- Toolchain-only, RN-independent.
+- Run yarn lint:tsc; fix any new type errors surfaced by 5.8.
+- Verify @react-native/typescript-config 0.83 tolerates TS 5.8.
+
+----------------------------------------------------------------
+PR 2 — react-native-keyboard-controller 1.20.7 -> 1.21.14
+----------------------------------------------------------------
+- Was on the pre-upgrade list (target 1.21.14; upgrade branch
+  currently has 1.21.6 — prefer 1.21.14).
+- Re-check upstream #1470 (worklets warning on RN 0.85) status.
+- Smoke: bottom sheets, input accessory views, both platforms.
+
+----------------------------------------------------------------
+PR 3 — safe chore bumps (one PR)
+----------------------------------------------------------------
+- axios                        ^1.16.0 -> ^1.18.0  (pure JS)
+- react-native-svg             15.15.3 -> 15.15.5  (RCTImage
+  observer fix; safe on 0.83; supersedes stale #33118 if unmerged)
+- @react-native-community/slider 5.1.2 -> 5.2.0
+
+----------------------------------------------------------------
+PR 4 — react-native-nitro-fetch 1.3.3 -> 1.5.1 (+ patch)
+----------------------------------------------------------------
+- Carry .yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch
+  (Headers instanceof guard — JS-only, works on any RN).
+- WHY IT SPLITS CLEANLY:
+  * 1.4.1+ makes the worklets peer optional -> installs on main's
+    worklets 0.7.4.
+  * CEILING = 1.5.1. 1.5.2+ flips peer to nitro-modules ^0.36.1.
+- nitro-modules: NO CHANGE. Stays 0.35.5 everywhere (revised
+  2026-07-27 finding: 0.36.x not required for 0.85).
+- STAYS IN UPGRADE PR: expo/fetch global-fetch collision decision
+  (EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering) — SDK 56-only.
+- Test fetch + WebSocket paths on device (wss->Nitro, ws->RN dev
+  routing must keep Metro HMR working).
+
+----------------------------------------------------------------
+PR 5 — native utils batch (planned Wave 4)
+----------------------------------------------------------------
+- react-native-permissions      ^3.7.2 -> ^5.6.0 (MAJOR — check
+  iOS Podfile permission handler setup)
+- react-native-view-shot        4.0.3  -> 5.1.1
+- react-native-share            7.3.7  -> 12.3.1
+- react-native-get-random-values ^1.8  -> ^2.0  (or migrate to
+  expo-crypto per original Wave 2 plan — decide before opening)
+- GATE: verify share 12.3.1 UNPATCHED builds on main's Gradle 8.
+  Its Gradle-9 patch (be09b19fc2) stays in the upgrade PR only.
+
+----------------------------------------------------------------
+PR 6 — absoluteFillObject remnants (code, not packages)
+----------------------------------------------------------------
+- StyleSheet.absoluteFillObject removed in 0.85; codemod PRs
+  #33837-44 missed 4 files:
+    app/components/UI/Notification/TransactionNotification/index.js
+    app/components/UI/WebviewError/index.js
+    app/components/UI/SlippageSlider/index.js
+    app/components/Views/MediaPlayer/index.js
+- Replace with StyleSheet.absoluteFill or explicit
+  {position:'absolute',top:0,left:0,right:0,bottom:0} — match
+  whatever #33837-44 did for consistency.
+
+----------------------------------------------------------------
+STEP 7 — slim upgrade PR #34283 (AFTER 1-6 merge)
+----------------------------------------------------------------
+- Rebase react-native-upgrade-0.85 on main; extracted bumps fall
+  out of the diff.
+- Bump react-native-pager-view 8.0.1 -> 8.0.4 (8.0.3/8.0.4 is the
+  0.85-fixed line per notes; 8.0.1 is stale).
+- Remaining diff = interlocked only:
+    react-native 0.85.3 + @react-native/* 0.85.3
+    @react-native-community/cli 20.1.0
+    Expo SDK 56 (expo + all expo-*)  |  react/react-dom 19.2.3
+    screens / gesture-handler / reanimated / worklets
+    safe-area-context 5.8 | lottie | pager-view 8.0.4
+    nitro-fetch expo/fetch collision decision
+    Gradle-9 patches (aes-crypto, blob-util, launch-arguments,
+    performance, share) | iOS min 16.4 | jest preset swap
+
+----------------------------------------------------------------
+NOT EXTRACTABLE / STAYS PUT — QUICK REFERENCE
+----------------------------------------------------------------
+- pager-view: "UPGRADE PR ONLY" per rn-0.85-pre-upgrade-libraries
+- nitro-modules: not changed at all in this PR (0.35.5)
+- All Gradle-9 API patches: only bite on the 0.85 branch
+- Detox: still blocked on wix/Detox#4963 — separate track

@@ -1,0 +1,256 @@
+RN 0.85 — REQUIRED LIBRARY WORK STILL LEFT TO DO
+Verified 2026-07-28 against metamask/main package.json + live PR states +
+npm registry peer ranges (nitro cluster re-verified via yarn npm info).
+Previous pass: 2026-07-22 (+ rn-0.85-blockers.txt web-verification 2026-07-14).
+Scope: REQUIRED items only (evidence-backed 0.85 breakage). Safe chores and
+optional hygiene bumps are excluded or listed under NOT REQUIRED.
+
+SOURCE OF TRUTH for verdicts: rn-0.85-blockers.txt (not the earlier spike list).
+This file supersedes the over-scoped remaining list that re-inflated nitro-modules
+0.36.1 / mmkv v4 / vision-camera v5 / keychain 10 / §C optionals as "required".
+
+Legend: [x] done on main  [~] PR open  [ ] required, no PR yet
+        [-] NOT required — keep / defer  [?] conditional / spike
+
+
+================================================================
+ALREADY DONE ON MAIN — no action
+================================================================
+[x] react-native-svg                 15.15.5  (#33118; patch regenerated)
+[x] react-native-screens             ~4.25.2  (#33121)
+[x] @react-native/jest-preset        0.85.3   (#33201; preset swap done)
+[x] ContextContainer::Shared JNI fix          (#33214; MainComponentsRegistry.cpp)
+[x] react-native-get-random-values   ^2.0.0   (#33323; TurboModule bump —
+    NOT the expo-crypto rewrite; shim.js entropy path already wired)
+[x] @notifee/react-native            ^9.1.8   (#33415, merged 2026-07-27)
+[x] react-native-permissions         ^5.6.0   (#33597, merged 2026-07-24)
+[x] react-native-share               12.3.1   (#33602, merged 2026-07-24; patch regen)
+[x] react-native-view-shot           5.1.1    (#33603, merged 2026-07-23)
+
+
+================================================================
+IN FLIGHT — land these first (nothing new until these merge)
+================================================================
+[~] #32966  reanimated 4.5.1 + worklets 0.10.1 + gesture-handler 2.32.0
+            HARD BLOCKER; UNBLOCKS nitro-fetch peer fix
+[~] #33837-#33844  absoluteFillObject -> absoluteFill, 8 split PRs by code
+            owner (API removed in 0.85). Close stale combined #33192 once landed.
+[~] #33331  metro-react-native-babel-transformer ->
+            @react-native/metro-babel-transformer  (pkg removed path)
+[~] #33347  react-native-video -> 6.19.2  (FLOOR RAISED 2026-07-27: 6.19.2's
+            only change = absoluteFillObject fix, API removed in 0.85 ->
+            6.19.1 in lockfile is NOT sufficient; 6.19.2 is the real floor)
+
+OURS — OPEN, AWAITING REVIEW/CI:
+[~] #33717  @sentry/react-native  7.11.0 -> 8.18.0  (CI green; Android + iOS
+    smoke-verified 2026-07-27/28. Min safe 8.15.1 — Android source maps broken
+    8.14–8.15.0 on 0.85 (#6319, fixed 8.15.1).
+    CORRECTION 2026-07-27: #6256 "events never POSTed" closed as user-resolved,
+    NOT an SDK bug — real driver is 7.x EOL (line ended at 7.13.0, Feb 2026,
+    pre-0.85) + working source maps. AVOID 8.17.0 (non-16KB .so, fixed 8.17.2)
+    and 8.19.0 (iOS screenshots, fixed 8.20.0). 8.18.0 clean; 8.20.0 also OK.)
+[~] #33720  @react-native-firebase/app + messaging  ^20.5.0 -> 25.1.0
+    (Android FCM verified e2e 2026-07-28: token minted vs io-metamask-195a9,
+    foreground push OK. iOS build+boot verified under Xcode 26 w/ mock plist.
+    Sonar analysis re-run pending after CI run 30359015728 completes.
+    DEFERRED TO UPGRADE PR by design: Podfile RCT_USE_PREBUILT_RNCORE=0 /
+    forceStaticLinking workaround (invertase#8883) — prebuilt RNCore doesn't
+    exist on RN 0.83, untestable here. MUST land with the 0.85 core bump.)
+
+
+================================================================
+REQUIRED — NO PR YET (must land before RN 0.85 core bump)
+================================================================
+
+--- A. nitro-fetch (only remaining nitro REQUIRED item) ------------
+[~] react-native-nitro-fetch     patched 1.3.3 -> 1.5.1  PR #33919 OPEN
+      (2026-07-28, chore/upgrade-nitro-fetch. Headers-guard patch REGENERATED
+      for 1.5.1 — upstream still unguarded, verified in tarball. Dependency +
+      Setup tests 26/26, tsc clean, dedupe clean, Podfile.lock 2-line diff.
+      Works on current worklets 0.7.4 too: 1.4.1+ peer is >=0.8.0 AND optional,
+      lazy-required only for off-thread feature we don't use -> NOT blocked
+      on #32966 for merge, but #32966 remains the driver.)
+      AFTER #32966 merges — 1.3.3 peers worklets ^0.8.0, violated by worklets
+      0.10.1 (registry-verified 2026-07-28); 1.4.1+ relaxes to >=0.8.0.
+      CEILING 1.5.1: peer flips to nitro-modules ^0.36.1 at 1.5.2 (verified).
+      KEEP nitro-modules 0.35.5. Regen/re-evaluate our 1.3.3 yarn patch.
+      Caveat: peer break is fact; runtime break on worklets 0.10.1 untested —
+      but this is global.fetch, unsupported peer = unacceptable risk. REQUIRED.
+      DOWNGRADED OUT OF THIS CLUSTER 2026-07-28 (see NOT REQUIRED):
+      quick-base64 3.0.1 + quick-crypto 1.1.6 — Tier 3 precautionary per
+      rn-0.85-must-bump-verified.txt; no proven 0.85 breakage; base64 3.0.1
+      needed only as quick-crypto 1.x peer (skip one -> skip both).
+
+--- B. Vendor-support boundary (own PR, max soak) -------------------
+[ ] @braze/react-native-sdk  patched 19.1.0 -> 21.0.0  (RE-PROMOTED to
+      REQUIRED: Expo SDK 56 decision = YES forces Xcode 26, and 21.0.0 is the
+      first version vendor-validated on RN 0.85.3 + where Swift SDK 15 (Xcode
+      26 line) lands. 22.0.0 optional (Swift SDK 16 + placementID rename).
+      Re-check our ReactModuleInfo yarn patch on bump. Supersedes the
+      2026-07-23 downgrade below, which predates the binding Expo 56 decision.)
+
+
+
+
+
+================================================================
+NOT REQUIRED for RN 0.85 — DO NOT put on the critical path
+(You CAN upgrade without these; keep current / defer post-upgrade)
+================================================================
+
+[-] react-native-blob-util 0.19.9 -> 0.24.10  (PR #33417 — DO NOT merge now)
+      DOWNGRADED from REQUIRED 2026-07-27. 0.19.9 tag verified: ships New-Arch
+      codegen (codegenSpecs/NativeBlobUtils.js + android/src/newarch/), zero
+      refs to CatalystInstanceImpl or absoluteFillObject, zero 0.84/0.85
+      failure reports. Bump buys nothing: bridgeless cold-start crash #479
+      exists on 0.24.10 AND master too. Post-upgrade hygiene only.
+
+[-] @react-native-community/checkbox -> design-system Checkbox (PR #33650 —
+      not on critical path). DOWNGRADED 2026-07-27. expo-doctor flag means
+      "no native new-arch support", NOT broken: 0.85 keeps the interop layer
+      and v0.5.20 already contains the interop NPE fix (PR #231, was #226 on
+      RN 0.76). No 0.84/0.85 failure reports. Lib dormant since 2025-05 ->
+      good hygiene, merge whenever, not required pre-upgrade.
+
+[-] @react-native-cookies/cookies -> @preeternal/react-native-cookie-manager
+      DOWNGRADED from REQUIRED 2026-07-23. Native code inspected: plain
+      ReactContextBaseJavaModule / RCTBridgeModule, zero refs to APIs removed
+      in 0.85; official 0.85 release keeps the legacy-module interop layer
+      (frozen, no bugfixes). Should still function via interop. Upstream
+      archived 2026-01-31 -> do the swap post-upgrade as hygiene. Target
+      fork 6.4.0 (not 6.3.3; 6.3.2 was the RN 0.85 refresh). Only 2 prod
+      call sites (DeleteWalletModal clearAll, ClearCookiesSection
+      getAll/clearAll) — not on browser critical path.
+
+[-] @braze/react-native-sdk  patched 19.1.0 -> >=21.0.0
+      *** OBSOLETE — RE-PROMOTED TO REQUIRED 2026-07-28 (section B above):
+      Expo 56 decision (2026-07-22) made the Xcode 26 floor binding, and
+      21.0.0 is the first RN-0.85-validated release. Kept for history. ***
+      DOWNGRADED from REQUIRED 2026-07-23. The "Xcode 26 floor" driver was
+      WRONG: 19.1.0 pins braze-swift-sdk ~>14.0.1, and Xcode 26 support
+      landed in swift-sdk 13.2.0 (all 14.x inherit it). Swift SDK 15.x (via
+      RN SDK 21) *requires* Xcode 26 — it isn't the first to *work* with it.
+      19.1 is already a TurboModule; no 0.84/0.85 failure reports. Bump = RN
+      0.85 validation hygiene (21.0.0 = only officially RN-0.85-tested),
+      post-upgrade. Residual risk: 19.x on 0.85 untested by vendor — cover in
+      spike build. Re-check ReactModuleInfo patch whenever bumped.
+
+NITRO — keep current majors (targets in old list were WRONG/risky):
+[-] react-native-nitro-modules  0.35.5  *** DO NOT bump to 0.36.1 ***
+      0.36.x breaks nitro-fetch + nitro-text-decoder ^0.35.2 peers.
+      Optional insurance only: 0.35.10 (0.85.3-validated). Stay on 0.35.5.
+[-] react-native-quick-crypto   patched 0.7.15 -> 1.1.6   } DOWNGRADED from
+[-] react-native-quick-base64   patched 2.2.0  -> 3.0.1   } REQUIRED 2026-07-28
+      Tier 3 in rn-0.85-must-bump-verified.txt (2026-07-27, supersedes):
+      grep-verified no APIs deleted in 0.84/0.85, zero upstream 0.85 breakage
+      reports; both current versions peer only react/react-native "*".
+      Driver is dead pre-Nitro line hygiene, NOT compile/peer breakage.
+      If bumped post-upgrade: pair them (crypto 1.x peers base64 >=3.0.0;
+      base64 NOT 3.0.0 — missing Android codegen, crash #1052; crypto 1.1.6
+      adds expo>=48 + expo-build-properties peers + full patch rewrite).
+[-] react-native-mmkv           ^3.2.0  KEEP v3
+      v4 = Nitro rewrite w/ open build issue #1072 — not a 0.85 requirement.
+[-] react-native-vision-camera  ^4.7.3  KEEP v4 (+ no nitro-image)
+      v5 = Nitro rewrite w/ open #3997 (iOS) + #4067 (Android).
+      We use no frame processors. Spike-verify v4 only.
+
+HIGH-RISK — stay put:
+[-] react-native-keychain       ^9.0.0  KEEP 9.x
+      v10 unrelated to 0.85; same codegen spec; adds vault cipher-migration RISK.
+
+OPTIONAL native majors (no proven 0.85 breakage — hygiene only):
+[-] @react-native-community/netinfo            11.5.2 -> 12.0.1
+[-] @react-native-async-storage/async-storage  2.2.0  -> 3.1.1
+      (SQLite migration risk overstated; default export still v2)
+[-] react-native-device-info                   ^9.0.2 -> 15.0.2 (~87 files)
+[-] react-native-ble-plx                       patched 3.4.0 -> 3.5.1
+      KEEP OUR PATCH if bumped (3.5.1 lacks iOS new-arch null-arg fix)
+[-] @react-native-community/datetimepicker     ^8.5.1 -> 9.1.0
+
+EXPO / dead-lib migrations (optional hygiene; spike decides urgency):
+[-] react-native-get-random-values -> expo-crypto
+      ALREADY FIXED via 2.0.0 TurboModule bump — expo-crypto not needed
+[-] react-native-localize -> expo-localization
+      STALE — not in package.json, zero usages
+[-] react-native-linear-gradient -> expo-linear-gradient
+[-] react-native-vector-icons -> scoped @react-native-vector-icons/* 13.x
+[-] react-native-fs -> expo-file-system (or @dr.pogodin/react-native-fs)
+[-] react-native-in-app-review -> expo-store-review
+[-] react-native-default-preference -> mmkv / turbo-preferences
+[-] react-native-background-timer 2.1.1 -> 2.4.1 OR replace
+      (dead lib; audit call sites; have fallback plan)
+
+
+================================================================
+OPEN VERIFY ITEMS (not bumps — resolve before upgrade day)
+================================================================
+[ ] Detox #4963 — FabricUIManagerIdlingResources NoSuchFieldException on
+    Android New Arch. NO detox release fixes it. Mitigate:
+    disableSynchronization + waitFor, OR patch reflection, OR Appium for window.
+[ ] @metamask/react-native-webview fork 14.6.0 — build vs 0.85; decide v15 rebase
+[ ] Global fetch collision (SDK 56 expo/fetch vs nitro-fetch) — decide
+    EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering; related #33422
+[ ] keyboard-controller #1470 — re-check after #32966 lands
+[ ] Spike build #32888 — only reliable detector for patched-dead natives
+    (os, i18n, sensors, fast-crypto, randombytes, material-textfield,
+    default-preference, fs). No proven 0.85 break either way.
+[ ] expo-video decision — if taken, supersedes video 6.19.2 floor (#33347);
+    if not, floor is sufficient
+[ ] @segment/analytics-react-native 2.23.0 — verify patch covers trackDeepLinks
+    bridgeless crash
+
+
+================================================================
+UPGRADE-PR-ONLY (interlocked — do NOT pre-land on 0.83)
+================================================================
+react-native 0.85.3
+@react-native/{babel-preset,metro-config,eslint-config,typescript-config} 0.85.3
+  (jest-preset already on main at 0.85.3 via #33201 — no action)
+@react-native-community/cli + cli-platform-* 20.1.0
+Expo SDK 56 (expo ~56.0.15 sdk-56 dist-tag + all expo-* to 56.x)
+react + react-dom 19.2.3
+react-native-pager-view 8.0.4
+Podfile — iOS deploy target + RCT_USE_PREBUILT_RNCORE decision
+
+EXPO 55 -> 56: DECISION RESOLVED = YES, REQUIRED (2026-07-22).
+  Expo SDKs are version-locked to one RN release: SDK 55 = RN 0.83,
+  SDK 56 = RN 0.85. We ship 15+ expo-* runtime modules on SDK 55
+  (expo-modules-core 55.0.25, expo-local-authentication [biometrics],
+  expo-updates, expo-dev-client, expo-image, expo-file-system, ...).
+  expo-modules-core 55 is not built for 0.85 (New Arch-only, prebuilt iOS
+  core, Hermes V1) — staying on SDK 55 atop RN 0.85 is unsupported and
+  expected to fail native compile. Expo 56 lands IN the upgrade PR.
+  CONSEQUENCES now binding: Xcode 26.4 / iOS min 16.4 / TS 6.0.3 floors
+  (CI runner audit = lead-time risk), expo/fetch global collision must be
+  decided, and Braze >=21 becomes REQUIRED (see CONDITIONAL section).
+
+NOTE on toolchain floors:
+  RN 0.85 CORE = Xcode 16.1 / iOS 15.1 / TS 5.x / Node 22.11 / JDK 17.
+  Xcode 26.4 / iOS 16.4 / TS 6.0.3 are Expo SDK 56 floors — they DO apply
+  (Expo 56 decision = yes, above; Braze 22 independently needs Xcode 26).
+
+
+================================================================
+CAN WE UPGRADE WITHOUT SOME OF THESE? — SHORT ANSWER
+================================================================
+YES. Skip everything under NOT REQUIRED and still reach 0.85, provided the
+IN FLIGHT + REQUIRED sections above land.
+
+MUST NOT skip (corrected 2026-07-28):
+  #32966, absoluteFill PRs #33837-44, metro transformer #33331, video 6.19.2
+  #33347 (raised floor — unless the expo-video migration lands first and
+  removes react-native-video entirely), Sentry #33717 (8.15.1+ floor; 8.18
+  clean), Firebase #33720 (+ Podfile #8883 workaround IN THE UPGRADE PR —
+  mandatory even on 25.1.0), nitro-fetch 1.4.1..1.5.1 while KEEPING
+  nitro-modules 0.35.5, Braze 21.0.0 (re-promoted — Expo 56 binding),
+  Expo SDK 56 itself (in the upgrade PR).
+  (quick-crypto/quick-base64: downgraded 2026-07-28, see NOT REQUIRED.
+   blob-util + checkbox: downgraded 2026-07-27, see NOT REQUIRED.)
+
+NET NEW WORK NOT YET STARTED = 2 BUMPS ONLY:
+  1. nitro-fetch 1.4.1..1.5.1 (after #32966; pin nitro-modules 0.35.5)
+  2. Braze 19.1.0 -> 21.0.0 (re-check ReactModuleInfo patch)
+
+MUST NOT do on the critical path:
+  nitro-modules 0.36.1, mmkv v4, vision-camera v5, keychain 10,
+  quick-crypto 1.x / quick-base64 3.x, async-storage 3.x.

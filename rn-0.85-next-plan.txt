@@ -1,0 +1,149 @@
+================================================================================
+RN 0.85 UPGRADE — STATUS & NEXT PLAN
+Prepared: 2026-08-17 (evening) | All PR states live-verified via GitHub
+Supersedes: rn-0.85-today-2026-08-17.txt (executed) — scope reference:
+rn-0.85-consolidation-plan.txt
+================================================================================
+
+HEADLINE
+--------------------------------------------------------------------------------
+Extraction phase COMPLETE. Every RN-independent bump now exists as its own
+PR on main. Nothing new is left to extract (full dependency diff main vs
+upgrade branch classified today). The work remaining is: chase reviews,
+rebase 3 conflicting PRs, one Detox patch, then the big PR itself.
+
+Open PRs: 15  |  Closed today: 14 (5 discards + 9 superseded absoluteFill)
+
+================================================================================
+1. MERGED — DONE, ON MAIN (nothing to do)
+================================================================================
+  #33118  react-native-svg 15.15.5 (+ retargeted patch)
+  #33201  @react-native/jest-preset migration
+  #33214  ContextContainer JNI alias fix
+  #33323  react-native-get-random-values 2.0.0
+  #33415  notifee 9.1.8
+  #33472  react-native-safe-area-context 5.8.0
+  #33473  lottie-react-native 7.3.8
+  #33474  @react-native-community/slider 5.2.0
+  #33541  axios ^1.18.0
+  #33597  react-native-permissions 5.6.0
+  #33602  react-native-share 12.3.1 (+ regenerated patch)
+  #33603  react-native-view-shot 5.1.1
+  + absoluteFillObject codemod part 1 (2f447d0044, direct commit)
+
+================================================================================
+2. WAITING FOR REVIEW — MERGEABLE TODAY (9 PRs, review is the ONLY blocker)
+================================================================================
+Rule: after EACH merge to main -> merge main INTO react-native-upgrade-0.85.
+
+  Upgrade gates (merge first):
+  #34467  blob-util Gradle-9 patch + dedupe        branch build fails without
+  #34468  gradle9 compat batch (4 libs)            branch build fails without
+  #33919  nitro-fetch 1.5.1 + Headers patch        ceiling 1.5.1, never 1.5.2
+
+  absoluteFill 3-way split (opened today; runtime-crash fix on 0.85):
+  #34883  trading & assets     (perps/predict/swaps/assets — 10 files)
+  #34884  money, card, ramps   (card/earn/money-movement — 5 files)
+  #34885  platform, social, notifications (15 files incl. unowned shared UI)
+
+  Version bumps (opened today; shrink the big PR diff):
+  #34881  pager-view 8.0.4     (peers rn "*", safe on 0.83)
+  #34886  react trio 19.2.3    (react/react-dom/react-test-renderer, atomic)
+
+  Non-gating, own timeline:
+  #34007  Rive Nitro migration (MERGEABLE; on-device verification in progress)
+
+  ACTION: ping owning teams on all of the above. Label manually where missing
+  ("Add team label" check permanently broken for this author).
+
+================================================================================
+3. APPROVED BUT CONFLICTING — REBASE ONLY, THEN MERGE (2 + 1 parked)
+================================================================================
+  #33717  Sentry 8.18.0        APPROVED. Rebase -> CI -> merge. 7.x is EOL +
+                               0.85 release source maps broken pre-8.15.1.
+                               Do FIRST (bigger patch surface).
+  #33347  video 6.19.2         APPROVED. Rebase -> CI -> merge. 6.19.1
+                               crashes at runtime on 0.85 when video mounts.
+
+  #33720  Firebase 25.1.0      APPROVED but PARKED (do NOT rebase, do NOT
+                               close). Decision rides the iOS release-archive
+                               validation gate: passes on v20 -> close &
+                               backlog; fails -> re-promote to gate (work
+                               preserved on chore/bump-firebase, 3b06b6eb29).
+
+================================================================================
+4. CRITICAL PATH — #32966 reanimated 4.5.1 / worklets 0.10.1 / GH 2.32
+================================================================================
+  State: CONFLICTING + REVIEW_REQUIRED. The one true hard blocker
+  (reanimated 4.2.x caps at RN 0.84). Longest pole — start now:
+    1. Rebase onto main, push, let CI run (overnight ok)
+    2. Fix CI by root cause (expect ONE worklets jest-mock cluster,
+       not 32 distinct bugs)
+    3. Ping reviewers the moment it is green
+
+===============================================================================
+================================================================================
+5. ONLY UNSTARTED WORK ITEM
+================================================================================
+  Detox Android reflection-guard: bump detox 20.51.4 + extend our yarn patch
+  (try/catch getMountItemDispatcher in FabricUIManagerIdlingResources.kt,
+  treat as idle) — wix/Detox#4963. Needed for the Android Detox validation
+  gate before un-drafting #34283. ~10 lines; do on the upgrade branch.
+
+================================================================================
+6. THE BIG PR — #34283 (DRAFT, CONFLICTING, stale CI from 08-05)
+================================================================================
+  Do NOT touch until Sections 2-4 land. Then:
+    1. Merge main -> react-native-upgrade-0.85 (all landed PRs fall out of
+       the diff; NODE_OPTIONS max-old-space-size for the hook, never
+       --no-verify). pager-view conflict: take main's 8.0.4.
+    2. Decide + document expo/fetch vs nitro-fetch global collision
+       (EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering) — with #33422 in mind.
+    3. Push, full CI, fix by root cause only.
+
+  FINAL DIFF (after all merges — RN/Expo-locked only):
+     react-native 0.85.3 (+ hermes patch) | @react-native/* 0.85.3
+     expo ^56 + all expo-* + @expo/metro-config + fingerprint 0.19.9
+     typescript 5.8.3 | CLI 20.1.0 | screens 4.26.0 | keyboard-ctrl 1.21.6
+     react-native-os patch | Gradle 9.3.1 | Xcode 26.4 | iOS min 16.4
+     (react trio + pager-view now land via main -> #34886/#34881)
+
+  VALIDATION GATES BEFORE UN-DRAFT:
+     [ ] iOS Detox: one canary spec locally, full suite on CI
+     [ ] Android Detox: Section 6 patch built + suite green
+     [ ] Physical device boot: one iOS + one Android
+     [ ] Release builds: iOS archive (decides parked #33720 Firebase)
+         + assembleProdRelease
+     [ ] iOS 16.4 minimum sign-off in writing
+
+  SHIP: un-draft #34283, request reviews, label manually.
+
+================================================================================
+EXECUTION ORDER (summary)
+================================================================================
+  1. NOW      Ping reviewers on the 9 mergeable PRs (Section 2)
+  2. NOW      Rebase #33717 Sentry, then #33347 video -> CI -> merge
+  3. NOW      Rebase #32966, push, CI overnight (critical path)
+  4. THEN     Fix #32966 CI cluster, chase its review
+  5. THEN     Detox 20.51.4 + reflection-guard patch (Section 6)
+  6. THEN     main -> branch, fetch decision, full CI (Section 7)
+  7. GATE     Validation checklist (incl. Firebase archive decision)
+  8. SHIP     Un-draft #34283
+  Parallel:   #34007 Rive device verification; #33422 rebase+review
+
+================================================================================
+CLOSED TODAY (2026-08-17) — for the record
+================================================================================
+  Discarded (branch carries equivalent): #34472 screens, #34473 CLI,
+  #34419 keyboard-ctrl, #34415 typescript, #32888 spike
+  Superseded by the 3-way split: #34424 mega + #33192 original +
+  #33838 #33839 #33840 #33841 #33842 #33843 #33844 (old 8-way splits)
+
+================================================================================
+STANDING RULES (unchanged)
+================================================================================
+- Never `expo install --fix` (clobbers deliberate pins)
+- nitro-modules stays 0.35.5 everywhere
+- Edit yarn patch FILES manually; `yarn patch` without -u discards patches
+- Verify node_modules/Pods versions after branch switch, before device tests
+================================================================================

@@ -1,0 +1,376 @@
+================================================================================
+RN 0.85 UPGRADE PLAN — LIBRARIES, CODE CHANGES, EXPO MIGRATIONS
+================================================================================
+Baseline: RN 0.83.6 + Expo SDK 55 + React 19.2.0 (New Arch, bridgeless)
+Target:   RN 0.85.3 + Expo SDK 56 (expo ~56.0.15) + React 19.2.3
+Verified: 2026-07-13 against RN 0.84/0.85 blogs + CHANGELOG, npm registry,
+          Expo SDK 55/56 bundledNativeModules.json, and this repo's package.json.
+Supersedes: rn-0.85-pre-upgrade-libraries.txt (2026-07-06/10 spike — corrections
+          from that file are marked [FIXED] below).
+
+Strategy: every item below lands as a GREEN PR on 0.83 FIRST. The final upgrade
+PR only touches packages whose versions are interlocked with RN 0.85 / SDK 56.
+RN 0.85 has NO legacy bridge/interop fallback at all — any lib still on legacy
+arch must be replaced or fixed BEFORE upgrade day, there is no escape hatch.
+
+CONTEXT (versions in the wild, 2026-07-13):
+  RN latest = 0.85.3 (no 0.85.4; 0.86.0 out, 0.87.0-rc.0 exists)
+  Expo npm `latest` = SDK 57 (RN 0.86, shipped 2026-06-30)
+    -> PIN expo@sdk-56 dist-tag / ~56.0.15 to avoid accidental SDK 57 installs.
+
+================================================================================
+1. LIBRARY BUMPS — TIER A: REQUIRED, HARD BLOCKERS
+   (peer deps or native code do not cover RN 0.85; app will not build/run)
+================================================================================
+STATUS legend: [ ] todo  [~] PR in flight  [x] done/merged
+
+[~] react-native-svg          15.15.3 -> 15.15.5
+      15.15.5 is the safe pick for the 0.84 RCTImage observer refactor (RN blog
+      explicitly names svg as affected). REGENERATE our patch as
+      react-native-svg+15.15.5.patch — verified 2026-07-10 that the content-type
+      guard + &quot; fixes are MetaMask-specific and NOT upstreamed.
+      PR #33118 (pr-not-ready-for-e2e, CI pending).
+[~] react-native-screens      ~4.23.0 -> 4.25.2  (EXACT — SDK 56 pins 4.25.2)
+      4.25.2 peer = RN >=0.82 so it CAN land on 0.83 now; 4.26.0 needs RN 0.84+
+      (do NOT take 4.26). Requires New Arch (we have it). Regression focus:
+      4.24.0 turned on iosPreventReattachmentOfDismissedScreens by default —
+      test modal dismiss/re-push flows. PR #33121 (CI RED — needs fix).
+[~] react-native-reanimated   4.2.1 -> 4.5.1
+      4.5.1 peers: react-native 0.83–0.86, react-native-worklets 0.10.x.
+      Our 4.2.1 peer range does not include 0.85. One PR with the two below.
+      PR #32966 — rebased on main 2026-07-14 (Toast conflict resolved, ShimmerBand
+      typed for reanimated 4, SnapUIRenderer snapshots regenerated), CI pending.
+      NOTE: landed 4.5.1 + worklets 0.10.1 (not 0.10.2) + babel plugin swap.
+[~] react-native-worklets     0.7.4 (patched) -> 0.10.1 (in PR #32966)
+      [FIXED] Old spike said "ADD — missing from package.json" — WRONG, it is
+      installed at 0.7.4 with a yarn patch. This is a BUMP: re-evaluate/drop the
+      0.7.4 patch, and switch babel.config.js:81 from
+      'react-native-reanimated/plugin' -> 'react-native-worklets/plugin'
+      (comment above it still says "reanimated v3" — stale, rewrite it).
+[~] react-native-gesture-handler  ~2.30.0 -> 2.32.0 (in PR #32966)
+      2.32.0 released 2026-06-11 (post-0.85), works on 0.85, stay on v2.
+      NOTE: v3.0.2 is now npm `latest` and 2.x moved to the `legacy` dist-tag —
+      pin exactly, and treat GH v3 as a separate post-upgrade epic.
+
+================================================================================
+2. LIBRARY BUMPS — TIER B: REQUIRED FOR 0.85 COMPAT (land pre-upgrade, own PRs)
+================================================================================
+Nitro ecosystem (ONE PR — shared nitro-modules peer):
+[ ] react-native-nitro-modules  0.35.5 -> 0.36.1
+[ ] react-native-quick-base64   2.2.0 (patched) -> 3.0.1   (patch drops;
+      3.x is New-Arch-only which is fine — margelo/react-native-quick-crypto#1052
+      closed 2026-07-08 confirming this is a non-issue on 0.85)
+[ ] react-native-quick-crypto   0.7.15 (patched) -> 1.1.5  (patch rewrite;
+      peers: nitro-modules >=0.31.2, quick-base64 >=3.0.0)
+[ ] react-native-mmkv           3.2.0 -> 4.3.2   (4.x is the Nitro-based line)
+[ ] react-native-vision-camera  4.7.3 -> 5.1.0
+      + ADD react-native-nitro-image (REQUIRED peer of v5, not optional)
+      useCameraDevice signature changed — audit call sites.
+      Sanity-check compat with our nitro-fetch 1.3.3 / nitro-websockets 1.0.3 /
+      nitro-text-decoder in the same PR (same nitro-modules peer).
+
+High-risk isolates (own PRs, land EARLY in Wave 3 for max beta soak):
+[ ] @react-native-firebase/app + messaging   20.5.0 -> 25.1.0
+      Firebase iOS SDK 12.x / Android BoM 33.x.
+      GOTCHA (STILL OPEN as of 2026-07-13): invertase/react-native-firebase#8883
+      — with RN 0.84+ prebuilt iOS core, RNFB fails to compile; workaround is
+      forceStaticLinking or RCT_USE_PREBUILT_RNCORE=0 in Podfile. Decide which
+      BEFORE upgrade day (prebuilt core is a 0.84 default we otherwise want).
+[ ] @sentry/react-native        7.11.0 -> 8.18.0   (min safe: 8.15.1)
+      init API changed; rework our patch; align @sentry/* devDeps.
+      8.13/8.14 RN-0.85 regressions (#6256 events never POSTed, #6319 Android
+      source-map upload) BOTH CLOSED now, fixed in 8.15.1+. No new open 0.85
+      issues found 2026-07-13. Do NOT land anything below 8.15.1.
+[ ] @braze/react-native-sdk     19.1.0 -> 22.0.0   (min validated vs 0.85: 21.0.0)
+      21.0.0 raises Xcode floor to 26.0 (Braze Swift SDK 15.0.1); 22.0.0 is
+      Swift SDK 16 + BREAKING placementId rename — audit our Braze calls.
+      Re-check the ReactModuleInfo patch.
+[ ] react-native-keychain       9.0.0 -> 10.0.0
+      Vault/biometrics-critical. Full regression: password fallback, biometrics
+      toggle, remember-me, vault migration after OS biometric reset.
+
+Native majors (peer says "*" but old versions break on the 0.85 toolchain —
+legacy-arch removal / prebuilt core / Hermes V1):
+[ ] react-native-permissions              3.7.2 -> 5.6.0   (constants renamed in
+      4.x/5.x — 4 files)
+[ ] @react-native-community/netinfo       11.5.2 -> 12.0.1
+[ ] @react-native-async-storage/async-storage 2.2.0 -> 3.1.1 (SQLite backend —
+      verify migration of existing data on device upgrade!)
+[ ] react-native-device-info              9.0.2 -> 15.0.2  (~87 files, API additive)
+[ ] react-native-share                    7.3.7 (patched) -> 12.3.1
+      (Share.open schema changed, ~17 files; patch drops or regenerates)
+[ ] react-native-blob-util                0.19.9 -> 0.24.10 (+ resolutions entry)
+[ ] react-native-ble-plx                  3.4.0 (patched) -> 3.5.1
+      (verify patch still applies; Ledger E2E test)
+[ ] react-native-view-shot                4.0.3 -> 5.1.1
+[ ] @react-native-community/datetimepicker 8.5.1 -> 9.1.0
+      (9.1.0 is still bundled/supported in SDK 56 — the @expo/ui datetime-picker
+      is optional, NOT forced)
+
+================================================================================
+3. LIBRARY BUMPS — TIER C: RECOMMENDED SAFE CHORES (one batch PR, low risk)
+================================================================================
+[ ] react-native-safe-area-context   ~5.6.0 -> 5.8.0
+[ ] lottie-react-native              -> 7.3.8
+[ ] @shopify/flash-list              -> 2.3.2
+[ ] @walletconnect/core              -> 2.23.10
+[ ] @react-native-clipboard/clipboard 1.16.1 -> 1.16.3
+[ ] @react-native-community/slider   5.1.2 -> 5.2.0
+[ ] react-native-keyboard-controller 1.20.7 -> 1.22.0
+      [FIXED] spike said 1.21.14; 1.22.0 is latest now. Issue #1470 (worklets
+      warning on RN 0.85 w/ reanimated 4) STILL OPEN — re-verify after the
+      animation-stack PR lands.
+[ ] react-native-branch              5.6.2 -> 6.10.0
+[ ] rive-react-native                -> 9.8.3
+[ ] @notifee/react-native            -> 9.1.8
+[ ] @react-native-masked-view/masked-view 0.3.1 -> 0.3.2
+[ ] react-native-aes-crypto          3.0.3 -> 3.3.0
+[ ] react-native-inappbrowser-reborn 3.7.0 -> 3.7.1 (or Expo switch, see §5)
+[ ] react-native-background-timer    2.1.1 -> 2.4.1
+      Dead lib, 7 non-test call-site files. Bump is a stopgap — audit call sites
+      and have a replacement plan (headless JS / nitro) if it breaks on 0.85.
+[ ] detox                            -> LATEST AT UPGRADE TIME
+      [FIXED] spike said "-> 20.51.4" — that version DOES NOT EXIST. Latest is
+      20.51.3 (2026-05-30). See BLOCKERS section — no detox supports RN 0.85
+      Android New Arch E2E yet.
+
+================================================================================
+4. CODE CHANGES REQUIRED BY RN 0.84/0.85 (grep-verified in repo 2026-07-13)
+================================================================================
+MUST DO:
+[x] StyleSheet.absoluteFillObject -> StyleSheet.absoluteFill
+      DONE: commit 2f447d0044 (2026-07-13), 30 files / 39 occurrences, pushed on
+      chore/remove-depricated-absolute-fill-objects. Safe 1:1 — same frozen
+      object in RN source.
+[~] C++: ContextContainer::Shared REMOVED in 0.85
+      IN FLIGHT: PR #33214 (CI RED — needs fix).
+      android/app/src/main/jni/MainComponentsRegistry.cpp:37 — changed
+      `ContextContainer::Shared const &` to
+      `std::shared_ptr<ContextContainer const> const &` (exact alias expansion,
+      also already [[deprecated]] on 0.83 so this silences a build warning).
+      Compile proof = Android CI build on the PR.
+      Verified on 0.85-stable: EventDispatcher::Weak and
+      ComponentDescriptorRegistry::Shared still exist — leave those alone.
+      Also removed in 0.85: ShadowNode::Shared/Weak/Unshared/ListOf*,
+      SharedImageManager (0 references in our code — no-op for us).
+[~] Jest preset 'react-native' REMOVED -> '@react-native/jest-preset'
+      IN FLIGHT: PR #33201 (CI RED — needs fix).
+      Landed PRE-upgrade after verifying: @react-native/jest-preset@0.85.3 is
+      byte-identical to RN 0.83.6's bundled jest/ files (only path
+      qualification differs) — pinned 0.85.3 exact, already matches upgrade
+      target. 226 tests verified green. [FIXED: spike said "Upgrade PR only" —
+      not true, it works on 0.83.]
+[ ] metro.transform.js:10 requires 'metro-react-native-babel-transformer'
+      [FIXED framing] NOT a 0.85 removal — this package died at RN 0.73 and we
+      are running a zombie copy. Migrate to '@react-native/metro-babel-transformer'
+      in the upgrade PR (or earlier — it already works on 0.83).
+[ ] babel.config.js:81 'react-native-reanimated/plugin' ->
+      'react-native-worklets/plugin' (part of the animation-stack PR, Wave 2).
+
+VERIFIED NO-OP FOR US (0 references in our code, keep for audit trail):
+- AccessibilityInfo.setAccessibilityFocus (deprecated 0.85 -> sendAccessibilityEvent)
+- XHRInterceptor / WebSocketInterceptor (deprecated 0.84 -> CDP Network domain)
+    NOTE: re-check nitro-fetch/nitro-websockets DEV tooling + any Sentry/debug
+    network instrumentation after the Sentry 8.x bump — deprecation warnings may
+    surface from libs, not us.
+- iOS RCTHostRuntimeDelegate -> RCTHostDelegate (deprecated, merged; 0 refs)
+- Android legacy-arch deletions (CatalystInstanceImpl, LazyReactPackage,
+    CxxModuleWrapper, BridgeDevSupportManager, LayoutAnimationController,
+    OnBatchCompleteListener, NativeViewHierarchyManager stubbed, ReactTextUpdate
+    internal, UIManagerHelper.getEventDispatcherForReactTag deprecated) — 0 refs
+    in OUR code; the risk lives in old third-party Android libs (see §5 audit).
+- 0.84 C++: JSBigString now implements jsi::Buffer, BigStringBuffer shim
+    deprecated — 0 refs in our JNI code.
+- Node floor: 0.84 blog says Node >=22.11, 0.85 core says >=20.19.4; template
+    engines >=22.11. We pin ^24.16.0 — OK. But CHECK CI runner Node images.
+
+BEHAVIORAL — TEST, NO CODE EDIT:
+- Pressable no longer unmounts event listeners in a hidden Activity (0.85).
+    We use Pressable everywhere — regression-test Android screen hide/re-show,
+    background/foreground, and stacked react-native-screens Activities.
+- Animated: layout props now work with useNativeDriver:true (0.85) — free win,
+    but watch for animations that silently no-oped before and now run.
+- Shared Animation Backend (0.85 + SWM): PREVIEW ONLY, flag
+    useSharedAnimatedBackend defaults to FALSE. Do NOT enable during upgrade;
+    evaluate post-upgrade with reanimated 4.5.
+- Hermes V1 (default since 0.84): validate boot time, memory, bytecode tooling,
+    Sentry symbolication. Opt-out exists but is hostile (RCT_HERMES_V1_ENABLED=0
+    requires RCT_USE_PREBUILT_RNCORE=0 AND pinning hermes-compiler 0.15.0) —
+    plan to ship ON V1, keep opt-out only as an emergency lever.
+- 0.85 Metro dev server: TLS (HTTPS/WSS) support + multiple simultaneous CDP
+    debugger connections — relevant to our Nitro WS dev routing (wss:// -> Nitro,
+    ws:// -> RN built-in); re-verify Metro HMR routing still holds on 0.85.
+
+================================================================================
+5. SWITCH TO EXPO / REPLACEMENT (dead or deprecated libs; land pre-upgrade)
+================================================================================
+All SDK 55 versions exist today, so these land on RN 0.83 now, then get bumped
+to ~56.x automatically inside the upgrade PR. File counts are non-test import
+sites, re-verified 2026-07-13.
+
+REQUIRED (lib is dead/deprecated and a real 0.85 risk):
+[ ] react-native-fs (dead since 2022)  -> expo-file-system (ALREADY installed
+      ~55.0.22) — 5 files. Target the NEW async API now: in SDK 56 copy()/move()
+      become async (copySync()/moveSync() keep old behavior).
+[ ] react-native-get-random-values     -> expo-crypto ~55.0.16 — 1 file (shim.js).
+      WALLET-CRITICAL entropy path: land EARLY (Wave 2) for maximum soak.
+[ ] react-native-vector-icons 10.2.0 (npm-DEPRECATED) ->
+      @react-native-vector-icons/* scoped packages 13.x — 48 files.
+      NOT @expo/vector-icons: Expo deprecates it in SDK 56 and drops it from the
+      `expo` package's deps; Expo itself now recommends the scoped packages.
+      Official codemod: `npx @react-native-vector-icons/codemod` (13.2.1).
+[ ] react-native-default-preference (dead) -> react-native-mmkv (already in
+      project) — 2 files.
+[ ] @react-native-cookies/cookies (npm-deprecated) ->
+      @preeternal/react-native-cookie-manager 6.3.3 (API-compatible fork) — 4 files.
+[ ] react-native-video -> expo-video ~55.0.18 — 3 files.
+      Fallback if migration slips: bump react-native-video to >=6.19.1 (fixes
+      RCTVideoManager bridgeless crash on RN 0.84+).
+
+RECOMMENDED (works today, but aging):
+[ ] react-native-in-app-review -> expo-store-review ~55.0.15 — 1 file. Trivial.
+[ ] react-native-linear-gradient 2.8.3 -> expo-linear-gradient ~55.0.15 — 17 files.
+      [FIXED] Spike said "2.x is dead, only 3.0-beta exists, bump NOT an option"
+      — overstated: 2.8.3 is still npm `latest` and not deprecated; 3.x is still
+      beta (3.0.0-beta.2). But 2.x gets no feature work and is a plain-old-arch
+      lib — the Expo switch is the future-proof move. MUST verify 2.8.3 compiles
+      on 0.85 first; if it does, this can slip post-upgrade without blocking.
+      [FIXED] file count is 17, not 42 (spike counted test/story files).
+[ ] react-native-inappbrowser-reborn -> expo-web-browser (already installed) —
+      8 files. OPTIONAL, can defer post-upgrade.
+
+REMOVED FROM PLAN:
+- react-native-localize -> expo-localization: [FIXED] localize is NOT in
+    package.json and has ZERO usages in the repo. Nothing to do. (Spike line
+    was stale.)
+
+NEW FINDS — legacy libs not in the original spike (audit, decide, schedule):
+[ ] @react-native-community/checkbox 0.5.20 — 3 files. Native, effectively
+      unmaintained. Replace with design-system checkbox or expo-checkbox.
+      MUST at least build-verify on 0.85 (legacy-arch risk).
+[ ] react-native-material-textfield 0.16.1 — 1 file. Dead since 2019, pure JS
+      but uses old Animated patterns. Replace with internal TextField.
+[ ] react-native-keyboard-aware-scroll-view 0.9.5 — 23 files. Unmaintained,
+      pure JS (low build risk) but overlaps react-native-keyboard-controller
+      (already installed). Post-upgrade consolidation epic; not a blocker.
+[ ] Patched dead NATIVE libs riding on node-polyfill chains — the top remaining
+      legacy-arch risk since 0.85 has NO interop layer:
+      react-native-os (patched), react-native-i18n (patched, 1 file),
+      react-native-sensors (patched), react-native-fast-crypto (patched),
+      react-native-randombytes, react-native-crypto + react-native-level-fs (JS,
+      depend on the above). ACTION: build the app against 0.85 EARLY (spike
+      build) specifically to smoke out this cluster; replacements go through
+      quick-crypto 1.x / expo-crypto where possible.
+
+Expo alternative EXISTS but bump is safer (API/capability gaps — revisit later):
+  clipboard (expo-clipboard: API differs) | netinfo (expo-network: listener gaps)
+  async-storage (expo-sqlite/kv-store)    | keychain (expo-secure-store: 2KB
+                                            limit — UNSUITABLE for vault)
+  share (expo-sharing: files-only)        | device-info (expo-device+application:
+                                            subset)
+  vision-camera (expo-camera: worse perf) | permissions (expo per-module model)
+
+================================================================================
+6. UPGRADE PR ONLY (interlocked versions — cannot land on 0.83)
+================================================================================
+react-native 0.85.3 (patch:regen our RN patch against 0.85.3)
+@react-native/{babel-preset,metro-config,eslint-config,typescript-config,
+  jest-preset} 0.85.3
+@react-native-community/cli + cli-platform-{android,ios} 20.1.0
+metro ^0.84.3 | jest ^29.6.3
+expo ~56.0.15 (sdk-56 dist-tag; npm latest is SDK 57 — DO NOT float) + all
+  expo-* modules to their ~56.x bundled versions
+react 19.2.3 | react-dom 19.2.3 (SDK 56 pins both)
+react-native-screens 4.25.2 (already at it pre-upgrade — just re-pin)
+react-native-pager-view 8.0.0 -> 8.0.4   [FIXED: spike said 8.0.3; 8.0.4 is out,
+  9.0.0-rc exists — take 8.0.4]
+jest.config.js preset swap + metro.transform.js transformer swap (see §4)
+
+EXPO SDK 56 GOTCHAS (verified 2026-07-13):
+- GLOBAL FETCH COLLISION (critical for us): SDK 56 installs expo/fetch as
+  globalThis.fetch by default. We ship nitro-fetch patching global fetch.
+  Decision required BEFORE upgrade day: set EXPO_PUBLIC_USE_RN_FETCH=1 to keep
+  Expo out, OR guarantee nitro-fetch applies AFTER Expo's install. Add a boot
+  assertion logging which fetch won.
+- Toolchain floors: Xcode >=26.4 (Braze 21 already forces >=26.0), iOS
+  deployment target 16.4 (was 15.1 — update Podfile platform + check user-base
+  metrics for iOS 16.0–16.3), macOS 13.4, TypeScript 6.0.3, Node >=22.11
+  effective (RN 0.84 floor). AUDIT CI RUNNER IMAGES NOW — lead time risk.
+- Hermes V1 default (see §4).
+- expo-file-system copy()/move() now async — the §5 fs migration must target
+  the new API so the upgrade PR is a version-bump only.
+- expo-router decoupled from React Navigation in SDK 56 — we don't use
+  expo-router; our direct @react-navigation v6 usage is unaffected.
+- iOS Expo modules layer rewritten (ObjC++ removed, Swift/C++ JSI interop) +
+  prebuilt XCFrameworks for complex Expo modules — retest custom Podfile
+  post_install hooks and any Expo-module interop shims.
+- @expo/ui community datetime-picker available as optional drop-in for
+  @react-native-community/datetimepicker (which remains supported at 9.1.0).
+
+================================================================================
+7. BLOCKERS & OPEN ITEMS TO VERIFY BEFORE UPGRADE DAY
+================================================================================
+HARD BLOCKER:
+- detox: wix/Detox#4963 — FabricUIManagerIdlingResources NoSuchFieldException
+  on RN 0.85.3 Android New Arch. RE-VERIFIED 2026-07-13: STILL OPEN, 0 comments,
+  no fix in any release (latest 20.51.3, 2026-05-30, no 0.85 support claimed).
+  NO detox release runs RN 0.85 Android E2E today. Options to evaluate NOW:
+  (a) contribute/patch the reflection fix ourselves, (b) shift Android smoke
+  coverage to the Appium suite for the upgrade window, (c) hold upgrade until
+  detox ships support. Track weekly.
+
+VERIFY BEFORE UPGRADE:
+- @metamask/react-native-webview fork (14.6.0): no upstream 0.85 breakage
+  reports, but upstream v15 is the new-arch line — build the fork against
+  0.85 early; decide on fork rebase.
+- Firebase #8883 (still open): pick forceStaticLinking vs
+  RCT_USE_PREBUILT_RNCORE=0 and bake it into the Podfile in the Firebase PR.
+- keyboard-controller #1470 (still open): re-test after animation stack lands.
+- react-navigation v6: works on 0.85 (JS-layer, New-Arch-safe via screens 4.x)
+  but is now TWO majors behind (v8 is latest, RN >=0.81 New-Arch-only).
+  Post-upgrade epic: v6 -> v7/v8.
+- Unknowns with no explicit 0.85 statement — smoke-build against 0.85 early:
+  notifee, rive, ble-plx, branch, segment, react-native-gzip (patched),
+  react-native-confirmation-code-field, react-native-skeleton-placeholder,
+  @tommasini/react-native-scrollable-tab-view, @veriff/react-native-sdk.
+- EARLY SPIKE BUILD: create a throwaway rn-0.85 branch that just bumps RN +
+  interlocked packages and records every native compile error — this is the
+  cheapest way to catch the long tail (the §5 "patched dead native libs"
+  cluster in particular). Refresh it after each wave merges.
+
+================================================================================
+8. VERIFIED SAFE — NO CHANGE NEEDED
+================================================================================
+react-native-render-html 6.3.4 (abandoned but pure JS)
+react-native-svg-charts 5.4.0 | qrcode-svg 6.3.21
+react-native-modal 14.0.0-rc.1 (rc.1 is latest)
+@segment/analytics-react-native 2.23.0 (keep patch) | sovran 1.1.3
+@tanstack/react-query 4 (unrelated; separate effort)
+react-native-animatable, swipe-gestures, size-matters, step-indicator,
+  url-polyfill, browser-polyfill, fade-in-image, elevated-view, jazzicon,
+  confetti(-cannon), progress (pure JS — no build risk; hygiene cleanup later)
+
+================================================================================
+PR LADDER (PRs within a wave run in parallel; each wave gates the next)
+================================================================================
+Wave 1 (NOW):    [x] absoluteFillObject codemod (commit 2f447d0044)
+                 [~] svg 15.15.5 | [~] screens 4.25.2
+                 [ ] Tier C safe chore batch | [ ] background-timer audit
+                 [ ] fs -> expo-file-system (async API)
+Wave 2:          [ ] animation stack (reanimated 4.5.1 + worklets 0.10.2 +
+                     gesture-handler 2.32.0 + babel plugin swap)
+                 [ ] get-random-values -> expo-crypto (soak!)
+                 [ ] in-app-review -> expo-store-review | video -> expo-video
+                 [ ] cookies fork + default-preference -> mmkv
+                 [ ] ContextContainer::Shared C++ fix (works on 0.83 already)
+Wave 3 (SOAK):   [ ] Nitro ecosystem PR | [ ] Firebase 25 | [ ] Sentry 8.18
+                 [ ] Braze 22 | [ ] keychain 10        (HIGH risk, max beta time)
+Wave 4:          [ ] permissions 5 + netinfo 12 | [ ] async-storage 3 (data
+                     migration test!) | [ ] native utils batch (device-info,
+                     share, view-shot, datetimepicker, blob-util, ble-plx)
+Wave 5 (LAST):   [ ] vector-icons codemod (48 files) | [ ] linear-gradient ->
+                     expo (17 files) | [ ] checkbox/material-textfield swaps
+Continuous:      [ ] weekly: detox #4963, firebase #8883, keyboard-controller
+                     #1470 | [ ] refresh 0.85 spike build after each wave
+Final:           [ ] UPGRADE PR — RN 0.85.3 + Expo SDK 56 + §6 list + jest/metro
+                     preset swaps + EXPO_PUBLIC_USE_RN_FETCH decision

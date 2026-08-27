@@ -1,0 +1,153 @@
+RIVE UPGRADE / NITRO RUNTIME MIGRATION — PLAN
+Branch: chore/rive-upgrade (cut from origin/main 56259c373d, 2026-07-29)
+Owner: Adnan (handed over via #rive-support, requested by Andre Alves)
+Driver: MUSD-1200 "[Animation] Card education — sequenced card and text
+transitions" renders with incorrect viewport on the Spend-and-Earn screen.
+Web-verified 2026-07-29 against npm registry, rive-app GitHub repos, and
+the official Rive RN migration guide.
+
+================================================================
+WHAT THE THREAD ESTABLISHED (#rive-support, 2026-07-24..29)
+================================================================
+- Rive support (Javier Oliver) reproduced the bug in isolation: it is a
+  runtime-version bug in the OLD Legacy-bundled RiveRuntime we ship via
+  rive-react-native — NOT a problem with the .riv file. Does not
+  reproduce on the new Nitro runtime.
+- Andy Bridges' summary (confirmed in thread): migrate rive-react-native
+  -> https://github.com/rive-app/rive-nitro-react-native (npm package
+  name: @rive-app/react-native); requires react-native-nitro-modules
+  >= 0.35.10 (we pin 0.35.5). Both points verified correct (sec. below).
+- Alexey Kureev: bumping legacy to 9.8.5 "seems to fix the issue" too.
+- Matthew Grainger's warning: an earlier migration attempt hit breaking
+  changes across many <Rive> call sites, several outside Money scope.
+  CONFIRMED by repo audit: 20 files import rive-react-native
+  (Money x4, Perps, Rewards x2, Onboarding x5, FoxLoader/FoxAnimation,
+  hardware-wallet x3, Carousel, SocialLeaderboard, WalletHome).
+
+================================================================
+CURRENT STATE (repo audit 2026-07-29)
+================================================================
+rive-react-native            ^9.8.0            (no yarn patch — clean)
+react-native-nitro-modules   0.35.5 (exact pin)
+.riv assets: 8+ files, ALL Metro-bundled via require() (app/animations/,
+  Perps animations/) — nothing in android res/raw or iOS bundle. Good:
+  the nitro package's preferred loading path is exactly this.
+API surface in our 20 call sites (grep counts):
+  Fit x39 | Alignment x29 | RiveRef x28 | .fireState() x14 |
+  RNRiveError x12 | artboardName x11 | stateMachineName x10 |
+  onError x9 | onPlay x8 | dataBinding x4 | onStateChanged x2 |
+  .setInputState() x2 | .play/.stop/.pause x5 | referencedAssets x1 |
+  autoplay x1
+
+================================================================
+VERIFIED FACTS (registry / GitHub)
+================================================================
+1. Nitro package = @rive-app/react-native (repo rive-nitro-react-native,
+   "Rive React Native v2"). Latest 0.4.19 (2026-07-17); 0.5.0-beta.1 on
+   next. ~7 months old, ~40 releases, very active. Still 0.x with a
+   deprecation ladder: v0.5 warns on sync APIs, v0.6 REMOVES them —
+   port to the new data-binding hooks directly, not the shims.
+2. Peer dep CONFIRMED: react-native-nitro-modules ">=0.35.10 <0.36"
+   (floor raised in 0.4.12, thread-safety release). README's "0.33.2+"
+   is stale. NOTE THE <0.36 CEILING.
+3. Requirements: RN >=0.78 New Arch, iOS >=15.1, Android SDK >=24,
+   Xcode >=16.4 — all fine on our 0.83 today and on 0.85/0.86 later.
+4. COEXISTENCE NOT SUPPORTED (official migration guide): both packages
+   bind the same RiveRuntime pod / app.rive:rive-android artifact.
+   Migration must be ONE atomic cut-over PR covering all 20 files.
+5. KEY FINDING — legacy 9.8.5 ships the IDENTICAL native runtimes as
+   nitro 0.4.19 (iOS RiveRuntime 6.21.1 + Android rive-android 11.7.2;
+   9.8.0 shipped 6.13.0/11.1.0). The 9.8.x changelog is native-runtime
+   bumps only — no wrapper API changes. So if the viewport bug lives in
+   the bundled runtime (per Rive support), 9.8.5 should fix MUSD-1200
+   WITHOUT any API migration. Alexey's hunch is credible.
+6. nitro-modules 0.35.5 -> 0.35.11 (recommended over 0.35.10): pure
+   bug-fix line (codegen nested arrays, Kotlin dispose reset, Swift
+   Promise races, ByteBuffer cursor, ThreadPool mutex). No API changes.
+7. Peer matrix for nitro-modules 0.35.10/0.35.11 — ALL GREEN:
+     nitro-fetch 1.3.3 (^0.35.2) OK | nitro-fetch 1.5.1 (^0.35.2) OK |
+     nitro-text-decoder 0.2.x (^0.35.2) OK | nitro-websockets (*) OK |
+     quick-crypto 0.7.15 (pre-Nitro, no dep) N/A
+   Consistency bonus: rive-nitro's <0.36 ceiling matches our existing
+   "nitro-modules stays 0.35.x" decision (nitro-fetch 1.5.1 ceiling).
+
+================================================================
+RECOMMENDED PLAN — TWO PHASES
+================================================================
+PHASE 1 — UNBLOCK MUSD-1200 NOW (this branch, days)
+  [ ] Bump rive-react-native ^9.8.0 -> 9.8.5 (wrapper-API-identical;
+      pulls fixed runtimes 6.21.1/11.7.2)
+  [ ] yarn install + pod install; verify Podfile.lock pins
+      RiveRuntime 6.21.1 and gradle resolves rive-android 11.7.2
+  [ ] tsc + lint + unit tests for the 20 call-site dirs
+  [ ] ON-DEVICE: card education animation (Spend-and-Earn, MUSD-1200
+      repro) on iOS + Android — confirm viewport is fixed
+  [ ] Quick smoke of highest-traffic Rive surfaces: FoxLoader,
+      onboarding animation, Perps tutorial carousel, Rewards points
+  [ ] Report result back to #rive-support (proves/disproves the
+      "runtime bug" diagnosis for the cost of a version bump)
+  Exit criteria: MUSD-1200 fixed => ship Phase 1; Phase 2 becomes
+  strategic (not fire-driven). If NOT fixed => escalate to Rive with
+  repro (contradicts their diagnosis) before attempting migration.
+
+PHASE 2 — NITRO RUNTIME MIGRATION (one atomic PR, 1-2 weeks incl. QA)
+  [ ] react-native-nitro-modules 0.35.5 -> 0.35.11
+  [ ] REMOVE rive-react-native; ADD @rive-app/react-native 0.4.19
+      (do NOT take 0.5.0-beta)
+  [ ] Port all 20 call sites. Breaking changes to apply:
+        <Rive> -> <RiveView>; source/resourceName -> file prop fed by
+          useRiveFile(require('...riv')) — our require() assets map 1:1
+        ref: RiveRef -> useRive() hybridRef
+        .fireState(sm, input) x14 -> triggerInput / useRiveTrigger
+        .setInputState(sm, name, v) x2 -> setNumberInputValue /
+          useRiveNumber etc. (state-machine arg dropped)
+        onStateChanged x2 -> event listener API
+        onError x9 / RNRiveError x12 -> new onError shape
+        Fit/Alignment enums x39/x29 -> re-import, verify enum values
+        dataBinding x4 + referencedAssets x1 -> map to new data-binding
+          hooks / referencedAssets option (verify per-site)
+      Prefer the NEW data-binding hooks over deprecated sync shims —
+      they're deleted in v0.6.
+  [ ] Verify NO call site relies on single-animation playback
+      (animationName) — NOT SUPPORTED in nitro package (state machines
+      only). Audit before committing to the port.
+  [ ] Full QA pass across all 20 surfaces, both platforms + perf/memory
+      look (new runtime, new threading model)
+
+================================================================
+INTERACTION WITH RN 0.85 UPGRADE (no conflicts, mind sequencing)
+================================================================
+- nitro-modules 0.35.11 satisfies every peer in the planned 0.85 Nitro
+  cluster (nitro-fetch 1.4.1..1.5.1 ceiling keeps ^0.35.2). Phase 2's
+  nitro bump can simply FOLD INTO the Nitro-cluster PR, or land before
+  it — both orders safe. Update rn-0.85 notes ("keep 0.35.5" ->
+  "0.35.x; 0.35.11 required if Rive Nitro lands first").
+- @rive-app/react-native peers RN >=0.78 — valid on 0.83 now and 0.85
+  later; does not gate, and is not gated by, the upgrade.
+- Phase 1 (9.8.5) supersedes the old "rive -> 9.8.3" chore-bump entry.
+
+================================================================
+RISKS
+================================================================
+[!] Nitro package is 0.x (7 months old) with an active deprecation
+    ladder — API churn risk; pin exact 0.4.19, no caret.
+[!] No coexistence => single big-bang PR touching 6+ team surfaces
+    (Money, Perps, Rewards, Onboarding, hardware-wallet, platform).
+    Expect a multi-team review like the absoluteFill split — but this
+    CANNOT be split. Get team sign-offs lined up early.
+[!] animationName/single-animation playback unsupported — must audit
+    before Phase 2 commit (open item above).
+[~] Legacy hit-test issue #372 (Android, fit != Fit.None) remains open
+    in 9.8.5 — unrelated to MUSD-1200 but worth a regression glance on
+    touch-interactive animations (Rewards, Perps carousel).
+[~] Phase 1 assumption "bug is in the runtime" comes from Rive support;
+    9.8.5 on-device test is the cheap falsifier before Phase 2 spend.
+
+================================================================
+DECISION ASK (for #rive-support / Lucas / Johann)
+================================================================
+Proposal: land Phase 1 (9.8.5) this week to unblock MUSD-1200; schedule
+Phase 2 (Nitro migration) as planned platform work — NOT rushed against
+the animation deadline, coordinated with the RN 0.85 Nitro-cluster PR.
+This answers Lucas's "hold off until Nitro migration?" with: no need —
+the runtime fix and the migration decouple cleanly.

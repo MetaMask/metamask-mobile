@@ -1,0 +1,172 @@
+TITLE: RN 0.85 Upgrade — Progress & Required-TODO Tracker
+Source: rn-085-plan.md, rn-0.85-blockers.txt (web-verification pass 2026-07-14),
+        package.json, git history (verified 2026-07-20)
+
+LEGEND: [x] merged to main   [~] in flight (branch/PR open, NOT on main yet)
+        [ ] todo (required)   [-] NOT required for 0.85 (keep / defer)
+
+DESCRIPTION
+Land every dependency bump, native fix, and code change required before the
+React Native 0.83.6 -> 0.85.3 core bump. Each item ships as its own PR and soaks
+in `main`, so the eventual RN core bump is a version-only change with minimal risk.
+
+WHY
+- 0.85 enforces New Architecture (bridgeless) + Hermes V1; several libraries fail
+  to build/link/run under it (legacy-arch APIs removed, TurboModule rewrites).
+- Landing bumps incrementally isolates regressions and gives each change soak time.
+
+SCOPE CORRECTION (2026-07-20)
+The previous "REQUIRED BLOCKERS" list over-scoped. Per rn-0.85-blockers.txt
+verification, 9 items are NOT required for 0.85 core and are moved to the
+NOT-REQUIRED section below (nitro-modules 0.36.1 is actively WRONG). Only items
+with real, evidence-backed 0.85 breakage remain under REQUIRED.
+
+
+================================================================
+DONE — MERGED TO MAIN
+================================================================
+[x] #33118  react-native-svg 15.15.5 + regenerated patch
+[x] #33121  react-native-screens 4.25.2
+[x] #33201  jest preset -> @react-native/jest-preset
+[x] #33214  ContextContainer::Shared JNI fix (MainComponentsRegistry.cpp)
+[x] #33323  react-native-get-random-values -> 2.0.0 (TurboModule; shim.js entropy path)
+
+
+================================================================
+IN FLIGHT — branch/PR open (verify CI, then merge)
+================================================================
+[~] #33192  absoluteFillObject codemod (GREEN — merge next)
+[~] #32966  reanimated 4.5.1 + worklets 0.10.1 + gesture-handler 2.32.0
+            (babel.config.js plugin swap; UNBLOCKS nitro-fetch)
+[~]         metro babel transformer swap -> @react-native/metro-babel-transformer
+            (branch chore/swap-metro-babel-transformer)
+[~]         yarn.lock dedup (branch)
+[~] #33417  react-native-blob-util 0.24.10 (+ resolutions pin; REQUIRED)
+[~]         @notifee/react-native 9.1.8 (branch chore/bump-notifee; REQUIRED — below
+            9.1.4 new-arch floor; maven workaround already in android/build.gradle)
+[~] #33347  react-native-video 6.19.2 (REQUIRED — bridgeless crash fix; floor >=6.19.1)
+[~] #33472  react-native-safe-area-context 5.8.0 (safe chore)
+[~] #33473  lottie-react-native 7.3.8 (safe chore)
+[~] #33474  @react-native-community/slider 5.2.0 (safe chore)
+[~]         @react-native-masked-view/masked-view 0.3.2 (safe chore)
+[~]         react-native-inappbrowser-reborn 3.7.1 (safe chore)
+
+
+================================================================
+REQUIRED — LEFT TODO (MUST land before 0.85; real breakage evidence)
+================================================================
+NITRO CLUSTER (one atomic PR — coupled peers; KEEP nitro-modules on 0.35.5):
+[ ] react-native-quick-base64   patched 2.2.0 -> 3.0.1   (patch drops)
+[ ] react-native-quick-crypto   patched 0.7.15 -> 1.1.5  (patch rewrite; peers base64 >=3.0.0)
+[ ] react-native-nitro-fetch    patched 1.3.3 -> >=1.4.1 (take 1.4.2/1.5.0; AFTER #32966)
+
+HIGH-RISK ISOLATES (own PRs, land early for beta soak):
+[ ] @react-native-firebase/app        ^20.5.0 -> 25.1.0
+[ ] @react-native-firebase/messaging  ^20.5.0 -> 25.1.0
+    + MANDATORY Podfile RCT_USE_PREBUILT_RNCORE=0 / forceStaticLinking (#8883; bump
+      alone does NOT fix it). Audit deprecated messaging permission APIs (v25).
+[ ] @sentry/react-native   patched 7.11.0 -> 8.18.0 (min safe 8.15.1; v7 drops
+    events on Hermes V1). Init API changed -> rework patch, align @sentry/* devDeps.
+
+NATIVE MAJORS (old version breaks on 0.85 toolchain):
+[ ] react-native-permissions   ^3.7.2 -> 5.6.0   (renamed constants, ~4 files)
+[ ] react-native-share         patched 7.3.7 -> 12.3.1 (BackHandler.removeEventListener
+    removed RN 0.77; Share.open schema change, ~17 files; patch regen)
+[ ] react-native-view-shot     4.0.3 -> 5.1.1    (Paper-only -> breaks on Fabric)
+
+REPLACEMENTS (dead/deprecated, no new-arch support):
+[ ] cookies -> @preeternal/react-native-cookie-manager 6.3.3 (replace archived pkg, ~4 files)
+[ ] @react-native-community/checkbox -> REPLACE (design-system / expo-checkbox, ~3 files;
+    flagged unsupported-on-new-arch by expo-doctor)
+
+
+================================================================
+CONDITIONAL — required ONLY if we take Expo 56 / Xcode 26 (NOT an RN 0.85 core break)
+================================================================
+[ ] @braze/react-native-sdk  patched 19.1.0 -> 22.0.0  (driver = Xcode 26 native SDK
+    floor, min-validated 21.0.0; 19.1 is already a TurboModule with no arch break.
+    placementId rename is a no-op for us. Re-check ReactModuleInfo patch. Tie to the
+    Expo 56 decision, NOT to RN 0.85 core.)
+
+
+================================================================
+NOT REQUIRED for RN 0.85 core — DO NOT bump on the critical path (keep / defer)
+================================================================
+[-] react-native-nitro-modules  0.35.5  *** DO NOT go to 0.36.1 — it BREAKS the
+    ^0.35.2 peer of nitro-fetch (all versions) + nitro-text-decoder. Keep 0.35.5
+    (0.35.10 = optional insurance only). ***
+[-] react-native-mmkv           ^3.2.0  KEEP v3 (v4 = Nitro rewrite, open build issue #1072)
+[-] react-native-vision-camera  ^4.7.3  KEEP v4 (v5 = Nitro rewrite, open #3997/#4067;
+    we use no frame processors). Spike-verify only.
+[-] react-native-keychain       ^9.0.0  KEEP 9.x (v10 unrelated to 0.85 + vault
+    cipher-migration RISK for zero benefit)
+[-] @react-native-community/netinfo            11.5.2  OPTIONAL (no 0.85 break). Defer.
+[-] @react-native-async-storage/async-storage  2.2.0   OPTIONAL (migration risk
+    overstated; default export still v2). Defer.
+[-] react-native-device-info    ^9.0.2  OPTIONAL (~87 files, API additive). Defer.
+[-] react-native-ble-plx        patched 3.4.0  KEEP PATCH (3.5.1 lacks the iOS
+    new-arch null-arg fix). Bump optional; if bumped, re-apply patch. Defer.
+[-] @react-native-community/datetimepicker  ^8.5.1  OPTIONAL. Defer.
+[-] react-native-vector-icons   10.2.0  DEPRECATED not broken. Post-upgrade codemod (~48 files).
+
+
+================================================================
+SAFE CHORES — non-blocking (batch or individual; land any time)
+================================================================
+[ ] @shopify/flash-list               -> 2.3.2
+[ ] @walletconnect/core               -> 2.23.10
+[ ] @react-native-clipboard/clipboard -> 1.16.3
+[ ] react-native-keyboard-controller  -> 1.22.0  (after #32966; issue #1470 is a
+    worklets mismatch resolved by that PR, not a keyboard-controller blocker)
+[ ] react-native-branch               -> 6.10.0
+[ ] rive-react-native                 -> 9.8.3
+[ ] react-native-aes-crypto           -> 3.3.0
+[ ] react-native-background-timer     -> 2.4.1  (dead lib; audit ~7 call sites, fallback plan)
+
+
+================================================================
+CODE CHANGES / NATIVE FIXES (not just version bumps)
+================================================================
+[x] shim.js — get-random-values 2.0.0 entropy path (via #33323)
+[x] ContextContainer::Shared C++ fix (via #33214)
+[~] metro.transform.js — @react-native/metro-babel-transformer swap (branch)
+[ ] Sentry init — rework init API + align @sentry/* devDeps (ships inside Sentry PR)
+[ ] react-native-permissions — rename constants (~4 files, ships inside permissions PR)
+[ ] Replace @react-native-community/checkbox usages (~3 files)
+[ ] Regenerate patches: share, Braze (ReactModuleInfo) — each inside its bump PR
+[ ] @segment/analytics-react-native 2.23.0 — VERIFY existing patch covers
+    trackDeepLinks bridgeless crash; patch/bump if not (real crash risk)
+
+
+================================================================
+UPGRADE PR ONLY (interlocked with RN 0.85 / Expo 56 — cannot land on 0.83)
+================================================================
+[ ] react-native                       -> 0.85.3 (regen RN patch)
+[ ] @react-native/{babel-preset,metro-config,eslint-config,typescript-config,
+    jest-preset}                       -> 0.85.3
+[ ] @react-native-community/cli + cli-platform-*  -> 20.1.0
+[ ] Expo SDK 56 (expo ~56.0.15 sdk-56 dist-tag + all expo-* to 56.x)
+[ ] react                              -> 19.2.3
+[ ] react-dom                          -> 19.2.3
+[ ] react-native-pager-view            -> 8.0.4
+[ ] Podfile — iOS deploy target + RCT_USE_PREBUILT_RNCORE decision
+
+
+================================================================
+DECISIONS / PROCESS BLOCKERS (not library bumps — track weekly)
+================================================================
+[ ] Expo 55 -> 56 decision (pulls Xcode 26 / iOS 16.4 / TS 6 floors + Braze 22)
+[ ] CI runner / Xcode audit (RN 0.85 core needs only Xcode 16.1 / iOS 15.1 / TS 5.x
+    / Node 22.11 / JDK 17; Expo 56 or Braze 22 raise it to Xcode 26)
+[ ] Global fetch collision — SDK 56 installs expo/fetch as globalThis.fetch vs our
+    nitro-fetch. Decide EXPO_PUBLIC_USE_RN_FETCH=1 vs boot ordering; add boot assertion.
+[ ] @metamask/react-native-webview fork 14.6.0 — build vs 0.85; decide rebase onto v15
+[ ] Hermes V1 validation (boot/memory/bytecode tooling/Sentry symbolication; ship ON)
+[ ] Detox #4963 — FabricUIManagerIdlingResources NoSuchFieldException on Android New
+    Arch (STILL OPEN, no release fixes it; RN pin does NOT help). Mitigate:
+    (a) disableSynchronization() + explicit waitFor on affected taps, OR
+    (b) patch Detox reflection (try/catch NoSuchFieldException -> fall back to idle), OR
+    (c) shift Android smoke to Appium for the window.
+[ ] Spike build #32888 — refresh after each wave to smoke out the patched-dead-native
+    cluster (os, i18n, sensors, fast-crypto, randombytes, material-textfield, fs,
+    default-preference) — no 0.85 evidence either way; only the spike decides.

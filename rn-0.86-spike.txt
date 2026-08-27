@@ -1,0 +1,172 @@
+RN 0.86 UPGRADE SPIKE — 0.85.3 -> 0.86.2 (+ Expo SDK 56 -> 57)
+Date: 2026-07-29. Web-verified against npm registry, react/react-native
+repo (note: facebook/react-native moved to the React Foundation org),
+expo/expo sdk-57 branch, and per-library GitHub issues/releases.
+Assumed baseline: post-0.85 state per rn-0.85-status.txt (all in-flight
+0.85 PRs landed).
+
+================================================================
+VERDICT: POSSIBLE — CHEAPEST HOP IN THE LADDER
+================================================================
+- RN 0.86.0 stable 2026-06-11; latest patch 0.86.2 (2026-07-27; no
+  0.86.1 — Maven publish issue). 0.87 already at rc.3.
+- ZERO user-facing breaking changes (second such release after 0.83).
+  Changelog has no Breaking section.
+- Upgrade Helper diff 0.85.3 -> 0.86.2: package.json version bumps ONLY.
+  No Podfile / gradle / MainApplication / AndroidManifest / Xcode
+  project changes (verified via rn-diff-purge raw diff).
+- Toolchain IDENTICAL to 0.85.3 (verified file-by-file at both tags):
+  minSdk 24, compile/targetSdk 36, AGP 8.12.0, Kotlin 2.1.20, NDK
+  27.1.12297006, min iOS 15.1 (RN) / 16.4 (Expo 57), min Xcode 16.1
+  (RN) / 26.4 (Expo 57), Node >=20.19.4 (our ^24.16 fine), JDK 17+.
+  No new CI-runner work beyond what 0.85/Expo 56 already forces.
+- React stays 19.2.3 — no React bump.
+- Expo SDK 57 is STABLE (2026-06-30), ships RN 0.86.2 exactly, and is
+  explicitly positioned by Expo as a minimal-migration "optional
+  upgrade" release. SDK 56 gets critical fixes until SDK 58 (~Oct 2026).
+
+STRATEGIC OPTION: since 0.85->0.86 is deps-only and SDK 57 is stable,
+consider RETARGETING the final upgrade PR to 0.86.2 + SDK 57 directly
+(0.83 -> 0.86 in one PR). Every pre-upgrade library PR in the 0.85
+ladder applies unchanged; we'd skip one full app-release soak cycle on
+0.85. Trade-off: larger single validation surface, and 0.85 has one
+month more community soak than 0.86. Decide before the final upgrade PR.
+
+================================================================
+1. LIBRARY BUMPS REQUIRED (only 1 hard, 1 recommended)
+================================================================
+MUST:
+  react-native-screens        4.25.2 -> 4.26.2
+    (4.26.x is the RN 0.84+/0.86 line; 4.25.2 predates 0.86. Expo 57
+     ships ~4.26.0. Watch #4151: Android SIGSEGV in librnscreens.so on
+     Fabric, mentions 0.86.)
+
+RECOMMENDED:
+  react-native-reanimated     4.5.1 -> 4.5.3 (patch; peer "0.83 - 0.86"
+    already covers 0.86 at 4.5.1, but 4.5.2+ carries fixes + widens
+    worklets peer to 0.10.x-0.11.x)
+
+UPGRADE-PR INTERLOCKED (versions, not code):
+  react-native                0.85.3 -> 0.86.2
+  @react-native/* (babel-preset, metro-config, jest-preset,
+    eslint-config, typescript-config)  -> 0.86.2
+  @react-native-community/cli 20.1.0  -> UNCHANGED
+  Metro                       -> ^0.84.2 (via RN)
+  expo + all expo-* modules   SDK 56 -> SDK 57 (expo 57.0.8, e.g.
+    expo-file-system ~57.0.1, expo-updates ~57.0.10, expo-crypto
+    ~57.0.1, expo-local-authentication ~57.0.2, expo-dev-client ~57.0.9)
+
+VERIFIED NO BUMP NEEDED (peer ranges cover 0.86 / official statements):
+  worklets 0.10.1 (peer 0.83-0.86) | gesture-handler 2.32.0 (v2.32.0
+  release notes: "Support React Native 0.86", #4166/#4160 — do NOT need
+  the 3.x major) | safe-area-context 5.8.0 | pager-view 8.0.4 |
+  svg 15.15.5 (patch does NOT need regeneration) | flash-list 2.3.2 |
+  @react-navigation v6 (peer *, no 0.86 issues) | mmkv 4.3.2 |
+  vision-camera 5.1.0 | quick-crypto 1.1.6 | quick-base64 3.0.1 |
+  sentry 8.18.0 (their #6267 closed 2026-06-16: "no SDK code changes
+  required for 0.86", CI matrix on 0.86) | firebase 25.1.0 | notifee
+  9.1.8 | permissions 5.6.0 | device-info 15.0.2 | netinfo | async-
+  storage | ble-plx 3.5.1 (Ledger path clear) | branch 6.10.0 |
+  segment 2.23.0 (re-verify patch applies) | share 12.3.1 | view-shot
+  5.1.1 | datetimepicker 9.1.0 | blob-util 0.24.10 (but see risks) |
+  keychain | aes-crypto | inappbrowser | lottie | rive | masked-view |
+  slider | clipboard | keyboard-controller 1.21.14
+
+OPTIONAL — 0.87 FUTURE-PROOFING (not required by 0.86):
+  nitro-modules 0.35.5 -> 0.36.3 + nitro-fetch 1.5.1 -> 1.5.4 (lockstep:
+  1.5.2+ peers nitro ^0.36.1). VERIFIED: nitro 0.36.2's "RN support" fix
+  is for RN 0.87+ (installJSIBindingsWithRuntime overload, mrousavy/
+  nitro#1437) — 0.35.5 is fine on 0.86. Doing the pair now de-risks the
+  0.87 hop; quick-crypto/base64/mmkv/vision-camera peers all tolerate
+  0.36.x.
+
+================================================================
+2. CODE CHANGES REQUIRED
+================================================================
+NONE. Grep-verified 2026-07-29 against our repo:
+- ViewUtil.getUIManagerType (deprecated, Android) — 0 hits
+- AppRegistry.setComponentProviderInstrumentationHook 2nd arg
+  (deprecated) — 0 hits
+- Image.getSize dimension change (now returns true source size, not
+  Fresco-downsampled) — only hits are jest mocks, no runtime usage
+
+BEHAVIORAL CHANGES — TEST, DON'T EDIT:
+- Android 15+ edge-to-edge overhaul (headline feature): fixes to
+  measureInWindow, KeyboardAvoidingView, Dimensions, StatusBar+Modal,
+  nav-bar contrast. Regression-pass all keyboard/modal/bottom-sheet
+  flows on an Android 15/16 device — measurements may legitimately
+  change out from under workarounds.
+- WebSocket Cookie header NO LONGER STRIPPED — directly relevant to our
+  Nitro WS dev routing (wss:// -> Nitro, ws:// -> RN built-in): the RN
+  built-in path now forwards cookies. Audit WS auth assumptions.
+- Views with scaleX/scaleY: 0 no longer receive touches.
+- ExceptionsManager.reportErrorsAsExceptions only disabled by explicit
+  `false`; PerformanceObserver durationThreshold defaults to 104ms —
+  check Sentry/perf tooling config.
+- Blob content provider fixed on New Arch (may CURE blob quirks).
+
+================================================================
+3. BLOCKERS & RISKS
+================================================================
+[!] Detox — SAME #1 BLOCKER AS 0.85, UNCHANGED. wix/Detox#4963 still
+    open (last activity 2026-07-14, ours). Official support README caps
+    at RN 0.84; no release supports 0.85 OR 0.86 Android New Arch E2E;
+    zero 0.86 issues filed yet. Whatever mitigation we pick for 0.85
+    (disableSynchronization/reflection patch/Appium window) carries to
+    0.86 as-is. 0.86 adds no NEW E2E risk, but doesn't fix the old one.
+[!]
+ (OPEN): Android/RN 0.86/Fabric crash in
+    SurfaceMountingManager with React Navigation stack animations —
+    hits our exact stack. Track before upgrade day; test nav
+    transitions heavily on Android.
+[!] Expo SDK 57 known issue: reanimated + Hermes V1 memory regression,
+    +25-30% RSS just from importing reanimated. Workaround: worklets
+    bundle mode. Budget a perf pass.
+[!] expo#47539: bare-project build failure on Xcode 26.3 (Swift
+    data-race). Pin CI + local to Xcode 26.4 exactly.
+[!] `expo prebuild` in SDK 57 now CLEANS android/ios by default
+    (--no-clean to opt out) — guard against anyone clobbering our
+    native dirs.
+[~] blob-util #479 (OPEN, updated 2026-07-21): NativeEventEmitter crash
+    on bridgeless cold start — retest on 0.86.
+[~] screens #4151: Android Fabric SIGSEGV reports mention 0.86.
+[~] Braze 19.1.0: unconstrained peer, likely runs, but Braze has only
+    validated 21.0.0 vs RN 0.85.3; nothing published for 0.86. The
+    deferred 21/22 bump remains post-upgrade validation hygiene.
+[~] @metamask/react-native-webview fork 14.6.0: no 0.86-specific
+    breakage found, but upstream moved to 15.0.0/16.0.0 (16 drops Paper
+    entirely). Build fork vs 0.86; fork rebase decision unchanged from
+    0.85 spike.
+[~] keyboard-controller #1470 (worklets warnings) still open — same
+    status as 0.85, no fix in 1.22.x.
+
+ADJACENT DEADLINE (not 0.86-specific, but lands in the same window):
+[!] Firebase drops CocoaPods distribution Oct 2026 (registry read-only
+    2026-12-02). RNFB SPM support "nearly production grade" (PR #8933,
+    maintainer 2026-07-22); expect a new RNFB major requiring SPM
+    migration. Budget this regardless of RN version.
+
+================================================================
+4. EFFORT ESTIMATE (relative to the 0.85 ladder)
+================================================================
+Pre-upgrade PRs:   1 (screens 4.26.2; +1 optional nitro pair)
+Code changes:      0
+Toolchain/CI:      0 new (Expo 56 floors already cover it; pin Xcode 26.4)
+Upgrade PR:        version-bump-only diff (RN 0.86.2 + @react-native/*
+                   + Expo SDK 57 + reanimated 4.5.3)
+Validation:        full regression pass, weighted to Android
+                   edge-to-edge/keyboard/modal, nav animations
+                   (reanimated #9785), WS cookie behavior, perf/memory
+                   (Hermes V1 + reanimated regression)
+Blockers carried:  Detox #4963 (unchanged from 0.85)
+
+================================================================
+KEY SOURCES
+================================================================
+reactnative.dev/blog/2026/06/11/react-native-0.86 | react/react-native
+releases v0.86.0, v0.86.2 | rn-diff-purge 0.85.3..0.86.2 |
+expo.dev/changelog/sdk-57 | expo/expo sdk-57 bundledNativeModules.json |
+swmansion compat tables + gesture-handler v2.32.0 / screens 4.26.x
+release notes | mrousavy/nitro v0.36.2 (#1437) | getsentry #6267 |
+wix/Detox#4963 | reanimated #9785 | invertase #9010 / #8933 |
+npm registry peer-dep metadata (verified per package)

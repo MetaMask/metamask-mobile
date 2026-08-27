@@ -1,0 +1,83 @@
+{
+  "suiteName": "Network List Load Testing",
+  "startTime": "2026-04-07T12:32:21.281Z",
+  "endTime": "2026-04-07T12:35:32.317Z",
+  "platform": "IOS",
+  "totalTests": 6,
+  "passedTests": 0,
+  "failedTests": 6,
+  "results": [
+    {
+      "testName": "render network list efficiently with multiple accounts and all popular networks",
+      "userProfile": "POWER_USER",
+      "platform": "IOS",
+      "totalTime": 30.66,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:32:51.957Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "render network list efficiently with multiple accounts and all popular networks",
+      "userProfile": "CORE_USER",
+      "platform": "IOS",
+      "totalTime": 30.9,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:33:23.762Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "handle network list performance with heavy token load on all popular networks",
+      "userProfile": "POWER_USER",
+      "platform": "IOS",
+      "totalTime": 30.84,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:33:55.475Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "handle network list performance with heavy token load on all popular networks",
+      "userProfile": "CORE_USER",
+      "platform": "IOS",
+      "totalTime": 30.73,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:34:26.948Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "benchmark network list with minimal load",
+      "userProfile": "POWER_USER",
+      "platform": "IOS",
+      "totalTime": 30.55,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:34:58.158Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    },
+    {
+      "testName": "benchmark network list with minimal load",
+      "userProfile": "CORE_USER",
+      "platform": "IOS",
+      "totalTime": 31.17,
+      "status": "FAILED",
+      "error": "App did not stabilize on login screen within 15000ms. This may indicate rehydration issues or state corruption.",
+      "timestamp": "2026-04-07T12:35:29.964Z",
+      "thresholds": {
+        "totalTime": 0
+      }
+    }
+  ]
+}

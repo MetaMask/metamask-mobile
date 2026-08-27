@@ -1,0 +1,51 @@
+GRADLE-COMPAT PATCH EXTRACTION FROM #34283 (created 2026-08-07)
+================================================================
+Goal: shrink the RN 0.85 upgrade PR by landing its 5 new yarn patches on
+main (0.83) first. All patches verified 2026-08-07: pure Gradle-compat
+(jcenter->mavenCentral, classifier/destinationDir->archiveClassifier/
+destinationDirectory). Main is Gradle 8.14.3 — replacements fully
+supported (5.1+/6.1+), so zero behavior change on 0.83.
+After each merge: merge main -> react-native-upgrade-0.85 (branch keeps
+identical patch files, so conflicts should resolve trivially).
+
+PR A — blob-util patch + dedupe (the meaningful one)
+----------------------------------------------------
+[x] 1. react-native-blob-util 0.19.9 patch + resolutions dedupe
+       DONE 2026-08-07: branch chore/patch-blob-util-gradle9 pushed
+       (commit d754dfec36). Verified: no nested copy in node_modules,
+       patched gradle on disk, ResetPassword canary 40/40. PR not opened.
+       - copy .yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch
+         from origin/react-native-upgrade-0.85
+       - deps: react-native-blob-util -> patch:...0.19.9
+       - resolutions: redux-persist-filesystem-storage/react-native-blob-util
+         -> patch:...  and add react-native-blob-util@npm:^0.18.0 -> patch:...
+       - yarn install; verify SINGLE blob-util entry in yarn.lock
+       - why: archiveClassifier/destinationDirectory (Gradle 9 removals);
+         dedupe fixed mass unit-test failures on upgrade branch (nested
+         unpatched copy escaped jest mock)
+       - branch: chore/patch-blob-util-gradle9
+
+PR B — trivial gradle patches batch (4 libs, one PR)
+----------------------------------------------------
+[x] 2. @react-native-cookies/cookies 6.2.1  (jcenter->mavenCentral)
+[x] 3. react-native-aes-crypto 3.0.3        (jcenter->mavenCentral)
+[x] 4. react-native-performance 6.0.0       (jcenter->mavenCentral, devDep)
+[x] 5. react-native-launch-arguments 4.0.1  (destinationDir->destinationDirectory, devDep)
+       DONE 2026-08-07: branch chore/patch-gradle9-compat-batch pushed
+       (commit 242b73f153). Verified: all 4 gradle files patched on disk
+       (zero jcenter/destinationDir refs). PR not opened.
+
+VERIFY (each PR)
+----------------
+[ ] yarn install clean, yarn.lock diff minimal (patch entries only)
+[ ] Android build via CI (main on Gradle 8.14.3 tolerates old APIs, so
+    green build = proof of backward compat)
+[ ] blob-util PR only: yarn jest a redux-persist/filesystem-storage-touching
+    suite as canary
+[ ] push branch only — do NOT open PR until Adnan says so
+[ ] after merge to main: merge main into react-native-upgrade-0.85, drop
+    the now-duplicate patch changes there
+
+NOT extractable (stay in #34283): react-native+configs 0.85.3, cli 20.1.0,
+Expo 56 tree, screens 4.26.0, pager-view 8.0.1, react/react-test-renderer
+19.2.3, babel-preset 0.85.3 patch.
