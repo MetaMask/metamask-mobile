@@ -35,6 +35,8 @@ export type PerpsMarketDetailGenerationTrigger =
   | 'network_switch'
   | 'configuration_change';
 
+export type PerpsMarketDetailMode = 'lite' | 'pro';
+
 export interface DetailGenerationIdentity {
   address?: string;
   configuredChartLibrary: string;

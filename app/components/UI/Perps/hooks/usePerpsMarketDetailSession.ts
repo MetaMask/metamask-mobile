@@ -37,6 +37,7 @@ import {
   roundedOffsets,
   type DetailGenerationIdentity,
   type PerpsMarketDetailGenerationTrigger,
+  type PerpsMarketDetailMode,
   type PerpsMarketDetailSection,
   type PerpsMarketDetailSections,
   type StreamDeliveryRevisions,
@@ -45,6 +46,7 @@ import {
 export {
   PERPS_MARKET_DETAIL_SECTION,
   type PerpsMarketDetailGenerationTrigger,
+  type PerpsMarketDetailMode,
   type PerpsMarketDetailSection,
   type PerpsMarketDetailSections,
   type PerpsMarketDetailSectionState,
@@ -65,7 +67,7 @@ const PROOF_MARKER = '[PerpsDetailLoadProof]';
 
 interface ActiveDetailSession {
   id: string;
-  mode: 'lite' | 'pro';
+  mode: PerpsMarketDetailMode;
   symbol: string;
   startedAtMs: number;
   expectedSections: PerpsMarketDetailSection[];
@@ -85,7 +87,7 @@ interface ForegroundDeliveryBaseline {
 }
 
 interface UsePerpsMarketDetailSessionOptions {
-  mode: 'lite' | 'pro';
+  mode: PerpsMarketDetailMode;
   symbol?: string;
   configuredChartLibrary: string;
   renderedChartLibrary: string;
@@ -99,7 +101,7 @@ interface UsePerpsMarketDetailSessionOptions {
   sections: PerpsMarketDetailSections;
 }
 
-interface UsePerpsMarketDetailSessionResult {
+export interface UsePerpsMarketDetailSessionResult {
   generationTrigger: PerpsMarketDetailGenerationTrigger;
   isActive: boolean;
   liveResetKey: string;

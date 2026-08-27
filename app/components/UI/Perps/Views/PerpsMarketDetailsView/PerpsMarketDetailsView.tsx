@@ -1028,8 +1028,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     sections: detailSections,
   });
 
-  // Minimum-useful detail stays separate from the section waterfall and ends
-  // only on current-symbol/current-account readiness.
   usePerpsMarketDetailLiveMeasurement({
     detailMode: 'lite',
     detailSession,

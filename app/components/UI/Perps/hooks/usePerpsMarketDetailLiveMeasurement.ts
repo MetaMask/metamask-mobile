@@ -3,20 +3,18 @@ import { TraceName } from '../../../../util/trace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../constants/perpsCufTags';
 import { buildPerpsCufStartTags } from '../utils/perpsCufTrace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
+import type { PerpsMarketDetailSectionState } from './perpsMarketDetailSessionState';
 import type {
-  PerpsMarketDetailGenerationTrigger,
-  PerpsMarketDetailSectionState,
-} from './perpsMarketDetailSessionState';
-
-interface DetailSessionForLiveMeasurement {
-  generationTrigger: PerpsMarketDetailGenerationTrigger;
-  isActive: boolean;
-  liveResetKey: string;
-}
+  PerpsMarketDetailMode,
+  UsePerpsMarketDetailSessionResult,
+} from './usePerpsMarketDetailSession';
 
 interface UsePerpsMarketDetailLiveMeasurementParams {
-  detailMode: 'lite' | 'pro';
-  detailSession: DetailSessionForLiveMeasurement;
+  detailMode: PerpsMarketDetailMode;
+  detailSession: Pick<
+    UsePerpsMarketDetailSessionResult,
+    'generationTrigger' | 'isActive' | 'liveResetKey'
+  >;
   marketSectionState: PerpsMarketDetailSectionState;
   priceSectionState: PerpsMarketDetailSectionState;
   statsSectionState: PerpsMarketDetailSectionState;
@@ -26,7 +24,8 @@ interface UsePerpsMarketDetailLiveMeasurementParams {
 
 /**
  * Owns the `PerpsMarketDetailLive` CUF trace shared by Lite and Pro market
- * detail views. Ends only on current-symbol/current-account readiness.
+ * detail views. Stays separate from the section waterfall and ends only on
+ * current-symbol/current-account readiness.
  */
 export function usePerpsMarketDetailLiveMeasurement({
   detailMode,
