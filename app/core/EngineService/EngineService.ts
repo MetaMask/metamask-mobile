@@ -177,7 +177,31 @@ export class EngineService {
     // loss, whereas a false-positive (reading empty storage for a new user) is
     // merely slower.
     const existingUserFlag = reduxState?.user?.existingUser;
-    const isNewUser = existingUserFlag === false;
+    let isNewUser = existingUserFlag === false;
+
+    // Safety check: when the Redux flag says "new user", verify that no vault
+    // actually exists on disk. The flag can desync from reality due to Redux
+    // persist corruption, incomplete persistence, or vault recovery flows.
+    // Overwriting a real vault with defaults would destroy the wallet.
+    if (isNewUser) {
+      const keyringData = await ControllerStorage.getItem(
+        'persist:KeyringController',
+      );
+      if (keyringData) {
+        try {
+          const parsed = JSON.parse(keyringData);
+          if (parsed?.vault) {
+            Logger.log(
+              `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing user to prevent data loss`,
+            );
+            isNewUser = false;
+          }
+        } catch {
+          // Corrupted data — fall back to full read to be safe.
+          isNewUser = false;
+        }
+      }
+    }
 
     // perf_fix: coldstart-v1 — For fresh installs, skip the filesystem read
     // since no controller state has been persisted yet. This avoids async I/O

@@ -709,10 +709,16 @@ describe('EngineService', () => {
         configurable: true,
       });
 
+      // No vault on disk — truly a new user
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+
       // Act
       await engineService.start();
 
-      // Assert
+      // Assert — safety check ran but found nothing, so full read was skipped
+      expect(ControllerStorage.getItem).toHaveBeenCalledWith(
+        'persist:KeyringController',
+      );
       expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
     });
 
@@ -752,6 +758,9 @@ describe('EngineService', () => {
         writable: true,
         configurable: true,
       });
+
+      // No vault on disk — truly a new user
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
 
       // Act
       await engineService.start();
@@ -824,6 +833,92 @@ describe('EngineService', () => {
       // Assert — does not defer, does not skip reads
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
       expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+    });
+
+    it('overrides isNewUser when existingUser is false but vault exists on disk (flag/storage mismatch)', async () => {
+      // Arrange — Redux flag lost but vault still on disk (e.g. Redux persist corruption)
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({ vault: 'encrypted-vault-data', keyrings: [] }),
+      );
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {
+          KeyringController: { vault: 'encrypted-vault-data' },
+        },
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — safety check found vault, so full read was performed
+      expect(ControllerStorage.getItem).toHaveBeenCalledWith(
+        'persist:KeyringController',
+      );
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'existingUser flag is false but KeyringController vault found on disk',
+        ),
+      );
+    });
+
+    it('falls back to existing-user path when KeyringController data is corrupted JSON', async () => {
+      // Arrange — existingUser false, but getItem returns unparseable data
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+        'not-valid-json{{{',
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — corrupted data → safe fallback to full read
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+    });
+
+    it('stays on new-user path when KeyringController exists on disk but has no vault', async () => {
+      // Arrange — KeyringController file exists but with no vault (e.g. partially initialized)
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({ keyrings: [], isUnlocked: false }),
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — no vault found, so new-user optimization still applies
+      expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
     });
   });
 
