@@ -3,6 +3,12 @@
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
 # It runs automatically on every commit pushed to a release branch that has an open PR.
 #
+# OTA hotfix branches (release/X.Y.Z-ota) are excluded from the push trigger. They keep
+# package.json at the previous native version (create-release-pr.yml skips the semver bump
+# for them), so a native RC cut here would build, upload to TestFlight, and announce the
+# wrong version. An OTA hotfix ships a JS bundle, not a binary — its RC is published from
+# Runway via runway-ota-rc.yml.
+#
 # Rolling builds: when a new run starts for the same release branch, any queued or
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
@@ -43,6 +49,7 @@ on:
   push:
     branches:
       - 'release/*'
+      - '!release/*-ota'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
