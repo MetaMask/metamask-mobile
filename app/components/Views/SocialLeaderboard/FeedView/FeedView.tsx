@@ -89,9 +89,10 @@ type AnimatedScrollHandler = React.ComponentProps<
 
 export interface FeedViewProps {
   /**
-   * Whether the Feed tab is the active page. The feed fetch only fires when
-   * active so simply opening the Follow Trading surface (which mounts both tab
-   * pages) doesn't request the feed until the user actually views it. Defaults
+   * Whether the Feed tab is the active page. The visible feed query only
+   * subscribes when active so the off-screen page doesn't keep a live
+   * observer. First-page data for both audiences is still prefetched when
+   * Follow Trading opens, so tapping Feed can render from cache. Defaults
    * to `true` for standalone use.
    */
   isActive?: boolean;
