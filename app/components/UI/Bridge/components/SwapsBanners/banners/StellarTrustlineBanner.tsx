@@ -57,33 +57,37 @@ export const StellarTrustlineBanner = () => {
         token: destToken.symbol,
       });
 
-  return (
-    <BannerBase
-      testID={SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE}
-      twClassName={WARNING_BANNER_TW_CLASSNAME}
-      startAccessory={
-        <Icon
-          name={IconName.Warning}
-          color={IconColor.WarningDefault}
-          size={IconSize.Lg}
-        />
-      }
-      title={strings('bridge.stellar_trustline_warning_title', {
-        token: destToken.symbol,
-      })}
-      description={description}
-      {...(isDestSameAsActiveAccount
-        ? {
-            actionButtonLabel: strings('bridge.stellar_trustline_warning_cta', {
-              token: destToken.symbol,
-            }),
-            actionButtonOnPress: handleActivatePress,
-            actionButtonProps: {
-              size: ButtonSize.Sm,
-              twClassName: 'mt-1.5',
-            },
-          }
-        : {})}
-    />
-  );
+  const bannerProps = {
+    testID: SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE,
+    twClassName: WARNING_BANNER_TW_CLASSNAME,
+    startAccessory: (
+      <Icon
+        name={IconName.Warning}
+        color={IconColor.WarningDefault}
+        size={IconSize.Lg}
+      />
+    ),
+    title: strings('bridge.stellar_trustline_warning_title', {
+      token: destToken.symbol,
+    }),
+    description,
+  };
+
+  if (isDestSameAsActiveAccount) {
+    return (
+      <BannerBase
+        {...bannerProps}
+        actionButtonLabel={strings('bridge.stellar_trustline_warning_cta', {
+          token: destToken.symbol,
+        })}
+        actionButtonOnPress={handleActivatePress}
+        actionButtonProps={{
+          size: ButtonSize.Sm,
+          twClassName: 'mt-1.5',
+        }}
+      />
+    );
+  }
+
+  return <BannerBase {...bannerProps} />;
 };

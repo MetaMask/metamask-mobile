@@ -74,9 +74,8 @@ export const useBridgeQuoteEvents = ({
       latestWarnings.push('insufficient_native_reserve');
     hasTxAlert && latestWarnings.push('tx_alert');
     isPriceImpactWarningVisible && latestWarnings.push('price_impact');
-    // @ts-expect-error - 'dest_asset_require_activate' is not a valid QuoteWarning yet
     hasDestAssetRequireActivate &&
-      latestWarnings.push('dest_asset_require_activate');
+      latestWarnings.push('dest_asset_require_activate' as QuoteWarning);
 
     return latestWarnings;
   }, [

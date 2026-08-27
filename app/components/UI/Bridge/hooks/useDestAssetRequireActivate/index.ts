@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { isCrossChain } from '@metamask/bridge-controller';
+import { isCaipChainId } from '@metamask/utils';
 import {
   selectDestAddress,
   selectDestToken,
@@ -52,6 +53,9 @@ export const useDestAssetRequireActivate = () => {
   const isDestSameAsActiveAccount = useMemo(() => {
     if (!destAccount?.id || !destToken?.chainId) {
       // Default to same-as-active so CTA path remains available while dest settles.
+      return true;
+    }
+    if (!isCaipChainId(destToken.chainId)) {
       return true;
     }
     const activeAccount = selectedInternalAccountByScope(destToken.chainId);
