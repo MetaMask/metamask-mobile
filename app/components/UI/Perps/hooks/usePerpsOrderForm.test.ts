@@ -304,6 +304,71 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('125');
     });
 
+    it('restores a pending short direction with the draft amount', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('short');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('prefers a navigation direction over a pending draft direction', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialDirection: 'long',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('long');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
     it('uses the persisted market-agnostic order type when no pending or navigation type exists', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(

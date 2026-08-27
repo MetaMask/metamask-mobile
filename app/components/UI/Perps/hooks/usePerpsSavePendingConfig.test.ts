@@ -56,6 +56,7 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      direction: 'long',
       reduceOnly: undefined,
       selectedPaymentToken: null,
     });
@@ -81,6 +82,7 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      direction: 'long',
       reduceOnly: undefined,
       selectedPaymentToken: {
         description: 'USDC',
@@ -115,6 +117,7 @@ describe('usePerpsSavePendingConfig', () => {
       limitPrice: '',
       orderType: 'market',
       reduceOnly: true,
+      direction: 'long',
       selectedPaymentToken: null,
     });
   });
@@ -134,7 +137,20 @@ describe('usePerpsSavePendingConfig', () => {
     expect(mockSavePendingTradeConfiguration).toHaveBeenCalledTimes(1);
     expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith(
       'BTC',
-      expect.objectContaining({ amount: '200' }),
+      expect.objectContaining({ amount: '200', direction: 'long' }),
+    );
+  });
+
+  it('includes a short direction in the pending configuration', () => {
+    const { unmount } = renderHook(() =>
+      usePerpsSavePendingConfig({ ...defaultOrderForm, direction: 'short' }),
+    );
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith(
+      'BTC',
+      expect.objectContaining({ direction: 'short' }),
     );
   });
 });

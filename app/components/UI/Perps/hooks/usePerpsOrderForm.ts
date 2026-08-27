@@ -104,7 +104,7 @@ export function usePerpsOrderForm(
 ): UsePerpsOrderFormReturn {
   const {
     initialAsset = 'BTC',
-    initialDirection = 'long',
+    initialDirection,
     initialAmount,
     fallbackAmount: fallbackAmountParam,
     initialLeverage,
@@ -228,6 +228,11 @@ export function usePerpsOrderForm(
       isOrderTypeAllowedOnSurface(type, perpsMode),
     ) ?? 'market';
 
+  // Navigation param > pending draft > long. Do not default the param to long
+  // or a short draft cannot restore when the route omits direction.
+  const defaultDirection =
+    initialDirection ?? pendingConfig?.direction ?? 'long';
+
   // Calculate initial balance percentage
   const parsedInitialAmount = Number.parseFloat(initialAmountValue);
   const initialMarginRequired = Number.isFinite(parsedInitialAmount)
@@ -241,7 +246,7 @@ export function usePerpsOrderForm(
   // Initialize form state with pending config if available
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
-    direction: initialDirection,
+    direction: defaultDirection,
     amount: initialAmountValue, // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
@@ -364,6 +369,10 @@ export function usePerpsOrderForm(
       ...(pendingConfig.limitPrice !== undefined && {
         limitPrice: pendingConfig.limitPrice,
       }),
+      ...(pendingConfig.direction &&
+        initialDirection === undefined && {
+          direction: pendingConfig.direction,
+        }),
     }));
     // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps

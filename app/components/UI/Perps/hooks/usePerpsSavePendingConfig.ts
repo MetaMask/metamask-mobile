@@ -24,6 +24,7 @@ export function usePerpsSavePendingConfig(
       stopLossPrice: orderForm.stopLossPrice,
       limitPrice: orderForm.limitPrice,
       orderType: orderForm.type,
+      direction: orderForm.direction,
       reduceOnly,
       selectedPaymentToken: selectedPaymentToken
         ? {
@@ -40,6 +41,7 @@ export function usePerpsSavePendingConfig(
       orderForm.stopLossPrice,
       orderForm.limitPrice,
       orderForm.type,
+      orderForm.direction,
       reduceOnly,
       selectedPaymentToken,
     ],
