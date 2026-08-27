@@ -110,6 +110,7 @@ class PerpsConnectionManagerClass {
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private initializationGeneration = 0;
+  private initializationTraceId: string | null = null;
   private disconnectPromise: Promise<void> | null = null;
   private ensureConnectedPromise: Promise<void> | null = null;
   private hasPreloaded = false;
@@ -995,6 +996,7 @@ class PerpsConnectionManagerClass {
     let initPromise: Promise<void> = Promise.resolve();
     initPromise = (async () => {
       const traceId = uuidv4();
+      this.initializationTraceId = traceId;
       const loadingSessionTraceData = getActivePerpsLoadingSessionTraceData();
       const connectionStartTime = performance.now();
       let traceData: Record<string, string | number | boolean> | undefined;
@@ -1154,14 +1156,17 @@ class PerpsConnectionManagerClass {
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
-        endTrace({
-          name: TraceName.PerpsConnectionEstablishment,
-          id: traceId,
-          data: {
-            ...loadingSessionTraceData,
-            ...traceData,
-          },
-        });
+        if (this.initializationTraceId === traceId) {
+          endTrace({
+            name: TraceName.PerpsConnectionEstablishment,
+            id: traceId,
+            data: {
+              ...loadingSessionTraceData,
+              ...traceData,
+            },
+          });
+          this.initializationTraceId = null;
+        }
         if (this.initPromise === initPromise) {
           this.initPromise = null;
         }
@@ -1197,6 +1202,14 @@ class PerpsConnectionManagerClass {
       if (this.initPromise) {
         const pendingInitialization = this.initPromise;
         this.initializationGeneration += 1;
+        if (this.initializationTraceId) {
+          endTrace({
+            name: TraceName.PerpsConnectionEstablishment,
+            id: this.initializationTraceId,
+            data: { success: false, reason: 'superseded' },
+          });
+          this.initializationTraceId = null;
+        }
         await Promise.race([
           pendingInitialization.catch(() => undefined),
           wait(PERPS_CONSTANTS.ConnectionAttemptTimeoutMs),
@@ -1289,7 +1302,11 @@ class PerpsConnectionManagerClass {
     logPerpsConnectionProof('reconnect_attempt_limit_reached', {
       max_attempts: MAX_SERIALIZED_RECONNECT_ATTEMPTS,
     });
-    if (!lastAttemptFailed && this.isConnected) {
+    if (
+      !lastAttemptFailed &&
+      this.isConnected &&
+      this.isSelectedUserContextReady()
+    ) {
       return;
     }
     throw (

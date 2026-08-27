@@ -192,6 +192,7 @@ const resetManager = (manager: unknown) => {
     connectionRefCount: number;
     initPromise: Promise<void> | null;
     initializationGeneration: number;
+    initializationTraceId: string | null;
     disconnectPromise: Promise<void> | null;
     pendingReconnectPromise: Promise<void> | null;
     pendingReconnectRequest: {
@@ -244,6 +245,7 @@ const resetManager = (manager: unknown) => {
   m.connectionRefCount = 0;
   m.initPromise = null;
   m.initializationGeneration = 0;
+  m.initializationTraceId = null;
   m.disconnectPromise = null;
   m.pendingReconnectPromise = null;
   m.pendingReconnectRequest = null;
@@ -1057,9 +1059,13 @@ describe('PerpsConnectionManager', () => {
           force: boolean;
         } | null;
         performReconnection: () => Promise<void>;
+        isSelectedUserContextReady: () => boolean;
         reconnectWithNewContext: () => Promise<void>;
       };
       manager.isConnected = true;
+      const readiness = jest
+        .spyOn(manager, 'isSelectedUserContextReady')
+        .mockReturnValue(true);
       const reconnect = jest
         .spyOn(manager, 'performReconnection')
         .mockImplementation(async () => {
@@ -1072,6 +1078,39 @@ describe('PerpsConnectionManager', () => {
       await expect(manager.reconnectWithNewContext()).resolves.toBeUndefined();
       expect(reconnect).toHaveBeenCalledTimes(3);
       reconnect.mockRestore();
+      readiness.mockRestore();
+    });
+
+    it('rejects the retry cap when the selected user is not ready', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        pendingReconnectRequest: {
+          userContextKey: string;
+          force: boolean;
+        } | null;
+        performReconnection: () => Promise<void>;
+        isSelectedUserContextReady: () => boolean;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      manager.isConnected = true;
+      const readiness = jest
+        .spyOn(manager, 'isSelectedUserContextReady')
+        .mockReturnValue(false);
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementation(async () => {
+          manager.pendingReconnectRequest = {
+            userContextKey: 'queued',
+            force: true,
+          };
+        });
+
+      await expect(manager.reconnectWithNewContext()).rejects.toThrow(
+        'Perps reconnect did not settle',
+      );
+      expect(reconnect).toHaveBeenCalledTimes(3);
+      reconnect.mockRestore();
+      readiness.mockRestore();
     });
 
     it('rejects a falsy reconnect failure', async () => {
@@ -1097,6 +1136,7 @@ describe('PerpsConnectionManager', () => {
       void PerpsConnectionManager.connect();
       await Promise.resolve();
       const manager = PerpsConnectionManager as unknown as {
+        initializationTraceId: string | null;
         performSerializedReconnection: () => Promise<void>;
         reconnectWithNewContext: (options?: {
           force?: boolean;
@@ -1113,6 +1153,7 @@ describe('PerpsConnectionManager', () => {
       await forced;
 
       expect(reconnect).toHaveBeenCalledTimes(1);
+      expect(manager.initializationTraceId).toBeNull();
       reconnect.mockRestore();
       jest.useRealTimers();
     });
