@@ -146,10 +146,23 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
 
   const fundingValueColor: TextColor = useMemo(() => {
-    const rate = liveFunding ?? parseFloat(marketStats.fundingRate ?? '');
-    if (isNaN(rate) || rate === 0) return TextColor.TextDefault;
-    if (rate > 0) return TextColor.SuccessDefault;
-    return TextColor.ErrorDefault;
+    if (liveFunding !== undefined) {
+      if (liveFunding === 0) return TextColor.TextDefault;
+      return liveFunding > 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
+    }
+
+    if (
+      !marketStats.fundingRate ||
+      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay
+    ) {
+      return TextColor.TextDefault;
+    }
+
+    return marketStats.fundingRate.startsWith('-')
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault;
   }, [liveFunding, marketStats.fundingRate]);
 
   // PriceUpdate exposes a single markPrice field. Lite's statistics card uses
