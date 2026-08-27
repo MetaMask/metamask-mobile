@@ -49,6 +49,7 @@ import FeedView from '../FeedView';
 import FeedSpotBuyAction, {
   type FeedSpotBuyActionHandle,
 } from '../FeedView/components/FeedSpotBuyAction';
+import { usePrefetchTraderFeeds } from '../FeedView/hooks/usePrefetchTraderFeeds';
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -82,6 +83,13 @@ const SocialTradersTabsView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const { track } = useSocialLeaderboardAnalytics();
+  // Wait until the visible leaderboard query settles before warming feed
+  // pages, so those requests never contend with the landing list fetch.
+  const [isLeaderboardSettled, setIsLeaderboardSettled] = useState(false);
+  const handleVisibleLeaderboardSettled = useCallback(() => {
+    setIsLeaderboardSettled(true);
+  }, []);
+  usePrefetchTraderFeeds(isLeaderboardSettled);
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
@@ -457,6 +465,7 @@ const SocialTradersTabsView: React.FC = () => {
               <TopTradersView
                 onScroll={leaderboardScrollHandler}
                 pageRef={leaderboardPageRef}
+                onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
               />
             </View>
             <View
