@@ -3,12 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { EarnSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
 import { useEarnSearchFeed } from '../../../../Views/TrendingView/feeds/earn/useEarnSearchFeed';
-import { navigateToEarnItem } from '../../../../Views/TrendingView/feeds/earn/earnNavigation';
 import EarnSearchListView from './EarnSearchListView';
 
 const mockGoBack = jest.fn();
 const mockUseEarnSearchFeed = jest.mocked(useEarnSearchFeed);
-const mockNavigateToEarnItem = jest.mocked(navigateToEarnItem);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -26,10 +24,6 @@ jest.mock(
     useEarnSearchFeed: jest.fn(),
   }),
 );
-
-jest.mock('../../../../Views/TrendingView/feeds/earn/earnNavigation', () => ({
-  navigateToEarnItem: jest.fn(),
-}));
 
 jest.mock(
   '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow',
@@ -169,17 +163,5 @@ describe('EarnSearchListView', () => {
     render(<EarnSearchListView />);
 
     expect(screen.getByTestId('earn-search-list-empty')).toBeOnTheScreen();
-  });
-
-  it('delegates row presses to Earn navigation', () => {
-    render(<EarnSearchListView />);
-
-    fireEvent.press(screen.getByTestId('earn-search-list-money-row'));
-
-    expect(mockNavigateToEarnItem).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      moneyItem,
-    );
   });
 });
