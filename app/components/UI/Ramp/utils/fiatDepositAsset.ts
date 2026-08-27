@@ -65,18 +65,21 @@ function toAssetId({ address, chainId }: FiatDepositAsset): string {
  * batches resolve too; returns `''` when nothing matches, which leaves the
  * payment-methods query idle rather than fetching a catalog nobody asked for.
  *
- * The money branch mirrors TPC's direct-mUSD asset unconditionally, because
- * that path is what MM Pay ships. Both mUSD-facing surfaces agree: the provider
- * switch in `money-account-deposit-info.tsx` pins Monad mUSD outright, and the
- * fiat entry gate in `MoneyAddMoneySheet.tsx` reads
+ * The money branch resolves Monad mUSD unconditionally, matching the surfaces
+ * that already own this answer rather than introducing a third one: the
+ * provider switch in `money-account-deposit-info.tsx` pins the same expression
+ * with no flag check, and the fiat entry gate in `MoneyAddMoneySheet.tsx` reads
  * `useMoneyAccountDepositAssetId()`, which resolves the vault-config chain with
- * a Monad fallback, so Monad holds in practice because the shipped vault config
- * is `0x8f`. The residual risk is the kill switch: with `directMoneyMusdEnabled`
- * off TPC quotes ETH mainnet on the relay path while this catalog stays
- * mUSD-scoped, so a payment method present only in the mUSD catalog would fail
- * to find a quote. The `moneyAccountDeposit` entry of
- * `confirmations_pay_fiat.assetPerTransactionType` is therefore inert in the
- * Ramps layer, while TPC still honours it on the relay path.
+ * a Monad fallback (`0x8f` in the shipped config). Being unconditional is
+ * therefore inherited from MM Pay, not new here.
+ *
+ * One consequence to know about, shared with those surfaces rather than
+ * introduced by this catalog: none of the three consults
+ * `directMoneyMusdEnabled`, so if that flag is used as a kill switch, TPC
+ * quotes ETH mainnet on the relay path while all three stay mUSD-scoped. The
+ * `moneyAccountDeposit` entry of `confirmations_pay_fiat.assetPerTransactionType`
+ * is likewise inert in the Ramps layer, as it already is on TPC's direct path.
+ * Single-sourcing this in TPC (see the TODO) resolves it for all three at once.
  *
  * TODO: `@metamask/transaction-pay-controller` owns both halves of this
  * (`FIAT_ASSET_ID_BY_TX_TYPE` and `buildCaipAssetType`) and exports neither,
