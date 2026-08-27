@@ -4,9 +4,15 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 describe('getSdkEnvironment', () => {
   const originalProcessEnv = process.env;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
     delete process.env.RAMPS_ENVIRONMENT;
+    if (originalMetamaskEnvironment === undefined) {
+      delete process.env.METAMASK_ENVIRONMENT;
+    } else {
+      process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
+    }
   });
 
   afterAll(() => {

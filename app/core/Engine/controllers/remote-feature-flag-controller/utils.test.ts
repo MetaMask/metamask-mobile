@@ -7,12 +7,24 @@ import {
   getFeatureFlagAppDistribution,
 } from './utils';
 
+const restoreEnv = (key: string, value: string | undefined) => {
+  if (value === undefined) {
+    delete process.env[key];
+  } else {
+    process.env[key] = value;
+  }
+};
+
 describe('RemoteFeatureFlagController utils', () => {
   describe('getFeatureFlagAppEnvironment', () => {
     const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
+    beforeEach(() => {
+      restoreEnv('METAMASK_ENVIRONMENT', originalMetamaskEnvironment);
+    });
+
     afterAll(() => {
-      process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
+      restoreEnv('METAMASK_ENVIRONMENT', originalMetamaskEnvironment);
     });
 
     it('returns EnvironmentType.Production when METAMASK_ENVIRONMENT is production', () => {
@@ -71,8 +83,12 @@ describe('RemoteFeatureFlagController utils', () => {
   describe('getFeatureFlagAppDistribution', () => {
     const originalMetamaskBuildType = process.env.METAMASK_BUILD_TYPE;
 
+    beforeEach(() => {
+      restoreEnv('METAMASK_BUILD_TYPE', originalMetamaskBuildType);
+    });
+
     afterAll(() => {
-      process.env.METAMASK_BUILD_TYPE = originalMetamaskBuildType;
+      restoreEnv('METAMASK_BUILD_TYPE', originalMetamaskBuildType);
     });
 
     it('returns DistributionType.Main when METAMASK_BUILD_TYPE is main', () => {
