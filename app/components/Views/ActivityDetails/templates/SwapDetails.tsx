@@ -61,6 +61,16 @@ type SwapDetailsItem = Extract<
   }
 >;
 
+function markAmountHumanReadable(
+  token: TokenAmount | undefined,
+  enabled: boolean,
+): TokenAmount | undefined {
+  if (!token || !enabled) {
+    return token;
+  }
+  return { ...token, amountIsHumanReadable: true };
+}
+
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   const rawSourceToken = item.data.sourceToken;
   const rawDestinationToken =
@@ -71,15 +81,17 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  // Non-EVM activity comes from the keyring API, whose amounts are already
-  // human-readable rather than atomic units.
+  // Keep API decimals for Swap again, but keyring amounts are already
+  // human-readable so display/fiat must not run formatUnits on them.
   const amountIsHumanReadable = isNonEvmChainId(item.chainId);
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData, {
+  const sourceToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawSourceToken, tokenData),
     amountIsHumanReadable,
-  });
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData, {
+  );
+  const destinationToken = markAmountHumanReadable(
+    enrichTokenFromApi(rawDestinationToken, tokenData),
     amountIsHumanReadable,
-  });
+  );
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,

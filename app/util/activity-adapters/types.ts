@@ -29,6 +29,11 @@ export type {
 
 export type TokenAmount = ClientUtilsTokenAmount & {
   isUnlimitedApproval?: boolean;
+  /**
+   * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
+   * not run `formatUnits` on them even when token metadata supplies decimals.
+   */
+  amountIsHumanReadable?: boolean;
 };
 
 /**

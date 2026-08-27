@@ -1513,8 +1513,8 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
       exact: false,
     });
     expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
-    // Wait until API metadata with decimals has been applied. Keyring amounts
-    // are already human-readable and must remain 1 SOL rather than 1e-9 SOL.
+    // Wait until API metadata (including decimals) has been applied. Display
+    // still reads the keyring amount directly, so 1 SOL must not become 1e-9.
     await waitFor(() => expect(isActivityTokenApiMockDone()).toBe(true));
     await act(async () => undefined);
     expect(within(amountHeader).getByText('-1 SOL')).toBeOnTheScreen();

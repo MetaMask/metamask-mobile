@@ -473,21 +473,6 @@ describe('enrichTokenFromApi', () => {
     expect(enrichTokenFromApi(token, apiData)?.decimals).toBe(0);
   });
 
-  it('does not add decimals when the source amount is already human-readable', () => {
-    const token: TokenAmount = {
-      direction: 'out',
-      amount: '1',
-      assetId: USDT_ASSET_ID,
-    };
-
-    expect(
-      enrichTokenFromApi(token, apiData, { amountIsHumanReadable: true }),
-    ).toStrictEqual({
-      ...token,
-      symbol: 'USDT',
-    });
-  });
-
   it('returns the token unchanged when it has no asset id', () => {
     const token: TokenAmount = { direction: 'out', amount: '10000' };
     expect(enrichTokenFromApi(token, apiData)).toBe(token);

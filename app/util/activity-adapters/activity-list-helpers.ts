@@ -175,7 +175,6 @@ export const getActivityValue = (item: ActivityListItem) => {
 export function enrichTokenFromApi(
   token: TokenAmount | undefined,
   dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
-  options: { amountIsHumanReadable?: boolean } = {},
 ): TokenAmount | undefined {
   if (!token?.assetId) {
     return token;
@@ -185,11 +184,7 @@ export function enrichTokenFromApi(
     return token;
   }
   const symbol = token.symbol ?? listToken.symbol;
-  // Keyring transaction amounts are already human-readable. Adding API
-  // decimals would reinterpret e.g. "1" SOL as one atomic unit (1e-9 SOL).
-  const decimals =
-    token.decimals ??
-    (options.amountIsHumanReadable ? undefined : listToken.decimals);
+  const decimals = token.decimals ?? listToken.decimals;
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
