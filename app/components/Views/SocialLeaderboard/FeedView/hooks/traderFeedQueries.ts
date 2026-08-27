@@ -76,6 +76,7 @@ export const prefetchTraderFeeds = async (
         queryKey: buildTraderFeedQueryKey(scope),
         queryFn: ({ pageParam }: { pageParam?: string }) =>
           fetchTraderFeedPage(scope, pageParam),
+        initialPageParam: undefined as string | undefined,
         retry: false,
       });
     }),
