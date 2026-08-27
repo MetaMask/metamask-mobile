@@ -13,7 +13,7 @@ interface UsePerpsMarketDetailLiveMeasurementParams {
   detailMode: PerpsMarketDetailMode;
   detailSession: Pick<
     UsePerpsMarketDetailSessionResult,
-    'generationTrigger' | 'isActive' | 'liveResetKey'
+    'generationTrigger' | 'isActive' | 'isLiveDeliveryFresh' | 'liveResetKey'
   >;
   marketSectionState: PerpsMarketDetailSectionState;
   priceSectionState: PerpsMarketDetailSectionState;
@@ -63,6 +63,11 @@ export function usePerpsMarketDetailLiveMeasurement({
       priceSectionState === 'content',
       statsSectionState === 'content',
       accountSectionState !== 'loading',
+      // Section state alone is retained across a foreground resume or context
+      // switch, so a restarted trace could end on pre-resume data. The session's
+      // generation-scoped delivery evidence is the same proof the section
+      // waterfall uses, keeping the two traces from disagreeing.
+      detailSession.isLiveDeliveryFresh,
     ],
     resetConditions: [statsSectionState === 'error'],
     resetReason: 'stats_error',

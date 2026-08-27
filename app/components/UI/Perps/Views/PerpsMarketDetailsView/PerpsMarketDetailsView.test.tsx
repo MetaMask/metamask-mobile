@@ -121,6 +121,7 @@ jest.mock('../../hooks/usePerpsMarketContext', () => ({
 const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
   generationTrigger: 'initial',
   isActive: true,
+  isLiveDeliveryFresh: true,
   liveResetKey: 'detail-session',
 }));
 jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({

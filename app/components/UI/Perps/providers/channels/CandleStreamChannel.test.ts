@@ -692,6 +692,122 @@ describe('CandleStreamChannel', () => {
     });
   });
 
+  describe('Delivery Revisions', () => {
+    const subscribeAndCaptureLiveCallbacks = () => {
+      const liveCallbacks = new Map<string, (data: CandleData) => void>();
+      mockSubscribeToCandles.mockImplementation(
+        ({ symbol, interval, callback }) => {
+          liveCallbacks.set(`${symbol}-${interval}`, callback);
+          return jest.fn();
+        },
+      );
+      return liveCallbacks;
+    };
+
+    it('advances only the delivered symbol+interval revision', () => {
+      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.FiveMinutes,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.FiveMinutes)).toBe(
+        0,
+      );
+      // The no-arg aggregate stays channel-wide for existing callers.
+      expect(channel.getDeliveryRevision()).toBe(1);
+    });
+
+    it('advances on an unthrottled update after the first', () => {
+      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
+    });
+
+    it('advances a throttled update only when the flush delivers it', () => {
+      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        throttleMs: 1000,
+      });
+      flushConnectDebounce();
+
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+      // Still pending — the revision must not lead the rendered update.
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+
+      jest.advanceTimersByTime(1000);
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
+    });
+
+    it('records the cached delivery to a new subscriber but not the prewarm that filled it', async () => {
+      mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
+      subscribeAndCaptureLiveCallbacks();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
+      );
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(0);
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+    });
+
+    it('does not record the empty delivery from clearCache', () => {
+      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+
+      channel.clearCache();
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+    });
+  });
+
   describe('Pause and Resume', () => {
     it('should not notify subscribers when paused', () => {
       const callback = jest.fn();
@@ -1754,20 +1870,6 @@ describe('CandleStreamChannel', () => {
           error: 'history down',
         }),
       );
-    });
-
-    it('swallows non-abort prewarm fetch failures', async () => {
-      mockFetchHistoricalCandles.mockRejectedValue(new Error('history down'));
-
-      await expect(
-        channel.prewarmCandles(
-          'BTC',
-          CandlePeriod.OneHour,
-          TimeDuration.OneWeek,
-        ),
-      ).resolves.toBeUndefined();
-
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
     });
 
     it('swallows non-error prewarm fetch failures', async () => {

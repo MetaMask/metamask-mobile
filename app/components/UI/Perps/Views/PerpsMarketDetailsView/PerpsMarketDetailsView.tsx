@@ -1019,6 +1019,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const detailSession = usePerpsMarketDetailSession({
     mode: 'lite',
     symbol: market?.symbol,
+    selectedCandlePeriod,
     configuredChartLibrary,
     renderedChartLibrary: chartLibrary,
     marketSource: detailMarketSource,

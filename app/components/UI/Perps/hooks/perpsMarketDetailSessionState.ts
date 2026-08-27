@@ -1,3 +1,4 @@
+import type { CandlePeriod } from '@metamask/perps-controller';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
@@ -59,6 +60,32 @@ export interface StreamDeliveryRevisions {
   prices: number;
 }
 
+/** The symbol+interval whose candle deliveries prove chart readiness. */
+export interface SelectedCandleKey {
+  symbol: string;
+  interval: CandlePeriod;
+}
+
+/**
+ * Evidence a generation must produce before retained UI state may be trusted.
+ * Held by the active session and reused by the MarketDetailLive trace so both
+ * report the same readiness.
+ */
+export interface DetailDeliveryEvidence {
+  deliveryBaselines?: StreamDeliveryRevisions;
+  connectionGenerationBaseline?: number;
+  requiresConnectionGenerationAdvance: boolean;
+  requiresCandleFreshness: boolean;
+}
+
+/** Sections the `PerpsMarketDetailLive` trace waits on. */
+export const MARKET_DETAIL_LIVE_SECTIONS = [
+  PERPS_MARKET_DETAIL_SECTION.MARKET,
+  PERPS_MARKET_DETAIL_SECTION.PRICE,
+  PERPS_MARKET_DETAIL_SECTION.STATS,
+  PERPS_MARKET_DETAIL_SECTION.ACCOUNT,
+] as const;
+
 export function resolveGenerationTrigger(
   previous: DetailGenerationIdentity | null,
   current: DetailGenerationIdentity,
@@ -102,11 +129,16 @@ export const roundedOffsets = (
     ]),
   );
 
-export const getStreamDeliveryRevisions = (): StreamDeliveryRevisions => {
+export const getStreamDeliveryRevisions = (
+  selectedCandle?: SelectedCandleKey,
+): StreamDeliveryRevisions => {
   const stream = getStreamManagerInstance();
   return {
     account: stream.account.getDeliveryRevision(),
-    candles: stream.candles.getDeliveryRevision(),
+    candles: stream.candles.getDeliveryRevision(
+      selectedCandle?.symbol,
+      selectedCandle?.interval,
+    ),
     focusedPrice: stream.focusedPrice.getDeliveryRevision(),
     orders: stream.orders.getDeliveryRevision(),
     positions: stream.positions.getDeliveryRevision(),
@@ -120,9 +152,10 @@ export function hasFreshSectionDelivery(
   connectionGenerationBaseline: number | undefined,
   requiresConnectionGenerationAdvance: boolean,
   requiresCandleFreshness: boolean,
+  selectedCandle?: SelectedCandleKey,
 ): boolean {
   if (!baseline) return true;
-  const current = getStreamDeliveryRevisions();
+  const current = getStreamDeliveryRevisions(selectedCandle);
   const generation = PerpsConnectionManager.getConnectionGeneration();
   const connectionFresh =
     connectionGenerationBaseline !== undefined &&
@@ -154,4 +187,27 @@ export function hasFreshSectionDelivery(
     default:
       return true;
   }
+}
+
+/**
+ * Whether every `PerpsMarketDetailLive` section has produced generation-scoped
+ * delivery evidence. Without a baseline (initial mount, market/mode switch,
+ * configuration change) there is nothing retained to distrust, so this is true
+ * and Live behaves exactly as before.
+ */
+export function hasFreshLiveDelivery(
+  evidence: DetailDeliveryEvidence,
+  selectedCandle?: SelectedCandleKey,
+): boolean {
+  if (!evidence.deliveryBaselines) return true;
+  return MARKET_DETAIL_LIVE_SECTIONS.every((section) =>
+    hasFreshSectionDelivery(
+      section,
+      evidence.deliveryBaselines,
+      evidence.connectionGenerationBaseline,
+      evidence.requiresConnectionGenerationAdvance,
+      evidence.requiresCandleFreshness,
+      selectedCandle,
+    ),
+  );
 }

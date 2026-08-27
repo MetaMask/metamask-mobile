@@ -125,6 +125,7 @@ let mockConnectionInitialized = true;
 const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
   generationTrigger: 'initial',
   isActive: true,
+  isLiveDeliveryFresh: true,
   liveResetKey: 'detail-session',
 }));
 

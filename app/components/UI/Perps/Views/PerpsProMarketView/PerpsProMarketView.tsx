@@ -452,6 +452,7 @@ const PerpsProMarketView = ({
   const detailSession = usePerpsMarketDetailSession({
     mode: 'pro',
     symbol: currentSymbol,
+    selectedCandlePeriod,
     configuredChartLibrary,
     renderedChartLibrary: effectiveChartLibrary,
     marketSource: resolveProMarketSource(

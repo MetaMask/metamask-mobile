@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
+import { CandlePeriod } from '@metamask/perps-controller';
 import {
   PERPS_MARKET_DETAIL_SECTION,
   usePerpsMarketDetailSession,
@@ -22,6 +23,9 @@ const mockDeliveryRevisions = {
   positions: 0,
   prices: 0,
 };
+// Per symbol-interval candle revisions, used only by tests that pass a
+// selected candle period. Without one the channel reports its aggregate.
+let mockCandleRevisionsByKey: Record<string, number> = {};
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
@@ -43,13 +47,20 @@ jest.mock('./usePerpsMarketContext', () => ({
   }),
 }));
 jest.mock('../providers/PerpsStreamManager', () => ({
-  getStreamManagerInstance: () =>
-    Object.fromEntries(
+  getStreamManagerInstance: () => ({
+    ...Object.fromEntries(
       Object.entries(mockDeliveryRevisions).map(([channel, revision]) => [
         channel,
         { getDeliveryRevision: () => revision },
       ]),
     ),
+    candles: {
+      getDeliveryRevision: (symbol?: string, interval?: string) =>
+        symbol && interval
+          ? mockCandleRevisionsByKey[`${symbol}-${interval}`] ?? 0
+          : mockDeliveryRevisions.candles,
+    },
+  }),
 }));
 jest.mock('../services/PerpsConnectionManager', () => ({
   PerpsConnectionManager: {
@@ -110,6 +121,7 @@ describe('usePerpsMarketDetailSession', () => {
     Object.keys(mockDeliveryRevisions).forEach((channel) => {
       mockDeliveryRevisions[channel as keyof typeof mockDeliveryRevisions] = 0;
     });
+    mockCandleRevisionsByKey = {};
     appState = 'active';
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
@@ -134,11 +146,13 @@ describe('usePerpsMarketDetailSession', () => {
     configurationKey?: string;
     configuredChartLibrary?: string;
     entrySource?: string;
+    selectedCandlePeriod?: CandlePeriod;
   }
 
   const renderSession = (
     sections = resolvedSections,
     surfaceTrigger: 'initial' | 'market_switch' = 'initial',
+    initialProps: Partial<SessionTestProps> = {},
   ) =>
     renderHook(
       ({
@@ -147,10 +161,12 @@ describe('usePerpsMarketDetailSession', () => {
         configurationKey = '',
         configuredChartLibrary = 'lightweight',
         entrySource,
+        selectedCandlePeriod,
       }: SessionTestProps) =>
         usePerpsMarketDetailSession({
           mode: 'lite',
           symbol,
+          selectedCandlePeriod,
           configuredChartLibrary,
           renderedChartLibrary: 'lightweight',
           marketSource: 'route',
@@ -159,8 +175,24 @@ describe('usePerpsMarketDetailSession', () => {
           entrySource,
           sections: currentSections,
         }),
-      { initialProps: { currentSections: sections, symbol: 'ETH' } },
+      {
+        initialProps: {
+          currentSections: sections,
+          symbol: 'ETH',
+          ...initialProps,
+        },
+      },
     );
+
+  const resumeFromBackground = () => {
+    act(() => {
+      appState = 'background';
+      appStateListener('background');
+      mockConnectionGeneration += 1;
+      appState = 'active';
+      appStateListener('active');
+    });
+  };
 
   it('records each resolved section once and completes the session', () => {
     renderSession();
@@ -467,6 +499,94 @@ describe('usePerpsMarketDetailSession', () => {
         data: { success: false, reason: 'generation_changed' },
       }),
     );
+  });
+
+  it('ignores candle deliveries for an interval the chart is not showing', () => {
+    const { rerender } = renderSession(resolvedSections, 'initial', {
+      selectedCandlePeriod: CandlePeriod.FiveMinutes,
+    });
+    jest.clearAllMocks();
+
+    resumeFromBackground();
+
+    mockDeliveryRevisions.focusedPrice += 1;
+    mockCandleRevisionsByKey['ETH-1h'] = 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      selectedCandlePeriod: CandlePeriod.FiveMinutes,
+    });
+
+    // market + price resolved; the 1h series is not the chart's evidence.
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(2);
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockCandleRevisionsByKey['ETH-5m'] = 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      selectedCandlePeriod: CandlePeriod.FiveMinutes,
+    });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
+  });
+
+  it('rebaselines only the candle field when the interval changes mid-session', () => {
+    mockCandleRevisionsByKey = { 'ETH-1h': 5 };
+    const { rerender } = renderSession(resolvedSections, 'initial', {
+      selectedCandlePeriod: CandlePeriod.FiveMinutes,
+    });
+    jest.clearAllMocks();
+
+    resumeFromBackground();
+
+    mockDeliveryRevisions.focusedPrice += 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      selectedCandlePeriod: CandlePeriod.OneHour,
+    });
+
+    // The 1h series already had deliveries before the switch; they are not
+    // evidence for this generation, so the chart must still wait.
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(2);
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockCandleRevisionsByKey['ETH-1h'] = 6;
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      selectedCandlePeriod: CandlePeriod.OneHour,
+    });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
+  });
+
+  it('withholds Live delivery freshness until the resumed generation delivers', () => {
+    const { result, rerender } = renderSession();
+
+    expect(result.current.isLiveDeliveryFresh).toBe(true);
+
+    resumeFromBackground();
+
+    expect(result.current.isLiveDeliveryFresh).toBe(false);
+
+    mockDeliveryRevisions.focusedPrice += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    // Account delivery is still missing for this generation.
+    expect(result.current.isLiveDeliveryFresh).toBe(false);
+
+    mockDeliveryRevisions.account += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(result.current.isLiveDeliveryFresh).toBe(true);
   });
 
   it('ends an unresolved session as a timeout with missing sections', () => {
