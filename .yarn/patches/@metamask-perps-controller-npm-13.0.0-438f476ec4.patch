@@ -1,0 +1,236 @@
+diff --git a/dist/constants/hyperLiquidConfig.cjs b/dist/constants/hyperLiquidConfig.cjs
+index 96c6436963c201e05f4837bd36f90b384eb1a7c7..1d578198ceccf59f19c054e1c90884c802aeaeb2 100644
+--- a/dist/constants/hyperLiquidConfig.cjs
++++ b/dist/constants/hyperLiquidConfig.cjs
+@@ -336,8 +336,8 @@ exports.HIP3_ASSET_MARKET_TYPES = {
+     'xyz:SOFTBANK': index_js_1.MarketCategory.Stock,
+     'xyz:KIOXIA': index_js_1.MarketCategory.Stock,
+     // xyz DEX - Pre-IPO
+-    'xyz:CBRS': index_js_1.MarketCategory.PreIpo,
+-    'xyz:SPCX': index_js_1.MarketCategory.PreIpo,
++    'xyz:CBRS': index_js_1.MarketCategory.Stock,
++    'xyz:SPCX': index_js_1.MarketCategory.Stock,
+     'xyz:IPOP': index_js_1.MarketCategory.PreIpo,
+     // xyz DEX - Indices
+     'xyz:SP500': index_js_1.MarketCategory.Index,
+diff --git a/dist/constants/hyperLiquidConfig.mjs b/dist/constants/hyperLiquidConfig.mjs
+index 6500e230f7cedc25170b04618ae3e12d83a0b828..396881b06cb95db22783f216274e430df79abb1b 100644
+--- a/dist/constants/hyperLiquidConfig.mjs
++++ b/dist/constants/hyperLiquidConfig.mjs
+@@ -326,8 +326,8 @@ export const HIP3_ASSET_MARKET_TYPES = {
+     'xyz:SOFTBANK': MarketCategory.Stock,
+     'xyz:KIOXIA': MarketCategory.Stock,
+     // xyz DEX - Pre-IPO
+-    'xyz:CBRS': MarketCategory.PreIpo,
+-    'xyz:SPCX': MarketCategory.PreIpo,
++    'xyz:CBRS': MarketCategory.Stock,
++    'xyz:SPCX': MarketCategory.Stock,
+     'xyz:IPOP': MarketCategory.PreIpo,
+     // xyz DEX - Indices
+     'xyz:SP500': MarketCategory.Index,
+diff --git a/dist/services/MarketDataService.cjs b/dist/services/MarketDataService.cjs
+index 83fc9cd4c9a93e718cd4aa8d31cdfc4c6dd7b3d2..b65fe9328632234c4413a8b46747631fb4b85ceb 100644
+--- a/dist/services/MarketDataService.cjs
++++ b/dist/services/MarketDataService.cjs
+@@ -728,9 +728,9 @@ class MarketDataService {
+                 },
+             });
+             // Prefer a separately configured atomic snapshot only for an exact,
+-            // still-current provider/network/DEX identity. A rejected snapshot has
+-            // one lexical fallback to the provider below and is not followed by a
+-            // second legacy Terminal request.
++            // still-current provider/network/DEX identity. When the snapshot cannot
++            // supply prices, retain Terminal metadata through the legacy endpoint
++            // while falling back to provider prices below.
+             let snapshotAttempted = false;
+             if (globalSnapshot &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService?.fetchGlobalSnapshot) {
+@@ -759,12 +759,10 @@ class MarketDataService {
+                     __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.logError(snapshotError, 'getMarketDataWithPrices.globalSnapshot');
+                 }
+             }
+-            // Fetch Terminal API metadata before provider data when enabled.
+-            // Terminal metadata enriches the provider result (name, keywords, tags,
+-            // categories) but never replaces live pricing / funding data.
++            // Fetch Terminal metadata before provider data when enabled, or when the
++            // configured snapshot failed and provider prices need metadata parity.
+             let terminalMetadata;
+-            if (!snapshotAttempted &&
+-                useTerminalApi &&
++            if ((useTerminalApi || snapshotAttempted) &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService) {
+                 try {
+                     const result = await __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.fetchMarkets();
+@@ -1127,7 +1125,10 @@ _MarketDataService_deps = new WeakMap(), _MarketDataService_instances = new Weak
+             ...(meta.description !== undefined && {
+                 description: meta.description,
+             }),
+-            ...(meta.marketType !== undefined && { marketType: meta.marketType }),
++            ...(meta.marketType !== undefined && {
++                marketType: meta.marketType,
++                ...(market.isNewMarket === true && { isNewMarket: false }),
++            }),
+             ...(meta.keywords !== undefined && { keywords: meta.keywords }),
+             ...(meta.tags !== undefined && { tags: meta.tags }),
+             ...(meta.categories !== undefined && { categories: meta.categories }),
+diff --git a/dist/services/MarketDataService.mjs b/dist/services/MarketDataService.mjs
+index 93a12e15b60edf1942e197da3f0ea9e84eb50aae..53f22f50dd97dd22aca1b33d7f8f040ff6e5f10b 100644
+--- a/dist/services/MarketDataService.mjs
++++ b/dist/services/MarketDataService.mjs
+@@ -725,9 +725,9 @@ export class MarketDataService {
+                 },
+             });
+             // Prefer a separately configured atomic snapshot only for an exact,
+-            // still-current provider/network/DEX identity. A rejected snapshot has
+-            // one lexical fallback to the provider below and is not followed by a
+-            // second legacy Terminal request.
++            // still-current provider/network/DEX identity. When the snapshot cannot
++            // supply prices, retain Terminal metadata through the legacy endpoint
++            // while falling back to provider prices below.
+             let snapshotAttempted = false;
+             if (globalSnapshot &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService?.fetchGlobalSnapshot) {
+@@ -756,12 +756,10 @@ export class MarketDataService {
+                     __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.logError(snapshotError, 'getMarketDataWithPrices.globalSnapshot');
+                 }
+             }
+-            // Fetch Terminal API metadata before provider data when enabled.
+-            // Terminal metadata enriches the provider result (name, keywords, tags,
+-            // categories) but never replaces live pricing / funding data.
++            // Fetch Terminal metadata before provider data when enabled, or when the
++            // configured snapshot failed and provider prices need metadata parity.
+             let terminalMetadata;
+-            if (!snapshotAttempted &&
+-                useTerminalApi &&
++            if ((useTerminalApi || snapshotAttempted) &&
+                 __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService) {
+                 try {
+                     const result = await __classPrivateFieldGet(this, _MarketDataService_deps, "f").terminalMarketService.fetchMarkets();
+@@ -1123,7 +1121,10 @@ _MarketDataService_deps = new WeakMap(), _MarketDataService_instances = new Weak
+             ...(meta.description !== undefined && {
+                 description: meta.description,
+             }),
+-            ...(meta.marketType !== undefined && { marketType: meta.marketType }),
++            ...(meta.marketType !== undefined && {
++                marketType: meta.marketType,
++                ...(market.isNewMarket === true && { isNewMarket: false }),
++            }),
+             ...(meta.keywords !== undefined && { keywords: meta.keywords }),
+             ...(meta.tags !== undefined && { tags: meta.tags }),
+             ...(meta.categories !== undefined && { categories: meta.categories }),
+diff --git a/dist/services/TerminalMarketService.cjs b/dist/services/TerminalMarketService.cjs
+index e0e1af306ade3cfcb8d5fd1971dc1876ed7a10c8..86157ed52b19881e41191ea3c80a64f145a36ed2 100644
+--- a/dist/services/TerminalMarketService.cjs
++++ b/dist/services/TerminalMarketService.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
++var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_categoryToMarketType, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TerminalMarketService = void 0;
+ const superstruct_1 = require("@metamask/superstruct");
+@@ -92,6 +92,7 @@ const TerminalPerpetualItemStruct = (0, superstruct_1.type)({
+     minimumOrderSize: (0, superstruct_1.optional)((0, superstruct_1.number)()),
+     keywords: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
+     tags: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
++    category: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.string)())),
+     categories: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.array)((0, superstruct_1.string)()))),
+     marketType: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.string)())),
+     listedAt: (0, superstruct_1.optional)((0, superstruct_1.nullable)((0, superstruct_1.union)([(0, superstruct_1.number)(), (0, superstruct_1.string)()]))),
+@@ -518,10 +519,7 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         dataSource: 'terminal-global-snapshot-mark',
+         sourceExpiresAt,
+     };
+-}, _TerminalMarketService_marketTypeFor = function _TerminalMarketService_marketTypeFor(dex, category) {
+-    if (dex === 'main') {
+-        return index_js_1.MarketCategory.CryptoCurrency;
+-    }
++}, _TerminalMarketService_categoryToMarketType = function _TerminalMarketService_categoryToMarketType(category) {
+     if (category === 'stocks') {
+         return index_js_1.MarketCategory.Stock;
+     }
+@@ -532,6 +530,11 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         return category;
+     }
+     return undefined;
++}, _TerminalMarketService_marketTypeFor = function _TerminalMarketService_marketTypeFor(dex, category) {
++    if (dex === 'main') {
++        return index_js_1.MarketCategory.CryptoCurrency;
++    }
++    return __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_categoryToMarketType).call(this, category);
+ }, _TerminalMarketService_cloneGlobalSnapshotResult = function _TerminalMarketService_cloneGlobalSnapshotResult(result) {
+     return {
+         expiresAt: result.expiresAt,
+@@ -608,6 +611,12 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+             entry.marketType =
+                 item.marketType;
+         }
++        else {
++            const fromCategory = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_categoryToMarketType).call(this, item.category);
++            if (fromCategory) {
++                entry.marketType = fromCategory;
++            }
++        }
+         if (item.listedAt !== null && item.listedAt !== undefined) {
+             const listedAtMs = typeof item.listedAt === 'number'
+                 ? item.listedAt
+diff --git a/dist/services/TerminalMarketService.mjs b/dist/services/TerminalMarketService.mjs
+index 76d974e101214201595ac34c44327408c841d7c3..447339eba7368176d7b1152f88b5aa73d499a86f 100644
+--- a/dist/services/TerminalMarketService.mjs
++++ b/dist/services/TerminalMarketService.mjs
+@@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
++var _TerminalMarketService_instances, _TerminalMarketService_deps, _TerminalMarketService_cache, _TerminalMarketService_globalSnapshotCache, _TerminalMarketService_globalSnapshotInFlight, _TerminalMarketService_globalSnapshotGeneration, _TerminalMarketService_fetchAndValidateGlobalSnapshot, _TerminalMarketService_validateAndMapGlobalSnapshot, _TerminalMarketService_validateRequestedIdentity, _TerminalMarketService_buildGlobalSnapshotUrl, _TerminalMarketService_normalizeDexes, _TerminalMarketService_createFingerprint, _TerminalMarketService_validateSnapshotMarket, _TerminalMarketService_mapSnapshotMarket, _TerminalMarketService_categoryToMarketType, _TerminalMarketService_marketTypeFor, _TerminalMarketService_cloneGlobalSnapshotResult, _TerminalMarketService_isNonNegativeSafeInteger, _TerminalMarketService_isPositiveSafeInteger, _TerminalMarketService_validateItems, _TerminalMarketService_mapToMarketInfo, _TerminalMarketService_extractMetadata;
+ import { array, boolean, is, nullable, number, object, optional, string, tuple, type, union } from "@metamask/superstruct";
+ import { bytesToHex, sha256, stringToBytes } from "@metamask/utils";
+ import { canonicalizeHyperLiquidDexes } from "../constants/hyperLiquidConfig.mjs";
+@@ -89,6 +89,7 @@ const TerminalPerpetualItemStruct = type({
+     minimumOrderSize: optional(number()),
+     keywords: optional(nullable(array(string()))),
+     tags: optional(nullable(array(string()))),
++    category: optional(nullable(string())),
+     categories: optional(nullable(array(string()))),
+     marketType: optional(nullable(string())),
+     listedAt: optional(nullable(union([number(), string()]))),
+@@ -514,10 +515,7 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         dataSource: 'terminal-global-snapshot-mark',
+         sourceExpiresAt,
+     };
+-}, _TerminalMarketService_marketTypeFor = function _TerminalMarketService_marketTypeFor(dex, category) {
+-    if (dex === 'main') {
+-        return MarketCategory.CryptoCurrency;
+-    }
++}, _TerminalMarketService_categoryToMarketType = function _TerminalMarketService_categoryToMarketType(category) {
+     if (category === 'stocks') {
+         return MarketCategory.Stock;
+     }
+@@ -528,6 +526,11 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+         return category;
+     }
+     return undefined;
++}, _TerminalMarketService_marketTypeFor = function _TerminalMarketService_marketTypeFor(dex, category) {
++    if (dex === 'main') {
++        return MarketCategory.CryptoCurrency;
++    }
++    return __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_categoryToMarketType).call(this, category);
+ }, _TerminalMarketService_cloneGlobalSnapshotResult = function _TerminalMarketService_cloneGlobalSnapshotResult(result) {
+     return {
+         expiresAt: result.expiresAt,
+@@ -604,6 +607,12 @@ _TerminalMarketService_deps = new WeakMap(), _TerminalMarketService_cache = new
+             entry.marketType =
+                 item.marketType;
+         }
++        else {
++            const fromCategory = __classPrivateFieldGet(this, _TerminalMarketService_instances, "m", _TerminalMarketService_categoryToMarketType).call(this, item.category);
++            if (fromCategory) {
++                entry.marketType = fromCategory;
++            }
++        }
+         if (item.listedAt !== null && item.listedAt !== undefined) {
+             const listedAtMs = typeof item.listedAt === 'number'
+                 ? item.listedAt
