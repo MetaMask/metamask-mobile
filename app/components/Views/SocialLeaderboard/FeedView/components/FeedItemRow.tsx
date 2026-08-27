@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { getTradeActionI18nKey } from '../../utils/tradeAction';
 import type { FeedItem } from '../types';
 import FeedSubHeaderText from './FeedSubHeaderText';
 import { formatFeedTimestamp } from '../../utils/formatters';
