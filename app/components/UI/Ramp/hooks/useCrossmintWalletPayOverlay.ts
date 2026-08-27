@@ -197,7 +197,7 @@ export default function useCrossmintWalletPayOverlay(
             orderId: effectiveOrderId,
             providerCode: quote.provider,
             walletAddress: effectiveWallet,
-            chainId: network || undefined,
+            ...(network ? { chainId: network } : {}),
           });
         }
 
