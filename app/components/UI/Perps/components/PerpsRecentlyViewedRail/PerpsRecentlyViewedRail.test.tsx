@@ -16,6 +16,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
+  typeof import('../../hooks/stream').usePerpsLivePrices
+>;
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { Text } = jest.requireActual('react-native');
   return {
@@ -52,6 +61,7 @@ describe('PerpsRecentlyViewedRail', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders nothing when there are no recently viewed markets', () => {
@@ -105,6 +115,65 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(screen.getByTestId('token-logo-BTC')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.getByText('+2.50%')).toBeOnTheScreen();
+  });
+
+  it('subscribes to live prices with the same throttle as market list rows', () => {
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[createMarket('BTC')]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+      symbols: ['BTC'],
+      throttleMs: 3000,
+    });
+  });
+
+  it('overlays live 24h percent change onto the pill', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        price: '55000.00',
+        percentChange24h: '5.77',
+      },
+    });
+
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[
+          createMarket('BTC', {
+            change24hPercent: '+1.00%',
+          }),
+        ]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('+5.77%')).toBeOnTheScreen();
+    expect(screen.queryByText('+1.00%')).toBeNull();
+  });
+
+  it('overlays a live negative 24h percent change onto the pill', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        price: '48000.00',
+        percentChange24h: '-7.84',
+      },
+    });
+
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[
+          createMarket('BTC', {
+            change24hPercent: '+1.00%',
+          }),
+        ]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('-7.84%')).toBeOnTheScreen();
   });
 
   it('strips the dex prefix from the displayed symbol', () => {
