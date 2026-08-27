@@ -24,12 +24,20 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import {
+  CRYPTO_PAY_SECTION_ID,
+  usePaySectionSourceMetrics,
+} from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { OnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
+
+const CRYPTO_ACCOUNT_TYPES = new Set<string>(
+  Object.values(OnboardingCompletedAccountType),
+);
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -70,7 +78,10 @@ export function useTransactionPayMetrics() {
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
-  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+  const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
+    ? CRYPTO_PAY_SECTION_ID
+    : source.selected;
+  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;

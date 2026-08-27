@@ -2,7 +2,6 @@ import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
   isTPSLOrder,
-  isTriggerOrderType,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -26,35 +25,6 @@ const SYNTHETIC_TP_ID_SUFFIX = '-synthetic-tp';
 const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
-
-export type OrderPlacementKind = 'immediate' | 'resting';
-
-/**
- * Identifies whether submitting an order creates an immediate fill or a
- * resting order. Trigger-market describes how the order executes after its
- * trigger fires; it still rests in the open-orders stream at placement time.
- *
- * @param orderType - Order type being submitted.
- * @returns The placement lifecycle for the order.
- */
-export const getOrderPlacementKind = (
-  orderType: OrderType | undefined,
-): OrderPlacementKind =>
-  orderType === undefined ||
-  (!isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType))
-    ? 'immediate'
-    : 'resting';
-
-/**
- * Selects the toast family for the placement lifecycle.
- *
- * @param orderType - Order type being submitted.
- * @returns The toast family whose confirmation copy matches placement.
- */
-export const getOrderManagementToastKey = (
-  orderType: OrderType | undefined,
-): 'market' | 'limit' =>
-  getOrderPlacementKind(orderType) === 'resting' ? 'limit' : 'market';
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.

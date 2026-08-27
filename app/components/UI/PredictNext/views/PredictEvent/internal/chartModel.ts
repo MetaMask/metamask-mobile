@@ -27,11 +27,22 @@ export interface PreparedChartSeries extends ChartSeries {
   endpoint: ChartEndpoint;
 }
 
+/** Plot geometry needed to reposition endpoints without regenerating paths. */
+export interface ChartPlot {
+  valueDomain: readonly [number, number];
+  plotBottom: number;
+  plotHeight: number;
+  strokeInset: number;
+  height: number;
+  fontScale: number;
+}
+
 export interface ChartModel {
   series: PreparedChartSeries[];
   displayedSeries: PreparedChartSeries[];
   timeDomain: readonly [number, number];
   plotRight: number;
+  plot: ChartPlot;
 }
 
 interface CreateChartModelOptions {
@@ -344,6 +355,47 @@ const addLabelPositions = (
   }));
 };
 
+/** Moves endpoint labels to the scrub time without regenerating series paths. */
+export const applyChartScrub = (
+  model: ChartModel,
+  scrub?: { time: number; x: number },
+): ChartModel => {
+  if (!scrub) {
+    return model.displayedSeries === model.series
+      ? model
+      : { ...model, displayedSeries: model.series };
+  }
+
+  const y = (value: number) =>
+    scaleValue(
+      value,
+      model.plot.valueDomain,
+      model.plot.plotBottom,
+      model.plot.plotHeight,
+      model.plot.strokeInset,
+    );
+  const scrubbed = model.series.flatMap((entry) => {
+    const value = sampleAtTime(entry.data, scrub.time);
+    return value === undefined
+      ? []
+      : [{ entry, x: scrub.x, y: y(value), value }];
+  });
+  const scrubEndpoints = addLabelPositions(
+    scrubbed,
+    model.plot.height,
+    model.plot.fontScale,
+  );
+
+  return {
+    ...model,
+    displayedSeries: scrubbed.map(({ entry }, index) => ({
+      ...entry,
+      endpoint: scrubEndpoints[index],
+    })),
+  };
+};
+
+/** Rebuilds d3 line/area paths. Keep this off the scrub gesture path. */
 export const createChartModel = ({
   series,
   width,
@@ -368,10 +420,11 @@ export const createChartModel = ({
   const plotBottom = height - CHART_PLOT_BOTTOM_INSET;
   const plotHeight = plotBottom - CHART_PLOT_TOP;
   const plotWidth = plotRight + continuationWidth;
+  const strokeInset = lineWidth / 2;
   const x = (time: number) =>
     -continuationWidth + ((time - minTime) / (maxTime - minTime)) * plotWidth;
   const y = (value: number) =>
-    scaleValue(value, valueDomain, plotBottom, plotHeight, lineWidth / 2);
+    scaleValue(value, valueDomain, plotBottom, plotHeight, strokeInset);
   const lineGenerator = line<ChartPoint>()
     .x((point) => x(point.time))
     .y((point) => y(point.value))
@@ -390,36 +443,33 @@ export const createChartModel = ({
     height,
     fontScale,
   );
-  const preparedSeries = drawableSeries.map((entry, index) => ({
-    ...entry,
-    linePath:
-      lineGenerator(clipToTimeDomain(entry.data, minTime, maxTime)) ?? '',
-    areaPath:
-      areaGenerator(clipToTimeDomain(entry.data, minTime, maxTime)) ?? '',
-    endpoint: endpoints[index],
-  }));
-
-  let displayedSeries = preparedSeries;
-  if (scrub) {
-    const scrubbed = preparedSeries.flatMap((entry) => {
-      const value = sampleAtTime(entry.data, scrub.time);
-      return value === undefined
-        ? []
-        : [{ entry, x: scrub.x, y: y(value), value }];
-    });
-    const scrubEndpoints = addLabelPositions(scrubbed, height, fontScale);
-    displayedSeries = scrubbed.map(({ entry }, index) => ({
+  const preparedSeries = drawableSeries.map((entry, index) => {
+    const clipped = clipToTimeDomain(entry.data, minTime, maxTime);
+    return {
       ...entry,
-      endpoint: scrubEndpoints[index],
-    }));
-  }
+      linePath: lineGenerator(clipped) ?? '',
+      areaPath: areaGenerator(clipped) ?? '',
+      endpoint: endpoints[index],
+    };
+  });
 
-  return {
-    series: preparedSeries,
-    displayedSeries,
-    timeDomain,
-    plotRight,
-  };
+  return applyChartScrub(
+    {
+      series: preparedSeries,
+      displayedSeries: preparedSeries,
+      timeDomain,
+      plotRight,
+      plot: {
+        valueDomain,
+        plotBottom,
+        plotHeight,
+        strokeInset,
+        height,
+        fontScale,
+      },
+    },
+    scrub,
+  );
 };
 
 export const getScrubAtX = ({
