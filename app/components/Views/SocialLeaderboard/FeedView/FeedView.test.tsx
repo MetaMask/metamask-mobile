@@ -99,6 +99,8 @@ const buildResult = (
     loadMore: mockLoadMore,
     error: null,
     refresh: mockRefresh,
+    // Undefined by default so rows fall back to their own render-time clock.
+    dataUpdatedAt: undefined,
     ...overrides,
   };
 };
@@ -124,6 +126,10 @@ jest.mock('../../../../util/haptics', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+// `strings` is mocked to the identity above, so the sub-minute age label
+// renders as its translation key rather than "Just now".
+const JUST_NOW_LABEL = /social_leaderboard\.feed\.just_now/;
 
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
@@ -483,12 +489,99 @@ describe('FeedView', () => {
       // the promise can settle under fake timers.
       await act(async () => {
         const refreshPromise = refreshControl.props.onRefresh();
-        jest.runAllTimers();
+        // 1s min-duration only — runAllTimers would loop the 30s age clock.
+        jest.advanceTimersByTime(1000);
         await refreshPromise;
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
+  // The age has to straddle the one-minute boundary for this to prove anything:
+  // every sub-minute value renders "Just now", so a refresh that stayed inside
+  // that range would assert the same label before and after and would pass even
+  // if the clock were ignored entirely.
+  it('updates the relative timestamp on pull-to-refresh when the payload is unchanged', async () => {
+    jest.useFakeTimers();
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const unchangedItem: FeedItem = {
+      ...spotItem,
+      timestamp: t0 - 55_000,
+    };
+    const sections: FeedSection[] = [
+      { dateLabel: 'Today', data: [unchangedItem] },
+    ];
+    mockFeedResult = buildResult({
+      items: [unchangedItem],
+      sections,
+      dataUpdatedAt: t0,
+    });
+
+    try {
+      const { rerender } = renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
+
+      const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
+      await act(async () => {
+        const refreshPromise = list.props.refreshControl.props.onRefresh();
+        jest.advanceTimersByTime(1000);
+        await refreshPromise;
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+
+      // The refetch resolved 10s later with the same payload, so React Query's
+      // structural sharing keeps `data` identical and only `dataUpdatedAt`
+      // moves. That change is what re-renders the feed in the real app.
+      jest.setSystemTime(t0 + 10_000);
+      mockFeedResult = buildResult({
+        items: [unchangedItem],
+        sections,
+        dataUpdatedAt: t0 + 10_000,
+      });
+      await act(async () => {
+        rerender(<FeedView />);
+      });
+
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
+    } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
+  it('advances relative timestamps on the shared clock without refetching', () => {
+    jest.useFakeTimers();
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const item: FeedItem = { ...spotItem, timestamp: t0 - 55_000 };
+    mockFeedResult = buildResult({
+      items: [item],
+      sections: [{ dateLabel: 'Today', data: [item] }],
+      dataUpdatedAt: t0,
+    });
+
+    try {
+      renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
+      expect(mockRefresh).not.toHaveBeenCalled();
+    } finally {
+      jest.clearAllTimers();
       jest.useRealTimers();
     }
   });

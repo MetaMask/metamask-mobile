@@ -146,6 +146,50 @@ describe('useTraderFeed', () => {
     expect(mockCall).toHaveBeenCalledTimes(1);
   });
 
+  // `dataUpdatedAt` is what consumers use both as the clock for relative ages
+  // and as the signal that busts memoized rows. It has to move on a refetch
+  // that returns an identical payload — the case where React Query's
+  // structural sharing keeps the previous `data` reference, so nothing else in
+  // the result changes.
+  it('advances dataUpdatedAt when a refetch returns a reference-identical payload', async () => {
+    // The same object every call, so structural sharing definitely kicks in.
+    const identicalPage = mockFeedResponse([mockSpotFeedItem()]);
+    mockCall.mockResolvedValue(identicalPage);
+
+    jest.useFakeTimers();
+    try {
+      const { result, rerender } = renderHook(
+        () => useTraderFeed({ audience: 'all' }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(result.current.dataUpdatedAt).toBeUndefined();
+
+      await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+      const firstFetchAt = result.current.dataUpdatedAt as number;
+      expect(typeof firstFetchAt).toBe('number');
+
+      jest.setSystemTime(firstFetchAt + 10_000);
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      // Nothing else in the result changed — the payload is the same object —
+      // so a render is needed to read the advanced instant back out.
+      act(() => {
+        rerender(undefined);
+      });
+
+      expect(result.current.dataUpdatedAt).toBeGreaterThanOrEqual(
+        firstFetchAt + 10_000,
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('resets to the first page and refetches the newest activity on refresh', async () => {
     mockCall
       .mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()], 'cursor-1'))
