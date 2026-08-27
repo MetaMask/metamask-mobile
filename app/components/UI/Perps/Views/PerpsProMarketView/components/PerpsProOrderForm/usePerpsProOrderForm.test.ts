@@ -1905,6 +1905,37 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('is disabled when protocol validation is not ready for a positive amount', () => {
+      // Arrange
+      mockOrderForm.amount = '0.0001';
+      mockValidation.isValid = false;
+      mockValidation.errors = [];
+      mockValidation.fieldIssues = [];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual([]);
+    });
+
+    it('is disabled without a notice for a filtered size-positive error', () => {
+      // Arrange
+      mockValidation.isValid = false;
+      mockValidation.errors = [
+        strings('perps.errors.orderValidation.sizePositive'),
+      ];
+      mockValidation.fieldIssues = [];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual([]);
+    });
+
     it.each([
       { orderType: 'limit', missingField: 'limitPrice' },
       { orderType: 'stop_market', missingField: 'triggerPrice' },
@@ -2334,6 +2365,7 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.limitPrice = '91000';
       mockContextValue.triggerPrice = '92000';
       mockContextValue.hasBlurredTriggerPrice = true;
+      mockValidation.isValid = false;
       mockValidation.fieldIssues = [
         {
           field: 'triggerPrice',

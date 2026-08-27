@@ -1406,12 +1406,9 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
   ]);
 
-  const hasBlockingOrderValidationError =
-    filteredErrors.length > 0 || orderValidation.fieldIssues.length > 0;
-
   const isPlaceOrderDisabled =
     !hasValidAmount ||
-    hasBlockingOrderValidationError ||
+    !orderValidation.isValid ||
     isAtCap ||
     isPlacing ||
     isMarketDataBlocking ||
