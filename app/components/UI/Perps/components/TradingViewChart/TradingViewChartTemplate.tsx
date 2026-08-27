@@ -402,6 +402,7 @@ export const createTradingViewChartTemplate = (
         window.candleCountPostTimeout = null;
         window.lastPostedCandleCount = null;
         window.CANDLE_COUNT_POST_DEBOUNCE_MS = 400;
+        window.isApplyingZoom = false;
         // Set up edge detection for loading more historical data
         window.setupEdgeDetection = function() {
             if (!window.chart) {
@@ -415,31 +416,36 @@ export const createTradingViewChartTemplate = (
                         return;
                     }
 
-                    // Debounce zoom persist so pinch/pan does not post every frame.
-                    const rawCount = range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
-                    const nextCount = Math.round(rawCount);
-                    if (Number.isFinite(nextCount)) {
-                        const clampedCount = Math.min(
-                            window.ZOOM_LIMITS.MAX_CANDLES,
-                            Math.max(window.ZOOM_LIMITS.MIN_CANDLES, nextCount)
-                        );
-                        if (window.candleCountPostTimeout) {
-                            clearTimeout(window.candleCountPostTimeout);
+                    // Inclusive range: applyZoom uses from = dataLength - N and
+                    // to = dataLength - 1 + RIGHT_MARGIN, so N = to - from - MARGIN + 1.
+                    // Skip programmatic applyZoom (initial load, interval, live follow)
+                    // so the stored count cannot ratchet on remount.
+                    if (!window.isApplyingZoom) {
+                        const rawCount = range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES + 1;
+                        const nextCount = Math.round(rawCount);
+                        if (Number.isFinite(nextCount)) {
+                            const clampedCount = Math.min(
+                                window.ZOOM_LIMITS.MAX_CANDLES,
+                                Math.max(window.ZOOM_LIMITS.MIN_CANDLES, nextCount)
+                            );
+                            if (window.candleCountPostTimeout) {
+                                clearTimeout(window.candleCountPostTimeout);
+                            }
+                            window.candleCountPostTimeout = setTimeout(function() {
+                                window.candleCountPostTimeout = null;
+                                if (clampedCount === window.lastPostedCandleCount) {
+                                    return;
+                                }
+                                window.lastPostedCandleCount = clampedCount;
+                                window.visibleCandleCount = clampedCount;
+                                if (window.ReactNativeWebView) {
+                                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                                        type: 'VISIBLE_CANDLE_COUNT',
+                                        candleCount: clampedCount,
+                                    }));
+                                }
+                            }, window.CANDLE_COUNT_POST_DEBOUNCE_MS);
                         }
-                        window.candleCountPostTimeout = setTimeout(function() {
-                            window.candleCountPostTimeout = null;
-                            if (clampedCount === window.lastPostedCandleCount) {
-                                return;
-                            }
-                            window.lastPostedCandleCount = clampedCount;
-                            window.visibleCandleCount = clampedCount;
-                            if (window.ReactNativeWebView) {
-                                window.ReactNativeWebView.postMessage(JSON.stringify({
-                                    type: 'VISIBLE_CANDLE_COUNT',
-                                    candleCount: clampedCount,
-                                }));
-                            }
-                        }, window.CANDLE_COUNT_POST_DEBOUNCE_MS);
                     }
 
                     // Check if we're near the left edge (oldest data)
@@ -1274,6 +1280,12 @@ ${createLimitOrderOverlayScript({
 
             const dataLength = window.allCandleData.length;
 
+            window.isApplyingZoom = true;
+            if (window.candleCountPostTimeout) {
+                clearTimeout(window.candleCountPostTimeout);
+                window.candleCountPostTimeout = null;
+            }
+
             try {
                 // Use setVisibleLogicalRange for consistent bar width control
                 // Logical range uses bar indices: from = first visible bar, to = last visible bar
@@ -1296,9 +1308,12 @@ ${createLimitOrderOverlayScript({
                 console.error('TradingView: Error setting visible logical range:', error);
                 // Fallback to fitContent if setVisibleLogicalRange fails
                 window.chart.timeScale().fitContent();
+            } finally {
+                window.isApplyingZoom = false;
             }
 
             window.visibleCandleCount = actualCandleCount;
+            window.lastPostedCandleCount = actualCandleCount;
 
             // Update visible price range for dynamic formatting after zoom
             window.updateVisiblePriceRange();
