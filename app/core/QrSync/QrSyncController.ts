@@ -1,10 +1,4 @@
-import {
-  AccountTreeSnapshot,
-  type AccountTreePayload,
-  type AccountWalletPayloadId,
-  type AccountGroupPayloadId,
-} from '@metamask/account-tree-controller';
-import { decodeMnemonicWords } from '@metamask/keyring-sdk';
+import { AccountTreeSnapshot } from '@metamask/account-tree-controller';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
@@ -37,6 +31,7 @@ import {
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
+import { buildTestAccountTreePayload } from './buildTestAccountTreePayload';
 import { hasTestOverrides } from '../../util/test/utils';
 import {
   addQrSyncPhaseBreadcrumb,
@@ -205,12 +200,16 @@ export class QrSyncController extends BaseController<
    *
    * Constructs a minimal `AccountTreePayload` from the test parameters and
    * stores it as `pendingPayload` so `useQrSyncImportNavigation` can continue
-   * the new-user or existing-user import path.
+   * the new-user or existing-user import path. Wallet IDs are derived from the
+   * mnemonic entropy source so `importState` can match a vault restored from
+   * the same secret.
    *
    * @throws If `HAS_TEST_OVERRIDES` is not enabled, or onboarding requires a
    * primary mnemonic and the payload omits it.
    */
-  public applyTestSyncReadyPayload(payload: QrSyncTestSyncReadyPayload): void {
+  public async applyTestSyncReadyPayload(
+    payload: QrSyncTestSyncReadyPayload,
+  ): Promise<void> {
     if (!hasTestOverrides) {
       throw new Error(
         'QrSyncController.applyTestSyncReadyPayload is only available when HAS_TEST_OVERRIDES=true',
@@ -224,28 +223,11 @@ export class QrSyncController extends BaseController<
       );
     }
 
-    const pendingPayload: AccountTreePayload = {
-      version: 1,
-      wallets: [
-        {
-          id: 'wallet:test-primary' as AccountWalletPayloadId,
-          type: 'mnemonic',
-          value: Array.from(decodeMnemonicWords(mnemonic)),
-          metadata: { name: payload.walletName ?? 'Extension Wallet' },
-          groups: [
-            {
-              id: 'wallet:test-primary/0' as AccountGroupPayloadId,
-              groupIndex: 0,
-              metadata: {
-                name: payload.accountName ?? 'Account 1',
-                pinned: false,
-                hidden: false,
-              },
-            },
-          ],
-        },
-      ],
-    };
+    const pendingPayload = await buildTestAccountTreePayload({
+      mnemonic,
+      walletName: payload.walletName,
+      accountName: payload.accountName,
+    });
 
     if (!this.getIsOnboardingCompleted()) {
       const payloadValidation =

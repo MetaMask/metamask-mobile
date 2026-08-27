@@ -32,8 +32,8 @@ describe('dispatchQrSyncCommand', () => {
     expect(mockApplyTestSyncReadyPayload).not.toHaveBeenCalled();
   });
 
-  it('applies sync-ready payload from command args', () => {
-    dispatchQrSyncCommand({
+  it('applies sync-ready payload from command args', async () => {
+    await dispatchQrSyncCommand({
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: {
         mnemonic: 'test test test test test test test test test test test junk',
@@ -49,8 +49,8 @@ describe('dispatchQrSyncCommand', () => {
     });
   });
 
-  it('defaults optional args when omitted or non-string', () => {
-    dispatchQrSyncCommand({
+  it('defaults optional args when omitted or non-string', async () => {
+    await dispatchQrSyncCommand({
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: {
         mnemonic: { not: 'a-string' },
@@ -66,12 +66,12 @@ describe('dispatchQrSyncCommand', () => {
     });
   });
 
-  it('logs when applyTestSyncReadyPayload throws', () => {
+  it('logs when applyTestSyncReadyPayload throws', async () => {
     mockApplyTestSyncReadyPayload.mockImplementationOnce(() => {
       throw new Error('apply failed');
     });
 
-    dispatchQrSyncCommand({
+    await dispatchQrSyncCommand({
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: { mnemonic: 'x' },
     });
