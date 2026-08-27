@@ -4,6 +4,7 @@ import {
   PerpsMode,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
   type AccountState,
 } from '@metamask/perps-controller';
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
@@ -23,6 +24,7 @@ import {
   selectPerpsProChartExpanded,
   selectPerpsProOrderBookExpanded,
   selectPerpsProOrderBookPosition,
+  selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
   selectPerpsProOrdersSideFilter,
@@ -1013,9 +1015,7 @@ describe('PerpsController Selectors', () => {
     it('returns the controller default when the preference is unset', () => {
       const mockState = createMockState({});
 
-      expect(selectPerpsProChartExpanded(mockState)).toBe(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
-      );
+      expect(selectPerpsProChartExpanded(mockState)).toBe(true);
     });
 
     it('falls back to the default when PerpsController state is missing', () => {
@@ -1172,6 +1172,29 @@ describe('PerpsController Selectors', () => {
         field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
         direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
       });
+    });
+  });
+
+  describe('selectPerpsOrderBookPreferences', () => {
+    it('returns persisted listed-by preferences merged over defaults', () => {
+      const mockState = createMockState({
+        orderBookPreferences: { currency: 'base', metric: 'size' },
+      });
+
+      expect(selectPerpsOrderBookPreferences(mockState)).toEqual({
+        currency: 'base',
+        metric: 'size',
+      });
+    });
+
+    it('falls back to the defaults when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsOrderBookPreferences(mockState)).toEqual(
+        DEFAULT_ORDER_BOOK_PREFERENCES,
+      );
     });
   });
 });

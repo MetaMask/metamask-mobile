@@ -38,6 +38,14 @@ jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
   }),
 }));
 
+const mockSetOrderBookPreferences = jest.fn();
+jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: mockSetOrderBookPreferences,
+  }),
+}));
+
 const mockOrderBook: OrderBookData = {
   bids: [
     {

@@ -7,9 +7,12 @@ import {
   selectMarketFilterPreferences,
   selectRecentlyViewedMarkets,
   selectPerpsMode as selectPerpsModeCore,
+  selectOrderBookPreferences as selectOrderBookPreferencesCore,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
   InitializationState,
+  type OrderBookPreferences,
   type PerpsActiveProviderMode,
   type PerpsMode,
   type ProLayoutPreferences,
@@ -221,7 +224,7 @@ const selectPerpsProLayoutPreferences = createSelector(
 /**
  * Whether the Pro inline chart is expanded. Persisted globally across markets
  * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
- * Defaults to the shared controller value; mobile does not override it.
+ * Defaults to `true` (visible) so first-time Pro users see the chart.
  */
 const selectPerpsProChartExpanded = createSelector(
   selectPerpsProLayoutPreferences,
@@ -248,6 +251,23 @@ const selectPerpsProOrderBookPosition = createSelector(
   selectPerpsProLayoutPreferences,
   (proLayoutPreferences): ProLayoutPreferences['orderBookPosition'] =>
     proLayoutPreferences.orderBookPosition,
+);
+
+/**
+ * Market-agnostic Pro order-book listed-by preferences (currency + metric).
+ * Group-by remains per-market via `selectOrderBookGrouping`.
+ */
+const selectPerpsOrderBookPreferences = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): OrderBookPreferences => {
+    try {
+      return perpsControllerState
+        ? selectOrderBookPreferencesCore(perpsControllerState)
+        : DEFAULT_ORDER_BOOK_PREFERENCES;
+    } catch {
+      return DEFAULT_ORDER_BOOK_PREFERENCES;
+    }
+  },
 );
 
 /**
@@ -331,6 +351,7 @@ export {
   selectPerpsProChartExpanded,
   selectPerpsProOrderBookExpanded,
   selectPerpsProOrderBookPosition,
+  selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
   selectPerpsProOrdersSideFilter,
