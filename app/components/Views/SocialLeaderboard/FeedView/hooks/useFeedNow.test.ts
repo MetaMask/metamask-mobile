@@ -68,7 +68,7 @@ describe('useFeedNow', () => {
     expect(result.current).toBe(t0 + FEED_NOW_TICK_MS);
   });
 
-  it('snaps now when dataUpdatedAt changes', () => {
+  it('snaps now on the same render when dataUpdatedAt changes', () => {
     const { result, rerender } = renderHook(
       ({ dataUpdatedAt }: { dataUpdatedAt: number }) =>
         useFeedNow({ enabled: true, dataUpdatedAt }),
@@ -83,7 +83,7 @@ describe('useFeedNow', () => {
     expect(result.current).toBe(t0 + 10_000);
   });
 
-  it('snaps now when the Feed tab becomes enabled', () => {
+  it('snaps now on the same render when the Feed tab becomes enabled', () => {
     const { result, rerender } = renderHook(
       ({ enabled }: { enabled: boolean }) =>
         useFeedNow({ enabled, dataUpdatedAt: t0 }),
@@ -98,7 +98,7 @@ describe('useFeedNow', () => {
     expect(result.current).toBe(t0 + 600_000);
   });
 
-  it('snaps now when the app returns to the foreground', () => {
+  it('snaps now on the same render when the app returns to the foreground', () => {
     appState = 'background';
     const { result } = renderHook(() =>
       useFeedNow({ enabled: true, dataUpdatedAt: t0 }),

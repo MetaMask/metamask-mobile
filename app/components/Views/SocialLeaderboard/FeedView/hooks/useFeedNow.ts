@@ -5,6 +5,9 @@ import useInterval from '../../../../hooks/useInterval';
 /** How often visible feed rows re-read the wall clock for relative ages. */
 export const FEED_NOW_TICK_MS = 30_000;
 
+const isForegroundAppState = (appState: AppStateStatus): boolean =>
+  appState !== 'background' && appState !== 'inactive';
+
 export interface UseFeedNowOptions {
   /**
    * When false, the interval is paused (Feed tab hidden). Resuming snaps
@@ -18,6 +21,11 @@ export interface UseFeedNowOptions {
   dataUpdatedAt?: number;
 }
 
+interface ClockSnap {
+  isTicking: boolean;
+  dataUpdatedAt: number | undefined;
+}
+
 /**
  * Shared wall-clock for feed relative timestamps. One list-level tick, not a
  * timer per row: `FeedItemRow` already takes `now` and is memoized inside a
@@ -26,6 +34,10 @@ export interface UseFeedNowOptions {
  * Ticks only while `enabled` and the app is not backgrounded or inactive
  * (`unknown` still ticks — that is RN's state before the first AppState event).
  * Trade timestamps are immutable; only `now - timestamp` changes.
+ *
+ * Snaps `now` during render when ticking starts or `dataUpdatedAt` changes so
+ * the first painted frame is already current (the pager keeps this hook
+ * mounted while the Leaderboard tab is showing).
  *
  * @param options - Gate and optional fetch-instant snap.
  * @returns Current wall-clock milliseconds.
@@ -38,23 +50,29 @@ export const useFeedNow = ({
     () => AppState.currentState,
   );
   const [now, setNow] = useState(() => Date.now());
+  const isTicking = enabled && isForegroundAppState(appState);
+  const [lastSnap, setLastSnap] = useState<ClockSnap>(() => ({
+    isTicking,
+    dataUpdatedAt,
+  }));
 
-  // RN reports `unknown` before the first AppState event (including in tests).
-  // Pause only when we know the UI is not visible.
-  const isTicking =
-    enabled && appState !== 'background' && appState !== 'inactive';
+  // Adjust during render so tab-switch / resume / refetch does not paint one
+  // frame of ages measured from the frozen mount-time clock.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  if (
+    isTicking !== lastSnap.isTicking ||
+    (isTicking && dataUpdatedAt !== lastSnap.dataUpdatedAt)
+  ) {
+    setLastSnap({ isTicking, dataUpdatedAt });
+    if (isTicking) {
+      setNow(Date.now());
+    }
+  }
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', setAppState);
     return () => subscription.remove();
   }, []);
-
-  useEffect(() => {
-    if (!isTicking) {
-      return;
-    }
-    setNow(Date.now());
-  }, [isTicking, dataUpdatedAt]);
 
   useInterval(
     () => {
