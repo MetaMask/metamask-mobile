@@ -204,7 +204,10 @@ export function usePerpsOrderExecution(
       // stream (no exchange fill-wait time) via
       // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
       // overlapping orders never collide.
-      if (isStrategyOrderType(orderParams.orderType)) {
+      if (
+        isStrategyOrderType(orderParams.orderType) &&
+        orderParams.orderType !== 'scale'
+      ) {
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.
@@ -213,6 +216,7 @@ export function usePerpsOrderExecution(
       }
 
       const isRestingOrder =
+        orderParams.orderType === 'scale' ||
         isLimitExecutionOrderType(orderParams.orderType) ||
         isTriggerOrderType(orderParams.orderType);
       const isMarketOrder = !isRestingOrder;

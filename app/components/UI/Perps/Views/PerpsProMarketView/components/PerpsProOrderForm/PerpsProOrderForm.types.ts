@@ -73,6 +73,27 @@ export interface PerpsProTwapModel {
   onRandomizeChange: (value: boolean) => void;
 }
 
+export interface PerpsProScaleOrderModel {
+  startPrice: string;
+  endPrice: string;
+  totalOrders: string;
+  sizeSkew: string;
+  onStartPriceChange: (value: string) => void;
+  onStartPriceBlur: () => void;
+  onEndPriceChange: (value: string) => void;
+  onEndPriceBlur: () => void;
+  onTotalOrdersChange: (value: string) => void;
+  onTotalOrdersBlur: () => void;
+  onSizeSkewChange: (value: string) => void;
+  onSizeSkewBlur: () => void;
+  onSizeSkewInfoPress: () => void;
+  onPreviewToggle: (isExpanded: boolean) => void;
+  rungs: ScaleOrderRung[];
+  orderValue: string;
+  marginRequired: string;
+  fees: string;
+}
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;

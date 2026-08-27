@@ -15,6 +15,7 @@ import {
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
+  selectPerpsMobileScaleEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
@@ -27,7 +28,6 @@ const mockUseIsPerpsProModeActive = jest.fn();
 const mockUsePerpsProOrderForm = jest.fn();
 const mockOrderTypeBottomSheet = jest.fn();
 const mockUsePerpsScaleOrderSupport = jest.fn();
-const mockUsePerpsProOrderForm = jest.fn();
 const mockCheckScaleOrderSupport = jest.fn();
 
 jest.mock('react-redux', () => ({
@@ -144,6 +144,11 @@ jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
   },
 }));
 
+jest.mock('./PerpsProOrderForm/usePerpsScaleOrderSupport', () => ({
+  usePerpsScaleOrderSupport: (params: unknown) =>
+    mockUsePerpsScaleOrderSupport(params),
+}));
+
 // Lightweight sheet mocks that surface their key callbacks for wiring assertions.
 jest.mock('../../../components/PerpsOrderTypeBottomSheet', () => {
   const { Pressable: P } = jest.requireActual('react-native');
@@ -239,6 +244,8 @@ describe('PerpsProOrderFormPanel', () => {
     selectorValues.clear();
     selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, true);
     selectorValues.set(selectPerpsProTwapEnabledFlag, true);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, true);
+    selectorValues.set(selectPerpsProvider, 'hyperliquid');
     mockUseSelector.mockImplementation((selector: unknown) =>
       selectorValues.get(selector),
     );
@@ -305,6 +312,9 @@ describe('PerpsProOrderFormPanel', () => {
         isTwapEnabled: true,
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        checkScaleOrderSupport: mockCheckScaleOrderSupport,
       }),
     );
   });
@@ -522,6 +532,7 @@ describe('PerpsProOrderFormPanel', () => {
           'take_profit_limit',
           'take_profit_market',
           'twap',
+          'scale',
         ],
         title: 'Choose order type',
       }),
@@ -549,7 +560,7 @@ describe('PerpsProOrderFormPanel', () => {
 
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        availableOrderTypes: ['market', 'limit', 'twap'],
+        availableOrderTypes: ['market', 'limit', 'twap', 'scale'],
       }),
     );
   });
@@ -577,6 +588,7 @@ describe('PerpsProOrderFormPanel', () => {
           'stop_market',
           'take_profit_limit',
           'take_profit_market',
+          'scale',
         ],
       }),
     );

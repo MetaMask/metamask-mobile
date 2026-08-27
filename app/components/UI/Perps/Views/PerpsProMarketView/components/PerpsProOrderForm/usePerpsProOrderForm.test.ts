@@ -11,7 +11,6 @@ import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAn
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
-import { strings } from '../../../../../../../../locales/i18n';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -149,6 +148,9 @@ let mockMinimumOrderAmount = 10;
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
 const creationFailed = jest.fn(() => ({ id: 'failed' }));
+const limitSubmitted = jest.fn(() => ({ id: 'limit-submitted' }));
+const limitConfirmed = jest.fn(() => ({ id: 'limit-confirmed' }));
+const limitCreationFailed = jest.fn(() => ({ id: 'limit-failed' }));
 const twapSubmitted = jest.fn(() => ({ id: 'twap-submitted' }));
 const twapConfirmed = jest.fn(() => ({ id: 'twap-confirmed' }));
 const twapCreationFailed = jest.fn(() => ({ id: 'twap-failed' }));
@@ -165,7 +167,11 @@ const limitPriceRequired = { id: 'limitPriceRequired' };
 const mockPerpsToastOptions = {
   orderManagement: {
     market: { submitted, confirmed, creationFailed },
-    limit: { submitted, confirmed, creationFailed },
+    limit: {
+      submitted: limitSubmitted,
+      confirmed: limitConfirmed,
+      creationFailed: limitCreationFailed,
+    },
     twap: {
       submitted: twapSubmitted,
       confirmed: twapConfirmed,
@@ -205,7 +211,19 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
-  usePerpsOrderValidation: () => mockValidation,
+  usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
+    mockOrderValidationParams = params;
+    if (mockValidateCalculatedMargin && params) {
+      const hasInsufficientBalance =
+        Number(params.marginRequired) > params.spendableBalance;
+      return {
+        ...mockValidation,
+        isValid: !hasInsufficientBalance,
+        errors: hasInsufficientBalance ? [mockInsufficientFundsMessage] : [],
+      };
+    }
+    return mockValidation;
+  },
   usePerpsToasts: () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
@@ -313,11 +331,18 @@ const market = {
   providerId: 'hyperliquid',
 } as PerpsMarketData;
 
+interface RenderProFormScaleOptions {
+  enabled?: boolean;
+  pending?: boolean;
+  checkSupport?: () => Promise<boolean>;
+}
+
 const renderProForm = (
   isTriggeredOrdersEnabled = true,
   isTwapEnabled = true,
   resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
   isTwapAvailabilityPending = false,
+  scaleOptions: RenderProFormScaleOptions = {},
 ) =>
   renderHook(() =>
     usePerpsProOrderForm({
@@ -326,6 +351,10 @@ const renderProForm = (
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
+      isScaleOrdersEnabled: scaleOptions.enabled ?? true,
+      isScaleOrderSupportPending: scaleOptions.pending ?? false,
+      checkScaleOrderSupport:
+        scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true),
     }),
   );
 
@@ -905,6 +934,9 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -981,6 +1013,9 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1720,7 +1755,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(marketCreationFailed).toHaveBeenCalled();
+      expect(creationFailed).toHaveBeenCalled();
     });
   });
 
@@ -1971,7 +2006,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
-      expect(marketCreationFailed).not.toHaveBeenCalled();
+      expect(creationFailed).not.toHaveBeenCalled();
     });
 
     it('does not submit a duplicate Scale request while placement is pending', async () => {
@@ -2106,7 +2141,7 @@ describe('usePerpsProOrderForm', () => {
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+            'scale_validation_error_shown',
           [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
         }),
       );
@@ -2291,11 +2326,9 @@ describe('usePerpsProOrderForm', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
-          [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
-            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
-          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
+          [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'size_skew',
+          scale_skew: 2.35,
         }),
       );
     });
@@ -2311,8 +2344,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_PREVIEW_EXPANDED,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_preview_expanded',
         }),
       );
     });
@@ -2331,12 +2363,10 @@ describe('usePerpsProOrderForm', () => {
     it('preserves a supported Scale draft while capability refresh is pending', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm(
-        true,
-        true,
-        jest.fn().mockResolvedValue(true),
-        true,
-      );
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: true,
+        pending: true,
+      });
       configureScaleOrder(result);
 
       expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
@@ -2347,12 +2377,11 @@ describe('usePerpsProOrderForm', () => {
       const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm(
-        true,
-        false,
-        checkScaleOrderSupport,
-        true,
-      );
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+        pending: true,
+        checkSupport: checkScaleOrderSupport,
+      });
       configureScaleOrder(result);
 
       expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
@@ -2370,7 +2399,7 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
 
-      renderProForm(true, false, jest.fn().mockResolvedValue(false), false);
+      renderProForm(true, true, 'hyperliquid', false, { enabled: false });
 
       expect(mockSetOrderType).toHaveBeenCalledWith('market');
     });
@@ -2378,7 +2407,9 @@ describe('usePerpsProOrderForm', () => {
     it('blocks Scale selection when the remote flag is disabled', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm(true, false);
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+      });
 
       act(() => {
         result.current.onOrderTypeSelect('scale');
@@ -2391,7 +2422,9 @@ describe('usePerpsProOrderForm', () => {
     it('blocks Scale placement when the remote flag is disabled', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm(true, false);
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+      });
       configureScaleOrder(result);
 
       await act(async () => {
@@ -2408,7 +2441,9 @@ describe('usePerpsProOrderForm', () => {
       const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm(true, true, checkScaleOrderSupport);
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        checkSupport: checkScaleOrderSupport,
+      });
       configureScaleOrder(result);
 
       await act(async () => {

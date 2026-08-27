@@ -1,0 +1,268 @@
+diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
+index f10d652a266dd75758a604a46acfcc2668433f78..65988fd9f5c26e8bc211500540dbe31b58e65b59 100644
+--- a/dist/providers/HyperLiquidProvider.cjs
++++ b/dist/providers/HyperLiquidProvider.cjs
+@@ -8117,8 +8117,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+  *
+  * The whole ladder goes in a single `order` action, which is one round trip
+  * and one signature rather than one per rung. It is **not** atomic: an `na`
+- * grouping evaluates each entry independently. Every rung must either rest
+- * or fill; otherwise all known resting rungs are retracted before failure.
++ * grouping evaluates each entry independently. Accepted rungs remain live and
++ * are returned to the caller when another rung is rejected.
+  *
+  * @param params - Order parameters.
+  * @param context - Prepared asset and sizing context.
+@@ -8126,7 +8126,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+  * @returns A promise that resolves to the result.
+  */
+ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
+-    const { assetId, formattedSize, ladder, builder } = context;
++    const { assetId, szDecimals, formattedSize, ladder, builder } = context;
+     // Built and validated in `#prepareStrategyPlacement`, before anything was
+     // signed, so what is submitted here is exactly what the minimums were
+     // applied to.
+@@ -8158,13 +8158,41 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         grouping: 'na',
+         ...(builder && { builder }),
+     });
+-    const statuses = result.response?.data?.statuses ?? [];
++    const rawStatuses = result.response?.data?.statuses;
++    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
+     const outcomes = statuses
+         .slice(0, count)
+         .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
+     const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
+-    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
+-    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
++    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome === undefined
++        ? []
++        : [
++            {
++                orderId: outcome.orderId,
++                state: outcome.state,
++                price: prices[index],
++                size: sizes[index],
++            },
++        ]);
++    const acceptedChildOrderIds = acceptedRungs.map((rung) => rung.orderId);
++    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'resting' ? [rung.orderId] : []);
++    const filledChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'filled' ? [rung.orderId] : []);
++    const buildAcceptedResult = () => {
++        const submittedSize = acceptedCount === count
++            ? formattedSize
++            : (0, hyperLiquidAdapter_js_1.formatHyperLiquidSize)({
++                size: acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
++                szDecimals,
++            });
++        const submittedValue = acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
++        return {
++            success: true,
++            orderId: groupId,
++            childOrderIds: acceptedChildOrderIds,
++            submittedSize,
++            averagePrice: String(submittedValue / parseFloat(submittedSize)),
++        };
++    };
+     if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
+         const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+             a: assetId,
+@@ -8192,6 +8220,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+             requested: count,
+             statuses,
+         });
++        const isValidPartial = result.status === 'ok' &&
++            statuses.length === count &&
++            acceptedCount > 0 &&
++            acceptedCount < count;
++        if (isValidPartial) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
++                symbol: params.symbol,
++                orderIds: restingChildOrderIds,
++            });
++            return buildAcceptedResult();
++        }
+         const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+             a: assetId,
+             o: Number(orderId),
+@@ -8226,9 +8265,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         symbol: params.symbol,
+         orderIds: restingChildOrderIds,
+     });
+-    return {
+-        success: true,
+-        orderId: groupId,
+-        childOrderIds: restingChildOrderIds,
+-        submittedSize: formattedSize,
+-    };
++    return buildAcceptedResult();
+diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
+index a21659ff69cf4d684d380aa0eb5de4a979f64da3..da4abbe9c1f857243fc300e7366400d4edd83988 100644
+--- a/dist/providers/HyperLiquidProvider.mjs
++++ b/dist/providers/HyperLiquidProvider.mjs
+@@ -8113,8 +8113,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+  *
+  * The whole ladder goes in a single `order` action, which is one round trip
+  * and one signature rather than one per rung. It is **not** atomic: an `na`
+- * grouping evaluates each entry independently. Every rung must either rest
+- * or fill; otherwise all known resting rungs are retracted before failure.
++ * grouping evaluates each entry independently. Accepted rungs remain live and
++ * are returned to the caller when another rung is rejected.
+  *
+  * @param params - Order parameters.
+  * @param context - Prepared asset and sizing context.
+@@ -8122,7 +8122,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+  * @returns A promise that resolves to the result.
+  */
+ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
+-    const { assetId, formattedSize, ladder, builder } = context;
++    const { assetId, szDecimals, formattedSize, ladder, builder } = context;
+     // Built and validated in `#prepareStrategyPlacement`, before anything was
+     // signed, so what is submitted here is exactly what the minimums were
+     // applied to.
+@@ -8154,13 +8154,41 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         grouping: 'na',
+         ...(builder && { builder }),
+     });
+-    const statuses = result.response?.data?.statuses ?? [];
++    const rawStatuses = result.response?.data?.statuses;
++    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
+     const outcomes = statuses
+         .slice(0, count)
+         .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
+     const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
+-    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
+-    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
++    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome === undefined
++        ? []
++        : [
++            {
++                orderId: outcome.orderId,
++                state: outcome.state,
++                price: prices[index],
++                size: sizes[index],
++            },
++        ]);
++    const acceptedChildOrderIds = acceptedRungs.map((rung) => rung.orderId);
++    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'resting' ? [rung.orderId] : []);
++    const filledChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'filled' ? [rung.orderId] : []);
++    const buildAcceptedResult = () => {
++        const submittedSize = acceptedCount === count
++            ? formattedSize
++            : formatHyperLiquidSize({
++                size: acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
++                szDecimals,
++            });
++        const submittedValue = acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
++        return {
++            success: true,
++            orderId: groupId,
++            childOrderIds: acceptedChildOrderIds,
++            submittedSize,
++            averagePrice: String(submittedValue / parseFloat(submittedSize)),
++        };
++    };
+     if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
+         const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+             a: assetId,
+@@ -8188,6 +8216,17 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+             requested: count,
+             statuses,
+         });
++        const isValidPartial = result.status === 'ok' &&
++            statuses.length === count &&
++            acceptedCount > 0 &&
++            acceptedCount < count;
++        if (isValidPartial) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
++                symbol: params.symbol,
++                orderIds: restingChildOrderIds,
++            });
++            return buildAcceptedResult();
++        }
+         const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+             a: assetId,
+             o: Number(orderId),
+@@ -8222,9 +8261,4 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         symbol: params.symbol,
+         orderIds: restingChildOrderIds,
+     });
+-    return {
+-        success: true,
+-        orderId: groupId,
+-        childOrderIds: restingChildOrderIds,
+-        submittedSize: formattedSize,
+-    };
++    return buildAcceptedResult();
+diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
+index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fbf320ee22 100644
+--- a/dist/services/TradingService.cjs
++++ b/dist/services/TradingService.cjs
+@@ -1360,6 +1360,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     const status = result?.success === true
+         ? eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED
+         : eventNames_js_1.PERPS_EVENT_VALUE.STATUS.FAILED;
++    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
+     // Build base properties
+     const properties = {
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.STATUS]: status,
+@@ -1369,7 +1370,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             : eventNames_js_1.PERPS_EVENT_VALUE.DIRECTION.SHORT,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
+-        [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(result?.filledSize ?? params.size),
++        [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: trackedOrderSize,
+         [eventNames_js_1.PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
+     };
+     // Add optional properties
+@@ -1418,12 +1419,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             eventNames_js_1.PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
+     }
+     // Calculate order value in USD (size * price)
+-    const orderSize = parseFloat(result?.filledSize ?? params.size);
+     const assetPrice = result?.averagePrice
+         ? parseFloat(result.averagePrice)
+         : params.trackingData?.marketPrice;
+-    if (assetPrice && orderSize) {
+-        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
++    if (assetPrice && trackedOrderSize) {
++        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
+     }
+     // Add success-specific properties
+     if (status === eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED) {
+diff --git a/dist/services/TradingService.mjs b/dist/services/TradingService.mjs
+index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a49c3a7c00 100644
+--- a/dist/services/TradingService.mjs
++++ b/dist/services/TradingService.mjs
+@@ -1356,6 +1356,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     const status = result?.success === true
+         ? PERPS_EVENT_VALUE.STATUS.EXECUTED
+         : PERPS_EVENT_VALUE.STATUS.FAILED;
++    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
+     // Build base properties
+     const properties = {
+         [PERPS_EVENT_PROPERTY.STATUS]: status,
+@@ -1365,7 +1366,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+         [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+         [PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
+-        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(result?.filledSize ?? params.size),
++        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: trackedOrderSize,
+         [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
+     };
+     // Add optional properties
+@@ -1414,12 +1415,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+             PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
+     }
+     // Calculate order value in USD (size * price)
+-    const orderSize = parseFloat(result?.filledSize ?? params.size);
+     const assetPrice = result?.averagePrice
+         ? parseFloat(result.averagePrice)
+         : params.trackingData?.marketPrice;
+-    if (assetPrice && orderSize) {
+-        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
++    if (assetPrice && trackedOrderSize) {
++        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
+     }
+     // Add success-specific properties
+     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {

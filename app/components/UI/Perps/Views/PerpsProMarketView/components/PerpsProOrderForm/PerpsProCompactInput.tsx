@@ -52,7 +52,7 @@ interface PerpsProCompactInputProps {
   value: string;
   onChangeText: (value: string) => void;
   testID: string;
-  variant?: 'stacked' | 'inline';
+  variant?: 'stacked' | 'inline' | 'inline-labeled';
   startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
@@ -135,6 +135,40 @@ const PerpsProCompactInput = ({
       accessibilityLabel={label}
     />
   );
+
+  if (variant === 'inline-labeled') {
+    return (
+      <Box
+        twClassName={
+          isHidden
+            ? undefined
+            : 'h-[54px] flex-row items-center border-t border-muted px-3'
+        }
+        testID={`${testID}-container`}
+        {...hiddenProps}
+      >
+        <Pressable
+          onPress={focusInput}
+          accessible={false}
+          style={tw`h-full min-w-0 flex-1 justify-center`}
+          testID={`${testID}-field`}
+        >
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            numberOfLines={labelNumberOfLines}
+          >
+            {label}
+          </Text>
+          <Box twClassName="flex-row items-center">
+            {startAccessory}
+            {input}
+          </Box>
+        </Pressable>
+        {endAccessory}
+      </Box>
+    );
+  }
 
   if (variant === 'inline') {
     return (

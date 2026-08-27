@@ -138,9 +138,12 @@ interface OrderTypeCategory {
 }
 
 const ORDER_TYPE_OPTIONS = new Map<OrderType, OrderTypeOption>(
-  [...BASIC_ORDER_TYPES, ...TRIGGERED_ORDER_TYPES, TWAP_ORDER_TYPE].map(
-    (option): [OrderType, OrderTypeOption] => [option.type, option],
-  ),
+  [
+    ...BASIC_ORDER_TYPES,
+    ...TRIGGERED_ORDER_TYPES,
+    TWAP_ORDER_TYPE,
+    SCALE_ORDER_TYPE,
+  ].map((option): [OrderType, OrderTypeOption] => [option.type, option]),
 );
 
 const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
@@ -164,8 +167,8 @@ const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
   {
     key: 'advanced',
     labelKey: 'perps.order.type.advanced',
-    // Canonical shared order for implemented advanced strategies. Scale and
-    // Chase remain filtered out until their own gated option metadata lands.
+    // Canonical shared order for implemented advanced strategies. Chase
+    // remains filtered out until its own gated option metadata lands.
     orderTypes: ['twap', 'scale', 'chase'],
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
   },

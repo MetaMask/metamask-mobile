@@ -17,10 +17,12 @@ import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBotto
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import {
+  selectPerpsMobileScaleEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
 import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
@@ -41,6 +43,7 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
+const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -69,6 +72,24 @@ const PerpsProOrderFormPanel = ({
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
+  const activeProvider = useSelector(selectPerpsProvider);
+  const marketProviderId = (market as PerpsMarketData & { providerId?: string })
+    .providerId;
+  const selectedProviderId =
+    marketProviderId ??
+    (activeProvider === 'aggregated' ? undefined : activeProvider);
+  const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
+  const {
+    supportsScaleOrders,
+    isScaleOrderSupportPending,
+    checkScaleOrderSupport,
+  } = usePerpsScaleOrderSupport({
+    enabled: isScaleBaseEnabled,
+    symbol: market.symbol,
+    providerId: selectedProviderId,
+  });
+  const isScaleOrdersEnabled = isScaleBaseEnabled && supportsScaleOrders;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
   const { isLoadingOrderCapabilities, orderCapabilities, supportsTwapOrders } =
     usePerpsProvider(
@@ -97,8 +118,9 @@ const PerpsProOrderFormPanel = ({
       ...BASIC_ORDER_TYPES,
       ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
       ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
+      ...(isScaleOrdersEnabled ? SCALE_ORDER_TYPES : []),
     ],
-    [areTriggeredOrdersEnabled, isTwapEnabled],
+    [areTriggeredOrdersEnabled, isScaleOrdersEnabled, isTwapEnabled],
   );
   const {
     direction,
@@ -157,6 +179,9 @@ const PerpsProOrderFormPanel = ({
     isTwapEnabled,
     isTwapAvailabilityPending,
     resolvedTwapProviderId,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    checkScaleOrderSupport,
   });
 
   const { styles } = useStyles(createStyles, {});

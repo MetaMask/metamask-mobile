@@ -69,7 +69,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Execute at your specified price or better',
       'perps.order.type.scale.title': 'Scale',
       'perps.order.type.scale.description':
-        'Place multiple limit orders across a price range',
+        'Multiple limit orders spread across a price range',
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
@@ -129,6 +129,10 @@ describe('PerpsOrderTypeBottomSheet', () => {
   const proOrderTypesWithTwap: readonly OrderType[] = [
     ...proOrderTypes,
     'twap',
+  ];
+  const proOrderTypesWithScale: readonly OrderType[] = [
+    ...proOrderTypes,
+    'scale',
   ];
 
   beforeEach(() => {
@@ -488,6 +492,35 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
+    it.each([AppThemeKey.dark, AppThemeKey.light])(
+      'renders the 32px Scale graph asset in %s theme',
+      (appTheme) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            availableOrderTypes={proOrderTypesWithScale}
+            currentOrderType="scale"
+          />,
+          appTheme,
+        );
+
+        const iconContainer = screen.getByTestId(
+          `${PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION}-icon`,
+        );
+        const graphIcon = within(iconContainer).UNSAFE_getByProps({
+          name: 'perps-order-type-scale',
+        });
+
+        expect(iconContainer).toHaveProp(
+          'accessibilityLabel',
+          `${PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION}-icon-${appTheme}`,
+        );
+        expect(graphIcon).toHaveProp('width', 32);
+        expect(graphIcon).toHaveProp('height', 32);
+        expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
+      },
+    );
+
     it('forwards the Pro title and selected-icon presentation', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -560,7 +593,8 @@ describe('PerpsOrderTypeBottomSheet', () => {
           {...defaultProps}
           onSelect={onSelect}
           onClose={onClose}
-          showScaleType
+          currentOrderType="scale"
+          availableOrderTypes={proOrderTypesWithScale}
         />,
       );
 

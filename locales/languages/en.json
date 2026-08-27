@@ -1589,6 +1589,34 @@
       "place_order": "Place order",
       "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
       "close_keyboard": "Close keyboard",
+      "scale": {
+        "start_price": "Start (USD)",
+        "end_price": "End (USD)",
+        "total_orders": "Order count",
+        "size_skew": "Size skew",
+        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
+        "preview": "Order preview",
+        "start": "Start",
+        "end": "End",
+        "order_value": "Order value",
+        "margin_required": "Margin required",
+        "show_ladder": "Show full ladder",
+        "hide_ladder": "Hide full ladder",
+        "orders_submitted": "Scale orders submitted",
+        "orders_placed": "Scale orders placed",
+        "orders_partially_placed": "Scale orders partially placed",
+        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
+        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "Enter both Scale range prices",
+          "invalid_range": "Start price must be lower than end price",
+          "invalid_order_count": "Order count must be between 2 and 20",
+          "invalid_skew": "Size skew must be greater than 0",
+          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+        }
+      },
       "twap": {
         "running_time": "Running time",
         "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
@@ -1804,7 +1832,7 @@
         },
         "scale": {
           "title": "Scale",
-          "description": "Place multiple limit orders across a price range"
+          "description": "Multiple limit orders spread across a price range"
         },
         "stop_limit": {
           "title": "Stop limit",

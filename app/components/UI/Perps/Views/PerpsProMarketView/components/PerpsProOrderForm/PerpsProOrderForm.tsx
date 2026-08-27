@@ -29,7 +29,7 @@ import {
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
@@ -318,62 +318,54 @@ const OrderSummary = ({
 );
 
 const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
-  <Box twClassName="gap-2" testID={ids.SCALE_FIELDS}>
-    <Box twClassName="flex-row gap-2">
-      <Box twClassName="flex-1">
-        <PerpsProCompactInput
-          label={strings('perps.pro_order_form.scale.start_price')}
-          value={model.startPrice}
-          onChangeText={model.onStartPriceChange}
-          onBlur={model.onStartPriceBlur}
-          testID={ids.SCALE_START_PRICE}
-          startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
-          placeholder="0.00"
+  <Box testID={ids.SCALE_FIELDS}>
+    <PerpsProCompactInput
+      variant="inline-labeled"
+      label={strings('perps.pro_order_form.scale.start_price')}
+      value={model.startPrice}
+      onChangeText={model.onStartPriceChange}
+      onBlur={model.onStartPriceBlur}
+      testID={ids.SCALE_START_PRICE}
+      startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
+      placeholder="0.00"
+    />
+    <PerpsProCompactInput
+      variant="inline-labeled"
+      label={strings('perps.pro_order_form.scale.end_price')}
+      value={model.endPrice}
+      onChangeText={model.onEndPriceChange}
+      onBlur={model.onEndPriceBlur}
+      testID={ids.SCALE_END_PRICE}
+      startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
+      placeholder="0.00"
+    />
+    <PerpsProCompactInput
+      variant="inline-labeled"
+      label={strings('perps.pro_order_form.scale.total_orders')}
+      value={model.totalOrders}
+      onChangeText={model.onTotalOrdersChange}
+      onBlur={model.onTotalOrdersBlur}
+      testID={ids.SCALE_TOTAL_ORDERS}
+    />
+    <PerpsProCompactInput
+      variant="inline-labeled"
+      label={strings('perps.pro_order_form.scale.size_skew')}
+      value={model.sizeSkew}
+      onChangeText={model.onSizeSkewChange}
+      onBlur={model.onSizeSkewBlur}
+      testID={ids.SCALE_SIZE_SKEW}
+      endAccessory={
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Xs}
+          onPress={model.onSizeSkewInfoPress}
+          testID={ids.SCALE_SKEW_INFO}
+          accessibilityLabel={strings(
+            'perps.pro_order_form.scale.size_skew_hint',
+          )}
         />
-      </Box>
-      <Box twClassName="flex-1">
-        <PerpsProCompactInput
-          label={strings('perps.pro_order_form.scale.end_price')}
-          value={model.endPrice}
-          onChangeText={model.onEndPriceChange}
-          onBlur={model.onEndPriceBlur}
-          testID={ids.SCALE_END_PRICE}
-          startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
-          placeholder="0.00"
-        />
-      </Box>
-    </Box>
-    <Box twClassName="flex-row gap-2">
-      <Box twClassName="flex-1">
-        <PerpsProCompactInput
-          label={strings('perps.pro_order_form.scale.total_orders')}
-          value={model.totalOrders}
-          onChangeText={model.onTotalOrdersChange}
-          onBlur={model.onTotalOrdersBlur}
-          testID={ids.SCALE_TOTAL_ORDERS}
-        />
-      </Box>
-      <Box twClassName="flex-1">
-        <PerpsProCompactInput
-          label={strings('perps.pro_order_form.scale.size_skew')}
-          value={model.sizeSkew}
-          onChangeText={model.onSizeSkewChange}
-          onBlur={model.onSizeSkewBlur}
-          testID={ids.SCALE_SIZE_SKEW}
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Info}
-              size={ButtonIconSize.Xs}
-              onPress={model.onSizeSkewInfoPress}
-              testID={ids.SCALE_SKEW_INFO}
-              accessibilityLabel={strings(
-                'perps.pro_order_form.scale.size_skew_hint',
-              )}
-            />
-          }
-        />
-      </Box>
-    </Box>
+      }
+    />
   </Box>
 );
 
@@ -509,7 +501,8 @@ const PerpsProOrderForm = ({
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
   const isTwap = orderType === 'twap';
-  const showsTpSl = !reduceOnly && !showsTriggerPrice && !isTwap;
+  const showsTpSl =
+    !reduceOnly && !showsTriggerPrice && !isTwap && !isScaleOrder;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
   const summaryOnSlippagePress = summary.onSlippagePress;
 
@@ -718,8 +711,8 @@ const PerpsProOrderForm = ({
                 onDurationPress={onTwapDurationPress}
               />
             ) : null}
+            {isScaleOrder ? <ScaleFields model={scaleOrder} /> : null}
           </Box>
-          {isScaleOrder ? <ScaleFields model={scaleOrder} /> : null}
           {priceCardMessage ? (
             <HelpText
               severity={

@@ -126,6 +126,47 @@ const renderProMarketWithTwapFlag = (
   });
 };
 
+const renderProMarketWithScaleFlag = (enabled: boolean) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue({
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: enabled ? ['scale'] : [],
+    });
+
+  return renderPerpsProMarketView({
+    streamOverrides: {
+      account: createFundedAccountForViews('1000'),
+    },
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider: 'hyperliquid',
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsProTriggeredOrdersEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileScale: {
+                enabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 const findSizeInput = () =>
   screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
 
@@ -419,6 +460,74 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
         ),
       ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the shared Advanced sheet when TWAP is absent and supported Scale is enabled',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      const advancedTab = await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      fireEvent.press(advancedTab);
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the shared Basic and Triggered sheet when both advanced flags are off',
+    async () => {
+      renderProMarketWithScaleFlag(false);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TABS,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
     },
   );
 

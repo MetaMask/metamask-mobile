@@ -19,6 +19,7 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsMobileScaleEnabledFlag,
   selectPerpsProTwapEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsShowFullAssetNamesFlag,
@@ -2253,6 +2254,80 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsMobileScaleEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileScale = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true when the version-gated Scale flag is enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the Scale flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the Scale minimum version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults Scale to false when the flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the Scale flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.1,
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
 
       expect(result).toBe(false);
     });

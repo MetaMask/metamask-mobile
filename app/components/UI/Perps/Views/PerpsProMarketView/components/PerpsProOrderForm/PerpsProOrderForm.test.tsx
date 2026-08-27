@@ -236,6 +236,20 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
     });
 
+    it('groups all four divided Scale rows inside the shared order card', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+      });
+      const orderCard = within(screen.getByTestId(ids.ORDER_TYPE_CARD));
+
+      expect(orderCard.getByTestId(ids.SCALE_START_PRICE)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.SCALE_END_PRICE)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.SCALE_TOTAL_ORDERS)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
+      expect(orderCard.queryByTestId(ids.SCALE_PREVIEW)).not.toBeOnTheScreen();
+    });
+
     it('renders Scale rung prices with canonical fiat formatting', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.rungs = [
