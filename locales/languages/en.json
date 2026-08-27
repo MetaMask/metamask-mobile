@@ -1811,7 +1811,7 @@
         },
         "twap": {
           "title": "TWAP",
-          "description": "Execute gradually over a selected running time"
+          "description": "Split orders to execute at regular time interval"
         }
       },
       "payment_token": "Payment token",

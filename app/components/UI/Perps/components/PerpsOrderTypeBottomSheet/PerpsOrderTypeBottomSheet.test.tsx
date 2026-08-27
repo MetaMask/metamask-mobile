@@ -83,6 +83,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.take_profit_market.description':
         'Place a market order if trigger price is reached',
       'perps.order.type.twap.title': 'TWAP',
+      'perps.order.type.twap.description':
+        'Split orders to execute at regular time interval',
     };
     return translations[key] || key;
   }),
@@ -437,6 +439,22 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(graphIcon).toHaveProp('width', 32);
       expect(graphIcon).toHaveProp('height', 32);
       expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
+    });
+
+    it('renders the exact Figma TWAP description', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          availableOrderTypes={proOrderTypesWithTwap}
+          currentOrderType="twap"
+        />,
+      );
+
+      expect(
+        within(
+          screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+        ).getByText('Split orders to execute at regular time interval'),
+      ).toBeOnTheScreen();
     });
 
     it('renders the 32px TWAP graph asset in light theme', () => {
