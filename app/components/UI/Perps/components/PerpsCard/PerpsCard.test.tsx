@@ -337,11 +337,14 @@ describe('PerpsCard', () => {
       expect(queryByText('<$0.01')).toBeNull();
     });
 
-    it('uses trigger price label for trigger orders', () => {
+    it('uses limit price label for trigger-limit orders', () => {
       const triggerOrder = {
         ...mockOrder,
         isTrigger: true,
+        orderType: 'limit' as const,
+        triggerOrderType: 'take_profit_limit' as const,
         triggerPrice: '3100',
+        price: '2800',
         detailedOrderType: 'Take Profit Limit',
       };
 
@@ -349,25 +352,27 @@ describe('PerpsCard', () => {
         <PerpsCard order={triggerOrder} testID="test-card" />,
       );
 
-      expect(getByText('$3,100')).toBeDefined();
-      expect(getByText('perps.order.trigger_price')).toBeDefined();
+      expect(getByText('$2,800')).toBeOnTheScreen();
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
     });
 
-    it('falls back to market price label when trigger order has no valid trigger price', () => {
-      const triggerMarketOrderWithoutPrice = {
+    it('uses market price label for trigger-market with trigger and cap prices', () => {
+      const triggerMarketOrder = {
         ...mockOrder,
         isTrigger: true,
-        triggerPrice: '0',
-        price: '0',
+        orderType: 'market' as const,
+        triggerOrderType: 'stop_market' as const,
+        triggerPrice: '3000',
+        price: '2970',
         detailedOrderType: 'Stop Market',
       };
 
       const { getByText, queryByText } = render(
-        <PerpsCard order={triggerMarketOrderWithoutPrice} testID="test-card" />,
+        <PerpsCard order={triggerMarketOrder} testID="test-card" />,
       );
 
-      expect(getByText('perps.order.market')).toBeDefined();
-      expect(getByText('perps.order.market_price')).toBeDefined();
+      expect(getByText('perps.order.market')).toBeOnTheScreen();
+      expect(getByText('perps.order.market_price')).toBeOnTheScreen();
       expect(queryByText('perps.order.trigger_price')).toBeNull();
     });
 

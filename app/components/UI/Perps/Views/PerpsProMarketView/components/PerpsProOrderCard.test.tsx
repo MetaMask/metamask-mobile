@@ -86,10 +86,8 @@ describe('PerpsProOrderCard', () => {
     expect(screen.getByText('Close long')).toBeOnTheScreen();
     expect(screen.getByText('Stop market')).toBeOnTheScreen();
     expect(screen.getByText('13 SOL')).toBeOnTheScreen();
-    // Trigger orders resolve display price from triggerPrice via
-    // resolveOrderDisplayPriceAndLabel ($101), not the leftover order price.
-    expect(screen.getByText('$1,313')).toBeOnTheScreen();
-    expect(screen.getByText('$101')).toBeOnTheScreen();
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+    expect(screen.getByText('Market')).toBeOnTheScreen();
     expect(screen.getByText('Yes')).toBeOnTheScreen();
     expect(screen.getByText('$220 / $130')).toBeOnTheScreen();
     expect(screen.getByText('Price below $101.00')).toBeOnTheScreen();
