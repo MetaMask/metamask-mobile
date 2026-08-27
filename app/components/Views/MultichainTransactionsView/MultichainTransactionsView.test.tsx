@@ -285,9 +285,6 @@ describe('MultichainTransactionsView', () => {
         if (selector === selectNonEvmTransactions) {
           return { transactions: [stakingTransaction] };
         }
-        if (selector === selectIsActivityRedesignEnabled) {
-          return true;
-        }
         return null;
       });
 
