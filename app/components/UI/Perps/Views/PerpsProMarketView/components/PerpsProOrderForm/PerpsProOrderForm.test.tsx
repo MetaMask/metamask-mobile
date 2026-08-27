@@ -798,10 +798,9 @@ describe('PerpsProOrderForm', () => {
       const onDragEnd = jest.fn();
       renderForm({ sizeSlider: createSizeSlider({ onDragEnd }) });
 
-      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
-        'onDragEnd',
-        onDragEnd,
-      );
+      screen.UNSAFE_getByType(host('PerpsSlider')).props.onDragEnd();
+
+      expect(onDragEnd).toHaveBeenCalledTimes(1);
     });
 
     it('enables the size denomination toggle when conversion is available', () => {
