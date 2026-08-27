@@ -134,11 +134,13 @@ describe('useCryptoUpDownChartData', () => {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       }: {
         symbol: string;
         eventStartTime: string;
         variant: string;
         endDate?: string;
+        twapWindowSeconds?: number;
       }) => ({
         queryKey: [
           'predict',
@@ -147,6 +149,7 @@ describe('useCryptoUpDownChartData', () => {
           eventStartTime,
           variant,
           endDate ?? '',
+          twapWindowSeconds ?? '',
         ],
         queryFn: async () => historicalData,
       }),
@@ -718,10 +721,14 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51000);
     });
 
-    it('removes Chainlink history when the same market switches to TWAP', async () => {
+    it('replaces Chainlink history when the same market switches to TWAP', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const twapMarket = createMarket({ twapWindowSeconds: 30 });
+      const twapHistory = [
+        { time: 300, value: 52000 },
+        { time: 305, value: 52100 },
+      ];
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
@@ -736,11 +743,13 @@ describe('useCryptoUpDownChartData', () => {
         expect(result.current.data).toEqual(historicalData);
       });
 
+      historicalData = twapHistory;
       rerender({ activeMarket: twapMarket });
 
-      expect(result.current.data).toEqual([]);
-      expect(result.current.value).toBe(0);
-      expect(result.current.loading).toBe(true);
+      await waitFor(() => {
+        expect(result.current.data).toEqual(twapHistory);
+      });
+      expect(result.current.value).toBe(52100);
     });
 
     it('accepts live updates after changing away from a reset market', () => {
@@ -819,6 +828,38 @@ describe('useCryptoUpDownChartData', () => {
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
         '',
         expect.any(Function),
+      );
+    });
+
+    it('fetches the requested trailing window for TWAP feed sparklines', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ twapWindowSeconds: 60 });
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            liveUpdatesEnabled: false,
+            historicalWindow: {
+              startDate: '2025-12-31T22:00:00.000Z',
+            },
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+      expect(mockCryptoPriceHistoryOptions).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        eventStartTime: '2025-12-31T22:00:00.000Z',
+        variant: 'fiveminute',
+        endDate: undefined,
+        twapWindowSeconds: 60,
+      });
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+        60,
       );
     });
 

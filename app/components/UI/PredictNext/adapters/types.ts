@@ -4,6 +4,8 @@ import type {
   PredictEvent,
   PredictFeed,
   PredictFeedId,
+  PredictMarketHistory,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueStatus,
 } from '../types';
@@ -19,4 +21,9 @@ export interface VenueMarketDataAdapter {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<PredictEvent>;
+  fetchMarketHistory(
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<PredictMarketHistory>;
 }
