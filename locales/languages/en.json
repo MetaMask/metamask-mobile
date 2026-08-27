@@ -11238,7 +11238,8 @@
       },
       "atm_fees": {
         "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "subtitle": "Physical card included",
+        "subtitle_monthly": "Physical card available separately"
       },
       "protection": {
         "title": "Up to $10,000 in protection",
@@ -11283,7 +11284,8 @@
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask.",
+        "description_monthly": "MetaMask Card is available separately for monthly members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
       },
       "protection": {
         "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",
