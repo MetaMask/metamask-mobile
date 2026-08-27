@@ -16,7 +16,10 @@ import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { formatUsd, formatTradeTime } from '../../utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
 import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
-import { tradeActionLabelKey, type TradeAction } from '../../utils/tradeAction';
+import {
+  getTradeActionI18nKey,
+  type TradeAction,
+} from '../../utils/tradeAction';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
@@ -28,8 +31,9 @@ export interface TradeRowProps {
   trade: Trade;
   /**
    * Where this fill sits in the position's lifecycle, as provided by the API.
+   * Missing lifecycle metadata falls back to a neutral trade label.
    */
-  action: TradeAction;
+  action?: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
@@ -69,10 +73,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
   const perpDirection = getPerpTradeDirection(trade);
 
   const actionLabel = strings(
-    `social_leaderboard.trader_position.action.${tradeActionLabelKey(
-      isPerp,
-      action,
-    )}`,
+    getTradeActionI18nKey('trader_position', isPerp, action),
   );
 
   return (

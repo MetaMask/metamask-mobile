@@ -157,9 +157,9 @@ export interface TraderPositionData {
   allTrades: Position['trades'];
   /**
    * Server-provided lifecycle stage per entry in {@link allTrades}, same order.
-   * Resolved here so each row receives the action that belongs to its trade.
+   * Missing action metadata leaves the corresponding entry undefined.
    */
-  tradeActions: TradeAction[];
+  tradeActions: (TradeAction | undefined)[];
   chartTrades: Position['trades'];
 
   // Time period

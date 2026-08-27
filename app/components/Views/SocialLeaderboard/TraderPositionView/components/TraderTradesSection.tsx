@@ -37,7 +37,7 @@ import TradeRow from './TradeRow';
  */
 interface TradeListEntry {
   trade: Trade;
-  action: TradeAction;
+  action?: TradeAction;
 }
 
 interface TradeDaySection {
@@ -77,9 +77,9 @@ export interface TraderTradesSectionProps {
   trades: Trade[];
   /**
    * Server-provided lifecycle stage per trade, in the same order as
-   * {@link trades}.
+   * {@link trades}. Missing action metadata is allowed.
    */
-  tradeActions: TradeAction[];
+  tradeActions: (TradeAction | undefined)[];
   traderImageUrl?: string;
   traderAddress?: string;
   /** When provided, each row is tappable (e.g. to slide the chart to the trade). */

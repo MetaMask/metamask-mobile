@@ -74,20 +74,14 @@ function findTriggeringTrade(
  * (see {@link resolveTradeAction}), which separates a partial exit from a full
  * close — the row used to read "closed" for a 10% trim.
  *
- * Falls back to the {@link isClosedPosition} snapshot heuristic only when there
- * is no triggering trade, and to `opened` when the position also has no trade
- * history at all: an entry-shaped verb keeps the row's P&L column showing
- * current value rather than fabricating a realized figure.
+ * Missing action metadata remains undefined so the row can use a neutral label
+ * without inventing a lifecycle stage.
  */
 function resolveAction(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
-): FeedAction {
-  const action = trade ? resolveTradeAction(coreItem, trade) : undefined;
-  if (action) {
-    return action;
-  }
-  return isClosedPosition(coreItem) ? 'closed' : 'opened';
+): FeedAction | undefined {
+  return trade ? resolveTradeAction(coreItem, trade) : undefined;
 }
 
 /**
@@ -230,7 +224,8 @@ function mapPerpFeedItem(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
   subHeader: FeedSubHeader,
 ): FeedPerpItem {
@@ -246,6 +241,7 @@ function mapPerpFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -265,7 +261,8 @@ function mapPerpFeedItem(
 function mapSpotFeedItem(
   coreItem: CoreFeedItem,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
   subHeader: FeedSubHeader,
 ): FeedSpotItem | null {
@@ -281,6 +278,7 @@ function mapSpotFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -309,10 +307,12 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const action = resolveAction(coreItem, trade);
+  const isClosed =
+    action === 'closed' ||
+    (action === undefined && isClosedPosition(coreItem));
   // Only a full close realizes P&L. A reduce leaves the position open, so the
   // right column keeps showing current value — the old `intent === 'exit'`
   // test flipped it to a realized figure on every partial trim.
-  const isClosed = action === 'closed';
   const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
@@ -322,6 +322,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
       trade,
       presentation,
       action,
+      isClosed,
       timestampMs,
       subHeader,
     );
@@ -331,6 +332,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
     coreItem,
     presentation,
     action,
+    isClosed,
     timestampMs,
     subHeader,
   );

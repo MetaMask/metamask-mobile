@@ -19,7 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { tradeActionLabelKey } from '../../utils/tradeAction';
+import { getTradeActionI18nKey } from '../../utils/tradeAction';
 import type { FeedItem } from '../types';
 import FeedSubHeaderText from './FeedSubHeaderText';
 import { formatFeedTimestamp } from '../../utils/formatters';
@@ -81,11 +81,9 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
 
   const isPerp = item.type === 'perps';
   const assetClass = isPerp ? 'perps' : 'spot';
+  const action = item.action;
   const actionLabel = strings(
-    `social_leaderboard.feed.action.${tradeActionLabelKey(
-      isPerp,
-      item.action,
-    )}`,
+    getTradeActionI18nKey('feed', isPerp, action),
   );
   const timeLabel = formatFeedTimestamp(item.timestamp);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
@@ -95,7 +93,9 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   // column. A reduce still leaves the position open, so it qualifies; only a
   // full close does not, and its row stays blank.
   const newPositionLabelKey =
-    item.action === 'closed' ? null : NEW_POSITION_LABEL_KEYS[assetClass];
+    (item.isClosed ?? action === 'closed')
+      ? null
+      : NEW_POSITION_LABEL_KEYS[assetClass];
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>

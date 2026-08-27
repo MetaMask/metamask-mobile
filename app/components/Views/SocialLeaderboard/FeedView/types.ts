@@ -18,7 +18,7 @@ export type { SocialTypeFilter as FeedTypeFilter } from '../components/Filters/t
 /**
  * Position-lifecycle stage of the trade a row announces, shown after the
  * trader username. Rendered as `opened / added / reduced / closed` for perps
- * and `bought / bought more / sold some / sold all` for spot.
+ * and `bought / bought more / sold some / sold all` for spot when supplied.
  */
 export type FeedAction = TradeAction;
 
@@ -52,8 +52,13 @@ interface FeedItemBase {
   traderAddress: string;
   /** Optional avatar image url. */
   avatarUri?: string;
-  /** Trade action verb. */
-  action: FeedAction;
+  /** Optional lifecycle action supplied by the API. */
+  action?: FeedAction;
+  /**
+   * Whether the position is closed. This is separate from `action` because a
+   * missing lifecycle action must not change the position's value/P&L display.
+   */
+  isClosed?: boolean;
   /** Epoch milliseconds the trade happened. Drives relative/absolute time. */
   timestamp: number;
   /** Trade size + optional MC/price context for the position card sub-header. */

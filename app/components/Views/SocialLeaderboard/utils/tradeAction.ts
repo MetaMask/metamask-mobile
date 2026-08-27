@@ -20,7 +20,8 @@ export const isEntryAction = (action: TradeAction): boolean =>
 
 /**
  * i18n key suffix for a fill's action label, under `feed.action` and
- * `trader_position.action`.
+ * `trader_position.action`. Missing lifecycle metadata uses the neutral
+ * `traded` action.
  *
  * Perps name the lifecycle stage — the position is the thing being tracked, and
  * the LONG/SHORT badge alongside carries the direction. Spot names the
@@ -30,25 +31,47 @@ export const isEntryAction = (action: TradeAction): boolean =>
  */
 export const tradeActionLabelKey = (
   isPerp: boolean,
-  action: TradeAction,
+  action?: TradeAction,
 ): string => {
+  if (!action) {
+    return 'traded';
+  }
   if (isPerp) {
     return `perps_${action}`;
   }
   return isEntryAction(action) ? 'spot_bought' : 'spot_sold';
 };
 
+export type TradeActionSurface = 'feed' | 'trader_position';
+
 /**
- * Client contract for responses from the live social API. The controller type
- * keeps the field optional for validation, but this screen requires it.
+ * Full i18n key for a trade action label. Missing lifecycle metadata uses the
+ * neutral "Traded" label for the relevant surface.
  */
-type TradeWithAction = Trade & { action: TradeAction };
+export function getTradeActionI18nKey(
+  surface: TradeActionSurface,
+  isPerp: boolean,
+  action?: TradeAction,
+): string {
+  return `social_leaderboard.${surface}.action.${tradeActionLabelKey(
+    isPerp,
+    action,
+  )}`;
+}
+
+/**
+ * Client contract for responses from the live social API. The action is
+ * optional because older responses can omit the presentation metadata.
+ */
+type TradeWithAction = Trade & { action?: TradeAction };
 
 /**
  * Lifecycle stage for each of a position's fills, in the same order as
  * `position.trades`.
  */
-export function resolveTradeActions(position: Position): TradeAction[] {
+export function resolveTradeActions(
+  position: Position,
+): (TradeAction | undefined)[] {
   const trades = position.trades as TradeWithAction[];
   return trades.map((trade) => trade.action);
 }
@@ -57,7 +80,8 @@ export function resolveTradeActions(position: Position): TradeAction[] {
  * Lifecycle stage of one specific fill. Identity-based rather than hash-based,
  * since a Hyperliquid flip's two legs share a `transactionHash`.
  *
- * `undefined` when the trade does not belong to this position.
+ * `undefined` when the trade does not belong to this position or the API
+ * omitted its action.
  */
 export function resolveTradeAction(
   position: Position,

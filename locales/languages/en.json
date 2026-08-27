@@ -1176,7 +1176,8 @@
         "perps_reduced": "reduced",
         "perps_closed": "closed",
         "spot_bought": "bought",
-        "spot_sold": "sold"
+        "spot_sold": "sold",
+        "traded": "Traded"
       },
       "new_position": {
         "spot": "Holding",
@@ -1289,7 +1290,8 @@
         "perps_reduced": "Reduced",
         "perps_closed": "Closed",
         "spot_bought": "Bought",
-        "spot_sold": "Sold"
+        "spot_sold": "Sold",
+        "traded": "Traded"
       },
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
