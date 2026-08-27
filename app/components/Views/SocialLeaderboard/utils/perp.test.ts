@@ -151,6 +151,18 @@ describe('perp utils', () => {
       marginUsd: 44_646,
     };
 
+    it.each([
+      [true, false],
+      [false, true],
+    ] as const)(
+      'uses the API isOpen value %s to report closed=%s',
+      (isOpen, expected) => {
+        const result = isClosedPosition({ ...openPerp, isOpen });
+
+        expect(result).toBe(expected);
+      },
+    );
+
     it('returns false for an open perp when currentValueUSD is omitted but margin remains', () => {
       expect(isClosedPosition(openPerp)).toBe(false);
     });

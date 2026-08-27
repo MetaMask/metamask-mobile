@@ -38,6 +38,11 @@ jest.mock('@metamask/perps-controller', () => ({
     ReconnectionDelayAndroidMs: 500,
     ConnectRetryDelayMs: 1000,
   },
+  HYPERLIQUID_TWAP_LIMITS: {
+    MinDurationMinutes: 5,
+    MaxDurationMinutes: 1440,
+    MinNotionalUsd: 100,
+  },
 }));
 
 jest.mock('../../../../util/Logger', () => ({

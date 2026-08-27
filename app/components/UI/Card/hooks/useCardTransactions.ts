@@ -90,6 +90,7 @@ export function useCardTransactions(
       });
     },
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
+    initialPageParam: undefined as string | undefined,
     enabled: Boolean(cardController && isAuthenticated && providerId),
   });
 
