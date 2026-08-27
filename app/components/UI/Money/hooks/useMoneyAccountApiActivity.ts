@@ -203,9 +203,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     hasMore: hasNextPage === true && !isError,
     loadMore,
     isLoadingMore: isFetchingNextPage,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the spinner.
-    isLoading: query.isInitialLoading,
+    isLoading: query.isLoading,
     error: query.isError,
     refetch: query.refetch,
   };
