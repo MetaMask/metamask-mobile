@@ -53,7 +53,6 @@ describe('usePerpsMarketContext', () => {
     const { result } = renderHook(() => usePerpsMarketContext());
 
     expect(result.current).toEqual({
-      key: 'testnet|hyperliquid|1|0',
       identityKey: 'testnet|hyperliquid|1',
       isReady: true,
     });
@@ -65,7 +64,6 @@ describe('usePerpsMarketContext', () => {
     mockConnectionGeneration = 1;
     act(() => mockGenerationListener?.());
 
-    expect(result.current.key).toBe('testnet|hyperliquid|1|1');
     expect(result.current.isReady).toBe(false);
 
     mockInitializedConnectionGeneration = 1;

@@ -9,7 +9,6 @@ import {
 import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
-  key: string;
   identityKey: string;
   isReady: boolean;
 }
@@ -50,7 +49,6 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     getInitializedConnectionGenerationSnapshot,
     getInitializedConnectionGenerationSnapshot,
   );
-  const key = `${selectedContextKey}|${connectionGeneration}`;
   const initializedKey = useSyncExternalStore(
     subscribeToInitializedMarketContext,
     getInitializedMarketContextSnapshot,
@@ -60,7 +58,6 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     initializedKey === selectedContextKey &&
     initializedConnectionGeneration === connectionGeneration;
   return {
-    key,
     identityKey: selectedContextKey,
     isReady,
   };

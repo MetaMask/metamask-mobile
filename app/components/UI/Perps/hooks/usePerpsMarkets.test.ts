@@ -18,7 +18,6 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 jest.mock('./usePerpsMarketContext', () => ({
   usePerpsMarketContext: jest.fn(() => ({
-    key: `${mockMarketIdentityKey}|0`,
     identityKey: mockMarketIdentityKey,
     isReady: mockMarketContextReady,
   })),
