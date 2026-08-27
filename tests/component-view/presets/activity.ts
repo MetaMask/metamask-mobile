@@ -551,6 +551,200 @@ export const activityCvPendingCrossChainSwapBridgeHistoryEntry = {
   startTime: 1_716_367_789_500,
 };
 
+/** Monad mainnet — bridge Activity CV. */
+export const ACTIVITY_CV_MONAD_CHAIN_ID = '0x8f';
+
+/** Base mainnet — Monad bridge destination for Activity CV. */
+export const ACTIVITY_CV_BASE_CHAIN_ID = '0x2105';
+
+/** Base USDC — Monad→Base bridge destination asset. */
+export const ACTIVITY_CV_BASE_USDC =
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID = 'activity-cv-bridge-mon-to-base';
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH = '0xactivitycvbridgemontobase';
+const ACTIVITY_CV_MON_TO_BASE_DEST_HASH = '0xactivitycvbridgemontobasedest';
+
+/**
+ * Submitted Monad→Base bridge for ActivityScreen pending→complete CV.
+ * Source stays submitted until dest completion overrides status via history.
+ */
+export const buildPendingLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.submitted,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Monad→Base bridge with gas for Activity Details Fee/Total CV.
+ * Same id/hash as {@link buildPendingLocalBridgeMonToBaseTransaction}.
+ */
+export const buildConfirmedLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+const activityCvMonToBaseBridgeQuote = {
+  srcChainId: 143,
+  destChainId: 8453,
+  srcAsset: {
+    symbol: 'MON',
+    decimals: 18,
+    assetId: 'eip155:143/slip44:60',
+  },
+  destAsset: {
+    symbol: 'USDC',
+    decimals: 6,
+    assetId: `eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`,
+  },
+  srcTokenAmount: '2000000000000000000',
+  destTokenAmount: '3500000',
+};
+
+/** In-flight Monad→Base history — no dest txHash keeps Activity pending. */
+export const activityCvPendingBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** Completed Monad→Base history for Bridged list + details Fee/Total. */
+export const activityCvBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+      txHash: ACTIVITY_CV_MON_TO_BASE_DEST_HASH,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** NetworkController configs so Monad/Base names and native MON resolve. */
+export const activityMonadBaseNetworkOverride = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          [ACTIVITY_CV_MONAD_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'monad-mainnet',
+                url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Monad default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://monadscan.com'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Monad',
+            nativeCurrency: 'MON',
+          },
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_BASE_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'base-mainnet',
+                url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Base default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://basescan.org'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Base',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            [ACTIVITY_CV_MONAD_CHAIN_ID]: true,
+            [ACTIVITY_CV_BASE_CHAIN_ID]: true,
+          },
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2500,
+            usdConversionRate: 2500,
+          },
+          MON: {
+            conversionRate: 5,
+            usdConversionRate: 5,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+/** TokenRates so Monad→Base bridge Total can resolve USDC fiat. */
+export const activityMonToBaseTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            [ACTIVITY_CV_BASE_USDC]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
 /** Solana mainnet scope — Activity Details EVM→nonEVM bridge and non-EVM fiat CV. */
 export const ACTIVITY_CV_SOLANA_CHAIN_ID =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';

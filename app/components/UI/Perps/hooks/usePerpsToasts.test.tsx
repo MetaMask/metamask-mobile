@@ -14,6 +14,7 @@ import {
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import { mockTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -553,6 +554,62 @@ describe('usePerpsToasts', () => {
 
         expect(config.labelOptions).toContainEqual({
           label: 'Long 5 BTC',
+          isBold: false,
+        });
+      });
+    });
+
+    describe('orderManagement.twap', () => {
+      it('describes the TWAP window while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.twap.submitted(
+            'long',
+            '0.5',
+            'ETH',
+            90,
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: strings('perps.order.twap_placement_subtitle', {
+            direction: 'Long',
+            amount: '0.5',
+            assetSymbol: 'ETH',
+            duration: `${strings('perps.order.twap_duration_hour', {
+              count: 1,
+            })} ${strings('perps.order.twap_duration_minutes', {
+              count: 30,
+            })}`,
+          }),
+          isBold: false,
+        });
+      });
+
+      it('confirms TWAP placement without claiming a fill', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.twap.confirmed(
+            'short',
+            '1.0',
+            'BTC',
+            45,
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: strings('perps.order.twap_started'),
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: strings('perps.order.twap_placement_subtitle', {
+            direction: 'Short',
+            amount: '1.0',
+            assetSymbol: 'BTC',
+            duration: strings('perps.order.twap_duration_minutes', {
+              count: 45,
+            }),
+          }),
           isBold: false,
         });
       });

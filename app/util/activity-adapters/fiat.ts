@@ -54,6 +54,12 @@ export function getHumanReadableTokenAmount(
     return undefined;
   }
 
+  // Keyring amounts are already display units. Applying metadata decimals
+  // would treat "1" SOL as one lamport (1e-9).
+  if (token.amountIsHumanReadable) {
+    return unsignedAmount(token.amount);
+  }
+
   let value: string;
   try {
     value = formatUnits(BigInt(token.amount), token.decimals ?? 0);
@@ -61,7 +67,11 @@ export function getHumanReadableTokenAmount(
     value = token.amount;
   }
 
-  return value.startsWith('-') ? value.slice(1) : value;
+  return unsignedAmount(value);
+}
+
+function unsignedAmount(amount: string): string {
+  return amount.startsWith('-') ? amount.slice(1) : amount;
 }
 
 // Applies display + or - sign to a formatted display value

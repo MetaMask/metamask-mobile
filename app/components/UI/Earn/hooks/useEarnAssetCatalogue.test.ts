@@ -200,7 +200,6 @@ const refreshLendingMarkets = jest.fn();
 const refreshLendingMetadata = jest.fn();
 const refetchMoneyApy = jest.fn();
 const refetchTrxApy = jest.fn();
-
 const mockSelectorValues = ({
   isMoneyAccountVisible = true,
   isEarnEligible = true,
@@ -246,7 +245,7 @@ const mockSelectorValues = ({
         isTrxStakingEnabled,
       };
     }
-    return { apyPercentString: '3.1%' };
+    return { apyPercentString: '3.1' };
   });
 };
 
@@ -312,19 +311,65 @@ describe('useEarnAssetCatalogue', () => {
     mockDependencies();
   });
 
-  it('merges Money and lending experiences for the same underlying asset', () => {
+  it('disables catalogue data sources when disabled', async () => {
+    const { result } = renderHook(() =>
+      useEarnAssetCatalogue({ enabled: false }),
+    );
+
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+      fetchOnMount: false,
+      chainId: expect.anything(),
+    });
+    expect(mockUseEarnSectionLendingMarkets).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(mockUseEarnSectionTokenMetadata).toHaveBeenCalledWith([], false);
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(refetchMoneyApy).not.toHaveBeenCalled();
+    expect(refreshLendingMarkets).not.toHaveBeenCalled();
+    expect(refreshLendingMetadata).not.toHaveBeenCalled();
+    expect(refetchTrxApy).not.toHaveBeenCalled();
+    expect(
+      Engine.context.EarnController.refreshPooledStakingVaultApyAverages,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not report loading while cached lending markets refresh', () => {
+    mockUseEarnSectionLendingMarkets.mockReturnValue({
+      markets: [market],
+      isLoading: true,
+      error: null,
+      refresh: refreshLendingMarkets,
+    });
     mockSelectorValues({
       earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
       assets: [moneyToken],
     });
-    mockUseEarnSectionTokenMetadata.mockReturnValue({
-      tokensByAssetId: {},
-      isLoading: false,
-      isSettled: true,
-      error: null,
-      refresh: refreshLendingMetadata,
-    });
 
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.assets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: USDC_ASSET_ID,
+          kind: 'held',
+          experiences: expect.arrayContaining([
+            expect.objectContaining({
+              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            }),
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('merges Money and lending experiences for the same underlying asset', () => {
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const usdc = result.current.assets.find(
@@ -358,9 +403,10 @@ describe('useEarnAssetCatalogue', () => {
 
     renderHook(() => useEarnAssetCatalogue());
 
-    expect(mockUseEarnSectionTokenMetadata).toHaveBeenLastCalledWith([
-      DAI_ASSET_ID,
-    ]);
+    expect(mockUseEarnSectionTokenMetadata).toHaveBeenLastCalledWith(
+      [DAI_ASSET_ID],
+      true,
+    );
   });
 
   it('retains held Earn lending experience without lending metadata', () => {
@@ -403,44 +449,6 @@ describe('useEarnAssetCatalogue', () => {
       usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
         ?.isFeeSubsidized,
     ).toBe(true);
-  });
-
-  it('adds Money funding to every deposit token including native assets', () => {
-    const polToken = {
-      ...moneyToken,
-      assetId: '0x0000000000000000000000000000000000000000',
-      address: '0x0000000000000000000000000000000000000000',
-      chainId: '0x89',
-      name: 'Polygon Ecosystem Token',
-      symbol: 'POL',
-      isNative: true,
-    } as MoneyDepositAsset;
-    const ethToken = {
-      ...moneyToken,
-      assetId: '0x0000000000000000000000000000000000000000',
-      address: '0x0000000000000000000000000000000000000000',
-      chainId: '0x1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      isNative: true,
-    } as MoneyDepositAsset;
-    mockSelectorValues({
-      moneyDepositAssets: [moneyToken, polToken, ethToken],
-    });
-    mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
-      chainId === '0x1' ? ETH_ASSET_ID : POL_ASSET_ID,
-    );
-
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-
-    [USDC_ASSET_ID, POL_ASSET_ID, ETH_ASSET_ID].forEach((expectedAssetId) => {
-      const asset = result.current.assets.find(
-        ({ assetId }) => assetId === expectedAssetId,
-      );
-      expect(
-        asset?.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
-      ).toBe(true);
-    });
   });
 
   it('keeps Money funding while Earn strategies are ineligible', () => {
@@ -487,6 +495,44 @@ describe('useEarnAssetCatalogue', () => {
         }),
       ]),
     );
+  });
+
+  it('adds Money funding to every deposit token including native assets', () => {
+    const polToken = {
+      ...moneyToken,
+      assetId: '0x0000000000000000000000000000000000000000',
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x89',
+      name: 'Polygon Ecosystem Token',
+      symbol: 'POL',
+      isNative: true,
+    } as MoneyDepositAsset;
+    const ethToken = {
+      ...moneyToken,
+      assetId: '0x0000000000000000000000000000000000000000',
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      isNative: true,
+    } as MoneyDepositAsset;
+    mockSelectorValues({
+      moneyDepositAssets: [moneyToken, polToken, ethToken],
+    });
+    mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
+      chainId === '0x1' ? ETH_ASSET_ID : POL_ASSET_ID,
+    );
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    [USDC_ASSET_ID, POL_ASSET_ID, ETH_ASSET_ID].forEach((expectedAssetId) => {
+      const asset = result.current.assets.find(
+        ({ assetId }) => assetId === expectedAssetId,
+      );
+      expect(
+        asset?.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
+      ).toBe(true);
+    });
   });
 
   it('omits unheld lending output tokens', () => {
@@ -577,7 +623,6 @@ describe('useEarnAssetCatalogue', () => {
       kind: 'discovery',
       assetId: ETH_ASSET_ID,
       metadata: {
-        symbol: 'ETH',
         ticker: 'ETH',
       },
     });
@@ -586,11 +631,6 @@ describe('useEarnAssetCatalogue', () => {
         id: `pooled:${ETH_ASSET_ID}`,
         role: 'underlying',
         type: EARN_EXPERIENCES.POOLED_STAKING,
-        rate: {
-          type: 'APR',
-          percentage: 3.1,
-          status: 'ready',
-        },
       }),
     ]);
   });
@@ -807,11 +847,18 @@ describe('useEarnAssetCatalogue', () => {
     expect(refetchTrxApy).toHaveBeenCalledTimes(1);
   });
 
-  it('reports missing lending decimals as an error', () => {
-    mockSelectorValues({
-      assets: [],
-      moneyDepositAssets: [],
+  it('refreshes the Money APY when Money is visible', async () => {
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
     });
+
+    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports missing lending decimals as an error', () => {
+    mockSelectorValues({ assets: [] });
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {
         [USDC_ASSET_ID]: {
@@ -833,9 +880,15 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('reports initial lending metadata work as loading without an error', () => {
+    mockUseEarnSectionLendingMarkets.mockReturnValue({
+      markets: [market, unheldMarket],
+      isLoading: false,
+      error: null,
+      refresh: refreshLendingMarkets,
+    });
     mockSelectorValues({
-      assets: [],
-      moneyDepositAssets: [],
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      assets: [moneyToken],
     });
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {},
@@ -868,7 +921,5 @@ describe('useEarnAssetCatalogue', () => {
     const refreshPromise = act(async () => result.current.refresh());
 
     await expect(refreshPromise).rejects.toThrow('Lending unavailable');
-    expect(refreshLendingMetadata).toHaveBeenCalledTimes(1);
-    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
   });
 });

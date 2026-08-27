@@ -17,9 +17,11 @@ import {
   ACTIVITY_CV_RAMP_SELL_ORDER_ID,
   ACTIVITY_CV_RAMP_SELL_TX_HASH,
   ACTIVITY_CV_SOLANA_ADDRESS,
+  ACTIVITY_CV_SOLANA_ASSET_ID,
   ACTIVITY_CV_SOLANA_CHAIN_ID,
   ACTIVITY_CV_SOLANA_SEND_ID,
   ACTIVITY_CV_SOLANA_SWAP_ID,
+  ACTIVITY_CV_SOLANA_USDC_ASSET_ID,
   ACTIVITY_CV_USDC,
   activityCvBridgeEthToMusdLineaHistoryEntry,
   activityCvBridgeEthToSolHistoryEntry,
@@ -57,6 +59,11 @@ import {
   clearAccountsTransactionsApiMocks,
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearActivityTokenApiMocks,
+  isActivityTokenApiMockDone,
+  setupActivityTokenApiMock,
+} from '../../../../tests/component-view/api-mocking/activity';
 import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
 import { getRouteParamsProbeTestId } from '../../../../tests/component-view/render';
 import Routes from '../../../constants/navigation/Routes';
@@ -1400,6 +1407,29 @@ describeForPlatforms(
 );
 
 describeForPlatforms('ActivityDetails — Solana swap', () => {
+  beforeEach(() => {
+    setupActivityTokenApiMock([
+      {
+        assetId: ACTIVITY_CV_SOLANA_ASSET_ID,
+        decimals: 9,
+        iconUrl: 'https://example.com/sol.png',
+        name: 'Solana',
+        symbol: 'SOL',
+      },
+      {
+        assetId: ACTIVITY_CV_SOLANA_USDC_ASSET_ID,
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc.png',
+        name: 'USD Coin',
+        symbol: 'USDC',
+      },
+    ]);
+  });
+
+  afterEach(() => {
+    clearActivityTokenApiMocks();
+  });
+
   it('shows confirmed Swapped SOL → USDC with fee, explorer, and Swap again', async () => {
     const state = initialStateActivity()
       .withOverrides(activityCvSolanaSwapStateOverrides)
@@ -1466,13 +1496,15 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
       exact: false,
     });
     expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
-    // 1 SOL × multichain rate 4; Solana base fees stay token-denominated.
-    // The row renders before the rate resolves, so poll for the converted value.
-    await waitFor(() =>
-      expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
-        exact: false,
-      }),
-    );
+    // Wait until API metadata (including decimals) has been applied. Display
+    // still reads the keyring amount directly, so 1 SOL must not become 1e-9.
+    await waitFor(() => expect(isActivityTokenApiMockDone()).toBe(true));
+    await act(async () => undefined);
+    expect(within(amountHeader).getByText('-1 SOL')).toBeOnTheScreen();
+    expect(within(amountHeader).getByText('+100 USDC')).toBeOnTheScreen();
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
+      exact: false,
+    });
 
     expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
       strings('activity_details.view_on_block_explorer'),
