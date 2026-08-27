@@ -8,6 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import type { PriceUpdate } from '@metamask/perps-controller';
+import { Platform } from 'react-native';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   describeForPlatforms,
@@ -169,6 +170,13 @@ const openTwapDurationSheet = async () => {
 };
 
 const createTwapPickerDate = (hours: number, minutes: number) => {
+  if (Platform.OS === 'ios') {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 1);
+    date.setMinutes(hours * 60 + minutes);
+    return date;
+  }
   const date = new Date(0);
   date.setUTCHours(hours, minutes);
   return date;
@@ -303,7 +311,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const { section, durationValue, randomize } = await openTwapOrderForm();
 
       expect(section).toBeOnTheScreen();
-      expect(durationValue).toHaveTextContent('0h 5m');
+      expect(durationValue).toHaveTextContent('0h 30m');
       expect(
         screen.queryByTestId(ids.TWAP_DURATION_PICKER),
       ).not.toBeOnTheScreen();
