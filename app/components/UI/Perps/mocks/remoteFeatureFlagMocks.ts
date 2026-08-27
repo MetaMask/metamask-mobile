@@ -16,5 +16,12 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsMyxProviderEnabled: mockEnabledPerpsLDFlag,
   perpsDefaultPayTokenWhenNoBalanceEnabled: mockEnabledPerpsLDFlag,
   perpsCompetitionBannerEnabled: mockEnabledPerpsLDFlag,
+  perpsAdvancedChartEnabledV2: mockEnabledPerpsLDFlag,
   perpsWatchlistV2Enabled: mockEnabledPerpsLDFlag,
+  perpsProModeEnabled: mockEnabledPerpsLDFlag,
+  perpsMobileTwap: mockEnabledPerpsLDFlag,
+  perpsTerminalBackendEnabled: mockEnabledPerpsLDFlag,
+  perpsRecentlyAddedEnabled: mockEnabledPerpsLDFlag,
+  perpsShowFullAssetNames: mockEnabledPerpsLDFlag,
+  perpsClosePositionLimitOrderEnabled: mockEnabledPerpsLDFlag,
 };

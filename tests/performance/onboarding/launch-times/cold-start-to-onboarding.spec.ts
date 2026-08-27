@@ -5,9 +5,8 @@ import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import AppiumAssertions from '../../../framework/AppiumAssertions';
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
 
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
@@ -21,8 +20,8 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, ()
       );
       await timer1.measure(
         async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(OnboardingView.newWalletButton),
+          await AppiumAssertions.expectElementToBeVisible(
+            OnboardingView.newWalletButton,
           ),
       );
 

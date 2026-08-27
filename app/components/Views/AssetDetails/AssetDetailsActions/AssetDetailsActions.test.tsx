@@ -42,7 +42,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsSwapsEnabled: jest.fn(),
 }));
 
-jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../../UI/Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
 }));

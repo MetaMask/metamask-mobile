@@ -1,89 +1,46 @@
 import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { PlaywrightAssertions } from '../../framework';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import Utilities from '../../framework/Utilities';
+import Assertions from '../../framework/Assertions';
+import type { AppiumElement } from '../../framework/AppiumElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class LoginView {
-  get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.CONTAINER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.CONTAINER, {
-          exact: true,
-        }),
-    });
+  get container(): Promise<AppiumElement> {
+    return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
-  get passwordInput(): EncapsulatedElementType {
-    return encapsulated({
-      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
-      // Android) rather than the outer Pressable container which carries the
-      // testID but has no input connection and therefore rejects typeText.
-      detox: () =>
-        Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.description("${LoginViewSelectors.PASSWORD_INPUT}")`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
-            exact: true,
-          }),
-      },
-    });
+  get passwordInput(): Promise<AppiumElement> {
+    // Android: match the inner EditText via content-desc (UiAutomator).
+    // iOS: testID resolves via Matchers.getElementByID.
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByAndroidUIAutomator(
+        `.description("${LoginViewSelectors.PASSWORD_INPUT}")`,
+      );
+    }
+    return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  get forgotPasswordButton(): EncapsulatedElementType {
+  get forgotPasswordButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): EncapsulatedElementType {
+  get rememberMeSwitch(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  get loginButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID, {
-          exact: true,
-        }),
-    });
+  get loginButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
   }
 
-  get title(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID, {
-          exact: true,
-        }),
-    });
+  get title(): Promise<AppiumElement> {
+    return Matchers.getElementByID(LoginViewSelectors.TITLE_ID);
   }
 
   async enterPassword(password: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.typeText(this.passwordInput, password, {
-          description: 'Password Input',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.typeText(this.passwordInput, password, {
-          description: 'Password Input',
-          hideKeyboard: false,
-        });
-      },
+    await Gestures.typeText(this.passwordInput, password, {
+      elemDescription: 'Password Input',
+      hideKeyboard: false,
     });
   }
 
@@ -100,37 +57,19 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.waitAndTap(this.loginButton, {
-          description: 'Login Button',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.loginButton, {
-          description: 'Login Button',
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          waitForInteractive: true,
-          timeout: 20_000,
-          enabledStableReads: 4,
-          postEnabledSettleMs: 1500,
-        });
-      },
+    await Gestures.waitAndTap(this.loginButton, {
+      elemDescription: 'Login Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      timeout: 10_000,
     });
   }
 
   async waitForScreenToDisplay(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.title),
-          {
-            timeout: 15000,
-            description: 'Login title should be visible',
-          },
-        );
-      },
+    await Assertions.expectElementToBeVisible(this.title, {
+      timeout: 15000,
+      description: 'Login title should be visible',
     });
   }
 }

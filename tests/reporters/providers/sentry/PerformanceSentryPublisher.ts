@@ -14,10 +14,15 @@ const ENV_SENTRY_SAMPLE_RATE = 'E2E_PERFORMANCE_SENTRY_SAMPLE_RATE';
 const ENV_SENTRY_ENVIRONMENT = 'E2E_PERFORMANCE_SENTRY_ENVIRONMENT';
 const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
 const ENV_SENTRY_BUILD_VARIANT = 'E2E_PERFORMANCE_BUILD_VARIANT';
+const ENV_SENTRY_CI_BUILD_VARIANT = 'E2E_PERFORMANCE_CI_BUILD_VARIANT';
+const ENV_SENTRY_RELEASE_VERSION = 'E2E_PERFORMANCE_RELEASE_VERSION';
+const ENV_SENTRY_GITHUB_REF_NAME = 'E2E_PERFORMANCE_GITHUB_REF_NAME';
 const ENV_GITHUB_SERVER_URL = 'GITHUB_SERVER_URL';
 const ENV_GITHUB_REPOSITORY = 'GITHUB_REPOSITORY';
 const ENV_GITHUB_RUN_ID = 'GITHUB_RUN_ID';
 const ENV_GITHUB_JOB = 'GITHUB_JOB';
+const ENV_GITHUB_REF_NAME = 'GITHUB_REF_NAME';
+type CiBuildVariant = 'rc' | 'exp' | 'e2e' | 'unknown';
 const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
@@ -80,6 +85,11 @@ interface MirroredScenarioAttributes {
   retry: number;
   worker_index: number;
   build_variant: 'rc' | 'exp' | 'unknown';
+  ci_build_variant: CiBuildVariant;
+  release_version: string | null;
+  github_ref: string | null;
+  github_run_id: string | null;
+  tracking_mode: 'observe';
   device_name: string;
   device_os_version: string;
   test_file_path: string;
@@ -117,6 +127,41 @@ function normalizeBuildVariant(variant?: string): 'rc' | 'exp' | 'unknown' {
   }
 
   return 'unknown';
+}
+
+function normalizeCiBuildVariant(variant?: string): CiBuildVariant {
+  if (variant === 'rc' || variant === 'exp' || variant === 'e2e') {
+    return variant;
+  }
+
+  return 'unknown';
+}
+
+function resolveGithubRefName(): string | null {
+  return (
+    getEnvValue(ENV_SENTRY_GITHUB_REF_NAME)?.trim() ||
+    getEnvValue(ENV_GITHUB_REF_NAME)?.trim() ||
+    null
+  );
+}
+
+/**
+ * Prefer explicit E2E_PERFORMANCE_RELEASE_VERSION; otherwise parse
+ * `release/X.Y.Z` (and optional suffixes) from the effective GitHub ref name.
+ */
+function resolveReleaseVersion(): string | null {
+  const explicit = getEnvValue(ENV_SENTRY_RELEASE_VERSION)?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const refName = resolveGithubRefName();
+  if (!refName) {
+    return null;
+  }
+
+  const match = refName.match(/^release\/(\d+\.\d+\.\d+(?:[.-][\w.]+)?)$/u);
+  return match?.[1] ?? null;
 }
 
 function sanitizeMeasurementKey(name: string): string {
@@ -363,6 +408,12 @@ export async function publishPerformanceScenarioToSentry(
   const buildVariant = normalizeBuildVariant(
     getEnvValue(ENV_SENTRY_BUILD_VARIANT),
   );
+  const ciBuildVariant = normalizeCiBuildVariant(
+    getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT),
+  );
+  const releaseVersion = resolveReleaseVersion();
+  const githubRef = resolveGithubRefName();
+  const githubRunId = getEnvValue(ENV_GITHUB_RUN_ID) ?? null;
   const testFilePath = options.testFilePath || '';
 
   const mirroredScenarioAttributes: MirroredScenarioAttributes = {
@@ -375,6 +426,11 @@ export async function publishPerformanceScenarioToSentry(
     retry,
     worker_index: workerIndex,
     build_variant: buildVariant,
+    ci_build_variant: ciBuildVariant,
+    release_version: releaseVersion,
+    github_ref: githubRef,
+    github_run_id: githubRunId,
+    tracking_mode: 'observe',
     device_name: options.metrics.device.name,
     device_os_version: options.metrics.device.osVersion,
     test_file_path: testFilePath,
@@ -448,6 +504,17 @@ export async function publishPerformanceScenarioToSentry(
       retry: String(mirroredScenarioAttributes.retry),
       worker_index: String(mirroredScenarioAttributes.worker_index),
       build_variant: mirroredScenarioAttributes.build_variant,
+      ci_build_variant: mirroredScenarioAttributes.ci_build_variant,
+      tracking_mode: mirroredScenarioAttributes.tracking_mode,
+      ...(mirroredScenarioAttributes.release_version
+        ? { release_version: mirroredScenarioAttributes.release_version }
+        : {}),
+      ...(mirroredScenarioAttributes.github_ref
+        ? { github_ref: mirroredScenarioAttributes.github_ref }
+        : {}),
+      ...(mirroredScenarioAttributes.github_run_id
+        ? { github_run_id: mirroredScenarioAttributes.github_run_id }
+        : {}),
     },
     measurements,
     spans,

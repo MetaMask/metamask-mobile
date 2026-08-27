@@ -12,10 +12,7 @@ import Logger from '../../../../util/Logger';
 interface RemoveEvmTokenProps {
   tokenToRemove: TokenI;
   currentChainId: string;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
   strings: (key: string, args?: Record<string, unknown>) => string;
   getDecimalChainId: (chainId: string) => number;
   createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;

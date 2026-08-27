@@ -73,6 +73,8 @@ export enum DeepLinkRoute {
   SDK_CONNECT = 'sdk-connect',
   // MetaMask SDK `mmsdk` deeplinks (the SDK's RPC message channel).
   SDK_MMSDK = 'sdk-mmsdk',
+  MONEY = 'money',
+  PRIVACY = 'privacy',
   INVALID = 'invalid',
 }
 

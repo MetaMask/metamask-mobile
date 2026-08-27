@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -19,11 +20,13 @@ import type { VipRefereeMeState } from '../../../../core/Engine/controllers/rewa
 import RewardsVipRefereeView, {
   REWARDS_VIP_REFEREE_VIEW_TEST_IDS,
 } from './RewardsVipRefereeView';
+import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 
 const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 // Obviously-synthetic fixtures — never real VIP codes/figures.
@@ -36,6 +39,21 @@ let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
+}));
+
+const mockGetBetaSupportUrl = jest.fn(
+  () => 'https://intercom.help/internal-beta-testing/en/',
+);
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -89,14 +107,51 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(Text, null, children),
     );
 
+  const ButtonIcon = ({
+    onPress,
+    testID,
+    accessibilityLabel,
+  }: {
+    onPress?: () => void;
+    testID?: string;
+    accessibilityLabel?: string;
+  }) =>
+    ReactActual.createElement(Pressable, {
+      testID,
+      accessibilityLabel,
+      onPress,
+    });
+
   return {
     HeaderStandard,
     Box: passthrough,
     BoxFlexDirection: { Row: 'row', Column: 'column' },
+    BoxAlignItems: { Center: 'center', Start: 'start', End: 'end' },
+    BoxJustifyContent: { Between: 'between', Center: 'center', End: 'end' },
     Button,
     ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
     ButtonSize: { Lg: 'lg' },
-    IconName: { MessageQuestion: 'MessageQuestion', Export: 'Export' },
+    ButtonIcon,
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    Icon: passthrough,
+    IconColor: {
+      IconDefault: 'default',
+      IconAlternative: 'alt',
+    },
+    IconName: {
+      MessageQuestion: 'MessageQuestion',
+      Export: 'Export',
+      Close: 'Close',
+      Info: 'Info',
+    },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
     TextColor: { TextDefault: 'default', TextAlternative: 'alt' },
@@ -144,6 +199,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_period_last_30d': 'Last 30d',
       'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
+      'rewards.vip.swaps_volume_info_label': 'Swaps volume information',
+      'rewards.vip.swaps_volume_info_title': 'Swaps volume',
+      'rewards.vip.swaps_volume_info_description':
+        'Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here.',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
       'rewards.vip.referee_contact_support': 'Contact support',
@@ -319,6 +378,24 @@ describe('RewardsVipRefereeView', () => {
     ).toHaveTextContent(/1,234/);
   });
 
+  it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    // The info sheet is not mounted until the help icon is pressed.
+    expect(
+      queryByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET),
+    ).toBeNull();
+
+    const helpIcon = getByTestId(
+      REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME_INFO,
+    );
+    fireEvent.press(helpIcon);
+
+    const sheet = getByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET);
+    expect(sheet).toHaveTextContent(/Swaps volume/);
+    expect(sheet).toHaveTextContent(/updates once per day/);
+  });
+
   it('renders an empty points-to label when referredByCode is missing', () => {
     mockUseVipRefereeDashboard.mockReturnValue({
       dashboard: { ...defaultDashboard, referredByCode: null },
@@ -432,7 +509,9 @@ describe('RewardsVipRefereeView', () => {
     ).toBeDisabled();
   });
 
-  it('opens the priority support webview tagged as VIP with the account address on press', () => {
+  // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
+  // the priority support link opens directly rather than through the consent flow.
+  it('opens the priority support webview tagged as VIP with the account address on press for a beta build', () => {
     const { getByTestId } = render(<RewardsVipRefereeView />);
 
     fireEvent.press(
@@ -442,8 +521,9 @@ describe('RewardsVipRefereeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: expect.stringContaining(
-          `priority=vip&address=${encodeURIComponent(mockAccountAddress)}`,
+        url: buildVipPrioritySupportUrl(
+          mockAccountAddress,
+          'https://intercom.help/internal-beta-testing/en/',
         ),
         title: 'Contact support',
       },
@@ -452,6 +532,59 @@ describe('RewardsVipRefereeView', () => {
       MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+  });
+
+  // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string, so
+  // priority support routes through the consent flow instead of a direct webview link.
+  it('routes the priority support link through the consent flow on a non-beta build', () => {
+    mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    const expectedUrl = buildVipPrioritySupportUrl(mockAccountAddress);
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      expectedUrl,
+      expect.any(Function),
+    );
+
+    const [, , onOpenSupport] = mockOpenSupportWithConsent.mock.calls[0];
+    onOpenSupport?.();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  // Covers only the call-site opener glue: invoking the opener passed to
+  // openSupportWithConsent navigates to the webview. The consent modal
+  // behavior itself is covered by the core support-consent tests.
+  it('navigates to the priority support webview when the provided opener is invoked', () => {
+    mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    const expectedUrl = buildVipPrioritySupportUrl(mockAccountAddress);
+    const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
+    openWebview(expectedUrl);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expectedUrl,
+        title: 'Contact support',
+      },
+    });
   });
 
   it('does not open support when the selected account address is missing', () => {
@@ -493,25 +626,21 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('replaces with the dashboard when the user is not a VIP referee', () => {
+  it('exits the rewards flow when the user is not a VIP referee', () => {
     mockIsVipReferee = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
-  it('replaces with the dashboard when the VIP program flag is off', () => {
+  it('exits the rewards flow when the VIP program flag is off', () => {
     mockIsVipProgramEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 });

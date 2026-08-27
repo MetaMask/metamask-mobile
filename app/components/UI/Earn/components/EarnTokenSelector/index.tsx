@@ -7,12 +7,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
+import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import SelectButton, {
   SelectButtonSize,
 } from '../../../../../component-library/components/Select/SelectButton';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import Badge, {
@@ -40,7 +41,7 @@ const EarnTokenSelector = ({
   action,
 }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkName = useSelector(selectNetworkName);
   const { getEarnToken, getOutputToken } = useEarnTokens();
   const earnToken = getEarnToken(someEarnToken);
@@ -97,11 +98,7 @@ const EarnTokenSelector = ({
     }
 
     return (
-      <AvatarToken
-        name={(tokenToRender as TokenI).symbol ?? ''}
-        imageSource={{ uri: (tokenToRender as TokenI).image }}
-        size={AvatarSize.Md}
-      />
+      <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Md} />
     );
   };
 

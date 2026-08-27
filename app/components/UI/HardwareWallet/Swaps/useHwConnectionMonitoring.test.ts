@@ -15,7 +15,11 @@ import {
 } from './HardwareWalletsSwaps.state';
 import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet/contexts';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
-import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
+import {
+  getRecoveryActionForErrorCode,
+  isUserCancellation,
+} from '../../../../core/HardwareWallet/errors/helpers';
+import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 
 jest.mock('../../../../core/HardwareWallet', () => ({
@@ -24,6 +28,7 @@ jest.mock('../../../../core/HardwareWallet', () => ({
 
 jest.mock('../../../../core/HardwareWallet/errors/helpers', () => ({
   isUserCancellation: jest.fn(),
+  getRecoveryActionForErrorCode: jest.fn(),
 }));
 
 jest.mock('../../../../core/HardwareWallet/errors/parser', () => ({
@@ -173,16 +178,29 @@ describe('shouldIgnoreAsBaseline', () => {
 
 describe('useHwConnectionMonitoring', () => {
   beforeEach(() => {
+    // Disconnected-status dispatches are now debounced via setTimeout(1000ms).
+    jest.useFakeTimers();
     jest.clearAllMocks();
     mockUseHardwareWallet.mockReturnValue(mockContextWith(createReadyState()));
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
     (isUserCancellation as jest.Mock).mockReturnValue(false);
+    // Default: errors are recoverable by reconnecting (no flow dispatch).
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.RETRY,
+    );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('dispatches DEVICE_DISCONNECTED when connection state changes to Disconnected during signing', () => {
     renderAndTransitionToWaiting(createDisconnectedState());
+
+    // Disconnected-status dispatch is debounced by 1000ms.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
@@ -214,6 +232,8 @@ describe('useHwConnectionMonitoring', () => {
       mockContextWith(createDisconnectedState()),
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // First disconnect is debounced — let it fire before the flow status changes.
+    jest.advanceTimersByTime(1000);
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Disconnected });
     mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
@@ -221,6 +241,8 @@ describe('useHwConnectionMonitoring', () => {
       mockContextWith(createDisconnectedState()),
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // Second disconnect is debounced — let it fire.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
     expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(1, {
@@ -323,6 +345,59 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.Rejected,
     });
+  });
+
+  it('dispatches TRANSACTION_FAILED for non-recoverable signing errors during signing', () => {
+    // Blind signing disabled on the device: reconnecting cannot fix this,
+    // so the flow state machine must reach a terminal retryable status.
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    renderAndTransitionToWaiting(createErrorState(error));
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.TransactionFailed,
+    });
+  });
+
+  it('ignores non-recoverable signing errors before signing starts', () => {
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    renderAndTransitionToWaiting(createErrorState(error), false);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch TRANSACTION_FAILED twice for the same signing error', () => {
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('does not dispatch transaction failure for recoverable connection errors', () => {
@@ -431,6 +506,8 @@ describe('useHwConnectionMonitoring', () => {
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // The disconnect dispatch is debounced by 1000ms.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
@@ -461,6 +538,8 @@ describe('useHwConnectionMonitoring', () => {
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // First disconnect dispatch is debounced by 1000ms.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
@@ -471,6 +550,8 @@ describe('useHwConnectionMonitoring', () => {
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // Re-dispatch after a real connection state change is also debounced.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
   });
@@ -479,6 +560,9 @@ describe('useHwConnectionMonitoring', () => {
     const { rerender } = renderAndTransitionToWaiting(
       createDisconnectedState(),
     );
+
+    // The disconnect dispatch is debounced by 1000ms.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
@@ -517,6 +601,70 @@ describe('useHwConnectionMonitoring', () => {
     );
 
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('ignores initial Disconnected in send mode when disconnected-status monitoring is disabled', () => {
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createDisconnectedState()),
+    );
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    jest.advanceTimersByTime(1000);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('ignores bare Disconnected status when disconnected-status monitoring is disabled', () => {
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(createReadyState()));
+
+    const { rerender } = renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createDisconnectedState()),
+    );
+    rerender({});
+    jest.advanceTimersByTime(1000);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('still dispatches ErrorState disconnect errors when disconnected-status monitoring is disabled', () => {
+    const error = new Error('device disconnected');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceDisconnected),
+    );
+
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createErrorState(error)),
+    );
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+    });
   });
 
   it('ignores pre-existing ErrorState when first entering Waiting', () => {
@@ -606,6 +754,8 @@ describe('useHwConnectionMonitoring', () => {
       mockContextWith(createDisconnectedState()),
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    // The re-occurring disconnect dispatch is debounced by 1000ms.
+    jest.advanceTimersByTime(1000);
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,

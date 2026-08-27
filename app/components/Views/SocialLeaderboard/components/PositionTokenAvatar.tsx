@@ -6,18 +6,25 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import PerpsTokenLogo from '../../../UI/Perps/components/PerpsTokenLogo';
-import {
-  chainNameToId,
-  getPositionNetworkBadge,
-  HYPERLIQUID_CHAIN_NAME,
-} from '../utils/chainMapping';
+import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
+import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
+/**
+ * Minimal position shape the avatar needs. Lets non-`Position` callers (e.g. the
+ * trader feed, which maps to its own row model) reuse this component without
+ * fabricating a full `Position`. A full `Position` is assignable to it.
+ */
+export type PositionTokenAvatarData = Pick<
+  Position,
+  'positionId' | 'chain' | 'tokenAddress' | 'tokenImageUrl' | 'tokenSymbol'
+>;
+
 export interface PositionTokenAvatarProps {
-  position: Position;
+  position: PositionTokenAvatarData;
   size?: AvatarTokenSize;
   showChainBadge?: boolean;
 }
@@ -41,7 +48,7 @@ const AVATAR_TOKEN_SIZE_TO_PIXELS: Record<AvatarTokenSize, number> = {
  * 2. MetaMask static CDN URL (derived from tokenAddress + chain)
  * 3. AvatarToken text monogram (first letter of tokenSymbol)
  */
-const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
+const PositionTokenAvatarComponent: React.FC<PositionTokenAvatarProps> = ({
   position,
   size = AvatarTokenSize.Lg,
   showChainBadge = false,
@@ -141,5 +148,17 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
 
   return avatar;
 };
+
+const PositionTokenAvatar = React.memo(
+  PositionTokenAvatarComponent,
+  (prev, next) =>
+    prev.size === next.size &&
+    prev.showChainBadge === next.showChainBadge &&
+    prev.position.positionId === next.position.positionId &&
+    prev.position.tokenAddress === next.position.tokenAddress &&
+    prev.position.chain === next.position.chain &&
+    prev.position.tokenSymbol === next.position.tokenSymbol &&
+    prev.position.tokenImageUrl === next.position.tokenImageUrl,
+);
 
 export default PositionTokenAvatar;

@@ -86,12 +86,10 @@ export const createMockUseAnalyticsHook = (
     addSensitiveProperties: jest.fn().mockReturnThis(),
     removeProperties: jest.fn().mockReturnThis(),
     removeSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     }),
   })),
   isEnabled: jest.fn().mockReturnValue(true),
@@ -153,13 +151,11 @@ export const createMockEventBuilder = (
   addSensitiveProperties: jest.fn().mockReturnThis(),
   removeProperties: jest.fn().mockReturnThis(),
   removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue(
     buildReturnValue ?? {
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     },
   ),
 });

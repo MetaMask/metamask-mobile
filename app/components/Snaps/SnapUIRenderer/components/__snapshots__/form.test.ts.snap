@@ -218,15 +218,18 @@ exports[`SnapUIForm will render 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": undefined,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": undefined,
-                    }
+                    [
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "textAlign": undefined,
+                      },
+                    ]
                   }
                 >
                   Submit
@@ -1211,15 +1214,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": undefined,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": undefined,
-                    }
+                    [
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "textAlign": undefined,
+                      },
+                    ]
                   }
                 >
                   Submit

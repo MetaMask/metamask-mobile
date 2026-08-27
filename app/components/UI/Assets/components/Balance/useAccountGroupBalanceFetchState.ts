@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import { useBalanceRefresh } from '../../../../Views/Wallet/hooks/useBalanceRefresh';
+import Logger from '../../../../../util/Logger';
 
 /**
- * Timeout for account group balance fetch.
- * This prevents a flash of empty state when the balance is not yet fetched.
+ * Safety-net timeout for account group balance fetch.
+ * The primary signal is the settlement of a real balance refresh; this timeout
+ * only prevents a permanent skeleton if that signal never arrives, and must
+ * exceed the refresh's internal 5s cap.
  * !TODO: This is a temporary fix for an artificial loading state and should be refactored after Account API v4 integration
  */
-export const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
+export const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 8000;
 
 interface GroupBalanceSnapshot {
   groupId: string;
@@ -30,6 +34,9 @@ export function useAccountGroupBalanceFetchState({
   const initialAccountGroupBalanceRef = useRef<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentGroupIdRef = useRef<string | null>(null);
+  const refreshRequestedRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const { refreshBalance } = useBalanceRefresh();
 
   useEffect(() => {
     const groupId = groupBalance?.groupId ?? null;
@@ -41,6 +48,7 @@ export function useAccountGroupBalanceFetchState({
       initialBalanceRef.current = null;
       initialAccountGroupBalanceRef.current = null;
       currentGroupIdRef.current = groupId;
+      refreshRequestedRef.current = false;
 
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -63,6 +71,7 @@ export function useAccountGroupBalanceFetchState({
 
     // Track balance changes - if EITHER balance updates from initial value, mark as fetched
     // We track both groupBalance AND accountGroupBalance since empty state uses accountGroupBalance
+    let hasLatchedInThisRun = false;
     if (groupBalance && initialBalanceRef.current !== null) {
       const currentBalance = groupBalance.totalBalanceInUserCurrency;
       const accountGroupCurrentBalance =
@@ -80,6 +89,7 @@ export function useAccountGroupBalanceFetchState({
           initialAccountGroupBalanceRef.current === 0);
 
       if (hasChanged || bothExistAndNonZero || accountGroupBecamePositive) {
+        hasLatchedInThisRun = true;
         setHasBalanceFetched(true);
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
@@ -87,10 +97,45 @@ export function useAccountGroupBalanceFetchState({
         }
       }
     }
-  }, [groupBalance, accountGroupBalance]);
+
+    if (
+      groupId !== null &&
+      !refreshRequestedRef.current &&
+      !hasBalanceFetched &&
+      !hasLatchedInThisRun
+    ) {
+      refreshRequestedRef.current = true;
+      const requestedGroupId = groupId;
+
+      const latchOnRefreshSettled = () => {
+        if (
+          !isMountedRef.current ||
+          currentGroupIdRef.current !== requestedGroupId
+        ) {
+          return;
+        }
+        setHasBalanceFetched(true);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+      };
+
+      Promise.resolve(refreshBalance())
+        .then(latchOnRefreshSettled)
+        .catch((error: unknown) => {
+          Logger.error(
+            error as Error,
+            'useAccountGroupBalanceFetchState: balance refresh failed',
+          );
+          latchOnRefreshSettled();
+        });
+    }
+  }, [groupBalance, accountGroupBalance, hasBalanceFetched, refreshBalance]);
 
   useEffect(
     () => () => {
+      isMountedRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

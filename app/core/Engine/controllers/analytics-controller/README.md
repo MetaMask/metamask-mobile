@@ -63,8 +63,8 @@ BrazePlugin.identify()
 
 Handled via `useBrazeIdentity` hook in `app/core/Braze/`:
 
-- **On sign-in**: `setBrazeUser()` → reads `profileId` from `AuthenticationController` → `Braze.changeUser(profileId)`
-- **On sign-out**: `clearBrazeUser()` → `Braze.changeUser(undefined)` → plugin becomes no-op
+- **On sign-in**: `setBrazeUser()` → reads `canonicalProfileId` from `AuthenticationController.state.srpSessionData` → `Braze.changeUser(canonicalProfileId)`
+- **On sign-out**: `clearBrazeUser()` → clears plugin identity + `Braze.wipeData()` → plugin becomes no-op
 
 ## Testing
 

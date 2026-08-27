@@ -33,6 +33,7 @@ export const ActivitiesViewSelectorsText = {
   PREDICT_DEPOSIT: enContent.transactions.tx_review_predict_deposit,
   PREDICT_WITHDRAW: enContent.transactions.tx_review_predict_withdraw,
   MUSD_CONVERSION: enContent.transactions.tx_review_musd_conversion,
+  MONEY_ACCOUNT_DEPOSIT: enContent.transactions.money_account_deposit,
   LENDING_DEPOSIT: enContent.transactions.tx_review_lending_deposit,
   LENDING_WITHDRAWAL: enContent.transactions.tx_review_lending_withdraw,
 };

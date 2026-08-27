@@ -8,18 +8,22 @@ import { Labelable, addLabelToLabelable } from './shared/labelable';
 import { retrievePullRequest } from './shared/pull-request';
 import { isValidVersionFormat } from './shared/utils';
 
+// Extracts version from cherry-pick PR titles (e.g., "cp-8.3.0" -> "8.3.0")
+function extractCherryPickVersion(title: string): string | null {
+  const cherryPickPattern = /cp-(\d+\.\d+\.\d+)/i;
+  const match = title.match(cherryPickPattern);
+  return match ? match[1] : null;
+}
+
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
 });
 
 async function main(): Promise<void> {
-  // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
-  // We can't use "GITHUB_TOKEN" here, as its permissions are scoped to the repository where the action is running.
-  // "GITHUB_TOKEN" does not have access to other repositories, even when they belong to the same organization.
-  // As we want to update linked issues which are not necessarily located in the same repository,
-  // we need to create our own "RELEASE_LABEL_TOKEN" with "repo" permissions.
-  // Such a token allows to access other repositories of the MetaMask organisation.
+  // RELEASE_LABEL_TOKEN is a same-repository installation token obtained via OIDC token exchange.
+  // It can only label issues and PRs within this repository; cross-repo labeling is intentionally
+  // skipped with a warning (see the loop below).
   const personalAccessToken = process.env.RELEASE_LABEL_TOKEN;
   if (!personalAccessToken) {
     core.setFailed('RELEASE_LABEL_TOKEN not found');
@@ -45,12 +49,31 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Release label indicates the next release version number
+  // Use cherry-pick version from PR title if present, otherwise use next release version
+  // CodeQL: user-controlled input is intentional; worst case is mislabeling, caught during release validation
+  const pullRequestTitle = context.payload.pull_request?.title || '';
+  const cherryPickVersion = extractCherryPickVersion(pullRequestTitle);
+
+  let releaseVersionNumber: string;
+  if (cherryPickVersion) {
+    if (!isValidVersionFormat(cherryPickVersion)) {
+      core.setFailed(
+        `Cherry-pick version (${cherryPickVersion}) extracted from PR title is not a valid version format. The expected format is "x.y.z", where "x", "y" and "z" are numbers.`,
+      );
+      process.exit(1);
+    }
+    core.info(`Cherry-pick detected, using release version ${cherryPickVersion}`);
+    releaseVersionNumber = cherryPickVersion;
+  } else {
+    releaseVersionNumber = nextReleaseVersionNumber;
+  }
+
+  // Release label indicates the release version number
   // Example release label: "release-6.5.0"
   const releaseLabel: Label = {
-    name: `release-${nextReleaseVersionNumber}`,
+    name: `release-${releaseVersionNumber}`,
     color: 'EDEDED',
-    description: `Issue or pull request that will be included in release ${nextReleaseVersionNumber}`,
+    description: `Issue or pull request that will be included in release ${releaseVersionNumber}`,
   };
 
   // Initialise octokit, required to call Github GraphQL API
@@ -86,8 +109,17 @@ async function main(): Promise<void> {
     pullRequestNumber,
   );
 
-  // Add the release label to the linked issues
+  // Add the release label to the linked issues (same-repo only)
   for (const linkedIssue of linkedIssues) {
+    if (
+      linkedIssue.repoOwner !== pullRequestRepoOwner ||
+      linkedIssue.repoName !== pullRequestRepoName
+    ) {
+      core.warning(
+        `Skipping release label for ${linkedIssue.repoOwner}/${linkedIssue.repoName}#${linkedIssue.number}: cross-repo labeling is not supported by the same-repo token.`,
+      );
+      continue;
+    }
     await addLabelToLabelable(octokit, linkedIssue, releaseLabel);
   }
 }

@@ -1,17 +1,18 @@
 import { useContext, useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { PredictEventValues } from '../constants/eventNames';
 import { usePredictActionGuard } from './usePredictActionGuard';
 import { usePredictPreviewSheet } from '../contexts';
 import type { PredictMarket, PredictPosition } from '../types';
-import type { PredictNavigationParamList } from '../types/navigation';
 
 interface UsePredictCashOutOptions {
   market: PredictMarket;
@@ -22,11 +23,11 @@ export const usePredictCashOut = ({
   market,
   callerName,
 }: UsePredictCashOutOptions) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const { openSellSheet } = usePredictPreviewSheet();
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
 
   const onCashOut = useCallback(
     (position: PredictPosition) => {
@@ -56,6 +57,7 @@ export const usePredictCashOut = ({
             toastRef?.current?.showToast({
               variant: ToastVariants.Icon,
               iconName: IconName.Danger,
+              iconColor: colors.error.default,
               labelOptions: [
                 {
                   label: strings('predict.order.cashout_failed'),
@@ -69,7 +71,14 @@ export const usePredictCashOut = ({
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
       );
     },
-    [executeGuardedAction, market, openSellSheet, toastRef, callerName],
+    [
+      executeGuardedAction,
+      market,
+      openSellSheet,
+      toastRef,
+      callerName,
+      colors.error.default,
+    ],
   );
 
   return { onCashOut };

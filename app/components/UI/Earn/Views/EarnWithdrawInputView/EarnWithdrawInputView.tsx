@@ -4,6 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -143,12 +144,15 @@ const EarnWithdrawInputView = () => {
     tronWithdrawalToken,
     ///: END:ONLY_INCLUDE_IF
   ]);
+  const stakingExperienceType =
+    receiptTokenToUse?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
 
   const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
     if (
       receiptTokenToUse?.experience?.type ===
         EARN_EXPERIENCES.STABLECOIN_LENDING ||
-      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING ||
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.TRX_STAKING
     ) {
       return receiptTokenToUse;
     }
@@ -159,7 +163,7 @@ const EarnWithdrawInputView = () => {
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
@@ -330,7 +334,7 @@ const EarnWithdrawInputView = () => {
       }
     : {
         event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
-        experience: EARN_EXPERIENCES.POOLED_STAKING,
+        experience: stakingExperienceType,
         location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
       };
 
@@ -816,7 +820,7 @@ const EarnWithdrawInputView = () => {
               amount: value,
               is_max: value === 1,
               mode: isFiat ? 'fiat' : 'native',
-              experience: EARN_EXPERIENCES.POOLED_STAKING,
+              experience: stakingExperienceType,
               user_token_balance: receiptToken?.balanceFormatted,
               token: receiptToken?.symbol,
               network: network?.name,
@@ -836,6 +840,7 @@ const EarnWithdrawInputView = () => {
       receiptToken?.experience?.type,
       network?.name,
       isFiat,
+      stakingExperienceType,
     ],
   );
 

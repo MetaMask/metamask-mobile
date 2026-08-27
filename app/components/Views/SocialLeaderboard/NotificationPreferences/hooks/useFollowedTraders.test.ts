@@ -1,8 +1,17 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { addBreadcrumb } from '@sentry/react-native';
 import Logger from '../../../../../util/Logger';
 import { useFollowedTraders } from './useFollowedTraders';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../../../selectors/socialController', () => ({
+  selectFollowingProfileIds: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -18,6 +27,7 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -52,6 +62,7 @@ const fixtureFollowing = {
 describe('useFollowedTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(['trader-1', 'trader-2']);
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
   });
@@ -100,9 +111,32 @@ describe('useFollowedTraders', () => {
         {
           id: 'trader-1',
           username: 'trader1',
+          address: '0x1',
           avatarUri: 'https://example.com/a1.png',
         },
-        { id: 'trader-2', username: 'trader2', avatarUri: undefined },
+        {
+          id: 'trader-2',
+          username: 'trader2',
+          address: '0x2',
+          avatarUri: undefined,
+        },
+      ]);
+    });
+
+    it('excludes traders not present in Redux followingProfileIds', () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+      const { result } = renderHook(() => useFollowedTraders());
+
+      expect(result.current.traders).toEqual([
+        {
+          id: 'trader-1',
+          username: 'trader1',
+          address: '0x1',
+          avatarUri: 'https://example.com/a1.png',
+        },
       ]);
     });
   });

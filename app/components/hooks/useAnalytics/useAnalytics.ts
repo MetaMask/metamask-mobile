@@ -31,7 +31,7 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * - The anonymous event includes sensitive properties so you can know **what** but not **who**
  * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
  *
- * @returns Analytics functions compatible with the useMetrics API
+ * @returns Analytics functions
  *
  * @example basic non-anonymous tracking with no properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();

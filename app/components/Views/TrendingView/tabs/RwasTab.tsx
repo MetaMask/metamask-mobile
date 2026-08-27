@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -42,6 +43,17 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../search/abTestConfig';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 /** Perps category pills for the RWAs tab, in perps display order. */
 const RWA_PERPS_CATEGORIES: PerpsFilterKey[] = [
@@ -107,6 +119,13 @@ const RwasTabContent: React.FC<TabProps> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const { openQuickBuy } = useTrendingQuickBuySheet();
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
   const stocks = useStocksFeed({
@@ -133,9 +152,14 @@ const RwasTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton
+            ? (token) => openQuickBuy(token, 'explore_rwas')
+            : undefined
+        }
       />
     ),
-    [],
+    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -225,13 +249,15 @@ const RwasTabContent: React.FC<TabProps> = ({
   ]);
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
-    >
-      <ExploreSectionList sections={sections} />
-    </ExploreScroll>
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+      >
+        <ExploreSectionList sections={sections} />
+      </ExploreScroll>
+    </View>
   );
 };
 

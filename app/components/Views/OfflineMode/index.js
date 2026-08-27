@@ -1,7 +1,8 @@
 'use strict';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import Text from '../../Base/Text';
 import NetInfo from '@react-native-community/netinfo';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -53,11 +54,27 @@ const createStyles = (colors) =>
 
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import-x/no-commonjs
 
-const OfflineMode = ({ navigation, infuraBlocked }) => {
+export const OfflineMode = ({ navigation, route, infuraBlocked }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const netinfo = NetInfo.useNetInfo();
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (
+      route?.params?.autoDismissOnReconnect === true &&
+      isFocused &&
+      netinfo?.isConnected
+    ) {
+      navigation.pop();
+    }
+  }, [
+    isFocused,
+    navigation,
+    netinfo?.isConnected,
+    route?.params?.autoDismissOnReconnect,
+  ]);
 
   const tryAgain = () => {
     if (netinfo?.isConnected) {
@@ -113,6 +130,10 @@ OfflineMode.propTypes = {
    * Object that represents the navigator
    */
   navigation: PropTypes.object,
+  /**
+   * Current route parameters
+   */
+  route: PropTypes.object,
   /**
    * Whether infura was blocked or not
    */

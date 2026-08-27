@@ -9,12 +9,15 @@ import {
 } from '../../../core/Braze';
 import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
 import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
+import Logger from '../../../util/Logger';
+import { isProduction } from '../../../util/environment';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
 export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
+type BrazeBannerSource = 'warm-cache' | 'event';
 
 export interface UseBrazeBannerResult {
   status: BrazeBannerStatus;
@@ -48,6 +51,26 @@ const PROP_IMAGE_URL = 'image_url';
 const PROP_CTA_LABEL = 'cta_label';
 const PROP_VARIANT_NAME = 'variant_name';
 
+function logBrazeBannerDebug(
+  message: string,
+  placementId: string,
+  banner: Banner | null,
+  extra: Record<string, unknown> = {},
+) {
+  if (isProduction()) return;
+
+  Logger.log(`[BrazeBanner] ${message}`, {
+    placementId,
+    campaignName: banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null,
+    variantName: banner ? getRawStringProp(banner, PROP_VARIANT_NAME) : null,
+    bannerPlacementId: banner?.placementId ?? null,
+    isControl: banner?.isControl ?? null,
+    isTestSend: banner?.isTestSend ?? null,
+    hasBody: banner ? Boolean(getRawStringProp(banner, PROP_BODY)) : false,
+    ...extra,
+  });
+}
+
 /**
  * Drives the BrazeBanner state machine.
  *
@@ -76,9 +99,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // will change the status for the rest of this app session.
   const dismissedRef = useRef(false);
 
-  // Once a banner has been accepted and shown, lock it in for this session so
-  // subsequent bannerCardsUpdated events don't swap its content.
-  const shownRef = useRef(false);
+  // Track the currently rendered trackingId so repeated SDK events for the
+  // same banner do not trigger state updates, while a different trackingId can
+  // replace a warm-cache banner after Braze refreshes.
+  const currentBannerTrackingIdRef = useRef<string | null>(null);
+
+  // Avoid inserting a new banner long after the home screen has settled. The
+  // window closes with the no-response timeout; already-visible banners may
+  // still be replaced without changing the reserved layout slot.
+  const initialBannerWindowOpenRef = useRef(true);
 
   // Timeout to stop showing the loading skeleton and render nothing if no banner is available.
   const noResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -97,22 +126,50 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
    * Returns `true` if the banner was accepted and state updated.
    */
   const handleBanner = useCallback(
-    (candidate: Banner | null) => {
-      if (dismissedRef.current || shownRef.current) return;
+    (candidate: Banner | null, source: BrazeBannerSource) => {
+      if (dismissedRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
       // wait for a bannerCardsUpdated event or the skeleton timeout.
-      if (candidate === null) return;
+      if (candidate === null) {
+        logBrazeBannerDebug(
+          'No candidate banner available yet',
+          placementId,
+          null,
+        );
+        return;
+      }
 
       if (candidate.isControl || candidate.placementId !== placementId) {
+        if (currentBannerTrackingIdRef.current !== null) {
+          logBrazeBannerDebug(
+            'Ignoring control or mismatched placement banner while visible',
+            placementId,
+            candidate,
+          );
+          return;
+        }
+
+        logBrazeBannerDebug(
+          'Ignoring control or mismatched placement banner',
+          placementId,
+          candidate,
+        );
         // Control-group assignment or no banner for this placement.
         clearNoResponseTimeout();
+        currentBannerTrackingIdRef.current = null;
+        setBanner(null);
         setStatus('empty');
         return;
       }
 
       const body = getRawStringProp(candidate, PROP_BODY);
       if (!body) {
+        logBrazeBannerDebug(
+          'Ignoring banner without body',
+          placementId,
+          candidate,
+        );
         return; // wait for a meaningful banner
       }
 
@@ -121,12 +178,44 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         bannerName !== null &&
         bannerName === lastDismissedBrazeBannerRef.current
       ) {
+        logBrazeBannerDebug(
+          'Ignoring previously dismissed banner',
+          placementId,
+          candidate,
+        );
         // This banner was explicitly dismissed last session - skip it.
         return;
       }
 
+      if (
+        source === 'event' &&
+        currentBannerTrackingIdRef.current === null &&
+        !initialBannerWindowOpenRef.current
+      ) {
+        logBrazeBannerDebug(
+          'Ignoring late initial banner after startup window',
+          placementId,
+          candidate,
+        );
+        return;
+      }
+
+      if (candidate.trackingId === currentBannerTrackingIdRef.current) {
+        logBrazeBannerDebug(
+          'Ignoring duplicate banner tracking ID',
+          placementId,
+          candidate,
+        );
+        return;
+      }
+
+      logBrazeBannerDebug(
+        'Accepting banner for display',
+        placementId,
+        candidate,
+      );
       clearNoResponseTimeout();
-      shownRef.current = true;
+      currentBannerTrackingIdRef.current = candidate.trackingId;
 
       setBanner(candidate);
       setStatus('visible');
@@ -145,27 +234,38 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // placement (e.g. returning user), show it immediately without waiting for
     // the next `bannerCardsUpdated` event.
     getBannerForPlacement(placementId).then((result) => {
-      handleBanner(result);
+      logBrazeBannerDebug('Warm-cache probe resolved', placementId, result);
+      handleBanner(result, 'warm-cache');
     });
 
     const subscription = Braze.addListener(
       'bannerCardsUpdated',
       (event: { banners: Banner[] }) => {
-        if (dismissedRef.current || shownRef.current) return;
+        if (dismissedRef.current) return;
 
         const match = event.banners.find(
           (b) =>
             b.placementId === placementId && getRawStringProp(b, PROP_BODY),
         );
 
+        logBrazeBannerDebug(
+          'bannerCardsUpdated received',
+          placementId,
+          match ?? null,
+          {
+            bannerCount: event.banners.length,
+            matched: Boolean(match),
+          },
+        );
+
         if (match) {
-          handleBanner(match);
+          handleBanner(match, 'event');
         }
       },
     );
 
     // Refresh the SDK's banner cache when the app returns to the foreground so
-    // that stale cached banners are replaced without changing the visible UI.
+    // stale warm-cache content can be replaced when Braze returns a new banner.
     const appStateSubscription = AppState.addEventListener(
       'change',
       (nextState) => {
@@ -179,6 +279,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // within the window, stop showing the loading skeleton and render nothing.
     noResponseTimeoutRef.current = setTimeout(() => {
       if (!dismissedRef.current) {
+        initialBannerWindowOpenRef.current = false;
         setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
       }
     }, SKELETON_TIMEOUT_MS);
@@ -188,8 +289,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       appStateSubscription.remove();
       clearNoResponseTimeout();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placementId]);
+  }, [placementId, dispatch, handleBanner, clearNoResponseTimeout]);
 
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;

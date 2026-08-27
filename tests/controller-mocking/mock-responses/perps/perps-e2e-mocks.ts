@@ -206,17 +206,21 @@ export class PerpsE2EMockService {
       this.mockOrders.push(solOrder);
     }
 
-    // Seed a completed deposit so Activity > Deposits is populated
-    this.mockUserHistory.push({
-      id: `seed_deposit_${Date.now()}`,
-      timestamp: Date.now() - 5 * 60 * 1000,
-      type: 'deposit',
-      amount: '100.00',
-      asset: 'USDC',
-      txHash: '0xseeddeposit',
-      status: 'completed',
-      details: { source: 'e2e-mock' },
-    });
+    // Seed a completed deposit so Activity > Deposits is populated.
+    // Skipped for 'no-positions' so deposit-flow tests that create their own
+    // real deposit tx render a single entry instead of a duplicate.
+    if (profile !== 'no-positions') {
+      this.mockUserHistory.push({
+        id: `seed_deposit_${Date.now()}`,
+        timestamp: Date.now() - 5 * 60 * 1000,
+        type: 'deposit',
+        amount: '100.00',
+        asset: 'USDC',
+        txHash: '0xseeddeposit',
+        status: 'completed',
+        details: { source: 'e2e-mock' },
+      });
+    }
   }
 
   // Mock successful order placement
@@ -1103,6 +1107,7 @@ export class PerpsE2EMockService {
         funding: 0.01,
         openInterest: 50000000,
         volume24h: 1000000,
+        isTradable: true,
       },
       ETH: {
         symbol: 'ETH',
@@ -1116,6 +1121,7 @@ export class PerpsE2EMockService {
         funding: 0.005,
         openInterest: 25000000,
         volume24h: 500000,
+        isTradable: true,
       },
       SOL: {
         symbol: 'SOL',
@@ -1129,6 +1135,7 @@ export class PerpsE2EMockService {
         funding: 0.003,
         openInterest: 12000000,
         volume24h: 300000,
+        isTradable: true,
       },
     };
   }

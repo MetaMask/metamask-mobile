@@ -17,6 +17,10 @@ jest.mock('uuid', () => {
     v4: jest.fn(),
   };
 });
+jest.mock('../Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
 
 const mockedStorageWrapper = storageWrapper as jest.Mocked<
   typeof storageWrapper
@@ -126,6 +130,60 @@ describe('getAnalyticsId', () => {
       2,
       ANALYTICS_ID,
       newId2,
+    );
+  });
+
+  describe('identity recovery from persisted AnalyticsController state', () => {
+    // Losing this identity orphans the device's entire analytics history and
+    // makes it look like a brand-new user, so the persisted controller copy is
+    // preferred over minting a replacement.
+    const persistedId = '59710bcf-06cc-4247-9386-12425e7fc905';
+
+    it('recovers the persisted identity instead of minting when storage is empty', async () => {
+      mockedStorageWrapper.getItem.mockResolvedValue(null);
+
+      const result = await getAnalyticsId(persistedId);
+
+      expect(result).toBe(persistedId);
+      expect(mockedV4).not.toHaveBeenCalled();
+      expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+        ANALYTICS_ID,
+        persistedId,
+      );
+    });
+
+    it('prefers the stored identity over the persisted one when both exist', async () => {
+      const storedId = 'a3f1c2d4-1234-4abc-8def-0123456789ab';
+      mockedStorageWrapper.getItem.mockResolvedValue(storedId);
+
+      const result = await getAnalyticsId(persistedId);
+
+      expect(result).toBe(storedId);
+      expect(mockedV4).not.toHaveBeenCalled();
+      expect(mockedStorageWrapper.setItem).not.toHaveBeenCalled();
+    });
+
+    it.each<[string, unknown]>([
+      ['a non-UUID string', 'not-a-uuid'],
+      ['a UUID that is not v4', '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'],
+      ['an empty string', ''],
+      ['a non-string value', 12345],
+      ['undefined', undefined],
+    ])(
+      'mints a new identity when the persisted value is %s',
+      async (_label, persistedValue) => {
+        const newId = 'freshly-minted-id';
+        mockedStorageWrapper.getItem.mockResolvedValue(null);
+        mockedV4.mockReturnValue(newId);
+
+        const result = await getAnalyticsId(persistedValue);
+
+        expect(result).toBe(newId);
+        expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+          ANALYTICS_ID,
+          newId,
+        );
+      },
     );
   });
 });

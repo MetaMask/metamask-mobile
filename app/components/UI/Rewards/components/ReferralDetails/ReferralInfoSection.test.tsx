@@ -245,6 +245,7 @@ describe('ReferralInfoSection', () => {
             perpsBps: 7,
             revenueShareBps: 1200,
             referralCarryoverBps: 4242,
+            maintainPointsRequirement: null,
             status: 'upcoming',
           },
         ],

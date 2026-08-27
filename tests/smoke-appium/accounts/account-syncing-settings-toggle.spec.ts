@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
+import {
+  loginAndOpenAccountList,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
@@ -58,9 +61,7 @@ appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
           await assertAccountCount(SECOND_ACCOUNT_NAME, 1);
 
           await AccountListBottomSheet.tapBackButton();
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'Wallet view should be visible after account list',
-          });
+          await waitForWalletHomePlaywright();
 
           await disableAccountSyncViaSettings();
 

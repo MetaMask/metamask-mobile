@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import { createProjectLogger, type Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
-import { hasTransactionType } from '../../utils/transaction';
 import { usePredictAccountState } from '../../../../UI/Predict/hooks/usePredictAccountState';
 
 const log = createProjectLogger('transaction-pay-post-quote');

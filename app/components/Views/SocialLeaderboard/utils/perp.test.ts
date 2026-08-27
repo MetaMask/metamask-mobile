@@ -2,6 +2,8 @@ import type { Position, Trade } from '@metamask/social-controllers';
 import {
   getPerpPositionDirection,
   getPerpTradeDirection,
+  getSupportedXyzPerpMarketSymbol,
+  isClosedPosition,
   isPerpPosition,
   isPerpTrade,
 } from './perp';
@@ -136,6 +138,108 @@ describe('perp utils', () => {
           direction: 'sell',
         }),
       ).toBe('short');
+    });
+  });
+
+  describe('isClosedPosition', () => {
+    const openPerp = {
+      perpPositionType: 'long' as const,
+      chain: 'hyperliquid',
+      positionAmount: 275,
+      soldUsd: 0,
+      currentValueUSD: undefined,
+      marginUsd: 44_646,
+    };
+
+    it.each([
+      [true, false],
+      [false, true],
+    ] as const)(
+      'uses the API isOpen value %s to report closed=%s',
+      (isOpen, expected) => {
+        const result = isClosedPosition({ ...openPerp, isOpen });
+
+        expect(result).toBe(expected);
+      },
+    );
+
+    it('returns false for an open perp when currentValueUSD is omitted but margin remains', () => {
+      expect(isClosedPosition(openPerp)).toBe(false);
+    });
+
+    it('returns true for a closed perp with an explicit zero currentValueUSD', () => {
+      expect(
+        isClosedPosition({
+          ...openPerp,
+          currentValueUSD: 0,
+          marginUsd: 0,
+          positionAmount: 0,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns true for a closed perp when marginUsd is zero and currentValueUSD is omitted', () => {
+      expect(
+        isClosedPosition({
+          ...openPerp,
+          marginUsd: 0,
+          positionAmount: 0,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for a spot position that still holds tokens', () => {
+      expect(
+        isClosedPosition({
+          ...basePosition,
+          positionAmount: 100,
+          soldUsd: 0,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true for a fully exited spot position', () => {
+      expect(
+        isClosedPosition({
+          ...basePosition,
+          positionAmount: 0,
+          soldUsd: 500,
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('getSupportedXyzPerpMarketSymbol', () => {
+    it('links non-HIP-3 symbols directly with no existence check', () => {
+      expect(getSupportedXyzPerpMarketSymbol('BTC')).toStrictEqual({
+        targetSymbol: 'BTC',
+        requiresXyzMarketCheck: false,
+      });
+    });
+
+    it('links xyz markets directly with no existence check', () => {
+      expect(getSupportedXyzPerpMarketSymbol('xyz:SPCX')).toStrictEqual({
+        targetSymbol: 'xyz:SPCX',
+        requiresXyzMarketCheck: false,
+      });
+    });
+
+    it('treats the xyz prefix case-insensitively', () => {
+      expect(getSupportedXyzPerpMarketSymbol('XYZ:SPCX')).toStrictEqual({
+        targetSymbol: 'XYZ:SPCX',
+        requiresXyzMarketCheck: false,
+      });
+    });
+
+    it('remaps another HIP-3 provider to its xyz equivalent and flags the check', () => {
+      expect(getSupportedXyzPerpMarketSymbol('cash:SPCX')).toStrictEqual({
+        targetSymbol: 'xyz:SPCX',
+        requiresXyzMarketCheck: true,
+      });
+      expect(getSupportedXyzPerpMarketSymbol('kv:TSLA')).toStrictEqual({
+        targetSymbol: 'xyz:TSLA',
+        requiresXyzMarketCheck: true,
+      });
     });
   });
 });

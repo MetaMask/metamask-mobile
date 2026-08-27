@@ -34,6 +34,11 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
 const mockAddToWatchlist = jest.fn();
 jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
   usePerpsWatchlistActions: () => ({
@@ -48,10 +53,12 @@ jest.mock('../PerpsMarketRowItem', () => {
     market,
     onPress,
     onAddPress,
+    displayMetric,
   }: {
     market: PerpsMarketData;
     onPress?: () => void;
     onAddPress?: (market: PerpsMarketData) => void;
+    displayMetric?: string;
   }) {
     return (
       <TouchableOpacity
@@ -60,6 +67,11 @@ jest.mock('../PerpsMarketRowItem', () => {
       >
         <Text>{market.symbol}</Text>
         <Text>{market.name}</Text>
+        {displayMetric ? (
+          <Text testID={`perps-market-row-${market.symbol}-metric`}>
+            {displayMetric}
+          </Text>
+        ) : null}
         {onAddPress && (
           <TouchableOpacity
             onPress={() => onAddPress(market)}
@@ -308,6 +320,19 @@ describe('PerpsWatchlistMarkets', () => {
         screen.queryByTestId('perps-market-row-BTC-add-button'),
       ).not.toBeOnTheScreen();
     });
+
+    it('passes displayMetric to watchlist market rows', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          displayMetric="priceChange"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-row-BTC-metric'),
+      ).toHaveTextContent('priceChange');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -554,6 +579,28 @@ describe('PerpsWatchlistMarkets', () => {
       );
       fireEvent.press(screen.getByTestId('perps-watchlist-header'));
       expect(onSeeAllPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires PERPS_UI_INTERACTION with button_clicked=watchlist when header is pressed', () => {
+      const { PERPS_EVENT_VALUE: PEV, PERPS_EVENT_PROPERTY: PEP } =
+        jest.requireActual('@metamask/perps-controller');
+
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onSeeAllPress={jest.fn()}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-watchlist-header'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PEP.BUTTON_CLICKED]: PEV.BUTTON_CLICKED.WATCHLIST,
+          [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.PERPS_HOME,
+        }),
+      );
     });
 
     it('does not throw when header is pressed without onSeeAllPress', () => {

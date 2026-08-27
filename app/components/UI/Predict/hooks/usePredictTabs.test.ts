@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../constants/flags';
-import { buildPredictWorldCupAllQuery } from '../utils/worldCup';
+import {
+  DEFAULT_WIMBLEDON_TAB_FLAG,
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+} from '../constants/flags';
 import { usePredictTabs } from './usePredictTabs';
 
 const mockRouteParams: { tab?: string } = {};
@@ -15,18 +17,20 @@ const mockHotTabFlag: { enabled: boolean; queryParams: string | undefined } = {
   enabled: false,
   queryParams: undefined,
 };
-let mockIsWorldCupMainFeedTabEnabled = false;
-let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
-
+const mockWimbledonTabFlag: {
+  enabled: boolean;
+  queryParams: string | undefined;
+} = {
+  enabled: false,
+  queryParams: undefined,
+};
 jest.mock('react-redux', () => ({
   useSelector: (selector: string) => {
     switch (selector) {
       case 'selectPredictHotTabFlag':
         return mockHotTabFlag;
-      case 'selectPredictWorldCupMainFeedTabEnabledFlag':
-        return mockIsWorldCupMainFeedTabEnabled;
-      case 'selectPredictWorldCupConfig':
-        return mockWorldCupConfig;
+      case 'selectPredictWimbledonTabFlag':
+        return mockWimbledonTabFlag;
       default:
         return undefined;
     }
@@ -35,9 +39,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
-  selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
-  selectPredictWorldCupMainFeedTabEnabledFlag:
-    'selectPredictWorldCupMainFeedTabEnabledFlag',
+  selectPredictWimbledonTabFlag: 'selectPredictWimbledonTabFlag',
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -50,8 +52,8 @@ describe('usePredictTabs', () => {
     mockRouteParams.tab = undefined;
     mockHotTabFlag.enabled = false;
     mockHotTabFlag.queryParams = undefined;
-    mockIsWorldCupMainFeedTabEnabled = false;
-    mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    mockWimbledonTabFlag.enabled = false;
+    mockWimbledonTabFlag.queryParams = undefined;
   });
 
   describe('tabs array', () => {
@@ -72,37 +74,24 @@ describe('usePredictTabs', () => {
       expect(result.current.tabs[1].key).toBe('trending');
     });
 
-    it('does not include World Cup tab when main feed tab flag is disabled', () => {
+    it('does not include Wimbledon tab when Wimbledon tab flag is disabled', () => {
       const { result } = renderHook(() => usePredictTabs());
 
       expect(result.current.tabs.map((tab) => tab.key)).not.toContain(
-        'world-cup',
+        'wimbledon',
       );
     });
 
-    it('includes World Cup tab at beginning when enabled', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-
-      const { result } = renderHook(() => usePredictTabs());
-
-      expect(result.current.tabs).toHaveLength(7);
-      expect(result.current.tabs[0]).toEqual({
-        key: 'world-cup',
-        label: 'predict.world_cup.title',
-        customQueryParams: buildPredictWorldCupAllQuery(mockWorldCupConfig),
-      });
-      expect(result.current.tabs[1].key).toBe('trending');
-    });
-
-    it('places World Cup before Hot when both tabs are enabled', () => {
+    it('places Wimbledon before Hot when all optional tabs are enabled', () => {
       mockHotTabFlag.enabled = true;
       mockHotTabFlag.queryParams = 'test=value';
-      mockIsWorldCupMainFeedTabEnabled = true;
+      mockWimbledonTabFlag.enabled = true;
+      mockWimbledonTabFlag.queryParams = DEFAULT_WIMBLEDON_TAB_FLAG.queryParams;
 
       const { result } = renderHook(() => usePredictTabs());
 
       expect(result.current.tabs.map((tab) => tab.key).slice(0, 3)).toEqual([
-        'world-cup',
+        'wimbledon',
         'hot',
         'trending',
       ]);
@@ -114,15 +103,6 @@ describe('usePredictTabs', () => {
       const { result } = renderHook(() => usePredictTabs());
 
       expect(result.current.activeIndex).toBe(0);
-    });
-
-    it('defaults to 0 (World Cup) when World Cup tab is enabled and no tab is requested', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-
-      const { result } = renderHook(() => usePredictTabs());
-
-      expect(result.current.activeIndex).toBe(0);
-      expect(result.current.tabs[0].key).toBe('world-cup');
     });
 
     it('sets active index to requested tab position', () => {
@@ -141,8 +121,8 @@ describe('usePredictTabs', () => {
       expect(result.current.activeIndex).toBe(0);
     });
 
-    it('defaults to trending when World Cup tab is requested but disabled', () => {
-      mockRouteParams.tab = 'world-cup';
+    it('defaults to trending when Wimbledon tab is requested but disabled', () => {
+      mockRouteParams.tab = 'wimbledon';
 
       const { result } = renderHook(() => usePredictTabs());
 
@@ -150,14 +130,15 @@ describe('usePredictTabs', () => {
       expect(result.current.initialTabKey).toBe('trending');
     });
 
-    it('sets active index to requested World Cup tab when enabled', () => {
-      mockRouteParams.tab = 'world-cup';
-      mockIsWorldCupMainFeedTabEnabled = true;
+    it('sets active index to requested Wimbledon tab when enabled', () => {
+      mockRouteParams.tab = 'wimbledon';
+      mockWimbledonTabFlag.enabled = true;
+      mockWimbledonTabFlag.queryParams = DEFAULT_WIMBLEDON_TAB_FLAG.queryParams;
 
       const { result } = renderHook(() => usePredictTabs());
 
       expect(result.current.activeIndex).toBe(0);
-      expect(result.current.initialTabKey).toBe('world-cup');
+      expect(result.current.initialTabKey).toBe('wimbledon');
     });
 
     it('updates when setActiveIndex is called', () => {
@@ -294,21 +275,28 @@ describe('usePredictTabs', () => {
       });
     });
 
-    it('adds exact World Cup query params to the World Cup tab when enabled', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-      mockWorldCupConfig = {
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        showMainFeedTab: true,
-        tagSlug: 'custom-world-cup',
-      };
+    it('adds default Wimbledon query params to the Wimbledon tab when enabled without remote query params', () => {
+      mockWimbledonTabFlag.enabled = true;
 
       const { result } = renderHook(() => usePredictTabs());
 
       expect(result.current.tabs[0]).toEqual({
-        key: 'world-cup',
-        label: 'predict.world_cup.title',
-        customQueryParams: buildPredictWorldCupAllQuery(mockWorldCupConfig),
+        key: 'wimbledon',
+        label: 'predict.category.wimbledon',
+        customQueryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+      });
+    });
+
+    it('uses remote Wimbledon query params when provided', () => {
+      mockWimbledonTabFlag.enabled = true;
+      mockWimbledonTabFlag.queryParams = 'tag_slug=wimbledon&order=volume24hr';
+
+      const { result } = renderHook(() => usePredictTabs());
+
+      expect(result.current.tabs[0]).toEqual({
+        key: 'wimbledon',
+        label: 'predict.category.wimbledon',
+        customQueryParams: 'tag_slug=wimbledon&order=volume24hr',
       });
     });
   });

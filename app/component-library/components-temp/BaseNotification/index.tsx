@@ -1,5 +1,28 @@
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Dimensions,
+  LayoutChangeEvent,
+  StyleProp,
+  TextLayoutEvent,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  cancelAnimation,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   TextVariant,
@@ -15,10 +38,19 @@ import {
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
-import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
-import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
+import {
+  NOTIFICATION_DISMISS_DISTANCE_THRESHOLD,
+  NOTIFICATION_DISMISS_MIN_DISTANCE,
+  NOTIFICATION_DISMISS_VELOCITY_THRESHOLD,
+  NOTIFICATION_SPRING_CONFIG,
+  NOTIFICATION_SWIPE_ACTIVE_OFFSET_Y,
+  NOTIFICATION_SWIPE_FAIL_OFFSET_X,
+  NOTIFICATION_TOP_PADDING,
+  NOTIFICATION_VISIBILITY_DURATION,
+} from './BaseNotification.constants';
+import { BaseNotificationTestIds } from './BaseNotification.testIds';
 
 import styleSheet from './BaseNotification.styles';
 import {
@@ -26,6 +58,10 @@ import {
   BaseNotificationProps,
   BaseNotificationStatus,
 } from './BaseNotification.types';
+
+const screenHeight = Dimensions.get('window').height;
+
+const getHiddenTranslateY = (height: number) => -height;
 
 export const getIcon = (status: BaseNotificationStatus | undefined) => {
   switch (status) {
@@ -73,7 +109,8 @@ const getTitle = (
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
     case 'success': {
-      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.success_title', { nonce: parsed });
       }
@@ -88,7 +125,8 @@ const getTitle = (
     case 'received':
       return strings('notifications.received_title', { amount, assetType });
     case 'speedup': {
-      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.speedup_title', { nonce: parsed });
       }
@@ -117,55 +155,450 @@ export const getDescription = (
   return strings(`notifications.${status}_message`);
 };
 
+/**
+ * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ *
+ * The API may have changed — compare props before migrating.
+ *
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react/src/components/Toast/Toast.tsx}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#toast-component Migration docs}
+ */
 const BaseNotification: React.FC<BaseNotificationProps> = ({
   status,
   data,
   onPress,
   onHide,
   autoDismiss = false,
+  isVisible = true,
+  onDismissComplete,
+  dismissDuration,
+  persistUntilDismiss = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { top: topInset } = useSafeAreaInsets();
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
+  const [descriptionLineCount, setDescriptionLineCount] = useState<
+    number | null
+  >(null);
+  const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
+
+  const notificationHeight = useSharedValue(screenHeight);
+  const translateYProgress = useSharedValue(-screenHeight);
+  const visibleTranslateY = useSharedValue(0);
+  const gestureStartY = useSharedValue(0);
+  // True after onStart until onEnd/onFinalize recovers. Used so a failed pan
+  // (e.g. failOffsetX after activation) still springs back and resumes dismiss.
+  const isSwipeActive = useSharedValue(false);
+  const hasEnteredRef = useRef(false);
+  const dismissCompleteCalledRef = useRef(false);
+  const visibleAtRef = useRef<number | null>(null);
+  const autoDismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const persistUntilDismissRef = useRef(persistUntilDismiss);
+  persistUntilDismissRef.current = persistUntilDismiss;
+  const onDismissCompleteRef = useRef(onDismissComplete);
+  onDismissCompleteRef.current = onDismissComplete;
+  const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
+
+  const hasCloseIconButton = autoDismiss;
+  const resolvedDescription = description ?? getDescription(status, safeData);
+  const hasDescription = resolvedDescription.length > 0;
+  const shouldTopAlign =
+    (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
+    (descriptionLineCount !== null && descriptionLineCount > 1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateYProgress.value }],
+  }));
+  const baseStyle: StyleProp<ViewStyle> = useMemo(
+    () => [
+      styles.base,
+      shouldTopAlign && styles.baseTopAligned,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseTopAligned,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      hasCloseIconButton,
+      shouldTopAlign,
+    ],
+  );
+
+  const clearScheduledAutoDismiss = useCallback(() => {
+    if (autoDismissTimeoutRef.current !== null) {
+      clearTimeout(autoDismissTimeoutRef.current);
+      autoDismissTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleTitleTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setTitleLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const handleDescriptionTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setDescriptionLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const runExitAnimation = useCallback(
+    (onComplete?: () => void) => {
+      const hiddenTranslateY = getHiddenTranslateY(notificationHeight.value);
+
+      translateYProgress.value = withSpring(
+        hiddenTranslateY,
+        NOTIFICATION_SPRING_CONFIG,
+        (finished) => {
+          // cancelAnimation (e.g. pan start) invokes this with finished=false;
+          // only run dismiss/hide callbacks when the exit spring completed.
+          if (finished && onComplete) {
+            runOnJS(onComplete)();
+          }
+        },
+      );
+    },
+    [notificationHeight, translateYProgress],
+  );
+
+  const handleDismissComplete = useCallback(() => {
+    if (dismissCompleteCalledRef.current) {
+      return;
+    }
+
+    dismissCompleteCalledRef.current = true;
+    visibleAtRef.current = null;
+    // Read from ref so inline parent callbacks do not rebuild the auto-dismiss
+    // chain and spuriously restart the timer on every parent re-render.
+    onDismissCompleteRef.current?.();
+  }, []);
+
+  const scheduleAutoDismiss = useCallback(
+    (delayMs: number) => {
+      clearScheduledAutoDismiss();
+      autoDismissTimeoutRef.current = setTimeout(() => {
+        autoDismissTimeoutRef.current = null;
+        runExitAnimation(() => {
+          handleDismissComplete();
+        });
+      }, delayMs);
+    },
+    [clearScheduledAutoDismiss, handleDismissComplete, runExitAnimation],
+  );
+
+  const beginAutoDismiss = useCallback(() => {
+    visibleAtRef.current = Date.now();
+    scheduleAutoDismiss(dismissDurationMs);
+  }, [dismissDurationMs, scheduleAutoDismiss]);
+
+  const beginAutoDismissRef = useRef(beginAutoDismiss);
+  beginAutoDismissRef.current = beginAutoDismiss;
+
+  // Content/visibility changes clear the previous auto-dismiss timer. Restart it
+  // here when already on screen — onLayout often does not re-fire if height is
+  // unchanged, so waiting on layout would leave the notification stuck visible.
+  useEffect(() => {
+    const wasEntered = hasEnteredRef.current;
+
+    clearScheduledAutoDismiss();
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    dismissCompleteCalledRef.current = false;
+    visibleAtRef.current = null;
+
+    if (wasEntered && isVisible && !persistUntilDismiss) {
+      beginAutoDismissRef.current();
+      return;
+    }
+
+    hasEnteredRef.current = false;
+  }, [
+    clearScheduledAutoDismiss,
+    description,
+    isVisible,
+    persistUntilDismiss,
+    status,
+    title,
+  ]);
+
+  const resumeAutoDismissAfterSwipe = useCallback(() => {
+    if (persistUntilDismissRef.current) {
+      return;
+    }
+
+    if (visibleAtRef.current === null) {
+      visibleAtRef.current = Date.now();
+      scheduleAutoDismiss(dismissDurationMs);
+      return;
+    }
+
+    const elapsed = Date.now() - visibleAtRef.current;
+    if (elapsed >= dismissDurationMs) {
+      runExitAnimation(() => {
+        handleDismissComplete();
+      });
+      return;
+    }
+
+    scheduleAutoDismiss(dismissDurationMs - elapsed);
+  }, [
+    dismissDurationMs,
+    handleDismissComplete,
+    runExitAnimation,
+    scheduleAutoDismiss,
+  ]);
+
+  useEffect(
+    () => () => {
+      clearScheduledAutoDismiss();
+      if (hasEnteredRef.current && !dismissCompleteCalledRef.current) {
+        dismissCompleteCalledRef.current = true;
+        onDismissCompleteRef.current?.();
+      }
+    },
+    [clearScheduledAutoDismiss],
+  );
+
+  const handleManualDismiss = useCallback(() => {
+    visibleAtRef.current = null;
+    clearScheduledAutoDismiss();
+    cancelAnimation(translateYProgress);
+    runExitAnimation(() => {
+      onHide?.();
+      handleDismissComplete();
+    });
+  }, [
+    clearScheduledAutoDismiss,
+    handleDismissComplete,
+    onHide,
+    runExitAnimation,
+    translateYProgress,
+  ]);
+
+  const handleManualDismissRef = useRef(handleManualDismiss);
+  const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
+  handleManualDismissRef.current = handleManualDismiss;
+  resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+  clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
+
+  const dismissNotificationFromSwipe = () => {
+    handleManualDismissRef.current();
+  };
+
+  const resumeAutoDismissFromSwipe = () => {
+    resumeAutoDismissAfterSwipeRef.current();
+  };
+
+  const clearScheduledAutoDismissFromSwipe = () => {
+    clearScheduledAutoDismissRef.current();
+  };
+
+  const swipeGesture = useMemo(() => {
+    const springBackAfterSwipe = () => {
+      'worklet';
+      translateYProgress.value = withSpring(
+        visibleTranslateY.value,
+        NOTIFICATION_SPRING_CONFIG,
+        (finished) => {
+          // A new pan cancels this spring via cancelAnimation; only resume
+          // auto-dismiss when the spring-back completed naturally.
+          if (finished) {
+            runOnJS(resumeAutoDismissFromSwipe)();
+          }
+        },
+      );
+    };
+
+    return Gesture.Pan()
+      .activeOffsetY(NOTIFICATION_SWIPE_ACTIVE_OFFSET_Y)
+      .failOffsetX([
+        -NOTIFICATION_SWIPE_FAIL_OFFSET_X,
+        NOTIFICATION_SWIPE_FAIL_OFFSET_X,
+      ])
+      .onStart(() => {
+        isSwipeActive.value = true;
+        // Pause auto-dismiss for the duration of the pan (same role as Toast's
+        // clearTimeout). cancelAnimation only covers in-flight springs.
+        runOnJS(clearScheduledAutoDismissFromSwipe)();
+        cancelAnimation(translateYProgress);
+        gestureStartY.value = translateYProgress.value;
+      })
+      .onUpdate((event) => {
+        if (!isSwipeActive.value) {
+          return;
+        }
+        const nextTranslateY = gestureStartY.value + event.translationY;
+        // Notification sits at the top; only allow dragging upward (more negative).
+        translateYProgress.value = Math.min(
+          nextTranslateY,
+          visibleTranslateY.value,
+        );
+      })
+      .onEnd((event) => {
+        if (!isSwipeActive.value) {
+          return;
+        }
+        isSwipeActive.value = false;
+
+        const { translationY, velocityY } = event;
+        const dismissDistance = Math.max(
+          notificationHeight.value * NOTIFICATION_DISMISS_DISTANCE_THRESHOLD,
+          NOTIFICATION_DISMISS_MIN_DISTANCE,
+        );
+        const hasReachedDismissOffset = translationY <= -dismissDistance;
+        const hasReachedSwipeThreshold =
+          Math.abs(velocityY) > NOTIFICATION_DISMISS_VELOCITY_THRESHOLD;
+        const isQuickDismissing = velocityY < 0;
+
+        const shouldDismiss =
+          hasReachedDismissOffset ||
+          (hasReachedSwipeThreshold && isQuickDismissing);
+
+        if (shouldDismiss) {
+          runOnJS(dismissNotificationFromSwipe)();
+          return;
+        }
+
+        springBackAfterSwipe();
+      })
+      .onFinalize(() => {
+        // onEnd is skipped when the pan fails/cancels after activation
+        // (e.g. horizontal travel past failOffsetX). Recover position and
+        // auto-dismiss so the notification is not left stuck mid-offset.
+        if (!isSwipeActive.value) {
+          return;
+        }
+        isSwipeActive.value = false;
+        springBackAfterSwipe();
+      });
+    // Shared values and swipe JS wrappers are stable for the component lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onAnimatedViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!isVisible) {
+        return;
+      }
+
+      const { height } = event.nativeEvent.layout;
+      const hiddenTranslateY = getHiddenTranslateY(height);
+      const nextVisibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
+
+      // Always refresh measured height so content updates after enter do not
+      // leave swipe/exit distances using a stale notificationHeight.
+      notificationHeight.value = height;
+      visibleTranslateY.value = nextVisibleTranslateY;
+
+      if (hasEnteredRef.current) {
+        return;
+      }
+
+      hasEnteredRef.current = true;
+      visibleAtRef.current = null;
+      translateYProgress.value = hiddenTranslateY;
+
+      if (persistUntilDismiss) {
+        translateYProgress.value = withSpring(
+          nextVisibleTranslateY,
+          NOTIFICATION_SPRING_CONFIG,
+        );
+        return;
+      }
+
+      translateYProgress.value = withSpring(
+        nextVisibleTranslateY,
+        NOTIFICATION_SPRING_CONFIG,
+        (finished) => {
+          // Only start the auto-dismiss timer after entrance completes.
+          if (finished) {
+            runOnJS(beginAutoDismiss)();
+          }
+        },
+      );
+    },
+    [
+      beginAutoDismiss,
+      isVisible,
+      notificationHeight,
+      persistUntilDismiss,
+      topInset,
+      translateYProgress,
+      visibleTranslateY,
+    ],
+  );
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <View style={baseStyles.flexGrow}>
-      <View style={styles.floatingBackground}>
+    <GestureDetector gesture={swipeGesture}>
+      <Animated.View
+        onLayout={onAnimatedViewLayout}
+        style={baseStyle}
+        testID="base-notification-container"
+      >
         <TouchableOpacity
-          style={styles.defaultFlashFloating}
+          style={[
+            styles.pressableContent,
+            shouldTopAlign && styles.pressableContentTopAligned,
+          ]}
           onPress={onPress}
           activeOpacity={0.8}
+          disabled={!onPress}
         >
-          <View style={styles.flashIcon}>{getIcon(status)}</View>
-          <View style={styles.flashLabel}>
+          <View>{getIcon(status)}</View>
+          <View
+            style={[
+              styles.flashLabel,
+              shouldTopAlign && styles.flashLabelTopAligned,
+            ]}
+            testID={BaseNotificationTestIds.CONTAINER}
+          >
             <Text
               variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               style={styles.flashTitle}
-              testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
+              testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
+              onTextLayout={handleTitleTextLayout}
             >
               {!title ? getTitle(status, safeData) : title}
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextDefault}
-              style={styles.flashText}
-            >
-              {!description ? getDescription(status, safeData) : description}
-            </Text>
+            {hasDescription ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                style={styles.flashText}
+                onTextLayout={handleDescriptionTextLayout}
+              >
+                {resolvedDescription}
+              </Text>
+            ) : null}
           </View>
-          {autoDismiss && (
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Md}
-              onPress={onHide}
-              testID="base-notification-close"
-            />
-          )}
         </TouchableOpacity>
-      </View>
-    </View>
+        {autoDismiss && (
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={handleManualDismiss}
+            style={shouldTopAlign ? styles.closeButton : undefined}
+            testID="base-notification-close"
+          />
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

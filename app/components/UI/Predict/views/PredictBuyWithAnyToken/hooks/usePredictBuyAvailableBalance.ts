@@ -20,5 +20,6 @@ export const usePredictBuyAvailableBalance = () => {
   return {
     availableBalance,
     isBalanceLoading,
+    isPredictBalanceSelected,
   };
 };

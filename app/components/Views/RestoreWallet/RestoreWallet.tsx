@@ -22,6 +22,7 @@ import Routes from '../../../constants/navigation/Routes';
 import EngineService from '../../../core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -54,7 +55,7 @@ const RestoreWallet = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
   const { previousScreen } = useParams<RestoreWalletParams>();

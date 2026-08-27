@@ -13,9 +13,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../../../../util/theme';
 import { isNumber } from '../../../../../../util/number';
+const createStyles = (theme) => {
+  const { colors } = theme;
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+  return StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
@@ -26,7 +27,11 @@ const createStyles = (colors) =>
     },
     modal: {
       minHeight: 200,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
+      borderTopWidth: 1,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: colors.border.alternative,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
     },
@@ -111,11 +116,13 @@ const createStyles = (colors) =>
       color: colors.primary.default,
     },
   });
+};
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const [nonce, onChangeText] = React.useState(nonceValue);
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const { colors, themeAppearance } = theme;
+  const styles = createStyles(theme);
 
   const incrementDecrementNonce = (isDecrement) => {
     const currentNonce = Number(nonce);

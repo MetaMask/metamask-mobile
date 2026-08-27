@@ -7,14 +7,12 @@ import { SignatureControllerMessenger } from '@metamask/signature-controller';
 import { RootMessenger } from '../../types';
 
 export function getSignatureControllerMessenger(
-  rootMessenger: RootMessenger,
-): SignatureControllerMessenger {
-  const messenger = new Messenger<
-    'SignatureController',
+  rootMessenger: RootMessenger<
     MessengerActions<SignatureControllerMessenger>,
-    MessengerEvents<SignatureControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<SignatureControllerMessenger>
+  >,
+): SignatureControllerMessenger {
+  const messenger: SignatureControllerMessenger = new Messenger({
     namespace: 'SignatureController',
     parent: rootMessenger,
   });

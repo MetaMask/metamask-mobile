@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,24 +22,26 @@ import {
   PredictMarket,
   PredictMarketGame,
   PredictMarketStatus,
+  PredictOutcome,
   PredictOutcomeToken,
+  PredictSportTeam,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
-import { parseScore } from '../../utils/gameParser';
 import { isValidPrice } from '../../utils/prices';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
@@ -63,30 +66,27 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const livePricesEnabled = useSelector(
     selectPredictSportCardLivePricesEnabledFlag,
   );
 
-  const game = market.game as PredictMarketGame;
+  const { game: predictGame } = usePredictGame(market, { live: true });
+  const game = predictGame as PredictMarketGame;
   const config = getLeagueConfig(game.league);
-  const { gameUpdate } = useLiveGameUpdates(game.id);
-  const showDraw = isDrawCapableLeague(game.league);
+  const showDraw = isDrawCapableMarket({ game, outcomes: market.outcomes });
 
-  const liveData = useMemo(() => {
-    const liveScore = gameUpdate?.score
-      ? parseScore(gameUpdate.score, game.league)
-      : null;
-    return {
-      homeScore: liveScore?.home ?? game.score?.home ?? 0,
-      awayScore: liveScore?.away ?? game.score?.away ?? 0,
-      elapsed: gameUpdate?.elapsed ?? game.elapsed,
-      status: gameUpdate?.status ?? game.status,
-    };
-  }, [game, gameUpdate]);
+  const liveData = useMemo(
+    () => ({
+      homeScore: game.score?.home ?? 0,
+      awayScore: game.score?.away ?? 0,
+      elapsed: game.elapsed,
+      status: game.status,
+    }),
+    [game],
+  );
 
   const isLive = liveData.status === 'ongoing';
   const isScheduled = liveData.status === 'scheduled';
@@ -103,35 +103,37 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     : null;
   const footerTimeText = timeRemaining ?? scheduledTime;
 
-  const outcome = market.outcomes[0];
-  const matchesTeam = (
-    tokenTitle: string | undefined,
-    team: { name?: string; alias?: string },
-  ) => {
-    if (!tokenTitle) return false;
-    const lower = tokenTitle.toLowerCase();
-    return (
-      lower === team.name?.toLowerCase() ||
-      (team.alias != null && lower === team.alias.toLowerCase())
-    );
-  };
-
-  const homeToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
-    outcome?.tokens?.[0];
-  const awayToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
-    outcome?.tokens?.[1];
-  const drawToken = showDraw
-    ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
-    : undefined;
+  const buttonResolution = useMemo(
+    () =>
+      resolvePredictSportCardButtons({
+        outcomes: market.outcomes,
+        game,
+        showDraw,
+      }),
+    [game, market.outcomes, showDraw],
+  );
+  const drawToken = buttonResolution.draw?.token;
+  const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
+  const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
+  const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
+  const leftScore = isHomeFirst ? liveData.homeScore : liveData.awayScore;
+  const rightScore = isHomeFirst ? liveData.awayScore : liveData.homeScore;
+  const leftButtonResolution = isHomeFirst
+    ? buttonResolution.home
+    : buttonResolution.away;
+  const rightButtonResolution = isHomeFirst
+    ? buttonResolution.away
+    : buttonResolution.home;
+  const leftToken = leftButtonResolution?.token;
+  const rightToken = rightButtonResolution?.token;
   const tokenIds = useMemo(
     () =>
-      [homeToken, drawToken, awayToken]
+      [leftToken, drawToken, rightToken]
         .map((token) => token?.id)
         .filter((id): id is string => Boolean(id)),
-    [awayToken, drawToken, homeToken],
+    [drawToken, leftToken, rightToken],
   );
+
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled:
       livePricesEnabled &&
@@ -164,22 +166,27 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   }, [market, entryPoint, navigation]);
 
   const handleBuy = useCallback(
-    (token: PredictOutcomeToken) => {
-      if (!outcome) return;
+    (token: PredictOutcomeToken, selectedOutcome?: PredictOutcome) => {
+      if (!selectedOutcome) return;
       executeGuardedAction(
         () => {
-          openBuySheet({ market, outcome, outcomeToken: token, entryPoint });
+          openBuySheet({
+            market,
+            outcome: selectedOutcome,
+            outcomeToken: token,
+            entryPoint,
+          });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
+    [market, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = Math.max(0, market.outcomes.length - 1);
+  const remainingOptions = buttonResolution.remainingOptions;
 
-  const renderTeamLogo = (team: typeof game.homeTeam, testID?: string) =>
+  const renderTeamLogo = (team: PredictSportTeam, testID?: string) =>
     config.TeamIcon ? (
       <config.TeamIcon
         color={team.color}
@@ -259,12 +266,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               alignItems={BoxAlignItems.Center}
               twClassName="gap-2"
             >
-              {renderTeamLogo(game.homeTeam)}
+              {renderTeamLogo(leftTeam)}
               <Text
                 variant={TextVariant.DisplayMd}
                 color={TextColor.TextDefault}
               >
-                {liveData.homeScore}
+                {leftScore}
               </Text>
             </Box>
 
@@ -277,9 +284,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 variant={TextVariant.DisplayMd}
                 color={TextColor.TextDefault}
               >
-                {liveData.awayScore}
+                {rightScore}
               </Text>
-              {renderTeamLogo(game.awayTeam)}
+              {renderTeamLogo(rightTeam)}
             </Box>
           </Box>
 
@@ -294,11 +301,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
+                testID={FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(index, 0)}
               >
-                {game.homeTeam.name}
+                {leftTeam.name}
               </Text>
-              {homeToken && (
-                <FeaturedCarouselPayoutRow price={getDisplayPrice(homeToken)} />
+              {leftToken && (
+                <FeaturedCarouselPayoutRow price={getDisplayPrice(leftToken)} />
               )}
             </Box>
 
@@ -308,23 +316,32 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
+                testID={FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(
+                  index,
+                  drawToken ? 2 : 1,
+                )}
               >
-                {game.awayTeam.name}
+                {rightTeam.name}
               </Text>
-              {awayToken && (
-                <FeaturedCarouselPayoutRow price={getDisplayPrice(awayToken)} />
+              {rightToken && (
+                <FeaturedCarouselPayoutRow
+                  price={getDisplayPrice(rightToken)}
+                />
               )}
             </Box>
           </Box>
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-3 gap-2">
-            {homeToken && (
+            {leftToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(homeToken)}
+                  onPress={() =>
+                    handleBuy(leftToken, leftButtonResolution?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
+                  testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(index, 0)}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -332,7 +349,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                     color={TextColor.SuccessDefault}
                   >
                     {formatPercentage(
-                      Math.round(getDisplayPrice(homeToken) * 100),
+                      Math.round(getDisplayPrice(leftToken) * 100),
                     )}
                   </Text>
                 </Button>
@@ -341,9 +358,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {drawToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(drawToken)}
+                  onPress={() =>
+                    handleBuy(drawToken, buttonResolution.draw?.outcome)
+                  }
                   isFullWidth
                   size={ButtonBaseSize.Lg}
+                  testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(index, 1)}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -358,13 +378,19 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                 </Button>
               </Box>
             )}
-            {awayToken && (
+            {rightToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(awayToken)}
+                  onPress={() =>
+                    handleBuy(rightToken, rightButtonResolution?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
+                  testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(
+                    index,
+                    drawToken ? 2 : 1,
+                  )}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -372,7 +398,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                     color={TextColor.SuccessDefault}
                   >
                     {formatPercentage(
-                      Math.round(getDisplayPrice(awayToken) * 100),
+                      Math.round(getDisplayPrice(rightToken) * 100),
                     )}
                   </Text>
                 </Button>

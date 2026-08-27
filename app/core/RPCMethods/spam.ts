@@ -1,6 +1,7 @@
 import { Store } from 'redux';
 import { JsonRpcRequest } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import { CommonActions } from '@react-navigation/native';
 
 import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
@@ -31,6 +32,25 @@ export type ExtendedJSONRPCRequest = JsonRpcRequest & { origin: string };
 export const SPAM_FILTER_ACTIVATED = providerErrors.unauthorized(
   'Request blocked due to spam filter.',
 );
+
+/**
+ * Presents the origin spam sheet.
+ *
+ * Uses `dispatch(CommonActions.navigate(...))` rather than `navigate(...)`
+ * because NavigationService defers `navigate`/`reset` behind
+ * requestAnimationFrame to avoid render-cycle timing issues. When triggered
+ * from the RPC/bridge context, that deferred callback can fail to fire, leaving
+ * the origin silently blocked with no visible sheet. `dispatch` is not deferred
+ * and runs synchronously, so the sheet reliably presents.
+ */
+function showOriginSpamModal(origin: string) {
+  NavigationService.navigation.dispatch(
+    CommonActions.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
+      params: { origin },
+    }),
+  );
+}
 
 export function validateOriginThrottling({
   req,
@@ -80,9 +100,6 @@ export function processOriginThrottlingRejection({
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
 
   if (selectIsOriginBlockedForRPCRequests(store.getState(), req.origin)) {
-    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
-      params: { origin: req.origin },
-    });
+    showOriginSpamModal(req.origin);
   }
 }

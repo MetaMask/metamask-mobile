@@ -1,9 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
+
 import {
   Icon,
   IconColor,
@@ -23,11 +30,9 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -42,23 +47,25 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export const PAY_WITH_CRYPTO_SECTION_TEST_ID = 'pay-with-section-crypto';
+export const PAY_WITH_CRYPTO_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.CRYPTO_SECTION;
 export const PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-preferred-token-row';
+  PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-selected-token-row';
+  PayWithBottomSheetIDs.CRYPTO_SELECTED_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-no-fee-token-row';
+  PayWithBottomSheetIDs.CRYPTO_NO_FEE_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
-  'pay-with-crypto-section-other-assets-row';
+  PayWithBottomSheetIDs.CRYPTO_OTHER_ASSETS_ROW;
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const transactionMeta = useTransactionMetadataRequest();
@@ -86,8 +93,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     onPaymentTokenChange: onPredictPaymentTokenChange,
     isPredictBalanceSelected,
   } = usePredictPaymentToken();
-  const { isLastUsed } = useLastUsedPaymentMethod();
-  const { noFeeToken, isNoFeeToken } = usePayWithNoFeeToken({
+  const { renderLastUsedTag } = useLastUsedPaymentMethod();
+  const { noFeeToken, renderNoFeeTagForToken } = usePayWithNoFeeToken({
     excludeToken: preferredToken
       ? { address: preferredToken.address, chainId: preferredToken.chainId }
       : undefined,
@@ -119,12 +126,34 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
   const clearPaymentOverride = useClearPaymentOverride();
 
+  const isPreferredTokenSelected = useMemo(
+    () =>
+      !isDedicatedSectionOwningSelection &&
+      isMatchingPayToken(selectedToken, preferredToken),
+    [isDedicatedSectionOwningSelection, preferredToken, selectedToken],
+  );
+
+  const isNoFeeTokenSelected = useMemo(
+    () => isMatchingPayToken(selectedToken, noFeeToken),
+    [noFeeToken, selectedToken],
+  );
+
   const isDeposit = hasTransactionType(transactionMeta, [
     TransactionType.perpsDeposit,
     TransactionType.predictDeposit,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const shouldShowNoFeeTokens = !isWithdraw;
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  // No-fee tokens only apply to Money Account flows (not perps/predict). The
+  // dedicated no-fee suggestion row is deposit-only; per-row tags also show on
+  // Money withdrawals, where the picker token is what you receive.
+  const shouldShowNoFeeTokens = isMoneyDeposit;
+  const showNoFeeRowTags = isMoneyDeposit || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
@@ -134,6 +163,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   }, [clearPaymentOverride, navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
+    if (isPreferredTokenSelected) {
+      if (isPerpsDepositAndOrder) {
+        markPerpsPaymentTokenSelection();
+      }
+      navigation.goBack();
+      return;
+    }
+
     if (!preferredToken) {
       return;
     }
@@ -142,6 +179,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: preferredToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // an explicit row press is a selection even when the pay token
+      // is unchanged (re-selecting the current preferred token).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
@@ -154,6 +194,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   }, [
     clearPaymentOverride,
     isPerpsDepositAndOrder,
+    isPreferredTokenSelected,
     isPredictDepositAndOrder,
     navigation,
     onPerpsPaymentTokenChange,
@@ -163,6 +204,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   ]);
 
   const handleNoFeeTokenPress = useCallback(() => {
+    if (isNoFeeTokenSelected) {
+      if (isPerpsDepositAndOrder) {
+        markPerpsPaymentTokenSelection();
+      }
+      navigation.goBack();
+      return;
+    }
     if (!noFeeToken) {
       return;
     }
@@ -171,6 +219,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: noFeeToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // explicit row press counts as a selection (see above).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
@@ -182,6 +232,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     navigation.goBack();
   }, [
     clearPaymentOverride,
+    isNoFeeTokenSelected,
     isPerpsDepositAndOrder,
     isPredictDepositAndOrder,
     navigation,
@@ -221,16 +272,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       });
 
     if (preferredToken && !isPreferredTokenMoneyAccountToken) {
-      // Suppress the checkmark when another section owns the selection
-      // (perps/predict balance or fiat). The flag flips back to false when the
-      // user explicitly picks a crypto token via "Other assets".
-      const isPreferredTokenSelected =
-        !isDedicatedSectionOwningSelection &&
-        isMatchingPayToken(selectedToken, preferredToken);
-
-      const preferredIsNoFee =
-        shouldShowNoFeeTokens &&
-        isNoFeeToken(preferredToken.address, preferredToken.chainId);
+      const preferredAddress = preferredToken.address as Hex;
+      const preferredChainId = preferredToken.chainId as Hex;
 
       tokenRows.push({
         _balanceUsd: parseFloat(preferredToken.balanceUsd) || 0,
@@ -247,8 +290,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : preferredTokenBalance,
         isSelected: isPreferredTokenSelected,
-        isLastUsed: isLastUsed(preferredToken.address, preferredToken.chainId),
-        isNoFee: preferredIsNoFee,
+        tagRenderers: [
+          () =>
+            showNoFeeRowTags
+              ? renderNoFeeTagForToken(preferredAddress, preferredChainId, {
+                  testID: `${PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+                })
+              : null,
+          () =>
+            renderLastUsedTag(preferredAddress, preferredChainId, {
+              testID: `${PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID}-last-used-tag`,
+            }),
+        ],
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
         onPress: handlePreferredTokenPress,
         testID: PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID,
@@ -260,6 +313,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       selectedTokenDisplay &&
       !isDedicatedSectionOwningSelection
     ) {
+      const selectedAddress = selectedTokenDisplay.address as Hex;
+      const selectedChainId = selectedTokenDisplay.chainId as Hex;
+
       tokenRows.push({
         _balanceUsd: parseFloat(selectedTokenDisplay.balanceUsd) || 0,
         id: 'crypto-selected-token',
@@ -275,16 +331,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : selectedTokenBalance,
         isSelected: true,
-        isLastUsed: isLastUsed(
-          selectedTokenDisplay.address,
-          selectedTokenDisplay.chainId,
-        ),
-        isNoFee:
-          shouldShowNoFeeTokens &&
-          isNoFeeToken(
-            selectedTokenDisplay.address,
-            selectedTokenDisplay.chainId,
-          ),
+        tagRenderers: [
+          () =>
+            showNoFeeRowTags
+              ? renderNoFeeTagForToken(selectedAddress, selectedChainId, {
+                  testID: `${PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+                })
+              : null,
+          () =>
+            renderLastUsedTag(selectedAddress, selectedChainId, {
+              testID: `${PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID}-last-used-tag`,
+            }),
+        ],
         trailingElement: 'checkmark',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
@@ -301,10 +359,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       !isDedicatedSectionOwningSelection &&
       !noFeeTokenDuplicatesSelectedRow
     ) {
-      const isNoFeeTokenSelected = isMatchingPayToken(
-        selectedToken,
-        noFeeToken,
-      );
+      const noFeeAddress = noFeeToken.address;
+      const noFeeChainId = noFeeToken.chainId;
 
       tokenRows.push({
         _balanceUsd: parseFloat(noFeeToken.balanceUsd) || 0,
@@ -321,7 +377,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : noFeeTokenBalance,
         isSelected: isNoFeeTokenSelected,
-        isNoFee: true,
+        tagRenderers: [
+          () =>
+            renderNoFeeTagForToken(noFeeAddress, noFeeChainId, {
+              testID: `${PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+            }),
+        ],
         trailingElement: isNoFeeTokenSelected ? 'checkmark' : 'none',
         onPress: handleNoFeeTokenPress,
         testID: PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID,
@@ -365,18 +426,20 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     hasTokens,
     isDedicatedSectionOwningSelection,
     isDeposit,
-    isLastUsed,
     isMoneyAccountSelected,
-    isNoFeeToken,
+    isNoFeeTokenSelected,
+    isPreferredTokenSelected,
     isSelectedDistinctFromAutomatic,
     isWithdraw,
     noFeeToken,
     noFeeTokenBalance,
     preferredToken,
     preferredTokenBalance,
-    selectedToken,
+    renderLastUsedTag,
+    renderNoFeeTagForToken,
     selectedTokenBalance,
     selectedTokenDisplay,
     shouldShowNoFeeTokens,
+    showNoFeeRowTags,
   ]);
 }

@@ -4,7 +4,8 @@ set -e
 set -u
 set -o pipefail
 
-SCRIPT_DIRECTORY=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+# //\\// normalizes Windows backslash invocation paths (Yarn/Git Bash); no-op elsewhere.
+SCRIPT_DIRECTORY=$(cd "$(dirname "${BASH_SOURCE[0]//\\//}")" && pwd)
 PROJECT_DIRECTORY=$(cd "${SCRIPT_DIRECTORY}" && cd ../ && pwd)
 
 # Generate attributions

@@ -4,6 +4,7 @@ import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { E2ECommandTypes } from '../../../tests/framework/types';
 import { handleExportStateCommand } from './e2eStateExport';
 import { dispatchPerpsCommand } from './e2ePerpsCommandHandler';
+import { dispatchQrSyncCommand } from './e2eQrSyncCommandHandler';
 
 let hasStartedPolling = false;
 let pollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -98,6 +99,17 @@ async function pollOnce(): Promise<void> {
           } catch (e) {
             DevLogger.log(
               '[E2E Command Server Polling] Error handling perps command',
+              e,
+            );
+          }
+          break;
+        }
+        case E2ECommandTypes.applyQrSyncSyncReady: {
+          try {
+            dispatchQrSyncCommand(item);
+          } catch (e) {
+            DevLogger.log(
+              '[E2E Command Server Polling] Error handling QR sync command',
               e,
             );
           }

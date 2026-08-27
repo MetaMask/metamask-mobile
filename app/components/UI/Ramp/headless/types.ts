@@ -8,7 +8,7 @@ import type {
   UserRegion,
 } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
-import type { RampSurface } from '../Deposit/types/analytics';
+import type { RampSurface } from '../types/depositAnalytics';
 
 /**
  * Public input for {@link useHeadlessBuy}'s `getQuotes`.

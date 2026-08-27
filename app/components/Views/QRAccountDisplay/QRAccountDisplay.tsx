@@ -19,6 +19,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../util/theme';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { renderAccountName } from '../../../util/address';
 import { QRAccountDisplayProps } from './QRAccountDisplay.types';
@@ -43,6 +45,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   const accounts = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, accounts);
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const addressStart = addr.substring(0, ADDRESS_PREFIX_LENGTH);
   const addressMiddle: string = addr.substring(
@@ -55,11 +58,13 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
 
   const showCopyNotificationToast = () => {
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         {
           label: strings(`notifications.address_copied_to_clipboard`),
-          isBold: false,
+          isBold: true,
         },
       ],
       hasNoTimeout: false,

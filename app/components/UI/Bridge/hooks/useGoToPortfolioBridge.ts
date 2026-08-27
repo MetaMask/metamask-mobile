@@ -4,6 +4,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
@@ -23,7 +24,7 @@ export default function useGoToPortfolioBridge(location: string) {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   return (address?: string) => {

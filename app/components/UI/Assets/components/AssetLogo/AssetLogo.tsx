@@ -10,7 +10,15 @@ import styleSheet from './AssetLogo.styles';
 import { getFallbackAssetImageUrls } from './AssetLogo.utils';
 import { useSmartImageFallback } from './AssetLogo.hook';
 
-const AssetLogo = ({ asset }: { asset: TokenI }) => {
+const AssetLogo = ({
+  asset,
+  size = AvatarTokenSize.Lg,
+  testID,
+}: {
+  asset: TokenI;
+  size?: AvatarTokenSize;
+  testID?: string;
+}) => {
   const { styles } = useStyles(styleSheet, {});
 
   const images = useMemo(
@@ -47,7 +55,8 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
       imageOrSvgProps={{
         imageProps: { onError, testID: 'token-avatar-image' },
       }}
-      size={AvatarTokenSize.Lg}
+      size={size}
+      testID={testID}
     />
   );
 };

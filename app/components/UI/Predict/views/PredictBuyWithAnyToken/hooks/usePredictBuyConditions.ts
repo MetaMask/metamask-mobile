@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
@@ -37,7 +38,7 @@ export const usePredictBuyConditions = ({
   totalPayForPredictBalance,
   hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();

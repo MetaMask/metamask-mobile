@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
     const mockStrings: Record<string, string> = {
       'card.card_home.warnings.close_spending_limit.title':
         'Close Spending Limit',
@@ -21,6 +21,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
         'Your card is being automatically provisioned. This may take a few moments.',
+      'card.card_home.warnings.pending_verification.title':
+        'Finish setting up your card',
+      'card.card_home.warnings.pending_verification.description':
+        'You have pending verification steps to complete before your card can be enabled.',
+      'card.card_home.warnings.pending_verification.confirm_button_label':
+        'Continue verification',
       'card.card_spending_limit.dismiss': 'Dismiss',
       'card.card_authentication.auth_prompt_info':
         'Log in to your card account to access this feature.',
@@ -35,8 +41,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need a linked Money Account before redeeming cashback.',
       'card.cashback_screen.money_account_required.confirm_button_label':
         'Set up Money Account',
+      'card.credit_banner.title': 'Refund balance: {{amount}}',
+      'card.credit_banner.description':
+        'Spend it or move it to your Money account to keep earning on your balance.',
+      'card.credit_banner.confirm_button_label': 'Move funds',
     };
-    return mockStrings[key] || key;
+    let value = mockStrings[key] || key;
+    if (params) {
+      Object.entries(params).forEach(([name, replacement]) => {
+        value = value.replace(`{{${name}}}`, String(replacement));
+      });
+    }
+    return value;
   }),
 }));
 
@@ -197,6 +213,28 @@ describe('CardMessageBox', () => {
     });
   });
 
+  describe('PendingVerification warning', () => {
+    it('renders title, description, and continue CTA', () => {
+      const { getByText, getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.PendingVerification}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      expect(getByText('Finish setting up your card')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You have pending verification steps to complete before your card can be enabled.',
+        ),
+      ).toBeOnTheScreen();
+      expect(getByText('Continue verification')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('CashbackFundingRequired warning', () => {
     it('renders title and description', () => {
       const { getByText } = renderWithProvider(() => (
@@ -244,6 +282,37 @@ describe('CardMessageBox', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox
           messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CreditAvailable info', () => {
+    it('interpolates the amount into the title and renders the description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+        />
+      ));
+
+      expect(getByText('Refund balance: $10.86')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Spend it or move it to your Money account to keep earning on your balance.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Move funds button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
           onConfirm={mockOnConfirm}
         />
       ));

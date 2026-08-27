@@ -25,6 +25,12 @@ export type {
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
+  RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

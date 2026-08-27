@@ -30,5 +30,6 @@ export function toCardFundingToken(
     delegationContract: asset.delegationContract ?? null,
     isMoneyAccountEntry,
     displaySymbol,
+    assumeUsdParity: asset.assumeUsdParity,
   };
 }

@@ -10,6 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -53,7 +54,7 @@ export const DeleteAccount = () => {
   const { styles } = useStyles(styleSheet, {});
   const route = useRoute<DeleteAccountRouteProp>();
   const { account } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [error, setError] = useState<string | null>(null);
 
   const canRemoveAccount = account.metadata.keyring.type !== KeyringTypes.hd;

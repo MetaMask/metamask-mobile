@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import Routes from '../../../../constants/navigation/Routes';
@@ -14,11 +15,11 @@ import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 
 const GeneralSettings = () => {
-  useOnboardingHeader(strings('default_settings.drawer_general_title'));
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
@@ -57,6 +58,11 @@ const GeneralSettings = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
+      <HeaderStandard
+        includesTopInset
+        title={strings('default_settings.drawer_general_title')}
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
         <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
         <BackupAndSyncToggle

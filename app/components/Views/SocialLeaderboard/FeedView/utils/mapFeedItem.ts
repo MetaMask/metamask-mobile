@@ -1,0 +1,338 @@
+import type {
+  FeedItem as CoreFeedItem,
+  Trade,
+} from '@metamask/social-controllers';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { caipChainIdToHex } from '../../../../UI/Rewards/utils/formatUtils';
+import {
+  getPerpPositionDirection,
+  getSupportedXyzPerpMarketSymbol,
+  isClosedPosition,
+  isPerpPosition,
+} from '../../utils/perp';
+import { chainNameToId } from '../../utils/chainMapping';
+import {
+  formatAbbreviatedUsd,
+  formatPercent,
+  formatSignedUsd,
+  formatTradeUnitPrice,
+  formatUsd,
+} from '../../utils/formatters';
+import { resolveTradeAction } from '../../utils/tradeAction';
+import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
+import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
+import type {
+  FeedAction,
+  FeedItem,
+  FeedPerpItem,
+  FeedSpotItem,
+  FeedSubHeader,
+} from '../types';
+
+const isPresentNumber = (value: number | null | undefined): value is number =>
+  value != null && Number.isFinite(value);
+
+interface FeedItemPresentation {
+  valueLabel: string;
+  pnlLabel: string;
+  hasValueData: boolean;
+  hasPnlData: boolean;
+  isPnlPositive: boolean;
+}
+
+/**
+ * Picks the trade that drives a feed row's action verb: the one whose timestamp
+ * matches the feed item, falling back to the most recent trade when none lines
+ * up exactly (or the position carries no per-trade history).
+ */
+function findTriggeringTrade(
+  trades: Trade[],
+  feedTimestampMs: number,
+): Trade | undefined {
+  if (trades.length === 0) {
+    return undefined;
+  }
+
+  const exact = trades.find(
+    (trade) => tradeTimestampToMs(trade.timestamp) === feedTimestampMs,
+  );
+  if (exact) {
+    return exact;
+  }
+
+  return trades.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    trades[0],
+  );
+}
+
+/**
+ * Resolves the lifecycle stage a feed row announces from its triggering trade
+ * (see {@link resolveTradeAction}), which separates a partial exit from a full
+ * close — the row used to read "closed" for a 10% trim.
+ *
+ * Missing action metadata remains undefined so the row can use a neutral label
+ * without inventing a lifecycle stage.
+ */
+function resolveAction(
+  coreItem: CoreFeedItem,
+  trade: Trade | undefined,
+): FeedAction | undefined {
+  return trade ? resolveTradeAction(coreItem, trade) : undefined;
+}
+
+/**
+ * Builds the row sub-header from real API fields only: the triggering trade's
+ * USD size, plus either historical market cap at trade time (spot) or a derived
+ * per-unit price when it is meaningful.
+ */
+function buildSubHeader(
+  trade: Trade | undefined,
+  isSpot: boolean,
+): FeedSubHeader {
+  if (!trade) {
+    return { sizeLabel: '' };
+  }
+
+  const sizeLabel = formatAbbreviatedUsd(Math.abs(trade.usdCost));
+
+  if (isSpot && trade.marketCap != null) {
+    return {
+      sizeLabel,
+      contextValueLabel: formatAbbreviatedUsd(trade.marketCap),
+      contextKind: 'marketCap',
+    };
+  }
+
+  const tokenAmount = Math.abs(trade.tokenAmount);
+  const price = tokenAmount > 0 ? Math.abs(trade.usdCost) / tokenAmount : null;
+
+  if (price != null && price > 0) {
+    return {
+      sizeLabel,
+      contextValueLabel: formatTradeUnitPrice(price),
+      contextKind: 'price',
+    };
+  }
+  return { sizeLabel };
+}
+
+function realizedPnlPercent(
+  realizedPnl: number,
+  boughtUsd: number | null | undefined,
+): number | null {
+  if (!boughtUsd) {
+    return null;
+  }
+  return (realizedPnl / boughtUsd) * 100;
+}
+
+function resolvePnlValue(
+  coreItem: CoreFeedItem,
+  isClosed: boolean,
+): number | null | undefined {
+  if (isClosed) {
+    return coreItem.pnlValueUsd ?? coreItem.realizedPnl;
+  }
+  return coreItem.pnlValueUsd;
+}
+
+function resolvePnlPercent(
+  coreItem: CoreFeedItem,
+  isClosed: boolean,
+): number | null {
+  if (isClosed) {
+    return (
+      coreItem.pnlPercent ??
+      realizedPnlPercent(coreItem.realizedPnl, coreItem.boughtUsd)
+    );
+  }
+  return coreItem.pnlPercent ?? null;
+}
+
+function resolveValueLabel(
+  hasValueData: boolean,
+  isClosed: boolean,
+  pnlValue: number | null | undefined,
+  currentValueUSD: number | null | undefined,
+): string {
+  if (!hasValueData) {
+    return '';
+  }
+  if (isClosed && isPresentNumber(pnlValue)) {
+    return formatSignedUsd(pnlValue);
+  }
+  if (isPresentNumber(currentValueUSD)) {
+    return formatUsd(currentValueUSD);
+  }
+  return '';
+}
+
+function buildFeedItemPresentation(
+  coreItem: CoreFeedItem,
+  isClosed: boolean,
+): FeedItemPresentation {
+  const pnlValue = resolvePnlValue(coreItem, isClosed);
+  const pnlPercent = resolvePnlPercent(coreItem, isClosed);
+  const hasValueData = isClosed
+    ? isPresentNumber(pnlValue)
+    : isPresentNumber(coreItem.currentValueUSD);
+  const hasPnlData = isPresentNumber(pnlPercent);
+  const valueLabel = resolveValueLabel(
+    hasValueData,
+    isClosed,
+    pnlValue,
+    coreItem.currentValueUSD,
+  );
+  const pnlLabel = hasPnlData ? formatPercent(pnlPercent) : '';
+  const pnlSignSource = isClosed
+    ? pnlValue
+    : (coreItem.pnlValueUsd ?? pnlPercent);
+  const isPnlPositive =
+    hasPnlData && isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
+
+  return {
+    valueLabel,
+    pnlLabel,
+    hasValueData,
+    hasPnlData,
+    isPnlPositive,
+  };
+}
+
+/**
+ * Builds the token avatar payload for the shared `PositionTokenAvatar`, which
+ * resolves the icon via the Clicker URL → MetaMask CDN → monogram fallback
+ * (and the Hyperliquid perp logo when `chain` is `hyperliquid`). Keeps the raw
+ * social-api `chain` name and `tokenSymbol` so that resolution matches the
+ * trader-profile position list exactly.
+ */
+function buildTokenAvatar(coreItem: CoreFeedItem): PositionTokenAvatarData {
+  return {
+    positionId: coreItem.positionId,
+    chain: coreItem.chain,
+    tokenAddress: coreItem.tokenAddress,
+    tokenImageUrl: coreItem.tokenImageUrl ?? null,
+    tokenSymbol: coreItem.tokenSymbol,
+  };
+}
+
+function mapPerpFeedItem(
+  coreItem: CoreFeedItem,
+  trade: Trade | undefined,
+  presentation: FeedItemPresentation,
+  action: FeedAction | undefined,
+  isClosed: boolean,
+  timestampMs: number,
+  subHeader: FeedSubHeader,
+): FeedPerpItem {
+  const { targetSymbol } = getSupportedXyzPerpMarketSymbol(
+    coreItem.tokenSymbol,
+  );
+  const displaySymbol = getPerpsDisplaySymbol(coreItem.tokenSymbol);
+
+  return {
+    id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
+    username: coreItem.actor.name,
+    traderAddress: coreItem.actor.address,
+    avatarUri: coreItem.actor.imageUrl ?? undefined,
+    action,
+    isClosed,
+    timestamp: timestampMs,
+    subHeader,
+    ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
+    type: 'perps',
+    marketSymbol: displaySymbol,
+    marketName: displaySymbol,
+    tradeSymbol: targetSymbol,
+    direction: getPerpPositionDirection(coreItem) ?? 'long',
+    // Prefer the position leverage, fall back to the triggering trade's, and
+    // leave `null` when neither is present so the badge is hidden rather than
+    // showing a misleading "1x" (parity with PositionRow / TradeRow).
+    leverage: coreItem.perpLeverage ?? trade?.perpLeverage ?? null,
+  };
+}
+
+function mapSpotFeedItem(
+  coreItem: CoreFeedItem,
+  presentation: FeedItemPresentation,
+  action: FeedAction | undefined,
+  isClosed: boolean,
+  timestampMs: number,
+  subHeader: FeedSubHeader,
+): FeedSpotItem | null {
+  const chain = chainNameToId(coreItem.chain);
+  if (!chain) {
+    return null;
+  }
+
+  return {
+    id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
+    username: coreItem.actor.name,
+    traderAddress: coreItem.actor.address,
+    avatarUri: coreItem.actor.imageUrl ?? undefined,
+    action,
+    isClosed,
+    timestamp: timestampMs,
+    subHeader,
+    ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
+    type: 'spot',
+    tokenSymbol: coreItem.tokenSymbol,
+    tokenName: coreItem.tokenName,
+    tokenAddress: coreItem.tokenAddress,
+    chain,
+    chainIdHex: caipChainIdToHex(chain),
+  };
+}
+
+/**
+ * Maps a core `SocialService` feed item (`Position` + `actor` + `timestamp`)
+ * into the presentation `FeedItem` consumed by `FeedItemRow`.
+ *
+ * Returns `null` for spot trades whose chain we can't map to a CAIP id — the
+ * Trade button and network badge both need it, so the row is skipped rather
+ * than rendered half-wired.
+ */
+export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
+  const { timestamp, trades } = coreItem;
+
+  const timestampMs = tradeTimestampToMs(timestamp);
+  const isPerp = isPerpPosition(coreItem);
+  const trade = findTriggeringTrade(trades ?? [], timestampMs);
+  const action = resolveAction(coreItem, trade);
+  const isClosed =
+    action === 'closed' || (action === undefined && isClosedPosition(coreItem));
+  // Only a full close realizes P&L. A reduce leaves the position open, so the
+  // right column keeps showing current value — the old `intent === 'exit'`
+  // test flipped it to a realized figure on every partial trim.
+  const subHeader = buildSubHeader(trade, !isPerp);
+  const presentation = buildFeedItemPresentation(coreItem, isClosed);
+
+  if (isPerp) {
+    return mapPerpFeedItem(
+      coreItem,
+      trade,
+      presentation,
+      action,
+      isClosed,
+      timestampMs,
+      subHeader,
+    );
+  }
+
+  return mapSpotFeedItem(
+    coreItem,
+    presentation,
+    action,
+    isClosed,
+    timestampMs,
+    subHeader,
+  );
+}

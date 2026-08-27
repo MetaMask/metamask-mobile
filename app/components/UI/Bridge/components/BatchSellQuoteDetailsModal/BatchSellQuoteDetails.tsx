@@ -88,51 +88,48 @@ function QuoteDetailsRow({
   );
 }
 
-function SummaryRow({
-  label,
-  value,
-  testID,
-  hasInfoIcon = false,
-  onInfoPress,
-  isLoading,
-  skeletonTestID,
+export function TotalReceivedSummaryRow({
+  totalReceived,
+  minimumReceived,
+  isLoading = false,
+  onMinimumReceivedInfoPress,
 }: {
-  label: string;
-  value: string;
-  testID: string;
-  hasInfoIcon?: boolean;
-  onInfoPress?: () => void;
+  totalReceived: { formatted: string };
+  minimumReceived: { formatted: string };
   isLoading?: boolean;
-  skeletonTestID?: string;
+  onMinimumReceivedInfoPress?: () => void;
 }) {
   return (
     <Box
-      testID={testID}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      gap={2}
+      testID={BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW}
       paddingVertical={2}
+      gap={1}
       twClassName="w-full"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={1}
-        twClassName="min-w-0 flex-1"
+        justifyContent={BoxJustifyContent.Between}
+        gap={2}
+        twClassName="w-full"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          twClassName="min-w-0 flex-1"
         >
-          {label}
-        </Text>
-        {hasInfoIcon ? (
-          onInfoPress ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {strings('bridge.batch_sell_total_received')}
+          </Text>
+          {onMinimumReceivedInfoPress ? (
             <Pressable
-              onPress={onInfoPress}
+              onPress={onMinimumReceivedInfoPress}
               testID={
                 BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON
               }
@@ -150,26 +147,64 @@ function SummaryRow({
               size={IconSize.Sm}
               color={IconColor.IconAlternative}
             />
-          )
-        ) : null}
+          )}
+        </Box>
+        {isLoading ? (
+          <Skeleton
+            width={VALUE_SKELETON_WIDTH}
+            height={VALUE_SKELETON_HEIGHT}
+            twClassName="rounded-lg"
+            testID={
+              BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON
+            }
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+            numberOfLines={1}
+          >
+            {totalReceived.formatted}
+          </Text>
+        )}
       </Box>
-      {isLoading ? (
-        <Skeleton
-          width={VALUE_SKELETON_WIDTH}
-          height={VALUE_SKELETON_HEIGHT}
-          twClassName="rounded-lg"
-          testID={skeletonTestID}
-        />
-      ) : (
+      <Box
+        testID={BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.End}
+        gap={1}
+        twClassName="w-full"
+      >
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
         >
-          {value}
+          {strings('bridge.batch_sell_minimum_received')}
         </Text>
-      )}
+        {isLoading ? (
+          <Skeleton
+            width={VALUE_SKELETON_WIDTH}
+            height={VALUE_SKELETON_HEIGHT}
+            twClassName="rounded-lg"
+            testID={
+              BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON
+            }
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {minimumReceived.formatted}
+          </Text>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -196,25 +231,11 @@ export function BatchSellQuoteDetails({
       ) : null}
       <Box paddingHorizontal={4}>
         <Box twClassName="border-t border-muted pt-2">
-          <SummaryRow
-            label={strings('bridge.batch_sell_total_received')}
-            value={totalReceived.formatted}
-            testID={BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW}
+          <TotalReceivedSummaryRow
+            totalReceived={totalReceived}
+            minimumReceived={minimumReceived}
             isLoading={isLoading}
-            skeletonTestID={
-              BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON
-            }
-          />
-          <SummaryRow
-            label={strings('bridge.batch_sell_minimum_received')}
-            value={minimumReceived.formatted}
-            testID={BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW}
-            hasInfoIcon
-            onInfoPress={onMinimumReceivedInfoPress}
-            isLoading={isLoading}
-            skeletonTestID={
-              BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON
-            }
+            onMinimumReceivedInfoPress={onMinimumReceivedInfoPress}
           />
         </Box>
       </Box>

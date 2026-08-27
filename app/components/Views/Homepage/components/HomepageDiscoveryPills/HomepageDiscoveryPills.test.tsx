@@ -19,14 +19,19 @@ jest.mock('../../hooks/usePillViewedEvent', () => ({
   default: () => ({ trackPillTapped: mockTrackPillTapped }),
 }));
 
-jest.mock('../../../../../constants/navigation/exploreTabIndices', () => ({
-  EXPLORE_TAB_INDEX: {
-    NOW: 0,
-    MACRO: 1,
-    RWAS: 2,
-    CRYPTO: 3,
-    SPORTS: 4,
-    SITES: 5,
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: { trackEvent: (...args: unknown[]) => mockTrackEvent(...args) },
+}));
+
+jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(function (this: { build: () => unknown }) {
+        return this;
+      }),
+      build: jest.fn(() => ({ event: 'Explore Page Interacted' })),
+    })),
   },
 }));
 
@@ -84,7 +89,9 @@ describe('HomepageDiscoveryPills', () => {
   });
 
   it('renders enabled discovery pills', () => {
-    const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
+    const { getByLabelText, getByTestId } = render(
+      <HomepageDiscoveryPills iconStyle="gray" />,
+    );
 
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.CONTAINER),
@@ -101,6 +108,7 @@ describe('HomepageDiscoveryPills', () => {
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.pill('stocks')),
     ).toBeOnTheScreen();
+    expect(getByLabelText('Perps')).toBeOnTheScreen();
   });
 
   it('omits perps pill when perps flag is disabled', () => {
@@ -144,26 +152,26 @@ describe('HomepageDiscoveryPills', () => {
     });
   });
 
-  it('navigates to explore crypto tab when crypto pill is pressed', () => {
+  it('navigates to trending tokens full view when crypto pill is pressed', () => {
     const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
 
     fireEvent.press(getByTestId(HomepageDiscoveryPillsTestIds.pill('crypto')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-      params: { initialTab: 3, source: HOMESCREEN_PILL_SOURCE },
-    });
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+    );
   });
 
-  it('navigates to explore RWAs tab when stocks pill is pressed', () => {
+  it('navigates to RWA tokens full view when stocks pill is pressed', () => {
     const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
 
     fireEvent.press(getByTestId(HomepageDiscoveryPillsTestIds.pill('stocks')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-      params: { initialTab: 2, source: HOMESCREEN_PILL_SOURCE },
-    });
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    );
   });
 
   it('tracks pill_tapped before navigation when a pill is pressed', () => {

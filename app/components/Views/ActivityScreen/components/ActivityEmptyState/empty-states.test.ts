@@ -65,34 +65,6 @@ describe('getActivityEmptyState', () => {
     });
   });
 
-  describe('Money filter', () => {
-    it('returns funded copy + TransferToMoney when hasFunds is true', () => {
-      expect(
-        getActivityEmptyState({
-          filter: ActivityTypeFilter.Money,
-          hasFunds: true,
-        }),
-      ).toEqual({
-        descriptionKey: 'activity_view.empty_state.money_funded.description',
-        actionLabelKey: 'activity_view.empty_state.money_funded.action',
-        action: ActivityEmptyStateAction.TransferToMoney,
-      });
-    });
-
-    it('returns unfunded copy + TransferToMoney when hasFunds is false', () => {
-      expect(
-        getActivityEmptyState({
-          filter: ActivityTypeFilter.Money,
-          hasFunds: false,
-        }),
-      ).toEqual({
-        descriptionKey: 'activity_view.empty_state.money_unfunded.description',
-        actionLabelKey: 'activity_view.empty_state.money_unfunded.action',
-        action: ActivityEmptyStateAction.TransferToMoney,
-      });
-    });
-  });
-
   describe('Filters that override hasFunds (themed copy regardless of balance)', () => {
     it.each([true, false])(
       'Predictions returns themed copy + MakePrediction (hasFunds=%s)',
@@ -125,6 +97,31 @@ describe('getActivityEmptyState', () => {
         });
       },
     );
+
+    it('Perps with an active sub-filter returns the "try a different filter" hint', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Perps,
+          hasFunds: true,
+          perpsSubFilterActive: true,
+        }),
+      ).toEqual({
+        descriptionKey:
+          'activity_view.empty_state.perps_sub_filter.description',
+        actionLabelKey: 'activity_view.empty_state.perps.action',
+        action: ActivityEmptyStateAction.BrowsePerpsMarkets,
+      });
+    });
+
+    it('perpsSubFilterActive only affects the Perps filter', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Transactions,
+          hasFunds: true,
+          perpsSubFilterActive: true,
+        }).descriptionKey,
+      ).toBe('activity_view.empty_state.transactions_funded.description');
+    });
 
     it.each([true, false])(
       'BuySell returns themed copy + AddFunds (hasFunds=%s)',

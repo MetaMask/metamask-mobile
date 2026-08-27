@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -58,7 +59,7 @@ export const getHardwareThemeAssets = (themeAppearance: AppThemeKey) => {
 };
 
 const SelectHardwareWallet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const tw = useTailwind();

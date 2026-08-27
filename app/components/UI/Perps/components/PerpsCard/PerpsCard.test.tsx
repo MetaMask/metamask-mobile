@@ -44,7 +44,21 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) => {
+    if (key === 'perps.order.long_label' || key === 'perps.market.long') {
+      return 'Long';
+    }
+    if (key === 'perps.order.short_label' || key === 'perps.market.short') {
+      return 'Short';
+    }
+    if (key === 'perps.market.long_lowercase') {
+      return 'long';
+    }
+    if (key === 'perps.market.short_lowercase') {
+      return 'short';
+    }
+    return key;
+  },
 }));
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
@@ -464,13 +478,13 @@ describe('PerpsCard', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       // Act
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <PerpsCard position={mockPosition} testID="test-card" />,
       );
 
-      // Assert - left-side non-financial content is unaffected
+      // Assert - title stays visible; size is treated as sensitive
       expect(getByText('ETH 3x long')).toBeOnTheScreen();
-      expect(getByText('1.5 ETH')).toBeOnTheScreen();
+      expect(queryByText('1.5 ETH')).toBeNull();
     });
   });
 });

@@ -1,5 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
 // libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
@@ -78,6 +78,14 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 //   "// ReadableStream is injected by Metro as a global"
 import 'expo';
 
+// Compression Streams for Hyperliquid `fastAssetCtxs`.
+// Official @nktkas/hyperliquid RN docs require DecompressionStream on Hermes.
+// We only add this package: Web Streams come from Metro (`expo/virtual/streams`
+// is prepended before any module), TextDecoder from Expo winter above. Kept
+// next to `expo` for readability.
+// @see https://nktkas.gitbook.io/hyperliquid (React Native tab)
+import 'compression-streams-polyfill';
+
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (hasTestOverrides) {
   // eslint-disable-next-line no-console
@@ -97,10 +105,8 @@ if (hasTestOverrides) {
 // We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
 // library behavior differs by platform:
 //
-// iOS: LaunchArguments.value() successfully reads Detox launchArgs → returns { fixtureServerPort: "30002", ... }
-//      App uses the dynamic port directly.
-//
-// Android: LaunchArguments.value() returns {} (library doesn't integrate with Detox on Android)
+// iOS: LaunchArguments.value() successfully reads E2E launchArgs → returns { fixtureServerPort: "30002", ... }
+// Android: LaunchArguments.value() returns {} (library doesn't integrate reliably on Android)
 //          → ALWAYS falls back to hardcoded ports (12345 for fixtures, 2446 for command queue)
 //          Since we need dynamic ports for parallel test execution, the E2E infrastructure uses
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
@@ -108,9 +114,14 @@ if (hasTestOverrides) {
 //          See FixtureHelper.ts for the port mapping implementation.
 if (isTestEnvironment) {
   const raw = LaunchArguments.value();
+
+  // Priority: LaunchArgs (E2E) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
+  const nsDefaults =
+    Platform.OS === 'ios' ? Settings.get('fixtureServerPort') : undefined;
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
-    : FALLBACK_FIXTURE_SERVER_PORT;
+    : (nsDefaults ?? FALLBACK_FIXTURE_SERVER_PORT);
+
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
@@ -243,17 +254,6 @@ if (typeof global.AbortSignal.timeout === 'undefined') {
   };
 }
 
-if (typeof global.Promise.withResolvers === 'undefined') {
-  global.Promise.withResolvers = function () {
-    let resolve, reject;
-    const promise = new Promise((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    return { promise, resolve, reject };
-  };
-}
-
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
@@ -312,6 +312,15 @@ if (enableApiCallLogs || isTestEnvironment) {
       }
     }
 
+    // Capture the fetch installed by NitroFetchSetup. This shim's synchronous
+    // import (index.js) runs before NitroFetchSetup, so `originalFetch` above
+    // was captured as RN's pre-nitro fetch. By the time this async IIFE resumes
+    // (after the health-check await), NitroFetchSetup has replaced global.fetch
+    // with nitro-fetch AND global.Headers with nitro's Headers. Routing app
+    // requests through nitro-fetch is required: RN's pre-nitro fetch cannot read
+    // a NitroHeaders instance and silently drops headers like Content-Type,
+    // which makes HyperLiquid reject perps orders/candles with a 415.
+    const installedFetch = global.fetch;
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -328,11 +337,11 @@ if (enableApiCallLogs || isTestEnvironment) {
       }
 
       return isMockServerAvailable
-        ? originalFetch(
+        ? installedFetch(
             `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
             options,
-          ).catch(() => originalFetch(url, options))
-        : originalFetch(url, options);
+          ).catch(() => installedFetch(url, options))
+        : installedFetch(url, options);
     };
 
     if (isMockServerAvailable) {

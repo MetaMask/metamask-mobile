@@ -58,6 +58,12 @@ interface TraderPriceChartProps {
   /** Trade markers to render as buy/sell dots on the chart line. */
   trades?: readonly Trade[];
   chartHeight?: number;
+  /**
+   * When true, the chart stops capturing touches: the scrub PanResponder is
+   * detached and the touch surface is `pointerEvents="none"` so drags fall
+   * through to the scrolling list behind a pinned-overlay chart.
+   */
+  scrollPassthrough?: boolean;
 }
 
 const TraderPriceChart = ({
@@ -66,6 +72,7 @@ const TraderPriceChart = ({
   onChartIndexChange,
   trades,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  scrollPassthrough = false,
 }: TraderPriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -343,7 +350,10 @@ const TraderPriceChart = ({
       <View
         style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...(chartHasData ? panResponder.current.panHandlers : {})}
+        pointerEvents={scrollPassthrough ? 'none' : 'auto'}
+        {...(chartHasData && !scrollPassthrough
+          ? panResponder.current.panHandlers
+          : {})}
       >
         {chartHasData ? (
           <AreaChart

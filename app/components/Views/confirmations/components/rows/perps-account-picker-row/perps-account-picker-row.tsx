@@ -1,6 +1,9 @@
 import React, { useCallback } from 'react';
 
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { updateTransaction } from '../../../../../../util/transaction-controller';
@@ -16,7 +19,6 @@ import {
   PayWithOption,
 } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../utils/transaction';
 import { AccountPickerRowContent } from '../account-picker-row';
 
 const formatBalance = (account: SubAccountInfo): string =>

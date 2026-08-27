@@ -6,6 +6,7 @@ import type { MessengerClientInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { AccountTreeControllerInitMessenger } from '../../messengers/account-tree-controller-messenger';
 
 /**
@@ -38,9 +39,10 @@ export const accountTreeControllerInit: MessengerClientInitFunction<
               .addProperties(event)
               .build();
 
+            // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
             initMessenger.call(
               'AnalyticsController:trackEvent',
-              analyticsEvent,
+              analyticsEvent as unknown as PackageAnalyticsTrackingEvent,
             );
           } catch (error) {
             // Analytics tracking failures should not break account tree functionality

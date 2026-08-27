@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -50,7 +51,7 @@ const SRPQuiz = () => {
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const dismissModal = (): void => {

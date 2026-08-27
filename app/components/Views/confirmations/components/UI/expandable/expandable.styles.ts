@@ -8,6 +8,7 @@ const styleSheet = (params: {
 }) => {
   const { theme, vars } = params;
   const { isCompact } = vars;
+  const { colors } = theme;
 
   return StyleSheet.create({
     container: {
@@ -21,7 +22,9 @@ const styleSheet = (params: {
       marginBottom: isCompact ? 0 : 8,
     },
     modalContent: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.elevated1,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
       paddingBottom: 34,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,

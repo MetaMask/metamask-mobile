@@ -1,3 +1,7 @@
+import {
+  extractExplicitTypedError,
+  getErrorMessage,
+} from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 import type {
   CloseSessionOptions,
@@ -26,10 +30,6 @@ function isTerminalSessionStatus(status: HeadlessSessionStatus): boolean {
   );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
 function isHeadlessBuyErrorCode(value: unknown): value is HeadlessBuyErrorCode {
   return (
     typeof value === 'string' &&
@@ -37,37 +37,28 @@ function isHeadlessBuyErrorCode(value: unknown): value is HeadlessBuyErrorCode {
   );
 }
 
-function getErrorMessage(error: unknown): string | undefined {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (isRecord(error) && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (typeof error === 'string') {
-    return error;
-  }
-  return undefined;
-}
-
+/**
+ * Normalizes an arbitrary thrown/native error into the public
+ * {@link HeadlessBuyError} shape. The pure extraction (explicit-code detection,
+ * message/details derivation) is shared with `RampsController` via
+ * `extractExplicitTypedError`; only the headless-specific taxonomy and the
+ * `LimitExceededError` domain special-case live here, in precedence order:
+ * explicit valid code first, then the limit-exceeded name, then the fallback.
+ *
+ * @param error - The caught value.
+ * @param fallbackCode - Code used when no more specific code applies.
+ * @returns The typed headless-buy error.
+ */
 export function toHeadlessBuyError(
   error: unknown,
   fallbackCode: HeadlessBuyErrorCode = 'UNKNOWN',
 ): HeadlessBuyError {
-  if (isRecord(error)) {
-    const explicitCode = isHeadlessBuyErrorCode(error.headlessBuyErrorCode)
-      ? error.headlessBuyErrorCode
-      : isHeadlessBuyErrorCode(error.code)
-        ? error.code
-        : undefined;
-
-    if (explicitCode) {
-      return {
-        code: explicitCode,
-        message: getErrorMessage(error),
-        details: isRecord(error.details) ? error.details : undefined,
-      };
-    }
+  const explicit = extractExplicitTypedError<HeadlessBuyErrorCode>(error, {
+    isValidCode: isHeadlessBuyErrorCode,
+    codeProperties: ['headlessBuyErrorCode', 'code'],
+  });
+  if (explicit) {
+    return explicit;
   }
 
   if (error instanceof Error && error.name === 'LimitExceededError') {
@@ -187,6 +178,23 @@ export function getActiveSessionId(): string | undefined {
 }
 
 /**
+ * Marks a session terminal (unless it is already terminal) and removes it from
+ * the registry. Shared by `closeSession` and `failSession`; it fires no consumer
+ * callback, so each caller stays in full control of which terminal event
+ * (`onClose` vs `onError`) it emits.
+ */
+function terminateSession(
+  session: HeadlessSession,
+  id: string,
+  terminalStatus: 'cancelled' | 'failed',
+): void {
+  if (!isTerminalSessionStatus(session.status)) {
+    session.status = terminalStatus;
+  }
+  sessions.delete(id);
+}
+
+/**
  * Idempotent "stop and notify" used by both consumer-driven cancellation
  * and the auto-cancel path of `startHeadlessBuy`.
  *
@@ -212,11 +220,11 @@ export function closeSession(
   if (!session) {
     return;
   }
-  if (!isTerminalSessionStatus(session.status)) {
-    session.status =
-      options?.terminalStatus === 'failed' ? 'failed' : 'cancelled';
-  }
-  sessions.delete(id);
+  terminateSession(
+    session,
+    id,
+    options?.terminalStatus === 'failed' ? 'failed' : 'cancelled',
+  );
   try {
     session.callbacks.onClose(info);
   } catch (e) {
@@ -230,7 +238,12 @@ export function closeSession(
 /**
  * Idempotent "fail and notify" for unrecoverable headless errors. It turns
  * thrown/native errors into the public HeadlessBuyError shape, fires `onError`,
- * then terminates the session through `closeSession`.
+ * then removes the session directly, WITHOUT firing `onClose`.
+ *
+ * `onError` is terminal on its own: a session ends in exactly one of
+ * `onOrderCreated`, `onError`, or `onClose`, never a pairing. This matters for
+ * MM Pay, whose `onClose` handler clears the error set by `onError`; a trailing
+ * `onClose` here would wipe the failure it just reported.
  */
 export function failSession(
   id: string | undefined,
@@ -253,13 +266,7 @@ export function failSession(
       'headless sessionRegistry: onError callback threw',
     );
   }
-  closeSession(
-    id,
-    { reason: 'unknown' },
-    {
-      terminalStatus: 'failed',
-    },
-  );
+  terminateSession(session, id, 'failed');
   return headlessError;
 }
 

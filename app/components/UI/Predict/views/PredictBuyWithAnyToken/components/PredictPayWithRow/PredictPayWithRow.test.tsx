@@ -62,7 +62,8 @@ jest.mock('../../../../../../../util/address', () => ({
 }));
 
 let mockHasTransactionType = true;
-jest.mock('../../../../../../Views/confirmations/utils/transaction', () => ({
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
   hasTransactionType: (transactionMeta: unknown) => {
     if (!transactionMeta) return false;
     return mockHasTransactionType;

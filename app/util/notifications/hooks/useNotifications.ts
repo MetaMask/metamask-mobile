@@ -27,6 +27,13 @@ import type { RootState } from '../../../reducers';
 const selectHasMarketingConsent = (state: RootState) =>
   Boolean(state.security.dataCollectionForMarketing);
 
+interface UseEnableNotificationsProps {
+  nudgeEnablePush?: boolean;
+  throwOnError?: boolean;
+}
+
+const DEFAULT_ENABLE_NOTIFICATIONS_PROPS: UseEnableNotificationsProps = {};
+
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -104,9 +111,11 @@ export function useContiguousLoading(
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(props = { nudgeEnablePush: true }) {
+export function useEnableNotifications(props?: UseEnableNotificationsProps) {
+  const { nudgeEnablePush = true, throwOnError = false } =
+    props ?? DEFAULT_ENABLE_NOTIFICATIONS_PROPS;
   const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle(props);
+    usePushNotificationsToggle({ nudgeEnablePush });
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -121,17 +130,25 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await enableNotificationsHelper({
-      hasMarketingConsent,
-      productAnnouncementEnabled,
-      registerPushNotifications: Boolean(props.nudgeEnablePush),
-    }).catch((e) => setError(e));
+    try {
+      await enableNotificationsHelper({
+        hasMarketingConsent,
+        productAnnouncementEnabled,
+        registerPushNotifications: nudgeEnablePush,
+      });
+    } catch (enableError) {
+      setError(enableError);
+      if (throwOnError) {
+        throw enableError;
+      }
+    }
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
   }, [
-    props.nudgeEnablePush,
+    nudgeEnablePush,
+    throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,
     togglePushNotification,

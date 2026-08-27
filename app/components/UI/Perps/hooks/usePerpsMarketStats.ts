@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import {
   CandlePeriod,
+  PERPS_CONSTANTS,
   TimeDuration,
   calculate24hHighLow,
   type PriceUpdate,
@@ -13,6 +14,7 @@ import {
   LARGE_NUMBER_RANGES_DETAILED,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
+import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 interface MarketStats {
@@ -41,6 +43,7 @@ export interface UsePerpsMarketStatsReturn extends MarketStats {
 export const usePerpsMarketStats = (
   symbol: string,
 ): UsePerpsMarketStatsReturn => {
+  const { isInitialized } = usePerpsConnection();
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [initialPrice, setInitialPrice] = useState<number | undefined>();
   // Track whether the initial price has been captured without making it a
@@ -57,10 +60,11 @@ export const usePerpsMarketStats = (
     throttleMs: 1000,
   });
 
-  // Subscribe to market data updates (funding, open interest, volume)
-  // Note: We still subscribe to prices but only extract market metadata, not price itself
+  // Subscribe to market data updates (funding, open interest, volume).
+  // Gate on isInitialized so a fast Perps open after wallet unlock does not
+  // get a no-op subscribe with no retry (same pattern as usePerpsPrices).
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol || !isInitialized) return;
 
     let unsubscribe: (() => void) | undefined;
     const findSymbol = (update: PriceUpdate) => update.symbol === symbol;
@@ -114,7 +118,7 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [symbol]);
+  }, [symbol, isInitialized]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
@@ -135,16 +139,18 @@ export const usePerpsMarketStats = (
           : formatPerpsFiat(fallbackPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             }),
-      volume24h: marketData.volume24h
-        ? `$${formatLargeNumber(marketData.volume24h, {
-            ranges: LARGE_NUMBER_RANGES_DETAILED,
-          })}`
-        : '$0.00',
-      openInterest: marketData.openInterest
-        ? `$${formatLargeNumber(marketData.openInterest, {
-            ranges: LARGE_NUMBER_RANGES_DETAILED,
-          })}`
-        : '$0.00',
+      volume24h:
+        marketData.volume24h !== undefined
+          ? `$${formatLargeNumber(marketData.volume24h, {
+              ranges: LARGE_NUMBER_RANGES_DETAILED,
+            })}`
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
+      openInterest:
+        marketData.openInterest !== undefined
+          ? `$${formatLargeNumber(marketData.openInterest, {
+              ranges: LARGE_NUMBER_RANGES_DETAILED,
+            })}`
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
       fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,

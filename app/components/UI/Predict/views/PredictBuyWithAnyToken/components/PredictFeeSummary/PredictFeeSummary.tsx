@@ -17,7 +17,6 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
 import {
@@ -140,7 +139,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 content: `${strings(
                   'predict.fee_summary.points_tooltip_content_1',
                 )}\n\n${strings('predict.fee_summary.points_tooltip_content_2')}`,
-                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -172,7 +170,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 tooltip: {
                   title: strings('predict.fee_summary.points_error'),
                   content: strings('predict.fee_summary.points_error_content'),
-                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 },
               }),

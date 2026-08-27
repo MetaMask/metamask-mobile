@@ -14,12 +14,21 @@ export interface PersistedMoneyBalance {
   updatedAt: number;
 }
 
+export interface PersistedRedeemableRaw {
+  /** Money account address this redeemable amount belongs to. */
+  address: string;
+  /** Exact atomic (raw) redeemable mUSD amount for that account. */
+  raw: string;
+}
+
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
+  redeemable: PersistedRedeemableRaw | null;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
+  redeemable: null,
 };
 
 const name = 'moneyBalance';
@@ -37,6 +46,12 @@ const slice = createSlice({
     clearLastKnownMoneyBalance: (state) => {
       state.lastKnownBalance = null;
     },
+    setMoneyAccountRedeemableRaw: (
+      state,
+      action: PayloadAction<PersistedRedeemableRaw | null>,
+    ) => {
+      state.redeemable = action.payload;
+    },
   },
 });
 
@@ -50,6 +65,27 @@ export const selectLastKnownMoneyBalance = createSelector(
   selectMoneyBalanceState,
   (moneyBalance) => moneyBalance.lastKnownBalance,
 );
+
+export const selectMoneyAccountRedeemable = createSelector(
+  selectMoneyBalanceState,
+  (moneyBalance) => moneyBalance.redeemable,
+);
+
+/**
+ * A cached redeemable is only safe to use as the exact source amount when it
+ * belongs to the Money Account currently funding the transaction — otherwise a
+ * stale value from a previously viewed account could be sent to the quote.
+ */
+export const getUsableMoneyAccountRedeemableRaw = (
+  redeemable: PersistedRedeemableRaw | null | undefined,
+  address: string | undefined,
+): string | undefined =>
+  redeemable &&
+  address &&
+  areAddressesEqual(redeemable.address, address) &&
+  redeemable.raw
+    ? redeemable.raw
+    : undefined;
 
 /**
  * A persisted balance is only safe to show as the "last known" figure when it
@@ -66,4 +102,8 @@ export const isPersistedMoneyBalanceUsable = (
   areAddressesEqual(persisted?.address ?? '', address ?? '') &&
   persisted?.currency === currency;
 
-export const { setLastKnownMoneyBalance, clearLastKnownMoneyBalance } = actions;
+export const {
+  setLastKnownMoneyBalance,
+  clearLastKnownMoneyBalance,
+  setMoneyAccountRedeemableRaw,
+} = actions;

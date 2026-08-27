@@ -200,6 +200,23 @@ describe('useNotifications - useEnableNotifications()', () => {
 
     expect(hook.result.current.error).toBeDefined();
   });
+
+  it('throws helper failures when requested by the caller', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockEnableNotifications.mockRejectedValue(new Error('Test Error'));
+    const hook = renderHookWithProvider(() =>
+      useEnableNotifications({ nudgeEnablePush: true, throwOnError: true }),
+    );
+
+    await expect(
+      act(async () => {
+        await hook.result.current.enableNotifications();
+      }),
+    ).rejects.toThrow('Test Error');
+
+    expect(hook.result.current.error).toBeDefined();
+    expect(mocks.mockTogglePushNotification).not.toHaveBeenCalled();
+  });
 });
 
 describe('useNotifications - useDisableNotifications()', () => {

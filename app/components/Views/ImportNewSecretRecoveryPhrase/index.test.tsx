@@ -24,6 +24,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
+import { mockTheme } from '../../../util/theme';
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -115,6 +116,11 @@ jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   }),
 }));
 
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
 const valid12WordMnemonic =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
@@ -178,12 +184,14 @@ describe('ImportNewSecretRecoveryPhrase', () => {
             callback({
               address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
               discoveredAccountsCount: 3,
+              entropySource: 'mock-entropy-source',
             });
           });
         }
         return Promise.resolve({
           address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
           discoveredAccountsCount: 0,
+          entropySource: 'mock-entropy-source',
         });
       },
     );
@@ -470,7 +478,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
           label: 'Wallet 2 imported',
         },
       ],
-      iconName: IconName.Check,
+      iconName: IconName.Confirmation,
+      iconColor: mockTheme.colors.success.default,
       hasNoTimeout: false,
     });
   });
@@ -697,6 +706,46 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows error alert when seedless password check throws', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert');
+      mockCheckIsSeedlessPasswordOutdated.mockRejectedValueOnce(
+        new Error('seedless password check failed'),
+      );
+      mockGetString.mockResolvedValue(valid12WordMnemonic);
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(ImportSRPIDs.IMPORT_BUTTON)).toBeEnabled();
+      });
+
+      await act(async () => {
+        await fireEvent.press(getByTestId(ImportSRPIDs.IMPORT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith(
+          messages.import_new_secret_recovery_phrase.error_title,
+          messages.import_new_secret_recovery_phrase.error_message,
+        );
+      });
+      expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
+
+      mockAlert.mockRestore();
     });
   });
 
@@ -1167,6 +1216,33 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       );
 
       mockAlert.mockRestore();
+    });
+
+    it('logs error when QR scan fails', async () => {
+      const Logger = jest.requireMock('../../../util/Logger');
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await act(async () => {
+        await fireEvent.press(getByTestId('qr-code-button'));
+      });
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'QRTabSwitcher',
+      );
+      const onScanError = navigateCall[1].onScanError;
+      const scanError = new Error('camera permission denied');
+
+      await act(async () => {
+        onScanError(scanError);
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(scanError, 'QR scan error');
     });
   });
 

@@ -3,18 +3,18 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
-import { useHasNativeFiatProvider } from '../../../../UI/Ramp/hooks/useHasNativeFiatProvider';
+import { useHasFiatProvider } from '../../../../UI/Ramp/hooks/useHasFiatProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
-jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider');
+jest.mock('../../../../UI/Ramp/hooks/useHasFiatProvider');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 describe('useIsFiatPaymentAvailable', () => {
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsPaymentMethodsMock = jest.mocked(useRampsPaymentMethods);
-  const useHasNativeFiatProviderMock = jest.mocked(useHasNativeFiatProvider);
+  const useHasFiatProviderMock = jest.mocked(useHasFiatProvider);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -22,7 +22,7 @@ describe('useIsFiatPaymentAvailable', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useHasNativeFiatProviderMock.mockReturnValue(true);
+    useHasFiatProviderMock.mockReturnValue(true);
 
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TransactionType.perpsDeposit],
@@ -71,8 +71,8 @@ describe('useIsFiatPaymentAvailable', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns false when no native provider serves the region', () => {
-    useHasNativeFiatProviderMock.mockReturnValue(false);
+  it('returns false when no fiat provider serves the region', () => {
+    useHasFiatProviderMock.mockReturnValue(false);
 
     const { result } = renderHook(() => useIsFiatPaymentAvailable());
     expect(result.current).toBe(false);

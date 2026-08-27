@@ -3,10 +3,10 @@ import { TX_UNAPPROVED } from '../../constants/transaction';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
-import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 

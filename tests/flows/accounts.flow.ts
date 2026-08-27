@@ -16,45 +16,18 @@ import AccountMenu from '../page-objects/AccountMenu/AccountMenu';
 import CommonView from '../page-objects/CommonView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 import EditAccountName from '../page-objects/MultichainAccounts/EditAccountName';
-import { PlatformDetector } from '../framework/PlatformLocator';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
-import PlaywrightAssertions from '../framework/PlaywrightAssertions';
-import {
-  asPlaywrightElement,
-  EncapsulatedElementType,
-} from '../framework/EncapsulatedElement';
-import { AssertionOptions } from '../framework/types';
 import Utilities from '../framework/Utilities';
+import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
 
 const PASSWORD = '123123123';
 
-async function expectElementVisible(
-  target: EncapsulatedElementType | DetoxElement,
-  options: AssertionOptions = {},
-): Promise<void> {
-  if (FrameworkDetector.isAppium()) {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(target as EncapsulatedElementType),
-      options,
-    );
-    return;
-  }
-  await Assertions.expectElementToBeVisible(target as DetoxElement, options);
-}
-
-async function expectTextVisible(
-  text: string,
-  options: AssertionOptions = {},
-): Promise<void> {
-  if (FrameworkDetector.isAppium()) {
-    await PlaywrightAssertions.expectTextDisplayed(text, options);
-    return;
-  }
-  await Assertions.expectTextDisplayed(text, options);
-}
-
 export const openImportSrpFromAccountList = async (): Promise<void> => {
-  await AccountListBottomSheet.tapAddAccountButton();
+  await AccountListBottomSheet.openAddAccountSheet();
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
@@ -63,10 +36,6 @@ export const goToImportSrp = async () => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await openImportSrpFromAccountList();
-};
-
-export const inputSrp = async (mnemonic: string) => {
-  await ImportSrpView.enterSrp(mnemonic);
 };
 
 export const completeSrpQuiz = async (expectedSrp: string) => {
@@ -92,23 +61,18 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 
   // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
-  await expectElementVisible(RevealSecretRecoveryPhrase.container);
+  await Assertions.expectElementToBeVisible(
+    RevealSecretRecoveryPhrase.container,
+  );
   // SRP is now displayed in grid format - verify first word is displayed
   const srpWords = expectedSrp.split(' ');
-  await expectTextVisible(srpWords[0]);
+  await Assertions.expectTextDisplayed(srpWords[0]);
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-
-  if (
-    PlatformDetector.isIOS() ||
-    (PlatformDetector.isAndroid() && FrameworkDetector.isAppium())
-  ) {
-    // For some reason, the QR code is visible on Android but detox cannot find it
-    await expectElementVisible(
-      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-    );
-  }
+  await Assertions.expectElementToBeVisible(
+    RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
+  );
 
   await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
@@ -131,15 +95,68 @@ export const goToAccountActions = async (accountIndex: number) => {
 export const importAccountViaPrivateKey = async (
   privateKey: string,
 ): Promise<void> => {
-  await AccountListBottomSheet.tapAddWalletButton();
+  await AccountListBottomSheet.openAddWalletSheet();
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
-  await Assertions.expectElementToBeVisible(SuccessImportAccountView.container);
+  await Assertions.expectElementToBeVisible(
+    SuccessImportAccountView.container,
+    {
+      description: 'Import success screen should be visible',
+      timeout: 30_000,
+    },
+  );
   await SuccessImportAccountView.tapCloseButton();
-  if (FrameworkDetector.isAppium()) {
-    await AddAccountBottomSheet.tapBackToWalletView();
-  }
+  await AddAccountBottomSheet.tapBackToWalletView();
+};
+
+export const openContactsViaAccountMenu = async (): Promise<void> => {
+  await TabBarComponent.tapAccountsMenu();
+  await AccountMenu.tapContacts();
+  await Assertions.expectElementToBeVisible(ContactsView.container, {
+    description: 'Contacts view should be visible',
+  });
+};
+
+export const loginAndOpenContacts = async (
+  options: { scenarioType?: string } = {},
+): Promise<void> => {
+  await loginToAppPlaywright(options);
+  await waitForWalletHomePlaywright(15_000);
+  await openContactsViaAccountMenu();
+};
+
+export const addContact = async (
+  name: string,
+  address: string,
+): Promise<void> => {
+  await ContactsView.tapAddContactButton();
+  await Assertions.expectElementToBeVisible(AddContactView.container, {
+    description: 'Add contact view should be visible',
+  });
+  await AddContactView.typeInName(name);
+  await AddContactView.typeInAddress(address);
+  await AddContactView.tapAddContactButton();
+  await Assertions.expectElementToBeVisible(ContactsView.container, {
+    description: 'Contacts view should be visible after adding contact',
+  });
+  await ContactsView.expectContactIsVisible(name);
+};
+
+export const disableContactSyncViaSettings = async (): Promise<void> => {
+  await TabBarComponent.tapSettings();
+  await Assertions.expectElementToBeVisible(
+    SettingsView.backupAndSyncSectionButton,
+    { description: 'Backup and Sync section should be visible in Settings' },
+  );
+  await SettingsView.tapBackupAndSync();
+  await Assertions.expectElementToBeVisible(
+    BackupAndSyncView.backupAndSyncToggle,
+    { description: 'Backup and Sync toggle should be visible' },
+  );
+  await BackupAndSyncView.toggleContactSync();
+  await CommonView.tapBackButton();
+  await SettingsView.tapBackButton();
 };
 
 export const disableAccountSyncViaSettings = async (): Promise<void> => {
@@ -171,6 +188,8 @@ export const renameAccountAtIndex = async (
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
+
+  await AccountListBottomSheet.waitForAccountListVisible();
 };
 
 export const assertAccountCount = async (

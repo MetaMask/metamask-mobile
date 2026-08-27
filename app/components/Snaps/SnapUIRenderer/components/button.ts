@@ -1,22 +1,25 @@
 import { ButtonElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
+import {
+  FontWeight,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { Theme } from '../../../../util/theme/models';
 
-function getTextColor(theme: Theme, props: ButtonElement['props']) {
+function getTextColor(props: ButtonElement['props']) {
   if (props.disabled) {
-    return theme.colors.text.muted;
+    return TextColor.TextMuted;
   }
 
   switch (props.variant) {
     case 'destructive':
-      return theme.colors.error.default;
-    default:
+      return TextColor.ErrorDefault;
     case 'primary':
-      return theme.colors.info.default;
+    default:
+      return TextColor.PrimaryDefault;
   }
 }
 
@@ -38,11 +41,10 @@ export const button: UIComponentFactory<ButtonElement> = ({
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
     {
       ...params,
-      textColor: getTextColor(params.theme, e.props),
+      textColor: getTextColor(e.props),
       textVariant:
-        e.props.size === 'sm'
-          ? TextVariant.BodySMMedium
-          : TextVariant.BodyMDMedium,
+        e.props.size === 'sm' ? TextVariant.BodySm : TextVariant.BodyMd,
+      textFontWeight: FontWeight.Medium,
     },
   ),
 });

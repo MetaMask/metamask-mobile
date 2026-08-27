@@ -1,44 +1,24 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useMemo, useCallback } from 'react';
-import {
-  type MoneyAccountBalanceResponse,
-  type NormalizedVaultApyResponse,
-} from '@metamask/money-account-balance-service';
+import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import {
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_DECIMALS,
-} from '../../Earn/constants/musd';
-import { toChecksumAddress } from '../../../../util/address';
+import { moneyFormatUsd } from '../utils/moneyFormatFiat';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import ReactQueryService from '../../../../core/ReactQueryService';
+import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 import {
   isPersistedMoneyBalanceUsable,
   selectLastKnownMoneyBalance,
   setLastKnownMoneyBalance,
+  setMoneyAccountRedeemableRaw,
 } from '../../../../core/redux/slices/moneyBalance';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
-// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-const DEV_APY = {
-  decimal: 0.04,
-  percent: 4,
-  percentFormatted: '4%',
-};
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -50,53 +30,54 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .call('MoneyAccountBalanceService:getExchangeRate', { staleTime: 0 })
     .then(({ rate }) => rate);
 
-const useMoneyAccountBalance = (
-  refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
-) => {
+interface UseMoneyAccountBalanceResult {
+  moneyBalanceQuery: UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
+  isBalanceLoading: boolean;
+  isBalanceFetchError: boolean;
+  isBalanceUnavailable: boolean;
+  /**
+   * True when the canonical balance was served from the fallback source
+   * (primary source failed and failover succeeded).
+   */
+  isBalanceDegraded: boolean;
+  /** Provenance of the last successful balance: Money API or RPC. */
+  balanceSource: 'api' | 'rpc' | undefined;
+  /** Whether the last successful balance used the secondary source. */
+  usedFallback: boolean;
+  lastKnownTotalFiatFormatted: string | undefined;
+  refetchBalance: () => void;
+  tokenTotal: BigNumber | undefined;
+  totalFiatFormatted: string | undefined;
+  totalFiatRaw: string | undefined;
+  withdrawableFiatFormatted: string | undefined;
+  withdrawableFiatRaw: string | undefined;
+  withdrawableMusd: BigNumber | undefined;
+}
+
+interface UseMoneyAccountBalanceOptions {
+  enabled?: boolean;
+  refetchInterval?: number;
+}
+
+const useMoneyAccountBalance = ({
+  enabled = true,
+  refetchInterval = DEFAULT_REFETCH_INTERVAL,
+}: UseMoneyAccountBalanceOptions = {}): UseMoneyAccountBalanceResult => {
   const dispatch = useDispatch();
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
-  const tokenMarketData = useSelector(selectTokenMarketData);
-  const currencyRates = useSelector(selectCurrencyRates);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
 
   const moneyBalanceQuery = useQuery({
     queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       moneyAccountAddress as string,
     ],
-    enabled: Boolean(moneyAccountAddress),
+    enabled: enabled && Boolean(moneyAccountAddress),
     refetchInterval,
-  }) as UseQueryResult<MoneyAccountBalanceResponse>;
-
-  const vaultApyQuery = useQuery({
-    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
-    refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<NormalizedVaultApyResponse>;
-
-  const musdFiatRate = useMemo(() => {
-    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
-    if (!musdAddress) return undefined;
-
-    const checksumAddress = toChecksumAddress(musdAddress);
-    const chainConfig = networkConfigurations?.[CHAIN_IDS.MAINNET];
-    const nativeCurrency = chainConfig?.nativeCurrency;
-    const conversionRate = nativeCurrency
-      ? currencyRates?.[nativeCurrency]?.conversionRate
-      : undefined;
-
-    const priceInNativeCurrency =
-      tokenMarketData?.[CHAIN_IDS.MAINNET]?.[checksumAddress]?.price ??
-      tokenMarketData?.[CHAIN_IDS.MAINNET]?.[musdAddress]?.price;
-
-    if (!conversionRate || priceInNativeCurrency === undefined)
-      return undefined;
-
-    return new BigNumber(priceInNativeCurrency).times(conversionRate);
-  }, [tokenMarketData, currencyRates, networkConfigurations]);
+  }) as UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
 
   /**
    * True while the balance query is loading with no cached data (even if stale).
@@ -106,90 +87,73 @@ const useMoneyAccountBalance = (
   /** Any balance fetch failure → full error state. */
   const isBalanceFetchError = moneyBalanceQuery.isError;
 
-  /**
-   * True while a refetch is in flight. Combined with isError, lets callers
-   * distinguish retry-in-flight (show skeleton) from silent auto-refetch.
-   */
-  const isBalanceFetching = moneyBalanceQuery.isFetching;
+  const balanceSource = moneyBalanceQuery.data?.source;
+  const usedFallback = moneyBalanceQuery.data?.usedFallback === true;
+  const isBalanceDegraded = usedFallback;
 
   const refetchBalance = useCallback(
     () =>
-      ReactQueryService.queryClient.invalidateQueries({
-        queryKey: [
-          MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-          moneyAccountAddress,
-        ],
-        refetchType: 'all',
-      }),
-    [moneyAccountAddress],
+      enabled && moneyAccountAddress
+        ? invalidateMoneyAccountBalanceCaches(moneyAccountAddress)
+        : Promise.resolve(),
+    [enabled, moneyAccountAddress],
   );
 
-  const { tokenTotal, totalFiat, withdrawableMusd } = useMemo(() => {
-    // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
-    const totalDecimal = moneyBalanceQuery.data?.totalBalance
-      ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
-          -MUSD_DECIMALS,
-        )
-      : new BigNumber(0);
+  const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
+    useMemo(() => {
+      // Total balance (mUSD + vmUSD) from the canonical facade response.
+      const totalDecimal = moneyBalanceQuery.data?.totalBalance
+        ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
+            -MUSD_DECIMALS,
+          )
+        : new BigNumber(0);
 
-    // the withdrawable amount.
-    const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
-      ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
-          -MUSD_DECIMALS,
-        )
-      : new BigNumber(0);
+      // the withdrawable amount.
+      const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
+        ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
+            -MUSD_DECIMALS,
+          )
+        : new BigNumber(0);
 
-    // Undefined while loading or on error so callers can distinguish from a genuine zero.
-    const computedWithdrawableMusd =
-      isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
+      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      const computedWithdrawableMusd =
+        isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
 
-    const computedTokenTotal =
-      isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
-
-    if (!musdFiatRate) {
-      // Undefined during loading or error so callers can distinguish from a genuine zero.
-      const settledTokenTotal =
+      const computedTokenTotal =
         isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
 
+      // mUSD is USD-pegged 1:1, so the dollar value equals the token amount —
+      // no conversion rate is needed to show the balance in dollars.
       return {
-        musdFiat: undefined,
-        musdSHFvdFiat: undefined,
-        tokenTotal: settledTokenTotal,
-        // A zero balance is $0.00 regardless of the missing rate — 0 tokens
-        // convert to 0 fiat without one. Only a non-zero balance is genuinely
-        // unavailable when there's no rate to convert it.
-        totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
+        tokenTotal: computedTokenTotal,
+        totalFiat: computedTokenTotal,
+        withdrawableFiat: computedWithdrawableMusd,
         withdrawableMusd: computedWithdrawableMusd,
       };
-    }
-
-    return {
-      tokenTotal: computedTokenTotal,
-      totalFiat: isBalanceFetchError
-        ? undefined
-        : totalDecimal.times(musdFiatRate),
-      withdrawableMusd: computedWithdrawableMusd,
-    };
-  }, [
-    isBalanceLoading,
-    isBalanceFetchError,
-    moneyBalanceQuery.data,
-    musdFiatRate,
-  ]);
+    }, [isBalanceLoading, isBalanceFetchError, moneyBalanceQuery.data]);
 
   const totalFiatFormatted =
-    !isBalanceFetchError && totalFiat
-      ? moneyFormatFiat(totalFiat, currentCurrency)
-      : undefined;
+    !isBalanceFetchError && totalFiat ? moneyFormatUsd(totalFiat) : undefined;
 
   const totalFiatRaw =
     !isBalanceFetchError && totalFiat ? totalFiat.toString() : undefined;
+
+  const withdrawableFiatFormatted =
+    !isBalanceFetchError && withdrawableFiat
+      ? moneyFormatUsd(withdrawableFiat)
+      : undefined;
+
+  const withdrawableFiatRaw =
+    !isBalanceFetchError && withdrawableFiat
+      ? withdrawableFiat.toString()
+      : undefined;
 
   // Persist every successful balance so it can be shown as the "last known"
   // figure (for the current account/currency) the next time the live balance
   // is unavailable — including after an app restart.
   useEffect(() => {
     if (
+      enabled &&
       moneyAccountAddress &&
       !isBalanceFetchError &&
       !isBalanceLoading &&
@@ -206,6 +170,7 @@ const useMoneyAccountBalance = (
     }
   }, [
     dispatch,
+    enabled,
     moneyAccountAddress,
     isBalanceFetchError,
     totalFiatFormatted,
@@ -213,8 +178,34 @@ const useMoneyAccountBalance = (
     isBalanceLoading,
   ]);
 
-  // True whenever there is no fresh balance to show — still loading, a fetch
-  // error, or a missing formatting dependency (e.g. rate not ready).
+  // Stash the exact atomic redeemable (vmusdValueInMusd, already raw mUSD) so
+  // the transaction-pay resolveSourceAmount callback can read it synchronously
+  // from Redux (it runs outside React and cannot use this hook). Only write on
+  // a successful fetch, so an error/loading state never clobbers the last known
+  // value (mirrors the lastKnownBalance persistence above).
+  const withdrawableMusdRaw = moneyBalanceQuery.data?.vmusdValueInMusd;
+
+  useEffect(() => {
+    if (isBalanceFetchError || isBalanceLoading) {
+      return;
+    }
+    dispatch(
+      setMoneyAccountRedeemableRaw(
+        moneyAccountAddress && withdrawableMusdRaw
+          ? { address: moneyAccountAddress, raw: withdrawableMusdRaw }
+          : null,
+      ),
+    );
+  }, [
+    dispatch,
+    moneyAccountAddress,
+    withdrawableMusdRaw,
+    isBalanceFetchError,
+    isBalanceLoading,
+  ]);
+
+  // True whenever there is no fresh balance to show — still loading or a fetch
+  // error.
   const isBalanceUnavailable = totalFiatFormatted === undefined;
 
   // Last successfully fetched balance, but only when it still matches the
@@ -226,32 +217,22 @@ const useMoneyAccountBalance = (
     ? lastKnownBalance.value
     : undefined;
 
-  const rawApy = vaultApyQuery.data?.apy;
-
-  const apyDecimal = rawApy;
-  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
-  const apyPercentFormatted =
-    apyPercent !== undefined ? `${apyPercent}%` : undefined;
-
   return {
     moneyBalanceQuery,
-    vaultApyQuery,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
     isBalanceUnavailable,
+    isBalanceDegraded,
+    balanceSource,
+    usedFallback,
     lastKnownTotalFiatFormatted,
     refetchBalance,
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
+    withdrawableFiatFormatted,
+    withdrawableFiatRaw,
     withdrawableMusd,
-    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
-    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
-    apyPercentFormatted: __DEV__
-      ? DEV_APY.percentFormatted
-      : apyPercentFormatted,
   };
 };
 

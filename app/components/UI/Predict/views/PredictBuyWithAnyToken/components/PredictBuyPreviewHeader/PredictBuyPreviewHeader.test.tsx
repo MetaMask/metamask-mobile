@@ -303,6 +303,31 @@ describe('PredictBuyPreviewHeader', () => {
       expect(screen.getByText(/Yes \(alt\) at 0\.65¢/)).toBeOnTheScreen();
     });
 
+    it('falls back to the ask (buyPrice), not the mid, before a preview loads', () => {
+      const market = createMockMarket();
+      // Wide spread: mid 0.63 but ask 0.92 -> header must show the ask.
+      const outcome = createMockOutcome({
+        tokens: [{ id: 'token-1', title: 'Yes', price: 0.63, buyPrice: 0.92 }],
+      });
+
+      renderWithProvider(
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-1',
+            title: 'Yes',
+            price: 0.63,
+            buyPrice: 0.92,
+          })}
+          preview={null}
+        />,
+      );
+
+      expect(screen.getByText(/Yes at 0\.92¢/)).toBeOnTheScreen();
+      expect(screen.queryByText(/Yes at 0\.63¢/)).not.toBeOnTheScreen();
+    });
+
     it('uses preview sharePrice when provided', () => {
       const market = createMockMarket();
       const outcome = createMockOutcome({

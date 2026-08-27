@@ -1,14 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SelectRegionSelectors } from '../../selectors/Ramps/SelectRegion.selectors';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class SelectRegionView {
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(SelectRegionSelectors.CONTINUE_BUTTON);
   }
 
-  get regionSearchInput(): EncapsulatedElementType {
+  get regionSearchInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT,
     );

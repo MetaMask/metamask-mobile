@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
@@ -12,15 +13,15 @@ import {
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
+import styleSheet from './EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import DepositTextField from '../../Deposit/components/DepositTextField';
-import { useForm } from '../../Deposit/hooks/useForm';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import PrivacySection from '../../Deposit/components/PrivacySection';
-import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
+import DepositTextField from '../../components/DepositTextField';
+import { useForm } from '../../hooks/useForm';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { VALIDATION_REGEX } from '../../constants/transak';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -45,15 +46,15 @@ export interface AddressFormData {
   countryCode: string;
 }
 
-interface V2EnterAddressParams {
+export interface V2EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
   quote: TransakBuyQuote;
   /** When set, post-KYC `routeAfterAuthentication` resets use `HEADLESS_HOST` as stack base. */
   headlessSessionId?: string;
 }
 
-const V2EnterAddress = (): JSX.Element => {
-  const navigation = useNavigation();
+const V2EnterAddress = (): React.JSX.Element => {
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =
     useParams<V2EnterAddressParams>();

@@ -9,6 +9,7 @@ import type { PredictSportsLeague } from '../types';
 
 const SOCCER_LEAGUE: PredictSportsLeague = 'fifwc';
 const BASKETBALL_LEAGUE: PredictSportsLeague = 'nba';
+const ESPORTS_LEAGUE: PredictSportsLeague = 'lol';
 
 describe('scoreboard utils', () => {
   describe('isBreakingPeriod', () => {
@@ -141,6 +142,17 @@ describe('scoreboard utils', () => {
           elapsed: null,
         }),
       ).toBe('Q4');
+    });
+
+    it('shows the current esports map when elapsed is unavailable', () => {
+      expect(
+        getSportLiveStatusText({
+          league: ESPORTS_LEAGUE,
+          status: 'ongoing',
+          period: '2/3',
+          elapsed: null,
+        }),
+      ).toBe('2/3');
     });
 
     it('falls back to the elapsed when no period is available', () => {

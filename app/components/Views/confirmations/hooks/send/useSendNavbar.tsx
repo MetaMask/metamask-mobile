@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 
 import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
@@ -8,7 +10,7 @@ import { useSendActions } from './useSendActions';
 
 export function useSendNavbar() {
   const { handleCancelPress } = useSendActions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const parentNavigation = navigation.getParent();
   // Back/cancel logic must read the main stack (which owns the `Send` route).
   // When the header is rendered inside Amount/Asset/Recipient, `useNavigationState`
@@ -35,7 +37,12 @@ export function useSendNavbar() {
         : null;
 
       const screenName = previousRoute?.name || Routes.SEND.ASSET;
-      navigationForStack.navigate(Routes.SEND.DEFAULT, { screen: screenName });
+      // `screenName` is read from live navigation state, so it's a runtime
+      // string rather than a compile-time Send screen literal.
+      navigateWithDetails(navigationForStack, [
+        Routes.SEND.DEFAULT,
+        { screen: screenName },
+      ]);
       return;
     }
 
@@ -55,10 +62,11 @@ export function useSendNavbar() {
     if (previousMainRoute.name === 'Home') {
       navigationForStack.navigate(Routes.WALLET_VIEW);
     } else {
-      navigationForStack.navigate(
+      // Destination route name/params come from live navigation state.
+      navigateWithDetails(navigationForStack, [
         previousMainRoute.name,
         previousMainRoute.params,
-      );
+      ]);
     }
   }, [navigationForStack, nestedStackState, parentNavigation]);
 

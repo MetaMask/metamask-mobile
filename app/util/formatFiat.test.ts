@@ -35,6 +35,26 @@ describe('formatFiat', () => {
     });
   });
 
+  describe('pinned fraction digits', () => {
+    it('keeps decimals on whole numbers when fraction digits are pinned', () => {
+      expect(formatFiat(new BigNumber(1), 'USD', 2)).toBe('$1.00');
+      expect(formatFiat(new BigNumber(1000), 'USD', 2)).toBe('$1,000.00');
+      expect(formatFiat(new BigNumber(0), 'USD', 2)).toBe('$0.00');
+    });
+
+    it('rounds longer decimals down to the pinned digits', () => {
+      expect(formatFiat(new BigNumber('1.0021'), 'USD', 2)).toBe('$1.00');
+    });
+
+    it('pins digits for currencies that default to zero decimals', () => {
+      expect(formatFiat(new BigNumber(1), 'JPY', 2)).toBe('¥1.00');
+    });
+
+    it('leaves the value-driven default in place when not pinned', () => {
+      expect(formatFiat(new BigNumber(1), 'USD')).toBe('$1');
+    });
+  });
+
   describe('small amount handling', () => {
     it('displays "<$0.01" for amounts less than 0.01', () => {
       expect(formatFiat(new BigNumber(0.005), 'USD')).toBe('<$0.01');

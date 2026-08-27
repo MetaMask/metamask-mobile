@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type AccountState } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 export interface UsePerpsLiveAccountOptions {
+  /** Whether to subscribe to account updates. */
+  enabled?: boolean;
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
   throttleMs?: number;
 }
@@ -28,8 +32,9 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  const { throttleMs = 1000 } = options;
+  const { enabled = true, throttleMs = 1000 } = options;
   const streamManager = usePerpsStream();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelAccount = streamManager.account.getSnapshot();
   const [account, setAccount] = useState<AccountState | null>(() => {
     const cached =
@@ -37,6 +42,7 @@ export function usePerpsLiveAccount(
       getPreloadedData<AccountState>('cachedAccountState');
     return cached;
   });
+  const [accountAddress, setAccountAddress] = useState(selectedAddress);
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
     if (initialChannelAccount !== null && initialChannelAccount !== undefined) {
       return false;
@@ -46,15 +52,18 @@ export function usePerpsLiveAccount(
   });
 
   useEffect(() => {
-    if (!streamManager) return;
+    if (!enabled || !streamManager) return;
 
     // Mark as no longer loading once we get first update
     const handleAccountUpdate = (newAccount: AccountState | null) => {
       setAccount(newAccount);
-      // Only set loading to false if we have actual data
-      if (newAccount !== null) {
-        setIsInitialLoading(false);
+      setAccountAddress(selectedAddress);
+      if (newAccount === null) {
+        setIsInitialLoading(true);
+        return;
       }
+      // Only set loading to false if we have actual data
+      setIsInitialLoading(false);
     };
 
     const unsubscribe = streamManager.account.subscribe({
@@ -63,7 +72,11 @@ export function usePerpsLiveAccount(
     });
 
     return unsubscribe;
-  }, [streamManager, throttleMs]);
+  }, [enabled, selectedAddress, streamManager, throttleMs]);
 
-  return { account, isInitialLoading };
+  const identityMatches = accountAddress === selectedAddress;
+  return {
+    account: identityMatches ? account : null,
+    isInitialLoading: !identityMatches || isInitialLoading,
+  };
 }

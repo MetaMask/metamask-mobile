@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Button,
@@ -47,7 +48,7 @@ const ProtectYourWallet = ({
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 

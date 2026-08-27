@@ -15,9 +15,6 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
-import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
-import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
@@ -30,6 +27,7 @@ import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
+import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -42,9 +40,6 @@ jest.mock('./usePendingTransactionAlert');
 jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
-jest.mock('./useInsufficientPredictBalanceAlert');
-jest.mock('./useInsufficientPerpsBalanceAlert');
-jest.mock('./useInsufficientMoneyAccountBalanceAlert');
 jest.mock('./useFiatBuyLimitAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
@@ -55,6 +50,7 @@ jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
+jest.mock('./useMMPayHardwareAccountAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -142,14 +138,6 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
-  const mockInsufficientPredictBalanceAlert: Alert[] = [
-    {
-      key: 'InsufficientPredictBalanceAlert',
-      title: 'Test Insufficient Predict Balance Alert',
-      message: ALERT_MESSAGE_MOCK,
-      severity: Severity.Danger,
-    },
-  ];
   const mockBurnAddressAlert: Alert[] = [
     {
       key: 'BurnAddressAlert',
@@ -214,9 +202,6 @@ describe('useConfirmationAlerts', () => {
     (useBatchedUnusedApprovalsAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientPerpsBalanceAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientMoneyAccountBalanceAlert as jest.Mock).mockReturnValue([]);
     (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -227,6 +212,7 @@ describe('useConfirmationAlerts', () => {
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
+    (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -288,9 +274,6 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue(
       mockNoPayTokenQuotesAlert,
     );
-    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue(
-      mockInsufficientPredictBalanceAlert,
-    );
     (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockTokenTrustSignalAlerts,
@@ -319,7 +302,6 @@ describe('useConfirmationAlerts', () => {
       ...mockSignedOrSubmittedAlert,
       ...mockInsufficientPayTokenBalanceAlert,
       ...mockNoPayTokenQuotesAlert,
-      ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
       ...mockAddressPoisoningAlert,

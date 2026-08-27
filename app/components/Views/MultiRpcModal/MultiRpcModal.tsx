@@ -12,6 +12,7 @@ import { View, Image } from 'react-native';
 import { NftDetectionModalSelectorsIDs } from '../NFTAutoDetectionModal/NftDetectionModal.testIds';
 
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Engine from '../../../core/Engine';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -44,13 +45,13 @@ const networkImage = require('../../../images/networks1.png');
 const MultiRpcModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const chainId = useSelector(selectEvmChainId);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const dismissMultiRpcModalMigration = useCallback(() => {
     const { PreferencesController } = Engine.context;

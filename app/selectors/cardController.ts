@@ -1,8 +1,14 @@
-import { createSelector } from 'reselect';
-import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
+import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
+import { deepEqual } from 'fast-equals';
+import {
+  parseCaipAccountId,
+  isCaipAccountId,
+  type CaipChainId,
+} from '@metamask/utils';
 import { RootState } from '../reducers';
 import {
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerState,
   type CardHomeDataStatus,
 } from '../core/Engine/controllers/card-controller/types';
@@ -15,19 +21,28 @@ import {
   FundingStatus,
   type CardLocation,
   type CardFundingToken,
+  type CardWalletExternalPriorityResponse,
   type DelegationSettingsResponse,
 } from '../components/UI/Card/types';
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
 import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
 import { isMoneyAccountEntry } from '../components/UI/Card/util/isMoneyAccountEntry';
 import {
+  isMoneyAccountPriorityEntry,
+  resolveReceivingPriorityEntry,
+} from '../components/UI/Card/util/redeemDestination';
+import {
   getVedaTokenConfig,
+  getVedaTokenConfigFromFeatureFlag,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
-import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import {
+  isMoneyAccountDelegatedForCard,
+  isAnyMoneyAccountDelegatedForCard,
+} from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import { selectCardFeatureFlag } from './featureFlagController/card';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
@@ -36,8 +51,18 @@ import {
   isCardResidencyInBlockedRegions,
 } from '../components/UI/Card/util/residency';
 
-const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
-const CASHBACK_FUNDING_SYMBOL = 'USDC';
+/**
+ * Selector creator that keeps the previous result reference when the new
+ * result is deep-equal. Cheap for small card token lists; avoids cascading
+ * re-renders when `cardHomeData` is reassigned with an identical payload.
+ */
+const createStableListSelector = createSelectorCreator(lruMemoize, {
+  resultEqualityCheck: deepEqual,
+});
+
+const EMPTY_CARDHOLDER_ACCOUNTS: string[] = [];
+const EMPTY_EXTERNAL_WALLET_PRIORITY: CardWalletExternalPriorityResponse[] = [];
+const EMPTY_CARD_FUNDING_TOKENS: CardFundingToken[] = [];
 
 const FUNDING_STATUS_ORDER: Record<FundingStatus, number> = {
   [FundingStatus.Enabled]: 0,
@@ -88,6 +113,20 @@ export const selectIsCardAuthenticated = createSelector(
     cardState?.isAuthenticated ?? false,
 );
 
+export const selectCardProviderUserId = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    cardState?.providerUserId ?? null,
+);
+
+export const selectCardLastUnauthenticatedReason = createSelector(
+  selectCardControllerState,
+  (
+    cardState: CardControllerState | undefined,
+  ): CardUnauthenticatedReason | null =>
+    cardState?.lastUnauthenticatedReason ?? null,
+);
+
 export const selectIsMoneyAccountCardLinkInProgress = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
@@ -97,7 +136,7 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
 export const selectCardholderAccounts = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
-    cardState?.cardholderAccounts ?? [],
+    cardState?.cardholderAccounts ?? EMPTY_CARDHOLDER_ACCOUNTS,
 );
 
 export const selectHasCardholderAccounts = createSelector(
@@ -158,10 +197,28 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
-export const selectMoneyAccountVedaTokenConfig = createSelector(
+export const selectCardHomeDataFetchedThisSession = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): boolean =>
+    cardState?.cardHomeDataFetchedThisSession ?? false,
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectCardHomeDataStatus,
   selectCardHomeData,
-  (data): VedaTokenConfig | null =>
-    getVedaTokenConfig(data?.delegationSettings),
+  selectCardVerificationStatus,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+    ((status === 'success' || cardHomeData !== null) &&
+      (!isAuthenticated || verificationStatus !== null)) ||
+    (!isAuthenticated && !isCardholder),
+);
+
+export const selectMoneyAccountVedaTokenConfig = createSelector(
+  selectCardFeatureFlag,
+  (cardFeatureFlag): VedaTokenConfig | null =>
+    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
 );
 
 export const selectCardCountryOfResidence = createSelector(
@@ -216,7 +273,7 @@ export const selectHasMetalCard = createSelector(
   (data): boolean => data?.card?.type === CardType.METAL,
 );
 
-export const selectCardPrimaryToken = createSelector(
+export const selectCardPrimaryToken = createStableListSelector(
   selectCardHomeData,
   selectMoneyAccountVedaTokenConfig,
   (data, vedaConfig): CardFundingToken | null =>
@@ -230,7 +287,7 @@ export const selectCardPrimaryToken = createSelector(
  * account. Inactive placeholders are synthesized at projection time from
  * `delegationSettings`, which is why account switches do not require a refetch.
  */
-export const selectCardAvailableTokens = createSelector(
+export const selectCardAvailableTokens = createStableListSelector(
   selectCardHomeData,
   selectSelectedEvmAccount,
   selectCardFeatureFlag,
@@ -264,7 +321,9 @@ export const selectCardAvailableTokens = createSelector(
       })
       .map((asset) => toFundingTokenWithVedaContext(asset, vedaConfig));
 
-    if (!currentAddress) return realEntries;
+    if (!currentAddress) {
+      return realEntries.length === 0 ? EMPTY_CARD_FUNDING_TOKENS : realEntries;
+    }
 
     const currentWalletTokenKeys = new Set(
       realEntries
@@ -300,17 +359,32 @@ export const selectCardAvailableTokens = createSelector(
           !isResidencyBlocked || !placeholder.isMoneyAccountEntry,
       );
 
-    return sortCardFundingTokens([...realEntries, ...placeholders]);
+    const combined = [...realEntries, ...placeholders];
+    if (combined.length === 0) {
+      return EMPTY_CARD_FUNDING_TOKENS;
+    }
+    return sortCardFundingTokens(combined);
   },
 );
 
-export const selectCardFundingTokens = createSelector(
+export const selectCardFundingTokens = createStableListSelector(
   selectCardHomeData,
   selectMoneyAccountVedaTokenConfig,
-  (data, vedaConfig): CardFundingToken[] =>
-    (data?.fundingAssets ?? []).map((asset) =>
+  (data, vedaConfig): CardFundingToken[] => {
+    const assets = data?.fundingAssets ?? [];
+    if (assets.length === 0) {
+      return EMPTY_CARD_FUNDING_TOKENS;
+    }
+    return assets.map((asset) =>
       toFundingTokenWithVedaContext(asset, vedaConfig),
-    ),
+    );
+  },
+);
+
+export const selectCardExternalWalletPriority = createSelector(
+  selectCardHomeData,
+  (data): CardWalletExternalPriorityResponse[] =>
+    data?.externalWalletPriority ?? EMPTY_EXTERNAL_WALLET_PRIORITY,
 );
 
 export const selectCardDelegationSettings = createSelector(
@@ -318,31 +392,59 @@ export const selectCardDelegationSettings = createSelector(
   (data): DelegationSettingsResponse | null => data?.delegationSettings ?? null,
 );
 
-export const selectCardHasApprovedLineaFunding = createSelector(
-  selectCardHomeData,
-  (data): boolean =>
-    (data?.fundingAssets ?? []).some(
-      (asset) =>
-        asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
-        asset.status !== FundingAssetStatus.Inactive,
-    ),
+export const selectCardRedemptionDestinationIsMoneyAccount = createSelector(
+  selectCardExternalWalletPriority,
+  selectMoneyAccountVedaTokenConfig,
+  selectCardDelegationSettings,
+  selectIsCardResidencyBlocked,
+  selectPrimaryMoneyAccount,
+  (
+    priorities,
+    vedaConfig,
+    delegationSettings,
+    isResidencyBlocked,
+    primaryMoneyAccount,
+  ): boolean => {
+    const top = resolveReceivingPriorityEntry(priorities);
+    const resolvedVedaConfig =
+      vedaConfig ?? getVedaTokenConfig(delegationSettings);
+    return top
+      ? isMoneyAccountPriorityEntry(top, resolvedVedaConfig)
+      : !isResidencyBlocked && Boolean(primaryMoneyAccount);
+  },
 );
 
-export const selectCardLineaUsdcToken = createSelector(
-  selectCardHomeData,
-  selectSelectedEvmAccount,
-  selectCardFeatureFlag,
-  selectMoneyAccountVedaTokenConfig,
+export const selectCardDelegationToken = createSelector(
+  [
+    selectCardHomeData,
+    selectSelectedEvmAccount,
+    selectCardFeatureFlag,
+    selectMoneyAccountVedaTokenConfig,
+    (
+      _state: RootState,
+      params: { caipChainId?: CaipChainId; symbol?: string },
+    ) => params.caipChainId,
+    (
+      _state: RootState,
+      params: { caipChainId?: CaipChainId; symbol?: string },
+    ) => params.symbol,
+  ],
   (
     data,
     selectedAccount,
     cardFeatureFlag,
     vedaConfig,
+    caipChainId,
+    symbol,
   ): CardFundingToken | null => {
+    if (!caipChainId || !symbol) {
+      return null;
+    }
+    const target = symbol.toUpperCase();
+
     const realAsset = (data?.fundingAssets ?? []).find(
       (asset) =>
-        asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
-        asset.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
+        asset.chainId === caipChainId && asset.symbol?.toUpperCase() === target,
     );
     if (realAsset) return toFundingTokenWithVedaContext(realAsset, vedaConfig);
 
@@ -356,12 +458,11 @@ export const selectCardLineaUsdcToken = createSelector(
         })),
     }).find(
       (token) =>
-        token.caipChainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
-        token.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
+        token.caipChainId === caipChainId &&
+        token.symbol?.toUpperCase() === target,
     );
 
     if (!placeholder) return null;
-
     if (!selectedAccount?.address) return placeholder;
 
     return {
@@ -391,4 +492,11 @@ export const selectIsMoneyAccountDelegatedForCard = createSelector(
       moneyAccountAddress: primaryMoneyAccount?.address,
       vedaConfig,
     }),
+);
+
+export const selectIsAnyMoneyAccountDelegatedForCard = createSelector(
+  selectCardFundingTokens,
+  selectMoneyAccountVedaTokenConfig,
+  (fundingTokens, vedaConfig): boolean =>
+    isAnyMoneyAccountDelegatedForCard({ fundingTokens, vedaConfig }),
 );

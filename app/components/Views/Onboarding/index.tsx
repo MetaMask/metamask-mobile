@@ -8,13 +8,15 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   BackHandler,
   ScrollView,
   InteractionManager,
-  Animated,
-  Easing,
   Platform,
+  StyleSheet,
+  View,
 } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import { captureException } from '@sentry/react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -22,7 +24,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../../component-library/components-temp/BaseNotification';
-import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
@@ -32,6 +33,7 @@ import {
 } from '../../../actions/onboarding';
 import {
   AccountType,
+  OnboardingMethod,
   getSocialAccountType,
 } from '../../../constants/onboarding';
 import {
@@ -40,7 +42,9 @@ import {
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
@@ -71,9 +75,13 @@ import {
   TraceContext,
   endTrace,
   trace,
+  annotateTrace,
+  applyPendingOnboardingMachineTime,
   hasMetricsConsent,
   discardBufferedTraces,
+  updateCachedConsent,
 } from '../../../util/trace';
+import { replayPendingAppInstall } from '../../../util/analytics/appInstallEvent';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import type { RootState } from '../../../reducers';
@@ -89,12 +97,23 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import {
   isPreOAuthSocialLoginFailure,
+  shouldAttemptAndroidGoogleBrowserFallback,
   trackSocialLoginFailed,
 } from '../../../core/OAuthService/socialLoginAnalytics';
+import {
+  detectOAuthProcessRestart,
+  finalizeOAuthLifecycle,
+  getOAuthBackgroundAnalyticsProperties,
+  getOAuthLifecycleAuthConnection,
+  OAUTH_RESUME_OUTCOME,
+  recordOAuthBackgrounded,
+  recordOAuthResumed,
+  startOAuthLifecycleTracking,
+} from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { setupSentry } from '../../../util/sentry/utils';
+import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -106,6 +125,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import {
+  OnboardingCtaIds,
+  OnboardingScreenIds,
+  type OnboardingCtaId,
+} from '../../../hooks/performance/onboardingPerformanceIds';
+import {
+  cancelPendingOnboardingCtaNavigation,
+  startOnboardingCtaNavigation,
+} from '../../../hooks/performance/onboardingNavigationPerformanceState';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
   BoxAlignItems,
@@ -149,6 +178,62 @@ interface OnboardingRouteParams {
   delete?: string;
   showErrorReportSentToast?: boolean;
 }
+
+// Production p95 is spent in the external browser. After foregrounding, the
+// redirect and token exchange should finish within this grace period.
+export const OAUTH_TRACE_ABANDONMENT_GRACE_MS = 25_000;
+
+const SOCIAL_CTA_IDS: Partial<Record<AuthConnection, OnboardingCtaId>> = {
+  [AuthConnection.Google]: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+  [AuthConnection.Apple]: OnboardingCtaIds.SOCIAL_LOGIN_APPLE,
+  [AuthConnection.Telegram]: OnboardingCtaIds.SOCIAL_LOGIN_TELEGRAM,
+};
+
+function getSocialCtaId(provider: string): OnboardingCtaId {
+  return (
+    SOCIAL_CTA_IDS[provider as AuthConnection] ??
+    OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE
+  );
+}
+
+function getOAuthResumeOutcomeForLoginError(error: unknown) {
+  if (
+    error instanceof OAuthError &&
+    (error.code === OAuthErrorType.UserCancelled ||
+      error.code === OAuthErrorType.UserDismissed)
+  ) {
+    return OAUTH_RESUME_OUTCOME.DISMISSED;
+  }
+  return OAUTH_RESUME_OUTCOME.FAILED;
+}
+
+/**
+ * Kept outside the component so React Compiler can optimize Onboarding.
+ * Conditionals / value blocks inside try/catch inside the component bail out.
+ */
+async function shouldRedirectToVaultRecovery(): Promise<boolean> {
+  const migrationErrorFlag = await FilesystemStorage.getItem(
+    MIGRATION_ERROR_HAPPENED,
+  );
+  if (migrationErrorFlag !== 'true') {
+    return false;
+  }
+  const vaultBackupResult = await getVaultFromBackup();
+  return Boolean(vaultBackupResult.success && vaultBackupResult.vault);
+}
+
+async function isDeviceOffline(): Promise<boolean> {
+  const netState = await netInfoFetch();
+  return !netState.isConnected || netState.isInternetReachable === false;
+}
+
+const styles = StyleSheet.create({
+  androidNotificationOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 999,
+    elevation: 999,
+  },
+});
 
 const Onboarding = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -209,37 +294,74 @@ const Onboarding = () => {
     startFoxAnimation: undefined,
   });
 
-  const notificationAnimated = useRef(new Animated.Value(100)).current;
+  const [onboardingContentReady, setOnboardingContentReady] =
+    useState(hasTestOverrides);
+
+  const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
+    useState(false);
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_LANDING,
+    contentReady: onboardingContentReady && !state.loading && !loading,
+    isEmpty: false,
+  });
+
+  const handleOnboardingInteractiveContentReady = useCallback(() => {
+    setOnboardingContentReady(true);
+  }, []);
 
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
 
-  const endSocialLoginAttemptTrace = useCallback((success: boolean) => {
-    if (socialLoginTraceCtx.current) {
-      endTrace({
-        name: TraceName.OnboardingSocialLoginAttempt,
-        data: { success },
-      });
-      socialLoginTraceCtx.current = undefined;
-    }
-  }, []);
-
-  const mounted = useRef<boolean>(false);
-  const hasCheckedVaultBackup = useRef<boolean>(false);
-  const warningCallback = useRef<() => boolean>(() => true);
-  const notificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const animatedTimingStart = useCallback(
-    (animatedRef: Animated.Value, toValue: number): void => {
-      Animated.timing(animatedRef, {
-        toValue,
-        duration: 500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start();
+  const endSocialLoginAttemptTrace = useCallback(
+    (success: boolean, failureReason?: string) => {
+      if (socialLoginTraceCtx.current) {
+        endTrace({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          data: failureReason
+            ? { success, reason: failureReason }
+            : { success },
+        });
+        socialLoginTraceCtx.current = undefined;
+      }
     },
     [],
   );
+
+  // Ending the social-login attempt (or the overall journey) does not automatically end the
+  // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
+  // authenticate). Their finally blocks only run when the underlying promises settle, which never
+  // happens if the user abandons the flow in the external browser. The underlying operations
+  // cannot safely be aborted, so finalize their traces here through the central capped lifecycle:
+  // endTrace records at most startTime + TRACES_CLEANUP_INTERVAL, and safely no-ops when the span
+  // has already been closed by its own finally block.
+  const finalizeInFlightOAuthTraces = useCallback(() => {
+    endTrace({
+      name: TraceName.OnboardingOAuthProviderLogin,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+      data: { success: false, abandoned: true },
+    });
+  }, []);
+
+  // Fix 5 (OAuth abandonment): OAuth normally backgrounds the app to open the browser, so we must
+  // NOT end the social-login span on 'background' — that would truncate every healthy login.
+  // Instead we arm on background-during-attempt and evaluate on FOREGROUND RETURN.
+  const appBackgroundedDuringSocialLoginRef = useRef(false);
+  const abandonmentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const socialLoginIsRehydrationRef = useRef<boolean | undefined>(undefined);
+
+  const hasCheckedVaultBackup = useRef<boolean>(false);
+  const hasInitializedOnboarding = useRef<boolean>(false);
+  const warningCallback = useRef<() => boolean>(() => true);
 
   const disableBackPress = useCallback((): void => {
     // Disable back press
@@ -248,12 +370,9 @@ const Onboarding = () => {
   }, []);
 
   const showNotification = useCallback((): void => {
-    animatedTimingStart(notificationAnimated, 0);
-    notificationTimer.current = setTimeout(() => {
-      animatedTimingStart(notificationAnimated, 200);
-    }, 4000);
+    setOnboardingNotificationVisible(true);
     disableBackPress();
-  }, [animatedTimingStart, notificationAnimated, disableBackPress]);
+  }, [disableBackPress]);
 
   const updateNavBar = useCallback((): void => {
     navigation.setOptions({
@@ -316,29 +435,21 @@ const Onboarding = () => {
         return;
       }
 
+      let shouldRecover = false;
       try {
-        // Check for migration error flag
-        // Using FilesystemStorage (excluded from iCloud backup) for reliability
-        const migrationErrorFlag = await FilesystemStorage.getItem(
-          MIGRATION_ERROR_HAPPENED,
-        );
-
-        if (migrationErrorFlag === 'true') {
-          // Migration failed, check if vault backup exists
-          const vaultBackupResult = await getVaultFromBackup();
-
-          if (vaultBackupResult.success && vaultBackupResult.vault) {
-            // Both migration error and vault backup exist - trigger recovery
-            navigation.reset({
-              routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-            });
-          }
-        }
+        shouldRecover = await shouldRedirectToVaultRecovery();
       } catch (error) {
         Logger.error(
           error as Error,
           'Failed to check for migration failure and vault backup',
         );
+        return;
+      }
+
+      if (shouldRecover) {
+        navigation.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
       }
     }, [navigation, route]);
 
@@ -377,8 +488,12 @@ const Onboarding = () => {
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
-    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Metamask,
+      });
+      startOnboardingCtaNavigation(OnboardingCtaIds.CREATE_WALLET);
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
@@ -387,7 +502,6 @@ const Onboarding = () => {
       });
       navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: onboardingTraceCtx.current,
       });
       dispatch(
         setAccountType({
@@ -401,7 +515,6 @@ const Onboarding = () => {
     };
 
     handleExistingUser(action);
-    endTrace({ name: TraceName.OnboardingCreateWallet });
   }, [
     metrics,
     navigation,
@@ -423,6 +536,11 @@ const Onboarding = () => {
     await hasMetricsConsent();
 
     const action = async () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Imported,
+      });
+      startOnboardingCtaNavigation(OnboardingCtaIds.IMPORT_WALLET);
       trace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
@@ -433,7 +551,6 @@ const Onboarding = () => {
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
       dispatch(
@@ -475,17 +592,34 @@ const Onboarding = () => {
 
       const accountType = getSocialAccountType(provider, result.existingUser);
       dispatch(setAccountType({ accountType, onboardingVersion }));
+      annotateTrace(onboardingTraceCtx.current, { account_type: accountType });
+
+      const backgroundProperties = {
+        ...getOAuthBackgroundAnalyticsProperties(),
+        resume_outcome: OAUTH_RESUME_OUTCOME.SUCCESS,
+      };
+      finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.SUCCESS).catch((error) => {
+        Logger.error(
+          error as Error,
+          'Failed to finalize OAuth lifecycle after success',
+        );
+      });
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
         ...walletSetupAttributionAnalyticsProps,
+        ...backgroundProperties,
       });
+      // Anchor the CTA navigation span here rather than at the tap so it covers
+      // only the navigation to the destination screen, not the OAuth round trip.
+      // Each destination below ends it via useNavigationPerformance.
+      startOnboardingCtaNavigation(getSocialCtaId(provider));
+
       if (createWallet) {
         if (result.existingUser) {
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: onboardingTraceCtx.current,
             provider,
           });
         } else {
@@ -503,7 +637,6 @@ const Onboarding = () => {
               {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             );
@@ -512,7 +645,6 @@ const Onboarding = () => {
             navigation.navigate('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
               provider,
             });
           }
@@ -530,20 +662,17 @@ const Onboarding = () => {
               {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             )
           : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: onboardingTraceCtx.current,
           provider,
         });
       }
@@ -613,7 +742,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'user_cancelled');
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
@@ -636,7 +765,12 @@ const Onboarding = () => {
           // fallback catch block to prevent nested fallback attempts. The browser-based
           // fallback handler won't throw ACM-specific errors, but this pattern ensures
           // we don't accidentally create infinite fallback loops if the code is refactored.
-          if (Platform.OS === 'android' && socialConnectionType === 'google') {
+          if (
+            shouldAttemptAndroidGoogleBrowserFallback(
+              error,
+              socialConnectionType,
+            )
+          ) {
             try {
               setLoading();
               const fallbackHandler = createLoginHandler(
@@ -648,6 +782,8 @@ const Onboarding = () => {
               const result = await OAuthLoginService.handleOAuthLogin(
                 fallbackHandler,
                 !createWallet,
+                // Nest the retry's auth spans under the still-open social-login attempt.
+                socialLoginTraceCtx.current,
               );
               handlePostSocialLogin(
                 result as OAuthLoginResult,
@@ -662,12 +798,20 @@ const Onboarding = () => {
               return;
             } catch (fallbackError) {
               unsetLoading();
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(fallbackError),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after browser fallback error',
+                );
+              });
               if (
                 fallbackError instanceof OAuthError &&
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
                   fallbackError.code === OAuthErrorType.UserDismissed)
               ) {
-                endSocialLoginAttemptTrace(false);
+                endSocialLoginAttemptTrace(false, 'user_cancelled');
                 return;
               }
               // Handle both OAuthError and unexpected errors from browser fallback
@@ -687,11 +831,11 @@ const Onboarding = () => {
                 );
                 handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
-              endSocialLoginAttemptTrace(false);
+              endSocialLoginAttemptTrace(false, 'social_login_failed');
               return;
             }
           }
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         // Show error sheet for auth server or seedless controller errors
@@ -706,11 +850,11 @@ const Onboarding = () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(false, 'social_login_failed');
           return;
         }
         if (isPreOAuthSocialLoginFailure(error)) {
@@ -722,16 +866,21 @@ const Onboarding = () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             },
           });
-          endSocialLoginAttemptTrace(false);
+          endSocialLoginAttemptTrace(
+            false,
+            error.code === OAuthErrorType.InvalidProvider
+              ? 'provider_unavailable'
+              : 'unsupported_platform',
+          );
           return;
         }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
-        endSocialLoginAttemptTrace(false);
+        endSocialLoginAttemptTrace(false, 'social_login_failed');
         return;
       }
 
@@ -745,7 +894,7 @@ const Onboarding = () => {
       });
       endTrace({ name: TraceName.OnboardingSocialLoginError });
 
-      endSocialLoginAttemptTrace(false);
+      endSocialLoginAttemptTrace(false, 'social_login_failed');
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -753,7 +902,7 @@ const Onboarding = () => {
           title: strings(`error_sheet.${errorMessage}_title`),
           description: strings(`error_sheet.${errorMessage}_description`),
           descriptionAlign: 'center',
-          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+          primaryButtonLabel: strings(`error_sheet.${errorMessage}_button`),
           type: 'error',
         },
       });
@@ -771,44 +920,72 @@ const Onboarding = () => {
   const onPressContinueWithSocialLogin = useCallback(
     async (createWallet: boolean, provider: AuthConnection): Promise<void> => {
       // check for internet connection
+      let isOffline = false;
       try {
-        const netState = await netInfoFetch();
-        if (!netState.isConnected || netState.isInternetReachable === false) {
-          navigation.dispatch(
-            StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-              params: {
-                title: strings(`error_sheet.no_internet_connection_title`),
-                description: strings(
-                  `error_sheet.no_internet_connection_description`,
-                ),
-                descriptionAlign: 'left',
-                buttonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
-                primaryButtonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
-                closeOnPrimaryButtonPress: true,
-                type: 'error',
-              },
-            }),
-          );
-          return;
-        }
+        isOffline = await isDeviceOffline();
       } catch (error) {
         console.warn('Network check failed:', error);
       }
 
+      if (isOffline) {
+        navigation.dispatch(
+          StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings(`error_sheet.no_internet_connection_title`),
+              description: strings(
+                `error_sheet.no_internet_connection_description`,
+              ),
+              descriptionAlign: 'left',
+              primaryButtonLabel: strings(
+                `error_sheet.no_internet_connection_button`,
+              ),
+              closeOnPrimaryButtonPress: true,
+              type: 'error',
+            },
+          }),
+        );
+        return;
+      }
+
+      // The CTA navigation span is NOT started here: the tap is followed by an
+      // OAuth round trip through an external browser, which is human time and
+      // would swamp the navigation latency this span measures. It is started in
+      // handlePostSocialLogin, once the destination is known.
+
       // Continue with the social login flow
       navigation.navigate('Onboarding');
 
-      // Enable metrics for OAuth users
+      // Enable metrics for OAuth users. Social login opts in before any real Sentry
+      // onboarding spans can be created. Order matters:
+      // 1) persist controller opt-in
+      // 2) update the sync consent cache so trace() is not buffered
+      // 3) re-init Sentry ONLY when it isn't already enabled — calling Sentry.init
+      //    again mid-journey overwrites the client and orphans in-flight
+      //    OnboardingJourneyOverall transactions (they finish in logs but never land).
+      //    In __DEV__, index.js already force-enabled via setupSentry(__DEV__).
+      // 4) drop pre-consent buffered starts; mount journey was undefined and must be
+      //    recreated below after consent is live. If we had to re-init, also drop any
+      //    journey context created under the previous client.
       await metrics.enable(true);
+      updateCachedConsent(true);
+      const sentryWasAlreadyEnabled = isSentryEnabled();
+      if (!sentryWasAlreadyEnabled) {
+        await setupSentry(true);
+        // Spans started under the previous (disabled/rebuilt) client are invalid.
+        onboardingTraceCtx.current = undefined;
+      }
       discardBufferedTraces();
-      await setupSentry();
+
+      // Social login opts in without ever showing OptinMetrics, so the install
+      // captured before consent has to be replayed from here too.
+      await replayPendingAppInstall();
 
       const accountType = getSocialAccountType(provider, !createWallet);
+      const onboardingPathTags = {
+        'onboarding.method': OnboardingMethod.Social,
+        account_type: accountType,
+      };
       metrics.trackEvent(
         metrics
           .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
@@ -820,12 +997,28 @@ const Onboarding = () => {
           .build(),
       );
 
-      // use new trace instead of buffered trace for social login
-      onboardingTraceCtx.current = trace({
-        name: TraceName.OnboardingJourneyOverall,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: getTraceTags(store.getState()),
-      });
+      // The mount effect (below) already started an OnboardingJourneyOverall span. If metrics
+      // opt-in consent was already granted at mount (or __DEV__ force-enabled Sentry), that
+      // span is a REAL span in tracesByKey and the user is actively continuing their journey
+      // — reuse it rather than ending it, which would record a continuing journey as abandoned
+      // and inflate abandonment metrics.
+      // If consent was still buffered at mount, or we re-inited Sentry above, start a real
+      // journey span now. Duplicate keys are handled centrally in startTrace.
+      if (!onboardingTraceCtx.current) {
+        onboardingTraceCtx.current = trace({
+          name: TraceName.OnboardingJourneyOverall,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
+          data: { perf_fix: 'trace-registry-v1' },
+        });
+      } else {
+        // Consent was already live at mount, so the journey span is reused rather
+        // than recreated — startTrace never runs to consume harvested landing time.
+        applyPendingOnboardingMachineTime();
+      }
+      // Always annotate so reused mount journeys (and spans started without path
+      // tags) get filterable attributes in Sentry.
+      annotateTrace(onboardingTraceCtx.current, onboardingPathTags);
 
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -889,14 +1082,16 @@ const Onboarding = () => {
         }
 
         setLoading();
+        const loginHandlerOptions =
+          provider === AuthConnection.Telegram
+            ? { telegramLoginEnabled: true }
+            : undefined;
         try {
           const loginHandler = createLoginHandler(
             Platform.OS,
             provider,
             false,
-            provider === AuthConnection.Telegram
-              ? { telegramLoginEnabled: true }
-              : undefined,
+            loginHandlerOptions,
           );
 
           socialLoginTraceCtx.current = trace({
@@ -906,10 +1101,26 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
+          socialLoginIsRehydrationRef.current = !createWallet;
+          startOAuthLifecycleTracking(provider).catch((error) => {
+            Logger.error(
+              error as Error,
+              'Failed to start OAuth lifecycle tracking',
+            );
+          });
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'started',
+            auth_connection: provider,
+            is_rehydration: (!createWallet).toString(),
+          });
+
           try {
             const result = await OAuthLoginService.handleOAuthLogin(
               loginHandler,
               !createWallet,
+              // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
+              // the social-login attempt so backend + web3auth time shows in the journey.
+              socialLoginTraceCtx.current,
             );
             handlePostSocialLogin(
               result as OAuthLoginResult,
@@ -927,6 +1138,16 @@ const Onboarding = () => {
             }, 1000);
           } catch (error) {
             unsetLoading();
+            if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(error),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after login error',
+                );
+              });
+            }
             await handleLoginError(error as Error, provider, createWallet);
           }
         } catch (error) {
@@ -939,6 +1160,14 @@ const Onboarding = () => {
               error,
             });
           }
+          finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.FAILED).catch(
+            (finalizeError) => {
+              Logger.error(
+                finalizeError as Error,
+                'Failed to finalize OAuth lifecycle after login setup error',
+              );
+            },
+          );
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
@@ -1045,6 +1274,7 @@ const Onboarding = () => {
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
+          onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
           {/*
            * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
@@ -1084,13 +1314,23 @@ const Onboarding = () => {
         </OnboardingAnimation>
       </Box>
     ),
-    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
+    [
+      state.startOnboardingAnimation,
+      setStartFoxAnimation,
+      handleCtaActions,
+      handleOnboardingInteractiveContentReady,
+    ],
   );
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast) {
         return null;
+      }
+
+      if (!onboardingNotificationVisible) {
+        return null;
+      }
 
       const notificationData = route?.params?.showErrorReportSentToast
         ? {
@@ -1104,47 +1344,70 @@ const Onboarding = () => {
             description: strings('onboarding.your_wallet'),
           };
 
+      const notificationContent = (
+        <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+          <BaseNotification
+            isVisible={onboardingNotificationVisible}
+            dismissDuration={4000}
+            onDismissComplete={() => setOnboardingNotificationVisible(false)}
+            status="success"
+            data={notificationData}
+          />
+        </View>
+      );
+
+      if (Platform.OS === 'ios') {
+        return (
+          <FullWindowOverlay>
+            {/*
+              iOS: portal to a UIWindow so top-anchored animation is not
+              affected by onboarding layout siblings lower in the tree.
+            */}
+            {notificationContent}
+          </FullWindowOverlay>
+        );
+      }
+
       return (
-        <Animated.View
-          style={[
-            tw.style('flex-row items-end', { flex: 0.1 }),
-            { transform: [{ translateY: notificationAnimated }] },
-          ]}
+        <View
+          pointerEvents="box-none"
+          style={styles.androidNotificationOverlay}
         >
-          <ElevatedView
-            style={tw.style(
-              'absolute bottom-0 left-0 right-0 bg-transparent',
-              Device.isIphoneX() ? 'pb-5' : 'pb-[10px]',
-            )}
-            elevation={100}
-          >
-            <BaseNotification status="success" data={notificationData} />
-          </ElevatedView>
-        </Animated.View>
+          {/*
+            Android: FullWindowOverlay stays in the normal view hierarchy, so
+            keep the toast as the last SafeAreaView child with absolute fill
+            and elevation to render above the ScrollView.
+          */}
+          {notificationContent}
+        </View>
       );
     }, [
       route?.params?.delete,
       route?.params?.showErrorReportSentToast,
-      notificationAnimated,
-      tw,
+      onboardingNotificationVisible,
     ]);
 
   useEffect(() => {
+    if (hasInitializedOnboarding.current) {
+      return;
+    }
+    hasInitializedOnboarding.current = true;
+
     onboardingTraceCtx.current = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
+      data: { perf_fix: 'trace-registry-v1' },
     });
 
     unsetLoading();
     updateNavBar();
-    mounted.current = true;
     checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid();
+      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1153,17 +1416,153 @@ const Onboarding = () => {
         startOnboardingAnimation: true,
       }));
     });
+  }, [
+    unsetLoading,
+    updateNavBar,
+    checkIfExistingUser,
+    disableNewPrivacyPolicyToast,
+    checkForMigrationFailureAndVaultBackup,
+    showNotification,
+    route?.params?.delete,
+    route?.params?.showErrorReportSentToast,
+  ]);
 
-    return () => {
-      mounted.current = false;
-      if (notificationTimer.current) {
-        clearTimeout(notificationTimer.current);
+  useEffect(
+    () => () => {
+      // Journey-level cleanup: if a social-login attempt is still in flight when the screen
+      // unmounts, close it and its OAuth child spans — their finally blocks may never run if the
+      // underlying promises never settle after the app was backgrounded for OAuth.
+      if (socialLoginTraceCtx.current) {
+        finalizeInFlightOAuthTraces();
+        endSocialLoginAttemptTrace(false);
       }
+      cancelPendingOnboardingCtaNavigation('onboarding_unmounted');
+      // Close the overall-journey span on unmount so it is never left open to be force-closed
+      // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
+      // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL
+      // terminal (SRP import, backup skip/confirm, social/password rehydration) calls endTrace
+      // on this span BEFORE navigating away — so by the time this unmount cleanup runs on a
+      // completed journey, the span is already gone from tracesByKey and this call no-ops.
+      // It therefore only records a value when the user actually abandoned onboarding.
+      endTrace({
+        name: TraceName.OnboardingJourneyOverall,
+        data: { success: false },
+      });
+      onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(PreventScreenshot.allow);
+      InteractionManager.runAfterInteractions(() =>
+        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
+      );
+    },
+    [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
+  );
+
+  useEffect(() => {
+    detectOAuthProcessRestart()
+      .then(({ detected, authConnection, analyticsProperties }) => {
+        if (detected && authConnection && analyticsProperties) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'abandoned',
+            auth_connection: authConnection,
+            ...analyticsProperties,
+          });
+        }
+      })
+      .catch((error) => {
+        Logger.error(error as Error, 'Failed to detect OAuth process restart');
+      });
+  }, [track]);
+
+  // Fix 5: end OnboardingSocialLoginAttempt as abandoned only on foreground return when no OAuth
+  // result arrived. socialLoginTraceCtx.current is set while an attempt is in flight and cleared
+  // by endSocialLoginAttemptTrace on success/failure, so "still set" == "no result yet".
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
+      // iOS resume is background -> inactive -> active. Treating inactive as a
+      // new background overwrites lastBackgroundedAt and zeros duration.
+      if (nextState === 'background' && socialLoginTraceCtx.current) {
+        appBackgroundedDuringSocialLoginRef.current = true;
+        const startedBackgroundPeriod = recordOAuthBackgrounded();
+        const authConnection = getOAuthLifecycleAuthConnection();
+        if (startedBackgroundPeriod && authConnection) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'backgrounded',
+            auth_connection: authConnection,
+            is_rehydration: String(socialLoginIsRehydrationRef.current),
+            ...getOAuthBackgroundAnalyticsProperties(),
+          });
+        }
+        // Returning to the external browser means the login is still active.
+        // Cancel any grace countdown started by a brief foreground transition.
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+          abandonmentTimerRef.current = null;
+        }
+        return;
+      }
+      // Foreground return after such a background: wait the grace window, then if the attempt
+      // is still in flight (no success/failure cleared the ctx) treat it as abandoned.
+      if (
+        nextState === 'active' &&
+        appBackgroundedDuringSocialLoginRef.current
+      ) {
+        appBackgroundedDuringSocialLoginRef.current = false;
+        recordOAuthResumed();
+        const authConnection = getOAuthLifecycleAuthConnection();
+        if (authConnection) {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'resumed',
+            auth_connection: authConnection,
+            is_rehydration: String(socialLoginIsRehydrationRef.current),
+            ...getOAuthBackgroundAnalyticsProperties(),
+          });
+        }
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+        }
+        abandonmentTimerRef.current = setTimeout(() => {
+          if (socialLoginTraceCtx.current) {
+            // Finalize the OAuth child spans (provider login, token request) before the
+            // attempt span: their promises may never settle after abandonment.
+            finalizeInFlightOAuthTraces();
+            endSocialLoginAttemptTrace(false, 'login_abandoned');
+            const authConnectionForAbandon = getOAuthLifecycleAuthConnection();
+            const backgroundProperties = {
+              ...getOAuthBackgroundAnalyticsProperties(),
+              resume_outcome: OAUTH_RESUME_OUTCOME.ABANDONED,
+            };
+            if (authConnectionForAbandon) {
+              track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+                status: 'abandoned',
+                auth_connection: authConnectionForAbandon,
+                is_rehydration: String(socialLoginIsRehydrationRef.current),
+                ...backgroundProperties,
+              });
+            }
+            // Analytics + Sentry only: leave loading / OAuth local state to the
+            // existing success and error paths so an in-flight handleOAuthLogin
+            // can still complete after the grace window.
+            finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.ABANDONED).catch(
+              (error) => {
+                Logger.error(
+                  error as Error,
+                  'Failed to finalize abandoned OAuth attempt',
+                );
+              },
+            );
+          }
+        }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
+      }
+    });
+    return () => {
+      subscription.remove();
+      if (abandonmentTimerRef.current) {
+        clearTimeout(abandonmentTimerRef.current);
+        abandonmentTimerRef.current = null;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces, track]);
 
   useEffect(() => {
     updateNavBar();
@@ -1237,14 +1636,14 @@ const Onboarding = () => {
           <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 
-        <Box>{handleSimpleNotification()}</Box>
-
         <FastOnboarding
           onPressContinueWithGoogle={onPressContinueWithGoogle}
           onPressContinueWithApple={onPressContinueWithApple}
           onPressImport={onPressImport}
           onPressCreate={onPressCreate}
         />
+
+        {handleSimpleNotification()}
       </SafeAreaView>
     </ErrorBoundary>
   );

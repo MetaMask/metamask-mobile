@@ -17,6 +17,8 @@ import {
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
+import { trace } from '../../../../util/trace';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -29,6 +31,10 @@ jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn((_req, fn) => (fn ? fn('traced-context') : undefined)),
 }));
 
 const mockRemoteFeatureFlagController = {
@@ -50,6 +56,7 @@ interface RemoteFeatureFlagState {
       enabled: boolean;
       featureVersion: string | null;
       minimumVersion: string | null;
+      tracesEnabled?: boolean;
     }
   >;
 }
@@ -181,6 +188,8 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
+        trace: expect.any(Function),
+        tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
   });
@@ -445,6 +454,71 @@ describe('assetsControllerInit', () => {
     });
   });
 
+  describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
+    it('returns the persisted TokensController and AccountsController state', () => {
+      const requestMock = getInitRequestMock();
+      const mockTokensControllerState = {
+        allTokens: {
+          '0x64': {
+            '0x0000000000000000000000000000000000000001': [
+              {
+                address: '0x0000000000000000000000000000000000000002',
+                symbol: 'TST',
+                decimals: 18,
+              },
+            ],
+          },
+        },
+        allIgnoredTokens: {},
+      };
+      const mockAccountsControllerState = {
+        internalAccounts: {
+          accounts: {
+            'account-id-1': createMockInternalAccount(
+              '0x0000000000000000000000000000000000000001',
+              'Account 1',
+            ),
+          },
+          selectedAccount: 'account-id-1',
+        },
+      };
+      requestMock.persistedState = {
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      } as typeof requestMock.persistedState;
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState).toBeDefined();
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      });
+    });
+
+    it('returns undefined slices when no legacy state is persisted', () => {
+      const requestMock = getInitRequestMock();
+      requestMock.persistedState = {};
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: undefined,
+        AccountsController: undefined,
+      });
+    });
+  });
+
   describe('isBasicFunctionality', () => {
     it('returns true when basicFunctionalityEnabled is true, regardless of onboarding state', () => {
       jest.mocked(store.getState).mockReturnValue({
@@ -478,6 +552,57 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('trace feature flag (assetsUnifyState.tracesEnabled)', () => {
+    it('skips Sentry tracing when tracesEnabled is absent / off', async () => {
+      assetsControllerInit(getInitRequestMock());
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(fn).toHaveBeenCalledWith();
+      expect(trace).not.toHaveBeenCalled();
+    });
+
+    it('forwards to util/trace when assetsUnifyState.tracesEnabled is on', async () => {
+      assetsControllerInit(
+        getInitRequestMock({
+          remoteFeatureFlagState: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+                minimumVersion: '7.60.0',
+                tracesEnabled: true,
+              },
+            },
+          },
+        }),
+      );
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(trace).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalledWith('traced-context');
     });
   });
 });

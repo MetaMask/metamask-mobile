@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +15,7 @@ import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -33,7 +35,7 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type
@@ -108,7 +110,7 @@ const Settings = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
-    navigation.navigate(...createSnapsSettingsListNavDetails());
+    navigateWithDetails(navigation, createSnapsSettingsListNavDetails());
   };
   ///: END:ONLY_INCLUDE_IF
 

@@ -3,6 +3,10 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useCardHomeAnalytics } from './useCardHomeAnalytics';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  selectCardActiveProviderId,
+  selectIsCardAuthenticated,
+} from '../../../../../../selectors/cardController';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -42,10 +46,23 @@ const mockData: CardHomeData = {
 function setupHook(
   params: Partial<Parameters<typeof useCardHomeAnalytics>[0]> & {
     isAuthenticated?: boolean;
+    activeProviderId?: string | null;
   } = {},
 ) {
-  const { isAuthenticated = true, ...hookParams } = params;
-  mockUseSelector.mockReturnValue(isAuthenticated);
+  const {
+    isAuthenticated = true,
+    activeProviderId = 'baanx',
+    ...hookParams
+  } = params;
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsCardAuthenticated) {
+      return isAuthenticated;
+    }
+    if (selector === selectCardActiveProviderId) {
+      return activeProviderId;
+    }
+    return undefined;
+  });
   mockCreateEventBuilder.mockReturnValue({
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({}),
@@ -81,6 +98,54 @@ describe('useCardHomeAnalytics', () => {
   it('does not track while isLoading is true', () => {
     setupHook({ isLoading: true });
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not track while activeProviderId is null', () => {
+    setupHook({ activeProviderId: null });
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('tracks once provider resolves after a null provider render', () => {
+    let activeProviderId: string | null = null;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsCardAuthenticated) {
+        return true;
+      }
+      if (selector === selectCardActiveProviderId) {
+        return activeProviderId;
+      }
+      return undefined;
+    });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    });
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as never);
+
+    const { rerender } = renderHook(() =>
+      useCardHomeAnalytics({
+        data: mockData,
+        isLoading: false,
+        hasSetupActions: false,
+        balanceFormatted: '$10.00',
+        rawTokenBalance: 10,
+        rawFiatNumber: 10,
+      }),
+    );
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    activeProviderId = 'baanx';
+    rerender();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: 'baanx' }),
+    );
   });
 
   it('tracks once when data is loaded and balance is available', () => {

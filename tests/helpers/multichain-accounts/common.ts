@@ -4,8 +4,6 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import WalletView from '../../page-objects/wallet/WalletView';
-import { loginToApp } from '../../flows/wallet.flow';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
@@ -58,11 +56,7 @@ export const withMultichainAccountDetailsEnabledFixtures = async (
         .build(),
       restartDevice: true,
     },
-    async () => {
-      await loginToApp();
-      await WalletView.tapIdenticon();
-      await testFn();
-    },
+    testFn,
   );
 
 export const withMultichainAccountDetailsV2EnabledFixtures = async (
@@ -82,10 +76,6 @@ export const withMultichainAccountDetailsV2EnabledFixtures = async (
       restartDevice: true,
       testSpecificMock,
     },
-    async () => {
-      await loginToApp();
-      await WalletView.tapIdenticon();
-      await testFn();
-    },
+    testFn,
   );
 };

@@ -109,8 +109,18 @@ export default {
   },
   CARD: {
     URL: 'https://card.metamask.io',
+    WEB_URL: {
+      DEV: 'https://ew2foxdev-card.foxcard.io',
+      UAT: 'https://ew2foxuat-card.foxcard.io',
+      PRD: 'https://card.metamask.io',
+    },
     TRAVEL_URL: 'https://travel.metamask.io/access',
-    CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
+    CARD_TOS_URL:
+      'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
+    CARD_FEES_URL:
+      'https://support.metamask.io/manage-crypto/metamask-card/limits-and-fees/',
+    PASSWORD_RESET_PATH: '/account/password/request',
+    LOGIN_PATH: '/account/login',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
@@ -251,6 +261,21 @@ export default {
     DEV: 'https://foxdev2-ag.foxcard.io',
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
+  },
+  // MetaMask Card API (CX) — proxies provider endpoints (e.g. Immersve supported-regions).
+  // GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
+  CARD_API_URL: {
+    DEV: 'https://card.dev-api.cx.metamask.io',
+    UAT: 'https://card.uat-api.cx.metamask.io',
+    PRD: 'https://card.api.cx.metamask.io',
+  },
+  IMMERSVE_API_URL: {
+    DEV: 'https://test.immersve.com',
+    PRD: 'https://api.immersve.com',
+  },
+  IMMERSVE_SECURE_API_URL: {
+    DEV: 'https://test-sec.immersve.com',
+    PRD: 'https://api-sec.immersve.com',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

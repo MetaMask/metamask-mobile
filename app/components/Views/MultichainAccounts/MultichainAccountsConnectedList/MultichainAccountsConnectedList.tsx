@@ -33,6 +33,7 @@ import { RootState } from '../../../../reducers';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -51,7 +52,7 @@ const MultichainAccountsConnectedList = ({
   });
   const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector(selectAvatarAccountType);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const accountGroups = useSelector(selectAccountGroups);

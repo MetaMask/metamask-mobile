@@ -14,14 +14,12 @@ import { SelectedNetworkControllerMessenger } from '@metamask/selected-network-c
  * @returns The SelectedNetworkControllerMessenger.
  */
 export function getSelectedNetworkControllerMessenger(
-  rootMessenger: RootMessenger,
-): SelectedNetworkControllerMessenger {
-  const messenger = new Messenger<
-    'SelectedNetworkController',
+  rootMessenger: RootMessenger<
     MessengerActions<SelectedNetworkControllerMessenger>,
-    MessengerEvents<SelectedNetworkControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<SelectedNetworkControllerMessenger>
+  >,
+): SelectedNetworkControllerMessenger {
+  const messenger: SelectedNetworkControllerMessenger = new Messenger({
     namespace: 'SelectedNetworkController',
     parent: rootMessenger,
   });

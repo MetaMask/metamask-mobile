@@ -6,6 +6,7 @@ import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import PredictMarketDetails from '../../../app/components/UI/Predict/views/PredictMarketDetails';
+import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
 import { initialStatePredict } from '../presets/predict';
 
 interface RenderPredictMarketDetailsOptions {
@@ -14,21 +15,34 @@ interface RenderPredictMarketDetailsOptions {
 }
 
 /**
- * Creates a PredictMarketDetails component wrapped with QueryClientProvider.
+ * Creates a PredictMarketDetails component wrapped with QueryClientProvider and
+ * PredictPreviewSheetProvider, matching the providers the real navigator supplies.
  *
  * A fresh QueryClient (retry: false) is created per call so that query state
  * does not leak between tests. usePredictPositions uses @tanstack/react-query.
  */
 function createWrappedPredictMarketDetails(): React.ComponentType {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
   });
 
-  return (props: Record<string, unknown>) => (
-    <QueryClientProvider client={queryClient}>
-      <PredictMarketDetails {...(props as object)} />
-    </QueryClientProvider>
-  );
+  return function WrappedPredictMarketDetails(props: Record<string, unknown>) {
+    React.useEffect(
+      () => () => {
+        queryClient.cancelQueries();
+        queryClient.clear();
+      },
+      [],
+    );
+
+    return (
+      <QueryClientProvider client={queryClient}>
+        <PredictPreviewSheetProvider>
+          <PredictMarketDetails {...(props as object)} />
+        </PredictPreviewSheetProvider>
+      </QueryClientProvider>
+    );
+  };
 }
 
 /**

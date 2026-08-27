@@ -14,17 +14,26 @@ export enum ActionButtonType {
   SWAP = 'swap',
   SEND = 'send',
   RECEIVE = 'receive',
+  SELL = 'sell',
+  PERPS = 'perps',
+  PREDICT = 'predict',
+  BATCH_SWAP = 'batch_swap',
+  TRADERS = 'traders',
 }
 
 /**
- * The position of the button in the action button for remote config use and a/b testing
- * Not in use but will be in the future
+ * The position of the button in the action button for remote config use and a/b testing.
+ * Supports up to 8 slots for the homepage 2×4 action-button grid AB test (TMCU-1103).
  */
 export enum ActionPosition {
   FIRST_POSITION = 0,
   SECOND_POSITION = 1,
   THIRD_POSITION = 2,
   FOURTH_POSITION = 3,
+  FIFTH_POSITION = 4,
+  SIXTH_POSITION = 5,
+  SEVENTH_POSITION = 6,
+  EIGHTH_POSITION = 7,
 }
 
 /**

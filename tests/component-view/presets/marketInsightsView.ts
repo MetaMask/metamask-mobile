@@ -4,16 +4,12 @@ import { initialStateBridge } from './bridge';
 
 /**
  * Redux preset for MarketInsightsView component-view tests: bridge + fiat state,
- * market insights and ramps V2 flags (version gate 0.0.0 for unit/view runs).
+ * market insights flag (version gate 0.0.0 for unit/view runs).
  */
 export const initialStateMarketInsightsView = () =>
   initialStateBridge({ deterministicFiat: true })
     .withRemoteFeatureFlags({
       aiSocialMarketAnalysisEnabled: {
-        enabled: true,
-        minimumVersion: '0.0.0',
-      },
-      rampsUnifiedBuyV2: {
         enabled: true,
         minimumVersion: '0.0.0',
       },

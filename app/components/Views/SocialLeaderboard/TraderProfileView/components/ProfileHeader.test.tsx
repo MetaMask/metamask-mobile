@@ -26,7 +26,7 @@ describe('ProfileHeader', () => {
   it('renders the header container', () => {
     renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).toBeOnTheScreen();
   });
 
@@ -38,7 +38,7 @@ describe('ProfileHeader', () => {
   it('renders avatar image when imageUrl is present', () => {
     renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).toBeOnTheScreen();
   });
 

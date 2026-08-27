@@ -2,7 +2,7 @@
 #
 # Slack RC Notification (reusable)
 #
-# Posts an RC build notification to the release Slack channel.
+# Posts an RC or production build notification to the release Slack channel.
 # Callers can pass build metadata (semver, build numbers) directly from build
 # outputs for accuracy, or omit them to fall back to reading from the branch.
 #
@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         default: ''
+      build_kind:
+        description: 'rc (default) or production — changes header copy and Android download target'
+        required: false
+        type: string
+        default: 'rc'
 
 permissions:
   actions: read
@@ -84,5 +89,6 @@ jobs:
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          BUILD_KIND: ${{ inputs.build_kind }}
           # Disable android check msg for now
           #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md

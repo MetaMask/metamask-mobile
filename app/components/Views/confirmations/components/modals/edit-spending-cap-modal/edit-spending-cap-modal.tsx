@@ -4,15 +4,15 @@ import { View } from 'react-native';
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
   Button,
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import { ApproveMethod } from '../../../types/approve';
 import { SpendingCapInput } from '../../spending-cap-input';
 import BottomModal from '../../UI/bottom-modal';
@@ -59,13 +59,17 @@ export const EditSpendingCapModal = ({
       onSwipeComplete={handleCloseModal}
     >
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('confirm.edit_spending_cap_modal.title')}
         </Text>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           style={styles.description}
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
         >
           {strings('confirm.edit_spending_cap_modal.description')}
         </Text>
@@ -82,9 +86,9 @@ export const EditSpendingCapModal = ({
         />
 
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           style={styles.balanceInfo}
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
         >
           {strings('confirm.edit_spending_cap_modal.account_balance')} :{' '}
           {balance} {tokenSymbol ?? ''}

@@ -13,6 +13,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../services/PerpsConnectionManager');
 
+jest.mock('../utils/perpsLifecycleContext', () => ({
+  initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -33,6 +37,11 @@ jest.mock('@metamask/perps-controller', () => ({
     FeatureName: 'perps',
     ReconnectionDelayAndroidMs: 500,
     ConnectRetryDelayMs: 1000,
+  },
+  HYPERLIQUID_TWAP_LIMITS: {
+    MinDurationMinutes: 5,
+    MaxDurationMinutes: 1440,
+    MinNotionalUsd: 100,
   },
 }));
 

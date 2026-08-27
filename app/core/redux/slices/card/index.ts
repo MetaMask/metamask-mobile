@@ -7,24 +7,31 @@ export interface OnboardingState {
   onboardingId: string | null;
   contactVerificationId: string | null;
   consentSetId: string | null;
+  // Immersve funding source created at sign-up; consumed by the
+  // spending-prerequisites flow (KYC / funding polling) in later steps.
+  immersveFundingSourceId: string | null;
 }
 
 export interface CardSliceState {
-  hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
+  cardArrivalAnimationSeen: boolean;
+  /** Armed by the developer-options reset; consumed on arrival, not persisted. */
+  cardArrivalPreviewRequested: boolean;
 }
 
 export const initialState: CardSliceState = {
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
   isDaimoDemo: false,
   pendingMoneyAccountCardLink: null,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 const name = 'card';
@@ -34,9 +41,6 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
-    setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
-      state.hasViewedCardButton = action.payload;
-    },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
     },
@@ -49,11 +53,18 @@ const slice = createSlice({
     setConsentSetId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.consentSetId = action.payload;
     },
+    setImmersveFundingSourceId: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboarding.immersveFundingSourceId = action.payload;
+    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         contactVerificationId: null,
         consentSetId: null,
+        immersveFundingSourceId: null,
       };
     },
     setPendingMoneyAccountCardLink: (
@@ -61,6 +72,12 @@ const slice = createSlice({
       action: PayloadAction<CardEntryPoint | null>,
     ) => {
       state.pendingMoneyAccountCardLink = action.payload;
+    },
+    setCardArrivalAnimationSeen: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalAnimationSeen = action.payload;
+    },
+    setCardArrivalPreviewRequested: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalPreviewRequested = action.payload;
     },
   },
 });
@@ -71,11 +88,6 @@ export default reducer;
 
 // Base selectors
 const selectCardState = (state: RootState) => state[name];
-
-export const selectHasViewedCardButton = createSelector(
-  selectCardState,
-  (card) => card.hasViewedCardButton,
-);
 
 export const selectIsDaimoDemo = createSelector(
   selectCardState,
@@ -97,19 +109,36 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectImmersveFundingSourceId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.immersveFundingSourceId,
+);
+
 export const selectPendingMoneyAccountCardLink = createSelector(
   selectCardState,
   (card) => card.pendingMoneyAccountCardLink,
 );
 
+export const selectCardArrivalAnimationSeen = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalAnimationSeen,
+);
+
+export const selectCardArrivalPreviewRequested = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalPreviewRequested,
+);
+
 // Actions
 export const {
   resetCardState,
-  setHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
+  setImmersveFundingSourceId,
   resetOnboardingState,
   setIsDaimoDemo,
   setPendingMoneyAccountCardLink,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
 } = actions;

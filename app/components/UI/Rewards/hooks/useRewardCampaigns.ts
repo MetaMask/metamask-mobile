@@ -15,8 +15,15 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import {
+  buildMoneyAccountSweepstakesTileCampaign,
+  getMoneyAccountSweepstakesSeries,
+} from '../utils/moneyAccountSweepstakesSeries';
 
 interface CategorizedCampaigns {
   active: CampaignDto[];
@@ -92,7 +99,29 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     const upcoming: CampaignDto[] = [];
     const previous: CampaignDto[] = [];
 
+    const series = getMoneyAccountSweepstakesSeries(campaignsList);
+    const seriesTile = buildMoneyAccountSweepstakesTileCampaign(series);
+    let seriesPlaced = false;
+
     campaignsList.forEach((campaign) => {
+      if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+        if (!seriesPlaced && seriesTile && series.seriesStatus) {
+          seriesPlaced = true;
+          switch (series.seriesStatus) {
+            case 'active':
+              active.push(seriesTile);
+              break;
+            case 'upcoming':
+              upcoming.push(seriesTile);
+              break;
+            case 'previous':
+              previous.push(seriesTile);
+              break;
+          }
+        }
+        return;
+      }
+
       const status = getCampaignStatus(campaign);
       switch (status) {
         case 'active':

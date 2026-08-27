@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -33,6 +34,22 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
+import {
+  RobinhoodBanner,
+  RobinhoodBannerSurface,
+  useRobinhoodBanner,
+} from '../../../UI/RobinhoodBanner';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../search/abTestConfig';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -67,6 +84,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
           <PerpsTileRowItem
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
+            sourceSection="perps_crypto"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -98,6 +116,19 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const { openQuickBuy } = useTrendingQuickBuySheet();
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
+  const {
+    dismiss: dismissRobinhoodBanner,
+    handlePress: handleRobinhoodBannerPress,
+    shouldShow: shouldShowRobinhoodBanner,
+  } = useRobinhoodBanner(RobinhoodBannerSurface.ExploreCrypto);
 
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictionsFeed({
@@ -128,9 +159,14 @@ const CryptoTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton
+            ? (token) => openQuickBuy(token, 'explore_crypto')
+            : undefined
+        }
       />
     ),
-    [],
+    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
   );
 
   const showTokens = tokens.isLoading || tokens.data.length > 0;
@@ -217,13 +253,21 @@ const CryptoTabContent: React.FC<TabProps> = ({
   ]);
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
-    >
-      <ExploreSectionList sections={sections} />
-    </ExploreScroll>
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+      >
+        {shouldShowRobinhoodBanner ? (
+          <RobinhoodBanner
+            onDismiss={dismissRobinhoodBanner}
+            onPress={handleRobinhoodBannerPress}
+          />
+        ) : null}
+        <ExploreSectionList sections={sections} />
+      </ExploreScroll>
+    </View>
   );
 };
 

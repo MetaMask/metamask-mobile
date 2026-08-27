@@ -5,20 +5,27 @@ import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyNavigation', () => ({
+  useMoneyNavigation: jest.fn(),
+}));
+
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -105,8 +112,13 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     mockUseParams.mockReturnValue({});
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackButtonClicked: mockTrackButtonClicked,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    jest.mocked(useMoneyNavigation).mockReturnValue({
+      isOnboardingRedirectNeeded: false,
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    });
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
   });
@@ -143,6 +155,22 @@ describe('MoneyEarnCryptoInfoSheet', () => {
         strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('navigates to Money home from the optional CTA', () => {
+    mockUseParams.mockReturnValue({ showMoneyHomeCta: true });
+    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyEarnCryptoInfoSheetTestIds.MONEY_HOME_BUTTON),
+    );
+
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        label_key: 'money.earn_crypto_info_sheet.go_to_money_account',
+      }),
+    );
   });
 
   it('closes the sheet when the close button is pressed', () => {
@@ -202,7 +230,7 @@ describe('MoneyEarnCryptoInfoSheet', () => {
   });
 
   it('renders the body when APY is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
     const { getByTestId, getByText } = renderWithProvider(

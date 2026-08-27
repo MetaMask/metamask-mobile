@@ -9,6 +9,7 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
+import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
@@ -18,6 +19,12 @@ import {
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
+
+/**
+ * Collateral asset shown in market pair labels (e.g. `ETH-USD perp`).
+ * Perps markets are USD-margined, so this is the display quote across the UI.
+ */
+export const PERPS_COLLATERAL_SYMBOL = 'USD';
 
 /** Chain id used for the "Perps balance" payment option. */
 export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
@@ -90,6 +97,58 @@ export const LEVERAGE_SLIDER_CONFIG = {
 } as const;
 
 /**
+ * Maximum number of digits allowed in any perps price/size/percentage input.
+ * Prevents overflow and keeps inputs within safe numeric range.
+ */
+export const MAX_PERPS_INPUT_DIGITS = 9;
+
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+const TWAP_DEFAULT_DURATION_MINUTES = 30;
+// Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
+// up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+
+/**
+ * Mobile-only TWAP input and copy configuration derived from the controller's
+ * executable Hyperliquid limits. Controller v13 caps duration at 1,440 minutes
+ * and exposes neither TWAP trigger price nor max price, so Mobile intentionally
+ * omits those venue-documented fields until Core owns executable contracts.
+ */
+export const PERPS_TWAP_UI_CONFIG = {
+  MinutesPerHour: MINUTES_PER_HOUR,
+  HoursPerDay: HOURS_PER_DAY,
+  MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+  MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  DefaultMinutes: String(TWAP_DEFAULT_DURATION_MINUTES),
+  MaximumDays: Math.floor(
+    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes /
+      (HOURS_PER_DAY * MINUTES_PER_HOUR),
+  ),
+  MaximumHours: HOURS_PER_DAY - 1,
+  MaximumMinutes: MINUTES_PER_HOUR - 1,
+  DurationRangeI18nValues: {
+    minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+    maxDurationHours:
+      HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes / MINUTES_PER_HOUR,
+  },
+  MinimumSizeI18nValues: {
+    minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  },
+  RandomizeI18nValues: {
+    randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
+  },
+} as const;
+
+/**
+ * Decimal places used when displaying how far a position's current price sits
+ * from its liquidation price, as a percentage. Whole-number rounding hid
+ * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
+ */
+export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -106,7 +165,7 @@ export const TP_SL_VIEW_CONFIG = {
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
-  MaxInputDigits: 9,
+  MaxInputDigits: MAX_PERPS_INPUT_DIGITS,
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
@@ -131,6 +190,14 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
+
+  // Maximum allowed deviation of the order price from the reference (mark)
+  // price, as a decimal (0.95 = 95%). HyperLiquid rejects orders whose price is
+  // more than 95% away from the reference price ("oracleRejected"). The check is
+  // ratio-based: the smaller of the order price and the reference price must be
+  // at least (1 - 0.95) = 5% of the larger one. We block submission up front
+  // instead of letting the order fail at the exchange.
+  MaxDeviationFromMarket: 0.95,
 } as const;
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
@@ -138,6 +205,28 @@ export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Retry policy for per-asset market-data fetches (TAT-3645).
+ *
+ * `getMarkets` throws while the Perps connection is still initialising (e.g.
+ * `CLIENT_NOT_INITIALIZED` right after unlocking, or during a reconnect). That
+ * is transient, not a verdict about the asset, so the fetch is retried across
+ * the initialisation window instead of being surfaced as a failure. The total
+ * budget comfortably covers a provider re-initialisation, which is ~1.5s.
+ */
+export const MARKET_DATA_FETCH_RETRY_CONFIG = {
+  /** Extra attempts after the first, when the fetch throws. */
+  MaxRetries: 3,
+  /** Delay between attempts. */
+  RetryDelayMs: 1000,
+} as const;
+
+/** Extra capability requests after transient provider unavailability. */
+export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
+
+/** Initial delay for exponential capability-request retries. */
+export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
 
 /**
  * Development-only configuration for testing and debugging

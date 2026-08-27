@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,6 +54,8 @@ import {
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
+import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -109,7 +112,7 @@ function areBatchSellValueMapsEqual(
 }
 
 export function BatchSellReview() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
@@ -169,6 +172,18 @@ export function BatchSellReview() {
       updateBatchSellQuoteParams.cancel();
     };
   }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
+
+  useTrackBatchSellQuotePageViewed({
+    batchSellSlippages,
+    selectedTokens,
+    tokenData: batchSellQuoteData.tokenData,
+  });
+  const trackBatchSellQuotePageReviewClicked =
+    useTrackBatchSellQuotePageReviewClicked({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+    });
 
   useEffect(
     () => () => {
@@ -284,10 +299,12 @@ export function BatchSellReview() {
   );
 
   const handleOpenFinalReview = useCallback(() => {
+    trackBatchSellQuotePageReviewClicked();
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, trackBatchSellQuotePageReviewClicked]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {

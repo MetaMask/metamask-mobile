@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
@@ -14,6 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
@@ -37,6 +33,7 @@ import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   PredictOutcomeToken,
+  PredictPositionStatus,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -49,6 +46,7 @@ import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
+  selectNonRegTimeSportsMarketTypes,
 } from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
@@ -60,14 +58,14 @@ import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
@@ -81,6 +79,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const nonRegTimeSportsMarketTypes = useSelector(
+    selectNonRegTimeSportsMarketTypes,
+  );
   const {
     marketId,
     series,
@@ -100,6 +101,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: currentSeriesMarketId,
     isLoading: isCurrentSeriesMarketLoading,
     isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
     refetch: refetchCurrentSeriesMarket,
   } = useCurrentPredictMarketFromSeries({
     series,
@@ -117,6 +119,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     data: marketData,
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
@@ -237,7 +240,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     !isBuySheetOpen &&
     !market?.game;
 
-  const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
+  const { closedOutcomes, openOutcomes } = useOpenOutcomes({
     market,
     enabled: shouldRefreshOpenOutcomePrices,
   });
@@ -304,11 +307,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate (all claimable positions), so market_id/title are
+        // intentionally omitted here; the controller derives them when exactly
+        // one market is claimed.
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(predictScreen && { predictScreen }),
+          ...(predictFeedTab && { predictFeedTab }),
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, predictScreen, predictFeedTab]);
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
@@ -337,8 +347,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
           title: strings('predict.market_details.resolution_details'),
@@ -444,11 +454,37 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const actionableClaimablePositions = claimablePositions.filter(
+    (position) =>
+      (position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE) &&
+      (position.currentValue ?? 0) > 0,
   );
+  const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          titleLineCount={titleLineCount}
+          insetsTop={insets.top}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (
@@ -475,12 +511,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={actionableClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}
         isLoading={isClaimablePositionsLoading}
         isClaimPending={isClaimPending}
+        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
       />
     );
   }
@@ -601,7 +638,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           isMarketLoading={isResolvedMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
-          yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
           isClaimPending={isClaimPending}

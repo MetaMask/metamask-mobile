@@ -7,6 +7,13 @@ import { selectRemoteFeatureFlags } from '..';
 export interface AssetsUnifyStateFeatureFlag {
   enabled: boolean;
   featureVersion: string | null;
+  minimumVersion?: string | null;
+  deprecatedControllers?: string[];
+  /**
+   * When true (and the unify feature itself is enabled), AssetsController
+   * emits Sentry traces via the controller `trace` callback.
+   */
+  tracesEnabled?: boolean;
 }
 
 export const ASSETS_UNIFY_STATE_FLAG = 'assetsUnifyState';
@@ -34,6 +41,55 @@ export const isAssetsUnifyStateFeatureEnabled = (
     parsedFlagValue?.featureVersion === featureVersionToCheck
   );
 };
+
+/**
+ * Returns true when AssetsController Sentry tracing should run.
+ *
+ * Requires the unify feature itself to be enabled for `featureVersion`, and
+ * `tracesEnabled: true` on the resolved flag entry. Defaults to false when
+ * the field is absent.
+ *
+ * @param flagValue - The assets-unify-state feature flag.
+ * @param featureVersionToCheck - The feature version to check.
+ * @returns Whether AssetsController tracing should run.
+ */
+export const isAssetsUnifyStateTracesEnabled = (
+  flagValue: unknown,
+  featureVersionToCheck: string = ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+): boolean => {
+  if (!isAssetsUnifyStateFeatureEnabled(flagValue, featureVersionToCheck)) {
+    return false;
+  }
+
+  return (flagValue as AssetsUnifyStateFeatureFlag)?.tracesEnabled === true;
+};
+
+/**
+ * Checks if a controller is deprecated based on the assets unify state feature flag.
+ *
+ * @param flagValue - The raw feature flag value.
+ * @param controllerName - The name of the controller to check.
+ * @returns True if the controller is listed in deprecatedControllers, false otherwise.
+ */
+export const getIsDeprecatedController = (
+  flagValue: unknown,
+  controllerName: string,
+): boolean => {
+  if (!flagValue || typeof flagValue !== 'object') return false;
+  const parsed = flagValue as AssetsUnifyStateFeatureFlag;
+  return parsed.deprecatedControllers?.includes(controllerName) ?? false;
+};
+
+/**
+ * Selector factory to check if a specific controller is deprecated.
+ *
+ * @param controllerName - The name of the controller to check.
+ * @returns A selector that returns true if the controller is deprecated.
+ */
+export const selectIsControllerDeprecated = (controllerName: string) =>
+  createSelector(selectRemoteFeatureFlags, (flags) =>
+    getIsDeprecatedController(flags[ASSETS_UNIFY_STATE_FLAG], controllerName),
+  );
 
 /**
  * Selector to check if the assets unify state feature is enabled.

@@ -1,40 +1,44 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
-  const { enabled: isHardwarePayEnabled } = useSelector(
-    selectMetaMaskPayHardwareFlags,
+  const payingAccount = useTransactionPayingAccount();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
+
+  const isPayTransaction = hasTransactionType(
+    transactionMeta,
+    PAY_TRANSACTION_TYPES,
   );
 
-  const {
-    txParams: { from },
-  } = transactionMeta ?? { txParams: {} };
+  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
+  const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
 
-  const isMusdConversion = hasTransactionType(transactionMeta, [
-    TransactionType.musdConversion,
-  ]);
-
-  const isHardwareWallet = isHardwareAccount(from ?? '');
-  const isQRWallet = isQRHardwareAccount(from ?? '');
+  // Fiat payments are bought directly to the destination, so the paying
+  // account never signs.
+  const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!isHardwareWallet) {
+    if (!isPayTransaction || !isHardwareWallet || isFiatPayment) {
       return [];
     }
 
-    if (isMusdConversion && isHardwarePayEnabled && !isQRWallet) {
+    // QR wallets stay blocked: relay funding transactions are submitted in the
+    // background and cannot drive the interactive scan loop.
+    if (isHardwarePayEnabled && !isQRWallet) {
       return [];
     }
 
@@ -47,5 +51,11 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isHardwareWallet, isHardwarePayEnabled, isMusdConversion, isQRWallet]);
+  }, [
+    isFiatPayment,
+    isHardwareWallet,
+    isHardwarePayEnabled,
+    isPayTransaction,
+    isQRWallet,
+  ]);
 }

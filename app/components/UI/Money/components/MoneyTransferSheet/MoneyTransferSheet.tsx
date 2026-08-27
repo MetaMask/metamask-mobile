@@ -1,14 +1,8 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -19,18 +13,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectTransactions } from '../../../../../selectors/transactionController';
+import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
+import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
+import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -43,14 +38,15 @@ type TransferAction = 'withdraw' | 'perps' | 'predict';
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
-  const surfaceClass = useElevatedSurface();
   const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
     useMoneyPerpsDeposit();
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
     useMoneyPredictDeposit();
+  const isPerpsEligible = useSelector(selectPerpsEligibility);
+  const { isEligible: isPredictEligible } = usePredictEligibility();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
@@ -58,15 +54,7 @@ const MoneyTransferSheet = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
-  const transactions = useSelector(selectTransactions);
-
-  const hasPendingTransaction = useMemo(
-    () =>
-      (transactions ?? []).some(
-        (tx) => tx.status === TransactionStatus.unapproved,
-      ),
-    [transactions],
-  );
+  const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
 
   const [deferredAction, setDeferredAction] = useState<TransferAction | null>(
     null,
@@ -106,13 +94,13 @@ const MoneyTransferSheet = () => {
   const startAction = useCallback(
     (action: TransferAction) => {
       if (hasPendingTransaction) {
-        rejectPendingTransactions(transactions ?? []);
+        rejectPendingTransactions();
         setDeferredAction(action);
         return;
       }
       closeAndStart(action);
     },
-    [hasPendingTransaction, transactions, closeAndStart],
+    [hasPendingTransaction, closeAndStart],
   );
 
   useEffect(() => {
@@ -163,20 +151,28 @@ const MoneyTransferSheet = () => {
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },
-    {
-      label: strings('money.transfer_sheet.perps_account'),
-      icon: IconName.Candlestick,
-      onPress: handlePerpsAccount,
-      testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
-      disabled: !isPerpsEnabled,
-    },
-    {
-      label: strings('money.transfer_sheet.predictions_account'),
-      icon: IconName.Speedometer,
-      onPress: handlePredictionsAccount,
-      testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
-      disabled: !isPredictEnabled,
-    },
+    ...(isPerpsEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.perps_account'),
+            icon: IconName.Candlestick,
+            onPress: handlePerpsAccount,
+            testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
+            disabled: !isPerpsEnabled,
+          },
+        ]
+      : []),
+    ...(isPredictEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.predictions_account'),
+            icon: IconName.Speedometer,
+            onPress: handlePredictionsAccount,
+            testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
+            disabled: !isPredictEnabled,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Arrow2Up,
@@ -199,7 +195,6 @@ const MoneyTransferSheet = () => {
       goBack={handleGoBack}
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

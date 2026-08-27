@@ -5,8 +5,13 @@ export const MoneyActivityViewTestIds = {
   FILTER_ALL: 'money-activity-view-filter-all',
   FILTER_DEPOSITS: 'money-activity-view-filter-deposits',
   FILTER_TRANSFERS: 'money-activity-view-filter-transfers',
+  FILTER_PURCHASES: 'money-activity-view-filter-purchases',
   DATE_HEADER: 'money-activity-view-date-header',
   PENDING_HEADER: 'money-activity-view-pending-header',
   EMPTY_LIST: 'money-activity-view-empty-list',
   EMPTY_LIST_MESSAGE: 'money-activity-view-empty-list-message',
+  LOAD_MORE_SPINNER: 'money-activity-view-load-more-spinner',
+  LOAD_ERROR: 'money-activity-view-load-error',
+  RETRY_BUTTON: 'money-activity-view-retry-button',
+  LIST: 'money-activity-view-list',
 };

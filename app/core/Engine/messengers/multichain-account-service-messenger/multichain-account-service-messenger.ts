@@ -7,6 +7,10 @@ import {
   MultichainAccountServiceMessenger,
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent,
 } from '@metamask/multichain-account-service';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 
 /**
@@ -43,6 +47,7 @@ export function getMultichainAccountServiceMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'SnapController:handleRequest',
       'SnapAccountService:ensureReady',
+      'SnapAccountService:getCapabilities',
     ],
     events: [
       'AccountsController:accountAdded',
@@ -53,12 +58,15 @@ export function getMultichainAccountServiceMessenger(
   return messenger;
 }
 
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+
 type AllowedInitializationEvents =
-  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
+  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
 export type MultichainAccountServiceInitMessenger = Messenger<
   'MultichainAccountServiceInit',
-  never,
+  AllowedInitializationActions,
   AllowedInitializationEvents
 >;
 
@@ -80,8 +88,11 @@ export function getMultichainAccountServiceInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [],
-    events: ['MultichainAccountService:multichainAccountGroupUpdated'],
+    actions: ['RemoteFeatureFlagController:getState'],
+    events: [
+      'MultichainAccountService:multichainAccountGroupUpdated',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
   return messenger;

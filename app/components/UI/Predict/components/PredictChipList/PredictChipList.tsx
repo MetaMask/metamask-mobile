@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
+import { Image, type ImageSource } from 'expo-image';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -21,7 +22,7 @@ import { useChipScrollList } from './useChipScrollList';
 
 export { calculateChipScrollX } from './calculateChipScrollX';
 
-const DEFAULT_CONTAINER_CLASS = 'pt-3 pb-4';
+const DEFAULT_CONTAINER_CLASS = 'pt-3 pb-3';
 const DEFAULT_CHIP_CLASS = 'rounded-xl px-4 py-2';
 
 const PredictChipList: React.FC<PredictChipListProps> = ({
@@ -80,7 +81,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
         >
           {chip.imageSource ? (
             <Image
-              source={chip.imageSource}
+              source={chip.imageSource as unknown as ImageSource}
               style={tw.style('size-4 rounded')}
             />
           ) : null}

@@ -6,8 +6,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import AppiumAssertions from '../../framework/AppiumAssertions';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 
 /* Scenario 5: Perps add funds */
@@ -39,8 +38,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await WalletActionsBottomSheet.tapPerpsButton(); // may need to change for catchAll trade perps contracts
       // Open Perps Main Screen
       await selectPerpsMainScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsOnboarding.tutorialTitle,
         );
       });
 
@@ -50,8 +49,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await PerpsOnboarding.tapAddFunds();
       // Open Add Funds flow
       await openAddFundsTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.amountInput),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsDepositView.amountInput,
         );
       });
 
@@ -60,8 +59,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       // Get quote
       await getQuoteTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TransactionPayConfirmation.transactionFee),
+        await AppiumAssertions.expectElementToBeVisible(
+          TransactionPayConfirmation.transactionFee,
         );
       });
 

@@ -18,6 +18,7 @@ const mockDispatch = jest.fn();
 const mockUpdateBatchSellQuoteParams = jest.fn();
 const mockGetNewQuote = jest.fn();
 const mockSubmitBatchSellTx = jest.fn();
+const mockTrackBatchSellReviewModalSubmitted = jest.fn();
 const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
 const errorTextColor = lightTheme.colors.error.default;
 const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
@@ -189,6 +190,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectBatchSellSlippages: jest.fn(() => ({})),
   selectIsSubmittingTx: jest.fn(() => mockIsSubmittingTx),
   setIsSubmittingTx: jest.fn((isSubmittingTx: boolean) => ({
     type: 'bridge/setIsSubmittingTx',
@@ -216,6 +218,12 @@ jest.mock('../../hooks/useSubmitBatchSellTx', () => ({
   useSubmitBatchSellTx: () => ({
     submitBatchSellTx: mockSubmitBatchSellTx,
   }),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellReviewModalSubmitted', () => ({
+  useTrackBatchSellReviewModalSubmitted: jest.fn(
+    () => mockTrackBatchSellReviewModalSubmitted,
+  ),
 }));
 
 function renderModal(overrides: Partial<MockBatchSellQuoteData> = {}) {
@@ -260,7 +268,7 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(getByText('1.20 USDC')).toBeOnTheScreen();
@@ -294,6 +302,7 @@ describe('BatchSellFinalReviewModal', () => {
         quoteResponses: defaultRecommendedQuotes,
       });
     });
+    expect(mockTrackBatchSellReviewModalSubmitted).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setIsSubmittingTx',
       payload: true,
@@ -360,7 +369,7 @@ describe('BatchSellFinalReviewModal', () => {
     expect(queryByText('UNI • 0.5% slippage')).toBeNull();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
@@ -506,6 +515,7 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeNull();
     expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
     expect(
       queryByTestId(
         `${BatchSellFinalReviewModalSelectorsIDs.SOURCE_TOKEN_AVATAR}-${linkAssetId}`,

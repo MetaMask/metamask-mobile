@@ -63,13 +63,14 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../util/navigation/navigateToTransactionDetails';
 import {
   hasGasFeeTokenSelected,
   hasTransactionType,
 } from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
   getMonetizedPrimitive,
 } from '../../../core/Analytics/events/transactions';
@@ -316,14 +317,9 @@ class TransactionElement extends PureComponent {
         bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
-      // Navigate to TRANSACTIONS_VIEW first to ensure correct navigation context,
-      // then navigate to TRANSACTION_DETAILS (pattern from usePerpsToasts)
-      this.props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      setTimeout(() => {
-        this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
-          transactionId: tx.id,
-        });
-      }, 100);
+      navigateToTransactionDetails(this.props.navigation, {
+        transactionId: tx.id,
+      });
     } else {
       const { transactionElement, transactionDetails } = this.state;
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -437,6 +433,7 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.BATCH_SELL_TRANSACTION:
       case TRANSACTION_TYPES.SWAPS_TRANSACTION:
         icon = isFailedTransaction
           ? transactionIconSwapFailed
@@ -517,7 +514,11 @@ class TransactionElement extends PureComponent {
       i,
       tx: { status, isSmartTransaction, chainId, type },
       tx,
-      bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem,
+        is7702Batch,
+        isBridgeComplete,
+      },
     } = this.props;
     const isBridgeTransaction =
       type === TransactionType.bridge ||
@@ -546,7 +547,8 @@ class TransactionElement extends PureComponent {
       transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
     if (bridgeTxHistoryItem) {
-      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
+      title =
+        getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch) ?? title;
     }
 
     return (
@@ -825,7 +827,7 @@ const TransactionElementWithBridge = (props) => {
       bridgeTxHistoryData?.bridgeTxHistoryItem?.quote?.destChainId;
 
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: getTransactionTypeValue(tx.type, tx),
           transaction_status: tx.status,

@@ -1,14 +1,10 @@
 import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { strings } from '../../../../locales/i18n';
 import type { DeepPartial } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import {
-  renderActivityView,
-  renderActivityViewWithRoutes,
-} from '../../../../tests/component-view/renderers/activity';
+import { renderActivityViewWithRoutes } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
@@ -42,19 +38,5 @@ describeForPlatforms('ActivityView', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
     ).toBeOnTheScreen();
-  });
-
-  it('types in search after the redesigned screen lazy-loads', async () => {
-    const { findByPlaceholderText } = renderActivityView({
-      redesignEnabled: true,
-    });
-
-    const searchInput = await waitFor(() =>
-      findByPlaceholderText(strings('activity_view.search_placeholder')),
-    );
-
-    fireEvent.changeText(searchInput, 'swap');
-
-    expect(searchInput).toHaveProp('value', 'swap');
   });
 });

@@ -96,7 +96,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
   return (
     <>
       {/* Divider */}
-      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box twClassName="my-4 border-b border-border-muted" />
       <Box
         testID="rewards-environment-toggle"
         twClassName="gap-4 flex-col px-4"

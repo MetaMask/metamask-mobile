@@ -11,8 +11,9 @@ import type { Quote } from '../../../../UI/Ramp/types';
 import {
   RAMP_SURFACE,
   type RampSurface,
-} from '../../../../UI/Ramp/Deposit/types/analytics';
+} from '../../../../UI/Ramp/types/depositAnalytics';
 import Engine from '../../../../../core/Engine';
+import { getTransactionPayFiatTestOptions } from '../../../../../util/environment';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   useTransactionPayFiatPayment,
@@ -22,6 +23,7 @@ import {
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 const log = createProjectLogger('fiat-confirm');
+const FIAT_TEST_FUNDING_SOURCE_ORDER_ID = 'fiat-test-funding-source';
 
 /**
  * Maps a confirmation transaction type to the headless ramps `ramp_surface`
@@ -47,6 +49,7 @@ export function useFiatConfirm() {
 
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const orderId = fiatPayment?.orderId as string | undefined;
+  const fiatTestOptions = getTransactionPayFiatTestOptions();
 
   const onFiatConfirm = useCallback(() => {
     const rampsQuote = fiatPayment?.rampsQuote as Quote | undefined;
@@ -62,8 +65,27 @@ export function useFiatConfirm() {
       return;
     }
 
-    setIsHeadlessBuyInProgress(true);
     setHeadlessBuyError(undefined);
+
+    if (fiatTestOptions?.testFundingSource) {
+      setIsHeadlessBuyInProgress(false);
+
+      if (!transactionMetadata?.id) {
+        log('Fiat test funding source missing transaction metadata');
+        return;
+      }
+
+      Engine.context.TransactionPayController.updateFiatPayment({
+        transactionId: transactionMetadata.id,
+        callback: (fp) => {
+          fp.orderId = FIAT_TEST_FUNDING_SOURCE_ORDER_ID;
+        },
+      });
+
+      return;
+    }
+
+    setIsHeadlessBuyInProgress(true);
 
     // Subtract the on-ramp provider fee from the total so the Ramps order
     // amount covers exactly the Relay leg of the intent (fees + deposit).
@@ -72,6 +94,7 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
+    // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
       : undefined;
@@ -111,6 +134,7 @@ export function useFiatConfirm() {
       },
     );
   }, [
+    fiatTestOptions?.testFundingSource,
     fiatPayment,
     totals,
     setHeadlessBuyError,

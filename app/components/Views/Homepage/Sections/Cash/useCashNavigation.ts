@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
@@ -27,7 +28,7 @@ export const useCashNavigation = () => {
       return;
     }
 
-    navigation.navigate(destination.screen, destination.params);
+    navigateWithDetails(navigation, [destination.screen, destination.params]);
   }, [isMoneyAccountEnabled, hasSeenEducation, navigation]);
 
   return { navigateToCash, isMoneyAccountEnabled, hasSeenEducation };

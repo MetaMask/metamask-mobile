@@ -55,6 +55,7 @@ export const REWARDS_VIEW_SELECTORS = {
   TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
   TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',
   TOP_BENEFIT_DETAILS_IMAGE: 'rewards-view-top-benefit-details-image',
+  BENEFIT_CARD_FOOTER: 'rewards-view-benefit-card-footer',
   LIST_BENEFIT_VIEW: 'rewards-view-list-benefit-view',
   DETAIL_BENEFIT_VIEW: 'rewards-view-detail-benefit-view',
   DETAIL_BENEFIT_ACTION: 'rewards-view-detail-benefit-action',
@@ -63,6 +64,8 @@ export const REWARDS_VIEW_SELECTORS = {
   // Earn rewards section
   EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
+  EARN_REWARDS_MUSD_DISCLAIMER_LINK:
+    'rewards-view-earn-rewards-musd-disclaimer-link',
   EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',

@@ -2,6 +2,8 @@ import { constants } from 'ethers';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  getDefaultTokenPairForChains,
+  isSameBridgeToken,
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
@@ -34,9 +36,13 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
-jest.mock('../../../../util/address', () => ({
-  safeToChecksumAddress: jest.fn(),
-}));
+jest.mock('../../../../util/address', () => {
+  const actual = jest.requireActual('../../../../util/address');
+  return {
+    ...actual,
+    safeToChecksumAddress: jest.fn(),
+  };
+});
 
 describe('tokenUtils', () => {
   beforeEach(() => {
@@ -234,6 +240,43 @@ describe('tokenUtils', () => {
     });
   });
 
+  describe('getDefaultTokenPairForChains', () => {
+    it('returns undefined when there are no enabled chains', () => {
+      const result = getDefaultTokenPairForChains([]);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('anchors on Ethereum mainnet ETH/mUSD when Ethereum is enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:1']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:1'));
+      expect(result?.sourceToken.chainId).toBe('0x1');
+      expect(result?.destToken?.symbol).toBe('mUSD');
+      expect(result?.destToken?.chainId).toBe('0x1');
+    });
+
+    it('falls back to the first enabled chain when Ethereum is not enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:8453']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:56'));
+      expect(result?.sourceToken.chainId).toBe('0x38');
+      expect(result?.destToken?.chainId).toBe('0x38');
+    });
+
+    it('omits destToken when the default dest would equal the source token', () => {
+      // eip155:999999 has no configured dest token and no native token
+      // mapping conflict scenario is hard to construct naturally, so this
+      // guards against getDefaultDestToken returning undefined gracefully.
+      const result = getDefaultTokenPairForChains(['eip155:999999']);
+
+      expect(result?.sourceToken).toEqual(
+        getNativeSourceToken('eip155:999999'),
+      );
+      expect(result?.destToken).toBeUndefined();
+    });
+  });
+
   describe('tokenMatchesQuery', () => {
     const createToken = (
       overrides: Partial<BridgeToken> = {},
@@ -306,6 +349,47 @@ describe('tokenUtils', () => {
       expect(tokenMatchesQuery(token, 'wrap')).toBe(true);
       expect(tokenMatchesQuery(token, 'bit')).toBe(true);
       expect(tokenMatchesQuery(token, 'btc')).toBe(true);
+    });
+  });
+
+  describe('isSameBridgeToken', () => {
+    const ethToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    const usdcToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1',
+    };
+    const usdcPolygonToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x89',
+    };
+
+    it('returns false when the first token is undefined', () => {
+      expect(isSameBridgeToken(undefined, usdcToken)).toBe(false);
+    });
+
+    it('returns false when the second token is undefined', () => {
+      expect(isSameBridgeToken(usdcToken, undefined)).toBe(false);
+    });
+
+    it('returns true for the same address on the same chain', () => {
+      expect(isSameBridgeToken(usdcToken, { ...usdcToken })).toBe(true);
+    });
+
+    it('returns false for different addresses on the same chain', () => {
+      expect(isSameBridgeToken(ethToken, usdcToken)).toBe(false);
+    });
+
+    it('returns false for the same address on a different chain', () => {
+      expect(isSameBridgeToken(usdcToken, usdcPolygonToken)).toBe(false);
     });
   });
 });

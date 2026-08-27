@@ -39,6 +39,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       setTransactionConfig: jest.fn(),
+      updateFiatPayment: jest.fn(),
     },
   },
 }));
@@ -86,7 +87,7 @@ describe('usePayWithMoneyAccountSection', () => {
     });
 
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$100.00',
+      withdrawableFiatFormatted: '$100.00',
     } as never);
   });
 
@@ -235,7 +236,6 @@ describe('usePayWithMoneyAccountSection', () => {
           title: 'Money account',
           subtitle: '$100.00 available',
           isSelected: false,
-          isLastUsed: false,
           trailingElement: 'none',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),
@@ -245,7 +245,7 @@ describe('usePayWithMoneyAccountSection', () => {
 
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$250.50',
+      withdrawableFiatFormatted: '$250.50',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -253,9 +253,9 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBe('$250.50 available');
   });
 
-  it('renders undefined subtitle when totalFiatFormatted is falsy', () => {
+  it('renders undefined subtitle when withdrawableFiatFormatted is falsy', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '',
+      withdrawableFiatFormatted: '',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -285,7 +285,7 @@ describe('usePayWithMoneyAccountSection', () => {
   });
 
   describe('handlePress', () => {
-    it('sets paymentOverride and refundTo on press', () => {
+    it('sets paymentOverride via applyMoneyAccountOverride on press', () => {
       const setConfigMock = jest.mocked(
         Engine.context.TransactionPayController.setTransactionConfig,
       );
@@ -301,7 +301,63 @@ describe('usePayWithMoneyAccountSection', () => {
       setConfigMock.mock.calls[0][1](config as never);
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+    });
+
+    it('sets atomic:false for perpsWithdraw', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.perpsWithdraw,
+      } as never);
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets refundTo for moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: {
+              moneyAccountDeposit: true,
+            },
+          };
+        }
+        return undefined;
+      });
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+      expect(config.atomic).toBeUndefined();
     });
 
     it('navigates back on press', () => {
@@ -317,6 +373,31 @@ describe('usePayWithMoneyAccountSection', () => {
       });
 
       expect(goBackMock).toHaveBeenCalled();
+    });
+
+    it('clears selectedPaymentMethodId via updateFiatPayment on press', () => {
+      const updateFiatPaymentMock = jest.mocked(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      );
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: 'tx-1',
+        callback: expect.any(Function),
+      });
+
+      const fiatPayment = { selectedPaymentMethodId: 'some-method' } as Record<
+        string,
+        unknown
+      >;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
     });
   });
 });

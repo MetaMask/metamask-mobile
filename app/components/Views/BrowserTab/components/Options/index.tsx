@@ -18,6 +18,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SessionENSNames } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import SearchApi from '@metamask/react-native-search-api';
@@ -54,7 +55,7 @@ const Options = ({
   favicon,
   icon,
 }: OptionsProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();

@@ -7,6 +7,7 @@ const importWalletFlowExpectedEventNames = [
   onboardingEvents.WALLET_SETUP_COMPLETED,
   onboardingEvents.WALLET_IMPORT_STARTED,
   onboardingEvents.WALLET_IMPORT_ATTEMPTED,
+  onboardingEvents.ONBOARDING_COMPLETED,
 ];
 
 /**
@@ -44,10 +45,21 @@ export const importWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
     },
     {
       name: onboardingEvents.WALLET_SETUP_COMPLETED,
-      matchProperties: {
+      containProperties: {
         wallet_setup_type: 'import',
         new_wallet: false,
         account_type: 'imported',
+      },
+    },
+    {
+      name: onboardingEvents.ONBOARDING_COMPLETED,
+      containProperties: {
+        wallet_setup_type: 'import',
+        new_wallet: false,
+        account_type: 'imported',
+        is_basic_functionality_enabled: true,
+        implementation_type: 'native',
+        onboarding_type: 'seed_phrase',
       },
     },
   ],

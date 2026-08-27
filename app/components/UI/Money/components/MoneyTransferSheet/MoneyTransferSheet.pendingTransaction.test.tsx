@@ -35,7 +35,8 @@ const mockPrimaryMoneyAccount = {
 };
 const mockRecipient = '0x2222222222222222222222222222222222222222';
 
-// Mutable mock of Engine.state.TransactionController so the test can simulate
+// Mutable mock of the TransactionController state (exposed via Engine.state
+// and Engine.context.TransactionController.state) so the test can simulate
 // the TransactionController removing a transaction after it is rejected.
 const mockEngineState: {
   TransactionController: { transactions: TransactionMeta[] };
@@ -119,6 +120,11 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(() => 'network-client-1'),
     },
     ApprovalController: { rejectRequest: jest.fn() },
+    TransactionController: {
+      get state() {
+        return mockEngineState.TransactionController;
+      },
+    },
   },
 
   get state() {
@@ -155,8 +161,19 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit',
   () => ({ useMoneyPredictDeposit: jest.fn() }),
 );
+jest.mock('../../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
+  usePredictEligibility: jest.fn(() => ({ isEligible: true })),
+}));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
 }));
 
 // Wrapper that unmounts the sheet when `goBack` runs — modelling the modal
@@ -173,6 +190,7 @@ const SheetHarness = () => {
 };
 
 function renderHarness(pendingTransactions: TransactionMeta[]) {
+  mockEngineState.TransactionController = { transactions: pendingTransactions };
   return renderWithProvider(<SheetHarness />, {
     state: {
       engine: {
@@ -199,6 +217,10 @@ const flushAsync = async () => {
 describe('MoneyTransferSheet — Between accounts with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
       isEnabled: false,

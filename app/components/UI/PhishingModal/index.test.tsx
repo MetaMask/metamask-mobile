@@ -26,7 +26,7 @@ describe('PhishingModal', () => {
     );
 
     // Find and press the share button
-    const shareButton = getByText('If you found this helpful, share on X!');
+    const shareButton = getByText('If you found this helpful, share on X.');
     await act(async () => {
       fireEvent.press(shareButton);
     });

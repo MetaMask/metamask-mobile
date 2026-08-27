@@ -1,7 +1,9 @@
 import Logger from '../../../../util/Logger';
 import {
   HYPERLIQUID_INFO_URL,
+  MAX_HYPERLIQUID_CANDLES,
   fetchHyperliquidHistoricalPrices,
+  resolveHyperliquidCandleLimit,
 } from './hyperliquidPrices';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -84,6 +86,22 @@ describe('fetchHyperliquidHistoricalPrices', () => {
     });
   });
 
+  it('caps the requested window at MAX_HYPERLIQUID_CANDLES', async () => {
+    const fetchMock = mockFetchResolving([]);
+
+    await fetchHyperliquidHistoricalPrices({
+      symbol: 'BTC',
+      interval: '1m',
+      limit: MAX_HYPERLIQUID_CANDLES + 10_000,
+      nowMs: NOW,
+    });
+
+    const [, options] = fetchMock.mock.calls[0];
+    expect(JSON.parse(options.body).req.startTime).toBe(
+      NOW - MAX_HYPERLIQUID_CANDLES * 60 * 1000,
+    );
+  });
+
   it('returns an empty array without fetching when the symbol is empty', async () => {
     const fetchMock = mockFetchResolving([]);
 
@@ -161,5 +179,67 @@ describe('fetchHyperliquidHistoricalPrices', () => {
       expect.any(Error),
       expect.stringContaining('BTC'),
     );
+  });
+});
+
+describe('resolveHyperliquidCandleLimit', () => {
+  const HOUR_MS = 60 * 60 * 1000;
+
+  it('returns the base limit when the position has no trades', () => {
+    expect(
+      resolveHyperliquidCandleLimit({
+        interval: '1h',
+        baseLimit: 168,
+        earliestTradeMs: undefined,
+        nowMs: NOW,
+      }),
+    ).toBe(168);
+  });
+
+  it('keeps the base limit when the earliest trade is within the base window', () => {
+    // Trade 10h ago, base window is 168h → base wins.
+    expect(
+      resolveHyperliquidCandleLimit({
+        interval: '1h',
+        baseLimit: 168,
+        earliestTradeMs: NOW - 10 * HOUR_MS,
+        nowMs: NOW,
+      }),
+    ).toBe(168);
+  });
+
+  it('grows the limit to reach an earlier trade, with 10% padding', () => {
+    // Trade 200h ago at 1h candles → ceil(200 * 1.1) = 220 candles.
+    expect(
+      resolveHyperliquidCandleLimit({
+        interval: '1h',
+        baseLimit: 168,
+        earliestTradeMs: NOW - 200 * HOUR_MS,
+        nowMs: NOW,
+      }),
+    ).toBe(220);
+  });
+
+  it('clamps the grown limit to MAX_HYPERLIQUID_CANDLES', () => {
+    // A trade 20 years ago at 1d candles would need ~7300 candles → capped.
+    expect(
+      resolveHyperliquidCandleLimit({
+        interval: '1d',
+        baseLimit: 1095,
+        earliestTradeMs: NOW - 20 * 365 * 24 * HOUR_MS,
+        nowMs: NOW,
+      }),
+    ).toBe(MAX_HYPERLIQUID_CANDLES);
+  });
+
+  it('ignores a non-finite or future earliest trade', () => {
+    expect(
+      resolveHyperliquidCandleLimit({
+        interval: '1h',
+        baseLimit: 168,
+        earliestTradeMs: NOW + 5 * HOUR_MS, // future → span <= 0
+        nowMs: NOW,
+      }),
+    ).toBe(168);
   });
 });

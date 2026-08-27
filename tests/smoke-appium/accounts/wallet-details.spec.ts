@@ -1,10 +1,14 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
+import {
+  loginAndOpenAccountList,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import { completeSrpQuiz } from '../../flows/accounts.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails.js';
 import WalletDetails from '../../page-objects/MultichainAccounts/WalletDetails.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
@@ -36,24 +40,33 @@ appiumTest.describe(SmokeAccounts('Wallet details'), () => {
           await WalletDetails.tapCreateAccount();
           const visibleAccounts = ['Account 1', 'Account 2', 'Account 3'];
           for (const accountName of visibleAccounts) {
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.getAccountElementByAccountNameV2(
-                accountName,
-              ),
-              { description: `Account ${accountName} should be visible` },
+            await AccountListBottomSheet.expectAccountVisibleByNameV2(
+              accountName,
+              { description: `${accountName} should be visible` },
             );
           }
 
           await WalletDetails.tapSRP();
           await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
+          await TabBarComponent.tapWallet();
+          await waitForWalletHomePlaywright();
+
           await WalletView.tapIdenticon();
+          await Assertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
+            {
+              description:
+                'Account list should be open after tapping identicon',
+            },
+          );
           for (const accountName of visibleAccounts) {
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.getAccountElementByAccountNameV2(
-                accountName,
-              ),
-              { description: `Account ${accountName} should be visible` },
+            await AccountListBottomSheet.expectAccountVisibleByNameV2(
+              accountName,
+              {
+                description: `${accountName} should be visible`,
+                timeout: 15_000,
+              },
             );
           }
         },

@@ -1,9 +1,11 @@
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { prefixError } from './error-prefix';
 
 // TODO: Make it configurable via environment variable
 const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';
+const ERROR_PREFIX = 'Sentinel: ';
 
 /**
  * Optional bearer token getter, set at Engine init to authenticate
@@ -139,10 +141,7 @@ async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
     const response = await fetch(url, { headers });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(
-        `Failed to fetch sentinel network flags: ${response.status} - ${errorBody}`,
-      );
+      throw new Error(`Failed to fetch network flags: ${response.status}`);
     }
 
     const data: SentinelNetworkMap = await response.json();
@@ -152,6 +151,8 @@ async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
     cache.timestamp = Date.now();
 
     return data;
+  } catch (error) {
+    throw prefixError(error, ERROR_PREFIX);
   } finally {
     // Clear pending promise after completion (success or failure)
     // This allows cache expiry to trigger a new fetch after TTL

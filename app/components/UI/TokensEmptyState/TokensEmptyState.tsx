@@ -7,6 +7,7 @@ import {
 import { useAssetFromTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
@@ -22,7 +23,7 @@ export const TokensEmptyState: React.FC<TokensEmptyStateProps> = ({
     emptyStateDefiDark,
   );
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {

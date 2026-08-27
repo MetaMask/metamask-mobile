@@ -21,15 +21,10 @@ jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
     styles: {
       summaryContainer: {},
-      paddingHorizontal: {},
       summaryRow: {},
       summaryLabel: {},
       summaryValue: {},
       inclusiveFeeRow: {},
-      labelWithTooltip: {},
-      summaryTotalRow: {},
-      rewardsRow: {},
-      rewardsContent: {},
       loadingContainer: {},
     },
     theme: mockTheme,
@@ -104,7 +99,7 @@ describe('PerpsCloseSummary', () => {
     // Assert
     expect(strings).toHaveBeenCalledWith('perps.close_position.margin');
     expect(strings).toHaveBeenCalledWith('perps.close_position.includes_pnl');
-    expect(getByText('perps.close_position.margin')).toBeTruthy();
+    expect(getByText('perps.close_position.margin')).toBeOnTheScreen();
   });
 
   it('renders margin with negative P&L', () => {
@@ -115,7 +110,7 @@ describe('PerpsCloseSummary', () => {
     const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.close_position.margin')).toBeTruthy();
+    expect(getByText('perps.close_position.margin')).toBeOnTheScreen();
     expect(strings).toHaveBeenCalledWith('perps.close_position.includes_pnl');
   });
 
@@ -128,8 +123,8 @@ describe('PerpsCloseSummary', () => {
     const { getByTestId, getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.close_position.fees')).toBeTruthy();
-    expect(getByTestId('fees-tooltip-button')).toBeTruthy();
+    expect(getByText('perps.close_position.fees')).toBeOnTheScreen();
+    expect(getByTestId('fees-tooltip-button')).toBeOnTheScreen();
   });
 
   it('renders receive amount with tooltip', () => {
@@ -141,8 +136,8 @@ describe('PerpsCloseSummary', () => {
     const { getByTestId, getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.close_position.you_receive')).toBeTruthy();
-    expect(getByTestId('receive-tooltip-button')).toBeTruthy();
+    expect(getByText('perps.close_position.you_receive')).toBeOnTheScreen();
+    expect(getByTestId('receive-tooltip-button')).toBeOnTheScreen();
   });
 
   it('renders rewards section when enabled and account opted in', () => {
@@ -159,7 +154,7 @@ describe('PerpsCloseSummary', () => {
     const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.estimated_points')).toBeTruthy();
+    expect(getByText('perps.estimated_points')).toBeOnTheScreen();
   });
 
   it('renders rewards with loading state when account opted in', () => {
@@ -176,7 +171,7 @@ describe('PerpsCloseSummary', () => {
     const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.estimated_points')).toBeTruthy();
+    expect(getByText('perps.estimated_points')).toBeOnTheScreen();
   });
 
   it('applies custom style prop', () => {
@@ -185,21 +180,10 @@ describe('PerpsCloseSummary', () => {
     const props = { ...defaultProps, style: customStyle };
 
     // Act
-    const { getByTestId } = render(<PerpsCloseSummary {...props} />);
+    const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert - component renders without crashing with custom style
-    expect(getByTestId).toBeDefined();
-  });
-
-  it('applies padding when input focused', () => {
-    // Arrange
-    const props = { ...defaultProps, isInputFocused: true };
-
-    // Act
-    const { getByTestId } = render(<PerpsCloseSummary {...props} />);
-
-    // Assert - component renders without crashing with focused state
-    expect(getByTestId).toBeDefined();
+    expect(getByText('perps.close_position.margin')).toBeOnTheScreen();
   });
 
   it('disables tooltip interactions when enableTooltips is false', () => {
@@ -238,7 +222,7 @@ describe('PerpsCloseSummary', () => {
     const { getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert - rewards section still renders with error state
-    expect(getByText('perps.estimated_points')).toBeTruthy();
+    expect(getByText('perps.estimated_points')).toBeOnTheScreen();
   });
 
   it('handles tooltip press to open fees tooltip', () => {
@@ -252,7 +236,7 @@ describe('PerpsCloseSummary', () => {
 
     fireEvent.press(getByTestId('fees-tooltip'));
 
-    expect(getByTestId('fees-tooltip')).toBeTruthy();
+    expect(getByTestId('fees-tooltip')).toBeOnTheScreen();
   });
 
   it('handles tooltip press to open receive amount tooltip', () => {
@@ -266,7 +250,7 @@ describe('PerpsCloseSummary', () => {
 
     fireEvent.press(getByTestId('receive-tooltip'));
 
-    expect(getByTestId('receive-tooltip')).toBeTruthy();
+    expect(getByTestId('receive-tooltip')).toBeOnTheScreen();
   });
 
   it('handles tooltip press to open points tooltip when rewards enabled and account opted in', () => {
@@ -283,7 +267,7 @@ describe('PerpsCloseSummary', () => {
 
     fireEvent.press(getByTestId('points-tooltip'));
 
-    expect(getByTestId('points-tooltip')).toBeTruthy();
+    expect(getByTestId('points-tooltip')).toBeOnTheScreen();
   });
 
   it('does not trigger tooltip callback when tooltips are disabled', () => {
@@ -312,8 +296,8 @@ describe('PerpsCloseSummary', () => {
     const { getByTestId, getByText } = render(<PerpsCloseSummary {...props} />);
 
     // Assert
-    expect(getByText('perps.estimated_points')).toBeTruthy();
-    expect(getByTestId('add-rewards-account')).toBeTruthy();
+    expect(getByText('perps.estimated_points')).toBeOnTheScreen();
+    expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
   });
 
   it('renders RewardsAnimations when account opted in', () => {
@@ -332,7 +316,7 @@ describe('PerpsCloseSummary', () => {
     );
 
     // Assert
-    expect(getByText('perps.estimated_points')).toBeTruthy();
+    expect(getByText('perps.estimated_points')).toBeOnTheScreen();
     expect(queryByTestId('add-rewards-account')).toBeNull();
   });
 

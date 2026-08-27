@@ -1,4 +1,4 @@
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 
 export type AdjustMarginAction = 'add_margin' | 'reduce_margin';
 

@@ -8,6 +8,11 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
+import {
+  consumeNavigationAnalyticsAttribution,
+  type NavigationAnalyticsContext,
+} from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -45,6 +50,7 @@ interface EventTrackingOptions {
 
   // Advanced API - full control (for future extensibility)
   resetConditions?: boolean[];
+  navigationAnalyticsContext?: NavigationAnalyticsContext;
 }
 
 /**
@@ -54,7 +60,8 @@ interface EventTrackingOptions {
  * 1. Imperative: const { track } = usePerpsEventTracking(); track(event, props);
  * 2. Declarative: usePerpsEventTracking({ eventName, conditions, properties });
  *
- * All events include timestamp automatically.
+ * All events include timestamp automatically. Lite/Pro `perps_mode` is
+ * attached centrally by `enrichWithPerpsMode` in `analytics.trackEvent`.
  *
  * @example
  * // IMPERATIVE: Manual tracking (backward compatible)
@@ -78,6 +85,7 @@ interface EventTrackingOptions {
  */
 export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const navigationAnalyticsContext = options?.navigationAnalyticsContext;
 
   /**
    * Track an event with automatic timestamp (imperative API)
@@ -87,16 +95,42 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
       properties: Record<string, unknown> = {},
     ) => {
+      const isScreenViewed =
+        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED;
+      if (isScreenViewed && navigationAnalyticsContext) {
+        consumeNavigationAnalyticsAttribution(
+          navigationAnalyticsContext,
+          eventName.category,
+        );
+      }
+
+      // Timestamp on every event. Lite/Pro `perps_mode` is injected later by
+      // enrichWithPerpsMode in analytics.trackEvent (caller props still win).
+      // Navigation attribution is resolved here so both Perp Screen Viewed and
+      // its companion Asset Viewed retain the navigation source across every
+      // reset-key emission.
       const props = {
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),
         ...properties,
+        ...(isScreenViewed &&
+          navigationAnalyticsContext && {
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              navigationAnalyticsContext.attribution,
+          }),
       };
-      trackEvent(createEventBuilder(eventName).addProperties(props).build());
 
-      if (
-        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
-        shouldEmitAssetViewedForPerpsScreenViewed(props)
-      ) {
+      // attach stored UTM attribution to every Perp Screen Viewed
+      // event. Explicit props win over attribution, so it never overrides a
+      // caller-provided UTM value. Scoped to Screen Viewed only — the mirrored
+      // Asset Viewed emission below keeps its existing property set.
+      const emittedProps = isScreenViewed
+        ? { ...getPerpsUtmAttributionProperties(), ...props }
+        : props;
+      trackEvent(
+        createEventBuilder(eventName).addProperties(emittedProps).build(),
+      );
+
+      if (isScreenViewed && shouldEmitAssetViewedForPerpsScreenViewed(props)) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
             .addProperties(mergeAssetViewedProperties('Perps', props))
@@ -104,7 +138,7 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
         );
       }
     },
-    [trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, navigationAnalyticsContext],
   );
 
   // Declarative API implementation (similar to usePerpsMeasurement)

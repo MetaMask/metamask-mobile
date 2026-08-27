@@ -27,7 +27,7 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
           {config.title.toUpperCase()}
         </Text>
       ) : null}
-      <Box twClassName="bg-default" testID={`${testID}-rows`}>
+      <Box testID={`${testID}-rows`}>
         {config.rows.map((row) => (
           <PaymentMethodRow key={row.id} {...row} />
         ))}

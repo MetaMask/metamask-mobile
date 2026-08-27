@@ -1,4 +1,9 @@
-export type MoneyMetaMaskCardMode = 'upsell' | 'link' | 'manage' | 'verifying';
+export type MoneyMetaMaskCardMode =
+  | 'upsell'
+  | 'link'
+  | 'manage'
+  | 'verifying'
+  | 'loading';
 
 export interface MoneyMetaMaskCardModeInput {
   isCardLinkedToMoneyAccount: boolean;
@@ -9,6 +14,7 @@ export interface MoneyMetaMaskCardModeInput {
   isMoneyAccountVisible: boolean;
   hasMoneyAccountBaseRequirements: boolean;
   hasMoneyAccountRequirements: boolean;
+  isCardStateResolved: boolean;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -20,7 +26,12 @@ export const deriveMoneyMetaMaskCardMode = ({
   isMoneyAccountVisible,
   hasMoneyAccountBaseRequirements,
   hasMoneyAccountRequirements,
+  isCardStateResolved,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
+  if (!isCardStateResolved) {
+    return isMoneyAccountVisible ? 'loading' : null;
+  }
+
   // Card already linked to the Money account -> manage it.
   if (isCardLinkedToMoneyAccount) return 'manage';
 

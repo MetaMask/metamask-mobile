@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 import { IconName } from '../../component-library/components/Icons/Icon/index';
 import { brandColor } from '@metamask/design-tokens';
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../../components/UI/Ramp/types/legacyDeposit';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import migrate from './102';
 

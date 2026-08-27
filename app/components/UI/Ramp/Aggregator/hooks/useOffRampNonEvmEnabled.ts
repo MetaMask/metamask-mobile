@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 
-import { selectOffRampNonEvmEnabled } from '../../../../../selectors/featureFlagController/ramps/offRampNonEvm';
+import { selectOffRampNonEvmEnabled } from '../../../../../selectors/featureFlagController/offRampNonEvm';
 
 /**
  * Whether the non-EVM (e.g. Solana) off-ramp sell flow is enabled.

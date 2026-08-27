@@ -30,6 +30,13 @@ export interface PerpsMarketListProps {
     | React.ReactElement
     | null;
   /**
+   * Optional row rendered as the first list item and pinned with FlashList
+   * `stickyHeaderIndices`. Use this for chrome that should sit below
+   * {@link ListHeaderComponent} at rest (e.g. recently viewed) and stay
+   * stuck under the category pills after that header scrolls away.
+   */
+  stickyHeader?: React.ReactElement | null;
+  /**
    * Optional icon size for market row items
    * @default HOME_SCREEN_CONFIG.DefaultIconSize
    */
@@ -54,6 +61,13 @@ export interface PerpsMarketListProps {
    * would tear down and recreate every row's live-price subscription).
    */
   filterKey?: string;
+  /**
+   * Optional token that, when it changes, resets the scroll position back to
+   * the top (revealing the list header). Use it to key on more than the
+   * category — e.g. toggling search on/off — so the header scrolls back into
+   * view. Falls back to {@link filterKey} when omitted.
+   */
+  scrollResetKey?: string;
   /**
    * Test ID for E2E testing
    */

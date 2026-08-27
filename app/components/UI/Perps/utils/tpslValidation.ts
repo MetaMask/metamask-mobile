@@ -11,7 +11,10 @@
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  type OrderType,
+} from '@metamask/perps-controller';
 // Re-export significant figures utilities from controller for backwards compatibility
 export {
   countSignificantFigures,
@@ -99,6 +102,88 @@ export const isStopLossSafeFromLiquidation = (
   return isLong
     ? slPriceNum > liquidationPriceNum
     : slPriceNum < liquidationPriceNum;
+};
+
+export interface PerpsOrderTpSlWarningsInput {
+  orderType: OrderType;
+  limitPrice?: string;
+  direction: 'long' | 'short';
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  /** Current liquidation price for the prospective order. */
+  liquidationPrice: string;
+  /** Mid/market price used as the validation reference for market orders. */
+  marketPrice: number;
+}
+
+export interface PerpsOrderTpSlWarnings {
+  /** Stop loss sits at/beyond the liquidation price. */
+  doesStopLossRiskLiquidation: boolean;
+  /** Take profit is on the wrong side of the reference price. */
+  isTakeProfitPriceInvalid: boolean;
+  /** Stop loss is on the wrong side of the reference price. */
+  isStopLossPriceInvalid: boolean;
+  /** Which price the warnings validated against ('entry' for priced limit, else 'current'). */
+  tpslPriceType: 'entry' | 'current';
+}
+
+/**
+ * Pure derivation of the order-form TP/SL warning flags shared by the lite
+ * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. For priced
+ * limit orders the limit price is the validation reference; otherwise the
+ * market price is used. Mirrors the lite form's original inline logic exactly.
+ *
+ * @param input - TP/SL warning inputs.
+ * @returns The three warning flags plus the reference price type.
+ */
+export const getPerpsOrderTpSlWarnings = ({
+  orderType,
+  limitPrice,
+  direction,
+  takeProfitPrice,
+  stopLossPrice,
+  liquidationPrice,
+  marketPrice,
+}: PerpsOrderTpSlWarningsInput): PerpsOrderTpSlWarnings => {
+  const doesStopLossRiskLiquidation = Boolean(
+    stopLossPrice &&
+      !isStopLossSafeFromLiquidation(
+        stopLossPrice,
+        liquidationPrice,
+        direction,
+      ),
+  );
+
+  const isLimitWithPrice = orderType === 'limit' && Boolean(limitPrice);
+  const validationReferencePrice = isLimitWithPrice
+    ? Number.parseFloat(String(limitPrice))
+    : marketPrice;
+  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
+
+  const isTakeProfitPriceInvalid = Boolean(
+    takeProfitPrice?.trim() &&
+      validationReferencePrice > 0 &&
+      !isValidTakeProfitPrice(takeProfitPrice, {
+        currentPrice: validationReferencePrice,
+        direction,
+      }),
+  );
+
+  const isStopLossPriceInvalid = Boolean(
+    stopLossPrice?.trim() &&
+      validationReferencePrice > 0 &&
+      !isValidStopLossPrice(stopLossPrice, {
+        currentPrice: validationReferencePrice,
+        direction,
+      }),
+  );
+
+  return {
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
+    tpslPriceType,
+  };
 };
 
 /**

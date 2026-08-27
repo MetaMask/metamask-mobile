@@ -18,6 +18,7 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       TransactionPayController: {
         setTransactionConfig: jest.fn(),
+        updateFiatPayment: jest.fn(),
       },
     },
   },
@@ -42,6 +43,9 @@ jest.mock('./useIsMoneyAccountFlagDefault', () => ({
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
+);
+const updateFiatPaymentMock = jest.mocked(
+  Engine.context.TransactionPayController.updateFiatPayment,
 );
 
 const render = () =>
@@ -78,13 +82,13 @@ describe('useDefaultPaySelectedSection', () => {
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });
 
-  it('sets PaymentOverride.MoneyAccount and refundTo for deposit transactions', () => {
+  it('sets PaymentOverride.MoneyAccount and refundTo for moneyAccountDeposit', () => {
     (useParams as jest.Mock).mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
       id: TRANSACTION_ID,
-      type: TransactionType.perpsDeposit,
+      type: TransactionType.moneyAccountDeposit,
     });
 
     render();
@@ -100,9 +104,35 @@ describe('useDefaultPaySelectedSection', () => {
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+    expect(config.atomic).toBeUndefined();
   });
 
-  it('sets PaymentOverride.MoneyAccount but omits refundTo for withdraw transactions', () => {
+  it('clears selectedPaymentMethodId via updateFiatPayment', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      payWithOption: PayWithOption.MoneyAccount,
+    });
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      id: TRANSACTION_ID,
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    render();
+
+    expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+      transactionId: TRANSACTION_ID,
+      callback: expect.any(Function),
+    });
+
+    const fiatPayment = { selectedPaymentMethodId: 'some-method' } as Record<
+      string,
+      unknown
+    >;
+    updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+    expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
+  });
+
+  it('sets atomic:false for perpsWithdraw', () => {
     (useParams as jest.Mock).mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -118,6 +148,47 @@ describe('useDefaultPaySelectedSection', () => {
     callback(config as never);
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+    expect(config.atomic).toBe(false);
+    expect(config.refundTo).toBeUndefined();
+  });
+
+  it('sets atomic:false for predictWithdraw', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      payWithOption: PayWithOption.MoneyAccount,
+    });
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      id: TRANSACTION_ID,
+      type: TransactionType.predictWithdraw,
+    });
+
+    render();
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config: Record<string, unknown> = {};
+    callback(config as never);
+
+    expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+    expect(config.atomic).toBe(false);
+    expect(config.refundTo).toBeUndefined();
+  });
+
+  it('sets only paymentOverride for moneyAccountWithdraw (no atomic, refundTo)', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      payWithOption: PayWithOption.MoneyAccount,
+    });
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      id: TRANSACTION_ID,
+      type: TransactionType.moneyAccountWithdraw,
+    });
+
+    render();
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config: Record<string, unknown> = {};
+    callback(config as never);
+
+    expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+    expect(config.atomic).toBeUndefined();
     expect(config.refundTo).toBeUndefined();
   });
 
@@ -135,7 +206,7 @@ describe('useDefaultPaySelectedSection', () => {
     expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
   });
 
-  it('omits refundTo when money account has no address', () => {
+  it('omits refundTo when money account has no address for moneyAccountDeposit', () => {
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
       undefined,
     );
@@ -144,6 +215,7 @@ describe('useDefaultPaySelectedSection', () => {
     });
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
       id: TRANSACTION_ID,
+      type: TransactionType.moneyAccountDeposit,
     });
 
     render();
@@ -157,11 +229,11 @@ describe('useDefaultPaySelectedSection', () => {
   });
 
   describe('defaultPaySelectedSection flag', () => {
-    it('sets PaymentOverride.MoneyAccount with refundTo for deposit when flag is active', () => {
+    it('sets refundTo for moneyAccountDeposit when flag is active', () => {
       (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
-        type: TransactionType.perpsDeposit,
+        type: TransactionType.moneyAccountDeposit,
       });
 
       render();
@@ -179,7 +251,7 @@ describe('useDefaultPaySelectedSection', () => {
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
     });
 
-    it('sets PaymentOverride.MoneyAccount without refundTo for withdraw when flag is active', () => {
+    it('sets atomic:false for predictWithdraw when flag is active', () => {
       (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
@@ -193,7 +265,30 @@ describe('useDefaultPaySelectedSection', () => {
       callback(config as never);
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
       expect(config.refundTo).toBeUndefined();
+    });
+
+    it('clears selectedPaymentMethodId via updateFiatPayment when flag is active', () => {
+      (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
+      (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+        id: TRANSACTION_ID,
+        type: TransactionType.predictWithdraw,
+      });
+
+      render();
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        callback: expect.any(Function),
+      });
+
+      const fiatPayment = {
+        selectedPaymentMethodId: 'existing-method',
+      } as Record<string, unknown>;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
     });
 
     it('does not set override when useIsMoneyAccountFlagDefault returns false', () => {
@@ -205,6 +300,7 @@ describe('useDefaultPaySelectedSection', () => {
       render();
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
   });
 });

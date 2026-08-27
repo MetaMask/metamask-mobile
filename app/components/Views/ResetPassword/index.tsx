@@ -80,6 +80,7 @@ import {
   RESET_PASSWORD_GUIDE_URL,
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -143,72 +144,65 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   >(undefined);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
-  const mounted = useRef(true);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
   const reauthenticate = useCallback(async (pwd?: string) => {
     setReady(false);
+    let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
       setPassword('');
       setOriginalPassword(verifiedPassword);
-      setReady(true);
       setView(ViewState.ResetForm);
     } catch (e) {
-      const err = e as Error;
+      reauthError = e as Error;
+    }
+    if (reauthError) {
       if (
-        err.message.includes(
+        !reauthError.message.includes(
           ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
         )
       ) {
-        return;
+        setWarningIncorrectPassword(
+          strings('reveal_credential.warning_incorrect_password'),
+        );
       }
-      setWarningIncorrectPassword(
-        strings('reveal_credential.warning_incorrect_password'),
-      );
-    } finally {
-      setReady(true);
     }
+    setReady(true);
   }, []);
 
   useEffect(() => {
     const initAuth = async () => {
+      let authData;
+      let previouslyDisabled: string | null;
+      let passcodePreviouslyDisabled: string | null;
+
       try {
-        const authData = await Authentication.getType();
-        const previouslyDisabled = await StorageWrapper.getItem(
+        authData = await Authentication.getType();
+        previouslyDisabled = await StorageWrapper.getItem(
           BIOMETRY_CHOICE_DISABLED,
         );
-        const passcodePreviouslyDisabled =
+        passcodePreviouslyDisabled =
           await StorageWrapper.getItem(PASSCODE_DISABLED);
-
-        if (
-          authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-        ) {
-          setBiometryType(passcodeType(authData.currentAuthType));
-          setBiometryChoice(
-            !(
-              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
-            ),
-          );
-        } else if (authData.availableBiometryType) {
-          setBiometryType(authData.availableBiometryType);
-          setBiometryChoice(
-            !(previouslyDisabled && previouslyDisabled === TRUE),
-          );
-          reauthenticate();
-        }
       } catch (e) {
         Logger.error(e as Error);
-      } finally {
         setView(ViewState.ConfirmCurrent);
+        return;
       }
+
+      if (
+        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+      ) {
+        setBiometryType(passcodeType(authData.currentAuthType));
+        setBiometryChoice(
+          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+        );
+      } else if (authData.availableBiometryType) {
+        setBiometryType(authData.availableBiometryType);
+        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+        reauthenticate();
+      }
+      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
@@ -796,7 +790,20 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     );
   };
 
-  if (!ready) return renderLoader();
+  // The deterrent stays mounted through the re-authentication loader so
+  // capture protection is not released between verifying the current password
+  // and showing the new-password form.
+  const captureDeterrent = (
+    <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+  );
+
+  if (!ready)
+    return (
+      <>
+        {renderLoader()}
+        {captureDeterrent}
+      </>
+    );
 
   return (
     <SafeAreaView
@@ -815,6 +822,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           ? renderResetPassword()
           : renderConfirmPassword()}
       </Box>
+      {captureDeterrent}
     </SafeAreaView>
   );
 };

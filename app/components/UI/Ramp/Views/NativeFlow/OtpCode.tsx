@@ -20,7 +20,7 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
+import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -28,6 +28,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
   CodeField,
@@ -35,10 +36,10 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
-import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -93,7 +94,7 @@ const ResendButton: FC<{
 };
 
 const V2OtpCode = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId, headlessSessionId } =
     useParams<V2OtpCodeParams>();

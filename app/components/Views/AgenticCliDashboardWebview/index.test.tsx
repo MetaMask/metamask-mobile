@@ -8,6 +8,7 @@ import Logger from '../../../util/Logger';
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 const mockUseParams = jest.fn();
+const mockBeforeRemoveCallback = { current: null as (() => void) | null };
 const mockBuildWebViewUrl =
   AgenticCliDashboardWebviewService.buildWebViewUrl as jest.Mock;
 const mockParseEvent =
@@ -31,6 +32,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
     setOptions: mockSetOptions,
+    addListener: (event: string, callback: () => void) => {
+      if (event === 'beforeRemove') {
+        mockBeforeRemoveCallback.current = callback;
+      }
+      return jest.fn();
+    },
   }),
 }));
 
@@ -130,6 +137,7 @@ describe('AgenticCliDashboardWebview', () => {
   beforeEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    mockBeforeRemoveCallback.current = null;
     jest.replaceProperty(Platform, 'OS', 'ios');
     mockUseParams.mockReturnValue(params);
     mockBuildWebViewUrl.mockReturnValue(
@@ -177,6 +185,43 @@ describe('AgenticCliDashboardWebview', () => {
       expect(mockResolve).toHaveBeenCalledWith('request-1', 'cli-token'),
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects the pending request when beforeRemove fires without prior completion', async () => {
+    render(<AgenticCliDashboardWebview />);
+    await waitFor(() =>
+      expect(mockBeforeRemoveCallback.current).toEqual(expect.any(Function)),
+    );
+
+    act(() => {
+      mockBeforeRemoveCallback.current?.();
+    });
+
+    expect(mockReject).toHaveBeenCalledWith(
+      'request-1',
+      expect.objectContaining({ message: 'Dashboard approval closed.' }),
+    );
+    expect(mockReject).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reject again when beforeRemove fires after approval', async () => {
+    render(<AgenticCliDashboardWebview />);
+    await waitFor(() => expect(mockWebViewProps).toHaveBeenCalled());
+    mockParseEvent.mockReturnValue({ type: 'approved', cliToken: 'cli-token' });
+
+    act(() => {
+      getLatestWebViewProps().onMessage({
+        nativeEvent: { data: 'message' },
+      });
+    });
+
+    await waitFor(() => expect(mockResolve).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      mockBeforeRemoveCallback.current?.();
+    });
+
+    expect(mockReject).not.toHaveBeenCalled();
   });
 
   it('rejects and closes when the dashboard posts close', async () => {

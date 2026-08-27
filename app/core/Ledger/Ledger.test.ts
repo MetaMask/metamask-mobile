@@ -82,14 +82,11 @@ const mockBridge = {
   closeApps: jest.fn(),
 };
 
-const legacyLedgerKeyring = new LegacyLedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
-});
+// Stand-in for a legacy BLE Transport object (from @ledgerhq/hw-transport-ble).
+// `connectLedgerHardware` accepts a Transport from the legacy adapter.
+const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
 
-const ledgerKeyring = new LedgerKeyring({
-  legacyKeyring: legacyLedgerKeyring,
-  entropySource: 'test-entropy-source',
-});
+let ledgerKeyring: LedgerKeyring;
 
 function createRestrictedControllerMock(
   keyringController: typeof MockEngine.context.KeyringController,
@@ -126,6 +123,13 @@ function createRestrictedControllerMock(
 describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+
+    ledgerKeyring = new LedgerKeyring({
+      legacyKeyring: new LegacyLedgerKeyring({
+        bridge: mockBridge as unknown as LedgerMobileBridge,
+      }),
+      entropySource: 'test-entropy-source',
+    });
 
     // Reset AccountsController state that may have been modified by previous tests
     MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
@@ -223,16 +227,13 @@ describe('Ledger core', () => {
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
-  describe('connectLedgerHardware', () => {
-    const mockTransport = 'foo' as unknown as BleTransport;
-    it('calls keyring.setTransport', async () => {
+  describe('connectLedgerHardware (legacy)', () => {
+    it('calls updateTransportMethod and setDeviceId', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
-    });
-
-    it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
@@ -240,9 +241,9 @@ describe('Ledger core', () => {
       expect(value).toBe('appName');
     });
 
-    it('calls keyring.setDeviceId if deviceId is different', async () => {
+    it('calls bridge.getAppNameAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('releases the keyring lock before requesting app metadata from the device', async () => {
@@ -876,12 +877,6 @@ describe('Ledger core', () => {
 
   describe(`unlockLedgerWalletAccount`, () => {
     const mockAccountsController = MockEngine.context.AccountsController;
-    mockAccountsController.getAccountByAddress.mockReturnValue({
-      // @ts-expect-error: The account metadata type is hard to mock
-      metadata: {
-        name: 'Ledger 1',
-      },
-    });
 
     it(`calls keyring.createAccounts with the derivation path for the unlock index`, async () => {
       await unlockLedgerWalletAccount(1);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ImageSourcePropType, View } from 'react-native';
+import { Tag, TagSeverity } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -15,8 +16,12 @@ import { PositionType } from './position-types';
 import { useStyles } from '../../hooks/useStyles';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
 
+export const DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID =
+  'defi-details-position-type-tag';
+
 interface DeFiProtocolPositionGroupTokensProps {
-  positionType: PositionType;
+  /** Group-level position-type label (V1). Omit to hide the section header. */
+  positionType?: PositionType;
   tokens: {
     key: string;
     address: string;
@@ -25,6 +30,8 @@ interface DeFiProtocolPositionGroupTokensProps {
     iconUrl: string;
     balance: number;
     marketValue: number | undefined;
+    /** Per-token position type tag (V2). Shown next to the symbol when present. */
+    positionType?: string;
   }[];
   networkIconAvatar: ImageSourcePropType | undefined;
   privacyMode: boolean;
@@ -46,9 +53,11 @@ const DeFiProtocolPositionGroupTokens: React.FC<
 
   return (
     <View>
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-        {strings(`defi_positions.${positionType}`)}
-      </Text>
+      {positionType ? (
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+          {strings(`defi_positions.${positionType}`)}
+        </Text>
+      ) : null}
       {tokens.map((token) => (
         <View key={token.key} style={styles.underlyingBalancesWrapper}>
           <View>
@@ -59,12 +68,23 @@ const DeFiProtocolPositionGroupTokens: React.FC<
             />
           </View>
 
-          <Text
-            style={styles.assetSymbolText}
-            variant={TextVariant.BodyMDMedium}
-          >
-            {token.symbol}
-          </Text>
+          <View style={styles.assetInfo}>
+            <Text
+              style={styles.assetSymbolText}
+              variant={TextVariant.BodyMDMedium}
+              numberOfLines={1}
+            >
+              {token.symbol}
+            </Text>
+            {token.positionType ? (
+              <Tag
+                severity={TagSeverity.Neutral}
+                testID={DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID}
+              >
+                {token.positionType}
+              </Tag>
+            ) : null}
+          </View>
 
           <View style={styles.balance}>
             <SensitiveText

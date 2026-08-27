@@ -11,7 +11,6 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 // Internal dependencies.
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
-import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
@@ -24,7 +23,6 @@ jest.mock('react-redux', () => ({
   connect: jest.fn(() => (component: React.ComponentType) => component),
 }));
 jest.mock('../../hooks/useAnalytics/useAnalytics');
-jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('../Ramp/hooks/useRampNavigation');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({
@@ -55,10 +53,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAnalytics = jest.mocked(useAnalytics);
-const mockUseRampsUnifiedV2Enabled =
-  useRampsUnifiedV2Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV2Enabled
-  >;
 const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
@@ -72,7 +66,6 @@ describe('FundActionMenu', () => {
   const mockGoToBuy = jest.fn();
   const mockGoToAggregator = jest.fn();
   const mockGoToSell = jest.fn();
-  const mockGoToDeposit = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockBuild = jest.fn();
@@ -115,12 +108,10 @@ describe('FundActionMenu', () => {
       }),
     );
 
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseRampNavigation.mockReturnValue({
       goToBuy: mockGoToBuy,
       goToAggregator: mockGoToAggregator,
       goToSell: mockGoToSell,
-      goToDeposit: mockGoToDeposit,
     });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
@@ -214,9 +205,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: 'eip155:1/slip44:60',
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: 'eip155:1/slip44:60' },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -273,9 +265,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: 'eip155:137/slip44:60',
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: 'eip155:137/slip44:60' },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -291,9 +284,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -327,31 +321,13 @@ describe('FundActionMenu', () => {
           button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
-          ramp_type: 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: undefined,
           is_authenticated: false,
           preferred_provider: undefined,
           order_count: 0,
         });
         expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
-      });
-    });
-
-    it('sets ramp_type to UNIFIED_BUY_2 when unified V2 is enabled', async () => {
-      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-
-      const { getByTestId } = render(<FundActionMenu />);
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON),
-      );
-
-      await waitFor(() => {
-        expect(mockAddProperties).toHaveBeenCalledWith(
-          expect.objectContaining({
-            ramp_type: 'UNIFIED_BUY_2',
-          }),
-        );
       });
     });
 
@@ -393,7 +369,7 @@ describe('FundActionMenu', () => {
           button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
-          ramp_type: 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: undefined,
           is_authenticated: false,
           preferred_provider: undefined,
@@ -424,9 +400,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -445,9 +422,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
   });

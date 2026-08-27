@@ -1,12 +1,7 @@
 import { Theme } from '../../../../../util/theme/models';
-
-const hexToRgba = (hex: string, alpha: number): string => {
-  const clean = hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
-  const r = parseInt(clean.slice(1, 3), 16);
-  const g = parseInt(clean.slice(3, 5), 16);
-  const b = parseInt(clean.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { hexToRgba } from '../../utils/chartColors';
+import { createLimitOrderOverlayScript } from './limitOrderOverlay';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
@@ -383,7 +378,8 @@ export const createTradingViewChartTemplate = (
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 30 // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
+            DEFAULT_CANDLES: 30, // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
+            RIGHT_MARGIN_CANDLES: 2 // Small right margin after the latest candle
         };
         
         // Performance optimization variables
@@ -689,6 +685,27 @@ export const createTradingViewChartTemplate = (
                 window.chart.removeSeries(window.candlestickSeries);
             }
             // Create new candlestick series in pane 0 (top pane)
+            window.collectLimitOverlayPrices = function() {
+                var seen = {};
+                var prices = [];
+                function pushPrice(value) {
+                    var price = parseFloat(value);
+                    if (!isNaN(price) && isFinite(price) && !seen[price]) {
+                        seen[price] = true;
+                        prices.push(price);
+                    }
+                }
+                (window.lastLimitOrderPrices || []).forEach(pushPrice);
+                if (window.priceLines && window.priceLines.limitOrders) {
+                    window.priceLines.limitOrders.forEach(function(item) {
+                        if (item) {
+                            pushPrice(item.price);
+                        }
+                    });
+                }
+                return prices;
+            };
+
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '${theme.colors.success.default}',
                 downColor: '${theme.colors.error.default}',
@@ -706,6 +723,28 @@ export const createTradingViewChartTemplate = (
                     type: 'price',
                     precision: 6, // Allow up to 6 decimal places for very small values
                     minMove: 0.000001, // Very small minimum move for precision
+                },
+                // Keep resting Limit lines on-scale instead of clipping them
+                autoscaleInfoProvider: function(original) {
+                    var result = original();
+                    var overlayPrices = window.collectLimitOverlayPrices ? window.collectLimitOverlayPrices() : [];
+                    if (!result || !result.priceRange || overlayPrices.length === 0) {
+                        return result;
+                    }
+                    var minValue = result.priceRange.minValue;
+                    var maxValue = result.priceRange.maxValue;
+                    overlayPrices.forEach(function(price) {
+                        minValue = Math.min(minValue, price);
+                        maxValue = Math.max(maxValue, price);
+                    });
+                    var padding = (maxValue - minValue) * ${PERPS_CHART_CONFIG.LIMIT_AUTOSCALE_PADDING_FRACTION};
+                    return {
+                        priceRange: {
+                            minValue: minValue - padding,
+                            maxValue: maxValue + padding,
+                        },
+                        margins: result.margins,
+                    };
                 },
                 // Optimize for smooth panning
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
@@ -1081,8 +1120,14 @@ export const createTradingViewChartTemplate = (
             liquidationPrice: null, 
             takeProfitPrice: null,
             stopLossPrice: null,
-            currentPrice: null
+            currentPrice: null,
+            limitOrders: []
         };
+
+${createLimitOrderOverlayScript({
+  sell: theme.colors.error.default,
+  buy: theme.colors.success.default,
+})}
         
         // Store original price line data for restoration
         window.originalPriceLineData = null;
@@ -1096,7 +1141,10 @@ export const createTradingViewChartTemplate = (
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                limitOrders: (window.priceLines.limitOrders || []).map(function(item) {
+                    return { price: item.price, side: item.side };
+                })
             };
 
             // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
@@ -1110,6 +1158,8 @@ export const createTradingViewChartTemplate = (
                     }
                 }
             });
+            window.clearLimitOrderLines();
+            window.lastLimitOrderPrices = [];
         };
         
         window.showAllPriceLines = function() {
@@ -1173,6 +1223,10 @@ export const createTradingViewChartTemplate = (
                 }
             }
 
+            if (window.originalPriceLineData.limitOrders && window.originalPriceLineData.limitOrders.length) {
+                window.updateLimitOrderLines(window.originalPriceLineData.limitOrders);
+            }
+
             // Clear stored data
             // Note: currentPrice is NOT recreated here as it's managed separately by updateCurrentPriceLine
             window.originalPriceLineData = null;
@@ -1197,7 +1251,7 @@ export const createTradingViewChartTemplate = (
                 // - from = dataLength - actualCandleCount (first visible bar index)
                 // - to = dataLength - 1 + small offset for right padding
                 const fromIndex = Math.max(0, dataLength - actualCandleCount);
-                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+                const toIndex = dataLength - 1 + window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
 
                 window.chart.timeScale().setVisibleLogicalRange({
                     from: fromIndex,
@@ -1340,6 +1394,7 @@ export const createTradingViewChartTemplate = (
                     console.error('TradingView: Error creating liquidation line:', error);
                 }
             }
+            window.updateLimitOrderLines(lines.limitOrders || []);
         };
         // Message handling from React Native
         window.addEventListener('message', function(event) {
@@ -1451,6 +1506,14 @@ export const createTradingViewChartTemplate = (
                             message.candles.length > 0
                         ) {
                             try {
+                                const previousDataLength = window.allCandleData ? window.allCandleData.length : 0;
+                                const visibleLogicalRangeBefore = window.chart.timeScale().getVisibleLogicalRange();
+                                const rightEdgeBefore = previousDataLength > 0 ? previousDataLength - 1 + window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES : 0;
+                                const realtimeFollowThreshold = 3;
+                                const wasTrackingRealtime = !visibleLogicalRangeBefore ||
+                                    visibleLogicalRangeBefore.to >= rightEdgeBefore - realtimeFollowThreshold;
+                                let appendedCandle = false;
+
                                 message.candles.forEach(function (candle) {
                                     // Update candlestick series (handles both in-place
                                     // tick updates and newly appended bars).
@@ -1459,8 +1522,8 @@ export const createTradingViewChartTemplate = (
                                     // Keep allCandleData in sync so zoom/price-range
                                     // calculations use the latest candle values.
                                     if (window.allCandleData && window.allCandleData.length > 0) {
-                                        var existingIndex = -1;
-                                        for (var i = window.allCandleData.length - 1; i >= 0; i--) {
+                                        let existingIndex = -1;
+                                        for (let i = window.allCandleData.length - 1; i >= 0; i--) {
                                             if (window.allCandleData[i].time === candle.time) {
                                                 existingIndex = i;
                                                 break;
@@ -1470,12 +1533,13 @@ export const createTradingViewChartTemplate = (
                                             window.allCandleData[existingIndex] = candle;
                                         } else {
                                             window.allCandleData.push(candle);
+                                            appendedCandle = true;
                                         }
                                     }
 
                                     // Mirror the update on the volume series when visible.
                                     if (window.volumeSeries) {
-                                        var volumePoint = {
+                                        const volumePoint = {
                                             time: candle.time,
                                             value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
                                             color: window.coloredVolume
@@ -1485,6 +1549,14 @@ export const createTradingViewChartTemplate = (
                                         window.volumeSeries.update(volumePoint);
                                     }
                                 });
+
+                                // When a new interval bar is appended while the user is
+                                // already following realtime, advance the logical range so
+                                // the new bar enters the viewport. If the user has panned
+                                // away from realtime, preserve their current viewport.
+                                if ((message.isNewBar || appendedCandle) && wasTrackingRealtime) {
+                                    window.applyZoom(window.visibleCandleCount, false);
+                                }
 
                                 // Refresh dynamic Y-axis decimal precision without
                                 // triggering a zoom/range change.
@@ -1562,6 +1634,8 @@ export const createTradingViewChartTemplate = (
                                     console.error('TradingView: Error removing liquidation line:', error);
                                 }
                             }
+
+                            window.clearLimitOrderLines();
 
                             // Note: currentPrice line is intentionally preserved
                         }

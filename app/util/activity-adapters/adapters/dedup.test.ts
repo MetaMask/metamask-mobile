@@ -11,7 +11,8 @@ const makeItem = (
     chainId: 'eip155:1',
     status: 'success',
     timestamp,
-    data: { hash },
+    hash,
+    data: {},
     raw: { type: source, data: {} },
   }) as unknown as ActivityListItem;
 
@@ -33,6 +34,60 @@ describe('mergeActivityItems', () => {
     expect(mergeActivityItems([local], [confirmed], [])).toEqual([
       confirmed,
       local,
+    ]);
+  });
+
+  it('lets perps items win over confirmed and local copies of the same hash', () => {
+    // A perps deposit is also a real EVM tx: the API/local copies carry a
+    // generic kind, the perps copy the specific one — perps must win.
+    const localCopy = makeItem('localTransaction', 1, '0xDEPOSIT');
+    const confirmedCopy = makeItem('apiEvmTransaction', 2, '0xdeposit');
+    const perpsCopy = makeItem('perps', 3, '0xDeposit');
+
+    expect(
+      mergeActivityItems([localCopy], [confirmedCopy], [], [perpsCopy]),
+    ).toEqual([perpsCopy]);
+  });
+
+  it('lets predict items win over confirmed copies of the same hash', () => {
+    const confirmedCopy = makeItem('apiEvmTransaction', 1, '0xCLAIM');
+    const predictCopy = makeItem('predict', 2, '0xclaim');
+
+    expect(
+      mergeActivityItems([], [confirmedCopy], [], [], [predictCopy]),
+    ).toEqual([predictCopy]);
+  });
+
+  it('merges perps and predict items together, newest first', () => {
+    const perpsFill = makeItem('perps', 1, 'perps-id');
+    const predictBet = makeItem('predict', 2, 'predict-id');
+
+    expect(mergeActivityItems([], [], [], [perpsFill], [predictBet])).toEqual([
+      predictBet,
+      perpsFill,
+    ]);
+  });
+
+  it('lets ramp items win over confirmed and local copies of the same hash', () => {
+    const localCopy = makeItem('localTransaction', 1, '0XRAMP');
+    const confirmedCopy = makeItem('apiEvmTransaction', 2, '0xramp');
+    const rampCopy = makeItem('rampOrder', 3, '0xRamp');
+
+    expect(
+      mergeActivityItems([localCopy], [confirmedCopy], [], [], [], [rampCopy]),
+    ).toEqual([rampCopy]);
+  });
+
+  it('keeps two ramp items that share a placeholder 0x hash from collapsing', () => {
+    // Placeholder provider hashes must not be used as Activity keys — see
+    // isPlausibleRampTxHash. After that filter, rows fall back to distinct
+    // order ids, so mergeActivityItems must keep both.
+    const first = makeItem('rampOrder', 2, 'coinbase-m/orders/order-a');
+    const second = makeItem('rampOrder', 1, 'coinbase-m/orders/order-b');
+
+    expect(mergeActivityItems([], [], [], [], [], [first, second])).toEqual([
+      first,
+      second,
     ]);
   });
 });

@@ -1,6 +1,9 @@
 import {
   selectIsAssetsUnifyStateEnabled,
   isAssetsUnifyStateFeatureEnabled,
+  isAssetsUnifyStateTracesEnabled,
+  getIsDeprecatedController,
+  selectIsControllerDeprecated,
   AssetsUnifyStateFeatureFlag,
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
@@ -57,6 +60,47 @@ describe('isAssetsUnifyStateFeatureEnabled', () => {
   });
 });
 
+describe('isAssetsUnifyStateTracesEnabled', () => {
+  it('returns true when unify is enabled and tracesEnabled is true', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      tracesEnabled: true,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(true);
+  });
+
+  it('returns false when tracesEnabled is absent', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
+  });
+
+  it('returns false when tracesEnabled is false', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      tracesEnabled: false,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
+  });
+
+  it('returns false when unify itself is disabled', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: false,
+      featureVersion: null,
+      tracesEnabled: true,
+    };
+
+    expect(isAssetsUnifyStateTracesEnabled(flag)).toBe(false);
+  });
+});
+
 describe('selectIsAssetsUnifyStateEnabled', () => {
   it('returns true when assetsUnifyState flag is enabled', () => {
     const mockedState = mockStateWith({
@@ -93,5 +137,111 @@ describe('selectIsAssetsUnifyStateEnabled', () => {
     });
 
     expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);
+  });
+});
+
+describe('getIsDeprecatedController', () => {
+  it('returns true when the controller is listed in deprecatedControllers', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      deprecatedControllers: ['AccountTrackerController'],
+    };
+
+    expect(getIsDeprecatedController(flag, 'AccountTrackerController')).toBe(
+      true,
+    );
+  });
+
+  it('returns false when the controller is not listed in deprecatedControllers', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      deprecatedControllers: ['SomeOtherController'],
+    };
+
+    expect(getIsDeprecatedController(flag, 'AccountTrackerController')).toBe(
+      false,
+    );
+  });
+
+  it('returns false when deprecatedControllers is empty', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      deprecatedControllers: [],
+    };
+
+    expect(getIsDeprecatedController(flag, 'AccountTrackerController')).toBe(
+      false,
+    );
+  });
+
+  it('returns false when deprecatedControllers is absent', () => {
+    const flag: AssetsUnifyStateFeatureFlag = {
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    };
+
+    expect(getIsDeprecatedController(flag, 'AccountTrackerController')).toBe(
+      false,
+    );
+  });
+
+  it('returns false when flagValue is undefined', () => {
+    expect(
+      getIsDeprecatedController(undefined, 'AccountTrackerController'),
+    ).toBe(false);
+  });
+
+  it('returns false when flagValue is null', () => {
+    expect(getIsDeprecatedController(null, 'AccountTrackerController')).toBe(
+      false,
+    );
+  });
+});
+
+describe('selectIsControllerDeprecated', () => {
+  it('returns true when the controller is listed in deprecatedControllers', () => {
+    const mockedState = mockStateWith({
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      deprecatedControllers: ['AccountTrackerController'],
+    });
+
+    expect(
+      selectIsControllerDeprecated('AccountTrackerController')(mockedState),
+    ).toBe(true);
+  });
+
+  it('returns false when deprecatedControllers is empty', () => {
+    const mockedState = mockStateWith({
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      deprecatedControllers: [],
+    });
+
+    expect(
+      selectIsControllerDeprecated('AccountTrackerController')(mockedState),
+    ).toBe(false);
+  });
+
+  it('returns false when deprecatedControllers is absent', () => {
+    const mockedState = mockStateWith({
+      enabled: true,
+      featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    });
+
+    expect(
+      selectIsControllerDeprecated('AccountTrackerController')(mockedState),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is missing from state', () => {
+    expect(
+      selectIsControllerDeprecated('AccountTrackerController')(
+        mockedUndefinedFlagsState,
+      ),
+    ).toBe(false);
   });
 });

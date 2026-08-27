@@ -1,3 +1,4 @@
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -18,6 +19,8 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
+
+const mockLocation = MetaMetricsSwapsEventSource.MainView;
 
 const sourceToken = {
   symbol: 'ETH',
@@ -55,7 +58,7 @@ describe('useTrackSwapPageViewed', () => {
       return undefined;
     });
 
-    renderHook(() => useTrackSwapPageViewed());
+    renderHook(() => useTrackSwapPageViewed(mockLocation));
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
@@ -72,7 +75,7 @@ describe('useTrackSwapPageViewed', () => {
       return undefined;
     });
 
-    renderHook(() => useTrackSwapPageViewed());
+    renderHook(() => useTrackSwapPageViewed(mockLocation));
 
     const expectedPageProperties = {
       chain_id_source: '1',
@@ -81,6 +84,7 @@ describe('useTrackSwapPageViewed', () => {
       token_symbol_destination: 'USDC',
       token_address_source: sourceToken.address,
       token_address_destination: destToken.address,
+      location: mockLocation,
     };
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
@@ -115,7 +119,7 @@ describe('useTrackSwapPageViewed', () => {
       return undefined;
     });
 
-    const { rerender } = renderHook(() => useTrackSwapPageViewed());
+    const { rerender } = renderHook(() => useTrackSwapPageViewed(mockLocation));
 
     rerender(undefined);
 

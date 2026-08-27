@@ -50,7 +50,7 @@ To enable compliance:
 1. Set `complianceEnabled: true` in LaunchDarkly (or via the local feature flag override screen in dev builds).
 2. Compliance status will be fetched per-address whenever a gated action is triggered.
 
-> **Version gating:** The feature flag uses `validatedVersionGatedFeatureFlag`, which compares against the **native binary version** reported by `react-native-device-info`'s `getVersion()` — not `package.json`. If your device has a stale build installed, the version check may fail even if the flag is enabled. Do a clean native rebuild to pick up the correct version.
+> **Version gating:** The feature flag uses `validatedVersionGatedFeatureFlag` in `selectComplianceEnabled`, which compares against the **native binary version** reported by `react-native-device-info`'s `getVersion()` — not `package.json`. If your device has a stale build installed, the version check may fail even if the flag is enabled. Do a clean native rebuild to pick up the correct version.
 
 ### Feature flag selector
 
@@ -59,6 +59,8 @@ import { selectComplianceEnabled } from 'app/selectors/featureFlagController/com
 
 const isEnabled = useSelector(selectComplianceEnabled);
 ```
+
+The selector resolves the remote `{ enabled, minimumVersion }` payload via `validatedVersionGatedFeatureFlag`. See [`docs/readme/version-gated-feature-flags.md`](./readme/version-gated-feature-flags.md).
 
 ## Usage in Flows
 

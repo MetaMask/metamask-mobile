@@ -27,10 +27,14 @@
 
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
+import {
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../selectors/featureFlagController';
 import { MetaMetricsEvents } from '../core/Analytics';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 import { resolveABTestAssignment } from '../util/abTest';
+import { getDetectedGeolocation } from '../reducers/fiatOrders';
 
 /**
  * Type constraint for variants object - must include a 'control' key
@@ -58,6 +62,12 @@ export interface ABTestExposureMetadata<T extends ABTestVariants> {
   experimentName?: string;
   /** Optional map from variant id to human-readable variant name */
   variationNames?: Partial<Record<Extract<keyof T, string>, string>>;
+  /**
+   * When false, resolves assignment without emitting Experiment Viewed.
+   * Defaults to true. Use false for assignment-only reads outside the
+   * experiment surface so exposure is not counted early.
+   */
+  trackExposure?: boolean;
 }
 
 const trackedExposureAssignments = new Set<string>();
@@ -85,6 +95,7 @@ interface EmitExposureArgs<T extends ABTestVariants> {
   assignmentKey: string;
   experimentName?: string;
   variationName?: string;
+  countryCode?: string;
   trackEvent: ReturnType<typeof useAnalytics>['trackEvent'];
   createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
 }
@@ -99,6 +110,7 @@ const emitExposureEvent = <T extends ABTestVariants>({
   assignmentKey,
   experimentName,
   variationName,
+  countryCode,
   trackEvent,
   createEventBuilder,
 }: EmitExposureArgs<T>) => {
@@ -113,6 +125,9 @@ const emitExposureEvent = <T extends ABTestVariants>({
           }),
           ...(variationName && {
             variation_name: variationName,
+          }),
+          ...(countryCode && {
+            country_code: countryCode,
           }),
         })
         .build(),
@@ -162,23 +177,31 @@ export function useABTest<T extends ABTestVariants>(
 ): UseABTestResult<T> {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const flags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
+  const geolocation = useSelector(getDetectedGeolocation);
+  const countryCode =
+    typeof geolocation === 'string'
+      ? geolocation.toUpperCase().split('-')[0]
+      : undefined;
   const { variantName, isActive } = resolveABTestAssignment(
     flags,
     flagKey,
     Object.keys(variants),
+    thresholdGroups,
   );
   const activeVariationName =
     exposureMetadata?.variationNames?.[variantName as Extract<keyof T, string>];
 
+  const shouldTrackExposure = exposureMetadata?.trackExposure !== false;
+
   useEffect(() => {
-    if (!isActive) {
+    if (!shouldTrackExposure || !isActive) {
       return;
     }
 
     const variationId = String(variantName);
     const assignmentKey = getExposureCacheKey(flagKey, variationId);
 
-    // Emit one exposure per experiment+variation assignment per app session.
     if (trackedExposureAssignments.has(assignmentKey)) {
       return;
     }
@@ -189,15 +212,18 @@ export function useABTest<T extends ABTestVariants>(
       assignmentKey,
       experimentName: exposureMetadata?.experimentName,
       variationName: activeVariationName,
+      countryCode,
       trackEvent,
       createEventBuilder,
     });
   }, [
+    countryCode,
     createEventBuilder,
     activeVariationName,
     exposureMetadata?.experimentName,
     flagKey,
     isActive,
+    shouldTrackExposure,
     trackEvent,
     variantName,
   ]);

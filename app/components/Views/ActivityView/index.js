@@ -49,15 +49,10 @@ import ErrorBoundary from '../ErrorBoundary';
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 import styleSheet from './ActivityView.styles';
 import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
-
-// Lazily loaded so the redesigned Activity screen and its dependencies are not
-// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
-// fully isolated.
-const ActivityScreen = React.lazy(
-  () =>
-    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-    import('../ActivityScreen/ActivityScreen'),
-);
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
+import { ActivityTypeFilter } from '../ActivityScreen/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ActivityScreen from '../ActivityScreen/ActivityScreen';
 
 const LegacyActivityView = () => {
   const { colors } = useTheme();
@@ -107,7 +102,7 @@ const LegacyActivityView = () => {
 
   // Prevent back button returning to confirmation screen in case that users are redirected after a successful transaction.
   const handleNavigateHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS);
+    navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -138,6 +133,10 @@ const LegacyActivityView = () => {
   // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
   // Perps comes after Transactions (0) and Orders (1)
   const perpsTabIndex = useMemo(() => 2, []);
+  const predictTabIndex = useMemo(
+    () => (isPerpsEnabled ? 3 : 2),
+    [isPerpsEnabled],
+  );
 
   const [initialTabIndex] = useState(() => {
     if (params.redirectToOrders) {
@@ -146,15 +145,15 @@ const LegacyActivityView = () => {
     if (isPerpsEnabled && params.redirectToPerpsTransactions) {
       return perpsTabIndex;
     }
+    if (
+      isPredictEnabled &&
+      params.initialTypeFilter === ActivityTypeFilter.Predictions
+    ) {
+      return predictTabIndex;
+    }
     return 0;
   });
   const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
-
-  // Predict comes after Transactions (0), Orders (1), and optionally Perps
-  const predictTabIndex = useMemo(
-    () => (isPerpsEnabled ? 3 : 2),
-    [isPerpsEnabled],
-  );
 
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
@@ -173,6 +172,9 @@ const LegacyActivityView = () => {
       if (params.redirectToPerpsTransactions) {
         nextParams.redirectToPerpsTransactions = false;
       }
+      if (params.initialTypeFilter) {
+        nextParams.initialTypeFilter = undefined;
+      }
       if (Object.keys(nextParams).length > 0) {
         navigation.setParams(nextParams);
       }
@@ -180,6 +182,7 @@ const LegacyActivityView = () => {
       navigation,
       params.redirectToOrders,
       params.redirectToPerpsTransactions,
+      params.initialTypeFilter,
     ]),
   );
 
@@ -306,9 +309,7 @@ const ActivityView = () => {
   );
 
   return isActivityRedesignEnabled ? (
-    <React.Suspense fallback={null}>
-      <ActivityScreen />
-    </React.Suspense>
+    <ActivityScreen />
   ) : (
     <LegacyActivityView />
   );

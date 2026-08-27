@@ -5,7 +5,9 @@ import {
   FeatureId,
   SortOrder,
   UnifiedSwapBridgeEventName,
-  type Quote,
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 import { useSelector } from 'react-redux';
@@ -71,58 +73,57 @@ jest.mock('@metamask/bridge-controller', () => ({
   getNativeAssetForChainId: jest.fn((chainId: string) => ({
     symbol: chainId === '0x1' ? 'ETH' : 'MATIC',
   })),
-  formatProviderLabel: jest.fn((quote: Quote) => quote.bridges[0]),
+  formatProviderLabel: jest.fn(
+    (quote: QuoteResponse['quote']) => quote.protocols[0],
+  ),
 }));
 
 describe('useTrackAllQuotesSortedEvent', () => {
-  const mockQuote = {
+  const mockQuote: QuoteResponse['quote'] = {
     requestId: 'test-request-id',
-    srcChainId: 1,
-    destChainId: 137,
-    srcTokenAmount: '1500000000000000000',
-    destTokenAmount: '3000000000',
-    minDestTokenAmount: '2900000000',
-    bridgeId: 'lifi',
-    srcAsset: {
-      chainId: 1,
-      address: '0x0000000000000000000000000000000000000000',
-      symbol: 'ETH',
-      name: 'Ethereum',
-      decimals: 18,
-      icon: '',
-      assetId: 'eip155:1/slip44:60' as const,
-    },
-    destAsset: {
-      chainId: 137,
-      address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-      symbol: 'USDC',
-      name: 'USD Coin',
-      decimals: 6,
-      icon: '',
-      assetId:
-        'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174' as const,
-    },
-    feeData: {
-      metabridge: {
-        amount: '0',
-        asset: {
-          chainId: 1,
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ethereum',
-          decimals: 18,
-          icon: '',
-          assetId: 'eip155:1/slip44:60' as const,
-        },
+    src: {
+      amount: '1500000000000000000',
+      asset: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        assetId: 'eip155:1/slip44:60' as const,
+        decimals: 18,
       },
     },
-    bridges: ['lifi'],
+    dest: {
+      amount: '3000000000',
+      minAmount: '2900000000',
+      asset: {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        iconUrl: '',
+        assetId:
+          'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174' as const,
+      },
+    },
+    aggregator: 'lifi',
+    feeData: {
+      metabridge: [
+        {
+          amount: '0',
+          asset: {
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+            iconUrl: '',
+            assetId: 'eip155:1/slip44:60' as const,
+          },
+        },
+      ],
+    },
+    protocols: ['lifi'],
     steps: [],
     priceData: {
-      priceImpact: '0.05',
+      priceImpact: { amount: '0.05' },
     },
     gasIncluded: false,
-  } as unknown as Quote;
+  };
 
   const mockLatestBalance = {
     displayBalance: '10',
@@ -225,7 +226,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
   });
 
   describe('event tracking for swap transactions', () => {
-    it('excludes sort_order and best_quote_provider for swap transactions', () => {
+    it('includes sort_order and best_quote_provider for swap transactions', () => {
       mockSelectorValues.isBridge = false; // Swap transaction
 
       const { result } = renderHook(() =>
@@ -238,8 +239,8 @@ describe('useTrackAllQuotesSortedEvent', () => {
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent as jest.Mock
       ).mock.calls[0][1];
 
-      expect(eventData).not.toHaveProperty('sort_order');
-      expect(eventData).not.toHaveProperty('best_quote_provider');
+      expect(eventData).toHaveProperty('sort_order');
+      expect(eventData).toHaveProperty('best_quote_provider');
     });
   });
 
@@ -282,7 +283,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithoutPriceData = {
         ...mockQuote,
         priceData: undefined,
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -301,7 +302,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithoutPriceImpact = {
         ...mockQuote,
         priceData: {},
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -320,9 +321,9 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithStringPriceImpact = {
         ...mockQuote,
         priceData: {
-          priceImpact: '0.123',
+          priceImpact: { amount: '0.123' },
         },
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -343,7 +344,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithGasIncluded = {
         ...mockQuote,
         gasIncluded: true,
-      } as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),
@@ -362,7 +363,7 @@ describe('useTrackAllQuotesSortedEvent', () => {
       const quoteWithGasIncluded7702 = {
         ...mockQuote,
         gasIncluded7702: true,
-      } as unknown as Quote;
+      };
 
       const { result } = renderHook(() =>
         useTrackAllQuotesSortedEvent(mockLatestBalance),

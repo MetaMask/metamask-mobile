@@ -106,6 +106,7 @@ describe('usePerpsHomeActions', () => {
       expect(result.current.error).toBeNull();
       expect(typeof result.current.handleAddFunds).toBe('function');
       expect(typeof result.current.handleWithdraw).toBe('function');
+      expect(typeof result.current.showEligibilityModal).toBe('function');
       expect(typeof result.current.closeEligibilityModal).toBe('function');
     });
   });
@@ -117,6 +118,7 @@ describe('usePerpsHomeActions', () => {
       const initialFunctions = {
         handleAddFunds: result.current.handleAddFunds,
         handleWithdraw: result.current.handleWithdraw,
+        showEligibilityModal: result.current.showEligibilityModal,
         closeEligibilityModal: result.current.closeEligibilityModal,
       };
 
@@ -127,6 +129,9 @@ describe('usePerpsHomeActions', () => {
       );
       expect(initialFunctions.handleWithdraw).toBe(
         result.current.handleWithdraw,
+      );
+      expect(initialFunctions.showEligibilityModal).toBe(
+        result.current.showEligibilityModal,
       );
       expect(initialFunctions.closeEligibilityModal).toBe(
         result.current.closeEligibilityModal,
@@ -433,6 +438,26 @@ describe('usePerpsHomeActions', () => {
   });
 
   describe('eligibility modal management', () => {
+    it('opens eligibility modal and tracks the supplied source', () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      act(() => {
+        result.current.showEligibilityModal(
+          PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        );
+      });
+
+      expect(result.current.isEligibilityModalVisible).toBe(true);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        },
+      );
+    });
+
     it('closes eligibility modal when closeEligibilityModal is called', async () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 

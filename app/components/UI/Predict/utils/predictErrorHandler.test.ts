@@ -4,6 +4,7 @@ import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { Side } from '../types';
 import {
   ensureError,
+  isNetworkError,
   createDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
@@ -23,6 +24,8 @@ jest.mock('../constants/errors', () => ({
     PREDICT_UNKNOWN_ERROR: 'Something went wrong',
     PREDICT_BUY_ORDER_NOT_FULLY_FILLED: 'Buy order not fully filled',
     PREDICT_SELL_ORDER_NOT_FULLY_FILLED: 'Sell order not fully filled',
+    PREDICT_DEPOSIT_FAILED: 'Deposit failed mapped',
+    PREDICT_WITHDRAW_FAILED: 'Withdraw failed mapped',
   }),
 }));
 
@@ -87,6 +90,46 @@ describe('predictErrorHandler', () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toBe('[object Object]');
+    });
+  });
+
+  describe('isNetworkError', () => {
+    it.each([
+      'java.lang.RuntimeException: Cronet failed: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT',
+      'Cronet failed: net::ERR_NAME_NOT_RESOLVED',
+      'net::ERR_INTERNET_DISCONNECTED',
+      'TypeError: Network request failed',
+      'The connection timed out',
+      'Connection was reset',
+      'Request timeout',
+      'The Internet connection appears to be offline.',
+      'Network is unreachable',
+      'Could not resolve host: example.com',
+    ])('returns true for connectivity failure: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(true);
+    });
+
+    it('matches network errors passed as plain strings', () => {
+      expect(isNetworkError('net::ERR_CONNECTION_REFUSED')).toBe(true);
+    });
+
+    it.each([
+      // App-level HTTP/logic errors must still reach Sentry, including
+      // "Failed to fetch X" messages for non-OK responses.
+      'Failed to get positions',
+      'Failed to fetch related tags',
+      'Failed to fetch carousel data',
+      'Address is required',
+      'Order not fully filled',
+      'Unexpected token in JSON',
+      '',
+    ])('returns false for non-network error: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
+    it('returns false for null/undefined', () => {
+      expect(isNetworkError(null)).toBe(false);
+      expect(isNetworkError(undefined)).toBe(false);
     });
   });
 
@@ -158,6 +201,30 @@ describe('predictErrorHandler', () => {
       });
 
       expect(result).toBe('completely unknown');
+    });
+
+    it('maps deposit failed code to human-readable copy', () => {
+      const result = parseErrorMessage({
+        error: new Error(PREDICT_ERROR_CODES.DEPOSIT_FAILED),
+      });
+
+      expect(result).toBe('Deposit failed mapped');
+    });
+
+    it('maps withdraw failed code to human-readable copy', () => {
+      const result = parseErrorMessage({
+        error: new Error(PREDICT_ERROR_CODES.WITHDRAW_FAILED),
+      });
+
+      expect(result).toBe('Withdraw failed mapped');
+    });
+
+    it('falls back to unknown error for unmapped PREDICT_* codes', () => {
+      const result = parseErrorMessage({
+        error: new Error('PREDICT_SOME_NEW_CODE'),
+      });
+
+      expect(result).toBe('Something went wrong');
     });
 
     it('converts string error to message', () => {

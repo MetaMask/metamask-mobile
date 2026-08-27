@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -20,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
@@ -36,8 +38,10 @@ import VipFeeTile, {
   VIP_FEE_TILE_WIDTH,
 } from '../components/Vip/VipFeeTile';
 import VipPointsSection from '../components/Vip/VipPointsSection';
+import VipEquityMultiplierSection from '../components/Vip/VipEquityMultiplierSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
+import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
 import {
   VIP_GOLD_BACKGROUND_MUTED,
   VIP_GOLD_BORDER_DEFAULT,
@@ -54,6 +58,7 @@ import {
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
   INVITE_BUTTON: 'rewards-vip-view-invite-button',
+  TRANSACTIONS_BUTTON: 'rewards-vip-view-transactions-button',
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
   ERROR: 'rewards-vip-view-error',
@@ -79,7 +84,7 @@ const vipTierCardSkeletonStyle = {
 const RewardsVipViewContent: React.FC = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
@@ -106,7 +111,7 @@ const RewardsVipViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewVip, navigation]);
 
@@ -121,6 +126,9 @@ const RewardsVipViewContent: React.FC = () => {
   const handleTiersPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIP_TIERS_VIEW as never);
   }, [navigation]);
+
+  const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
+    useState(false);
 
   if (!canViewVip) {
     return null;
@@ -151,6 +159,13 @@ const RewardsVipViewContent: React.FC = () => {
       ),
     });
   })();
+  const maintainSubline = (() => {
+    const maintainPoints = currentTierDetails?.maintainPointsRequirement;
+    if (maintainPoints == null || maintainPoints === 0) return undefined;
+    return strings('rewards.vip.maintain_this_tier', {
+      points: formatCompactValue(maintainPoints),
+    });
+  })();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -169,6 +184,14 @@ const RewardsVipViewContent: React.FC = () => {
               onPress: () =>
                 navigation.navigate(Routes.REFERRAL_REWARDS_VIEW as never),
               testID: REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON,
+            },
+            {
+              iconName: IconName.Activity,
+              onPress: () =>
+                navigation.navigate(
+                  Routes.REWARDS_VIP_TRANSACTIONS_VIEW as never,
+                ),
+              testID: REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON,
             },
           ]}
         />
@@ -313,7 +336,9 @@ const RewardsVipViewContent: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
+                  currentPoints={dashboard.volume.points}
                   subline={progressSubline}
+                  maintainSubline={maintainSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
                   memberId={referralCode ?? ''}
                 />
@@ -400,13 +425,14 @@ const RewardsVipViewContent: React.FC = () => {
                   perpsVolume: dashboard.localizedText.perpsVolumeTitle,
                   vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
+                onSwapsVolumeInfoPress={() => setIsSwapsVolumeInfoVisible(true)}
               />
 
               {dashboard.computedAt ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-right"
+                  twClassName="text-left px-4"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
                 >
                   {strings('rewards.vip.last_updated', {
@@ -430,11 +456,27 @@ const RewardsVipViewContent: React.FC = () => {
                 equityUnlockedDescription={
                   dashboard.localizedText.equityUnlockedDescription
                 }
+                equityLifetimePointsDescription={
+                  dashboard.localizedText.equityLifetimePointsDescription
+                }
+              />
+              <VipEquityMultiplierSection
+                failedTitle={
+                  dashboard.localizedText.equityMultiplierFailedTitle
+                }
+                failedDescription={
+                  dashboard.localizedText.equityMultiplierFailedDescription
+                }
               />
             </>
           ) : null}
         </ScrollView>
       </SafeAreaView>
+      {isSwapsVolumeInfoVisible ? (
+        <VipSwapsVolumeInfoSheet
+          onClose={() => setIsSwapsVolumeInfoVisible(false)}
+        />
+      ) : null}
     </ErrorBoundary>
   );
 };

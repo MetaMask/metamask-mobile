@@ -59,9 +59,8 @@ const getRestAskPriceForBuyButton = (
   pricesByTokenId: Map<string, GetPriceResponse['results'][number]>,
 ): number => {
   const restEntry = pricesByTokenId.get(token.id);
-  return isValidPrice(restEntry?.entry.sell)
-    ? restEntry.entry.sell
-    : token.price;
+  // entry.buy = best ask = what you pay to buy (see PolymarketProvider.getPrices).
+  return isValidPrice(restEntry?.entry.buy) ? restEntry.entry.buy : token.price;
 };
 
 const applyPricesToOutcomes = (

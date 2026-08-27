@@ -14,7 +14,12 @@ import {
   isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
 
@@ -119,17 +124,19 @@ export const useLatestBalance = (token: {
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       !isCaipChainId(chainId) &&
       selectedAddress &&
       isEthAddress(selectedAddress)
     ) {
-      // Create a unique UUID for this trace to prevent collisions
       const traceId = uuidv4();
+      let traceResult: 'success' | 'error' = 'success';
+
       try {
         trace({
           name: TraceName.BridgeBalancesUpdated,
+          op: TraceOperation.BridgeDataFetch,
           id: traceId,
           data: {
             srcChainId: chainId,
@@ -144,17 +151,21 @@ export const useLatestBalance = (token: {
           token.address,
           chainId,
         );
-        if (atomicBalance && token.decimals) {
+        if (atomicBalance && token.decimals !== undefined) {
           setBalanceIfChanged({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
           });
         }
+      } catch (error) {
+        traceResult = 'error';
+        console.error('Error fetching EVM token balance:', error);
       } finally {
         endTrace({
           name: TraceName.BridgeBalancesUpdated,
           id: traceId,
           timestamp: Date.now(),
+          data: { result: traceResult },
         });
       }
     }
@@ -171,7 +182,7 @@ export const useLatestBalance = (token: {
   const handleNonEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       isNonEvmChainId(chainId) &&
       selectedAddress
@@ -182,7 +193,7 @@ export const useLatestBalance = (token: {
           nonEvmToken.chainId === chainId,
       )?.balance;
 
-      if (displayBalance && token.decimals) {
+      if (displayBalance && token.decimals !== undefined) {
         setBalanceIfChanged({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
@@ -245,7 +256,7 @@ export const useLatestBalance = (token: {
   }, [token.balance, token.decimals]);
 
   const latestBalance = useMemo(() => {
-    if (!token.address || !token.decimals) {
+    if (!token.address || token.decimals === undefined) {
       return undefined;
     }
 

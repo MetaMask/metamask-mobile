@@ -8,6 +8,7 @@ import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 export const PREDICT_LIVE_NOW_SECTION_TEST_IDS = {
   SECTION: PredictHomeSelectorsIDs.LIVE_NOW_SECTION,
   HEADER: 'predict-home-live-now-header',
+  HEADER_CHEVRON: 'predict-home-live-now-header-chevron',
   CAROUSEL: 'predict-home-live-now-carousel',
   CARD_PREFIX: 'predict-home-live-now-card',
   SKELETON_PREFIX: 'predict-home-live-now-skeleton',

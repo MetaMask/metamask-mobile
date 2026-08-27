@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FillType } from '../../types/transactionHistory';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const mockTrackEvent = jest.fn();
@@ -12,58 +12,16 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
   })),
 }));
-
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      header: {},
-      activityItem: {},
-      leftSection: {},
-      iconContainer: {},
-      activityInfo: {},
-      activityType: {},
-      activityAmount: {},
-      rightSection: {},
-      emptyText: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Text: ReactNativeText } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactLib.createElement(ReactNativeText, props, children);
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingSM: 'HeadingSM',
-      BodyMD: 'BodyMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
 
 jest.mock('../PerpsTokenLogo', () => {
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
@@ -184,6 +142,9 @@ describe('PerpsRecentActivityList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -352,7 +313,7 @@ describe('PerpsRecentActivityList', () => {
       });
     });
 
-    it('navigates to position transaction detail when transaction item is pressed', () => {
+    it('navigates to Activity details when transaction item is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
@@ -360,10 +321,12 @@ describe('PerpsRecentActivityList', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[0],
-        },
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[0].id,
+          preloadKey: expect.any(String),
+        }),
       );
     });
 
@@ -374,10 +337,27 @@ describe('PerpsRecentActivityList', () => {
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
       expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[1].id,
+          preloadKey: expect.any(String),
+        }),
+      );
+    });
+
+    it('navigates to the legacy position screen when redesign is disabled', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(() => false);
+
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
+
+      const transactionItem = screen.getByText('Opened long');
+      fireEvent.press(transactionItem.parent?.parent || transactionItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[1],
-        },
+        { transaction: mockTransactions[0] },
       );
     });
 
@@ -750,14 +730,14 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+    it('tracks Activity Details Opened when a trade is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
       fireEvent.press(transactionItem.parent?.parent || transactionItem);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

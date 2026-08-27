@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   FontWeight,
@@ -8,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import {
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
@@ -23,7 +25,7 @@ import VipSplashScreenLayout, {
 } from '../components/Vip/VipSplashScreenLayout';
 
 const RewardsVipRefereeSplashViewContent: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
@@ -38,7 +40,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewReferee) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
       return;
     }
 
@@ -60,12 +62,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
   }, [navigation, subscriptionId]);
 
   const handleNotNow = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+    exitRewardsFlow(navigation);
   }, [navigation]);
 
   if (!canViewReferee || hasAcceptedVipRefereeInvite) {
@@ -104,7 +101,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
 };
 
 const RewardsVipRefereeSplashView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipRefereeSplashView">

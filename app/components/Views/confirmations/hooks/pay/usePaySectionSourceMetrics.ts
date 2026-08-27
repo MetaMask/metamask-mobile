@@ -1,6 +1,9 @@
 import { useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
@@ -9,7 +12,6 @@ import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/select
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useSectionTracking } from './useSectionTracking';
 

@@ -21,6 +21,25 @@ const tokenV3AssetsRegex =
 const tokenV2SupportedNetworksRegex =
   /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
 
+// Per-chain suggested occurrence floors used by TokenDataSource spam filtering
+// and TokensApiClient token-list fetches (AssetsController).
+// e.g. https://token.api.cx.metamask.io/v1/suggestedOccurrenceFloors
+const suggestedOccurrenceFloorsRegex =
+  /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v1\/suggestedOccurrenceFloors(\?.*)?$/;
+
+const SUGGESTED_OCCURRENCE_FLOORS_RESPONSE = {
+  '1': 3,
+  '143': 1,
+  '204': 1,
+  '232': 1,
+  '690': 1,
+  '1329': 1,
+  '4663': 1,
+  '10143': 1,
+  '59144': 1,
+  '98866': 1,
+};
+
 // OHLCV advanced chart (useOHLCVChart) — path includes CAIP asset id, e.g.
 // https://price.api.cx.metamask.io/v3/ohlcv-chart/eip155:8453/erc20:0x...?timePeriod=1d&vsCurrency=usd
 const ohlcvChartRegex =
@@ -74,6 +93,11 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
         ],
         partialSupport: [],
       },
+    },
+    {
+      urlEndpoint: suggestedOccurrenceFloorsRegex,
+      responseCode: 200,
+      response: SUGGESTED_OCCURRENCE_FLOORS_RESPONSE,
     },
     {
       urlEndpoint: ohlcvChartRegex,

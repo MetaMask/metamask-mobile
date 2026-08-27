@@ -33,7 +33,7 @@ describe('ExploreSearchBar', () => {
       );
 
       expect(getByTestId('explore-view-search-button')).toBeDefined();
-      expect(getByText('Search tokens, markets and URLs')).toBeDefined();
+      expect(getByText('Search')).toBeDefined();
     });
 
     it('calls onPress when button is pressed', () => {
@@ -206,6 +206,71 @@ describe('ExploreSearchBar', () => {
         TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
       );
 
+      expect(input.props.autoFocus).toBe(true);
+    });
+
+    it('does not auto-focus the TextInput when autoFocus is disabled', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          autoFocus={false}
+        />,
+      );
+
+      const input = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      );
+
+      expect(input.props.autoFocus).toBe(false);
+    });
+
+    it('matches the keyboard appearance to the theme', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const input = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      );
+
+      expect(input.props.keyboardAppearance).toBe('light');
+    });
+
+    it('turns autoFocus on when the caller enables it after mount', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const renderBar = (autoFocus: boolean) => (
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          autoFocus={autoFocus}
+        />
+      );
+
+      const { getByTestId, rerender } = render(renderBar(false));
+
+      rerender(renderBar(true));
+
+      const input = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      );
       expect(input.props.autoFocus).toBe(true);
     });
   });

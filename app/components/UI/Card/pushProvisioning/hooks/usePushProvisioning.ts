@@ -21,7 +21,7 @@ import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { CardActions } from '../../util/metrics';
+import { CardActions, withCardProvider } from '../../util/metrics';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
@@ -249,11 +249,13 @@ export function usePushProvisioning(
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED)
-                .addProperties({
-                  card_provider_id: cardAdapterProviderIdRef.current,
-                  wallet_type: walletAdapterTypeRef.current,
-                  token_id: event.tokenId,
-                })
+                .addProperties(
+                  withCardProvider(cardAdapterProviderIdRef.current, {
+                    card_provider_id: cardAdapterProviderIdRef.current,
+                    wallet_type: walletAdapterTypeRef.current,
+                    token_id: event.tokenId,
+                  }),
+                )
                 .build(),
             );
           } catch {
@@ -282,12 +284,14 @@ export function usePushProvisioning(
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_FAILED)
-                .addProperties({
-                  card_provider_id: cardAdapterProviderIdRef.current,
-                  wallet_type: walletAdapterTypeRef.current,
-                  error_code: activationError.code,
-                  source: 'activation_listener',
-                })
+                .addProperties(
+                  withCardProvider(cardAdapterProviderIdRef.current, {
+                    card_provider_id: cardAdapterProviderIdRef.current,
+                    wallet_type: walletAdapterTypeRef.current,
+                    error_code: activationError.code,
+                    source: 'activation_listener',
+                  }),
+                )
                 .build(),
             );
           } catch {
@@ -313,11 +317,13 @@ export function usePushProvisioning(
       try {
         trackEvent(
           createEventBuilder(event)
-            .addProperties({
-              card_provider_id: cardAdapter?.providerId,
-              wallet_type: walletAdapter?.walletType,
-              ...properties,
-            })
+            .addProperties(
+              withCardProvider(cardAdapter?.providerId, {
+                card_provider_id: cardAdapter?.providerId,
+                wallet_type: walletAdapter?.walletType,
+                ...properties,
+              }),
+            )
             .build(),
         );
       } catch {

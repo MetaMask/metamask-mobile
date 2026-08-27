@@ -16,6 +16,7 @@ interface PerpsOrderProviderProps {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
+  fallbackAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
   existingPosition?: Position;
@@ -28,6 +29,7 @@ export const PerpsOrderProvider = ({
   initialAsset,
   initialDirection,
   initialAmount,
+  fallbackAmount,
   initialLeverage,
   initialType,
   existingPosition,
@@ -37,6 +39,7 @@ export const PerpsOrderProvider = ({
     initialAsset,
     initialDirection,
     initialAmount,
+    fallbackAmount,
     initialLeverage: initialLeverage ?? existingPosition?.leverage?.value,
     initialType,
     effectiveAvailableBalance,

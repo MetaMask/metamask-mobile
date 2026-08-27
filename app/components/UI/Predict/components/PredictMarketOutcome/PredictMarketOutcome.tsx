@@ -7,9 +7,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { memo } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -26,16 +28,14 @@ import {
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import {
   formatCents,
   formatPercentage,
   formatVolume,
 } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
@@ -59,14 +59,14 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
   const { openBuySheet } = usePredictPreviewSheet();
 
+  // Odds use the mid price (token.price), matching the chart and Polymarket.
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
 
@@ -77,6 +77,10 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
     }
     return '0%';
   };
+
+  // BUY CTAs use the best ask (what the user actually pays), not the odds mid.
+  const getTokenBuyPrice = (token: PredictOutcomeToken): number =>
+    getDisplayBuyPrice(token) ?? token.price;
 
   const getTitle = (): string => {
     if (isClosed && outcomeToken) {
@@ -121,7 +125,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
             <Image
               source={{ uri: getImageUrl() }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Box twClassName="w-full h-full bg-muted" />
@@ -192,7 +196,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {outcome.tokens[0].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[0].price)}
+                {formatCents(getTokenBuyPrice(outcome.tokens[0]))}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -209,7 +213,7 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {outcome.tokens[1].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[1].price)}
+                {formatCents(getTokenBuyPrice(outcome.tokens[1]))}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}

@@ -174,6 +174,25 @@ describe('PerpsRelatedMarkets', () => {
     ).toBeNull();
   });
 
+  it('renders nothing for an uncategorised HIP-3 market (controller "new" bucket)', () => {
+    // The controller classifies an uncategorised HIP-3 market as 'new', but
+    // mobile's "New" means "listed in the last 30 days" — this must not
+    // surface a Related markets rail labeled "New".
+    const currentMarket = createMarket('builder:XYZ', { isHip3: true });
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([
+        currentMarket,
+        createMarket('builder:ABC', { isHip3: true }),
+      ]),
+    );
+
+    render(<PerpsRelatedMarkets currentMarket={currentMarket} />);
+
+    expect(
+      screen.queryByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
+    ).toBeNull();
+  });
+
   it('caps markets at 12 pills', () => {
     const markets = Array.from({ length: 15 }, (_, i) =>
       createMarket(`MKT${i}`),

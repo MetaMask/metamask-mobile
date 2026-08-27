@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Icon,
   IconColor,
   IconName,
@@ -20,26 +19,59 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
-import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatus } from './CampaignTile.utils';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { navigateToRewardsRoute } from '../../utils';
+import {
+  buildMoneyAccountSweepstakesTileCampaign,
+  getMoneyAccountSweepstakesSeries,
+} from '../../utils/moneyAccountSweepstakesSeries';
+
+/**
+ * Collapse MONEY_ACCOUNT_SWEEPSTAKES into one series tile (same as CampaignsView),
+ * then return featured campaigns for the dashboard preview.
+ */
+export function getFeaturedPreviewCampaigns(
+  campaigns: CampaignDto[],
+): CampaignDto[] {
+  const series = getMoneyAccountSweepstakesSeries(campaigns);
+  const seriesTile = buildMoneyAccountSweepstakesTileCampaign(series);
+  const anyMasFeatured = series.campaigns.some((c) => c.featured);
+  let seriesPlaced = false;
+  const collapsed: CampaignDto[] = [];
+
+  for (const campaign of campaigns) {
+    if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+      if (!seriesPlaced && seriesTile && anyMasFeatured) {
+        seriesPlaced = true;
+        collapsed.push({ ...seriesTile, featured: true });
+      }
+      continue;
+    }
+    collapsed.push(campaign);
+  }
+
+  return collapsed.filter((c) => c.featured);
+}
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
- * All campaigns marked `featured` are displayed, in API order. Upcoming campaigns
- * use {@link CampaignReminder}; active or complete campaigns use {@link CampaignTile}.
+ * All campaigns marked `featured` are displayed as the standard image campaign
+ * card used throughout Rewards, in API order.
+ * Consecutive MONEY_ACCOUNT_SWEEPSTAKES campaigns collapse to a single tile.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
   const featuredCampaigns = useMemo(
-    (): CampaignDto[] => (campaigns ?? []).filter((c) => c.featured),
+    (): CampaignDto[] => getFeaturedPreviewCampaigns(campaigns ?? []),
     [campaigns],
   );
 
@@ -54,24 +86,21 @@ const CampaignsPreview: React.FC = () => {
       twClassName="gap-3 p-4"
       testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
     >
-      <Pressable onPress={handleNavigateToCampaigns}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-            <ActivityIndicator size="small" color={colors.primary.default} />
-          )}
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.campaigns_preview.title')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
+      <Pressable
+        onPress={handleNavigateToCampaigns}
+        style={tw.style('flex-row items-center gap-1')}
+      >
+        {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
+          <ActivityIndicator size="small" color={colors.primary.default} />
+        )}
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('rewards.campaigns_preview.title')}
+        </Text>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Md}
+          color={IconColor.IconAlternative}
+        />
       </Pressable>
 
       {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
@@ -87,13 +116,9 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaigns.map((campaign) =>
-        getCampaignStatus(campaign) === 'upcoming' ? (
-          <CampaignReminder key={campaign.id} campaign={campaign} />
-        ) : (
-          <CampaignTile key={campaign.id} campaign={campaign} />
-        ),
-      )}
+      {featuredCampaigns.map((campaign) => (
+        <CampaignTile key={campaign.id} campaign={campaign} />
+      ))}
     </Box>
   );
 };

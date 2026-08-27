@@ -34,6 +34,11 @@ import {
   VAULT_ERROR,
   DENY_PIN_ERROR_ANDROID,
 } from './constants';
+import {
+  LOGIN_APP_START_TYPE,
+  LOGIN_CONTENT_STATE,
+  resetLoginAppStartTypeForTesting,
+} from './loginPerformanceTags';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
@@ -215,13 +220,6 @@ jest.mock('../../../util/test/utils', () => ({
   hasTestOverrides: false,
 }));
 
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: () => null,
-  Fit: { Contain: 'contain' },
-  Alignment: { Center: 'center' },
-}));
-
 jest.mock('../../UI/ScreenshotDeterrent', () => ({
   ScreenshotDeterrent: () => null,
 }));
@@ -273,6 +271,18 @@ jest.mock('../../../util/trace', () => {
     endTrace: jest.fn(),
   };
 });
+
+const HOMEPAGE_READY_TRACE_TOKEN = 1;
+const mockStartHomepageReadyTrace = jest.fn(
+  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+);
+const mockCancelHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  startHomepageReadyTrace: (...args: unknown[]) =>
+    mockStartHomepageReadyTrace(...args),
+  cancelHomepageReadyTrace: (...args: unknown[]) =>
+    mockCancelHomepageReadyTrace(...args),
+}));
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
@@ -345,6 +355,7 @@ describe('Login', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLoginAppStartTypeForTesting();
     Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
     mockReplace.mockClear();
@@ -1334,6 +1345,37 @@ describe('Login', () => {
       }
     });
 
+    it('shows user-friendly error for Android biometric lockout', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error('code: 7, msg: Too many attempts. Try again later.'),
+        );
+
+        const { getByTestId, getByText } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+
+        await waitFor(() => {
+          expect(
+            getByText(strings('login.biometric_too_many_attempts')),
+          ).toBeOnTheScreen();
+        });
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
     it('does not show error UI for iOS biometric user cancel', async () => {
       jest.useRealTimers();
       try {
@@ -1764,7 +1806,27 @@ describe('Login', () => {
   });
 
   describe('Trace integration', () => {
-    it('calls trace for AuthenticateUser during login', async () => {
+    it('starts LoginUserInteraction with locked and app_start_type tags', () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+
+      renderWithProvider(<Login />);
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.LoginUserInteraction,
+        op: TraceOperation.Login,
+        tags: {
+          locked: true,
+          app_start_type: LOGIN_APP_START_TYPE.COLD,
+        },
+      });
+    });
+
+    it('ends LoginUserInteraction with content_state on password unlock', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -1775,19 +1837,115 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockTrace).toHaveBeenCalledTimes(2);
-      expect(mockTrace).toHaveBeenNthCalledWith(1, {
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.LoginUserInteraction,
-        op: TraceOperation.Login,
+        data: {
+          success: true,
+          content_state: LOGIN_CONTENT_STATE.FILLED,
+        },
       });
-      expect(mockTrace).toHaveBeenNthCalledWith(
-        2,
+      expect(mockTrace).toHaveBeenCalledWith(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          tags: {
+            locked: false,
+            app_start_type: LOGIN_APP_START_TYPE.COLD,
+          },
         },
         expect.any(Function),
       );
+    });
+
+    it('ends LoginUserInteraction on device authentication unlock', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: defaultCapabilities,
+        isLoading: false,
+      });
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockResolvedValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
+
+      await act(async () => {
+        fireEvent.press(biometryButton);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.LoginUserInteraction,
+        data: {
+          success: true,
+          content_state: LOGIN_CONTENT_STATE.FILLED,
+        },
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        {
+          name: TraceName.LoginBiometricAuthentication,
+          op: TraceOperation.Login,
+          tags: {
+            locked: false,
+            app_start_type: LOGIN_APP_START_TYPE.COLD,
+          },
+        },
+        expect.any(Function),
+      );
+    });
+
+    it('cancels Homepage Ready when password unlock fails', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'wrong-password');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
+      });
+    });
+
+    it('cancels Homepage Ready when device authentication fails', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: defaultCapabilities,
+        isLoading: false,
+      });
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        );
+      });
+
+      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
+      });
     });
   });
 

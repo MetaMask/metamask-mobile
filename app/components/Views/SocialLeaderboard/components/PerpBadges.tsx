@@ -50,7 +50,7 @@ const PerpBadges: React.FC<PerpBadgesProps> = ({
           testID={testID ? `${testID}-leverage` : undefined}
         />
       ) : null}
-      <Box twClassName="bg-muted rounded px-1.5 py-0.5">
+      <Box twClassName="bg-muted rounded-md px-1.5 self-center">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}

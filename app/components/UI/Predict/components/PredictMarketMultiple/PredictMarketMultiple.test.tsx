@@ -180,6 +180,27 @@ describe('PredictMarketMultiple', () => {
     });
   });
 
+  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketMultiple
+        market={mockMarket}
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    const buttons = UNSAFE_getAllByType(Button);
+    fireEvent.press(buttons[0]);
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
   it('handle missing or invalid market data gracefully', () => {
     const marketWithMissingData: PredictMarket = {
       ...mockMarket,
@@ -369,6 +390,21 @@ describe('PredictMarketMultiple', () => {
         image: mockMarket.image,
       },
     });
+  });
+
+  it('does not navigate to market details when card press is disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketMultiple
+        market={mockMarket}
+        cardPressDisabled
+        testID="predict-market-multiple-card"
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('predict-market-multiple-card'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('checks eligibility before balance for Yes button', () => {

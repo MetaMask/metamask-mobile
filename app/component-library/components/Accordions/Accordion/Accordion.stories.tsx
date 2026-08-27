@@ -39,7 +39,7 @@ export default AccordionMeta;
 
 export const Accordion = {
   render: (
-    args: JSX.IntrinsicAttributes &
+    args: React.JSX.IntrinsicAttributes &
       AccordionProps & { children?: React.ReactNode },
   ) => (
     <AccordionComponent {...args}>

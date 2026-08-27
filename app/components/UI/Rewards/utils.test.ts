@@ -4,7 +4,11 @@ import {
   convertInternalAccountToCaipAccountId,
   deriveAccountMetricProps,
   getActiveRouteNameFromNavigationState,
+  exitRewardsFlow,
+  navigateToRewardsRoute,
+  getBetaSupportUrl,
 } from './utils';
+import Routes from '../../../constants/navigation/Routes';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -243,6 +247,69 @@ describe('Rewards Utils', () => {
       });
 
       expect(routeName).toBeUndefined();
+    });
+  });
+
+  describe('navigateToRewardsRoute', () => {
+    it('navigates into the rewards flow with the target screen and params', () => {
+      const mockNavigate = jest.fn();
+
+      navigateToRewardsRoute(
+        { navigate: mockNavigate },
+        'RewardsCampaignMechanics',
+        {
+          campaignId: 'campaign-1',
+        },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: 'RewardsCampaignMechanics',
+        params: { campaignId: 'campaign-1' },
+      });
+    });
+  });
+
+  describe('exitRewardsFlow', () => {
+    it('goes back when the flow can be popped from the root stack', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigate = jest.fn();
+      const navigation = {
+        canGoBack: () => true,
+        goBack: mockGoBack,
+        navigate: mockNavigate,
+      };
+
+      exitRewardsFlow(navigation as never);
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to the rewards tab when there is no back route', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigate = jest.fn();
+      const navigation = {
+        canGoBack: () => false,
+        goBack: mockGoBack,
+        navigate: mockNavigate,
+      };
+
+      exitRewardsFlow(navigation as never);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.REWARDS_VIEW,
+      });
+    });
+  });
+
+  describe('getBetaSupportUrl', () => {
+    it('returns a string', () => {
+      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
+      // time only, so under Jest this always resolves to the beta URL; the
+      // empty-string (non-beta) branch is exercised via call-site mocking in
+      // the components that consume this helper.
+      expect(typeof getBetaSupportUrl()).toBe('string');
     });
   });
 

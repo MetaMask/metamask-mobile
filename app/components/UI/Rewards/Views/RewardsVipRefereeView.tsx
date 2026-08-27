@@ -1,14 +1,20 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
+  IconColor,
+  IconName,
   Skeleton,
   Text,
   TextColor,
@@ -19,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow, getBetaSupportUrl } from '../utils';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -35,10 +42,12 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
+import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
 import {
   VIP_GOLD_BACKGROUND_MUTED,
   VIP_GOLD_BORDER_DEFAULT,
@@ -57,6 +66,7 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-referee-view-error',
   REFERRED_BY_CARD: 'rewards-vip-referee-view-referred-by-card',
   SWAPS_VOLUME: 'rewards-vip-referee-view-swaps-volume',
+  SWAPS_VOLUME_INFO: 'rewards-vip-referee-view-swaps-volume-info',
   PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
   POINTS_TO: 'rewards-vip-referee-view-points-to',
   LAST_UPDATED: 'rewards-vip-referee-view-last-updated',
@@ -72,8 +82,9 @@ const referredByTextStyle = { color: VIP_GOLD_TEXT_MUTED };
 const RewardsVipRefereeViewContent: React.FC = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -102,7 +113,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewReferee) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewReferee, navigation]);
 
@@ -124,25 +135,45 @@ const RewardsVipRefereeViewContent: React.FC = () => {
       return;
     }
 
-    let supportBaseUrl;
+    const openWebview = (url: string) =>
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportBaseUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const betaSupportUrl = getBetaSupportUrl();
 
-    supportBaseUrl = supportBaseUrl || METAMASK_SUPPORT_URL;
+    if (betaSupportUrl) {
+      openWebview(buildVipPrioritySupportUrl(accountAddress, betaSupportUrl));
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+      return;
+    }
 
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: buildVipPrioritySupportUrl(accountAddress, supportBaseUrl),
-        title: strings('app_settings.contact_support'),
-      },
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+    const vipSupportUrl = buildVipPrioritySupportUrl(
+      accountAddress,
+      METAMASK_SUPPORT_URL,
     );
-  }, [accountAddress, createEventBuilder, navigation, trackEvent]);
+
+    openSupportWithConsent(openWebview, vipSupportUrl, () => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+    });
+  }, [
+    accountAddress,
+    createEventBuilder,
+    navigation,
+    trackEvent,
+    openSupportWithConsent,
+  ]);
+
+  const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
+    useState(false);
 
   if (!canViewReferee) {
     return null;
@@ -271,12 +302,30 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                     twClassName="flex-1"
                     testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName="gap-1"
                     >
-                      {strings('rewards.vip.referee_swaps_volume_label')}
-                    </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('rewards.vip.referee_swaps_volume_label')}
+                      </Text>
+                      <ButtonIcon
+                        iconName={IconName.Info}
+                        iconProps={{ color: IconColor.IconAlternative }}
+                        size={ButtonIconSize.Sm}
+                        onPress={() => setIsSwapsVolumeInfoVisible(true)}
+                        accessibilityLabel={strings(
+                          'rewards.vip.swaps_volume_info_label',
+                        )}
+                        testID={
+                          REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME_INFO
+                        }
+                      />
+                    </Box>
                     <Text
                       variant={TextVariant.HeadingSm}
                       fontWeight={FontWeight.Bold}
@@ -362,6 +411,11 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           ) : null}
         </Box>
       </SafeAreaView>
+      {isSwapsVolumeInfoVisible ? (
+        <VipSwapsVolumeInfoSheet
+          onClose={() => setIsSwapsVolumeInfoVisible(false)}
+        />
+      ) : null}
     </ErrorBoundary>
   );
 };

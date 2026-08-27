@@ -145,6 +145,38 @@ describe('getAmountData', () => {
     expect(buildDepositBatchMock).not.toHaveBeenCalled();
   });
 
+  it('throws a prefixed error when buildMoneyAccountDepositBatch fails', async () => {
+    buildDepositBatchMock.mockRejectedValueOnce(
+      new Error('previewDeposit reverted'),
+    );
+
+    await expect(
+      getAmountData({ amount: '5000000', transaction: buildTransaction() }),
+    ).rejects.toThrow(
+      'Update Amount Data: Money Account Deposit: previewDeposit reverted',
+    );
+  });
+
+  it('parses a CALL_EXCEPTION into a short message', async () => {
+    const callError = Object.assign(
+      new Error(
+        'call revert exception (method="previewDeposit(address,uint256,address,address)", reason="Deposit not allowed", code=CALL_EXCEPTION)',
+      ),
+      {
+        code: 'CALL_EXCEPTION',
+        method: 'previewDeposit(address,uint256,address,address)',
+        reason: 'Deposit not allowed',
+      },
+    );
+    buildDepositBatchMock.mockRejectedValueOnce(callError);
+
+    await expect(
+      getAmountData({ amount: '5000000', transaction: buildTransaction() }),
+    ).rejects.toThrow(
+      'Update Amount Data: Money Account Deposit: eth_call failed - previewDeposit - Deposit not allowed',
+    );
+  });
+
   it('handles direct moneyAccountDeposit type (non-batch)', async () => {
     const result = await getAmountData({
       amount: '5000000',

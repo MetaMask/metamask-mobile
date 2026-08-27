@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
 import type { PredictBuyPreviewProps } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
@@ -18,6 +19,25 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetryWithBestPrice = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
+let mockRetryableAttempt:
+  | {
+      attemptId: string;
+      amountUsd: number;
+      paymentMethod: 'pay_with_any_token' | 'predict_balance';
+    }
+  | undefined;
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      getRetryablePredictBuyAttempt: () => mockRetryableAttempt,
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
 
 let mockPayWithAnyTokenEnabled = true;
 let mockFakOrdersEnabled = false;
@@ -32,7 +52,7 @@ let mockErrorMessageSource:
   | 'order_error'
   | undefined;
 let mockBuyErrorBanner: {
-  variant: 'price_changed' | 'order_failed';
+  variant: 'price_changed' | 'order_failed' | 'payment_failed';
   title: string;
   description: string;
 } | null = null;
@@ -84,6 +104,7 @@ jest.mock('../../utils/format', () => ({
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     isPlacingOrder: mockIsPlacingOrder,
+    activeOrder: null,
   }),
 }));
 
@@ -103,20 +124,39 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: {
       sharePrice: 0.62,
+      maxAmountSpent: 20,
       minAmountReceived: 24,
+      fees: {
+        metamaskFee: 0.4,
+        providerFee: 0.4,
+        marketFee: 0.2,
+        totalFee: 0.8,
+        totalFeePercentage: 4,
+        collector: '0x0',
+      },
     },
     error: null,
     isCalculating: mockIsPreviewCalculating,
   }),
 }));
 
-jest.mock('../../hooks/usePredictOrderRetry', () => ({
-  usePredictOrderRetry: () => ({
-    retrySheetRef: { current: null },
-    retrySheetVariant: 'busy',
-    isRetrying: false,
-    handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
+  usePredictMaxBetAmount: () => ({
+    maxBetAmount: 9.52,
+    isLoading: false,
   }),
+}));
+
+const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
+  retrySheetRef: { current: null },
+  retrySheetVariant: 'busy',
+  isRetrying: false,
+  handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+}));
+
+jest.mock('../../hooks/usePredictOrderRetry', () => ({
+  usePredictOrderRetry: (...args: unknown[]) =>
+    mockUsePredictOrderRetry(...args),
 }));
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
@@ -130,11 +170,15 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
     availableBalance: 10,
     isBalanceLoading: false,
+    isPredictBalanceSelected: true,
   }),
 }));
 
+let mockCurrentValue = 20;
+let mockIsOrderNotFilled = false;
+
 const mockUsePredictBuyInputState = jest.fn((..._args: unknown[]) => ({
-  currentValue: 20,
+  currentValue: mockCurrentValue,
   setCurrentValue: mockSetCurrentValue,
   currentValueUSDString: '$20.00',
   setCurrentValueUSDString: mockSetCurrentValueUSDString,
@@ -151,6 +195,9 @@ jest.mock('./hooks/usePredictBuyInputState', () => ({
     mockUsePredictBuyInputState(...args),
 }));
 
+let mockBlockingPayAlertMessage: string | null = null;
+let mockHasBlockingPayAlerts = false;
+
 jest.mock('./hooks/usePredictBuyInfo', () => ({
   usePredictBuyInfo: () => ({
     toWin: 24,
@@ -161,6 +208,8 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     depositFee: 3,
     rewardsFeeAmount: 5,
     totalPayForPredictBalance: 20,
+    hasBlockingPayAlerts: mockHasBlockingPayAlerts,
+    blockingPayAlertMessage: mockBlockingPayAlertMessage,
   }),
 }));
 
@@ -185,15 +234,17 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
   }),
 }));
 
+const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
+  errorMessage: mockErrorMessage,
+  errorMessageSource: mockErrorMessageSource,
+  buyErrorBanner: mockBuyErrorBanner,
+  isOrderNotFilled: mockIsOrderNotFilled,
+  resetOrderNotFilled: mockResetOrderNotFilled,
+  clearBuyErrorBanner: mockClearBuyErrorBanner,
+}));
+
 jest.mock('./hooks/usePredictBuyError', () => ({
-  usePredictBuyError: () => ({
-    errorMessage: mockErrorMessage,
-    errorMessageSource: mockErrorMessageSource,
-    buyErrorBanner: mockBuyErrorBanner,
-    isOrderNotFilled: false,
-    resetOrderNotFilled: mockResetOrderNotFilled,
-    clearBuyErrorBanner: mockClearBuyErrorBanner,
-  }),
+  usePredictBuyError: (...args: unknown[]) => mockUsePredictBuyError(...args),
 }));
 
 jest.mock('./hooks/usePredictBuyActions', () => ({
@@ -253,16 +304,22 @@ jest.mock('./components/PredictBuyError', () => {
 });
 
 jest.mock('./components/PredictBuyErrorBanner', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
   return function MockPredictBuyErrorBanner({
     variant,
     title,
     description,
+    actionLabel,
+    onActionPress,
+    actionTestID,
     testID,
   }: {
     variant: string;
     title: string;
     description: string;
+    actionLabel?: string;
+    onActionPress?: () => void;
+    actionTestID?: string;
     testID?: string;
   }) {
     return (
@@ -270,6 +327,14 @@ jest.mock('./components/PredictBuyErrorBanner', () => {
         <Text testID={`${testID ?? 'banner'}-variant`}>{variant}</Text>
         <Text testID={`${testID ?? 'banner'}-title`}>{title}</Text>
         <Text testID={`${testID ?? 'banner'}-description`}>{description}</Text>
+        {actionLabel && onActionPress ? (
+          <Pressable
+            testID={actionTestID ?? `${testID ?? 'banner'}-action`}
+            onPress={onActionPress}
+          >
+            <Text>{actionLabel}</Text>
+          </Pressable>
+        ) : null}
       </View>
     );
   };
@@ -439,6 +504,11 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
     mockIsPaymentSelectorNavigationLocked = false;
+    mockBlockingPayAlertMessage = null;
+    mockHasBlockingPayAlerts = false;
+    mockCurrentValue = 20;
+    mockIsOrderNotFilled = false;
+    mockRetryableAttempt = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -459,7 +529,7 @@ describe('PredictBuyWithAnyToken', () => {
 
     expect(screen.getByTestId('predict-buy-preview-header')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
-      'Amount Section $10.00 placing-false',
+      'Amount Section $9.52 placing-false',
     );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       /disabled-false/,
@@ -478,6 +548,35 @@ describe('PredictBuyWithAnyToken', () => {
     expect(
       screen.queryByTestId('predict-fee-breakdown-sheet'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('cancels a retryable attempt when the user changes the amount', () => {
+    mockIsOrderNotFilled = true;
+    mockRetryableAttempt = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+    const { rerender } = renderWithProvider(<PredictBuyWithAnyToken />);
+
+    mockCurrentValue = 21;
+    rerender(<PredictBuyWithAnyToken />);
+
+    expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes the controller retryable attempt to the retry hook', () => {
+    mockRetryableAttempt = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+
+    renderWithProvider(<PredictBuyWithAnyToken />);
+
+    expect(mockUsePredictOrderRetry).toHaveBeenCalledWith(
+      expect.objectContaining({ attempt: mockRetryableAttempt }),
+    );
   });
 
   it('hides the pay with row when the feature flag is disabled', () => {
@@ -502,7 +601,7 @@ describe('PredictBuyWithAnyToken', () => {
     renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
-      'Amount Section $10.00 placing-true',
+      'Amount Section $9.52 placing-true',
     );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       /disabled-true/,
@@ -624,6 +723,37 @@ describe('PredictBuyWithAnyToken', () => {
       expect(
         screen.getByTestId('predict-buy-preview-order-failed-banner'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders payment_failed banner with Add funds action and keeps Retry as main CTA', () => {
+      mockBuyErrorBanner = {
+        variant: 'payment_failed',
+        title: "Payment didn't go through",
+        description: "We couldn't convert your USDC.",
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(
+        screen.getByTestId('predict-buy-preview-payment-failed-banner'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-payment-failed-add-funds'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
+        /mode-retry/,
+      );
+
+      fireEvent.press(
+        screen.getByTestId('predict-buy-preview-payment-failed-add-funds'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: { autoDeposit: true },
+        }),
+      );
     });
 
     it('routes the action button to handleRetryWithBestPrice when banner is active', () => {
@@ -983,6 +1113,25 @@ describe('PredictBuyWithAnyToken', () => {
       expect(
         screen.getByTestId('predict-buy-preview-order-failed-banner'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('blocking payment alerts', () => {
+    it('forwards the shared no-pay-token-quotes message to usePredictBuyError', () => {
+      mockHasBlockingPayAlerts = true;
+      mockBlockingPayAlertMessage = strings(
+        'alert_system.no_pay_token_quotes.message',
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken />);
+
+      expect(mockUsePredictBuyError).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          blockingPayAlertMessage: strings(
+            'alert_system.no_pay_token_quotes.message',
+          ),
+        }),
+      );
     });
   });
 });

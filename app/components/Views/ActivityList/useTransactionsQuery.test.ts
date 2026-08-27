@@ -34,7 +34,7 @@ describe('useTransactionsQuery', () => {
     jest.clearAllMocks();
   });
 
-  it('uses the selected account-group EVM address and enabled networks', () => {
+  it('uses the selected account-group EVM address and configured networks', () => {
     const excludedTxHashes = new Set(['0xskip']);
     mockUseSelector
       .mockReturnValueOnce({ address: '0xGroupAddress' })

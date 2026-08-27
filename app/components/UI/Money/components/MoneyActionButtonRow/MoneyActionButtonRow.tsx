@@ -43,6 +43,7 @@ const MoneyActionButtonRow = ({
       onPress={add.onPress}
       isDisabled={add.disabled}
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
+      twClassName="py-3"
       style={styles.buttonContainer}
     />
     <MainActionButton
@@ -51,6 +52,7 @@ const MoneyActionButtonRow = ({
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
+      twClassName="py-3"
       style={styles.buttonContainer}
     />
     <MainActionButton
@@ -59,6 +61,7 @@ const MoneyActionButtonRow = ({
       onPress={card.onPress}
       isDisabled={card.disabled}
       testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
+      twClassName="py-3"
       style={styles.buttonContainer}
     />
   </Box>

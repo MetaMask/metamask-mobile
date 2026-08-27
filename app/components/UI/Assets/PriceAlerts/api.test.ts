@@ -7,8 +7,24 @@ import {
   createAlert,
   deleteAlert,
   updateAlert,
-  useSavePriceAlert,
+  createPercentAlert,
+  updatePercentAlert,
+  deletePercentAlert,
+  updateAlertByType,
+  deleteAlertByType,
+  fetchSupportedChains,
+  addWatchlistAlerts,
+  removeWatchlistAlerts,
+  priceAlertsQueryKey,
+  assertOkResponse,
+  useSubmitPriceAlert,
+  useSubmitPercentAlert,
 } from './api';
+import type {
+  AbsolutePriceAlert,
+  Alert,
+  PercentChangeAlert,
+} from './constants';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -38,7 +54,8 @@ jest.mock('../../../../core/AppConstants', () => ({
   PRICE_ALERTS_API: { URL: 'https://price-alerts.api.cx.metamask.io' },
 }));
 
-const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/alerts';
+const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/v1/alerts';
+const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -91,6 +108,71 @@ describe('authenticatedFetch', () => {
     await fetchAlerts('eip155:1/slip44:60');
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(init.credentials).toBe('omit');
+  });
+});
+
+describe('fetchSupportedChains', () => {
+  it('calls supported-chains endpoint without authentication headers', async () => {
+    await fetchSupportedChains();
+    expect(mockGetBearerToken).not.toHaveBeenCalled();
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(
+      (init.headers as Record<string, string>).Authorization,
+    ).toBeUndefined();
+    expect((init.headers as Record<string, string>).Accept).toBe(
+      'application/json',
+    );
+    expect(init.credentials).toBe('omit');
+  });
+
+  it('returns the raw Response from fetch', async () => {
+    const response = makeOkResponse({ chains: ['eip155:1'] });
+    mockFetch.mockResolvedValue(response);
+    expect(await fetchSupportedChains()).toBe(response);
+  });
+});
+
+const WATCHLIST_URL = `${ALERTS_URL}/watchlist`;
+
+describe('addWatchlistAlerts', () => {
+  it('POSTs assetIds JSON body to /v1/alerts/watchlist', async () => {
+    const assetIds = [
+      'eip155:1/slip44:60',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111112',
+    ];
+    await addWatchlistAlerts(assetIds);
+    expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(WATCHLIST_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify({ assetIds }));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
+  });
+
+  it('preserves Solana mint casing in the request body', async () => {
+    const mint =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    await addWatchlistAlerts([mint]);
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toContain(mint);
+    expect(init.body).not.toContain(mint.toLowerCase());
+  });
+});
+
+describe('removeWatchlistAlerts', () => {
+  it('DELETEs with the same assetIds JSON body (not query params)', async () => {
+    const assetIds = ['eip155:1/erc20:0xABCDEF'];
+    await removeWatchlistAlerts(assetIds);
+    expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(WATCHLIST_URL);
+    expect(init.method).toBe('DELETE');
+    expect(init.body).toBe(JSON.stringify({ assetIds }));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
   });
 });
 
@@ -201,10 +283,65 @@ describe('updateAlert', () => {
   });
 });
 
-describe('useSavePriceAlert', () => {
+describe('priceAlertsQueryKey', () => {
+  it('returns a stable tuple with the assetId', () => {
+    expect(priceAlertsQueryKey('eip155:1/slip44:60')).toEqual([
+      'priceAlerts',
+      'eip155:1/slip44:60',
+    ]);
+  });
+
+  it('produces different keys for different assets', () => {
+    const a = priceAlertsQueryKey('eip155:1/slip44:60');
+    const b = priceAlertsQueryKey('eip155:1/erc20:0xABC');
+    expect(a).not.toEqual(b);
+  });
+});
+
+describe('assertOkResponse', () => {
+  it('resolves for an ok response', async () => {
+    await expect(
+      assertOkResponse(makeOkResponse({ id: 'alert-1' })),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    await expect(
+      assertOkResponse(makeErrorResponse(409, 'Conflict')),
+    ).rejects.toThrow('HTTP 409: Conflict');
+  });
+
+  it('falls back to "(no body)" when the error response body is unreadable', async () => {
+    const response = {
+      ok: false,
+      status: 500,
+      text: jest.fn().mockRejectedValue(new Error('stream error')),
+    } as unknown as Response;
+
+    await expect(assertOkResponse(response)).rejects.toThrow(
+      'HTTP 500: (no body)',
+    );
+  });
+});
+
+const makeAlert = (
+  overrides: Partial<AbsolutePriceAlert> = {},
+): AbsolutePriceAlert => ({
+  id: 'alert-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 2000,
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'absolute_price',
+  ...overrides,
+});
+
+describe('useSubmitPriceAlert — create mode (no editingAlert)', () => {
   it('starts with isSubmitting = false', () => {
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
     expect(result.current.isSubmitting).toBe(false);
@@ -219,12 +356,12 @@ describe('useSavePriceAlert', () => {
     );
 
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     act(() => {
-      result.current.save({
+      result.current.submit({
         asset: 'eip155:1/slip44:60',
         threshold: 1000,
         recurring: true,
@@ -244,36 +381,37 @@ describe('useSavePriceAlert', () => {
     });
   });
 
-  it('resets isSubmitting = false even when the request fails', async () => {
-    mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Server Error'));
+  it('POSTs to createAlert with the full params', async () => {
+    const params = {
+      asset: 'eip155:1/erc20:0xABC',
+      threshold: 3500,
+      recurring: false,
+    };
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
-      await expect(
-        result.current.save({
-          asset: 'eip155:1/slip44:60',
-          threshold: 1000,
-          recurring: true,
-        }),
-      ).rejects.toThrow();
+      await result.current.submit(params);
     });
 
-    expect(result.current.isSubmitting).toBe(false);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
   });
 
   it('throws with the HTTP status and body text on a non-ok response', async () => {
     mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
       await expect(
-        result.current.save({
+        result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 1000,
           recurring: true,
@@ -290,13 +428,13 @@ describe('useSavePriceAlert', () => {
     } as unknown as Response;
     mockFetch.mockResolvedValueOnce(response);
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
       await expect(
-        result.current.save({
+        result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 1000,
           recurring: true,
@@ -305,22 +443,305 @@ describe('useSavePriceAlert', () => {
     });
   });
 
-  it('forwards the exact params to createAlert', async () => {
-    const params = {
-      asset: 'eip155:1/erc20:0xABC',
-      threshold: 3500,
-      recurring: false,
-    };
+  it('resets isSubmitting = false even when the request fails', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Server Error'));
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
-      await result.current.save(params);
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 1000,
+          recurring: true,
+        }),
+      ).rejects.toThrow();
+    });
+
+    expect(result.current.isSubmitting).toBe(false);
+  });
+});
+
+describe('useSubmitPriceAlert — edit mode (with editingAlert)', () => {
+  it('PATCHes the correct alert id with threshold and recurring', async () => {
+    const alert = makeAlert({
+      id: 'alert-42',
+      threshold: 2000,
+      recurring: true,
+    });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 2500,
+        recurring: false,
+      });
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/alert-42`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({
+      threshold: 2500,
+      recurring: false,
+    });
+  });
+
+  it('does not include asset in the PATCH body', async () => {
+    const alert = makeAlert({ id: 'alert-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 2500,
+        recurring: true,
+      });
     });
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.asset).toBeUndefined();
+  });
+
+  it('throws with HTTP status on a non-ok PATCH response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not Found'));
+    const alert = makeAlert({ id: 'alert-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 2500,
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 404: Not Found');
+    });
+  });
+});
+
+const makePercentAlert = (
+  overrides: Partial<PercentChangeAlert> = {},
+): PercentChangeAlert => ({
+  id: 'percent-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 10,
+  period: '1h',
+  direction: 'up',
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'percent_change',
+  ...overrides,
+});
+
+describe('createPercentAlert', () => {
+  it('POSTs to the percent-change endpoint with a JSON-serialised body', async () => {
+    const params = {
+      asset: 'eip155:1/slip44:60',
+      threshold: 10.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    await createPercentAlert(params);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
     expect(init.body).toBe(JSON.stringify(params));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
+  });
+
+  it('attaches auth headers', async () => {
+    await createPercentAlert({
+      asset: 'eip155:1/slip44:60',
+      threshold: 10,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+    });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer test-bearer-token',
+    );
+  });
+});
+
+describe('updatePercentAlert', () => {
+  it('sends PATCH to /alerts/percent-change/:id with a JSON-serialised body', async () => {
+    const params = { threshold: 15 };
+    await updatePercentAlert('percent-42', params);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('accepts period and direction in the PATCH body', async () => {
+    const params = {
+      threshold: 15,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: true,
+    };
+    await updatePercentAlert('percent-42', params);
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual(params);
+  });
+});
+
+describe('deletePercentAlert', () => {
+  it('sends DELETE to /alerts/percent-change/:id', async () => {
+    await deletePercentAlert('percent-42');
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('DELETE');
+  });
+});
+
+describe('updateAlertByType', () => {
+  it('routes an absolute_price alert to the base PATCH endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+    expect(init.method).toBe('PATCH');
+  });
+
+  it('routes a percent_change alert to the percent-change PATCH endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+    expect(init.method).toBe('PATCH');
+  });
+});
+
+describe('deleteAlertByType', () => {
+  it('routes an absolute_price alert to the base DELETE endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+  });
+
+  it('routes a percent_change alert to the percent-change DELETE endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+  });
+});
+
+describe('useSubmitPercentAlert — create mode (no editingAlert)', () => {
+  it('POSTs to createPercentAlert with the full params', async () => {
+    const params = {
+      asset: 'eip155:1/erc20:0xABC',
+      threshold: 12.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit(params);
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 10,
+          period: '1h',
+          direction: 'up',
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 409: Conflict');
+    });
+  });
+});
+
+describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
+  it('PATCHes the correct alert id with threshold, period, direction, and recurring', async () => {
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 25,
+        period: '24h',
+        direction: 'down',
+        recurring: false,
+      });
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({
+      threshold: 25,
+      period: '24h',
+      direction: 'down',
+      recurring: false,
+    });
+  });
+
+  it('throws with HTTP status on a non-ok PATCH response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not Found'));
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 25,
+          period: '1h',
+          direction: 'up',
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 404: Not Found');
+    });
   });
 });

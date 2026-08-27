@@ -43,6 +43,81 @@ describe('Feature Flag Registry', () => {
         expect(entry.productionDefault).toBeDefined();
       }
     });
+
+    it('enables curated event pages for the extended sports leagues', () => {
+      const extendedSportsLeagues = [
+        'nba',
+        'wnba',
+        'mlb',
+        'nhl',
+        'fifwc',
+        'ucl',
+        'epl',
+        'lal',
+        'sea',
+        'bun',
+        'mls',
+        'fif',
+        'atp',
+        'wta',
+        'itf',
+        'uel',
+        'col',
+        'fl1',
+        'ere',
+        'bra',
+        'por',
+        'bel1',
+        'elc',
+        'lib',
+        'kbo',
+        'npb',
+        'cpbl',
+        'shl',
+        'khl',
+        'cehl',
+        'dehl',
+        'nfl',
+        'cfb',
+        'cfl',
+      ];
+
+      const extendedSportsFlag =
+        FEATURE_FLAG_REGISTRY.predictExtendedSportsMarkets.productionDefault;
+
+      expect(extendedSportsFlag).toEqual(
+        expect.objectContaining({
+          versions: expect.objectContaining({
+            '8.6.0': expect.objectContaining({
+              enabledSportsMarketTypes: expect.arrayContaining([
+                'first_half_moneyline',
+                'first_half_spreads',
+                'team_totals_home',
+                'team_totals_away',
+                'anytime_touchdowns',
+                'first_touchdowns',
+                'rushing_yards',
+                'receiving_yards',
+              ]),
+              leagues: expect.arrayContaining(extendedSportsLeagues),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('keeps the Predict sports feed enabled by default', () => {
+      expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
@@ -78,6 +153,7 @@ describe('Feature Flag Registry', () => {
 
       expect(flagNames).toContain('bridgeConfigV2');
       expect(flagNames).toContain('bitcoinAccounts');
+      expect(flagNames).toContain('stellarAccounts');
       expect(flagNames).toContain('tronAccounts');
       expect(flagNames).toContain('tronClaimUnstakedTrxButtonEnabled');
     });
@@ -94,6 +170,7 @@ describe('Feature Flag Registry', () => {
       const defaults = getProductionRemoteFlagDefaults();
       expect(defaults.assetsDefiPositionsEnabled).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
+      expect(defaults.moneyAccountBalanceSource).toBe('rpc');
     });
 
     it('only includes remote production flags', () => {
@@ -144,12 +221,16 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('returns empty array when no entries match deprecated', () => {
+    it('returns deprecated entries', () => {
       const deprecated = getRegistryEntriesByStatus(
         FeatureFlagStatus.Deprecated,
       );
-      // All current flags are active, so deprecated should be empty
-      expect(deprecated).toHaveLength(0);
+      for (const entry of deprecated) {
+        expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
+      }
+      expect(deprecated.map((entry) => entry.name)).toContain(
+        'earnMerklCampaignClaiming',
+      );
     });
   });
 

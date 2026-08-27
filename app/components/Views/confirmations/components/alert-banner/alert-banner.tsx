@@ -1,13 +1,15 @@
 import React from 'react';
+import { BannerAlert } from '@metamask/design-system-react-native';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useAlerts } from '../../context/alert-system-context';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
-import { hasTransactionType } from '../../utils/transaction';
 export interface AlertBannerProps {
   blockingOnly?: boolean;
   excludeKeys?: AlertKeys[];

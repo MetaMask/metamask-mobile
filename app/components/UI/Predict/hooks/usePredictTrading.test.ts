@@ -3,7 +3,6 @@ import Engine from '../../../../core/Engine';
 import { usePredictTrading } from './usePredictTrading';
 import { Side } from '../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -153,15 +152,14 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.claim({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      const claimParams = {
+        analyticsProperties: { entryPoint: 'predict_market_details' },
+      };
+      const response = await result.current.claim(claimParams);
 
       expect(
         Engine.context.PredictController.claimWithConfirmation,
-      ).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      ).toHaveBeenCalledWith(claimParams);
       expect(response).toEqual(mockClaimResult);
     });
 
@@ -172,9 +170,9 @@ describe('usePredictTrading', () => {
       ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 
-      await expect(
-        result.current.claim({ providerId: POLYMARKET_PROVIDER_ID }),
-      ).rejects.toThrow('Failed to claim winnings');
+      await expect(result.current.claim({})).rejects.toThrow(
+        'Failed to claim winnings',
+      );
     });
   });
 

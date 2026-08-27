@@ -27,6 +27,13 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  // Provider iframe backgrounds — these colors are set by each provider and
+  // outside our control. We match them in the checkout BottomSheet so the
+  // native chrome feels seamless with the embedded webview. Update only if
+  // a provider changes their iframe theme colors.
+  transakCheckoutDark: '#1a1a1a',
+  moonpayCheckoutDark: '#131416',
+  banxaCheckoutDark: '#0D0D0F',
 };
 
 export const onboardingCarouselColors: Record<

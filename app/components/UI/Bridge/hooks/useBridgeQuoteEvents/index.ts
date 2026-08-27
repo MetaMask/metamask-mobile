@@ -13,6 +13,7 @@ import {
 } from '@metamask/bridge-controller';
 import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from '../useHasSufficientGasEvenIfGasIncludedOrSponsored';
+import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -27,6 +28,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
+  hasUsableQuote,
 }: {
   hasInsufficientBalance: boolean;
   hasInsufficientNativeReserveError: boolean;
@@ -36,12 +38,18 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
+  hasUsableQuote?: boolean;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
   );
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
+  const isFirstQuoteUsable =
+    hasUsableQuote ?? Boolean(activeQuote && recommendedQuote?.quote.requestId);
+  const firstUsableQuoteRequestId = isFirstQuoteUsable
+    ? (activeQuote?.quote.requestId ?? recommendedQuote?.quote.requestId)
+    : undefined;
 
   const sourceToken = useSelector(selectSourceToken);
   const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
@@ -93,4 +101,29 @@ export const useBridgeQuoteEvents = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotesRefreshCount]);
+
+  // End the trace as soon as the first usable quote becomes available,
+  // including while the controller is still streaming additional quotes.
+  useEffect(() => {
+    if (firstUsableQuoteRequestId) {
+      swapQuoteFetchTrace.finish('success');
+    }
+  }, [firstUsableQuoteRequestId]);
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      quotesRefreshCount > 0 &&
+      !quoteFetchError &&
+      hasNoQuotesAvailable
+    ) {
+      swapQuoteFetchTrace.finish('no_quotes');
+    }
+  }, [hasNoQuotesAvailable, isLoading, quoteFetchError, quotesRefreshCount]);
+
+  useEffect(() => {
+    if (quoteFetchError) {
+      swapQuoteFetchTrace.finish('error');
+    }
+  }, [quoteFetchError]);
 };

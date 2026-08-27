@@ -10,8 +10,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -39,11 +40,15 @@ export interface TopTraderCardProps {
 const AVATAR_SIZE = 40;
 export const TOP_TRADER_CARD_WIDTH = 155;
 
+// Matches the button placeholder height in TopTraderCardSkeleton.
+const FOLLOW_BUTTON_HEIGHT = 32;
+
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
  *
  * Lays out the trader's avatar with the username + 7D PnL stacked to its
- * right, and a small Follow / Following toggle pinned below.
+ * right, and a small Follow / Following toggle pinned below. The card body
+ * is fully pressable; the follow button is overlaid so it stays independent.
  */
 const TopTraderCard: React.FC<TopTraderCardProps> = ({
   trader,
@@ -51,25 +56,28 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   onTraderPress,
   testID,
 }) => {
+  const tw = useTailwind();
   const pnlText = formatSignedAbbreviatedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
 
   return (
-    <Box
-      twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl bg-muted p-4 overflow-hidden gap-4`}
+    <Pressable
+      onPress={
+        onTraderPress
+          ? () => onTraderPress(trader.id, trader.username, trader.overallRank)
+          : undefined
+      }
+      disabled={!onTraderPress}
+      accessibilityRole={onTraderPress ? 'button' : undefined}
       testID={testID ?? `top-trader-card-${trader.id}`}
+      style={({ pressed }) =>
+        tw.style(
+          `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden`,
+          pressed && onTraderPress ? 'bg-muted-pressed' : 'bg-muted',
+        )
+      }
     >
-      <TouchableOpacity
-        activeOpacity={onTraderPress ? 0.7 : 1}
-        onPress={
-          onTraderPress
-            ? () =>
-                onTraderPress(trader.id, trader.username, trader.overallRank)
-            : undefined
-        }
-        disabled={!onTraderPress}
-        testID={`top-trader-card-pressable-${trader.id}`}
-      >
+      <Box twClassName="gap-4 p-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -104,21 +112,28 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             </Text>
           </Box>
         </Box>
-      </TouchableOpacity>
 
-      <Button
-        variant={
-          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
-        }
-        size={ButtonSize.Sm}
-        isFullWidth
-        onPress={() => onFollowPress(trader.id)}
+        <Box style={{ height: FOLLOW_BUTTON_HEIGHT }} />
+      </Box>
+
+      <View
+        pointerEvents="box-none"
+        style={tw.style('absolute bottom-0 left-0 right-0 px-4 pb-4')}
       >
-        {trader.isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
-    </Box>
+        <Button
+          variant={
+            trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          }
+          size={ButtonSize.Sm}
+          isFullWidth
+          onPress={() => onFollowPress(trader.id)}
+        >
+          {trader.isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      </View>
+    </Pressable>
   );
 };
 

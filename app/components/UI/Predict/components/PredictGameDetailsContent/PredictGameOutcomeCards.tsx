@@ -1,7 +1,10 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { PredictMarketGame, PredictOutcomeGroup } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  isMoneylineLikeMarketType,
+  shouldShowRegTimeTag as shouldShowRegTimeTagForOutcome,
+} from '../../constants/sports';
 import PredictSportOutcomeCard from '../PredictSportOutcomeCard';
 import {
   buildButtons,
@@ -12,9 +15,9 @@ import {
   formatOutcomeCardTitle,
   getDefaultLineIndex,
   getFallbackSportsMarketTypeLabel,
-  getSportsMarketTypeLabel,
+  getMoneylineButtonEntries,
+  getSportsMarketTypeLabelForGame,
   getTranslatedSportsMarketTypeLabel,
-  sortMoneylineOutcomes,
 } from './utils';
 
 const SimpleOutcomeCard = memo(
@@ -24,6 +27,8 @@ const SimpleOutcomeCard = memo(
     onBuyPress,
     game,
     sportsMarketType,
+    nonRegTimeSportsMarketTypes,
+    onRegTimeInfoPress,
     testID,
   }: {
     outcome: PredictOutcomeGroup['outcomes'][number];
@@ -31,12 +36,20 @@ const SimpleOutcomeCard = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
+    nonRegTimeSportsMarketTypes: string[];
+    onRegTimeInfoPress?: () => void;
     testID: string;
   }) => (
     <PredictSportOutcomeCard
       title={title}
       subtitle={buildSubtitle(outcome)}
       buttons={buildButtons(outcome, onBuyPress, game, sportsMarketType)}
+      showRegTimeTag={shouldShowRegTimeTagForOutcome({
+        game,
+        sportsMarketType,
+        nonRegTimeSportsMarketTypes,
+      })}
+      onPressRegTimeInfo={onRegTimeInfoPress}
       testID={testID}
     />
   ),
@@ -51,6 +64,8 @@ const LineOutcomeCard = memo(
     onBuyPress,
     game,
     sportsMarketType,
+    nonRegTimeSportsMarketTypes,
+    onRegTimeInfoPress,
     testID,
   }: {
     outcomes: PredictOutcomeGroup['outcomes'];
@@ -58,6 +73,8 @@ const LineOutcomeCard = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
+    nonRegTimeSportsMarketTypes: string[];
+    onRegTimeInfoPress?: () => void;
     testID: string;
   }) => {
     const lineIndices = useMemo(
@@ -108,6 +125,12 @@ const LineOutcomeCard = memo(
           game,
           sportsMarketType,
         )}
+        showRegTimeTag={shouldShowRegTimeTagForOutcome({
+          game,
+          sportsMarketType,
+          nonRegTimeSportsMarketTypes,
+        })}
+        onPressRegTimeInfo={onRegTimeInfoPress}
         lines={lines}
         selectedLine={lines[selectedIdx]}
         selectedIndex={selectedIdx}
@@ -126,12 +149,18 @@ const MoneylineCard = memo(
     onBuyPress,
     game,
     title,
+    sportsMarketType,
+    nonRegTimeSportsMarketTypes,
+    onRegTimeInfoPress,
     testID,
   }: {
     outcomes: PredictOutcomeGroup['outcomes'];
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     title: string;
+    sportsMarketType?: string;
+    nonRegTimeSportsMarketTypes: string[];
+    onRegTimeInfoPress?: () => void;
     testID: string;
   }) => {
     const subtitle = useMemo(
@@ -140,8 +169,8 @@ const MoneylineCard = memo(
     );
     const tokenIds = useMemo(
       () =>
-        sortMoneylineOutcomes(outcomes, game)
-          .map((outcome) => outcome.tokens[0]?.id)
+        getMoneylineButtonEntries(outcomes, game)
+          .map(({ token }) => token.id)
           .filter((id): id is string => Boolean(id)),
       [outcomes, game],
     );
@@ -157,6 +186,12 @@ const MoneylineCard = memo(
         subtitle={subtitle}
         buttons={buttons}
         buttonLayout="inlineNoSeparator"
+        showRegTimeTag={shouldShowRegTimeTagForOutcome({
+          game,
+          sportsMarketType,
+          nonRegTimeSportsMarketTypes,
+        })}
+        onPressRegTimeInfo={onRegTimeInfoPress}
         testID={testID}
       />
     );
@@ -172,33 +207,46 @@ const SubgroupCards = memo(
     game,
     groupKey,
     index,
+    nonRegTimeSportsMarketTypes,
+    onRegTimeInfoPress,
   }: {
     subgroup: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     groupKey: string;
     index: number;
+    nonRegTimeSportsMarketTypes: string[];
+    onRegTimeInfoPress?: () => void;
   }) => {
-    const translatedTitle = getTranslatedSportsMarketTypeLabel(subgroup.key);
+    const translatedTitle = subgroup.title
+      ? undefined
+      : getTranslatedSportsMarketTypeLabel(subgroup.key);
     const firstOutcomeTitle = subgroup.outcomes[0]
       ? formatOutcomeCardTitle(subgroup.outcomes[0])
       : undefined;
-    const title = getFallbackSportsMarketTypeLabel(
+    const fallbackTitle =
+      subgroup.title ??
+      getFallbackSportsMarketTypeLabel(
+        subgroup.key,
+        translatedTitle ?? firstOutcomeTitle,
+      );
+    const title = getSportsMarketTypeLabelForGame(
       subgroup.key,
-      translatedTitle ?? firstOutcomeTitle,
+      fallbackTitle,
+      game,
     );
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
-    if (
-      isMoneylineLikeMarketType(subgroup.key) &&
-      subgroup.outcomes.length > 1
-    ) {
+    if (isMoneylineLikeMarketType(subgroup.key)) {
       return (
         <MoneylineCard
           outcomes={subgroup.outcomes}
           onBuyPress={onBuyPress}
           game={game}
           title={title}
+          sportsMarketType={subgroup.key}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={onRegTimeInfoPress}
           testID={testID}
         />
       );
@@ -212,6 +260,8 @@ const SubgroupCards = memo(
           onBuyPress={onBuyPress}
           game={game}
           sportsMarketType={subgroup.key}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={onRegTimeInfoPress}
           testID={testID}
         />
       );
@@ -220,10 +270,12 @@ const SubgroupCards = memo(
     return (
       <LineOutcomeCard
         outcomes={subgroup.outcomes}
-        title={translatedTitle}
+        title={subgroup.title ?? translatedTitle}
         onBuyPress={onBuyPress}
         game={game}
         sportsMarketType={subgroup.key}
+        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+        onRegTimeInfoPress={onRegTimeInfoPress}
         testID={testID}
       />
     );
@@ -237,10 +289,14 @@ export const OutcomesContent = memo(
     group,
     onBuyPress,
     game,
+    nonRegTimeSportsMarketTypes = [],
+    onRegTimeInfoPress,
   }: {
     group: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
+    nonRegTimeSportsMarketTypes?: string[];
+    onRegTimeInfoPress?: () => void;
   }) => {
     if (group.subgroups && group.subgroups.length > 0) {
       return (
@@ -253,6 +309,8 @@ export const OutcomesContent = memo(
               game={game}
               groupKey={group.key}
               index={index}
+              nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+              onRegTimeInfoPress={onRegTimeInfoPress}
             />
           ))}
         </>
@@ -260,20 +318,20 @@ export const OutcomesContent = memo(
     }
 
     const firstType = group.outcomes[0]?.sportsMarketType;
-    if (
-      firstType &&
-      isMoneylineLikeMarketType(firstType) &&
-      group.outcomes.length > 1
-    ) {
+    if (firstType && isMoneylineLikeMarketType(firstType)) {
       return (
         <MoneylineCard
           outcomes={group.outcomes}
           onBuyPress={onBuyPress}
           game={game}
-          title={getSportsMarketTypeLabel(
+          title={getSportsMarketTypeLabelForGame(
             firstType,
             formatOutcomeCardTitle(group.outcomes[0]),
+            game,
           )}
+          sportsMarketType={firstType}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={onRegTimeInfoPress}
           testID={`${group.key}-moneyline`}
         />
       );
@@ -289,6 +347,8 @@ export const OutcomesContent = memo(
             onBuyPress={onBuyPress}
             game={game}
             sportsMarketType={outcome.sportsMarketType}
+            nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+            onRegTimeInfoPress={onRegTimeInfoPress}
             testID={`${group.key}-outcome-${index}`}
           />
         ))}

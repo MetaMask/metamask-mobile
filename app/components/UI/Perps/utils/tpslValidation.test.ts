@@ -16,6 +16,7 @@ import {
   getMaxStopLossPercentage,
   isValidStopLossPercentage,
   sanitizePercentageInput,
+  getPerpsOrderTpSlWarnings,
 } from './tpslValidation';
 
 // Note: countSignificantFigures, hasExceededSignificantFigures, and roundToSignificantFigures
@@ -1492,6 +1493,79 @@ describe('TPSL Validation Utilities', () => {
 
       // Then percentage should be negative (not clamped)
       expect(parseFloat(result)).toBeLessThan(0);
+    });
+  });
+
+  describe('getPerpsOrderTpSlWarnings', () => {
+    const base = {
+      direction: 'long' as const,
+      liquidationPrice: '0',
+      marketPrice: 3000,
+    };
+
+    it('returns all-clear with current reference for a market order without TP/SL', () => {
+      // Arrange / Act
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'market',
+      });
+
+      // Assert
+      expect(result).toEqual({
+        doesStopLossRiskLiquidation: false,
+        isTakeProfitPriceInvalid: false,
+        isStopLossPriceInvalid: false,
+        tpslPriceType: 'current',
+      });
+    });
+
+    it('uses the entry reference type for a priced limit order', () => {
+      // Arrange / Act
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'limit',
+        limitPrice: '2500',
+      });
+
+      // Assert
+      expect(result.tpslPriceType).toBe('entry');
+    });
+
+    it('flags a take profit on the wrong side of the reference price', () => {
+      // Arrange / Act: long TP below market is invalid
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'market',
+        takeProfitPrice: '2000',
+      });
+
+      // Assert
+      expect(result.isTakeProfitPriceInvalid).toBe(true);
+    });
+
+    it('flags a stop loss on the wrong side of the reference price', () => {
+      // Arrange / Act: long SL above market is invalid
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'market',
+        stopLossPrice: '4000',
+      });
+
+      // Assert
+      expect(result.isStopLossPriceInvalid).toBe(true);
+    });
+
+    it('flags a stop loss that risks liquidation', () => {
+      // Arrange / Act: long SL below the liquidation price is unsafe
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'market',
+        stopLossPrice: '2000',
+        liquidationPrice: '2500',
+      });
+
+      // Assert
+      expect(result.doesStopLossRiskLiquidation).toBe(true);
     });
   });
 });

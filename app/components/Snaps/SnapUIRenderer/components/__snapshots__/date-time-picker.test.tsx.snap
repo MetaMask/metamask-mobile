@@ -198,7 +198,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
@@ -423,7 +423,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
@@ -633,7 +633,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
@@ -843,7 +843,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
@@ -1070,7 +1070,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",

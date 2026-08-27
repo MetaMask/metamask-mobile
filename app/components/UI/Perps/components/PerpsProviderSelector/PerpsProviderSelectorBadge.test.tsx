@@ -18,43 +18,6 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: jest.fn(),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      badgeContainer: {},
-      badgeText: {},
-      testnetDot: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
-  const MockText = ({ children, ...props }: Record<string, unknown>) => (
-    <RNText {...props}>{children}</RNText>
-  );
-  MockText.displayName = 'Text';
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: { BodySM: 'BodySM' },
-    TextColor: { Alternative: 'Alternative', Warning: 'Warning' },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: Record<string, unknown>) => (
-      <View testID="icon" {...props} />
-    ),
-    IconName: { ArrowDown: 'ArrowDown' },
-    IconSize: { Xs: 'Xs' },
-    IconColor: { Alternative: 'Alternative', Warning: 'Warning' },
-  };
-});
-
 const mockNavigate = jest.fn();
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
@@ -144,7 +107,7 @@ describe('PerpsProviderSelectorBadge', () => {
     expect(badge.props.accessibilityLabel).toContain('Mainnet');
   });
 
-  it('renders testnet dot and warning styling when on testnet', () => {
+  it('includes Testnet in accessibility label when on testnet', () => {
     mockUseSelector.mockReturnValue('testnet');
     mockUsePerpsProvider.mockReturnValue({
       activeProvider: 'hyperliquid',

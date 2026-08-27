@@ -1,14 +1,28 @@
-import { RootExtendedMessenger } from '../../types';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { NotificationServicesPushControllerMessenger } from '@metamask/notification-services-controller/push-services';
 import { getNotificationServicesPushControllerMessenger } from './notification-services-push-controller-messenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<NotificationServicesPushControllerMessenger>,
+  MessengerEvents<NotificationServicesPushControllerMessenger>
+>;
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: RootExtendedMessenger =
-      new ExtendedMessenger<MockAnyNamespace>({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
+    const baseMessenger: RootMessenger = new Messenger<
+      MockAnyNamespace,
+      never,
+      never
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const mockDelegate = jest.spyOn(baseMessenger, 'delegate');
     return { baseMessenger, mockDelegate };
   };

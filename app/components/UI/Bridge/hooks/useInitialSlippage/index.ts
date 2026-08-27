@@ -1,78 +1,27 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectDestToken,
-  selectIsBridge,
-  selectIsEvmSwap,
-  selectIsRwaSwap,
-  selectIsSolanaSwap,
-  selectSourceToken,
+  selectIsSlippageUserOverride,
+  selectSlippage,
   setSlippage,
 } from '../../../../../core/redux/slices/bridge';
-import { isHex } from 'viem';
-import AppConstants from '../../../../../core/AppConstants';
-import { getIsStablecoinPair } from '../useStablecoinsDefaultSlippage';
 
-export const useInitialSlippage = () => {
+export const useInitialSlippage = (
+  quoteSlippage: number | string | undefined,
+  isCurrentQuote: boolean,
+) => {
   const dispatch = useDispatch();
-  const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isRwaSwap = useSelector(selectIsRwaSwap);
-  const isBridge = useSelector(selectIsBridge);
-  const isEvmSwap = useSelector(selectIsEvmSwap);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
+  const slippage = useSelector(selectSlippage);
+  const isUserOverride = useSelector(selectIsSlippageUserOverride);
 
   useEffect(() => {
-    // Solana Swaps
-    if (isSolanaSwap) {
-      // We pass undefined to use dynamic slippage from providers
-      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_SOLANA));
-      return;
-    }
-    if (isRwaSwap) {
-      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_RWA));
-      return;
-    }
-    // EVM Swaps
     if (
-      isEvmSwap &&
-      isHex(sourceToken?.chainId) &&
-      sourceToken?.address &&
-      destToken?.address
+      quoteSlippage !== undefined &&
+      isCurrentQuote &&
+      !isUserOverride &&
+      slippage === undefined
     ) {
-      if (
-        getIsStablecoinPair(
-          sourceToken?.address,
-          destToken?.address,
-          sourceToken?.chainId,
-        )
-      ) {
-        dispatch(
-          setSlippage(
-            AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS.toString(),
-          ),
-        );
-        return;
-      }
-      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
-      return;
+      dispatch(setSlippage(String(quoteSlippage)));
     }
-
-    // Bridge
-    if (isBridge) {
-      dispatch(
-        setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_BRIDGE.toString()),
-      );
-      return;
-    }
-  }, [
-    isSolanaSwap,
-    isRwaSwap,
-    isBridge,
-    dispatch,
-    sourceToken?.address,
-    destToken?.address,
-    sourceToken?.chainId,
-    isEvmSwap,
-  ]);
+  }, [dispatch, isCurrentQuote, isUserOverride, quoteSlippage, slippage]);
 };

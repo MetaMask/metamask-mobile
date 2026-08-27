@@ -135,6 +135,13 @@ describe('useAccounts', () => {
     expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
   });
 
+  it('returns a stable accounts reference when inputs are unchanged', () => {
+    const { result, rerender } = renderHook(() => useAccounts());
+    const firstRef = result.current.accounts;
+    rerender({});
+    expect(result.current.accounts).toBe(firstRef);
+  });
+
   describe('fetchENS parameter', () => {
     it('fetches ENS names when fetchENS is true (default)', async () => {
       const expectedENSNames = {

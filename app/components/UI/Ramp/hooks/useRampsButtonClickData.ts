@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,

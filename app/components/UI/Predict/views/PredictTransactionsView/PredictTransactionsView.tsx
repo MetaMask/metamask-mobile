@@ -17,7 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image } from 'expo-image';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import {
   PredictActivityType,
@@ -39,7 +40,6 @@ import {
   getPredictPositionsHistoryListSelector,
   PredictPositionsHistoryListSelectorsIDs,
 } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
@@ -85,7 +85,9 @@ interface ClaimPendingPositionRowProps {
 }
 
 const isActionableClaimPendingPosition = (position: PredictPosition) =>
-  position.status === PredictPositionStatus.WON && position.currentValue > 0;
+  (position.status === PredictPositionStatus.WON ||
+    position.status === PredictPositionStatus.REDEEMABLE) &&
+  position.currentValue > 0;
 
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,
@@ -106,8 +108,7 @@ const ClaimPendingPositionRow = ({
   position,
 }: ClaimPendingPositionRowProps) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
@@ -529,7 +530,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
       >
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-          {strings('predict.error.description')}
+          {strings('predict.error.description_short')}
         </Text>
         <Pressable
           accessibilityRole="button"

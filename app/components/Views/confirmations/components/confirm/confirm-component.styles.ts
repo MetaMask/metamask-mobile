@@ -11,9 +11,6 @@ const styleSheet = (params: {
   const { theme, vars } = params;
 
   return StyleSheet.create({
-    bottomSheetDialogSheet: {
-      backgroundColor: theme.colors.background.default,
-    },
     confirmContainer: {
       display: 'flex',
       maxHeight: '100%',

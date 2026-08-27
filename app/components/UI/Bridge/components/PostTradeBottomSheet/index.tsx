@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   AvatarIcon,
@@ -44,11 +45,17 @@ import {
   PostTradeBottomSheetParams,
   PostTradeStatus,
 } from './PostTradeBottomSheet.types';
+import type { BridgeToken } from '../../types';
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { PostTradeTokenSuggestions } from './PostTradeTokenSuggestions';
-import { convertApiTokenToBridgeToken } from '../../utils/tokenUtils';
+import {
+  convertApiTokenToBridgeToken,
+  getDefaultDestToken,
+  getNativeSourceToken,
+  isSameBridgeToken,
+} from '../../utils/tokenUtils';
 import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
 import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
 import {
@@ -57,6 +64,18 @@ import {
 } from '../../utils/postTradeNotifications';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+  playSuccessNotification,
+} from '../../../../../util/haptics';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_HAPTICS_AB_KEY,
+  SWAPS_HAPTICS_EXPOSURE_METADATA,
+  SWAPS_HAPTICS_VARIANTS,
+} from '../../haptics/abTestConfig';
 import {
   getAnalyticsStatus,
   getPostTradeSharedAnalyticsProperties,
@@ -127,7 +146,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 };
 
 export const PostTradeBottomSheet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasRefreshedBalancesRef = useRef(false);
@@ -153,6 +172,16 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
+  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
+    useABTest(
+      SWAPS_HAPTICS_AB_KEY,
+      SWAPS_HAPTICS_VARIANTS,
+      SWAPS_HAPTICS_EXPOSURE_METADATA,
+    );
+  const shouldPlaySwapsHaptics = Boolean(
+    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
+  );
+  const lastHapticStatusRef = useRef<PostTradeStatus | null>(null);
 
   const getTimeModalOpenMs = useCallback(
     () => Date.now() - modalOpenedAtRef.current,
@@ -166,6 +195,44 @@ export const PostTradeBottomSheet = () => {
       hidePostTradeNotificationSurface();
     };
   }, []);
+
+  useEffect(() => {
+    if (!shouldPlaySwapsHaptics) {
+      return;
+    }
+
+    if (lastHapticStatusRef.current === status) {
+      return;
+    }
+
+    const hasSubmittedTransaction =
+      Boolean(params.transactionMetaId) || Boolean(params.transactionHash);
+
+    if (status === PostTradeStatus.InProgress) {
+      if (!hasSubmittedTransaction) {
+        return;
+      }
+      lastHapticStatusRef.current = status;
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+      return;
+    }
+
+    if (status === PostTradeStatus.Success) {
+      lastHapticStatusRef.current = status;
+      playSuccessNotification().catch(() => undefined);
+      return;
+    }
+
+    if (status === PostTradeStatus.Failed) {
+      lastHapticStatusRef.current = status;
+      playErrorNotification().catch(() => undefined);
+    }
+  }, [
+    params.transactionHash,
+    params.transactionMetaId,
+    shouldPlaySwapsHaptics,
+    status,
+  ]);
 
   useEffect(() => {
     if (hasTrackedViewedRef.current) {
@@ -318,8 +385,29 @@ export const PostTradeBottomSheet = () => {
     });
     shouldSkipDismissedTrackingRef.current = true;
 
-    if (params.sourceToken) {
-      dispatch(setSourceToken(params.sourceToken));
+    // Resolve a non-conflicting source token; the clicked suggestion is kept
+    // as the destination. Fallbacks: previous source -> native gas -> chain
+    // default -> prior trade's destination.
+    let resolvedSourceToken: BridgeToken | undefined = params.sourceToken;
+    if (isSameBridgeToken(resolvedSourceToken, selectedDestToken)) {
+      const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
+      if (isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
+        const defaultDestToken = getDefaultDestToken(selectedDestToken.chainId);
+        if (
+          defaultDestToken &&
+          !isSameBridgeToken(defaultDestToken, selectedDestToken)
+        ) {
+          resolvedSourceToken = defaultDestToken;
+        } else if (!isSameBridgeToken(params.destToken, selectedDestToken)) {
+          resolvedSourceToken = params.destToken;
+        }
+      } else {
+        resolvedSourceToken = nativeSourceToken;
+      }
+    }
+
+    if (resolvedSourceToken) {
+      dispatch(setSourceToken(resolvedSourceToken));
     }
     dispatch(setDestToken(selectedDestToken));
     dispatch(setIsDestTokenManuallySet(true));
@@ -347,7 +435,15 @@ export const PostTradeBottomSheet = () => {
             testID: PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON,
           },
         }
-      : undefined;
+      : {
+          secondaryButtonProps: {
+            children: strings('bridge.post_trade_modal.view_activity'),
+            size: ButtonSize.Lg,
+            onPress: handleViewActivity,
+            testID: PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
+          },
+          primaryButtonProps: undefined,
+        };
 
   return (
     <BottomSheet
@@ -358,6 +454,7 @@ export const PostTradeBottomSheet = () => {
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
+        twClassName="pt-4 h-auto"
       >
         <StatusIcon status={status} />
       </BottomSheetHeader>
@@ -380,14 +477,12 @@ export const PostTradeBottomSheet = () => {
         destToken={params.destToken}
         onTokenPress={handleSuggestionPress}
       />
-      {footerButtonProps ? (
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Vertical}
-          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
-          primaryButtonProps={footerButtonProps.primaryButtonProps}
-          style={styles.footer}
-        />
-      ) : null}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+        primaryButtonProps={footerButtonProps.primaryButtonProps}
+        style={styles.footer}
+      />
     </BottomSheet>
   );
 };

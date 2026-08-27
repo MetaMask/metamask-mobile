@@ -76,7 +76,7 @@ For day-to-day FPS checks without it, use the in-app Perf Monitor and the RN Dev
 
 ## CI flow gates — E2E performance tests
 
-Core flows have timing budgets enforced in CI. The framework lives in `tests/performance/` (specs grouped by `login` / `mm-connect` / `onboarding`) on top of `tests/framework/TimerHelper.ts` (platform-specific thresholds with a 10% margin). Add a gate for your flow following the **`mms-performance-testing`** skill.
+Core flows have timing budgets enforced in CI. The framework lives in `tests/performance/` (specs grouped by `login` / `onboarding`; MMConnect Appium smoke lives under `tests/smoke-appium/mm-connect/`) on top of `tests/framework/TimerHelper.ts` (platform-specific thresholds with a 10% margin). Add a gate for your flow following the **`mms-performance-testing`** skill.
 
 ## Production — Sentry & Release Profiler
 

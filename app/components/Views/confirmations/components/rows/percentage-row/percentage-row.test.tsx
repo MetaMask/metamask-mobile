@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { PercentageRow } from './percentage-row';
+import { PercentageRowTestIds } from './percentage-row.testIds';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../../locales/i18n';
@@ -75,13 +76,11 @@ describe('PercentageRow', () => {
       .spyOn(Linking, 'openURL')
       .mockResolvedValueOnce(undefined);
 
-    const { getByTestId, getByText } = render();
+    const { getByTestId } = render();
 
     fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
 
-    fireEvent.press(
-      getByText(strings('earn.musd_conversion.education.terms_apply')),
-    );
+    fireEvent.press(getByTestId(PercentageRowTestIds.TERMS_APPLY_BUTTON));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,

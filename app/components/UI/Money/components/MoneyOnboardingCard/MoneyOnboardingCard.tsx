@@ -6,11 +6,17 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { isPositiveNumber } from '../../utils/number';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
+import MoneyNextBestActionParallax, {
+  PARALLAX_ARTBOARD_CARD,
+  PARALLAX_ARTBOARD_FUND,
+} from '../MoneyNextBestActionParallax';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -18,11 +24,14 @@ import {
   CardEntryPoint,
   CardScreens,
   deriveCardState,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
   selectIsCardholder,
   selectCardHomeDataStatus,
+  selectIsCardStateResolved,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -36,6 +45,7 @@ export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
 const MoneyOnboardingCard = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardStepViewRef = useRef(false);
 
   const {
@@ -49,6 +59,8 @@ const MoneyOnboardingCard = () => {
 
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
+  const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -64,6 +76,7 @@ const MoneyOnboardingCard = () => {
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
@@ -112,12 +125,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -130,6 +145,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -146,12 +162,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -163,6 +181,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -219,16 +238,19 @@ const MoneyOnboardingCard = () => {
     hasTrackedCardStepViewRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.MONEY_HOME,
-          entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-          card_state: cardState,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            card_state: cardState,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     effectiveCurrentStep,
     isBalanceLoading,
     isCardAnalyticsReady,
@@ -240,7 +262,9 @@ const MoneyOnboardingCard = () => {
   const handleStep1CtaPressed = useCallback(() => {
     trackOnboardingEvent({
       step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
-      step_title: strings('money.onboarding.step_1.title', { locale: 'en' }),
+      step_title: strings('money.onboarding.step_1.title_no_apy', {
+        locale: 'en',
+      }),
       total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -253,14 +277,31 @@ const MoneyOnboardingCard = () => {
     if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
 
     const step1: StepperCardStep = {
-      title: strings('money.onboarding.step_1.title'),
-      description: strings('money.onboarding.step_1.description'),
+      title: showApy
+        ? strings('money.onboarding.step_1.title', { apy: apyPercent })
+        : strings('money.onboarding.step_1.title_no_apy'),
+      description: showApy
+        ? strings('money.onboarding.step_1.description', { apy: apyPercent })
+        : strings('money.onboarding.step_1.description_no_apy'),
       primaryCta: {
         text: strings('money.onboarding.step_1.cta'),
         onPress: handleStep1CtaPressed,
       },
       image: moneyOnboardingStepperStep1,
+      media: (
+        <MoneyNextBestActionParallax
+          artboardName={PARALLAX_ARTBOARD_FUND}
+          fallbackImage={moneyOnboardingStepperStep1}
+        />
+      ),
     };
+
+    const cardStepMedia = (
+      <MoneyNextBestActionParallax
+        artboardName={PARALLAX_ARTBOARD_CARD}
+        fallbackImage={moneyOnboardingStepperStep2}
+      />
+    );
 
     // Case 1: Cardholder, or authenticated with a card not yet linked.
     const step2: StepperCardStep = shouldShowLinkCardAction
@@ -293,6 +334,7 @@ const MoneyOnboardingCard = () => {
               ),
           },
           image: moneyOnboardingStepperStep2,
+          media: cardStepMedia,
         }
       : // No MetaMask card yet.
         {
@@ -324,12 +366,15 @@ const MoneyOnboardingCard = () => {
               ),
           },
           image: moneyOnboardingStepperStep2,
+          media: cardStepMedia,
         };
 
     return [step1, step2];
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
+    showApy,
+    apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
     isLinking,
@@ -337,7 +382,15 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
+  const isWaitingForCardState =
+    !isCardStateResolved && effectiveCurrentStep > 0;
+
+  if (
+    isBalanceLoading ||
+    isWaitingForCardState ||
+    !isOnboardingCardVisible ||
+    !isVisibleAfterAutoSkip
+  ) {
     return null;
   }
 

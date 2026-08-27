@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import Routes from '../../constants/navigation/Routes';
@@ -15,7 +16,7 @@ const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
  * 4. MetaMetrics is enabled
  */
 export const usePna25BottomSheet = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const shouldShowPna25 = useSelector(selectShouldShowPna25Notice);
 
   const checkAndShowPna25BottomSheet = useCallback(() => {

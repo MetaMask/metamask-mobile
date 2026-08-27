@@ -1,56 +1,124 @@
-import {
-  Messenger,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
+import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
-import { getKeyringBuilders, getKeyringV2Builders } from './keyrings';
+import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
+import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import {
+  getTransactionControllerInstanceOptions,
+  setupTransactionControllerListeners,
+} from './instance-options/transaction-controller';
+import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
+const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
-  Wallet: jest.fn(),
+  Wallet: jest.fn().mockImplementation(() => ({
+    init: mockWalletInit,
+    getInstance: jest.fn(),
+  })),
 }));
-
-jest.mock('./keyrings', () => ({
-  getKeyringBuilders: jest.fn(() => ['v1-builder']),
-  getKeyringV2Builders: jest.fn(() => ['v2-builder']),
-  qrKeyringBridge: {},
+jest.mock('./instance-options/approval-controller', () => ({
+  getApprovalControllerInstanceOptions: jest.fn(() => 'approval-options'),
 }));
-
-jest.mock('../utils/storage-service-utils', () => ({
-  mobileStorageAdapter: { name: 'mock-storage-adapter' },
+jest.mock('./instance-options/keyring-controller', () => ({
+  getKeyringControllerInstanceOptions: jest.fn(() => 'keyring-options'),
+}));
+jest.mock('./instance-options/remote-feature-flag-controller', () => ({
+  getRemoteFeatureFlagControllerInstanceOptions: jest.fn(() => 'rffc-options'),
+}));
+jest.mock('./instance-options/connectivity-controller', () => ({
+  getConnectivityControllerInstanceOptions: jest.fn(
+    () => 'connectivity-options',
+  ),
+}));
+jest.mock('./instance-options/gas-fee-controller', () => ({
+  getGasFeeControllerInstanceOptions: jest.fn(() => 'gas-fee-options'),
+}));
+jest.mock('./instance-options/seedless-onboarding-controller', () => ({
+  getSeedlessOnboardingControllerInstanceOptions: jest.fn(
+    () => 'seedless-options',
+  ),
+}));
+jest.mock('./instance-options/storage-service', () => ({
+  getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
+}));
+jest.mock('./instance-options/subscription-service', () => ({
+  getSubscriptionServiceInstanceOptions: jest.fn(
+    () => 'subscription-service-options',
+  ),
+}));
+jest.mock('./instance-options/shield-api-service', () => ({
+  getShieldApiServiceInstanceOptions: jest.fn(
+    () => 'shield-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/claims-service', () => ({
+  getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
+}));
+jest.mock('./instance-options/network-controller', () => ({
+  getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
+}));
+jest.mock('./instance-options/transaction-controller', () => ({
+  getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
+  setupTransactionControllerListeners: jest.fn(),
+}));
+jest.mock('./messengers/transaction-controller-messenger', () => ({
+  getTransactionControllerInitMessenger: jest.fn(() => 'tx-init-messenger'),
 }));
 
 describe('initializeWallet', () => {
+  const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
+  const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('constructs a Wallet with the configured encryptor, V1 and V2 builders, and storage adapter', () => {
-    const messenger = new Messenger<MockAnyNamespace, never, never>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-    const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
-
+  it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
     initializeWallet({ messenger, state });
 
-    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger);
-    expect(getKeyringV2Builders).toHaveBeenCalled();
-    expect(Wallet).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messenger,
-        state,
-        instanceOptions: expect.objectContaining({
-          keyringController: expect.objectContaining({
-            keyringBuilders: ['v1-builder'],
-            keyringV2Builders: ['v2-builder'],
-            encryptor: expect.any(Object),
-          }),
-          storageService: expect.objectContaining({
-            storage: expect.objectContaining({ name: 'mock-storage-adapter' }),
-          }),
-        }),
-      }),
+    expect(Wallet).toHaveBeenCalledWith({
+      messenger,
+      state,
+      instanceOptions: {
+        approvalController: 'approval-options',
+        keyringController: 'keyring-options',
+        remoteFeatureFlagController: 'rffc-options',
+        connectivityController: 'connectivity-options',
+        gasFeeController: 'gas-fee-options',
+        seedlessOnboardingController: 'seedless-options',
+        storageService: 'storage-options',
+        subscriptionService: 'subscription-service-options',
+        shieldApiService: 'shield-api-service-options',
+        claimsService: 'claims-service-options',
+        networkController: 'network-options',
+        transactionController: 'transaction-options',
+      },
+    });
+  });
+
+  it('threads the messenger and state through to the builders that need them', () => {
+    initializeWallet({ messenger, state });
+
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
     );
+    expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
+      messenger,
+      state,
+    });
+  });
+
+  it('builds the TransactionController options and listeners with the init messenger', () => {
+    initializeWallet({ messenger, state });
+
+    expect(getTransactionControllerInitMessenger).toHaveBeenCalledWith(
+      messenger,
+    );
+    expect(getTransactionControllerInstanceOptions).toHaveBeenCalledWith({
+      initMessenger: 'tx-init-messenger',
+    });
+    expect(setupTransactionControllerListeners).toHaveBeenCalledWith({
+      messenger: 'tx-init-messenger',
+    });
   });
 });

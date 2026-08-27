@@ -74,6 +74,30 @@ describe('buildTokenIconUrl', () => {
     );
   });
 
+  describe('card token icon overrides', () => {
+    it('maps Base Sepolia USDC to the Base mainnet USDC icon (testnet CDN has no icon)', () => {
+      const result = buildTokenIconUrl(
+        'eip155:84532',
+        '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+      );
+
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
+      );
+    });
+
+    it('does not override other tokens on the same testnet chain', () => {
+      const result = buildTokenIconUrl(
+        'eip155:84532',
+        '0x1111111111111111111111111111111111111111',
+      );
+
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/84532/erc20/0x1111111111111111111111111111111111111111.png',
+      );
+    });
+  });
+
   describe('Solana chains', () => {
     it('returns correct URL for Solana mainnet', () => {
       const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';

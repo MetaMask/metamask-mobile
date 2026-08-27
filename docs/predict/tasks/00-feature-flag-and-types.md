@@ -27,6 +27,11 @@ Set up the feature flag for Live NFL and define all necessary TypeScript types f
 Create/update `app/components/UI/Predict/selectors/featureFlags/index.ts`:
 
 ```typescript
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+
 /**
  * Selector for Predict Live NFL feature enablement
  */

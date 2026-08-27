@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectPredictThePitchLeaderboard,
-  selectPredictThePitchLeaderboardLoading,
-  selectPredictThePitchLeaderboardError,
+  selectPredictThePitchLeaderboardByCampaignId,
+  selectPredictThePitchLeaderboardLoadingByCampaignId,
+  selectPredictThePitchLeaderboardErrorByCampaignId,
 } from '../../../../reducers/rewards/selectors';
 import {
   setPredictThePitchLeaderboard,
@@ -25,38 +25,60 @@ export const useGetPredictThePitchLeaderboard = (
   campaignId: string | undefined,
 ): UseGetPredictThePitchLeaderboardResult => {
   const dispatch = useDispatch();
-  const leaderboard = useSelector(selectPredictThePitchLeaderboard);
-  const isLoading = useSelector(selectPredictThePitchLeaderboardLoading);
-  const hasError = useSelector(selectPredictThePitchLeaderboardError);
+
+  const selectLeaderboard = useMemo(
+    () => selectPredictThePitchLeaderboardByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectLoading = useMemo(
+    () => selectPredictThePitchLeaderboardLoadingByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectError = useMemo(
+    () => selectPredictThePitchLeaderboardErrorByCampaignId(campaignId),
+    [campaignId],
+  );
+
+  const leaderboard = useSelector(selectLeaderboard);
+  const isLoading = useSelector(selectLoading);
+  const hasError = useSelector(selectError);
   const [isLeaderboardNotYetComputed, setIsLeaderboardNotYetComputed] =
     useState(false);
 
   const fetchLeaderboard = useCallback(async (): Promise<void> => {
     if (!campaignId) {
-      dispatch(setPredictThePitchLeaderboardLoading(false));
-      dispatch(setPredictThePitchLeaderboardError(false));
       setIsLeaderboardNotYetComputed(false);
       return;
     }
 
     try {
-      dispatch(setPredictThePitchLeaderboardLoading(true));
-      dispatch(setPredictThePitchLeaderboardError(false));
+      dispatch(
+        setPredictThePitchLeaderboardLoading({ campaignId, loading: true }),
+      );
+      dispatch(
+        setPredictThePitchLeaderboardError({ campaignId, error: false }),
+      );
       setIsLeaderboardNotYetComputed(false);
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getPredictThePitchLeaderboard',
         campaignId,
       );
-      dispatch(setPredictThePitchLeaderboard(result));
+      dispatch(
+        setPredictThePitchLeaderboard({ campaignId, leaderboard: result }),
+      );
     } catch (error) {
       const is404 = error instanceof Error && error.message.includes('404');
       if (is404) {
         setIsLeaderboardNotYetComputed(true);
       } else {
-        dispatch(setPredictThePitchLeaderboardError(true));
+        dispatch(
+          setPredictThePitchLeaderboardError({ campaignId, error: true }),
+        );
       }
     } finally {
-      dispatch(setPredictThePitchLeaderboardLoading(false));
+      dispatch(
+        setPredictThePitchLeaderboardLoading({ campaignId, loading: false }),
+      );
     }
   }, [dispatch, campaignId]);
 

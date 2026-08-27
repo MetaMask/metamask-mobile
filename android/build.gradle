@@ -11,6 +11,7 @@ buildscript {
 		kotlin_version = "2.1.20"
 		kotlinVersion = "$kotlin_version"
 		supportLibVersion = "28.0.0"
+		kspVersion = "2.1.20-2.0.1" // Must match kotlinVersion for expo-updates KSP
 	}
 	repositories {
 		google()

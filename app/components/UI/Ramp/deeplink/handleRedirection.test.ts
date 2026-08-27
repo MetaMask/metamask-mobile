@@ -2,6 +2,7 @@ import { RampType } from '../Aggregator/types';
 import Routes from '../../../../constants/navigation/Routes';
 import handleRedirection from './handleRedirection';
 import NavigationService from '../../../../core/NavigationService';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 
 jest.mock('@react-navigation/native');
 
@@ -24,6 +25,7 @@ describe('handleRedirection', () => {
         screen: Routes.TRANSACTIONS_VIEW,
         params: {
           redirectToOrders: true,
+          entryPoint: ActivityScreenEntryPoint.Deeplink,
         },
       },
     );

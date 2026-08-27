@@ -30,7 +30,6 @@ let mockRouteParams:
       type?: string;
       accountName?: string;
       oauthLoginSuccess?: boolean;
-      onboardingTraceCtx?: unknown;
       provider?: string;
     }
   | undefined = {};
@@ -54,6 +53,16 @@ jest.mock('../../../util/theme', () => {
     useTheme: () => mockTheme,
   };
 });
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  getTraceContext: jest.fn().mockReturnValue({
+    _name: 'OnboardingJourneyOverall',
+    _id: 'mock-trace-id',
+  }),
+}));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),

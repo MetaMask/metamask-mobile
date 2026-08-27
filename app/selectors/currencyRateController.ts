@@ -84,6 +84,10 @@ export const selectConversionRateByChainId = createSelector(
   },
 );
 
+export const makeSelectConversionRateByChainId =
+  (chainId: string) => (state: RootState) =>
+    selectConversionRateByChainId(state, chainId);
+
 export const selectUsdConversionRate = createSelector(
   getCurrencyRateControllerCurrencyRates,
   getCurrencyRateControllerCurrentCurrency,
@@ -106,3 +110,7 @@ export const selectUSDConversionRateByChainId = createSelector(
     return currencyRates?.[nativeCurrency]?.usdConversionRate;
   },
 );
+
+export const makeSelectUSDConversionRateByChainId =
+  (chainId: string) => (state: RootState) =>
+    selectUSDConversionRateByChainId(state, chainId);

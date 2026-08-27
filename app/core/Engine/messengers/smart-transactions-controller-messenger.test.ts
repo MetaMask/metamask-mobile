@@ -43,7 +43,7 @@ describe('getSmartTransactionsControllerMessenger', () => {
           'RemoteFeatureFlagController:getState',
           'TransactionController:getNonceLock',
           'TransactionController:getTransactions',
-          'TransactionController:updateTransaction',
+          'TransactionController:failTransaction',
         ]),
       }),
     );

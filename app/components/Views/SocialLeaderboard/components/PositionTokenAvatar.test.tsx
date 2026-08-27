@@ -29,7 +29,6 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 }));
 
 jest.mock('../utils/chainMapping', () => ({
-  HYPERLIQUID_CHAIN_NAME: 'hyperliquid',
   chainNameToId: jest.fn((chain: string) =>
     chain === 'base' ? 'eip155:8453' : undefined,
   ),
