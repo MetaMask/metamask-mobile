@@ -1,6 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { usePerpsProvider } from './usePerpsProvider';
 
 jest.mock('react-redux', () => ({
@@ -21,6 +25,19 @@ const mockGetOrderCapabilities = jest.mocked(
   Engine.context.PerpsController.getOrderCapabilities,
 );
 
+type Capabilities = Awaited<
+  ReturnType<typeof Engine.context.PerpsController.getOrderCapabilities>
+>;
+
+const createDeferredCapabilities = () => {
+  let resolve = (_value: Capabilities): void => undefined;
+  const promise = new Promise<Capabilities>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+
+  return { promise, resolve };
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockGetOrderCapabilities.mockResolvedValue({
@@ -28,13 +45,15 @@ beforeEach(() => {
     providerId: 'hyperliquid',
     supportedStrategies: [],
   });
-  // Default: hyperliquid active, MYX flag off
+  // Default: Hyperliquid active on mainnet, MYX flag off.
   mockUseSelector.mockImplementation((selector: unknown) => {
-    const fn = selector as (s: unknown) => unknown;
-    const fakeState = {};
-    // First call = selectPerpsProvider, second = selectPerpsMYXProviderEnabledFlag
-    const result = fn(fakeState);
-    return result ?? 'hyperliquid';
+    if (selector === selectPerpsProvider) {
+      return 'hyperliquid';
+    }
+    if (selector === selectPerpsNetwork) {
+      return 'mainnet';
+    }
+    return false;
   });
 });
 
@@ -243,9 +262,6 @@ describe('usePerpsProvider', () => {
     });
 
     it('ignores a stale capability response after the market route changes', async () => {
-      type Capabilities = Awaited<
-        ReturnType<typeof Engine.context.PerpsController.getOrderCapabilities>
-      >;
       let resolveFirst = (_value: Capabilities): void => undefined;
       const firstResponse = new Promise<Capabilities>((resolve) => {
         resolveFirst = resolve;
@@ -278,6 +294,94 @@ describe('usePerpsProvider', () => {
 
       expect(result.current.supportsTwapOrders).toBe(false);
     });
+
+    it.each([
+      {
+        lifecycleName: 'active provider',
+        initialActiveProvider: 'aggregated',
+        changedActiveProvider: 'hyperliquid',
+        initialNetwork: 'mainnet',
+        changedNetwork: 'mainnet',
+      },
+      {
+        lifecycleName: 'perps network',
+        initialActiveProvider: 'aggregated',
+        changedActiveProvider: 'aggregated',
+        initialNetwork: 'mainnet',
+        changedNetwork: 'testnet',
+      },
+    ])(
+      'refreshes capabilities when the $lifecycleName changes and ignores a late stale response',
+      async ({
+        initialActiveProvider,
+        changedActiveProvider,
+        initialNetwork,
+        changedNetwork,
+      }) => {
+        let activeProvider = initialActiveProvider;
+        let perpsNetwork = initialNetwork;
+        const staleCapabilities = createDeferredCapabilities();
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectPerpsProvider) {
+            return activeProvider;
+          }
+          if (selector === selectPerpsNetwork) {
+            return perpsNetwork;
+          }
+          return false;
+        });
+        mockGetOrderCapabilities
+          .mockResolvedValueOnce({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: ['twap'],
+          })
+          .mockReturnValueOnce(staleCapabilities.promise)
+          .mockResolvedValueOnce({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: [],
+          });
+        const { result, rerender } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC' }),
+        );
+        await waitFor(() => {
+          expect(result.current.supportsTwapOrders).toBe(true);
+        });
+
+        activeProvider = changedActiveProvider;
+        perpsNetwork = changedNetwork;
+        rerender(undefined);
+
+        expect(result.current.supportsTwapOrders).toBe(false);
+        expect(result.current.isLoadingOrderCapabilities).toBe(true);
+        await waitFor(() => {
+          expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        });
+
+        activeProvider = initialActiveProvider;
+        perpsNetwork = initialNetwork;
+        rerender(undefined);
+        await waitFor(() => {
+          expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(3);
+          expect(result.current.isLoadingOrderCapabilities).toBe(false);
+        });
+        await act(async () => {
+          staleCapabilities.resolve({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: ['twap'],
+          });
+          await staleCapabilities.promise;
+        });
+
+        expect(result.current.supportsTwapOrders).toBe(false);
+        expect(mockGetOrderCapabilities).toHaveBeenNthCalledWith(2, {
+          symbol: 'BTC',
+          providerId: undefined,
+        });
+      },
+    );
 
     it('isMultiProviderEnabled is false when only one provider available', () => {
       mockUseSelector

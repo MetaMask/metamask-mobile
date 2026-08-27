@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectPerpsProvider } from '../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import type {
   GetOrderCapabilitiesParams,
@@ -34,6 +37,7 @@ export function usePerpsProvider(
 ) {
   const activeProvider = useSelector(selectPerpsProvider);
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
+  const perpsNetwork = useSelector(selectPerpsNetwork);
 
   /**
    * Get list of available providers based on feature flags
@@ -91,6 +95,8 @@ export function usePerpsProvider(
     ? JSON.stringify([
         orderCapabilitiesParams.providerId,
         orderCapabilitiesParams.symbol,
+        activeProvider,
+        perpsNetwork,
       ])
     : undefined;
   const [orderCapabilitiesState, setOrderCapabilitiesState] =
@@ -116,7 +122,12 @@ export function usePerpsProvider(
         isCurrent = false;
       };
     }
-    const requestKey = JSON.stringify([providerId, symbol]);
+    const requestKey = JSON.stringify([
+      providerId,
+      symbol,
+      activeProvider,
+      perpsNetwork,
+    ]);
     setOrderCapabilitiesState({
       requestKey,
       capabilities: null,
@@ -153,7 +164,12 @@ export function usePerpsProvider(
     return () => {
       isCurrent = false;
     };
-  }, [orderCapabilitiesParams?.providerId, orderCapabilitiesParams?.symbol]);
+  }, [
+    activeProvider,
+    orderCapabilitiesParams?.providerId,
+    orderCapabilitiesParams?.symbol,
+    perpsNetwork,
+  ]);
 
   const supportsTwapOrders =
     orderCapabilities?.status === 'ready' &&
