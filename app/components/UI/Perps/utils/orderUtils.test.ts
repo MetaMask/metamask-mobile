@@ -511,15 +511,15 @@ describe('orderUtils', () => {
       detailedOrderType: 'Take Profit Limit',
     };
 
-    it('returns trigger price label when trigger price is valid', () => {
+    it('returns limit price for trigger-limit with a distinct trigger price', () => {
       const result = resolveOrderDisplayPriceAndLabel({
         ...baseOrder,
         triggerPrice: '51000',
       });
 
       expect(result).toEqual({
-        priceValue: 51000,
-        labelKey: 'perps.order.trigger_price',
+        priceValue: 50000,
+        labelKey: 'perps.order.limit_price',
       });
     });
 
@@ -536,13 +536,14 @@ describe('orderUtils', () => {
       });
     });
 
-    it('returns market label when trigger market has no valid prices', () => {
+    it('returns market label for trigger-market with trigger and cap prices', () => {
       const result = resolveOrderDisplayPriceAndLabel({
         ...baseOrder,
         orderType: 'market',
         detailedOrderType: 'Stop Market',
-        triggerPrice: '0',
-        price: '0',
+        triggerOrderType: 'stop_market',
+        triggerPrice: '49000',
+        price: '48510',
       });
 
       expect(result).toEqual({
