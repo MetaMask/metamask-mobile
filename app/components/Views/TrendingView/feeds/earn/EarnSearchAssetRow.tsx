@@ -6,14 +6,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
-import {
-  earnAssetToToken,
-  getEarnAssetMetadata,
-  hasEarnAssetSubsidizedFee,
-} from '../../../../UI/Earn/utils/earnAssets';
-import { getEarnAssetRateCopy } from '../../../../UI/Earn/utils/earnSection/getEarnAssetRateCopy';
+import { deriveEarnAssetDisplayData } from '../../../../UI/Earn/utils/earnAssets';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
 import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 
 interface EarnSearchAssetRowProps {
@@ -23,12 +17,13 @@ interface EarnSearchAssetRowProps {
 
 const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
   const { asset } = item;
-  const metadata = getEarnAssetMetadata(asset);
-  const token = earnAssetToToken(asset);
-
-  const hasMinDepositAmount = !isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-  const hasSubsidizedFee = hasEarnAssetSubsidizedFee(asset);
+  const {
+    metadata,
+    hasSubsidizedFee,
+    hasMinDepositAmount,
+    fiatBalance,
+    rateCopy,
+  } = deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
@@ -39,17 +34,17 @@ const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
       accessibilityRole="button"
       onPress={handlePress}
       testID="earn-search-asset-row"
-      avatar={<EarnAssetIcon token={token} />}
+      avatar={<EarnAssetIcon asset={asset} />}
       title={metadata.name}
       titleEndAccessory={hasSubsidizedFee ? <EarnNoFeeTag /> : undefined}
       titleProps={{
         numberOfLines: 1,
       }}
-      description={hasMinDepositAmount ? token?.balanceFiat : token.symbol}
+      description={hasMinDepositAmount ? fiatBalance : metadata.symbol}
       descriptionProps={{
         numberOfLines: 1,
       }}
-      value={getEarnAssetRateCopy({ asset })}
+      value={rateCopy}
       valueProps={{
         color: TextColor.SuccessDefault,
         numberOfLines: 1,

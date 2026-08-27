@@ -13,46 +13,25 @@ import { rankEarnAssets } from '../../../../UI/Earn/utils/earnSection';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
 import EarnSearchAssetRow from './EarnSearchAssetRow';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const {
-    Pressable,
-    Text: TextComponent,
-    View,
-  } = jest.requireActual('react-native');
+jest.mock('../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon', () => {
+  const { Text: TextComponent } = jest.requireActual('react-native');
 
   return {
-    Box: ({ children, ...props }: React.ComponentProps<typeof View>) => (
-      <View {...props}>{children}</View>
+    __esModule: true,
+    default: ({
+      asset,
+    }: {
+      asset: {
+        kind: 'held' | 'discovery';
+        asset?: { chainId?: string };
+        metadata?: { chainId?: string };
+      };
+    }) => (
+      <TextComponent testID="earn-search-asset-network-badge">
+        {asset.kind === 'held' ? asset.asset?.chainId : asset.metadata?.chainId}
+      </TextComponent>
     ),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
-    ButtonBase: ({
-      children,
-      ...props
-    }: React.ComponentProps<typeof Pressable>) => (
-      <Pressable {...props}>{children}</Pressable>
-    ),
-    FontWeight: { Medium: '500' },
-    Text: ({
-      children,
-      ...props
-    }: React.ComponentProps<typeof TextComponent>) => (
-      <TextComponent {...props}>{children}</TextComponent>
-    ),
-    TextColor: {
-      TextAlternative: 'text-alternative',
-      TextDefault: 'text-default',
-    },
-    TextVariant: { BodyMd: 'body-md', BodySm: 'body-sm' },
   };
-});
-
-jest.mock('../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon', () => {
-  const { Text } = jest.requireActual('react-native');
-
-  return ({ token }: { token: { chainId?: string } }) => (
-    <Text testID="earn-search-asset-network-badge">{token.chainId}</Text>
-  );
 });
 
 const readyExperience = (
@@ -135,7 +114,7 @@ const createItem = (
 });
 
 describe('EarnSearchAssetRow', () => {
-  it('renders held asset name, token amount, and Get APY copy', () => {
+  it('renders held asset name, symbol, and Get APY copy', () => {
     const item = createItem(createHeldSearchAsset('USDC', '0.001'));
 
     const { getByText } = render(
@@ -143,13 +122,13 @@ describe('EarnSearchAssetRow', () => {
     );
 
     expect(getByText('USDC Coin')).toBeOnTheScreen();
-    expect(getByText('0.001 USDC')).toBeOnTheScreen();
+    expect(getByText('USDC')).toBeOnTheScreen();
     expect(
-      getByText(strings('earn_module.get_rate_apy', { percentage: '4.2' })),
+      getByText(strings('earn_module.rate_apy', { percentage: '4.2' })),
     ).toBeOnTheScreen();
   });
 
-  it('renders discovery asset name, zero token amount, and APY copy', () => {
+  it('renders discovery asset name, symbol, and APY copy', () => {
     const item = createItem(createDiscoverySearchAsset('USDT'));
 
     const { getByText } = render(
@@ -157,7 +136,7 @@ describe('EarnSearchAssetRow', () => {
     );
 
     expect(getByText('USDT Coin')).toBeOnTheScreen();
-    expect(getByText('0 USDT')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
     expect(
       getByText(strings('earn_module.rate_apy', { percentage: '4.2' })),
     ).toBeOnTheScreen();

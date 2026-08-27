@@ -6,9 +6,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import type { TokenI } from '../../../Tokens/types';
+import type { EarnAsset } from '../../types/earnAssets';
+import { earnAssetToToken } from '../../utils/earnAssets';
 
-const EarnAssetIcon = ({ token }: { token: TokenI }) => {
+const EarnAssetIcon = ({ asset }: { asset: EarnAsset }) => {
+  const token = earnAssetToToken(asset);
   const networkImageSource = token.chainId
     ? getNetworkImageSource({ chainId: token.chainId })
     : undefined;

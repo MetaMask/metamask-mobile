@@ -41,12 +41,7 @@ import { useNavigation } from '@react-navigation/native';
 import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import { truncateNumber } from '../../utils';
-import {
-  earnAssetToToken,
-  getEarnAssetFiatDisplay,
-  getEarnAssetMetadata,
-  hasEarnAssetSubsidizedFee,
-} from '../../utils/earnAssets';
+import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -56,11 +51,9 @@ import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
 import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
-import { getEarnAssetRateCopy } from '../../utils/earnSection/getEarnAssetRateCopy';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 
 interface EarnSectionHomeAnalytics {
@@ -277,17 +270,18 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           }
 
           const { asset } = slot;
-          const metadata = getEarnAssetMetadata(asset);
-          const hasMinDepositAmount =
-            !isEarnAssetBalanceBelowMinDepositAmount(asset);
-          const hasSubsidizedFee = hasEarnAssetSubsidizedFee(asset);
-
-          const rateText = getEarnAssetRateCopy({ asset });
+          const {
+            metadata,
+            hasSubsidizedFee,
+            hasMinDepositAmount,
+            fiatBalance,
+            rateCopy,
+          } = deriveEarnAssetDisplayData(asset);
 
           return (
             <EarnSectionAssetCard
               key={slot.key}
-              icon={<EarnAssetIcon token={earnAssetToToken(asset)} />}
+              icon={<EarnAssetIcon asset={asset} />}
               tag={
                 hasSubsidizedFee ? (
                   <EarnNoFeeTag
@@ -298,11 +292,10 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               primaryText={metadata.ticker ?? metadata.symbol}
               secondaryText={
                 hasMinDepositAmount
-                  ? (getEarnAssetFiatDisplay(asset) ??
-                    strings('earn_module.balance_unavailable'))
+                  ? (fiatBalance ?? strings('earn_module.balance_unavailable'))
                   : (metadata.name ?? metadata.ticker ?? metadata.symbol)
               }
-              tertiaryText={rateText}
+              tertiaryText={rateCopy}
               testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />

@@ -12,3 +12,4 @@ export {
   hasEarnAssetBalance,
 } from './earnAssetBalance';
 export { hasEarnAssetSubsidizedFee } from './earnAssetFee';
+export { deriveEarnAssetDisplayData } from './deriveEarnAssetDisplayData';
