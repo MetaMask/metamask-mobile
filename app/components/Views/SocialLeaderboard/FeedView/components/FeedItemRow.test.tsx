@@ -25,6 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+      'social_leaderboard.feed.just_now': 'Just now',
       'social_leaderboard.feed.action.traded': 'Traded',
     };
     return literals[key] ?? key;
