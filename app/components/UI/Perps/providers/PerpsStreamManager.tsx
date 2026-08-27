@@ -2120,6 +2120,7 @@ class TopOfBookStreamChannel extends StreamChannel<
     }
 
     return this.subscribe({
+      symbols: [params.symbol],
       callback: params.callback,
     });
   }
@@ -2131,7 +2132,8 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public reconnect(): void {
-    const symbol = this.currentSymbol;
+    const symbol =
+      this.currentSymbol ?? this.symbolSubscribers.keys().next().value;
     this.disconnect();
     super.clearCache();
     if (symbol && this.subscribers.size > 0) {

@@ -4005,6 +4005,24 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith(undefined);
     });
+
+    it('restores the mounted symbol after cache clear and reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('FocusedPriceStreamChannel', () => {
