@@ -308,8 +308,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const action = resolveAction(coreItem, trade);
   const isClosed =
-    action === 'closed' ||
-    (action === undefined && isClosedPosition(coreItem));
+    action === 'closed' || (action === undefined && isClosedPosition(coreItem));
   // Only a full close realizes P&L. A reduce leaves the position open, so the
   // right column keeps showing current value — the old `intent === 'exit'`
   // test flipped it to a realized figure on every partial trim.

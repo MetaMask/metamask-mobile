@@ -82,9 +82,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const isPerp = item.type === 'perps';
   const assetClass = isPerp ? 'perps' : 'spot';
   const action = item.action;
-  const actionLabel = strings(
-    getTradeActionI18nKey('feed', isPerp, action),
-  );
+  const actionLabel = strings(getTradeActionI18nKey('feed', isPerp, action));
   const timeLabel = formatFeedTimestamp(item.timestamp);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
