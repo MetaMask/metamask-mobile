@@ -8,12 +8,10 @@ import {
   selectRecentlyViewedMarkets,
   selectPerpsMode as selectPerpsModeCore,
   selectProLayoutPreferences as selectProLayoutPreferencesCore,
-  selectVisibleCandleCount as selectVisibleCandleCountCore,
   selectOrderBookPreferences as selectOrderBookPreferencesCore,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   DEFAULT_ORDER_BOOK_PREFERENCES,
-  VISIBLE_CANDLE_COUNT_CONFIG,
   InitializationState,
   type OrderBookPreferences,
   type PerpsActiveProviderMode,
@@ -223,23 +221,6 @@ const selectPerpsProChartExpanded = createSelector(
 );
 
 /**
- * Visible candle count shared by Lite and Pro charts. Persisted globally
- * across markets and app restarts.
- */
-const selectPerpsVisibleCandleCount = createSelector(
-  selectPerpsControllerState,
-  (perpsControllerState): number => {
-    try {
-      return perpsControllerState
-        ? selectVisibleCandleCountCore(perpsControllerState)
-        : VISIBLE_CANDLE_COUNT_CONFIG.Default;
-    } catch {
-      return VISIBLE_CANDLE_COUNT_CONFIG.Default;
-    }
-  },
-);
-
-/**
  * Market-agnostic Pro order-book listed-by preferences (currency + metric).
  * Group-by remains per-market via `selectOrderBookGrouping`.
  */
@@ -335,7 +316,6 @@ export {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
-  selectPerpsVisibleCandleCount,
   selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,

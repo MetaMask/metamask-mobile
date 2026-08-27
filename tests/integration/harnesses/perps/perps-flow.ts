@@ -385,7 +385,6 @@ export function buildPerpsFlowHarness(
     savePendingTradeConfiguration: jest.fn(),
     clearPendingTradeConfiguration: jest.fn(),
     setSelectedOrderType: jest.fn(),
-    setVisibleCandleCount: jest.fn(),
     setOrderBookPreferences: jest.fn(),
     saveTradeConfiguration: jest.fn(),
   };

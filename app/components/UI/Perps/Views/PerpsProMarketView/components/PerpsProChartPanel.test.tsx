@@ -36,8 +36,6 @@ interface MockTradingViewChartProps {
     currentPrice?: string;
   };
   onOhlcDataChange?: (data: OhlcData | null) => void;
-  onVisibleCandleCountChange?: (count: number) => void;
-  visibleCandleCount?: number;
   testID?: string;
 }
 
@@ -122,11 +120,6 @@ jest.mock('../../../hooks/usePerpsEventTracking', () => ({
 
 jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
   usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
-}));
-
-const mockUsePerpsVisibleCandleCount = jest.fn();
-jest.mock('../../../hooks/usePerpsVisibleCandleCount', () => ({
-  usePerpsVisibleCandleCount: () => mockUsePerpsVisibleCandleCount(),
 }));
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
@@ -253,10 +246,6 @@ describe('PerpsProChartPanel', () => {
       isChartExpanded: true,
       setChartExpanded: mockSetChartExpanded,
     });
-    mockUsePerpsVisibleCandleCount.mockReturnValue({
-      visibleCandleCount: 30,
-      setVisibleCandleCount: jest.fn(),
-    });
   });
 
   it('passes resting BTC limit orders to the Advanced Chart', () => {
@@ -377,12 +366,6 @@ describe('PerpsProChartPanel', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
     ).toBeOnTheScreen();
-    expect(mockTradingViewChart).toHaveBeenCalledWith(
-      expect.objectContaining({
-        visibleCandleCount: 30,
-        onVisibleCandleCountChange: expect.any(Function),
-      }),
-    );
   });
 
   it('renders a skeleton while Lightweight candle history is unavailable', () => {

@@ -58,8 +58,6 @@ export interface PerpsChartFullscreenModalProps {
   szDecimals?: number | null;
   /** Loads older candles when the fullscreen Advanced Chart falls back to Lightweight. */
   fallbackFetchMoreHistory?: () => void;
-  /** Persist pinch-zoom candle count from the fullscreen Lightweight chart. */
-  onVisibleCandleCountChange?: (count: number) => void;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -75,7 +73,6 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   positionSize,
   szDecimals,
   fallbackFetchMoreHistory,
-  onVisibleCandleCountChange,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -350,7 +347,6 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 showOverlay={false}
                 coloredVolume
                 onOhlcDataChange={setOhlcData}
-                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 testID="fullscreen-chart"
               />
             )}

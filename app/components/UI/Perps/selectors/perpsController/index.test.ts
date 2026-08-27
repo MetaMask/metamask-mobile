@@ -5,7 +5,6 @@ import {
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   DEFAULT_ORDER_BOOK_PREFERENCES,
-  VISIBLE_CANDLE_COUNT_CONFIG,
   type AccountState,
 } from '@metamask/perps-controller';
 import {
@@ -22,7 +21,6 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
-  selectPerpsVisibleCandleCount,
   selectPerpsOrderBookPreferences,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
@@ -1093,32 +1091,6 @@ describe('PerpsController Selectors', () => {
         field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
         direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
       });
-    });
-  });
-
-  describe('selectPerpsVisibleCandleCount', () => {
-    it('returns the persisted visible candle count', () => {
-      const mockState = createMockState({ visibleCandleCount: 80 });
-
-      expect(selectPerpsVisibleCandleCount(mockState)).toBe(80);
-    });
-
-    it('returns the controller default when the preference is unset', () => {
-      const mockState = createMockState({});
-
-      expect(selectPerpsVisibleCandleCount(mockState)).toBe(
-        VISIBLE_CANDLE_COUNT_CONFIG.Default,
-      );
-    });
-
-    it('falls back to the default when PerpsController state is missing', () => {
-      const mockState = {
-        engine: { backgroundState: { PerpsController: undefined } },
-      } as unknown as RootState;
-
-      expect(selectPerpsVisibleCandleCount(mockState)).toBe(
-        VISIBLE_CANDLE_COUNT_CONFIG.Default,
-      );
     });
   });
 

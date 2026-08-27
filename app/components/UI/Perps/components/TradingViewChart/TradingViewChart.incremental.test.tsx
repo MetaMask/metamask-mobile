@@ -376,14 +376,6 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(template).toContain(
       'window.applyZoom(window.visibleCandleCount, false)',
     );
-    expect(template).toContain("type: 'VISIBLE_CANDLE_COUNT'");
-    expect(template).toContain('CANDLE_COUNT_POST_DEBOUNCE_MS = 400');
-    expect(template).toContain(
-      'range.to - range.from - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES + 1',
-    );
-    expect(template).toContain('window.isApplyingZoom');
-    expect(template).toContain('window.ZOOM_LIMITS.MAX_CANDLES');
-    expect(template).toContain('window.ZOOM_LIMITS.MIN_CANDLES');
   });
 
   it('drops Limit prices from autoscale after add then clear', () => {

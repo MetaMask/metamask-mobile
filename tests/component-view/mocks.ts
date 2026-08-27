@@ -515,7 +515,6 @@ jest.mock('../../app/core/Engine', () => {
         setPerpsMode: jest.fn(),
         setProLayoutPreferences: jest.fn(),
         setSelectedOrderType: jest.fn(),
-        setVisibleCandleCount: jest.fn(),
         setOrderBookPreferences: jest.fn(),
         saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
