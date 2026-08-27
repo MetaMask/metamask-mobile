@@ -27,6 +27,26 @@ const ENABLED_NETWORKS = {
 };
 
 /**
+ * `assetsUnifyState` override that gates the unlock spam cleanup OFF. The
+ * default mocks already enable it (see `base-flags.ts`), so only the off case
+ * needs an explicit override. The package-side cleanup reads the *resolved*
+ * flag (not the raw `versions` wrapper), so the override only needs the entry
+ * the app version (8.10.x) resolves to.
+ */
+const CLEANUP_DISABLED_OVERRIDE = {
+  assetsUnifyState: {
+    versions: {
+      '8.3.0': {
+        enabled: true,
+        featureVersion: '1',
+        minimumVersion: '8.3.0',
+        useUnlockCleanup: false,
+      },
+    },
+  },
+};
+
+/**
  * The cleanup fires off two Token API round trips after `KeyringController:unlock`,
  * so give the rows time to disappear before failing.
  */
@@ -106,7 +126,7 @@ function buildFixture() {
 
 appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
   appiumTest(
-    'removes below-floor spam tokens from persisted state on unlock',
+    'removes below-floor spam tokens from persisted state on unlock when the cleanup flag is on',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -114,6 +134,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           restartDevice: true,
           currentDeviceDetails,
           testSpecificMock: async (mockServer: Mockttp) => {
+            // Default mocks already enable useUnlockCleanup.
             await setupRemoteFeatureFlagsMock(mockServer, {});
             await mockOccurrenceApis(mockServer);
           },
@@ -148,6 +169,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           restartDevice: true,
           currentDeviceDetails,
           testSpecificMock: async (mockServer: Mockttp) => {
+            // Default mocks already enable useUnlockCleanup.
             await setupRemoteFeatureFlagsMock(mockServer, {});
             await mockOccurrenceApis(mockServer, {
               failOccurrenceFloors: true,
@@ -162,6 +184,38 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
 
           // Every spam row must still be held: a failed floor lookup must never
           // be read as "no floor", which would delete the whole set.
+          for (const { symbol } of SPAM_ASSETS) {
+            await NetworkManager.checkTokenExists(symbol);
+          }
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'leaves persisted spam tokens untouched when the cleanup flag is off',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              CLEANUP_DISABLED_OVERRIDE,
+            );
+            await mockOccurrenceApis(mockServer);
+          },
+        },
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+          await WalletView.tapOnNewTokensSection();
+          await TokensFullView.waitForVisible();
+
+          // With useUnlockCleanup off the cleanup must not run, so even the
+          // below-floor spam tokens survive unlock.
           for (const { symbol } of SPAM_ASSETS) {
             await NetworkManager.checkTokenExists(symbol);
           }
