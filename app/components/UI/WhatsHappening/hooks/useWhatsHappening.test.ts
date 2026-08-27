@@ -590,7 +590,9 @@ describe('useWhatsHappening', () => {
         useWhatsHappening({ outdatedItemId }),
       {
         wrapper,
-        initialProps: { outdatedItemId: mockFrontPage.id },
+        initialProps: {
+          outdatedItemId: mockFrontPage.id,
+        } as { outdatedItemId: string | null },
       },
     );
 
