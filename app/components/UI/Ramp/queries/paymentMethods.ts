@@ -3,15 +3,6 @@ import type { PaymentMethodsForContextResponse } from '@metamask/ramps-controlle
 import Engine from '../../../../core/Engine';
 import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
-/**
- * Read-only requests cache for 5 minutes. State-writing requests
- * (`updateState: true`) must not: the controller commits the catalog and its
- * selection as a side effect of the fetch, so a silent cache hit would leave
- * `RampsController.paymentMethods` stale for the context the user just entered.
- */
-const staleTimeFor = (updateState: boolean) =>
-  updateState ? 0 : 5 * 60 * 1000;
-
 export interface PaymentMethodsQueryParams {
   regionCode: string;
   assetId: string;
@@ -22,7 +13,6 @@ export interface PaymentMethodsQueryParams {
   restrictToKnownOrNativeProviders?: boolean;
   /** Buy owns the shared catalog; deposit contexts must pass `false`. */
   updateState: boolean;
-  staleTime?: number;
 }
 
 const normalizeContext = (params: PaymentMethodsQueryParams) => ({
@@ -35,23 +25,16 @@ const normalizeContext = (params: PaymentMethodsQueryParams) => ({
 export const rampsPaymentMethodsKeys = {
   all: () => ['ramps', 'paymentMethods'] as const,
   detail: (params: PaymentMethodsQueryParams) => {
-    const {
-      regionCode,
-      assetId,
-      providerId,
-      restrictToKnownOrNativeProviders,
-      updateState,
-    } = normalizeContext(params);
-    // `updateState` is part of the key: a read-only deposit request must never
-    // be served from, or serve, a Buy request that also writes the shared
-    // catalog.
+    const scope = normalizeContext(params);
+    // `updateState` is in the key so a read-only deposit request never serves,
+    // or is served by, a Buy request that also writes the shared catalog.
     return [
       ...rampsPaymentMethodsKeys.all(),
-      regionCode,
-      assetId,
-      providerId || 'auto',
-      Boolean(restrictToKnownOrNativeProviders),
-      updateState,
+      scope.regionCode,
+      scope.assetId,
+      scope.providerId || 'auto',
+      Boolean(scope.restrictToKnownOrNativeProviders),
+      scope.updateState,
     ] as const;
   },
 };
@@ -59,24 +42,27 @@ export const rampsPaymentMethodsKeys = {
 export const rampsPaymentMethodsOptions = (
   params: PaymentMethodsQueryParams,
 ) => {
-  const { regionCode, assetId, providerId, staleTime, ...scope } =
-    normalizeContext(params);
+  const scope = normalizeContext(params);
 
   return queryOptions({
     queryKey: rampsPaymentMethodsKeys.detail(params),
     queryFn: async (): Promise<PaymentMethodsForContextResponse> =>
       Engine.context.RampsController.getPaymentMethodsForContext({
-        region: regionCode,
-        assetId,
+        region: scope.regionCode,
+        assetId: scope.assetId,
         updateState: scope.updateState,
-        ...(providerId
-          ? { providers: [providerId] }
+        ...(scope.providerId
+          ? { providers: [scope.providerId] }
           : {
               autoSelectProvider: scope.autoSelectProvider,
               restrictToKnownOrNativeProviders:
                 scope.restrictToKnownOrNativeProviders,
             }),
       }),
-    staleTime: staleTime ?? staleTimeFor(scope.updateState),
+    // Read-only requests cache for 5 minutes; state-writing ones must not: the
+    // controller commits the catalog and its selection as a side effect of the
+    // fetch, so a silent cache hit would leave `RampsController.paymentMethods`
+    // stale for the context the user just entered.
+    staleTime: scope.updateState ? 0 : 5 * 60 * 1000,
   });
 };

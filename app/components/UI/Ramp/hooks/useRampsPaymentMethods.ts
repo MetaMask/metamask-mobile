@@ -22,9 +22,6 @@ import { parseUserFacingError } from '../utils/parseUserFacingError';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
-/** Which payment-method catalog a caller wants. */
-export type RampsPaymentMethodsCatalog = 'buy' | 'active-fiat-context';
-
 const NO_PAYMENT_METHODS: PaymentMethod[] = [];
 
 /**
@@ -66,34 +63,23 @@ export interface UseRampsPaymentMethodsResult {
   error: string | null;
 }
 
-/** The context-scoped subset, without the Buy-owned Redux selection. */
-export type RampsPaymentMethodsContextResult = Omit<
-  UseRampsPaymentMethodsResult,
-  'selectedPaymentMethod' | 'setSelectedPaymentMethod'
-> & {
-  /** Selection suggested by the controller for this request only. */
-  suggestedPaymentMethod: PaymentMethod | null;
-};
-
 /**
  * Payment methods for the current fiat context, via React Query.
  *
- * Defaults to `active-fiat-context`: when an MM Pay fiat deposit is the pending
- * approval, the query is scoped to that deposit's asset, the user's region and
- * the providers that actually serve the asset, requested with
- * `updateState: false`. Without such a transaction the query stays idle and
- * `paymentMethods` is empty, so a plain send or signature never triggers a
- * fetch.
+ * By default the query is scoped to the pending MM Pay fiat deposit: that
+ * deposit's asset, the user's region, the providers that serve the asset, and
+ * `updateState: false`. With no such transaction it stays idle, so a plain send
+ * or a signature never fetches.
  *
- * Buy surfaces pass `{ catalog: 'buy' }`. That pins them to Buy's own token and
- * provider, so an open deposit confirmation can never re-scope what they see
- * mid-flow. `RampsBootstrap` mounts the Buy binding at app root.
+ * Buy surfaces pass `{ catalog: 'buy' }`, which pins them to Buy's own token
+ * and provider so an open deposit confirmation can never re-scope what they
+ * see mid-flow. `RampsBootstrap` mounts the Buy binding at app root.
  *
- * @param options - Which catalog to read. Omit for `active-fiat-context`.
+ * @param options - Which catalog to read. Omit for the active fiat context.
  * @returns Payment methods state.
  */
 export function useRampsPaymentMethods(
-  options: { catalog?: RampsPaymentMethodsCatalog } = {},
+  options: { catalog?: 'buy' | 'active-fiat-context' } = {},
 ): UseRampsPaymentMethodsResult {
   const isBuyCatalog = options.catalog === 'buy';
 
@@ -216,11 +202,10 @@ function useFiatDepositAssetId(
 
 /**
  * Clears TPC `fiatPayment.selectedPaymentMethodId` once a successful fetch
- * proves the id is not servable for the deposit asset. Users who picked a
+ * proves the id is not servable for the deposit asset: users who picked a
  * Buy-only method through the previously leaked catalog would otherwise keep
- * hitting "This payment route isn't available right now".
- *
- * Never clears while loading, refetching, or on a transient empty result.
+ * hitting "This payment route isn't available right now". Never clears while
+ * loading, refetching, or on a transient empty result.
  */
 function useClearMissingFiatPaymentMethod({
   enabled,
@@ -266,14 +251,10 @@ function useClearMissingFiatPaymentMethod({
   ]);
 }
 
-/**
- * Payment methods for a caller-supplied region / asset / provider context.
- *
- * The caller owns its context, so this hook reads no globals of its own.
- */
+/** Payment methods for a caller-supplied context; reads no globals itself. */
 export function useRampsPaymentMethodsForContext(
   context: PaymentMethodsQueryParams,
-): RampsPaymentMethodsContextResult {
+) {
   const { regionCode, assetId, providerId, autoSelectProvider } = context;
   const queryEnabled = Boolean(
     regionCode.trim() &&
