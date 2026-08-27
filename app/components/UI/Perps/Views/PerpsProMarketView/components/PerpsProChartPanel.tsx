@@ -36,7 +36,12 @@ import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsLiveCandles } from '../../../hooks/stream/usePerpsLiveCandles';
+import { usePerpsLiveOrders } from '../../../hooks/stream/usePerpsLiveOrders';
 import { getPerpsChartAnalyticsProperties } from '../../../utils/chartAnalytics';
+import {
+  buildChartOverlayLines,
+  getChartLimitOrderLines,
+} from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector, {
   type PerpsCandlePeriodOption,
@@ -136,28 +141,28 @@ const PerpsProChartPanel = ({
     asset: symbol,
     loadOnMount: true,
   });
+  const { orders: liveOrders } = usePerpsLiveOrders({ hideTpSl: true });
   const { marketData } = usePerpsMarketData({ asset: symbol });
   const {
     isDeviatedAboveThreshold: isTradingHalted,
     isLoading: isLoadingTradingHalted,
   } = useIsPriceDeviatedAboveThreshold(symbol);
 
+  const limitOrders = useMemo(() => {
+    const marketOrders = liveOrders.filter((order) => order.symbol === symbol);
+    return getChartLimitOrderLines(marketOrders);
+  }, [liveOrders, symbol]);
+
   const tpslLines = useMemo(() => {
     const chartPriceStr =
       currentPrice > 0 ? currentPrice.toString() : undefined;
 
-    if (!existingPosition) {
-      return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-    }
-
-    return {
-      entryPrice: existingPosition.entryPrice,
-      takeProfitPrice: existingPosition.takeProfitPrice,
-      stopLossPrice: existingPosition.stopLossPrice,
-      liquidationPrice: existingPosition.liquidationPrice || undefined,
+    return buildChartOverlayLines({
       currentPrice: chartPriceStr,
-    };
-  }, [currentPrice, existingPosition]);
+      existingPosition,
+      limitOrders,
+    });
+  }, [currentPrice, existingPosition, limitOrders]);
 
   useEffect(() => {
     const hasIntervalChanged =
