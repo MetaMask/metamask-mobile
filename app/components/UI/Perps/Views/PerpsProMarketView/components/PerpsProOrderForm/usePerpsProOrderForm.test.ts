@@ -76,6 +76,7 @@ const mockSetLimitPrice = jest.fn();
 const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetTriggerPrice = jest.fn();
+const mockResetPriceInputInteraction = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -96,6 +97,7 @@ const mockContextValue = {
   hasBlurredTriggerPrice: false,
   triggerPrice: undefined as string | undefined,
   setTriggerPrice: mockSetTriggerPrice,
+  resetPriceInputInteraction: mockResetPriceInputInteraction,
   setOrderType: mockSetOrderType,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
@@ -108,6 +110,12 @@ const mockValidation = {
   errors: [] as string[],
   fieldIssues: [] as OrderFormFieldIssue[],
   isValidating: false,
+  validateNow: jest.fn().mockResolvedValue({
+    errors: [],
+    warnings: [],
+    fieldIssues: [],
+    isValid: true,
+  }),
 };
 
 let mockExistingPosition: {
@@ -157,6 +165,13 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
 }));
 
 let mockPositionStreamLoading = false;
+let mockMarketDataLoading = false;
+let mockMarketDataError: string | null = null;
+let mockMarketData: { szDecimals: number; maxLeverage: number } | null = {
+  szDecimals: 3,
+  maxLeverage: 40,
+};
+let mockIsPlacing = false;
 
 jest.mock('../../../../hooks', () => ({
   useHasExistingPosition: () => ({
@@ -165,12 +180,13 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
-    marketData: { szDecimals: 3, maxLeverage: 40 },
-    isLoading: false,
+    marketData: mockMarketData,
+    isLoading: mockMarketDataLoading,
+    error: mockMarketDataError,
   }),
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
-    return { placeOrder: mockExecuteOrder, isPlacing: false };
+    return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
   usePerpsOrderValidation: () => mockValidation,
@@ -307,6 +323,12 @@ describe('usePerpsProOrderForm', () => {
     mockValidation.isValidating = false;
     mockValidation.errors = [];
     mockValidation.fieldIssues = [];
+    mockValidation.validateNow.mockResolvedValue({
+      errors: [],
+      warnings: [],
+      fieldIssues: [],
+      isValid: true,
+    });
     mockExistingPosition = null;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -316,6 +338,10 @@ describe('usePerpsProOrderForm', () => {
     mockLiveMarkPrice = '90000';
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
+    mockMarketDataLoading = false;
+    mockMarketDataError = null;
+    mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+    mockIsPlacing = false;
     mockIsEligible = true;
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
@@ -327,6 +353,10 @@ describe('usePerpsProOrderForm', () => {
     mockCommitTriggerPrice.mockImplementation((price?: string) => {
       mockContextValue.triggerPrice = price;
       mockContextValue.hasBlurredTriggerPrice = true;
+    });
+    mockResetPriceInputInteraction.mockImplementation(() => {
+      mockContextValue.hasBlurredLimitPrice = false;
+      mockContextValue.hasBlurredTriggerPrice = false;
     });
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
@@ -479,6 +509,102 @@ describe('usePerpsProOrderForm', () => {
       expect(banner?.message).toBe('Insufficient funds');
     });
 
+    it('keeps an empty amount blocked without an inline message', () => {
+      // Arrange
+      mockOrderForm.amount = '0';
+      mockValidation.isValid = false;
+      mockValidation.errors = [];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      act(() => {
+        result.current.sizeInput.onBlur();
+      });
+
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('blocks after submit without an inline amount message', async () => {
+      // Arrange
+      mockOrderForm.amount = '0';
+      mockValidation.isValid = false;
+      mockValidation.errors = [];
+      mockValidation.validateNow.mockResolvedValue({
+        errors: [],
+        warnings: [],
+        fieldIssues: [],
+        isValid: false,
+      });
+      const { result } = renderProForm();
+
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.error'),
+      );
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('blocks silently while market data is loading', () => {
+      // Arrange
+      mockMarketData = null;
+      mockMarketDataLoading = true;
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('explains why the order is blocked when the live price is unavailable', () => {
+      // Arrange
+      mockLivePrice = '';
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'price-unavailable',
+        variant: 'banner',
+        message: strings('perps.pro_order_form.price_unavailable'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows a failure message when market data loading fails', () => {
+      // Arrange
+      mockMarketDataError = 'Market data request failed';
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.notices).toContainEqual({
+        id: 'market-data',
+        variant: 'banner',
+        message: strings('perps.failed_to_load_market_data'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
     it('maps an OI cap to a banner notice', () => {
       // Arrange
       mockIsAtCap = true;
@@ -578,7 +704,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
-    it('suppresses stale validation notices while the position is loading', () => {
+    it('shows a position-loading notice while suppressing stale validation errors', () => {
       // Arrange: retain a prior margin error (skipValidation freezes errors)
       // while the position is still loading after Reduce Only is enabled.
       mockValidation.isValid = false;
@@ -595,8 +721,9 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((n) => n.id === 'margin'),
       ).toBeUndefined();
       expect(
-        result.current.notices.find((n) => n.id === 'reduce-only'),
-      ).toBeUndefined();
+        result.current.notices.find((n) => n.id === 'position-loading')
+          ?.message,
+      ).toBe('Loading positions...');
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
   });
@@ -1144,6 +1271,12 @@ describe('usePerpsProOrderForm', () => {
       // Arrange
       mockValidation.isValid = false;
       mockValidation.errors = ['Bad order'];
+      mockValidation.validateNow.mockResolvedValue({
+        errors: ['Bad order'],
+        warnings: [],
+        fieldIssues: [],
+        isValid: false,
+      });
       const { result } = renderProForm();
 
       // Act
@@ -1157,10 +1290,27 @@ describe('usePerpsProOrderForm', () => {
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('blocks submit and exposes loading while validation is pending', async () => {
+    it('shows a final trigger-limit field error without executing the order', async () => {
       // Arrange
-      mockValidation.isValidating = true;
-      const { result, rerender } = renderProForm();
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.limitPrice = '89000';
+      mockContextValue.triggerPrice = '91000';
+      mockValidation.validateNow.mockResolvedValue({
+        errors: [],
+        warnings: [],
+        fieldIssues: [
+          {
+            field: 'triggerPrice',
+            issue: {
+              code: 'wrong_side',
+              family: 'stop',
+              requiredSide: 'above',
+            },
+          },
+        ],
+        isValid: false,
+      });
+      const { result } = renderProForm();
 
       // Act
       await act(async () => {
@@ -1168,15 +1318,110 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
-      expect(result.current.isPlaceOrderLoading).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        'Trigger price must be higher than mid price',
+      );
+    });
 
-      mockValidation.isValidating = false;
+    it('keeps the CTA enabled without loading while validation is pending', () => {
+      // Arrange
+      mockValidation.isValidating = true;
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderLoading).toBe(false);
+    });
+
+    it('runs current validation before executing a pending order', async () => {
+      // Arrange
+      mockValidation.isValidating = true;
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks a pending trigger order when the live mid crosses the trigger', async () => {
+      // Arrange
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const { result, rerender } = renderProForm();
+
+      // Act
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      mockLivePrice = '92000';
       rerender(undefined);
 
-      expect(result.current.isPlaceOrderLoading).toBe(false);
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(validationError).toHaveBeenCalledWith(
+        'Trigger price must be higher than mid price',
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+      expect(submitted).not.toHaveBeenCalled();
     });
 
     it('navigates to the cross-margin warning and aborts', async () => {
@@ -1378,7 +1623,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('trigger orders', () => {
-    it('preserves trigger inputs and blocks submission when the feature is disabled', async () => {
+    it('explains and blocks a preserved trigger order when the feature is disabled', async () => {
       mockOrderForm.type = 'stop_market';
       mockOrderForm.limitPrice = '90500';
       mockContextValue.triggerPrice = '91000';
@@ -1387,6 +1632,12 @@ describe('usePerpsProOrderForm', () => {
       expect(mockOrderForm.type).toBe('stop_market');
       expect(mockOrderForm.limitPrice).toBe('90500');
       expect(mockContextValue.triggerPrice).toBe('91000');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'trigger-orders-unavailable',
+        variant: 'banner',
+        message: strings('perps.order.validation.trigger_orders_unavailable'),
+      });
       expect(mockSetOrderType).not.toHaveBeenCalled();
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
       expect(mockSetTriggerPrice).not.toHaveBeenCalled();
@@ -1539,35 +1790,115 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0].triggerPrice).toBe('91001');
     });
 
-    it('shows a blocking helper after the trigger price blurs on the wrong side of mid', () => {
-      mockOrderForm.type = 'stop_market';
-      mockContextValue.triggerPrice = '1000';
-      mockValidation.isValid = false;
-      mockValidation.fieldIssues = [
-        {
-          field: 'triggerPrice',
-          issue: {
-            code: 'wrong_side',
-            family: 'stop',
-            requiredSide: 'above',
-          },
-        },
-      ];
-      const { result, rerender } = renderProForm();
-
-      expect(result.current.priceCardMessage).toBeUndefined();
-
-      act(() => {
-        result.current.onTriggerPriceBlur();
-      });
-      rerender({});
-
-      expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
+    it.each([
+      {
+        orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '80000',
+        family: 'stop',
+        requiredSide: 'above',
         message: 'Trigger price must be higher than mid price',
-      });
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-    });
+      },
+      {
+        orderType: 'stop_market',
+        direction: 'short',
+        triggerPrice: '100000',
+        family: 'stop',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '80000',
+        family: 'stop',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'short',
+        triggerPrice: '100000',
+        family: 'stop',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '100000',
+        family: 'take_profit',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'short',
+        triggerPrice: '80000',
+        family: 'take_profit',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'long',
+        triggerPrice: '100000',
+        family: 'take_profit',
+        requiredSide: 'below',
+        message: 'Trigger price must be lower than mid price',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '80000',
+        family: 'take_profit',
+        requiredSide: 'above',
+        message: 'Trigger price must be higher than mid price',
+      },
+    ] as const)(
+      'blocks $direction $orderType before blur and shows guidance after blur',
+      ({
+        orderType,
+        direction,
+        triggerPrice,
+        family,
+        requiredSide,
+        message,
+      }) => {
+        mockOrderForm.type = orderType;
+        mockOrderForm.direction = direction;
+        mockOrderForm.limitPrice = orderType.endsWith('_limit')
+          ? '90000'
+          : undefined;
+        mockContextValue.triggerPrice = triggerPrice;
+        mockValidation.isValid = false;
+        mockValidation.fieldIssues = [
+          {
+            field: 'triggerPrice',
+            issue: {
+              code: 'wrong_side',
+              family,
+              requiredSide,
+            },
+          },
+        ];
+        const { result, rerender } = renderProForm();
+
+        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+        act(() => {
+          result.current.onTriggerPriceBlur();
+        });
+        rerender({});
+
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'error',
+          message,
+        });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
 
     it('clears the helper once a valid trigger price is entered', () => {
       mockOrderForm.type = 'stop_market';
@@ -1594,6 +1925,38 @@ describe('usePerpsProOrderForm', () => {
       rerender({});
 
       expect(result.current.priceCardMessage).toBeUndefined();
+    });
+
+    it('shows a new wrong-side error when live mid crosses a blurred trigger', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+      expect(result.current.priceCardMessage).toBeUndefined();
+
+      mockLivePrice = '92000';
+      mockLiveMarkPrice = '92000';
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        {
+          field: 'triggerPrice',
+          issue: {
+            code: 'wrong_side',
+            family: 'stop',
+            requiredSide: 'above',
+          },
+        },
+      ];
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('shows the trigger error before the required limit error', () => {
@@ -1627,7 +1990,7 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it.each(['stop_limit', 'take_profit_limit'] as const)(
-      'shows a required limit error for %s before the limit price blurs',
+      'defers a required limit error for %s until the limit price blurs',
       (orderType) => {
         mockOrderForm.type = orderType;
         mockOrderForm.limitPrice = undefined;
@@ -1639,10 +2002,8 @@ describe('usePerpsProOrderForm', () => {
         ];
         const { result, rerender } = renderProForm();
 
-        expect(result.current.priceCardMessage).toEqual({
-          severity: 'error',
-          message: 'Please set a limit price for limit orders',
-        });
+        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
 
         act(() => {
           result.current.onLimitPriceBlur();
@@ -1653,10 +2014,35 @@ describe('usePerpsProOrderForm', () => {
           severity: 'error',
           message: 'Please set a limit price for limit orders',
         });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
       },
     );
 
-    it('shows a required trigger error before the trigger price blurs', () => {
+    it('defers a required trigger error until the trigger price blurs', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = undefined;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        { field: 'triggerPrice', issue: { code: 'required' } },
+      ];
+      const { result, rerender } = renderProForm();
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Please set a trigger price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('keeps field copy blur-gated after a blocked submit attempt', async () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = undefined;
       mockValidation.isValid = false;
@@ -1665,11 +2051,28 @@ describe('usePerpsProOrderForm', () => {
       ];
       const { result } = renderProForm();
 
-      expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
-        message: 'Please set a trigger price',
-      });
+      expect(result.current.priceCardMessage).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(validationError).toHaveBeenCalledWith(
+        'Please set a trigger price',
+      );
+      expect(mockTrack).toHaveBeenCalledWith(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+          PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Please set a trigger price',
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      });
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -1797,6 +2200,95 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('isPlaceOrderDisabled', () => {
+    it.each(['', '0', 'not-a-number'])(
+      'is disabled on mount for amount "%s"',
+      (amount) => {
+        // Arrange
+        mockOrderForm.amount = amount;
+
+        // Act
+        const { result } = renderProForm();
+
+        // Assert
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(result.current.notices).toEqual([]);
+      },
+    );
+
+    it('is disabled when protocol validation is not ready for a positive amount', () => {
+      // Arrange
+      mockOrderForm.amount = '0.0001';
+      mockValidation.isValid = false;
+      mockValidation.errors = [];
+      mockValidation.fieldIssues = [];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual([]);
+    });
+
+    it('is disabled without a notice for a filtered size-positive error', () => {
+      // Arrange
+      mockValidation.isValid = false;
+      mockValidation.errors = [
+        strings('perps.errors.orderValidation.sizePositive'),
+      ];
+      mockValidation.fieldIssues = [];
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual([]);
+    });
+
+    it.each([
+      { orderType: 'limit', missingField: 'limitPrice' },
+      { orderType: 'stop_market', missingField: 'triggerPrice' },
+      { orderType: 'take_profit_market', missingField: 'triggerPrice' },
+      { orderType: 'stop_limit', missingField: 'triggerPrice' },
+      { orderType: 'stop_limit', missingField: 'limitPrice' },
+      { orderType: 'take_profit_limit', missingField: 'triggerPrice' },
+      { orderType: 'take_profit_limit', missingField: 'limitPrice' },
+    ] as const)(
+      'is disabled for $orderType when $missingField is missing',
+      ({ orderType, missingField }) => {
+        // Arrange
+        mockOrderForm.type = orderType;
+        mockOrderForm.limitPrice =
+          missingField === 'limitPrice' ? undefined : '91000';
+        mockContextValue.triggerPrice =
+          missingField === 'triggerPrice' ? undefined : '91000';
+        mockValidation.isValid = false;
+        mockValidation.fieldIssues = [
+          { field: missingField, issue: { code: 'required' } },
+        ];
+
+        // Act
+        const { result } = renderProForm();
+
+        // Assert
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(result.current.priceCardMessage).toBeUndefined();
+      },
+    );
+
+    it('shows loading only while order placement is in progress', () => {
+      // Arrange
+      mockIsPlacing = true;
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+    });
+
     it('is disabled at the OI cap', () => {
       // Arrange
       mockIsAtCap = true;
@@ -1804,6 +2296,9 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual(
+        expect.objectContaining({ id: 'oi-cap', variant: 'banner' }),
+      );
     });
 
     it('is enabled for a valid, uncapped order', () => {
@@ -1869,6 +2364,12 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual(
+        expect.objectContaining({
+          id: 'position-loading',
+          variant: 'banner',
+        }),
+      );
     });
   });
 
@@ -2164,6 +2665,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
+      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
       expect(mockSetOrderType).toHaveBeenCalledWith('limit');
     });
 
@@ -2230,6 +2732,45 @@ describe('usePerpsProOrderForm', () => {
       ).toBeDefined();
     });
 
+    it('preserves price values while resetting presentation for a new order type', () => {
+      // Arrange
+      mockOrderForm.type = 'stop_market';
+      mockOrderForm.limitPrice = '91000';
+      mockContextValue.triggerPrice = '92000';
+      mockContextValue.hasBlurredTriggerPrice = true;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        {
+          field: 'triggerPrice',
+          issue: {
+            code: 'wrong_side',
+            family: 'stop',
+            requiredSide: 'above',
+          },
+        },
+      ];
+      const { result, rerender } = renderProForm();
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid price',
+      });
+
+      // Act
+      act(() => {
+        result.current.onOrderTypeSelect('stop_limit');
+      });
+      mockOrderForm.type = 'stop_limit';
+      rerender({});
+
+      // Assert
+      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+      expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+      expect(mockOrderForm.limitPrice).toBe('91000');
+      expect(mockContextValue.triggerPrice).toBe('92000');
+      expect(result.current.priceCardMessage).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
     it('ignores size input over nine digits and forwards valid input', () => {
       // Arrange
       const { result } = renderProForm();

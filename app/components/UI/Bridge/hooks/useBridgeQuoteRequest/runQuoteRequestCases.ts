@@ -77,6 +77,7 @@ export const mockContext = {
 export const runQuoteRequestCases = ({
   debounceMs,
   renderHook,
+  name,
 }: {
   debounceMs: number;
   renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
@@ -87,6 +88,7 @@ export const runQuoteRequestCases = ({
       };
     };
   };
+  name: string;
 }) => {
   const renderUseBridgeQuoteRequest = (
     overrides: Partial<BridgeState> = {},
@@ -123,7 +125,7 @@ export const runQuoteRequestCases = ({
     };
   };
 
-  return describe('useBridgeQuoteRequest', () => {
+  return describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
@@ -344,6 +346,27 @@ export const runQuoteRequestCases = ({
     it('converts "." source amount to srcTokenAmount "0"', async () => {
       const { result } = renderUseBridgeQuoteRequest({
         sourceAmount: '.',
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '0',
+        }),
+        mockContext,
+        0,
+        1,
+      );
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('converts empty source amount to srcTokenAmount "0"', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '',
       });
 
       await act(async () => {

@@ -1579,6 +1579,7 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
+      "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
       "close_keyboard": "Close keyboard",
       "twap": {
         "running_time": "Running time",

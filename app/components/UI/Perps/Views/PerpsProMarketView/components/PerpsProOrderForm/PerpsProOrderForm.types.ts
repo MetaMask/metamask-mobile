@@ -100,8 +100,8 @@ export interface PerpsProOrderFormProps {
   onTriggerPriceBlur?: () => void;
   onTriggerPriceFieldPress?: () => void;
   /**
-   * Helper or warning shown under the grouped price card after blur.
-   * Error blocks the CTA; warning does not.
+   * Helper or warning shown under the grouped price card after the owning
+   * field blurs. Error blocks the CTA before presentation; warning does not.
    */
   priceCardMessage?: {
     severity: 'error' | 'warning';

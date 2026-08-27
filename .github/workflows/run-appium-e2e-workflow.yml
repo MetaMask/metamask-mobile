@@ -528,8 +528,8 @@ jobs:
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Appium phase timings (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+      - name: Upload Appium phase timings (GitHub)
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: appium-timings-${{ inputs.test-suite-name }}

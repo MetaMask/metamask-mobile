@@ -784,6 +784,28 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm).not.toHaveProperty('triggerPrice');
     });
 
+    it('resets price interaction state without clearing price values', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.commitLimitPrice('50000');
+        result.current.commitTriggerPrice('51000');
+      });
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
+
+      act(() => {
+        result.current.resetPriceInputInteraction();
+      });
+
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredLimitPrice).toBe(false);
+      expect(result.current.hasBlurredTriggerPrice).toBe(false);
+    });
+
     it('updates order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
