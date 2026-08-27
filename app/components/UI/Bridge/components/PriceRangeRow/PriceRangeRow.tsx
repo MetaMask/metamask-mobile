@@ -156,7 +156,7 @@ const PriceRangeRow = ({
             accessible={false}
             importantForAccessibility="no"
             numberOfLines={1}
-            style={{ position: 'absolute', opacity: 0 }}
+            twClassName="absolute opacity-0"
             onTextLayout={(event) => {
               const lineWidth = event.nativeEvent.lines[0]?.width;
               if (lineWidth) {
@@ -179,8 +179,7 @@ const PriceRangeRow = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="shrink"
-          style={{ maxWidth: '50%' }}
+          twClassName="max-w-[50%] shrink"
         >
           {minLabel && maxLabel && token ? (
             <Box
@@ -203,10 +202,7 @@ const PriceRangeRow = ({
                     {networkImageSource ? (
                       <Image
                         source={networkImageSource}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                        }}
+                        style={tw.style('h-full w-full')}
                       />
                     ) : null}
                   </Box>
