@@ -79,9 +79,6 @@ async function mockSwapUSDCtoGOOGLONGeoBlocked(
 }
 
 /**
- * Standard swap mocks with USDC → GOOGLON overridden to return RWA_GEO_RESTRICTED.
- */
-/**
  * Absorb leaked STX batchStatus polls from earlier swap specs in the same
  * Appium shard. STX helpers poll GET …/batchStatus with a fixed UUID after
  * submit; without this mock, geo-block cleanup fails on an unmocked request
@@ -114,6 +111,9 @@ async function mockLeakedSmartTransactionBatchStatus(
   });
 }
 
+/**
+ * Standard swap mocks with USDC → GOOGLON overridden to return RWA_GEO_RESTRICTED.
+ */
 export const rwaSwapGeoBlockTestSpecificMock: TestSpecificMock = async (
   mockServer,
 ) => {
