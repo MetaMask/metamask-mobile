@@ -14,14 +14,9 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
-import {
-  selectIsActivityRedesignEnabled,
-  selectIsTransactionsRedesignEnabled,
-} from '../../../selectors/featureFlagController/activityRedesign';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
@@ -48,10 +43,6 @@ jest.mock(
 );
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: jest.fn(() => null),
-}));
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: jest.fn(() => false),
-  selectIsTransactionsRedesignEnabled: jest.fn(() => false),
 }));
 jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
   handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
@@ -189,9 +180,6 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return mockTransactionsData;
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return false;
-      }
       return null;
     });
   });
@@ -229,16 +217,13 @@ describe('MultichainTransactionsView', () => {
     expect(transactionItems.length).toBe(2);
   });
 
-  it('renders redesigned activity rows for asset details when activity redesign is enabled', async () => {
+  it('renders activity rows for asset details', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
-      }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
       }
       return null;
     });
@@ -350,9 +335,6 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-1': bridgeHistoryItem };
       }
@@ -410,9 +392,6 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-1': bridgeHistoryItem };
       }
@@ -443,9 +422,6 @@ describe('MultichainTransactionsView', () => {
       }
       if (selector === selectNonEvmTransactions) {
         return { transactions: [{ ...mockTransactions[0], chain: undefined }] };
-      }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
       }
       return null;
     });
@@ -511,9 +487,6 @@ describe('MultichainTransactionsView', () => {
       }
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
-      }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
       }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-arrival-1': bridgeHistoryItem };
@@ -589,9 +562,6 @@ describe('MultichainTransactionsView', () => {
         // mockTransactions[0].id === FILL_SIGNATURE, i.e. the indexed fill.
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-arrival-1': bridgeHistoryItem };
       }
@@ -616,7 +586,7 @@ describe('MultichainTransactionsView', () => {
     expect(bridgeRows[0][0].item.raw?.type).toBe('localTransaction');
   });
 
-  it('falls back to the bridge-status screen when a bridge arrival is tapped with details redesign off', async () => {
+  it('navigates to ActivityDetails when a bridge arrival is tapped', async () => {
     const bridgeArrival = {
       id: 'bridge-arrival-1',
       chainId: '0x2105',
@@ -633,13 +603,6 @@ describe('MultichainTransactionsView', () => {
       }
       if (selector === selectNonEvmTransactions) {
         return { transactions: [] };
-      }
-      // List redesign on, details redesign off.
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
-      if (selector === selectIsTransactionsRedesignEnabled) {
-        return false;
       }
       if (selector === selectBridgeHistoryForAccount) {
         return {};
@@ -659,15 +622,11 @@ describe('MultichainTransactionsView', () => {
     const rowProps = jest.mocked(ActivityListItemRow).mock.calls[0][0];
     rowProps.onPress?.(rowProps.item);
 
-    // Must not be inert.
-    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
-      expect.objectContaining({
-        evmTxMeta: expect.objectContaining({ id: 'bridge-arrival-1' }),
-      }),
-    );
-    expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
-      expect.anything(),
+      expect.objectContaining({
+        txIdentifier: 'bridge-arrival-1',
+      }),
     );
   });
 

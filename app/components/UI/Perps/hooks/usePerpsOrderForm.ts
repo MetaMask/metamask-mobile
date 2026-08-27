@@ -59,6 +59,8 @@ export interface UsePerpsOrderFormReturn {
   /** Local to the form; not part of controller `OrderFormState`. */
   triggerPrice: string | undefined;
   setTriggerPrice: (price?: string) => void;
+  /** Clears price-field interaction state without clearing entered prices. */
+  resetPriceInputInteraction: () => void;
   setOrderType: (type: OrderType) => void;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
@@ -226,6 +228,10 @@ export function usePerpsOrderForm(
   const [triggerPrice, setTriggerPrice] = useState<string | undefined>();
   const [hasBlurredLimitPrice, setHasBlurredLimitPrice] = useState(false);
   const [hasBlurredTriggerPrice, setHasBlurredTriggerPrice] = useState(false);
+  const resetPriceInputInteraction = useCallback(() => {
+    setHasBlurredLimitPrice(false);
+    setHasBlurredTriggerPrice(false);
+  }, []);
   const effectiveMaxSlippageBps = useMemo(
     () =>
       resolvePerpsMaxSlippageBps({
@@ -404,16 +410,18 @@ export function usePerpsOrderForm(
 
   // Asset-specific price drafts and their blur-validation state must not carry
   // across markets.
-  const setAsset = useCallback((asset: string) => {
-    setOrderForm((prev) => ({
-      ...prev,
-      asset,
-      limitPrice: undefined,
-    }));
-    setTriggerPrice(undefined);
-    setHasBlurredLimitPrice(false);
-    setHasBlurredTriggerPrice(false);
-  }, []);
+  const setAsset = useCallback(
+    (asset: string) => {
+      setOrderForm((prev) => ({
+        ...prev,
+        asset,
+        limitPrice: undefined,
+      }));
+      setTriggerPrice(undefined);
+      resetPriceInputInteraction();
+    },
+    [resetPriceInputInteraction],
+  );
 
   const setTakeProfitPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
@@ -515,6 +523,7 @@ export function usePerpsOrderForm(
       hasBlurredTriggerPrice,
       triggerPrice,
       setTriggerPrice: setTriggerPriceValue,
+      resetPriceInputInteraction,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,
@@ -539,6 +548,7 @@ export function usePerpsOrderForm(
       hasBlurredTriggerPrice,
       triggerPrice,
       setTriggerPriceValue,
+      resetPriceInputInteraction,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,
