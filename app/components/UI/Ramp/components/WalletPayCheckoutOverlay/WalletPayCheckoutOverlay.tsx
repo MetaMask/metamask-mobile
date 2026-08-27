@@ -16,7 +16,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import { colors as commonColors } from '../../../../../styles/common';
@@ -89,25 +88,23 @@ function getCrossmintCheckoutUserAgent(): string | undefined {
  * theirs and must not be reworded.
  */
 function CrossmintTermsNotice() {
-  const tw = useTailwind();
-
   return (
     // Mirrors the provider attribution it replaces (alternative color,
     // centered, 16px gap down to the button), but at 10px so the legal line
     // stays subordinate to the payment button.
     <Box twClassName="pb-4">
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
-        style={tw.style('text-center text-[10px]')}
+        twClassName="text-center"
       >
         {strings('fiat_on_ramp_aggregator.wallet_pay_terms')}{' '}
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           // Underlined, not colored: an accent link would pull attention off
           // the payment button.
-          style={tw.style('underline text-[10px]')}
+          twClassName="underline"
           testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.TERMS_LINK}
           onPress={() => {
             Linking.openURL(CROSSMINT_TERMS_URL);

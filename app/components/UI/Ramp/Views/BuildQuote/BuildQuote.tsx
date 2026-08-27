@@ -847,6 +847,7 @@ function BuildQuote() {
                 {actionSectionMessage}
                 {crossmintWalletPay.checkoutUrl ? (
                   <WalletPayCheckoutOverlay
+                    key={crossmintWalletPay.checkoutUrl}
                     checkoutUrl={crossmintWalletPay.checkoutUrl}
                     interactive={canContinue}
                     onMessage={crossmintWalletPay.onMessage}

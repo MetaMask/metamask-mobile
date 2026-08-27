@@ -40,12 +40,18 @@ jest.mock('../../../../../util/device', () => ({
 
 const CHECKOUT_URL =
   'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=abc';
+const NEXT_CHECKOUT_URL =
+  'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=def';
 
 interface MockWebView {
   props: {
     onMessage?: (event: { nativeEvent: { data: string } }) => void;
   };
 }
+
+type WalletPayCheckoutOverlayProps = React.ComponentProps<
+  typeof WalletPayCheckoutOverlay
+>;
 
 /** Drives Crossmint's own "the payment button has rendered" event. */
 function reportCheckoutReady(webView: MockWebView) {
@@ -79,6 +85,19 @@ function reportHeight(webView: MockWebView, height: unknown) {
 function completeReadySequence(webView: MockWebView) {
   reportCheckoutReady(webView);
   reportHeight(webView, 120);
+}
+
+function KeyedWalletPayCheckoutOverlay({
+  checkoutUrl,
+  ...props
+}: WalletPayCheckoutOverlayProps) {
+  return (
+    <WalletPayCheckoutOverlay
+      key={checkoutUrl}
+      checkoutUrl={checkoutUrl}
+      {...props}
+    />
+  );
 }
 
 describe('WalletPayCheckoutOverlay', () => {
@@ -215,6 +234,40 @@ describe('WalletPayCheckoutOverlay', () => {
       reportCheckoutReady(webView);
 
       expect(onReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('requires the replacement checkout URL to report ready', () => {
+      const onReady = jest.fn();
+      const props = {
+        interactive: true,
+        onMessage: jest.fn(),
+        onReady,
+      };
+      const { getByTestId, rerender } = render(
+        <KeyedWalletPayCheckoutOverlay checkoutUrl={CHECKOUT_URL} {...props} />,
+      );
+
+      completeReadySequence(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      expect(onReady).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <KeyedWalletPayCheckoutOverlay
+          checkoutUrl={NEXT_CHECKOUT_URL}
+          {...props}
+        />,
+      );
+
+      expect(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY).props
+          .pointerEvents,
+      ).toBe('none');
+
+      completeReadySequence(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      expect(onReady).toHaveBeenCalledTimes(2);
     });
 
     it('still forwards messages to the caller', () => {

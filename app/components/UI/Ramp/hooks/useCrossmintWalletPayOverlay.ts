@@ -47,6 +47,8 @@ const PAID_ORDER_STATUSES: RampsOrderStatus[] = [
 interface PreparedOverlay {
   /** Cache key so quote refreshes do not create duplicate orders. */
   key: string;
+  /** Monotonic preparation identifier, even when a provider reuses a URL. */
+  preparationId: number;
   checkoutUrl: string;
   /** Precreated order id used to hand off to OrderDetails after payment. */
   orderId: string | null;
@@ -89,6 +91,17 @@ function isPlatformWalletPayMethod(paymentMethodId?: string): boolean {
   return false;
 }
 
+function getPreparationKey(
+  quote: Quote,
+  assetId: string | undefined,
+  paymentMethodId: string | undefined,
+  amount: number,
+): string {
+  return [quote.provider, assetId, paymentMethodId, amount]
+    .map(String)
+    .join('|');
+}
+
 /**
  * Prepares Crossmint's embedded wallet-pay checkout for a UB2 quote
  * (LaunchDarkly flag `crossmintApplePayCheckout`).
@@ -125,10 +138,10 @@ export default function useCrossmintWalletPayOverlay(
 
   const [prepared, setPrepared] = useState<PreparedOverlay | null>(null);
   const [preparationFailed, setPreparationFailed] = useState(false);
-  const [isCheckoutReady, setIsCheckoutReady] = useState(false);
+  const [checkoutReadyId, setCheckoutReadyId] = useState<number | null>(null);
   const preparedKeyRef = useRef<string | null>(null);
   const prepareIdRef = useRef(0);
-  const handedOffRef = useRef(false);
+  const handedOffOrderIdRef = useRef<string | null>(null);
 
   const isEligible = Boolean(
     isFlagEnabled &&
@@ -137,6 +150,20 @@ export default function useCrossmintWalletPayOverlay(
       walletAddress &&
       amount > 0,
   );
+
+  const activePreparationKey =
+    isEligible && quote
+      ? getPreparationKey(
+          quote,
+          selectedToken?.assetId,
+          selectedPaymentMethod?.id,
+          amount,
+        )
+      : null;
+  const activePrepared =
+    prepared?.key === activePreparationKey ? prepared : null;
+  const activePreparedRef = useRef<PreparedOverlay | null>(null);
+  activePreparedRef.current = activePrepared;
 
   useEffect(() => {
     if (!isEligible || !quote) {
@@ -147,14 +174,12 @@ export default function useCrossmintWalletPayOverlay(
       return;
     }
 
-    const key = [
-      quote.provider,
+    const key = getPreparationKey(
+      quote,
       selectedToken?.assetId,
       selectedPaymentMethod?.id,
       amount,
-    ]
-      .map(String)
-      .join('|');
+    );
 
     if (preparedKeyRef.current === key) {
       return;
@@ -204,6 +229,7 @@ export default function useCrossmintWalletPayOverlay(
         preparedKeyRef.current = key;
         setPrepared({
           key,
+          preparationId: prepareId,
           checkoutUrl: buyWidget.url,
           orderId: effectiveOrderId ?? null,
         });
@@ -239,37 +265,35 @@ export default function useCrossmintWalletPayOverlay(
    * Leaves BuildQuote for OrderDetails once payment is authorized, mirroring
    * the Checkout WebView's own callback handoff.
    */
-  const handOffToOrderDetails = useCallback(() => {
-    const orderId = prepared?.orderId;
-    if (!orderId || handedOffRef.current) {
-      return;
-    }
-    handedOffRef.current = true;
-    resetWithRoutes(navigation, {
-      index: 0,
-      routes: [
-        createRampsOrderDetailsRoute({
-          orderId,
-          showCloseButton: true,
-          cryptocurrency: selectedToken?.symbol,
-        }),
-      ],
-    });
-  }, [navigation, prepared?.orderId, selectedToken?.symbol]);
-
-  // Reset the one-shot handoff guard whenever a new order is prepared.
-  useEffect(() => {
-    handedOffRef.current = false;
-  }, [prepared?.orderId]);
-
-  // A new URL means a fresh load, so the button must announce itself again.
-  useEffect(() => {
-    setIsCheckoutReady(false);
-  }, [prepared?.checkoutUrl]);
+  const handOffToOrderDetails = useCallback(
+    (order: PreparedOverlay | null) => {
+      if (
+        !order?.orderId ||
+        order.orderId !== activePreparedRef.current?.orderId ||
+        handedOffOrderIdRef.current === order.orderId
+      ) {
+        return;
+      }
+      handedOffOrderIdRef.current = order.orderId;
+      resetWithRoutes(navigation, {
+        index: 0,
+        routes: [
+          createRampsOrderDetailsRoute({
+            orderId: order.orderId,
+            showCloseButton: true,
+            cryptocurrency: selectedToken?.symbol,
+          }),
+        ],
+      });
+    },
+    [navigation, selectedToken?.symbol],
+  );
 
   const onCheckoutReady = useCallback(() => {
-    setIsCheckoutReady(true);
-  }, []);
+    if (activePrepared) {
+      setCheckoutReadyId(activePrepared.preparationId);
+    }
+  }, [activePrepared]);
 
   // Primary signal: `order:updated` events as the payment progresses.
   const onMessage = useCallback(
@@ -294,43 +318,45 @@ export default function useCrossmintWalletPayOverlay(
         (isCrossmintPaymentInProgress(order) ||
           isCrossmintPaymentCompleted(order))
       ) {
-        handOffToOrderDetails();
+        handOffToOrderDetails(activePrepared);
       }
     },
-    [handOffToOrderDetails],
+    [activePrepared, handOffToOrderDetails],
   );
 
   // Fallback signal, since iOS posts no messages: the polled order reaching a
   // paid status stands in for the `order:updated` event.
-  const trackedOrderStatus = prepared?.orderId
-    ? getOrderById(prepared.orderId)?.status
+  const trackedOrderStatus = activePrepared?.orderId
+    ? getOrderById(activePrepared.orderId)?.status
     : undefined;
   useEffect(() => {
     if (
       trackedOrderStatus &&
       PAID_ORDER_STATUSES.includes(trackedOrderStatus)
     ) {
-      handOffToOrderDetails();
+      handOffToOrderDetails(activePrepared);
     }
-  }, [trackedOrderStatus, handOffToOrderDetails]);
+  }, [activePrepared, trackedOrderStatus, handOffToOrderDetails]);
 
   // Themed at read time, not during preparation: folding this into the prepare
   // effect would make a theme or language change create a new Crossmint order.
   const checkoutUrl = useMemo(() => {
-    if (!isEligible || !prepared?.checkoutUrl) {
+    if (!isEligible || !activePrepared?.checkoutUrl) {
       return null;
     }
-    return applyCrossmintCheckoutAppearance(prepared.checkoutUrl, {
+    return applyCrossmintCheckoutAppearance(activePrepared.checkoutUrl, {
       variables: buildCrossmintAppearanceVariables(colors),
       locale: toCrossmintLocale(I18n.locale),
     });
-  }, [isEligible, prepared?.checkoutUrl, colors]);
+  }, [isEligible, activePrepared?.checkoutUrl, colors]);
+
+  const isCheckoutReady = activePrepared?.preparationId === checkoutReadyId;
 
   // Derived during render, not state: effects run after paint, so a flag set
   // in the prepare effect leaves one frame where Continue flashes in enabled.
   // Stays true until the button renders so its spinner covers the load too.
   const isPreparing =
-    isEligible && !preparationFailed && (!prepared || !isCheckoutReady);
+    isEligible && !preparationFailed && (!activePrepared || !isCheckoutReady);
 
   return {
     isEligible,

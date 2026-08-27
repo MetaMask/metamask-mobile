@@ -315,6 +315,57 @@ describe('useCrossmintWalletPayOverlay', () => {
     expect(result.current.isPreparing).toBe(true);
   });
 
+  it('does not hand off for a previous order while preparing a new amount', async () => {
+    mockGetBuyWidgetData.mockResolvedValueOnce({
+      url: 'https://staging.crossmint.com/sdk/embedded-checkout?orderId=first',
+      orderId: 'first-order-id',
+    });
+
+    const { rerender } = renderHook(
+      ({ quote, amount }: { quote: Quote; amount: number }) =>
+        useCrossmintWalletPayOverlay(quote, amount),
+      { initialProps: { quote: crossmintQuote, amount: 25 } },
+    );
+    await settle();
+
+    mockGetOrderById.mockImplementation((orderId: string) =>
+      orderId === 'first-order-id' ? { status: 'PENDING' } : undefined,
+    );
+    rerender({ quote: crossmintQuote, amount: 50 });
+
+    expect(mockNavigationReset).not.toHaveBeenCalled();
+  });
+
+  it('ignores a payment event from a checkout superseded by a new amount', async () => {
+    mockGetBuyWidgetData.mockResolvedValueOnce({
+      url: 'https://staging.crossmint.com/sdk/embedded-checkout?orderId=first',
+      orderId: 'first-order-id',
+    });
+
+    const { result, rerender } = renderHook(
+      ({ quote, amount }: { quote: Quote; amount: number }) =>
+        useCrossmintWalletPayOverlay(quote, amount),
+      { initialProps: { quote: crossmintQuote, amount: 25 } },
+    );
+    await settle();
+
+    const staleOnMessage = result.current.onMessage;
+    rerender({ quote: crossmintQuote, amount: 50 });
+
+    act(() => {
+      staleOnMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            event: 'order:updated',
+            data: { order: { payment: { status: 'in-progress' } } },
+          }),
+        },
+      } as never);
+    });
+
+    expect(mockNavigationReset).not.toHaveBeenCalled();
+  });
+
   it('is not eligible when the feature flag is disabled', async () => {
     jest.mocked(useSelector).mockReturnValue(false);
 
