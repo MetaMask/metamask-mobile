@@ -2,7 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { usePayMoneyAccountAvailable } from './usePayMoneyAccountAvailable';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PayWithOption } from '../../components/confirm/confirm-component';
@@ -12,8 +12,8 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+jest.mock('./usePayMoneyAccountAvailable', () => ({
+  usePayMoneyAccountAvailable: jest.fn(),
 }));
 
 jest.mock(
@@ -26,8 +26,6 @@ jest.mock(
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
-
-const MONEY_ACCOUNT_ADDRESS = '0xabc1111111111111111111111111111111111111';
 
 const MONEY_ACCOUNT_FLAG = {
   defaultPaySelectedSection: {
@@ -47,9 +45,7 @@ describe('useIsMoneyAccountFlagDefault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({});
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
-      address: MONEY_ACCOUNT_ADDRESS,
-    });
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue(true);
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       DEFAULT_FLAGS,
     );
@@ -91,10 +87,8 @@ describe('useIsMoneyAccountFlagDefault', () => {
     },
   );
 
-  it('returns false when flag is "money-account" but no money account', () => {
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
-      undefined,
-    );
+  it('returns false when the money account is unavailable (missing or unfunded)', () => {
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue(false);
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       MONEY_ACCOUNT_FLAG,
     );

@@ -14,6 +14,7 @@ import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccoun
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
+import { usePayMoneyAccountAvailable } from '../usePayMoneyAccountAvailable';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -38,6 +39,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     selectMetaMaskPayFlags,
   );
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
+  const isMoneyAccountAvailable = usePayMoneyAccountAvailable();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -62,7 +64,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   }, [moneyAccount?.address, navigation, transactionId, transactionMeta]);
 
   return useMemo(() => {
-    if (!isEnabled || !moneyAccount) {
+    if (!isEnabled || !isMoneyAccountAvailable) {
       return null;
     }
 
@@ -93,10 +95,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       rows: [row],
     };
   }, [
-    isEnabled,
     handlePress,
+    isEnabled,
+    isMoneyAccountAvailable,
     isMoneyAccountSelected,
-    moneyAccount,
     withdrawableFiatFormatted,
   ]);
 }
