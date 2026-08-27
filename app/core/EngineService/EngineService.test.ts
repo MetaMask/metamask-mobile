@@ -684,6 +684,9 @@ describe('EngineService', () => {
         configurable: true,
       });
 
+      // No vault on disk — truly a new user
+      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+
       // Act
       await engineService.start();
 
@@ -870,6 +873,11 @@ describe('EngineService', () => {
         expect.stringContaining(
           'existingUser flag is false but KeyringController vault found on disk',
         ),
+      );
+      // Vault diagnostic log should fire because isNewUser was corrected to false
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        false,
       );
     });
 

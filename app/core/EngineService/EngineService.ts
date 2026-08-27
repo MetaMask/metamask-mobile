@@ -210,7 +210,7 @@ export class EngineService {
       ? { backgroundState: {} }
       : await ControllerStorage.getAllPersistedState();
 
-    if (reduxState?.user?.existingUser) {
+    if (!isNewUser) {
       Logger.log(
         'EngineService: Is vault defined at KeyringController before Enging init: ',
         !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
