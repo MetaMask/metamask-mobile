@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 import os from 'os';
 import path from 'path';
 
-const SCRIPT_PATH = path.join(__dirname, 'dual-upload-artifact.mjs');
+const SCRIPT_PATH = path.join(__dirname, 'dual-upload-e2e-artifact.mjs');
 const ACTION_PATH = path.join(__dirname, 'action.yml');
 
 type ActionStep = {
@@ -73,7 +73,7 @@ const getStepByName = (name: string) => {
   return actionMetadata.runs.steps.find((step) => step.name === name);
 };
 
-describe('dual-upload-artifact', () => {
+describe('dual-upload-e2e-artifact', () => {
   it('requires callers to pass runner-provider', () => {
     const actionMetadata = loadActionMetadata();
 

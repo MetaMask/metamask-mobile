@@ -6,7 +6,7 @@
 # Both stores must succeed:
 # GitHub API consumers (qa-stats, freeze-timings, gh run download) cannot see
 # Namespace storage. See "Runner provider switch" in .github/CONTRIBUTING.md.
-name: 'Dual upload artifact'
+name: 'Dual upload E2E artifact'
 description: >
   Upload an artifact to the Namespace store and the GitHub store. Namespace
   upload failures are classified before retrying and may retry up to 3 times to
@@ -58,7 +58,7 @@ runs:
         ATTEMPT: '2'
         PREVIOUS_OUTCOMES: failure
         RUNNER_PROVIDER: ${{ inputs.runner-provider }}
-      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" namespace-retry-decision
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" namespace-retry-decision
 
     - name: Wait before Namespace retry (attempt 2)
       if: ${{ steps.ns-retry-2.outputs.retryable == 'true' }}
@@ -66,7 +66,7 @@ runs:
       env:
         ATTEMPT: '2'
         RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
-      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" retry-wait
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
 
     - name: Upload to Namespace (attempt 2)
       id: ns-2
@@ -88,7 +88,7 @@ runs:
         ATTEMPT: '3'
         PREVIOUS_OUTCOMES: failure,failure
         RUNNER_PROVIDER: ${{ inputs.runner-provider }}
-      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" namespace-retry-decision
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" namespace-retry-decision
 
     - name: Wait before Namespace retry (attempt 3)
       if: ${{ steps.ns-retry-3.outputs.retryable == 'true' }}
@@ -96,7 +96,7 @@ runs:
       env:
         ATTEMPT: '3'
         RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
-      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" retry-wait
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
 
     - name: Upload to Namespace (attempt 3)
       id: ns-3
@@ -129,4 +129,4 @@ runs:
         NS_3: ${{ steps.ns-3.outcome }}
         GH_1: ${{ steps.gh-1.outcome }}
         RUNNER_PROVIDER: ${{ inputs.runner-provider }}
-      run: node "$GITHUB_ACTION_PATH/dual-upload-artifact.mjs" require-both-stores
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" require-both-stores

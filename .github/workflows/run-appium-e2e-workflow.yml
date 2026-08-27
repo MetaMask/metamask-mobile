@@ -358,7 +358,7 @@ jobs:
         if: ${{ github.run_attempt > 1 }}
         id: download-previous-results
         continue-on-error: true
-        uses: ./.github/actions/download-artifact
+        uses: ./.github/actions/download-e2e-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: ./previous-playwright-json/
@@ -473,7 +473,7 @@ jobs:
 
       - name: Upload Playwright HTML report (artifact stores)
         if: ${{ always() }}
-        uses: ./.github/actions/dual-upload-artifact
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
@@ -487,7 +487,7 @@ jobs:
         # Also includes shard-status.json for re-run filtering across attempts.
         # Dual-uploads to GitHub so collect-qa-stats.mjs / e2e-freeze-timings can see it.
         if: ${{ always() }}
-        uses: ./.github/actions/dual-upload-artifact
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/
@@ -497,7 +497,7 @@ jobs:
 
       - name: Upload Appium phase timings (artifact stores)
         if: ${{ always() }}
-        uses: ./.github/actions/dual-upload-artifact
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
@@ -507,7 +507,7 @@ jobs:
 
       - name: Upload failure screen recordings (artifact stores)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') }}
-        uses: ./.github/actions/dual-upload-artifact
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
