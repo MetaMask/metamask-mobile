@@ -7,14 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Easing, Image, View } from 'react-native';
 import {
   Alignment,
   Fit,
@@ -90,7 +83,7 @@ const SLIDE_DISTANCE = Dimensions.get('window').width;
 export interface WalletHomeOnboardingStepsProps {
   testID?: string;
   /**
-   * When true, show the first-step shell with a loading hero and disabled primary until
+   * When true, show the first-step shell with an empty hero and disabled primary until
    * aggregated balance / empty-state is resolved (in-flow users reopening the app).
    */
   isAwaitingBalance?: boolean;
@@ -765,15 +758,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {isAwaitingBalance ? (
-            <ActivityIndicator
-              size="large"
-              accessibilityLabel={strings(
-                'wallet.home_onboarding_steps.balance_loading_a11y',
-              )}
-              testID={`${testID}-hero-awaiting-balance`}
-            />
-          ) : !hasTestOverrides && checklistRiveFile ? (
+          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
             <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               hybridRef={setChecklistHybridRef}

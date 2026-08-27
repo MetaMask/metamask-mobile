@@ -245,7 +245,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
-  const entryPoint = route.params?.entryPoint;
+  const analyticsContext = route.params?.analyticsContext;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -364,12 +364,12 @@ const MoneyOnboardingView = () => {
         screen: Routes.MONEY.ROOT,
         params: {
           screen: Routes.MONEY.HOME,
-          ...(entryPoint ? { params: { entryPoint } } : {}),
+          ...(analyticsContext ? { params: { analyticsContext } } : {}),
         },
       },
       { pop: true },
     );
-  }, [entryPoint, navigation]);
+  }, [analyticsContext, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (

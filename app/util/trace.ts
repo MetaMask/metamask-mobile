@@ -64,6 +64,8 @@ export enum TraceName {
   RampBuyToOrderDetails = 'Ramp Buy To Order Details',
   RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
+  /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
+  RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -262,6 +264,7 @@ export enum TraceName {
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
+  PredictNextGetMarketHistory = 'PredictNext Get Market History',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -559,6 +562,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -660,6 +668,76 @@ export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
 ): TraceContext {
   return tracesByKey.get(getTraceKey(request))?.span;
+}
+
+function getBufferedStart(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+): BufferedTrace<TraceRequest> | undefined {
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (getTraceKey(bufferedTrace.request) !== traceKey) {
+      continue;
+    }
+
+    return bufferedTrace.type === 'start'
+      ? (bufferedTrace as BufferedTrace<TraceRequest>)
+      : undefined;
+  }
+  return undefined;
+}
+
+/** Write a measurement to an explicit pending trace, buffering until consent. */
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  const measurements = bufferedStart.measurements ?? [];
+  const existing = measurements.find(
+    (measurement) => measurement.name === name,
+  );
+  if (existing) {
+    existing.value = value;
+    existing.unit = unit;
+  } else {
+    measurements.push({ name, value, unit });
+  }
+  bufferedStart.measurements = measurements;
+}
+
+/** Attach attributes to an explicit pending trace, buffering until consent. */
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  bufferedStart.request.data = {
+    ...bufferedStart.request.data,
+    ...attributes,
+  };
 }
 
 /**
@@ -902,6 +980,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {
@@ -1096,6 +1182,7 @@ function startTrace(request: TraceRequest): TraceContext {
     pendingOnboardingMachineTimeByKey = new Map();
     onboardingAccountType = undefined;
     rememberOnboardingAccountType(request.tags);
+    rememberOnboardingAccountType(request.data);
   }
 
   if (getCachedConsent() !== true) {

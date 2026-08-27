@@ -577,8 +577,8 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBe(2);
   });
 
-  it('shows first-step shell with awaiting hero and disabled primary when isAwaitingBalance', () => {
-    const { getByTestId } = renderWithProvider(
+  it('shows first-step shell without a loading indicator when isAwaitingBalance', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
       {
         state: {
@@ -594,8 +594,10 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     );
 
-    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
     expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
+    expect(
+      queryByTestId('steps-root-hero-awaiting-balance'),
+    ).not.toBeOnTheScreen();
     expect(getByTestId(primaryTestId)).toBeDisabled();
   });
 
