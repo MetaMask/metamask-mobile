@@ -10,6 +10,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, {
   useCallback,
   useEffect,
@@ -22,7 +23,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
-import type { PerpsProOrderBookPosition } from '../../../hooks/usePerpsProOrderBookPosition';
 import {
   formatGroupingLabel,
   type OrderBookListCurrency,
@@ -40,12 +40,12 @@ export interface PerpsProOrderBookConfigSheetProps {
   grouping: number | null;
   groupingOptions: number[];
   /** Side the order-book column is currently pinned to. */
-  layout: PerpsProOrderBookPosition;
+  layout: ProLayoutPreferences['orderBookPosition'];
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
-    layout: PerpsProOrderBookPosition;
+    layout: ProLayoutPreferences['orderBookPosition'];
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -167,7 +167,7 @@ const PerpsProOrderBookConfigSheet = ({
   const [draftMetric, setDraftMetric] = useState<OrderBookListMetric>(metric);
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
   const [draftLayout, setDraftLayout] =
-    useState<PerpsProOrderBookPosition>(layout);
+    useState<ProLayoutPreferences['orderBookPosition']>(layout);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -224,7 +224,7 @@ const PerpsProOrderBookConfigSheet = ({
   );
 
   const handleLayoutSelect = useCallback(
-    (next: PerpsProOrderBookPosition) => {
+    (next: ProLayoutPreferences['orderBookPosition']) => {
       if (draftLayout === next) {
         return;
       }
