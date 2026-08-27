@@ -500,7 +500,7 @@ describe('PerpsProOrderFormPanel', () => {
       expect.objectContaining({
         asset: 'BTC',
         direction: 'long',
-        showSelectedIcon: true,
+        showOrderTypeIcons: true,
         availableOrderTypes: [
           'market',
           'limit',

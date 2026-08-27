@@ -193,7 +193,7 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   onSelect: (orderType: OrderType) => void;
   currentOrderType?: OrderType;
   title?: string;
-  showSelectedIcon?: boolean;
+  showOrderTypeIcons?: boolean;
   /** Ordered types available in the Pro picker. Omit for the Basic-only sheet. */
   availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -205,14 +205,14 @@ const PerpsOrderTypeBottomSheetView = ({
   onSelect,
   currentOrderType,
   title = strings('perps.order.type.title'),
-  showSelectedIcon = false,
+  showOrderTypeIcons = false,
   availableOrderTypes,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
-  const shouldShowSelectedIcon =
-    showSelectedIcon || availableOrderTypes !== undefined;
+  const shouldShowOrderTypeIcon =
+    showOrderTypeIcons || availableOrderTypes !== undefined;
   const availableOrderTypeSet = useMemo(
     () =>
       new Set<OrderType>(
@@ -293,7 +293,7 @@ const PerpsOrderTypeBottomSheetView = ({
       descriptionProps={DESCRIPTION_PROPS}
       accessoryGap={2}
       startAccessory={
-        shouldShowSelectedIcon ? (
+        shouldShowOrderTypeIcon ? (
           <OrderTypeStartAccessory
             LightIcon={orderType.LightIcon}
             DarkIcon={orderType.DarkIcon}
@@ -303,10 +303,7 @@ const PerpsOrderTypeBottomSheetView = ({
         ) : undefined
       }
       isSelected={currentOrderType === orderType.type}
-      showSelectedIcon={shouldShowSelectedIcon}
-      // The Pro design uses a checkmark without a selected-row fill. Shared
-      // sheets without checkmarks retain ListItemSelect's selected background.
-      twClassName={shouldShowSelectedIcon ? 'bg-transparent' : undefined}
+      showSelectedIcon={false}
       onPress={() => handleSelect(orderType.type)}
       testID={orderType.testID}
     />

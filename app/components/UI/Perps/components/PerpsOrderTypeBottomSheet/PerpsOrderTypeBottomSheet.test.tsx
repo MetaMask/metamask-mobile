@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, within } from '@testing-library/react-native';
-import { Icon, IconName } from '@metamask/design-system-react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import {
   PERPS_EVENT_PROPERTY,
@@ -378,7 +378,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(screen.queryByTestId(marketIconTestID)).not.toBeOnTheScreen();
 
       rerender(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showSelectedIcon />,
+        <PerpsOrderTypeBottomSheet {...defaultProps} showOrderTypeIcons />,
       );
 
       expect(screen.getByTestId(marketIconTestID)).toBeOnTheScreen();
@@ -388,7 +388,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -403,7 +403,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -485,12 +485,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
-    it('forwards the Pro title and selected-icon presentation', () => {
+    it('forwards the Pro title without a selected-row end accessory', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           title="Choose order type"
-          showSelectedIcon
+          showOrderTypeIcons
         />,
       );
 
@@ -500,8 +500,8 @@ describe('PerpsOrderTypeBottomSheet', () => {
           screen.getByTestId(
             PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
           ),
-        ).UNSAFE_getByType(Icon).props.name,
-      ).toBe(IconName.Check);
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 
@@ -596,7 +596,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
-    it('marks only the current triggered order type as selected', () => {
+    it('marks only the current triggered order type with a filled row', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -612,13 +612,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
-      expect(within(selectedOption).UNSAFE_getByType(Icon).props.name).toBe(
-        IconName.Check,
-      );
+      expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
+      expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
       expect(within(unselectedOption).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
-    it('preserves the selected background when selected icons are hidden', () => {
+    it('uses the selected background without a checkmark in every presentation', () => {
       const { rerender } = render(
         <PerpsOrderTypeBottomSheet {...defaultProps} />,
       );
@@ -639,7 +638,14 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-      ).toHaveStyle({ backgroundColor: 'transparent' });
+      ).toHaveStyle({ backgroundColor: 'muted' });
+      expect(
+        within(
+          screen.getByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+          ),
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 

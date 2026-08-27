@@ -1,4 +1,5 @@
 import type { Json } from '@metamask/utils';
+import { getVersion } from 'react-native-device-info';
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -55,10 +56,12 @@ jest.mock(
 
 describe('Perps Feature Flag Selectors', () => {
   const originalEnv = process.env;
+  const mockGetVersion = jest.mocked(getVersion);
   let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetVersion.mockReturnValue('1.0.0');
     process.env = { ...originalEnv };
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
@@ -2203,16 +2206,17 @@ describe('Perps Feature Flag Selectors', () => {
       };
     };
 
-    it('returns true when the remote flag is enabled for the app version', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    it('returns true at the production minimum version 8.10.0', () => {
+      mockGetVersion.mockReturnValue('8.10.0');
       const state = createStateWithFlag({
         enabled: true,
-        minimumVersion: '1.0.0',
+        minimumVersion: '8.10.0',
       });
 
       const result = selectPerpsProTwapEnabledFlag(state);
 
       expect(result).toBe(true);
+      expect(mockGetVersion).toHaveBeenCalled();
     });
 
     it('returns false when the remote flag is disabled', () => {
@@ -2226,11 +2230,11 @@ describe('Perps Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the app version is below the minimum', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
+    it('returns false below the production minimum version 8.10.0', () => {
+      mockGetVersion.mockReturnValue('8.9.9');
       const state = createStateWithFlag({
         enabled: true,
-        minimumVersion: '99.0.0',
+        minimumVersion: '8.10.0',
       });
 
       const result = selectPerpsProTwapEnabledFlag(state);
