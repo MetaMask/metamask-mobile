@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  SCALE_ORDER_COUNT,
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
@@ -2265,6 +2266,10 @@ describe('usePerpsProOrderForm', () => {
             id: 'scale',
             message: strings(
               'perps.pro_order_form.scale.validation.invalid_order_count',
+              {
+                minOrderCount: SCALE_ORDER_COUNT.min,
+                maxOrderCount: SCALE_ORDER_COUNT.max,
+              },
             ),
           }),
         ]),

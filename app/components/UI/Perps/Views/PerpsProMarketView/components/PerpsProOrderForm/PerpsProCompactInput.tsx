@@ -33,9 +33,6 @@ export const PerpsProInputKeyboardAccessory = ({
   onNext,
 }: PerpsProInputKeyboardAccessoryProps) => {
   const showsNavigation = Boolean(onPrevious || onNext);
-  const doneTestID = showsNavigation
-    ? PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE
-    : PerpsProOrderFormSelectorsIDs.KEYBOARD_CLOSE;
 
   return Platform.OS === 'ios' ? (
     <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
@@ -70,7 +67,7 @@ export const PerpsProInputKeyboardAccessory = ({
           size={ButtonBaseSize.Sm}
           onPress={Keyboard.dismiss}
           twClassName="h-10 rounded-lg bg-muted px-4"
-          testID={`${doneTestID}-${inputTestID}`}
+          testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`}
         >
           {strings('perps.pro_order_form.keyboard_done')}
         </ButtonBase>
@@ -173,14 +170,14 @@ const PerpsProCompactInput = React.forwardRef<
       <Input
         ref={inputRef}
         value={value}
-        onChangeText={isDisabled ? undefined : onChangeText}
+        onChangeText={onChangeText}
         keyboardType={keyboardType}
-        onFocus={isDisabled ? undefined : onFocus}
-        onBlur={isDisabled ? undefined : onBlur}
+        onFocus={onFocus}
+        onBlur={onBlur}
         isDisabled={isDisabled}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
-        onPressIn={isDisabled ? undefined : onFieldPress}
+        onPressIn={onFieldPress}
         inputAccessoryViewID={inputAccessoryViewID}
         placeholder={placeholder}
         placeholderTextColor={tw.color(`text-${placeholderColor}`)}

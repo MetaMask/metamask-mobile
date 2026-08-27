@@ -25,6 +25,14 @@ interface OrderCapabilitiesState {
   isLoading: boolean;
 }
 
+type ReadyOrderCapabilities = Extract<
+  PerpsOrderCapabilities,
+  { status: 'ready' }
+>;
+type SupportedOrderStrategy =
+  ReadyOrderCapabilities['supportedStrategies'][number];
+type OrderCapabilityProviderId = ReadyOrderCapabilities['providerId'];
+
 const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
@@ -217,8 +225,8 @@ export function usePerpsProvider(
     orderCapabilities.supportedStrategies.includes('scale');
   const checkOrderCapability = useCallback(
     async (
-      strategy: 'twap' | 'scale',
-      expectedProviderId?: string,
+      strategy: SupportedOrderStrategy,
+      expectedProviderId?: OrderCapabilityProviderId,
     ): Promise<boolean> => {
       const symbol = orderCapabilitiesParams?.symbol;
       if (!symbol || initializationState !== InitializationState.Initialized) {

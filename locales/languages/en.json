@@ -1611,7 +1611,7 @@
           "prices_required": "Enter both Scale range prices",
           "size_required": "Enter a Scale order size",
           "invalid_range": "Start price must be lower than end price",
-          "invalid_order_count": "Order count must be between 2 and 20",
+          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
           "minimum_lot": "Every Scale order must meet the market minimum lot size",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
@@ -1829,10 +1829,6 @@
         "limit": {
           "title": "Limit",
           "description": "Execute at your specified price or better"
-        },
-        "chase": {
-          "title": "Chase",
-          "description": "Auto adjust limit order to the best price"
         },
         "scale": {
           "title": "Scale",

@@ -150,13 +150,13 @@ const PerpsProSizeInput = ({
             <Input
               ref={inputRef}
               value={value}
-              onChangeText={isDisabled ? undefined : onChangeText}
-              onFocus={isDisabled ? undefined : onFocus}
-              onBlur={isDisabled ? undefined : onBlur}
+              onChangeText={onChangeText}
+              onFocus={onFocus}
+              onBlur={onBlur}
               isDisabled={isDisabled}
               // A tap landing here is consumed by the input, so the wrapping
               // ButtonBase never fires.
-              onPressIn={isDisabled ? undefined : onFieldPress}
+              onPressIn={onFieldPress}
               keyboardType="decimal-pad"
               inputAccessoryViewID={inputAccessoryViewID}
               placeholder="0.00"
@@ -196,15 +196,13 @@ const PerpsProSizeInput = ({
       </Box>
       <Box
         twClassName="overflow-visible px-3 pb-4 pt-6"
-        onTouchCancel={isDisabled ? undefined : sizeSlider.onDragCancel}
+        onTouchCancel={sizeSlider.onDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
         <PerpsSlider
           value={sizeSlider.value}
-          onValueChange={
-            isDisabled ? () => undefined : sizeSlider.onValueChange
-          }
-          onDragEnd={isDisabled ? () => undefined : sizeSlider.onDragEnd}
+          onValueChange={sizeSlider.onValueChange}
+          onDragEnd={sizeSlider.onDragEnd}
           minimumValue={0}
           maximumValue={sizeSlider.maximumValue}
           step={1}

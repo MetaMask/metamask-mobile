@@ -312,7 +312,7 @@ const PerpsProOrderFormPanel = ({
             asset={market.symbol}
             direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
-            showSelectedIcon
+            showOrderTypeIcons
             availableOrderTypes={availableOrderTypes}
           />
         </PerpsProModalPortal>

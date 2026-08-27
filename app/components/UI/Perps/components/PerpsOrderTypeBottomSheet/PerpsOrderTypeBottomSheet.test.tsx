@@ -68,9 +68,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
         'Execute at your specified price or better',
-      'perps.order.type.chase.title': 'Chase',
-      'perps.order.type.chase.description':
-        'Auto adjust limit order to the best price',
       'perps.order.type.scale.title': 'Scale',
       'perps.order.type.scale.description':
         'Multiple limit orders spread across a price range',
@@ -171,12 +168,6 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(
         screen.getByText('Execute at your specified price or better'),
       ).toBeOnTheScreen();
-    });
-
-    it('keeps the exact shared Chase description for its feature owner', () => {
-      expect(strings('perps.order.type.chase.description')).toBe(
-        'Auto adjust limit order to the best price',
-      );
     });
 
     it('renders triggered order type descriptions when enabled', () => {
@@ -394,7 +385,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(screen.queryByTestId(marketIconTestID)).not.toBeOnTheScreen();
 
       rerender(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showSelectedIcon />,
+        <PerpsOrderTypeBottomSheet {...defaultProps} showOrderTypeIcons />,
       );
 
       expect(screen.getByTestId(marketIconTestID)).toBeOnTheScreen();
@@ -404,7 +395,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -419,7 +410,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -535,7 +526,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           title="Choose order type"
-          showSelectedIcon
+          showOrderTypeIcons
         />,
       );
 

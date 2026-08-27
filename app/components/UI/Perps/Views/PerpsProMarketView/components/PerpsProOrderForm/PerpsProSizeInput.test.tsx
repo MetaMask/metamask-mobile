@@ -212,7 +212,7 @@ describe('PerpsProSizeInput', () => {
     expect(onDragCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('blocks every size-card mutation while disabled', () => {
+  it('delegates disabled size mutations to design-system controls', () => {
     const onChangeText = jest.fn();
     const onToggleDenomination = jest.fn();
     const onValueChange = jest.fn();
@@ -231,20 +231,21 @@ describe('PerpsProSizeInput', () => {
       }),
     });
 
-    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '50');
     fireEvent.press(screen.getByTestId(ids.SIZE_FIELD));
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
     fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
-    fireEvent(screen.getByTestId(ids.SIZE_SLIDER_SECTION), 'touchCancel');
     const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
-    slider.props.onValueChange(50);
-    slider.props.onDragEnd(50);
 
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('isDisabled', true);
+    expect(slider).toHaveProp('disabled', true);
+    expect(slider).toHaveProp('onValueChange', onValueChange);
+    expect(slider).toHaveProp('onDragEnd', onDragEnd);
+    expect(screen.getByTestId(ids.SIZE_SLIDER_SECTION)).toHaveProp(
+      'onTouchCancel',
+      onDragCancel,
+    );
     expect(onChangeText).not.toHaveBeenCalled();
     expect(onToggleDenomination).not.toHaveBeenCalled();
-    expect(onValueChange).not.toHaveBeenCalled();
-    expect(onDragEnd).not.toHaveBeenCalled();
-    expect(onDragCancel).not.toHaveBeenCalled();
     expect(onAddFundsPress).not.toHaveBeenCalled();
     expect(mockInputFocus).not.toHaveBeenCalled();
   });

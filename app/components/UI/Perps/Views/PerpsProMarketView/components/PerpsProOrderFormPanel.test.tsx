@@ -6,6 +6,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { OrderType, PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
 import type {
+  PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm/PerpsProOrderForm.types';
@@ -20,6 +21,7 @@ import {
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
 import { selectPerpsProvider } from '../../../selectors/perpsController';
+import { SCALE_EMPTY_CURRENCY_DISPLAY } from './PerpsProOrderForm/PerpsProOrderForm.constants';
 
 const mockUseSelector = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
@@ -71,12 +73,33 @@ const DEFAULT_SIZE_SLIDER: PerpsProSizeSliderModel = {
   onDragCancel: jest.fn(),
 };
 
+const DEFAULT_SCALE_ORDER: PerpsProScaleOrderModel = {
+  startPrice: '',
+  endPrice: '',
+  totalOrders: '',
+  sizeSkew: '1.00',
+  onStartPriceChange: jest.fn(),
+  onStartPriceBlur: jest.fn(),
+  onEndPriceChange: jest.fn(),
+  onEndPriceBlur: jest.fn(),
+  onTotalOrdersChange: jest.fn(),
+  onTotalOrdersBlur: jest.fn(),
+  onSizeSkewChange: jest.fn(),
+  onSizeSkewBlur: jest.fn(),
+  onSizeSkewInfoPress: jest.fn(),
+  rungs: [],
+  marginRange: SCALE_EMPTY_CURRENCY_DISPLAY,
+  liquidationRange: SCALE_EMPTY_CURRENCY_DISPLAY,
+  fees: SCALE_EMPTY_CURRENCY_DISPLAY,
+};
+
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
   onDirectionChange: jest.fn(),
   leverage: 5,
   onLeveragePress: jest.fn(),
   orderType: 'market' as OrderType,
+  scaleOrder: DEFAULT_SCALE_ORDER,
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
@@ -542,7 +565,7 @@ describe('PerpsProOrderFormPanel', () => {
       expect.objectContaining({
         asset: 'BTC',
         direction: 'long',
-        showSelectedIcon: true,
+        showOrderTypeIcons: true,
         availableOrderTypes: [
           'market',
           'limit',

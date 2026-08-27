@@ -167,9 +167,7 @@ const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
   {
     key: 'advanced',
     labelKey: 'perps.order.type.advanced',
-    // Canonical shared order for implemented advanced strategies. Chase
-    // remains filtered out until its own gated option metadata lands.
-    orderTypes: ['twap', 'scale', 'chase'],
+    orderTypes: ['twap', 'scale'],
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
   },
 ];
@@ -207,7 +205,7 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   onSelect: (orderType: OrderType) => void;
   currentOrderType?: OrderType;
   title?: string;
-  showSelectedIcon?: boolean;
+  showOrderTypeIcons?: boolean;
   /** Ordered types available in the Pro picker. Omit for the Basic-only sheet. */
   availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -219,14 +217,14 @@ const PerpsOrderTypeBottomSheetView = ({
   onSelect,
   currentOrderType,
   title = strings('perps.order.type.title'),
-  showSelectedIcon = false,
+  showOrderTypeIcons = false,
   availableOrderTypes,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
   const shouldShowOrderTypeIcon =
-    showSelectedIcon || availableOrderTypes !== undefined;
+    showOrderTypeIcons || availableOrderTypes !== undefined;
   const availableOrderTypeSet = useMemo(
     () =>
       new Set<OrderType>(

@@ -575,7 +575,6 @@ export const PerpsProOrderFormSelectorsIDs = {
   SIZE_SLIDER_SECTION: 'perps-pro-order-form-size-slider-section',
   SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
   SIZE_UNIT_LABEL: 'perps-pro-order-form-size-unit-label',
-  KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   KEYBOARD_PREVIOUS: 'perps-pro-order-form-keyboard-previous',
   KEYBOARD_NEXT: 'perps-pro-order-form-keyboard-next',
   KEYBOARD_DONE: 'perps-pro-order-form-keyboard-done',

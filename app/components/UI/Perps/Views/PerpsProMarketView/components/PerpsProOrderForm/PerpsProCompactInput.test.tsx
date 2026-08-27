@@ -204,7 +204,7 @@ describe('PerpsProCompactInput', () => {
         .mockImplementation(jest.fn());
       render(<PerpsProInputKeyboardAccessory inputTestID="size" />);
 
-      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_CLOSE}-size`));
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_DONE}-size`));
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
       expect(
@@ -216,22 +216,22 @@ describe('PerpsProCompactInput', () => {
     });
   });
 
-  it('ignores field events while disabled', () => {
-    const onChangeText = jest.fn();
+  it('delegates disabled field events to the design-system input', () => {
     const onFieldPress = jest.fn();
     render(
       <PerpsProCompactInput
         {...defaultProps}
-        onChangeText={onChangeText}
         onFieldPress={onFieldPress}
         isDisabled
       />,
     );
 
-    fireEvent.changeText(screen.getByTestId(defaultProps.testID), '25');
     fireEvent.press(screen.getByText(defaultProps.label));
 
-    expect(onChangeText).not.toHaveBeenCalled();
+    expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+      'isDisabled',
+      true,
+    );
     expect(onFieldPress).not.toHaveBeenCalled();
     expect(mockInputFocus).not.toHaveBeenCalled();
   });

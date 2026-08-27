@@ -89,6 +89,29 @@ const createTwap = (
   ...overrides,
 });
 
+const createScaleOrder = (): PerpsProOrderFormProps['scaleOrder'] => ({
+  startPrice: '100',
+  endPrice: '200',
+  totalOrders: '2',
+  sizeSkew: '1.00',
+  onStartPriceChange: jest.fn(),
+  onStartPriceBlur: jest.fn(),
+  onEndPriceChange: jest.fn(),
+  onEndPriceBlur: jest.fn(),
+  onTotalOrdersChange: jest.fn(),
+  onTotalOrdersBlur: jest.fn(),
+  onSizeSkewChange: jest.fn(),
+  onSizeSkewBlur: jest.fn(),
+  onSizeSkewInfoPress: jest.fn(),
+  rungs: [
+    { index: 0, price: '100', size: '1' },
+    { index: 1, price: '200', size: '1' },
+  ],
+  marginRange: '$50 → $100',
+  liquidationRange: '$80 → $160',
+  fees: '$1',
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
@@ -99,6 +122,7 @@ const createProps = (
     marginModeLabel: 'Isolated',
     leverageLabel: '3x',
     orderType: 'market',
+    scaleOrder: createScaleOrder(),
     onOrderTypeButtonPress: jest.fn(),
     limitPrice: '',
     onLimitPriceChange: jest.fn(),
@@ -122,31 +146,6 @@ const createProps = (
 
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
-
-const createScaleOrder = (): NonNullable<
-  PerpsProOrderFormProps['scaleOrder']
-> => ({
-  startPrice: '100',
-  endPrice: '200',
-  totalOrders: '2',
-  sizeSkew: '1.00',
-  onStartPriceChange: jest.fn(),
-  onStartPriceBlur: jest.fn(),
-  onEndPriceChange: jest.fn(),
-  onEndPriceBlur: jest.fn(),
-  onTotalOrdersChange: jest.fn(),
-  onTotalOrdersBlur: jest.fn(),
-  onSizeSkewChange: jest.fn(),
-  onSizeSkewBlur: jest.fn(),
-  onSizeSkewInfoPress: jest.fn(),
-  rungs: [
-    { index: 0, price: '100', size: '1' },
-    { index: 1, price: '200', size: '1' },
-  ],
-  marginRange: '$50 → $100',
-  liquidationRange: '$80 → $160',
-  fees: '$1',
-});
 
 describe('PerpsProOrderForm', () => {
   beforeEach(() => {
@@ -258,12 +257,10 @@ describe('PerpsProOrderForm', () => {
     });
 
     it('locks every editable Scale control while placement is loading', () => {
-      const scaleOrder = createScaleOrder();
-      const sizeInput = createSizeInput();
       renderForm({
         orderType: 'scale',
-        scaleOrder,
-        sizeInput,
+        scaleOrder: createScaleOrder(),
+        sizeInput: createSizeInput(),
         isPlaceOrderLoading: true,
         onMarginModePress: jest.fn(),
         onLeveragePress: jest.fn(),
@@ -300,12 +297,6 @@ describe('PerpsProOrderForm', () => {
       );
       expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeDisabled();
-
-      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '999');
-      fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '999');
-
-      expect(scaleOrder.onStartPriceChange).not.toHaveBeenCalled();
-      expect(sizeInput.onChange).not.toHaveBeenCalled();
     });
 
     it('groups all four divided Scale rows inside the shared order card', () => {
@@ -710,7 +701,7 @@ describe('PerpsProOrderForm', () => {
       renderForm();
 
       fireEvent.press(
-        screen.getByTestId(`${ids.KEYBOARD_CLOSE}-${ids.SIZE_INPUT}`),
+        screen.getByTestId(`${ids.KEYBOARD_DONE}-${ids.SIZE_INPUT}`),
       );
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
