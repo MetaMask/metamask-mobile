@@ -2036,29 +2036,44 @@ describe('usePerpsProOrderForm', () => {
       splitScaleSizesSpy.mockRestore();
     });
 
-    it('normalizes known controller ladder failures into Scale validation', () => {
-      const perpsController = jest.requireActual<
-        typeof import('@metamask/perps-controller')
-      >('@metamask/perps-controller');
-      const splitScaleSizesSpy = jest
-        .spyOn(perpsController, 'splitScaleSizes')
-        .mockImplementationOnce(() => {
-          throw new Error(PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID);
+    it.each([
+      [
+        PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID,
+        strings('perps.pro_order_form.scale.validation.invalid_range'),
+      ],
+      [
+        PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID,
+        strings('perps.pro_order_form.scale.validation.invalid_order_count', {
+          minOrderCount: SCALE_ORDER_COUNT.min,
+          maxOrderCount: SCALE_ORDER_COUNT.max,
+        }),
+      ],
+    ])(
+      'normalizes controller ladder failure %s into Scale validation',
+      (errorCode, message) => {
+        const perpsController = jest.requireActual<
+          typeof import('@metamask/perps-controller')
+        >('@metamask/perps-controller');
+        const splitScaleSizesSpy = jest
+          .spyOn(perpsController, 'splitScaleSizes')
+          .mockImplementationOnce(() => {
+            throw new Error(errorCode);
+          });
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const { result } = renderProForm();
+
+        configureScaleOrder(result);
+
+        expect(mockLoggerError).not.toHaveBeenCalled();
+        expect(result.current.notices).toContainEqual({
+          id: 'scale',
+          variant: 'banner',
+          message,
         });
-      mockOrderForm.type = 'scale';
-      mockOrderForm.amount = '600';
-      const { result } = renderProForm();
-
-      configureScaleOrder(result);
-
-      expect(mockLoggerError).not.toHaveBeenCalled();
-      expect(result.current.notices).toContainEqual({
-        id: 'scale',
-        variant: 'banner',
-        message: strings('perps.pro_order_form.scale.validation.invalid_range'),
-      });
-      splitScaleSizesSpy.mockRestore();
-    });
+        splitScaleSizesSpy.mockRestore();
+      },
+    );
 
     it('uses the capability-resolved provider price contract for Scale preview', () => {
       mockOrderForm.type = 'scale';
@@ -2429,6 +2444,40 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.scaleOrder.totalOrders).toBe('3');
+    });
+
+    it('blocks and tracks an out-of-range Scale order count', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange(
+          String(SCALE_ORDER_COUNT.min - 1),
+        );
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'scale',
+        variant: 'banner',
+        message: strings(
+          'perps.pro_order_form.scale.validation.invalid_order_count',
+          {
+            minOrderCount: SCALE_ORDER_COUNT.min,
+            maxOrderCount: SCALE_ORDER_COUNT.max,
+          },
+        ),
+      });
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
+        }),
+      );
     });
 
     it('rejects a ladder when a rung is below the controller minimum', () => {

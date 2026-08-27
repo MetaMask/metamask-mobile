@@ -9631,7 +9631,7 @@ __metadata:
 
 "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch":
   version: 13.0.0
-  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch::version=13.0.0&hash=3fed5f"
+  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A13.0.0#~/.yarn/patches/@metamask-perps-controller-npm-13.0.0-438f476ec4.patch::version=13.0.0&hash=3d9c85"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9647,7 +9647,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/d8f5b298add758a8afdb37ce8df27390bec5d41af9c9ed50c081bb52be3f9ad1735b60be478540d11e9e2f0d6894ac3666a945da73fa6fe5eae1b96252d6ff70
+  checksum: 10/16f1c5b66179877aa596aeecd592ec6dd1c33a35f1f487dbcbe4efffec2fc57b7af4a0070d4f029c7dacee3b9c5e3342e479c583719123668b86ce5820bfd2d5
   languageName: node
   linkType: hard
 
