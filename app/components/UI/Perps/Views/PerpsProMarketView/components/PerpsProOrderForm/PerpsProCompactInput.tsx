@@ -160,6 +160,8 @@ const PerpsProCompactInput = ({
       }
       testID={testID}
       accessibilityLabel={label}
+      accessibilityElementsHidden={!isInputVisible}
+      importantForAccessibility={isInputVisible ? 'yes' : 'no'}
     />
   );
 
@@ -174,17 +176,23 @@ const PerpsProCompactInput = ({
         testID={`${testID}-container`}
         {...hiddenProps}
       >
-        {/* Keep the input area separate from the Mid action so the whole field
-            can focus without making the Mid action focus the input. */}
+        {/* Empty fields hide the native input, so this pressable must stay in
+            the a11y tree as the control that focuses it. Once the input is
+            visible, drop out so VoiceOver/TalkBack can land on the TextInput
+            instead of a wrapping button. Mid stays outside either way. */}
         <Pressable
           onPress={focusInput}
-          accessible={false}
+          accessible={!isInlineActive}
+          accessibilityRole={isInlineActive ? undefined : 'button'}
+          accessibilityLabel={isInlineActive ? undefined : label}
           style={tw`h-full min-w-0 flex-1 justify-center`}
           testID={`${testID}-field`}
         >
           <Text
             variant={isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm}
             color={TextColor.TextAlternative}
+            accessible={false}
+            importantForAccessibility="no"
             testID={`${testID}-label`}
           >
             {label}

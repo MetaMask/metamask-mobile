@@ -98,11 +98,12 @@ describe('PerpsProCompactInput', () => {
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
     });
 
-    it('reports taps on the inline variant, which has no label to press', () => {
+    it('reports a tap that a visible inline input consumes', () => {
       const onFieldPress = jest.fn();
       render(
         <PerpsProCompactInput
           {...defaultProps}
+          value="1"
           variant="inline"
           onFieldPress={onFieldPress}
         />,
@@ -126,7 +127,9 @@ describe('PerpsProCompactInput', () => {
       );
 
       const label = screen.getByTestId(`${defaultProps.testID}-label`);
-      const input = screen.getByTestId(defaultProps.testID);
+      const input = screen.getByTestId(defaultProps.testID, {
+        includeHiddenElements: true,
+      });
       const inactiveLabelStyle = label.props.style;
 
       expect(input).toHaveProp('placeholder', '');
@@ -155,10 +158,11 @@ describe('PerpsProCompactInput', () => {
       fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
 
       expect(label.props.style).toEqual(inactiveLabelStyle);
-      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
-        'placeholder',
-        '',
-      );
+      expect(
+        screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('placeholder', '');
     });
 
     it('keeps the compact label after a populated inline field blurs', () => {
@@ -194,6 +198,46 @@ describe('PerpsProCompactInput', () => {
 
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
       expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes an empty inline field as an activatable control instead of a static label', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      const field = screen.getByRole('button', { name: defaultProps.label });
+
+      expect(field).toHaveProp('testID', `${defaultProps.testID}-field`);
+      expect(
+        screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('accessibilityElementsHidden', true);
+    });
+
+    it('focuses the hidden inline input when assistive tech activates the label', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      fireEvent.press(screen.getByRole('button', { name: defaultProps.label }));
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('hands accessibility to the input after the empty inline field activates', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+      expect(screen.getByTestId(`${defaultProps.testID}-field`)).toHaveProp(
+        'accessible',
+        false,
+      );
+      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+        'accessibilityLabel',
+        defaultProps.label,
+      );
     });
 
     it('keeps the end accessory outside the press target so its own press wins', () => {
