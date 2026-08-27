@@ -1128,14 +1128,25 @@ describe('PerpsConnectionManager', () => {
       reconnect.mockRestore();
     });
 
-    it('bounds a force reconnect waiting on hung initialization', async () => {
+    it('bounds force handoff and blocks the obsolete initialization commit', async () => {
       jest.useFakeTimers();
+      let resolveInitialization: (() => void) | undefined;
       mockPerpsController.init.mockImplementation(
-        () => new Promise(() => undefined),
+        () =>
+          new Promise<void>((resolve) => {
+            resolveInitialization = resolve;
+          }),
+      );
+      const endTrace = jest.spyOn(
+        jest.requireActual('../../../../util/trace'),
+        'endTrace',
       );
       void PerpsConnectionManager.connect();
       await Promise.resolve();
       const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        isInitialized: boolean;
+        initializedUserContextKey: string | null;
         initializationTraceId: string | null;
         performSerializedReconnection: () => Promise<void>;
         reconnectWithNewContext: (options?: {
@@ -1144,7 +1155,12 @@ describe('PerpsConnectionManager', () => {
       };
       const reconnect = jest
         .spyOn(manager, 'performSerializedReconnection')
-        .mockResolvedValue();
+        .mockImplementation(async () => {
+          manager.isConnected = true;
+          manager.isInitialized = true;
+          manager.initializedUserContextKey = 'replacement';
+        });
+      const retiredTraceId = manager.initializationTraceId;
 
       const forced = manager.reconnectWithNewContext({ force: true });
       await jest.advanceTimersByTimeAsync(
@@ -1154,7 +1170,26 @@ describe('PerpsConnectionManager', () => {
 
       expect(reconnect).toHaveBeenCalledTimes(1);
       expect(manager.initializationTraceId).toBeNull();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsConnectionEstablishment,
+        id: retiredTraceId,
+        data: { success: false, reason: 'superseded' },
+      });
+
+      resolveInitialization?.();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(manager.isConnected).toBe(true);
+      expect(manager.isInitialized).toBe(true);
+      expect(manager.initializedUserContextKey).toBe('replacement');
+      expect(
+        endTrace.mock.calls.filter(
+          ([request]) => (request as { id?: string }).id === retiredTraceId,
+        ),
+      ).toHaveLength(1);
       reconnect.mockRestore();
+      endTrace.mockRestore();
       jest.useRealTimers();
     });
 
