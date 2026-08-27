@@ -24,7 +24,10 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import {
+  CRYPTO_PAY_SECTION_ID,
+  usePaySectionSourceMetrics,
+} from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
@@ -76,7 +79,7 @@ export function useTransactionPayMetrics() {
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
   const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
-    ? 'crypto'
+    ? CRYPTO_PAY_SECTION_ID
     : source.selected;
   const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
 

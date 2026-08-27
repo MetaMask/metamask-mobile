@@ -24,6 +24,13 @@ import { useTransactionAccountOverride } from '../transactions/useTransactionAcc
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { KeyringType } from '@metamask/keyring-api/v2';
 
+export const CRYPTO_PAY_SECTION_ID = 'crypto';
+
+const SOFTWARE_ACCOUNT_TYPES = new Set<string>([
+  OnboardingCompletedAccountType.Metamask,
+  OnboardingCompletedAccountType.Imported,
+]);
+
 export type { SectionTrackingResult as PaySectionSourceMetrics } from './useSectionTracking';
 
 export function usePaySectionSourceMetrics(hasPayToken: boolean) {
@@ -121,21 +128,22 @@ function getCryptoAccountType(
   }
 
   if (!address) {
-    return 'crypto';
+    return CRYPTO_PAY_SECTION_ID;
   }
 
   try {
     const accountType = getAddressAccountType(address);
+    const normalizedAccountType = accountType.toLowerCase();
 
     return (
       normalizeOnboardingCompletedAccountType(
-        accountType === 'MetaMask' || accountType === 'Imported'
-          ? accountType.toLowerCase()
+        SOFTWARE_ACCOUNT_TYPES.has(normalizedAccountType)
+          ? normalizedAccountType
           : accountType,
-      ) ?? 'crypto'
+      ) ?? CRYPTO_PAY_SECTION_ID
     );
   } catch {
-    return 'crypto';
+    return CRYPTO_PAY_SECTION_ID;
   }
 }
 
