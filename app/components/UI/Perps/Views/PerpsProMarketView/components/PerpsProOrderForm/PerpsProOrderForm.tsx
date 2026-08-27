@@ -750,7 +750,7 @@ const PerpsProOrderForm = ({
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-12 w-full bg-transparent px-3"
+              twClassName="h-[54px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}

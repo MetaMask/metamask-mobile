@@ -2284,9 +2284,15 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockUpdateOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: '', type: 'market' }),
-      );
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(mockUpdateOrderForm.mock.calls[0][0]).not.toHaveProperty('type');
       expect(result.current.scaleOrder.startPrice).toBe('');
       expect(result.current.scaleOrder.endPrice).toBe('');
       expect(result.current.scaleOrder.totalOrders).toBe('');
@@ -2496,9 +2502,15 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockUpdateOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: '', type: 'market' }),
-      );
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(mockUpdateOrderForm.mock.calls[0][0]).not.toHaveProperty('type');
       expect(result.current.scaleOrder.startPrice).toBe('');
     });
 

@@ -123,13 +123,16 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
-    it('uses the shared 48px compact-row height token', () => {
-      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+    it.each(['inline', 'inline-labeled'] as const)(
+      'uses the shared 54px compact-row height and 4px vertical padding for %s fields',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-      expect(
-        screen.getByTestId(`${defaultProps.testID}-container`),
-      ).toHaveStyle({ height: 48 });
-    });
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-container`),
+        ).toHaveStyle({ height: 54, paddingTop: 4, paddingBottom: 4 });
+      },
+    );
 
     it('shrinks the label and reveals the input when the row is pressed', () => {
       render(

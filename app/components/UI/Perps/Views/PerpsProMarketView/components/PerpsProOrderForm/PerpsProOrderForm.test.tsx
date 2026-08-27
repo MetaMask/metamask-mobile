@@ -969,6 +969,14 @@ describe('PerpsProOrderForm', () => {
       );
     });
 
+    it('renders the order type row at the Figma 54px height', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveStyle({
+        height: 54,
+      });
+    });
+
     it('passes compact accessibility props to the size slider', () => {
       renderForm({
         sizeSlider: createSizeSlider({ value: 10, maximumValue: 43.55 }),

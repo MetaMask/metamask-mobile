@@ -232,7 +232,7 @@ const PerpsProCompactInput = React.forwardRef<
           twClassName={
             isHidden
               ? undefined
-              : 'h-12 flex-row items-center border-t border-muted px-3'
+              : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
           }
           testID={`${testID}-container`}
           {...hiddenProps}
@@ -268,7 +268,7 @@ const PerpsProCompactInput = React.forwardRef<
           twClassName={
             isHidden
               ? undefined
-              : 'h-12 flex-row items-center border-t border-muted px-3'
+              : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
           }
           testID={`${testID}-container`}
           {...hiddenProps}

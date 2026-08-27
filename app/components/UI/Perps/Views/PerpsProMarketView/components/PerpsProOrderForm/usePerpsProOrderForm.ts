@@ -1996,7 +1996,6 @@ export const usePerpsProOrderForm = ({
         updateOrderForm({
           amount: '',
           direction: 'long',
-          type: 'market',
           balancePercent: 0,
           limitPrice: undefined,
           takeProfitPrice: undefined,
