@@ -413,6 +413,8 @@ export interface UsePerpsProOrderFormParams {
   isTwapAvailabilityPending: boolean;
   /** Concrete provider route returned by the ready capability response. */
   resolvedTwapProviderId?: PerpsProviderType;
+  /** Concrete provider route used for Scale capability discovery. */
+  scaleProviderId: PerpsProviderType | undefined;
   /** Feature-gate Scale order placement as well as the type picker. */
   isScaleOrdersEnabled: boolean;
   /** Prevent placement while selected-route Scale support is refreshing. */
@@ -504,6 +506,7 @@ export const usePerpsProOrderForm = ({
   isTwapEnabled,
   isTwapAvailabilityPending,
   resolvedTwapProviderId,
+  scaleProviderId,
   isScaleOrdersEnabled,
   isScaleOrderSupportPending,
   checkScaleOrderSupport,
@@ -758,7 +761,11 @@ export const usePerpsProOrderForm = ({
   });
 
   const isTwapOrder = orderForm.type === 'twap';
-  const orderProviderId = isTwapOrder ? resolvedTwapProviderId : undefined;
+  const orderProviderId = isTwapOrder
+    ? resolvedTwapProviderId
+    : isScaleOrder
+      ? scaleProviderId
+      : undefined;
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
 
@@ -1603,6 +1610,7 @@ export const usePerpsProOrderForm = ({
             leverage: orderForm.leverage,
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly,
+            providerId: orderProviderId,
             isFullClose: reduceOnly
               ? reduceOnlyValidation.isFullClose || isExactFullClose
               : undefined,
@@ -1843,6 +1851,7 @@ export const usePerpsProOrderForm = ({
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
     checkScaleOrderSupport,
+    orderProviderId,
     isScaleOrder,
     scaleLadderResult,
     hasTpslBlocker,

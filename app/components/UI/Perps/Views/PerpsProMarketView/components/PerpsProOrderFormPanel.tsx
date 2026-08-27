@@ -74,10 +74,8 @@ const PerpsProOrderFormPanel = ({
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
   const activeProvider = useSelector(selectPerpsProvider);
-  const marketProviderId = (market as PerpsMarketData & { providerId?: string })
-    .providerId;
   const selectedProviderId =
-    marketProviderId ??
+    market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
   const {
@@ -179,6 +177,7 @@ const PerpsProOrderFormPanel = ({
     isTwapEnabled,
     isTwapAvailabilityPending,
     resolvedTwapProviderId,
+    scaleProviderId: selectedProviderId,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
     checkScaleOrderSupport,

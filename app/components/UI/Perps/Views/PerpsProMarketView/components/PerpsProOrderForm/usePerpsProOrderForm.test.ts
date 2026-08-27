@@ -139,6 +139,7 @@ let mockOrderValidationParams:
       spendableBalance: number;
       positionSize: string;
       originalUsdAmount?: string;
+      providerId?: PerpsProviderType;
     }
   | undefined;
 let mockValidateCalculatedMargin = false;
@@ -351,6 +352,7 @@ interface RenderProFormScaleOptions {
   enabled?: boolean;
   pending?: boolean;
   checkSupport?: () => Promise<boolean>;
+  providerId?: PerpsProviderType;
 }
 
 const renderProForm = (
@@ -367,6 +369,7 @@ const renderProForm = (
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
+      scaleProviderId: scaleOptions.providerId ?? 'hyperliquid',
       isScaleOrdersEnabled: scaleOptions.enabled ?? true,
       isScaleOrderSupportPending: scaleOptions.pending ?? false,
       checkScaleOrderSupport:
@@ -494,6 +497,21 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
       expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
+
+    it('routes Scale fees and validation through the concrete provider', () => {
+      mockOrderForm.type = 'scale';
+
+      renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'myx',
+        }),
+      );
+      expect(mockOrderValidationParams?.providerId).toBe('myx');
     });
   });
 
@@ -951,6 +969,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
@@ -1030,6 +1049,7 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            scaleProviderId: 'hyperliquid',
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
@@ -1917,6 +1937,7 @@ describe('usePerpsProOrderForm', () => {
           scaleMaxPrice: '200',
           scaleNumOrders: 3,
           scaleSkew: 2,
+          providerId: 'hyperliquid',
           reduceOnly: false,
         }),
       );
@@ -1926,6 +1947,26 @@ describe('usePerpsProOrderForm', () => {
       expect(params).not.toHaveProperty('timeInForce');
       expect(params).not.toHaveProperty('clientOrderId');
       expect(params).not.toHaveProperty('price');
+    });
+
+    it('forwards the concrete Scale provider route to placement', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          providerId: 'myx',
+        }),
+      );
     });
 
     it('resets Scale configuration after controller placement succeeds', async () => {

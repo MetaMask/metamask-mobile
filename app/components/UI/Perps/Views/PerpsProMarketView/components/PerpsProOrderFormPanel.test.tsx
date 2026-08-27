@@ -319,6 +319,16 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
+  it('forwards the selected Scale provider route to the order form', () => {
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scaleProviderId: 'hyperliquid',
+      }),
+    );
+  });
+
   it('uses top inset on the form panel without a book separator border', () => {
     renderPanel({ isOrderBookCollapsed: false });
 
