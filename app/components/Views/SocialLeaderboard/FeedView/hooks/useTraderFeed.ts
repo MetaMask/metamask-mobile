@@ -62,9 +62,20 @@ export interface UseTraderFeedResult {
   error: string | null;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
+  /**
+   * Instant the loaded snapshot was fetched, or `undefined` before the first
+   * success. Advances on every successful fetch — including a refetch whose
+   * payload is deeply equal to the cached one, which React Query would
+   * otherwise hide behind structural sharing.
+   */
+  dataUpdatedAt: number | undefined;
 }
 
 const EMPTY_ITEMS: FeedItem[] = [];
+
+/** Newest event first. Stable for equal timestamps (preserves API order). */
+const byTimestampDesc = (a: FeedItem, b: FeedItem): number =>
+  b.timestamp - a.timestamp;
 
 /** Maps the UI type filter to the `FeedItem.type` discriminant. */
 const matchesTypeFilter = (
@@ -80,7 +91,11 @@ const matchesTypeFilter = (
   return item.type === 'perps';
 };
 
-/** Groups feed items into day sections, newest day first. */
+/**
+ * Groups a newest-first list into day sections. Consecutive items that share
+ * a local calendar day share a header — which holds only after a global
+ * timestamp sort of every loaded item.
+ */
 const groupByDay = (items: FeedItem[]): FeedSection[] => {
   const sections: FeedSection[] = [];
 
@@ -123,9 +138,10 @@ export const useTraderFeed = (
     queryFn: ({ pageParam }: { pageParam?: string }) =>
       fetchTraderFeedPage(scope, pageParam),
     getNextPageParam: getTraderFeedNextPageParam,
+    initialPageParam: undefined as string | undefined,
     enabled: enabled && isUnlocked,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<FeedResponse, Error>);
+  });
 
   const pages = query.data?.pages ?? undefined;
 
@@ -133,10 +149,15 @@ export const useTraderFeed = (
     if (!pages || pages.length === 0) {
       return EMPTY_ITEMS;
     }
+    // The feed splices notable positions in out of chronological order, while
+    // the `olderThan` cursor is only the last item's timestamp — so a later
+    // page can hold events newer than those spliced-in rows. Sort the whole
+    // loaded set to keep one header per day.
     return pages
       .flatMap((page) => page.items ?? [])
       .map(mapFeedItem)
-      .filter((item): item is FeedItem => item !== null);
+      .filter((item): item is FeedItem => item !== null)
+      .sort(byTimestampDesc);
   }, [pages]);
 
   const hasLoadedItems = loadedItems.length > 0;
@@ -172,9 +193,6 @@ export const useTraderFeed = (
     // Reset to the newest activity from the top. Refetch only the first page
     // (the stale list stays visible meanwhile, so no skeleton flash), then drop
     // any older pages that were loaded via pagination.
-    await refetch({
-      refetchPage: (_page: FeedResponse, index: number) => index === 0,
-    } as Parameters<typeof refetch>[0]);
     queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
       old
         ? {
@@ -183,6 +201,7 @@ export const useTraderFeed = (
           }
         : old,
     );
+    await refetch();
   }, [queryClient, queryKey, refetch]);
 
   return {
@@ -197,5 +216,8 @@ export const useTraderFeed = (
     loadMore,
     error: formatSocialQueryErrorMessage(error),
     refresh,
+    // React Query reports `0` until the first success; normalise to `undefined`
+    // so consumers fall back to their own render-time clock.
+    dataUpdatedAt: query.dataUpdatedAt || undefined,
   };
 };
