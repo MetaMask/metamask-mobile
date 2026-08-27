@@ -119,11 +119,10 @@ describe('Checkout', () => {
     expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
-  it('allows http, https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
+  it('allows https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
     const { getByTestId } = render();
     expect(getByTestId('checkout-webview').props.originWhitelist).toEqual([
       'https://*',
-      'http://*',
       'about:blank',
       'about:srcdoc',
     ]);

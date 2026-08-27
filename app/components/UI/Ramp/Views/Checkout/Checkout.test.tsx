@@ -709,7 +709,7 @@ describe('Checkout', () => {
   });
 
   describe('originWhitelist', () => {
-    it('allows http, https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
+    it('allows https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com/checkout',
         providerName: 'Test',
@@ -719,7 +719,6 @@ describe('Checkout', () => {
 
       expect(getByTestId('checkout-webview').props.originWhitelist).toEqual([
         'https://*',
-        'http://*',
         'about:blank',
         'about:srcdoc',
       ]);
