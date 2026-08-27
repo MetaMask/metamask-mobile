@@ -678,6 +678,7 @@ const TraderPositionView = () => {
         <TraderTradesSection
           ref={tradesListRef}
           trades={allTrades}
+          tradeActions={tradeActions}
           traderImageUrl={traderImageUrl}
           traderAddress={traderAddress}
           onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
