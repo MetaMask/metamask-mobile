@@ -152,6 +152,9 @@ export class EngineService {
     this.cancelDeferredPersistence();
     if (deferPersistence) {
       this.deferredPersistenceHandle =
+        // InteractionManager is deprecated but is the only cross-platform RN API
+        // that schedules work after the current native interaction (touch, animation)
+        // completes. requestIdleCallback is not available on Android.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
           this.deferredPersistenceHandle = null;

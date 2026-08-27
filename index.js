@@ -72,6 +72,10 @@ AppRegistry.registerComponent(name, () =>
 // the current interaction completes. This keeps the JS thread free for the first
 // paint of the onboarding/login screen. Performance observers use buffered: true
 // so startup marks are still captured even when registered after they fire.
+//
+// InteractionManager is deprecated but is the only cross-platform RN API that
+// schedules work after the current native interaction (touch, animation)
+// completes. requestIdleCallback is not available on Android.
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 InteractionManager.runAfterInteractions(() => {
   Performance.setupPerformanceObservers();

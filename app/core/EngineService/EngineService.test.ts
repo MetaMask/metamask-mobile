@@ -893,14 +893,19 @@ describe('EngineService', () => {
         configurable: true,
       });
 
+      const vaultBackgroundState = {
+        KeyringController: { vault: 'encrypted-vault-data' },
+      };
+
       (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify({ vault: 'encrypted-vault-data', keyrings: [] }),
       );
       (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
-        backgroundState: {
-          KeyringController: { vault: 'encrypted-vault-data' },
-        },
+        backgroundState: vaultBackgroundState,
       });
+
+      // Spy on Engine.init to verify the loaded vault state reaches it
+      const initSpy = jest.spyOn(Engine, 'init');
 
       // Act
       await engineService.start();
@@ -921,6 +926,14 @@ describe('EngineService', () => {
         'EngineService: Is vault defined at KeyringController before Enging init: ',
         false,
       );
+
+      // The loaded vault state must reach Engine.init — not an empty backgroundState
+      expect(initSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        vaultBackgroundState,
+      );
+
+      initSpy.mockRestore();
     });
 
     it('falls back to existing-user path when KeyringController data is corrupted JSON', async () => {
