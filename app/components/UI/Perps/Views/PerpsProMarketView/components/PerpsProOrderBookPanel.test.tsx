@@ -14,7 +14,7 @@ const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
 const mockSetOrderBookPosition = jest.fn();
-let mockOrderBookPosition: 'left' | 'right' = 'left';
+let mockOrderBookPosition: 'left' | 'right' = 'right';
 
 jest.mock('../../../../../../util/haptics');
 
@@ -129,7 +129,7 @@ describe('PerpsProOrderBookPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOrderBookPosition = 'left';
+    mockOrderBookPosition = 'right';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -440,6 +440,91 @@ describe('PerpsProOrderBookPanel', () => {
       `${testID}-column-header-price`,
       `${testID}-column-header-value`,
     ]);
+  });
+
+  // Header order and row order come from separate derivations of the same
+  // condition, so the ladder itself needs its own assertions.
+  const getLadderRowOrder = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) =>
+    within(view.getByTestId(rowTestID))
+      .getAllByTestId(/-(price|value)$/)
+      .map((cell) => cell.props.testID);
+
+  const getDepthBarAnchor = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) => {
+    const { left, right } = StyleSheet.flatten(
+      view.getByTestId(`${rowTestID}-depth-bar`).props.style,
+    );
+
+    return { left, right };
+  };
+
+  const renderLadder = (position: 'left' | 'right') => {
+    mockOrderBookPosition = position;
+
+    return renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+  };
+
+  // Row order and depth-bar anchor are separate expressions, so they get
+  // separate cases — one regressing must not hide behind the other passing.
+  it('mirrors the ladder row columns when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    // Value leads and price trails on both halves of the ladder.
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-value`,
+      `${testID}-ask-row-0-price`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-value`,
+      `${testID}-bid-row-0-price`,
+    ]);
+  });
+
+  it('keeps the default ladder row columns when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-price`,
+      `${testID}-ask-row-0-value`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-price`,
+      `${testID}-bid-row-0-value`,
+    ]);
+  });
+
+  it('grows the depth bars from the left edge when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+  });
+
+  it('grows the depth bars from the right edge when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {

@@ -186,6 +186,7 @@ const OrderBookRow = ({
     <>
       <Animated.View
         pointerEvents="none"
+        testID={`${testID}-depth-bar`}
         style={[
           styles.depthBar,
           isMirrored ? styles.depthBarFromLeft : styles.depthBarFromRight,
