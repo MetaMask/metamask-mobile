@@ -420,7 +420,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       enabled: Boolean(sessionId),
       generationKey: sessionId,
       acceptReadyContentOnGenerationStart:
-        lifecycle === 'navigate_return' || lifecycle === 'background_short',
+        lifecycle !== 'account_switch' &&
+        lifecycle !== 'network_switch' &&
+        lifecycle !== 'background_reconnect',
       contentReady,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,

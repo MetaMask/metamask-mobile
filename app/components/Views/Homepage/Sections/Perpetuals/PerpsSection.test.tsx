@@ -441,6 +441,7 @@ describe('PerpsSection', () => {
 
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({
+        acceptReadyContentOnGenerationStart: true,
         tags: expect.objectContaining({
           lifecycle: 'cold_no_cache',
           surface: 'homepage',
@@ -457,6 +458,27 @@ describe('PerpsSection', () => {
         contentReady: true,
         contentVariant: 'trending',
         resolvedSource: 'provider',
+      }),
+    );
+  });
+
+  it('requires fresh readiness for a context-invalidating lifecycle', () => {
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'provider',
+      accountSource: 'memory_cache',
+      lifecycle: 'network_switch',
+      accountGeneration: 1,
+      contextGeneration: 2,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({
+        acceptReadyContentOnGenerationStart: false,
       }),
     );
   });
