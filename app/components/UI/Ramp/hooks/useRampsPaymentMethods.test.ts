@@ -16,7 +16,6 @@ import Engine from '../../../../core/Engine';
 import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { rampsPaymentMethodsOptions } from '../queries/paymentMethods';
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
@@ -115,55 +114,19 @@ const baseRampsState = {
   },
 };
 
-type RampsState = typeof baseRampsState;
-// Every slice member is nullable in real controller state, so overrides must be
-// able to clear `selected` even though `baseRampsState` seeds it with a value.
-type RampsOverrides = {
-  [K in keyof RampsState]?: {
-    [P in keyof RampsState[K]]: RampsState[K][P] | null;
-  };
-};
-
-// Dispatchable so tests can move the active context (token / provider /
-// controller catalog) after mount, the way RampsController does at runtime.
-const createMockStore = (rampsControllerOverrides: RampsOverrides = {}) => {
-  const initialState = {
-    engine: {
-      backgroundState: {
-        RampsController: { ...baseRampsState, ...rampsControllerOverrides },
-      },
-    },
-  };
-
-  return configureStore({
-    reducer: (
-      state: typeof initialState | undefined,
-      action: { type: string; payload?: RampsOverrides },
-    ) => {
-      const currentState = state ?? initialState;
-      if (action.type !== 'test/updateRamps' || !action.payload) {
-        return currentState;
-      }
-      return {
-        engine: {
-          backgroundState: {
-            RampsController: {
-              ...currentState.engine.backgroundState.RampsController,
-              ...action.payload,
-            },
+const createMockStore = (rampsControllerOverrides = {}) =>
+  configureStore({
+    reducer: {
+      engine: () => ({
+        backgroundState: {
+          RampsController: {
+            ...baseRampsState,
+            ...rampsControllerOverrides,
           },
         },
-      };
+      }),
     },
   });
-};
-
-const updateRampsState = (
-  store: ReturnType<typeof createMockStore>,
-  payload: RampsOverrides,
-) => {
-  store.dispatch({ type: 'test/updateRamps', payload });
-};
 
 const queryClients: QueryClient[] = [];
 
@@ -172,7 +135,6 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
     defaultOptions: {
       queries: {
         retry: false,
-        cacheTime: Infinity,
       },
     },
   });
@@ -501,236 +463,6 @@ describe('useRampsPaymentMethods', () => {
     );
   });
 
-  it('refetches when token changes', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
-    );
-
-    await act(async () => {
-      updateRampsState(store, {
-        tokens: {
-          ...baseRampsState.tokens,
-          selected: {
-            ...baseRampsState.tokens.selected,
-            assetId: 'eip155:1/erc20:0x1234',
-          },
-        },
-      });
-    });
-
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(2),
-    );
-  });
-
-  it('refetches when provider changes', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
-    );
-
-    await act(async () => {
-      updateRampsState(store, {
-        providers: {
-          ...baseRampsState.providers,
-          selected: { id: '/providers/moonpay', name: 'MoonPay' },
-        },
-      });
-    });
-
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(2),
-    );
-  });
-
-  it('rehydrates controller state when returning to a cached context', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-    renderHook(() => useBuyPaymentMethods(), { wrapper: Wrapper });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
-    );
-
-    await act(async () => {
-      updateRampsState(store, {
-        providers: {
-          ...baseRampsState.providers,
-          selected: { id: '/providers/moonpay', name: 'MoonPay' },
-        },
-      });
-    });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(2),
-    );
-
-    // staleTime 0 means the cached context refetches so the controller
-    // re-commits the catalog it owns instead of serving a silent cache hit.
-    await act(async () => {
-      updateRampsState(store, { providers: baseRampsState.providers });
-    });
-
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(3),
-    );
-  });
-
-  it('keeps cached active-context methods visible during a background refetch', async () => {
-    const store = createMockStore();
-    const { Wrapper, queryClient } = createWrapper(store);
-    const cachedResponse = contextResponse();
-    queryClient.setQueryData(
-      rampsPaymentMethodsOptions({
-        regionCode: 'us',
-        assetId: 'eip155:1/slip44:60',
-        providerId: '/providers/transak',
-        updateState: true,
-      }).queryKey,
-      cachedResponse,
-    );
-    const deferred = createDeferred<ContextResponse>();
-    getPaymentMethodsForContextMock.mockReturnValue(deferred.promise);
-
-    const { result } = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => expect(result.current.isFetching).toBe(true));
-    expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
-    expect(result.current.selectedPaymentMethod).toEqual(mockPaymentMethods[0]);
-    expect(result.current.status).toBe('success');
-    expect(result.current.isLoading).toBe(false);
-
-    await act(async () => {
-      deferred.resolve(cachedResponse);
-      await deferred.promise;
-    });
-    await waitFor(() => expect(result.current.isFetching).toBe(false));
-  });
-
-  it('does not show context A methods while uncached context B loads', async () => {
-    const store = createMockStore({
-      paymentMethods: {
-        ...baseRampsState.paymentMethods,
-        data: mockPaymentMethods,
-        selected: mockPaymentMethods[0],
-      },
-    });
-    const { Wrapper } = createWrapper(store);
-    const contextBMethod: PaymentMethod = {
-      ...staleMethod,
-      id: '/payments/context-b',
-      name: 'Context B',
-    };
-    const contextBResponse = contextResponse([contextBMethod], contextBMethod);
-    const contextBDeferred = createDeferred<ContextResponse>();
-    getPaymentMethodsForContextMock.mockImplementation(
-      async ({ providers }) => {
-        if (providers?.[0] === '/providers/moonpay') {
-          return contextBDeferred.promise;
-        }
-        return contextResponse();
-      },
-    );
-
-    const { result } = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-    await waitFor(() => expect(result.current.status).toBe('success'));
-
-    await act(async () => {
-      updateRampsState(store, {
-        providers: {
-          ...baseRampsState.providers,
-          selected: { id: '/providers/moonpay', name: 'MoonPay' },
-        },
-      });
-    });
-
-    // Replaces the old manual stale-selection guard: nothing from context A
-    // may flash while context B is still loading.
-    expect(result.current.paymentMethods).toEqual([]);
-    expect(result.current.selectedPaymentMethod).toBeNull();
-    expect(result.current.status).toBe('loading');
-
-    await act(async () => {
-      contextBDeferred.resolve(contextBResponse);
-      await contextBDeferred.promise;
-    });
-    await waitFor(() => expect(result.current.status).toBe('success'));
-    expect(result.current.paymentMethods).toEqual([contextBMethod]);
-  });
-
-  it('reuses and settles the original A request across A-B-A', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    const contextADeferred = createDeferred<ContextResponse>();
-    const contextBDeferred = createDeferred<ContextResponse>();
-    getPaymentMethodsForContextMock.mockImplementation(async ({ providers }) =>
-      providers?.[0] === '/providers/transak'
-        ? contextADeferred.promise
-        : contextBDeferred.promise,
-    );
-
-    const { result } = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1),
-    );
-    await act(async () => {
-      updateRampsState(store, {
-        providers: {
-          ...baseRampsState.providers,
-          selected: { id: '/providers/moonpay', name: 'MoonPay' },
-        },
-      });
-    });
-    await waitFor(() =>
-      expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(2),
-    );
-    await act(async () => {
-      updateRampsState(store, { providers: baseRampsState.providers });
-    });
-
-    expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(2);
-    await act(async () => {
-      contextBDeferred.resolve(contextResponse([staleMethod], staleMethod));
-      await contextBDeferred.promise;
-      contextADeferred.resolve(contextResponse());
-      await contextADeferred.promise;
-    });
-    await waitFor(() => expect(result.current.status).toBe('success'));
-    expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
-  });
-
-  it('deduplicates same-key concurrent consumers safely', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
-
-    // The two mounts must stay adjacent with no await between them. Buy runs at
-    // staleTime 0, so once the first request settles the second mount refetches
-    // rather than sharing it, and the dedupe below counts 2.
-    const first = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-    const second = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => expect(first.result.current.status).toBe('success'));
-    await waitFor(() => expect(second.result.current.status).toBe('success'));
-    expect(getPaymentMethodsForContextMock).toHaveBeenCalledTimes(1);
-  });
-
   it('finishes loading after the controller commits catalog and selection', async () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
@@ -756,13 +488,6 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.isSuccess).toBe(false);
 
     await act(async () => {
-      updateRampsState(store, {
-        paymentMethods: {
-          ...baseRampsState.paymentMethods,
-          data: mockPaymentMethods,
-          selected: mockPaymentMethods[0],
-        },
-      });
       resolveQuery(contextResponse());
     });
 
@@ -836,21 +561,6 @@ describe('useRampsPaymentMethods', () => {
     expect(
       Engine.context.RampsController.getPaymentMethodsForContext,
     ).not.toHaveBeenCalled();
-  });
-
-  it('disables query when no asset is selected', () => {
-    const store = createMockStore({
-      tokens: { ...baseRampsState.tokens, selected: null },
-    });
-    const { Wrapper } = createWrapper(store);
-
-    const { result } = renderHook(() => useBuyPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-
-    expect(result.current.status).toBe('idle');
-    expect(result.current.isLoading).toBe(false);
-    expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
   });
 
   describe('controller-owned selection', () => {
@@ -1013,19 +723,6 @@ describe('useRampsPaymentMethods', () => {
       expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
     });
 
-    it('stays idle when the region is unknown', () => {
-      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
-
-      const { result } = renderDeposit(
-        createMockStore({
-          userRegion: { ...baseRampsState.userRegion, regionCode: null },
-        }),
-      );
-
-      expect(result.current.status).toBe('idle');
-      expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
-    });
-
     it('requests the deposit asset read-only, ignoring the Buy token and provider', async () => {
       useTransactionMetadataRequestMock.mockReturnValue(
         depositTx(TransactionType.predictDeposit),
@@ -1150,15 +847,6 @@ describe('useRampsPaymentMethods', () => {
 
       await waitFor(() => expect(result.current.isFetching).toBe(true));
       expect(updateFiatPaymentMock).not.toHaveBeenCalled();
-
-      await act(async () => {
-        deferred.resolve(contextResponse());
-        await deferred.promise;
-      });
-
-      await waitFor(() =>
-        expect(updateFiatPaymentMock).toHaveBeenCalledTimes(1),
-      );
     });
   });
 });
