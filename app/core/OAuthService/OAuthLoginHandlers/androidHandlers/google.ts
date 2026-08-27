@@ -89,6 +89,51 @@ const reportAndroidGoogleAcmError = (
 };
 
 /**
+ * Map a native ACM / legacy Google Error to OAuthError and report classified
+ * strings to Sentry. UserCancelled is swallowed in Onboarding.
+ */
+const throwMappedNativeAcmError = (error: Error): never => {
+  const acmKind = classifyAndroidGoogleAcmError(error.message);
+  const mapsToUserCancelled =
+    isOAuthUserCancellationMessage(error.message) ||
+    ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message);
+  if (acmKind && (!mapsToUserCancelled || acmKind === 'no_credential')) {
+    reportAndroidGoogleAcmError(error, acmKind);
+  }
+  if (mapsToUserCancelled) {
+    throw new OAuthError(
+      'handleGoogleLogin: User cancelled the login process',
+      OAuthErrorType.UserCancelled,
+    );
+  }
+  if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(error.message)) {
+    throw new OAuthError(
+      'handleGoogleLogin: User disabled One Tap sign-in feature',
+      OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+    );
+  }
+  if (ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(error.message)) {
+    throw new OAuthError(
+      'handleGoogleLogin: Credential provider not available',
+      OAuthErrorType.GoogleLoginNoProviderDependencies,
+    );
+  }
+  if (ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)) {
+    throw new OAuthError(
+      'handleGoogleLogin: Google login has no matching credential',
+      OAuthErrorType.GoogleLoginNoMatchingCredential,
+    );
+  }
+  if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
+    throw new OAuthError(
+      `handleGoogleLogin: One tap failure - ${error.message}`,
+      OAuthErrorType.GoogleLoginOneTapFailure,
+    );
+  }
+  throw new OAuthError(error, OAuthErrorType.UnknownError);
+};
+
+/**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
@@ -160,58 +205,14 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       Logger.log(error, 'handleGoogleLogin: error');
       if (error instanceof OAuthError) {
         throw error;
-      } else if (error instanceof Error) {
-        const acmKind = classifyAndroidGoogleAcmError(error.message);
-        const mapsToUserCancelled =
-          isOAuthUserCancellationMessage(error.message) ||
-          ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message);
-        // UserCancelled is swallowed in Onboarding and skipped in OAuthService traces.
-        // Report ACM strings that still throw UserCancelled (no-credential) plus
-        // the specific GoogleLogin* buckets. Skip explicit cancel wording.
-        if (
-          acmKind &&
-          (!mapsToUserCancelled || acmKind === 'no_credential')
-        ) {
-          reportAndroidGoogleAcmError(error, acmKind);
-        }
-        if (mapsToUserCancelled) {
-          throw new OAuthError(
-            'handleGoogleLogin: User cancelled the login process',
-            OAuthErrorType.UserCancelled,
-          );
-        } else if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(error.message)) {
-          throw new OAuthError(
-            'handleGoogleLogin: User disabled One Tap sign-in feature',
-            OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
-          );
-        } else if (
-          ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(error.message)
-        ) {
-          throw new OAuthError(
-            'handleGoogleLogin: Credential provider not available',
-            OAuthErrorType.GoogleLoginNoProviderDependencies,
-          );
-        } else if (
-          ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
-        ) {
-          throw new OAuthError(
-            'handleGoogleLogin: Google login has no matching credential',
-            OAuthErrorType.GoogleLoginNoMatchingCredential,
-          );
-        } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
-          throw new OAuthError(
-            `handleGoogleLogin: One tap failure - ${error.message}`,
-            OAuthErrorType.GoogleLoginOneTapFailure,
-          );
-        } else {
-          throw new OAuthError(error, OAuthErrorType.UnknownError);
-        }
-      } else {
-        throw new OAuthError(
-          'handleGoogleLogin: Unknown error',
-          OAuthErrorType.UnknownError,
-        );
       }
+      if (error instanceof Error) {
+        throwMappedNativeAcmError(error);
+      }
+      throw new OAuthError(
+        'handleGoogleLogin: Unknown error',
+        OAuthErrorType.UnknownError,
+      );
     }
   }
 
