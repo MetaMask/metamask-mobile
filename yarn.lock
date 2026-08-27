@@ -36037,7 +36037,7 @@ __metadata:
     react-native-quick-base64: "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch"
     react-native-quick-crypto: "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch"
     react-native-randombytes: "npm:^3.5.3"
-    react-native-reanimated: "npm:4.5.1"
+    react-native-reanimated: "npm:4.5.3"
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-reorderable-list: "npm:^0.18.1"
@@ -40703,17 +40703,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:4.5.1":
-  version: 4.5.1
-  resolution: "react-native-reanimated@npm:4.5.1"
+"react-native-reanimated@npm:4.5.3":
+  version: 4.5.3
+  resolution: "react-native-reanimated@npm:4.5.3"
   dependencies:
     react-native-is-edge-to-edge: "npm:^1.3.1"
     semver: "npm:^7.7.3"
   peerDependencies:
     react: "*"
     react-native: 0.83 - 0.86
-    react-native-worklets: 0.10.x
-  checksum: 10/da53fe28fd0eb492eecd5f5f988153b0e214c6010636762cb9e2e508795e6aff0b94ac9288a0a16559e3b60bdf5e005218baaee69b23a13d0afa7b85c09c51bf
+    react-native-worklets: 0.10.x - 0.11.x
+  checksum: 10/b043b6316156a525f3b77bb22279dc9bc1113c06ae5e818e6511e879f989b5a0884a9b5abc2b8c93c8e14430011602850067585036e4645370ce503c7995673b
   languageName: node
   linkType: hard
 
