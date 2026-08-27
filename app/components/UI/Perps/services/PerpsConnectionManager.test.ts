@@ -191,6 +191,7 @@ const resetManager = (manager: unknown) => {
     isDisconnecting: boolean;
     connectionRefCount: number;
     initPromise: Promise<void> | null;
+    initializationGeneration: number;
     disconnectPromise: Promise<void> | null;
     pendingReconnectPromise: Promise<void> | null;
     pendingReconnectRequest: {
@@ -242,6 +243,7 @@ const resetManager = (manager: unknown) => {
   m.isDisconnecting = false;
   m.connectionRefCount = 0;
   m.initPromise = null;
+  m.initializationGeneration = 0;
   m.disconnectPromise = null;
   m.pendingReconnectPromise = null;
   m.pendingReconnectRequest = null;
@@ -1047,6 +1049,74 @@ describe('PerpsConnectionManager', () => {
       reconnect.mockRestore();
     });
 
+    it('does not reject a healthy connection at the retry cap', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        pendingReconnectRequest: {
+          userContextKey: string;
+          force: boolean;
+        } | null;
+        performReconnection: () => Promise<void>;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      manager.isConnected = true;
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementation(async () => {
+          manager.pendingReconnectRequest = {
+            userContextKey: 'queued',
+            force: true,
+          };
+        });
+
+      await expect(manager.reconnectWithNewContext()).resolves.toBeUndefined();
+      expect(reconnect).toHaveBeenCalledTimes(3);
+      reconnect.mockRestore();
+    });
+
+    it('rejects a falsy reconnect failure', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockRejectedValueOnce(undefined);
+
+      await expect(manager.reconnectWithNewContext()).rejects.toBeInstanceOf(
+        Error,
+      );
+      reconnect.mockRestore();
+    });
+
+    it('bounds a force reconnect waiting on hung initialization', async () => {
+      jest.useFakeTimers();
+      mockPerpsController.init.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+      void PerpsConnectionManager.connect();
+      await Promise.resolve();
+      const manager = PerpsConnectionManager as unknown as {
+        performSerializedReconnection: () => Promise<void>;
+        reconnectWithNewContext: (options?: {
+          force?: boolean;
+        }) => Promise<void>;
+      };
+      const reconnect = jest
+        .spyOn(manager, 'performSerializedReconnection')
+        .mockResolvedValue();
+
+      const forced = manager.reconnectWithNewContext({ force: true });
+      await jest.advanceTimersByTimeAsync(
+        PERPS_CONSTANTS.ConnectionAttemptTimeoutMs,
+      );
+      await forced;
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+      reconnect.mockRestore();
+      jest.useRealTimers();
+    });
+
     it('reconnects again when account changes during reconnection preload', async () => {
       jest.useFakeTimers();
       const addressA = '0x1111111111111111111111111111111111111111';
@@ -1123,7 +1193,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
     });
 
-    it('reinitializes the controller and mounted candle subscriptions', async () => {
+    it('reinitializes the controller and mounted screen subscriptions', async () => {
       mockPerpsController.init.mockResolvedValue();
 
       await (
@@ -1140,6 +1210,12 @@ describe('PerpsConnectionManager', () => {
       );
       expect(
         mockStreamManagerInstance.focusedPrice.reconnect,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockStreamManagerInstance.oiCaps.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(
+        mockStreamManagerInstance.topOfBook.reconnect,
       ).toHaveBeenCalledTimes(1);
       expect(mockPerpsController.init.mock.invocationCallOrder[0]).toBeLessThan(
         mockStreamManagerInstance.candles.reconnect.mock.invocationCallOrder[0],
@@ -1198,6 +1274,12 @@ describe('PerpsConnectionManager', () => {
       expect(PerpsConnectionManager.getConnectionGeneration()).toBe(
         initialConnectionGeneration + 1,
       );
+      expect(mockStreamManagerInstance.oiCaps.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(
+        mockStreamManagerInstance.topOfBook.reconnect,
+      ).toHaveBeenCalledTimes(1);
       unsubscribe();
     });
 

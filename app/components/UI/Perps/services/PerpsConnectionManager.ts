@@ -109,6 +109,7 @@ class PerpsConnectionManagerClass {
   private error: string | null = null;
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
+  private initializationGeneration = 0;
   private disconnectPromise: Promise<void> | null = null;
   private ensureConnectedPromise: Promise<void> | null = null;
   private hasPreloaded = false;
@@ -990,7 +991,9 @@ class PerpsConnectionManagerClass {
     // Start connection timeout to prevent hanging indefinitely
     this.startConnectionTimeout(suppressError);
 
-    this.initPromise = (async () => {
+    const initializationGeneration = ++this.initializationGeneration;
+    let initPromise: Promise<void> = Promise.resolve();
+    initPromise = (async () => {
       const traceId = uuidv4();
       const loadingSessionTraceData = getActivePerpsLoadingSessionTraceData();
       const connectionStartTime = performance.now();
@@ -1012,9 +1015,10 @@ class PerpsConnectionManagerClass {
           { source, suppressError },
           async () => {
             await Engine.context.PerpsController.init();
-            this.isInitialized = true;
           },
         );
+        if (initializationGeneration !== this.initializationGeneration) return;
+        this.isInitialized = true;
         setMeasurement(
           PerpsMeasurementName.PerpsProviderInit,
           performance.now() - initStart,
@@ -1030,6 +1034,7 @@ class PerpsConnectionManagerClass {
         const healthCheckStart = performance.now();
         const provider = Engine.context.PerpsController.getActiveProvider();
         await provider.ping();
+        if (initializationGeneration !== this.initializationGeneration) return;
         setMeasurement(
           PerpsMeasurementName.PerpsConnectionHealthCheck,
           performance.now() - healthCheckStart,
@@ -1087,6 +1092,7 @@ class PerpsConnectionManagerClass {
         const preloadStart = performance.now();
         const preloadedUserContextKey = this.getSelectedUserContextKey();
         await this.preloadSubscriptions();
+        if (initializationGeneration !== this.initializationGeneration) return;
         if (
           this.isInitialized &&
           preloadedUserContextKey === this.getSelectedUserContextKey()
@@ -1123,6 +1129,7 @@ class PerpsConnectionManagerClass {
           success: true,
         };
       } catch (error) {
+        if (initializationGeneration !== this.initializationGeneration) return;
         this.isConnecting = false;
         this.isConnected = false;
         this.isInitialized = false;
@@ -1155,11 +1162,14 @@ class PerpsConnectionManagerClass {
             ...traceData,
           },
         });
-        this.initPromise = null;
+        if (this.initPromise === initPromise) {
+          this.initPromise = null;
+        }
       }
     })();
 
-    return this.initPromise;
+    this.initPromise = initPromise;
+    return initPromise;
   }
 
   /**
@@ -1185,10 +1195,14 @@ class PerpsConnectionManagerClass {
       // Initialization cannot be cancelled safely. Let it settle before the
       // forced reconnect replaces its controller and stream ownership.
       if (this.initPromise) {
-        try {
-          await this.initPromise;
-        } catch {
-          // The forced reconnect below owns recovery from the failed init.
+        const pendingInitialization = this.initPromise;
+        this.initializationGeneration += 1;
+        await Promise.race([
+          pendingInitialization.catch(() => undefined),
+          wait(PERPS_CONSTANTS.ConnectionAttemptTimeoutMs),
+        ]);
+        if (this.initPromise === pendingInitialization) {
+          this.initPromise = null;
         }
       }
     } else {
@@ -1237,7 +1251,8 @@ class PerpsConnectionManagerClass {
   }
 
   private async performSerializedReconnection(): Promise<void> {
-    let lastError: unknown;
+    let lastError: Error | undefined;
+    let lastAttemptFailed = false;
 
     for (
       let attempt = 1;
@@ -1248,8 +1263,13 @@ class PerpsConnectionManagerClass {
       try {
         await this.performReconnection();
         lastError = undefined;
+        lastAttemptFailed = false;
       } catch (error) {
-        lastError = error;
+        lastError = ensureError(
+          error,
+          'PerpsConnectionManager.performSerializedReconnection',
+        );
+        lastAttemptFailed = true;
       }
 
       const pendingRequest = this.getPendingReconnectRequest();
@@ -1259,7 +1279,7 @@ class PerpsConnectionManagerClass {
           pendingRequest.userContextKey !== this.initializedUserContextKey) ||
         (this.isConnected && !this.isSelectedUserContextReady());
       if (!shouldRetry) {
-        if (lastError) {
+        if (lastAttemptFailed && lastError) {
           throw lastError;
         }
         return;
@@ -1269,6 +1289,9 @@ class PerpsConnectionManagerClass {
     logPerpsConnectionProof('reconnect_attempt_limit_reached', {
       max_attempts: MAX_SERIALIZED_RECONNECT_ATTEMPTS,
     });
+    if (!lastAttemptFailed && this.isConnected) {
+      return;
+    }
     throw (
       lastError ??
       new Error(
