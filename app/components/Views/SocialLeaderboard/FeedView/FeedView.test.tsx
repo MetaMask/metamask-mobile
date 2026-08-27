@@ -245,6 +245,20 @@ describe('FeedView', () => {
     );
   });
 
+  it('omits feed action analytics when lifecycle metadata is missing', () => {
+    const item = { ...spotItem, action: undefined };
+    mockFeedResult = buildResult({ items: [item] });
+
+    renderWithProvider(<FeedView onQuickBuy={jest.fn()} />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId(item.id)));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
+      expect.not.objectContaining({ feed_action: expect.anything() }),
+    );
+  });
+
   it('reports spot availability to the parent', () => {
     const onSpotAvailabilityChange = jest.fn();
 

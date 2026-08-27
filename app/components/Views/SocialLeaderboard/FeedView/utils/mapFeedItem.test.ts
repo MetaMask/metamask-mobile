@@ -266,6 +266,50 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('opened');
   });
 
+  it('keeps the action undefined when the API omits lifecycle metadata', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBeUndefined();
+    expect(result?.isClosed).toBe(false);
+  });
+
+  it('uses the snapshot closure state when the API omits lifecycle metadata', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        positionAmount: 0,
+        soldUsd: 120_000,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBeUndefined();
+    expect(result?.isClosed).toBe(true);
+  });
+
   it('returns null for a spot trade on an unsupported chain', () => {
     const result = mapFeedItem(mockSpotFeedItem({ chain: 'fantom' }));
 

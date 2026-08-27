@@ -10,7 +10,7 @@ import type { TradeAction } from '../../utils/tradeAction';
  * adapter and hook tests. Timestamps are Unix seconds, matching the API.
  */
 
-type TradeWithAction = Trade & { action: TradeAction };
+type TradeWithAction = Trade & { action?: TradeAction };
 
 /** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
 type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades'> & {

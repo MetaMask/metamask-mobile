@@ -25,6 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+      'social_leaderboard.feed.action.traded': 'Traded',
     };
     return literals[key] ?? key;
   },
@@ -160,6 +161,19 @@ describe('FeedItemRow', () => {
 
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.queryByText('+12%')).toBeNull();
+  });
+
+  it('renders Traded when the lifecycle action is missing', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={{ ...spotItem, action: undefined }}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Traded')).toBeOnTheScreen();
   });
 
   it('calls onTradePress with the item when Trade is pressed', () => {

@@ -92,6 +92,15 @@ describe('TraderTradesSection', () => {
     expect(screen.getByText('Sold')).toBeOnTheScreen();
   });
 
+  it('renders Traded when a trade action is missing', () => {
+    const trade = makeTrade();
+    renderWithProvider(
+      <TraderTradesSection trades={[trade]} tradeActions={[undefined]} />,
+    );
+
+    expect(screen.getByText('Traded')).toBeOnTheScreen();
+  });
+
   it('renders the empty state when there are no trades', () => {
     renderWithProvider(<TraderTradesSection trades={[]} tradeActions={[]} />);
 

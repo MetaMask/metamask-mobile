@@ -1,5 +1,6 @@
 import type { Position, Trade } from '@metamask/social-controllers';
 import {
+  getTradeActionI18nKey,
   isEntryAction,
   resolveTradeAction,
   resolveTradeActions,
@@ -123,6 +124,20 @@ describe('tradeActionLabelKey', () => {
   ] as const)('maps a spot %s fill to %s', (action, key) => {
     expect(tradeActionLabelKey(false, action)).toBe(key);
   });
+});
+
+describe('getTradeActionI18nKey', () => {
+  it.each([
+    ['feed', 'social_leaderboard.feed.action.traded'],
+    ['trader_position', 'social_leaderboard.trader_position.action.traded'],
+  ] as const)(
+    'uses the neutral key for %s without an action',
+    (surface, key) => {
+      const result = getTradeActionI18nKey(surface, true);
+
+      expect(result).toBe(key);
+    },
+  );
 });
 
 describe('isEntryAction', () => {
