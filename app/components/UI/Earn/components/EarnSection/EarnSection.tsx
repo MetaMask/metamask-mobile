@@ -32,39 +32,49 @@ import {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
-import type { TokenI } from '../../../../UI/Tokens/types';
-import AssetLogo from '../../../../UI/Assets/components/AssetLogo/AssetLogo';
-import EarnSectionAssetCard from '../../../../UI/Earn/components/EarnSectionAssetCard';
-import EarnSectionCard from '../../../../UI/Earn/components/EarnSectionCard';
+import type { TokenI } from '../../../Tokens/types';
+import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import EarnSectionAssetCard from '../EarnSectionAssetCard';
+import EarnSectionCard from '../EarnSectionCard';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { homepageSectionTitleTestId } from '../../Homepage.testIds';
+import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import useHomeViewedEvent, {
   HomeSectionNames,
-} from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import type { SectionRefreshHandle } from '../../types';
+} from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
+import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
-import useEarnSectionAssets from '../../../../UI/Earn/hooks/useEarnSectionAssets';
-import { truncateNumber } from '../../../../UI/Earn/utils';
+import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import { truncateNumber } from '../../utils';
 import {
   earnAssetToToken,
   getEarnAssetFiatDisplay,
   getEarnAssetMetadata,
-} from '../../../../UI/Earn/utils/earnAssets';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
-import { selectIsMoneyAccountVisible } from '../../../../UI/Money/selectors/visibility';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import type { EarnAsset } from '../../../../UI/Earn/types/earnAssets';
-import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
-import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
+} from '../../utils/earnAssets';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { EarnAsset } from '../../types/earnAssets';
+import EarnNewTag from '../EarnNewTag';
+import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
+import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
+import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
 
-interface EarnSectionProps {
+interface EarnSectionHomeAnalytics {
   sectionIndex: number;
   totalSectionsLoaded: number;
+}
+
+export interface EarnSectionProps {
+  tokenDetailsSource: TokenDetailsSource;
+  homeAnalytics?: EarnSectionHomeAnalytics;
+  showDividers?: boolean;
+  refresh?: RefreshConfig;
+  enabled?: boolean;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -116,10 +126,30 @@ const renderUnavailableAssetCard = (key: string) => (
   />
 );
 
+// Module-level promise to prevent multiple concurrent refreshes.
+let refreshPromise: Promise<void> | undefined;
+
+export const resetEarnSectionRefreshForTests = () => {
+  refreshPromise = undefined;
+};
+
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
-  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+  (
+    {
+      tokenDetailsSource,
+      homeAnalytics,
+      showDividers = false,
+      refresh: exploreFeedRefreshConfig,
+      enabled = true,
+    },
+    ref,
+  ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
+    const isHomepageSection = homeAnalytics !== undefined;
+    const homepageTelemetryEnabled = isHomepageSection && enabled;
+    const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
+    const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
     const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
@@ -134,14 +164,16 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       isLoading,
       hasError,
       refresh: refreshEarnSectionAssets,
-    } = useEarnSectionAssets();
+    } = useEarnSectionAssets({ enabled });
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
       totalFiatRaw: moneyAccountBalanceRaw,
       isBalanceLoading: isMoneyAccountBalanceLoading,
       refetchBalance: refetchMoneyAccountBalance,
-    } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+    } = useMoneyAccountBalance({
+      enabled: enabled && isMoneyAccountVisible,
+    });
 
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
       useMoneyNavigation();
@@ -152,20 +184,46 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       (!isLoading && hasMoreAssets ? 1 : 0);
 
     const refresh = useCallback(async () => {
-      refetchMoneyAccountBalance();
-      await refreshEarnSectionAssets();
+      refreshPromise ??= Promise.all([
+        refetchMoneyAccountBalance(),
+        refreshEarnSectionAssets(),
+      ])
+        .then(() => undefined)
+        .finally(() => {
+          refreshPromise = undefined;
+        });
+
+      return refreshPromise;
     }, [refetchMoneyAccountBalance, refreshEarnSectionAssets]);
+
+    const handleExploreFeedRefresh = useCallback(async () => {
+      try {
+        await refresh();
+      } catch (error: unknown) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'EarnSection: Failed to refresh section data',
+        );
+      }
+    }, [refresh]);
+
+    /**
+     * Refreshes Earn data when the parent requests a page refresh.
+     * Currently used for Explore pull-to-refresh.
+     */
+    useFeedRefresh(exploreFeedRefreshConfig, handleExploreFeedRefresh, enabled);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: sectionViewRef,
+      sectionRef: homepageTelemetryEnabled ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.EARN,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
       itemCount: earnSectionItemCount,
+      fireImmediateWhenNoView: homepageTelemetryEnabled,
     });
 
     useSectionPerformance({
@@ -173,13 +231,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       contentReady: !isLoading,
       isEmpty: false,
       isLoading,
-      enabled: true,
+      enabled: homepageTelemetryEnabled,
     });
 
     const handleHeaderPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -199,7 +257,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             isETH: token.isETH,
             aggregators: token.aggregators,
             rwaData: token.rwaData,
-            source: TokenDetailsSource.HomeSection,
+            source: tokenDetailsSource,
           });
           return;
         }
@@ -209,13 +267,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           params: { assetId: asset.assetId },
         });
       },
-      [navigation],
+      [navigation, tokenDetailsSource],
     );
 
     const handleViewMoreCardPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -323,7 +381,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box testID="earn-section">
-          <SectionDivider />
+          {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive

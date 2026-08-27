@@ -25,6 +25,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
+      'social_leaderboard.feed.just_now': 'Just now',
+      'social_leaderboard.feed.action.spot_bought': 'bought',
+      'social_leaderboard.feed.action.perps_closed': 'closed',
       'social_leaderboard.feed.action.traded': 'Traded',
     };
     return literals[key] ?? key;
@@ -117,6 +120,7 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('$120K')).toBeOnTheScreen();
     expect(screen.getByText('$900K')).toBeOnTheScreen();
     expect(screen.getByText(/ MC/)).toBeOnTheScreen();
+    expect(screen.getByText(/bought/)).toBeOnTheScreen();
   });
 
   it('omits value and PnL labels when both fields are missing from the API', () => {
@@ -241,6 +245,7 @@ describe('FeedItemRow', () => {
     expect(
       screen.getByTestId('feed-item-perp-badges-perp-1-leverage'),
     ).toBeOnTheScreen();
+    expect(screen.getByText(/closed/)).toBeOnTheScreen();
   });
 
   it('hides the leverage pill when leverage is null', () => {
@@ -347,5 +352,48 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.getByText('+12%')).toBeOnTheScreen();
     expect(screen.queryByTestId(getFeedNewPositionTestId('spot-1'))).toBeNull();
+  });
+
+  it('renders the relative timestamp from the injected now', () => {
+    const timestamp = 1_700_000_000_000;
+    // Minutes rather than the sub-minute range: every value under a minute
+    // renders the same "Just now" label, so a drifting clock would still pass.
+    const now = timestamp + 5 * 60_000;
+    const item: FeedSpotItem = {
+      ...spotItem,
+      timestamp,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        now={now}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/5m/)).toBeOnTheScreen();
+  });
+
+  it('renders "Just now" for a row traded within the last minute', () => {
+    const timestamp = 1_700_000_000_000;
+    const item: FeedSpotItem = {
+      ...spotItem,
+      timestamp,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        now={timestamp + 30_000}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/Just now/)).toBeOnTheScreen();
   });
 });

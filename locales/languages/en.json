@@ -1170,6 +1170,7 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
