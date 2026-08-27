@@ -430,18 +430,6 @@ class ActivitiesView {
   }
 
   /**
-   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
-   * Delegates to verifyActivityItemWithStatus.
-   */
-  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
-    await this.verifyActivityItemWithStatus(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      rowIndex,
-    );
-  }
-
-  /**
    * Wait for a transaction to show "Confirmed" status in the activity list.
    * For real on-chain transactions, polls with a longer timeout.
    * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)

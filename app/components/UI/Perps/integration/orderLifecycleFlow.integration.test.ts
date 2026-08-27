@@ -114,6 +114,45 @@ describe('Perps order lifecycle — FLOW integration', () => {
       });
     });
 
+    it('starts a TWAP through the hook, TradingService, and provider chain', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placeOrderResult: Awaited<
+        ReturnType<typeof result.current.placeOrder>
+      > | null = null;
+      await act(async () => {
+        placeOrderResult = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'twap',
+          currentPrice: 50_000,
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(placeOrderResult).toMatchObject({
+        success: true,
+        orderId: '123',
+      });
+      expect(perps.harness.mocks.exchangeClient.twapOrder).toHaveBeenCalledWith(
+        {
+          twap: {
+            a: 0, // venue asset id
+            b: true, // buy
+            s: '0.1', // size
+            r: false, // reduce only
+            m: 90, // duration in minutes
+            t: true, // randomize child sizes
+          },
+        },
+      );
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
     it('emits Perp Trade Transaction with status failed when the provider rejects the order', async () => {
       const perps = buildPerpsFlowHarness();
       perps.harness.setupTradingReady();

@@ -3,36 +3,36 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 
 /** Page object for the Money Home "Add money" bottom sheet. */
 class MoneyAddMoneySheet {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyAddMoneySheetTestIds.CONTAINER);
   }
 
-  get convertCryptoOption(): EncapsulatedElementType {
+  get convertCryptoOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
     );
   }
 
-  get depositFundsOption(): EncapsulatedElementType {
+  get depositFundsOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     );
   }
 
-  get moveMusdOption(): EncapsulatedElementType {
+  get moveMusdOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION);
   }
 
-  get bankAccountRow(): EncapsulatedElementType {
+  get bankAccountRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
   }
 
-  get receiveExternalRow(): EncapsulatedElementType {
+  get receiveExternalRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
     );

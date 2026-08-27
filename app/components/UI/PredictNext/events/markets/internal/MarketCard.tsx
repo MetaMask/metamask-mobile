@@ -9,6 +9,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface ChildrenProps {
   children: React.ReactNode;
@@ -50,7 +51,7 @@ const Volume = ({ value, testID }: { value: string; testID?: string }) => (
     color={TextColor.TextAlternative}
     twClassName="text-[13px] leading-[18px]"
   >
-    ${value} Vol.
+    {strings('predict.market.volume', { value: `$${value}` })}
   </Text>
 );
 
