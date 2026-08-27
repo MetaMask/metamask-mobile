@@ -52,7 +52,7 @@ import {
   type PerpsMarketDetailSectionState,
   usePerpsMarketDetailSession,
 } from '../../hooks/usePerpsMarketDetailSession';
-import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
@@ -70,9 +70,6 @@ import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
-import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
-import { TraceName } from '../../../../../util/trace';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
@@ -466,39 +463,14 @@ const PerpsProMarketView = ({
     sections: detailSections,
   });
 
-  const marketDetailCufTags = useMemo(
-    () =>
-      buildPerpsCufStartTags({
-        detail_mode: 'pro',
-        generation_trigger: detailSession.generationTrigger,
-      }),
-    [detailSession.generationTrigger],
-  );
-  const marketDetailEndData = useMemo(
-    () => ({
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    }),
-    [account?.totalBalance],
-  );
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsMarketDetailLive,
-    resetKey: detailSession.liveResetKey,
-    ownerActive: detailSession.isActive,
-    cancelOnAppBackground: true,
-    endConditions: [
-      marketSectionState === 'content',
-      priceSectionState === 'content',
-      statsSectionState === 'content',
-      accountSectionState !== 'loading',
-    ],
-    resetConditions: [statsSectionState === 'error'],
-    resetReason: 'stats_error',
-    blockStartWhileReset: true,
-    tags: marketDetailCufTags,
-    endData: marketDetailEndData,
+  usePerpsMarketDetailLiveMeasurement({
+    detailMode: 'pro',
+    detailSession,
+    marketSectionState,
+    priceSectionState,
+    statsSectionState,
+    accountSectionState,
+    totalBalance: account?.totalBalance,
   });
 
   const {

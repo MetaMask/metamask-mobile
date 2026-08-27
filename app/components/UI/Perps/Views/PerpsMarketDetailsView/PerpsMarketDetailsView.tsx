@@ -139,6 +139,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
   type PerpsMarketDetailSectionState,
@@ -149,8 +150,6 @@ import {
   buildChartOverlayLines,
   getChartLimitOrderLines,
 } from '../../utils/chartOverlayLines';
-import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
@@ -1031,39 +1030,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Minimum-useful detail stays separate from the section waterfall and ends
   // only on current-symbol/current-account readiness.
-  const marketDetailCufTags = useMemo(
-    () =>
-      buildPerpsCufStartTags({
-        detail_mode: 'lite',
-        generation_trigger: detailSession.generationTrigger,
-      }),
-    [detailSession.generationTrigger],
-  );
-  const marketDetailEndData = useMemo(
-    () => ({
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    }),
-    [account?.totalBalance],
-  );
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsMarketDetailLive,
-    resetKey: detailSession.liveResetKey,
-    ownerActive: detailSession.isActive,
-    cancelOnAppBackground: true,
-    endConditions: [
-      marketSectionState === 'content',
-      priceSectionState === 'content',
-      statsSectionState === 'content',
-      accountSectionState !== 'loading',
-    ],
-    resetConditions: [statsSectionState === 'error'],
-    resetReason: 'stats_error',
-    blockStartWhileReset: true,
-    tags: marketDetailCufTags,
-    endData: marketDetailEndData,
+  usePerpsMarketDetailLiveMeasurement({
+    detailMode: 'lite',
+    detailSession,
+    marketSectionState,
+    priceSectionState,
+    statsSectionState,
+    accountSectionState,
+    totalBalance: account?.totalBalance,
   });
 
   const handleTradeAction = useCallback(
