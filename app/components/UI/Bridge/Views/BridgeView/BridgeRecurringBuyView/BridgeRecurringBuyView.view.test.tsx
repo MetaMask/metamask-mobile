@@ -739,7 +739,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ),
     ).toHaveStyle({ color: errorColor });
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR),
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
     ).toHaveTextContent(strings('bridge.recurring.max_is', { max: 180 }));
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
