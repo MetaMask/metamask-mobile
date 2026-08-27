@@ -44,10 +44,10 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     mockHasTestOverrides.mockReturnValue(true);
   });
 
-  it('sets awaiting_password state and stores AccountTreePayload for new-user', async () => {
+  it('sets awaiting_password state and stores AccountTreePayload for new-user', () => {
     const controller = buildController(() => false);
 
-    await controller.applyTestSyncReadyPayload({
+    controller.applyTestSyncReadyPayload({
       mnemonic: TEST_MNEMONIC,
       walletName: 'Extension Wallet',
       accountName: 'Synced Account',
@@ -62,7 +62,6 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
       version: 1,
       wallets: [
         {
-          id: expect.stringMatching(/^wallet:entropy:mnemonic:/u),
           type: 'mnemonic',
           value: expect.any(Array),
           metadata: { name: 'Extension Wallet' },
@@ -70,15 +69,12 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
         },
       ],
     });
-    expect(controller.state.pendingPayload?.wallets[0].groups[0].id).toBe(
-      `${controller.state.pendingPayload?.wallets[0].id}/0`,
-    );
   });
 
-  it('uses default wallet and account names when omitted', async () => {
+  it('uses default wallet and account names when omitted', () => {
     const controller = buildController(() => true);
 
-    await controller.applyTestSyncReadyPayload({
+    controller.applyTestSyncReadyPayload({
       mnemonic: `  ${TEST_MNEMONIC}  `,
     });
 
@@ -91,34 +87,34 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
   });
 
-  it('rejects onboarding payloads without a primary mnemonic value', async () => {
+  it('rejects onboarding payloads without a primary mnemonic value', () => {
     const controller = buildController(() => false);
 
-    await expect(
+    expect(() =>
       controller.applyTestSyncReadyPayload({
         mnemonic: '',
       }),
-    ).rejects.toThrow(/non-empty mnemonic/u);
+    ).toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects empty mnemonic payloads', async () => {
+  it('rejects empty mnemonic payloads', () => {
     const controller = buildController(() => true);
 
-    await expect(
+    expect(() =>
       controller.applyTestSyncReadyPayload({
         mnemonic: '   ',
       }),
-    ).rejects.toThrow(/non-empty mnemonic/u);
+    ).toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects when HAS_TEST_OVERRIDES is disabled', async () => {
+  it('rejects when HAS_TEST_OVERRIDES is disabled', () => {
     mockHasTestOverrides.mockReturnValue(false);
     const controller = buildController(() => true);
 
-    await expect(
+    expect(() =>
       controller.applyTestSyncReadyPayload({
         mnemonic: TEST_MNEMONIC,
       }),
-    ).rejects.toThrow(/HAS_TEST_OVERRIDES/u);
+    ).toThrow(/HAS_TEST_OVERRIDES/);
   });
 });

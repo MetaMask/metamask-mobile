@@ -106,7 +106,7 @@ async function pollOnce(): Promise<void> {
         }
         case E2ECommandTypes.applyQrSyncSyncReady: {
           try {
-            await dispatchQrSyncCommand(item);
+            dispatchQrSyncCommand(item);
           } catch (e) {
             DevLogger.log(
               '[E2E Command Server Polling] Error handling QR sync command',
