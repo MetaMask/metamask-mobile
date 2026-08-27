@@ -531,9 +531,23 @@ describe('orderUtils', () => {
       detailedOrderType: 'Take Profit Limit',
     };
 
-    it('returns limit price for trigger-limit with a distinct trigger price', () => {
+    it('returns limit price from the detailed type compatibility fallback', () => {
       const result = resolveOrderDisplayPriceAndLabel({
         ...baseOrder,
+        triggerPrice: '51000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 50000,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns limit price for a normalized trigger-limit order', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        detailedOrderType: undefined,
+        triggerOrderType: 'take_profit_limit',
         triggerPrice: '51000',
       });
 
@@ -552,6 +566,20 @@ describe('orderUtils', () => {
 
       expect(result).toEqual({
         priceValue: 49500,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns an unavailable limit price without labelling it as market', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerOrderType: 'take_profit_limit',
+        triggerPrice: '51000',
+        price: '0',
+      });
+
+      expect(result).toEqual({
+        priceValue: null,
         labelKey: 'perps.order.limit_price',
       });
     });

@@ -126,6 +126,8 @@ export const isTriggerOrder = (order: Order): boolean =>
  *
  * Hyperliquid trigger-market orders carry a limit price as a slippage cap, but
  * that cap is not a guaranteed execution price and must display as Market.
+ * Orders without a normalized `triggerOrderType` fall back to their detailed
+ * provider order type for backwards compatibility.
  *
  * @param order - Open order normalized by the Perps controller.
  * @returns The display price and its localized label key.
@@ -141,7 +143,7 @@ export const resolveOrderDisplayPriceAndLabel = (
   const hasDetailedMarketExecution =
     normalizedDetailedOrderType.includes('market');
   const isLimitOrder =
-    isTrigger && order.triggerOrderType !== undefined
+    order.triggerOrderType !== undefined
       ? isLimitExecutionOrderType(order.triggerOrderType)
       : hasDetailedLimitExecution ||
         (!hasDetailedMarketExecution && order.orderType === 'limit');
@@ -154,7 +156,7 @@ export const resolveOrderDisplayPriceAndLabel = (
     };
   }
 
-  if (isLimitOrder && validOrderPrice !== null) {
+  if (isLimitOrder) {
     return {
       priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',
