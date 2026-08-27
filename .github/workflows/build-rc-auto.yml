@@ -27,18 +27,20 @@
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
 #
-# Changelog-only pushes: the `paths-ignore` filter below keeps a push whose whole diff is
-# confined to CHANGELOG.md (the `release-changelog/*` PRs) from starting a run at all. Two
-# things follow from that, and both are the point of the filter: no RC build is spent on a
-# commit that cannot change the app, and — because no run is created — nothing joins the
-# concurrency group, so an RC build already in flight for that branch survives. Filtering
-# has to happen here, on the trigger: GitHub resolves `cancel-in-progress` when the run is
-# queued, before any job runs, so a job-level "should I skip?" check would cancel the
-# earlier build first and only then decide it had nothing to do.
+# Non-shipping-only pushes: the `paths-ignore` filter below keeps a push whose whole diff is
+# confined to CHANGELOG.md, docs/**, or tests/** from starting a run at all — none of those
+# paths reach the compiled app (docs/** is repo documentation, tests/** is the Appium/Detox
+# suite, not app/ios/android source). Two things follow from that, and both are the point of
+# the filter: no RC build is spent on a commit that cannot change the app, and — because no
+# run is created — nothing joins the concurrency group, so an RC build already in flight for
+# that branch survives. Filtering has to happen here, on the trigger: GitHub resolves
+# `cancel-in-progress` when the run is queued, before any job runs, so a job-level "should I
+# skip?" check would cancel the earlier build first and only then decide it had nothing to do.
 #
-# A push that touches CHANGELOG.md alongside anything else (a cherry-pick that updates the
-# changelog, say) is not confined to the ignored path and builds as usual. `workflow_dispatch`
-# ignores path filters entirely, so the release-cut dispatch described above is unaffected.
+# A push that mixes an ignored path with anything else (a cherry-pick that also updates the
+# changelog, or touches both tests/** and app code, say) is not confined to the ignored set
+# and builds as usual. `workflow_dispatch` ignores path filters entirely, so the release-cut
+# dispatch described above is unaffected.
 #
 # Version bump: generate-build-version, then iOS and Android builds are triggered in parallel
 # via auto-rc-ota-build-core.yml with the generated number applied locally at build time.
@@ -79,6 +81,8 @@ on:
       - '!release/*-ota'
     paths-ignore:
       - 'CHANGELOG.md'
+      - 'docs/**'
+      - 'tests/**'
 
   workflow_dispatch:
 
