@@ -87,6 +87,11 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+// Reaches the Money Account balance query via `useIsMoneyAccountFlagDefault`,
+// which the `usePayWithMoneyAccountSection` mock above does not intercept.
+jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
+  usePayMoneyAccountAvailable: jest.fn().mockReturnValue(true),
+}));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
