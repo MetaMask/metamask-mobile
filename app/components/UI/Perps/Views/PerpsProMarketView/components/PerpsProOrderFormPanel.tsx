@@ -43,6 +43,8 @@ const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
 const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
+const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -105,12 +107,22 @@ const PerpsProOrderFormPanel = ({
     resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
-  const isScaleOrdersEnabled = isScaleBaseEnabled && supportsScaleOrders;
+  const resolvedScaleProviderId =
+    resolvedProviderId === SCALE_SUPPORTED_PROVIDER
+      ? resolvedProviderId
+      : undefined;
+  const isScaleOrdersEnabled =
+    isScaleBaseEnabled &&
+    supportsScaleOrders &&
+    resolvedScaleProviderId !== undefined;
   const isScaleOrderSupportPending =
     isScaleBaseEnabled && isLoadingOrderCapabilities;
   const checkScaleOrderSupport = useCallback(
-    () => checkOrderCapability('scale', resolvedProviderId),
-    [checkOrderCapability, resolvedProviderId],
+    () =>
+      resolvedScaleProviderId
+        ? checkOrderCapability('scale', resolvedScaleProviderId)
+        : Promise.resolve(false),
+    [checkOrderCapability, resolvedScaleProviderId],
   );
   const checkTwapOrderSupport = useCallback(
     () => checkOrderCapability('twap', resolvedProviderId),
@@ -184,7 +196,7 @@ const PerpsProOrderFormPanel = ({
     isTwapAvailabilityPending,
     resolvedTwapProviderId: resolvedProviderId,
     checkTwapOrderSupport,
-    scaleProviderId: resolvedProviderId,
+    scaleProviderId: resolvedScaleProviderId,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
     checkScaleOrderSupport,

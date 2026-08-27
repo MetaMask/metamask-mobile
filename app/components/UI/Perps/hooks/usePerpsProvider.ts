@@ -17,6 +17,7 @@ import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import {
   PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
+  PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 
 interface OrderCapabilitiesState {
@@ -222,6 +223,7 @@ export function usePerpsProvider(
     orderCapabilities.supportedStrategies.includes('twap');
   const supportsScaleOrders =
     orderCapabilities?.status === 'ready' &&
+    orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
     orderCapabilities.supportedStrategies.includes('scale');
   const checkOrderCapability = useCallback(
     async (
@@ -242,6 +244,8 @@ export function usePerpsProvider(
         return (
           capabilities.status === 'ready' &&
           capabilities.supportedStrategies.includes(strategy) &&
+          (strategy !== 'scale' ||
+            capabilities.providerId === PROVIDER_CONFIG.DefaultProvider) &&
           (!expectedProviderId ||
             capabilities.providerId === expectedProviderId)
         );

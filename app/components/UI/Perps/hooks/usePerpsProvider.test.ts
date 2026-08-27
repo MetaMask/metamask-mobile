@@ -261,7 +261,7 @@ describe('usePerpsProvider', () => {
       });
     });
 
-    it('fails a capability recheck when the resolved route changes', async () => {
+    it('keeps Scale unsupported when capabilities resolve to MYX', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
@@ -272,15 +272,13 @@ describe('usePerpsProvider', () => {
       const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
 
       await waitFor(() => {
-        expect(result.current.supportsScaleOrders).toBe(true);
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
+      expect(result.current.supportsScaleOrders).toBe(false);
 
       let isSupported = true;
       await act(async () => {
-        isSupported = await result.current.checkOrderCapability(
-          'scale',
-          'hyperliquid',
-        );
+        isSupported = await result.current.checkOrderCapability('scale', 'myx');
       });
 
       expect(isSupported).toBe(false);

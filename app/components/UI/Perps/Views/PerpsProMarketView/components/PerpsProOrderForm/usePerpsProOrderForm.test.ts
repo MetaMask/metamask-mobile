@@ -7,7 +7,7 @@ import {
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { normalizeScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
+import { normalizeHyperLiquidScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -1964,63 +1964,39 @@ describe('usePerpsProOrderForm', () => {
   describe('scale orders', () => {
     it('normalizes Scale rungs through the controller precision contract', () => {
       expect(
-        normalizeScalePriceLadder({
+        normalizeHyperLiquidScalePriceLadder({
           minPrice: 100,
           maxPrice: 200,
           count: 3,
           szDecimals: 3,
-          providerId: 'hyperliquid',
-          symbol: 'BTC',
         }),
       ).toEqual(['100', '150', '200']);
       expect(
-        normalizeScalePriceLadder({
+        normalizeHyperLiquidScalePriceLadder({
           minPrice: 100.123456,
           maxPrice: 100.123457,
           count: 3,
           szDecimals: 3,
-          providerId: 'hyperliquid',
-          symbol: 'BTC',
         }),
       ).toEqual(['100.12', '100.12', '100.12']);
     });
 
-    it('applies HyperLiquid precision for each symbol size grid', () => {
-      const btcPrices = normalizeScalePriceLadder({
+    it('applies HyperLiquid precision for each asset size grid', () => {
+      const threeDecimalPrices = normalizeHyperLiquidScalePriceLadder({
         minPrice: 1.234567,
         maxPrice: 1.234568,
         count: 2,
-        providerId: 'hyperliquid',
-        symbol: 'BTC',
         szDecimals: 3,
       });
-      const ethPrices = normalizeScalePriceLadder({
+      const fourDecimalPrices = normalizeHyperLiquidScalePriceLadder({
         minPrice: 1.234567,
         maxPrice: 1.234568,
         count: 2,
-        providerId: 'hyperliquid',
-        symbol: 'ETH',
         szDecimals: 4,
       });
 
-      expect(btcPrices).toEqual(['1.235', '1.235']);
-      expect(ethPrices).toEqual(['1.23', '1.23']);
-    });
-
-    it('rejects Scale normalization for an unsupported provider', () => {
-      const normalizeUnsupportedProvider = () =>
-        normalizeScalePriceLadder({
-          minPrice: 100,
-          maxPrice: 200,
-          count: 3,
-          providerId: 'myx',
-          symbol: 'BTC',
-          szDecimals: 3,
-        });
-
-      expect(normalizeUnsupportedProvider).toThrow(
-        'Unsupported Scale price normalization provider: myx',
-      );
+      expect(threeDecimalPrices).toEqual(['1.235', '1.235']);
+      expect(fourDecimalPrices).toEqual(['1.23', '1.23']);
     });
 
     const configureScaleOrder = (
@@ -2033,6 +2009,18 @@ describe('usePerpsProOrderForm', () => {
         result.current.scaleOrder.onSizeSkewChange('2.00');
       });
     };
+
+    it('keeps Scale placement disabled for a MYX route', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
 
     it('starts with a blank Order count to match the default Scale form', () => {
       mockOrderForm.type = 'scale';

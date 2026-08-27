@@ -625,7 +625,7 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('omits TWAP when controller v13 resolves a non-Hyperliquid route', () => {
+  it('omits TWAP and Scale when controller v13 resolves a MYX route', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
@@ -650,8 +650,13 @@ describe('PerpsProOrderFormPanel', () => {
           'stop_market',
           'take_profit_limit',
           'take_profit_market',
-          'scale',
         ],
+      }),
+    );
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isScaleOrdersEnabled: false,
+        scaleProviderId: undefined,
       }),
     );
   });

@@ -15,7 +15,7 @@ import {
   type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
-import { normalizeScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
+import { normalizeHyperLiquidScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -111,6 +111,7 @@ import {
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
+  PROVIDER_CONFIG,
 } from '../../../../constants/perpsConfig';
 import {
   finalizeNumericTextInput,
@@ -910,18 +911,16 @@ export const usePerpsProOrderForm = ({
     ) {
       return { success: false, code: 'size_required' };
     }
-    if (!scaleProviderId) {
+    if (scaleProviderId !== PROVIDER_CONFIG.DefaultProvider) {
       return { success: false, code: 'calculation_error' };
     }
 
     try {
-      const scalePrices = normalizeScalePriceLadder({
+      const scalePrices = normalizeHyperLiquidScalePriceLadder({
         minPrice,
         maxPrice,
         count: orderCount,
         szDecimals,
-        providerId: scaleProviderId,
-        symbol,
       });
       if (new Set(scalePrices).size !== scalePrices.length) {
         return { success: false, code: 'invalid_range' };
@@ -1113,7 +1112,6 @@ export const usePerpsProOrderForm = ({
     scaleStartPrice,
     scaleTotalOrders,
     scaleProviderId,
-    symbol,
     szDecimals,
   ]);
 

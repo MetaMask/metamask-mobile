@@ -29,7 +29,11 @@ import {
   type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
-import { ApiRequestError, HyperliquidError } from '@nktkas/hyperliquid';
+import { HyperliquidError } from '@nktkas/hyperliquid';
+// Mobile's current Node resolver cannot read this package export, while Jest
+// and Metro resolve the SDK's declared `./api/exchange` entrypoint.
+// @ts-expect-error The subpath is exported by @nktkas/hyperliquid.
+import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
@@ -513,7 +517,11 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { scheduled: { oid: 102 } },
           { error: 'Insufficient margin' },
         ],
-        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCancels: [
+          { a: 0, o: 101 },
+          { a: 0, o: 102 },
+        ],
+        cancelStatuses: ['success', 'success'],
       },
       {
         responseShape: 'malformed status entry',
@@ -552,7 +560,12 @@ describe('Perps order lifecycle — FLOW integration', () => {
       },
     ])(
       'rejects and cleans up a Scale ladder with a $responseShape',
-      async ({ statuses, expectedCancels, expectedChildOrderIds }) => {
+      async ({
+        statuses,
+        expectedCancels,
+        expectedChildOrderIds,
+        cancelStatuses,
+      }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
@@ -560,6 +573,12 @@ describe('Perps order lifecycle — FLOW integration', () => {
           status: 'ok',
           response: { data: { statuses } },
         });
+        if (cancelStatuses) {
+          perps.harness.mocks.exchangeClient.cancel.mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: cancelStatuses } },
+          });
+        }
         const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
 
         // Act
