@@ -455,6 +455,40 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
+  it('commits month as the interval unit on confirm', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('month'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.month'));
+    });
+  });
+
   it('keeps the previous interval unit when the sheet is dismissed', async () => {
     const renderResult = renderBridgeView();
 

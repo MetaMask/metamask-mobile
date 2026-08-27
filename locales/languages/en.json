@@ -8739,13 +8739,15 @@
         "minute": "minute",
         "hour": "hour",
         "day": "day",
-        "week": "week"
+        "week": "week",
+        "month": "month"
       },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
         "day": "Day",
-        "week": "Week"
+        "week": "Week",
+        "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",

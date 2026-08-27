@@ -5,6 +5,7 @@ export const RECURRING_INTERVAL_UNITS = [
   'hour',
   'day',
   'week',
+  'month',
 ] as const;
 
 export type RecurringIntervalUnit = (typeof RECURRING_INTERVAL_UNITS)[number];
@@ -38,6 +39,7 @@ export const RECURRING_EVERY_MAX_BY_UNIT: Record<
   hour: 24,
   day: 7,
   week: 25,
+  month: 6,
 };
 
 export const RECURRING_INTERVAL_MINUTES: Record<RecurringIntervalUnit, number> =
@@ -46,6 +48,7 @@ export const RECURRING_INTERVAL_MINUTES: Record<RecurringIntervalUnit, number> =
     hour: 60,
     day: 1440,
     week: 10080,
+    month: 30 * 1440,
   };
 
 export const RECURRING_MAX_DURATION_DAYS = 180;
