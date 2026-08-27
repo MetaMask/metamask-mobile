@@ -99,6 +99,14 @@ describe('usePaySectionSourceMetrics', () => {
     });
   });
 
+  it('falls back to crypto when the paying account is unavailable', () => {
+    useTransactionPayingAccountMock.mockReturnValue(undefined);
+
+    const { result } = runHook();
+
+    expect(result.current.selected).toBe('crypto');
+  });
+
   it.each([
     ['Imported', 'imported'],
     ['Ledger', 'Ledger'],
@@ -125,9 +133,14 @@ describe('usePaySectionSourceMetrics', () => {
   });
 
   it.each([
+    [KeyringType.Hd, 'metamask'],
+    [KeyringType.PrivateKey, 'imported'],
     ['Snap Keyring', 'snap'],
+    [KeyringType.Ledger, 'Ledger'],
     [KeyringType.Trezor, 'Trezor'],
     [KeyringType.Lattice, 'Lattice'],
+    [KeyringType.Qr, 'QR Hardware'],
+    [KeyringType.OneKey, 'QR Hardware'],
   ] as const)(
     'returns %s from the internal account as %s',
     (keyringType, expected) => {
@@ -141,6 +154,17 @@ describe('usePaySectionSourceMetrics', () => {
       expect(getAddressAccountTypeMock).not.toHaveBeenCalled();
     },
   );
+
+  it('uses the address account type for an unrecognized keyring', () => {
+    getInternalAccountByAddressMock.mockReturnValue({
+      metadata: { keyring: { type: 'unrecognized keyring' } },
+    } as never);
+
+    const { result } = runHook();
+
+    expect(result.current.selected).toBe('metamask');
+    expect(getAddressAccountTypeMock).toHaveBeenCalledWith(PAYING_ACCOUNT_MOCK);
+  });
 
   it('captures the payer type after a Money Account deposit override loads', () => {
     const { result, rerender } = runHook({
