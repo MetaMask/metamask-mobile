@@ -1,6 +1,7 @@
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { initialRecurringState } from '../../../app/components/UI/Bridge/utils/recurringSchedule';
 
 interface InitialStateBridgeOptions {
   deterministicFiat?: boolean;
@@ -40,6 +41,9 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
           // useBridgeQuoteEvents -> selectTokensBalances
           TokenBalancesController: { tokenBalances: {} },
         },
+      },
+      bridge: {
+        recurring: initialRecurringState,
       },
     } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
