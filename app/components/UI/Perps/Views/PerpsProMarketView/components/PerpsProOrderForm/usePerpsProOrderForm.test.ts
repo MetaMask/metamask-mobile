@@ -234,10 +234,19 @@ jest.mock('../../../../hooks', () => ({
     if (mockValidateCalculatedMargin && params) {
       const hasInsufficientBalance =
         Number(params.marginRequired) > params.spendableBalance;
+      const errors = hasInsufficientBalance
+        ? [mockInsufficientFundsMessage]
+        : [];
       return {
         ...mockValidation,
         isValid: !hasInsufficientBalance,
-        errors: hasInsufficientBalance ? [mockInsufficientFundsMessage] : [],
+        errors,
+        validateNow: jest.fn().mockResolvedValue({
+          errors,
+          warnings: [],
+          fieldIssues: [],
+          isValid: !hasInsufficientBalance,
+        }),
       };
     }
     return mockValidation;
@@ -1036,6 +1045,10 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: providerId,
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
           }),
         { initialProps: { providerId: 'hyperliquid' } },
       );
@@ -1096,6 +1109,10 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1130,6 +1147,10 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending,
             resolvedTwapProviderId,
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
           }),
         {
           initialProps: {

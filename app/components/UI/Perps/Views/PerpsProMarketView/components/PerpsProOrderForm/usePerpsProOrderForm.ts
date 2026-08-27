@@ -1936,7 +1936,6 @@ export const usePerpsProOrderForm = ({
     isTriggeredOrdersEnabled,
     isMarketDataBlocking,
     isAtCap,
-    orderProviderId,
     isScaleOrder,
     scaleLadderResult,
     hasTpslBlocker,
