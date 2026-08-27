@@ -31,6 +31,7 @@ const TRENDING_BNB_ID =
 const getExploreTabTestId = (tabIndex: number) =>
   `explore-tabs-bar-tab-${tabIndex}`;
 const EXPLORE_TAB_TEST_IDS = {
+  NOW: getExploreTabTestId(EXPLORE_TAB_INDEX.NOW),
   RWAS: getExploreTabTestId(EXPLORE_TAB_INDEX.RWAS),
   CRYPTO: getExploreTabTestId(EXPLORE_TAB_INDEX.CRYPTO),
   DAPPS: getExploreTabTestId(EXPLORE_TAB_INDEX.SITES),
@@ -145,6 +146,64 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       );
       expect(header).toHaveTextContent(strings('trending.trending_tokens'));
     });
+  });
+
+  it('shows Earn in Now and Crypto when the Explore Earn flag is enabled', async () => {
+    const { getByTestId, findByTestId } = renderTrendingViewWithRoutes({
+      earnSectionEnabled: true,
+    });
+
+    const nowScrollView = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW,
+    );
+    expect(
+      await within(nowScrollView).findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_EARN_SECTION,
+      ),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(getByTestId(EXPLORE_TAB_TEST_IDS.CRYPTO));
+
+    const cryptoScrollView = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW,
+    );
+    expect(
+      await within(cryptoScrollView).findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_EARN_SECTION,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides Earn without hiding other feed sections when the flag is disabled', async () => {
+    const { getByTestId, findByTestId } = renderTrendingViewWithRoutes();
+
+    const nowScrollView = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW,
+    );
+    expect(
+      within(nowScrollView).queryByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_EARN_SECTION,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      await within(nowScrollView).findByText(strings('trending.crypto_movers')),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(getByTestId(EXPLORE_TAB_TEST_IDS.CRYPTO));
+
+    const cryptoScrollView = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW,
+    );
+    expect(
+      within(cryptoScrollView).queryByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_EARN_SECTION,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      await within(cryptoScrollView).findByText(
+        strings('trending.trending_tokens'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('user sees trending tokens section with mocked data', async () => {

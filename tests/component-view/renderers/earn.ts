@@ -42,8 +42,12 @@ export const createEarnMoneyBalanceResponse = (
   }) as CanonicalMoneyAccountBalanceResponse;
 
 interface EarnDataServiceResponses {
-  moneyBalance?: CanonicalMoneyAccountBalanceResponse;
-  vaultApy?: number;
+  moneyBalance?:
+    | CanonicalMoneyAccountBalanceResponse
+    | PromiseLike<CanonicalMoneyAccountBalanceResponse>; // Needed since tests use deferred promises.
+  vaultApy?: number | PromiseLike<number> | 'unavailable';
+  lendingMarketsError?: Error;
+  lendingMarketsRefresh?: PromiseLike<void>;
 }
 
 type ControllerMessengerCall = (
@@ -55,6 +59,11 @@ const getControllerMessengerCall = () =>
   Engine.controllerMessenger
     .call as unknown as jest.MockedFunction<ControllerMessengerCall>;
 
+const getRefreshLendingMarkets = () =>
+  Engine.context.EarnController.refreshLendingMarkets as jest.MockedFunction<
+    typeof Engine.context.EarnController.refreshLendingMarkets
+  >;
+
 /**
  * Configures the component-view Engine mock for Money data-service queries.
  * Call resetEarnDataServiceMocks in afterEach to isolate tests.
@@ -62,7 +71,21 @@ const getControllerMessengerCall = () =>
 export const mockEarnDataServiceResponses = ({
   moneyBalance = createEarnMoneyBalanceResponse('0'),
   vaultApy = 0.062,
+  lendingMarketsError,
+  lendingMarketsRefresh,
 }: EarnDataServiceResponses = {}) => {
+  const refreshLendingMarkets = getRefreshLendingMarkets();
+
+  if (lendingMarketsError) {
+    refreshLendingMarkets.mockRejectedValue(lendingMarketsError);
+  } else if (lendingMarketsRefresh) {
+    refreshLendingMarkets.mockImplementation(async () => {
+      await lendingMarketsRefresh;
+    });
+  } else {
+    refreshLendingMarkets.mockResolvedValue(undefined);
+  }
+
   getControllerMessengerCall().mockImplementation(async (action) => {
     if (
       action === MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK
@@ -71,7 +94,9 @@ export const mockEarnDataServiceResponses = ({
     }
 
     if (action === MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY) {
-      return { apy: vaultApy };
+      return {
+        apy: vaultApy === 'unavailable' ? undefined : await (vaultApy ?? 0.062),
+      };
     }
 
     return undefined;
@@ -81,6 +106,8 @@ export const mockEarnDataServiceResponses = ({
 export const resetEarnDataServiceMocks = () => {
   getControllerMessengerCall().mockReset();
   getControllerMessengerCall().mockResolvedValue(undefined);
+  getRefreshLendingMarkets().mockReset();
+  getRefreshLendingMarkets().mockResolvedValue(undefined);
 };
 
 interface RenderEarnSectionOptions {
