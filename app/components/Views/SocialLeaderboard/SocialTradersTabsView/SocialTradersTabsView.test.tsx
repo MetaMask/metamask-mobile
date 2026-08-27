@@ -14,7 +14,21 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => false);
-let mockRouteParams: { showNotificationsBanner?: boolean } = {};
+let mockRouteParams: {
+  showNotificationsBanner?: boolean;
+  landingTab?: 'leaderboard' | 'feed';
+  landingFeedAudience?: 'all' | 'following';
+} = {};
+
+// TSA-1042 landing A/B test. The landing itself is driven by the route params
+// the entry point sends; this mock lets the tests assert the exposure gate.
+const mockUseABTest = jest.fn();
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => {
+    mockUseABTest(...args);
+    return { variant: undefined, variantName: 'control', isActive: false };
+  },
+}));
 
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -131,10 +145,12 @@ jest.mock('../FeedView', () => {
     __esModule: true,
     default: ({
       isActive,
+      initialAudience,
       onQuickBuy,
       onSpotAvailabilityChange,
     }: {
       isActive?: boolean;
+      initialAudience?: 'all' | 'following';
       onQuickBuy?: (target: { tokenSymbol: string }) => void;
       onSpotAvailabilityChange?: (hasSpotItem: boolean) => void;
     }) => {
@@ -145,6 +161,7 @@ jest.mock('../FeedView', () => {
       return (
         <View
           testID="mock-feed"
+          initialAudience={initialAudience}
           accessibilityState={{ selected: isActive === true }}
         >
           <Pressable
@@ -404,6 +421,61 @@ describe('SocialTradersTabsView', () => {
     expect(
       screen.getByTestId('mock-feed').props.accessibilityState?.selected,
     ).toBe(true);
+  });
+
+  describe('landing tab (TSA-1042 A/B test)', () => {
+    it('lands on the leaderboard when no landing tab is requested', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+      ).toBe(false);
+      expect(
+        screen.getByTestId('mock-feed').props.initialAudience,
+      ).toBeUndefined();
+    });
+
+    it('lands on the feed with the requested audience when the entry point asks for it', () => {
+      mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
+
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+      ).toBe(true);
+      expect(screen.getByTestId('mock-feed').props.initialAudience).toBe('all');
+    });
+
+    it('lands on the leaderboard when the entry point requests the leaderboard', () => {
+      mockRouteParams = { landingTab: 'leaderboard' };
+
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+      ).toBe(false);
+    });
+
+    it('tracks exposure only for entry points that carry a landing tab', () => {
+      mockRouteParams = { landingTab: 'leaderboard' };
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        'socialAiTSA1042AbtestLeaderboardLandingFeed',
+        expect.anything(),
+        expect.objectContaining({ trackExposure: true }),
+      );
+    });
+
+    it('does not track exposure for entry points without a landing tab', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        'socialAiTSA1042AbtestLeaderboardLandingFeed',
+        expect.anything(),
+        expect.objectContaining({ trackExposure: false }),
+      );
+    });
   });
 
   it('holds feed prefetch back until the visible leaderboard query settles', () => {

@@ -97,6 +97,12 @@ export interface FeedViewProps {
    */
   isActive?: boolean;
   /**
+   * Audience the feed opens on. Set by the tabs container when an entry point
+   * requests a specific landing scope (TSA-1042 lands the homepage carousel on
+   * the Feed tab with "All" selected). Defaults to `following`.
+   */
+  initialAudience?: FeedAudience;
+  /**
    * Opens the QuickBuy sheet for a spot token. The sheet is hosted by the
    * parent (above the tab `PagerView`) rather than inside this page so it isn't
    * clipped by the pager and can leave the content behind it interactive (no
@@ -133,6 +139,7 @@ export interface FeedViewProps {
  */
 const FeedView: React.FC<FeedViewProps> = ({
   isActive = true,
+  initialAudience = 'following',
   onQuickBuy,
   onSpotAvailabilityChange,
   onScroll,
@@ -149,9 +156,9 @@ const FeedView: React.FC<FeedViewProps> = ({
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
 
-  // Default to "Following": the backend "leaderboard" scope isn't implemented
-  // yet, so the feed opens on the Following scope (the only one the API serves).
-  const [audience, setAudience] = useState<FeedAudience>('following');
+  // Defaults to "Following" unless the entry point requested a landing scope
+  // (see `initialAudience`).
+  const [audience, setAudience] = useState<FeedAudience>(initialAudience);
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
   const audienceRef = useRef(audience);
   const typeFilterRef = useRef(typeFilter);

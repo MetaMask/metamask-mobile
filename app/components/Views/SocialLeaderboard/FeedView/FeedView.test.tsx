@@ -105,8 +105,12 @@ const buildResult = (
 
 let mockFeedResult: UseTraderFeedResult = buildResult();
 
+const mockUseTraderFeed = jest.fn();
 jest.mock('./hooks/useTraderFeed', () => ({
-  useTraderFeed: () => mockFeedResult,
+  useTraderFeed: (options: unknown) => {
+    mockUseTraderFeed(options);
+    return mockFeedResult;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -301,6 +305,34 @@ describe('FeedView', () => {
         feed_audience: 'following',
         feed_type_filter: 'all',
       }),
+    );
+  });
+
+  it('opens on the Following audience by default', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'following' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+  });
+
+  it('opens on the audience requested by the entry point', () => {
+    renderWithProvider(<FeedView initialAudience="all" />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'all' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.objectContaining({ feed_audience: 'all' }),
     );
   });
 

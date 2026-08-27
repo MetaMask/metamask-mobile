@@ -59,6 +59,12 @@ import {
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  LEADERBOARD_LANDING_FEED_AB_KEY,
+  LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
+  LEADERBOARD_LANDING_FEED_VARIANTS,
+} from './abTestConfig';
 
 const LEADERBOARD_INDEX = 0;
 const FEED_INDEX = 1;
@@ -92,7 +98,28 @@ const SocialTradersTabsView: React.FC = () => {
   usePrefetchTraderFeeds(isLeaderboardSettled);
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
-  const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
+
+  // TSA-1042 landing A/B test. The variant is resolved by the entry point and
+  // arrives as route params, so the landing itself is driven by `landingTab`;
+  // this read exists to emit `Experiment Viewed` at the moment the surface
+  // actually opens from that entry point. Entry points that don't send
+  // `landingTab` (nav tab, deeplink, notification, onboarding hand-off) never
+  // count as exposed and keep the leaderboard landing.
+  const landingTab = route.params?.landingTab;
+  useABTest(
+    LEADERBOARD_LANDING_FEED_AB_KEY,
+    LEADERBOARD_LANDING_FEED_VARIANTS,
+    {
+      ...LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
+      trackExposure: Boolean(landingTab),
+    },
+  );
+  // Read once: a param change mid-mount must not yank the user across tabs.
+  const initialIndexRef = useRef(
+    landingTab === 'feed' ? FEED_INDEX : LEADERBOARD_INDEX,
+  );
+  const initialIndex = initialIndexRef.current;
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
   // derived value expose whichever one is currently visible. Sharing a single
@@ -103,7 +130,7 @@ const SocialTradersTabsView: React.FC = () => {
   const feedScrollY = useSharedValue(0);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const feedPageRef = useRef<SocialTabPageHandle>(null);
-  const activeIndexSv = useSharedValue(LEADERBOARD_INDEX);
+  const activeIndexSv = useSharedValue(initialIndex);
   const scrollY = useDerivedValue(() =>
     activeIndexSv.value === FEED_INDEX
       ? feedScrollY.value
@@ -452,7 +479,7 @@ const SocialTradersTabsView: React.FC = () => {
           <PagerView
             ref={pagerRef}
             style={tw.style('flex-1')}
-            initialPage={LEADERBOARD_INDEX}
+            initialPage={initialIndex}
             onPageSelected={handlePageSelected}
             testID={SocialTradersTabsViewSelectorsIDs.PAGER}
           >
@@ -476,6 +503,7 @@ const SocialTradersTabsView: React.FC = () => {
             >
               <FeedView
                 isActive={activeIndex === FEED_INDEX}
+                initialAudience={route.params?.landingFeedAudience}
                 onQuickBuy={handleQuickBuy}
                 onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
                 onScroll={feedScrollHandler}

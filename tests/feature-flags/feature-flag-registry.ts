@@ -4839,6 +4839,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA1042AbtestLeaderboardLandingFeed: {
+    name: 'socialAiTSA1042AbtestLeaderboardLandingFeed',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'control',
+    status: FeatureFlagStatus.Active,
+  },
+
   socialAiTSA612AbtestQuickBuy: {
     name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,
