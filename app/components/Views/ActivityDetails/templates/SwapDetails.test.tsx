@@ -162,7 +162,7 @@ describe('SwapDetails', () => {
     expect(capturedSentToken?.decimals).toBeUndefined();
 
     jest.mocked(useTokensData).mockReturnValue({
-      [sunAssetId]: {
+      [sunAssetId.toLowerCase()]: {
         assetId: sunAssetId,
         symbol: 'SUN',
         decimals: 18,
@@ -174,9 +174,13 @@ describe('SwapDetails', () => {
     rerender(<SwapDetails item={item} />);
 
     expect(capturedSentToken).toEqual(
-      expect.objectContaining({ amount: '50', symbol: 'SUN' }),
+      expect.objectContaining({
+        amount: '50',
+        symbol: 'SUN',
+        decimals: 18,
+        amountIsHumanReadable: true,
+      }),
     );
-    expect(capturedSentToken?.decimals).toBeUndefined();
   });
 
   it('leaves an already-populated token unchanged (no-op when decimals are present)', () => {

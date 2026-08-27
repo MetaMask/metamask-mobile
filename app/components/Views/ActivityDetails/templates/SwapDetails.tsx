@@ -1,11 +1,7 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
-import {
-  KnownCaipNamespace,
-  parseCaipChainId,
-  type CaipChainId,
-} from '@metamask/utils';
+import { type CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
