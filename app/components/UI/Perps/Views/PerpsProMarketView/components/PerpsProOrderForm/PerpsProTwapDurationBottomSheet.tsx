@@ -33,13 +33,17 @@ const PerpsProTwapDurationBottomSheet = ({
 }: PerpsProTwapDurationBottomSheetProps) => {
   const theme = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const pendingAndroidDateRef = useRef<Date | undefined>(undefined);
   const durationMinutes =
     (Number.parseInt(twap.days, 10) || 0) * HoursPerDay * MinutesPerHour +
     (Number.parseInt(twap.hours, 10) || 0) * MinutesPerHour +
     (Number.parseInt(twap.minutes, 10) || 0);
   const pickerValue = new Date(0);
-  // Native duration pickers end at 23:59; the controller still accepts 24h.
-  const pickerMinutes = Math.min(durationMinutes, MaximumDurationMinutes - 1);
+  // The native clock wraps at midnight, so 0:00 represents the 24h maximum.
+  const pickerMinutes =
+    durationMinutes === MaximumDurationMinutes
+      ? 0
+      : Math.min(durationMinutes, MaximumDurationMinutes - 1);
   pickerValue.setUTCHours(
     Math.floor(pickerMinutes / MinutesPerHour),
     pickerMinutes % MinutesPerHour,
@@ -58,26 +62,43 @@ const PerpsProTwapDurationBottomSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, [sheetRef]);
 
+  const applyDuration = useCallback(
+    (date: Date) => {
+      const clockMinutes =
+        date.getUTCHours() * MinutesPerHour + date.getUTCMinutes();
+      const isMaximumDuration = clockMinutes === 0;
+      twap.onDaysChange(isMaximumDuration ? '1' : '');
+      twap.onHoursChange(String(isMaximumDuration ? 0 : date.getUTCHours()));
+      twap.onMinutesChange(String(date.getUTCMinutes()));
+    },
+    [twap],
+  );
+
+  const handleSheetClose = useCallback(() => {
+    const pendingAndroidDate = pendingAndroidDateRef.current;
+    pendingAndroidDateRef.current = undefined;
+    onClose();
+    if (pendingAndroidDate) {
+      applyDuration(pendingAndroidDate);
+    }
+  }, [applyDuration, onClose]);
+
   const handleChange = useCallback(
     (event: DateTimePickerEvent, date?: Date) => {
-      if (event.type === 'set' && date) {
-        const nextMinutes =
-          date.getUTCHours() * MinutesPerHour + date.getUTCMinutes();
-        twap.onDaysChange('');
-        twap.onHoursChange(String(Math.floor(nextMinutes / MinutesPerHour)));
-        twap.onMinutesChange(String(nextMinutes % MinutesPerHour));
-      }
       if (Platform.OS === 'android') {
+        pendingAndroidDateRef.current = event.type === 'set' ? date : undefined;
         handleClose();
+      } else if (event.type === 'set' && date) {
+        applyDuration(date);
       }
     },
-    [handleClose, twap],
+    [applyDuration, handleClose],
   );
 
   return (
     <BottomSheet
       ref={sheetRef}
-      onClose={onClose}
+      onClose={handleSheetClose}
       testID={ids.TWAP_DURATION_SHEET}
     >
       <BottomSheetHeader
