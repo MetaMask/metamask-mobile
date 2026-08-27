@@ -366,6 +366,48 @@ describe('EngineService', () => {
     jest.useFakeTimers();
   });
 
+  it('cancels deferred persistence before vault recovery to prevent stale callback race', async () => {
+    // Arrange — start() as new user defers persistence via InteractionManager
+    jest.useRealTimers();
+    const mockCancel = jest.fn();
+    mockRunAfterInteractions.mockClear();
+    mockRunAfterInteractions.mockImplementation(
+      () =>
+        ({
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: mockCancel,
+        }) as never,
+    );
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+
+    // No vault on disk so isNewUser stays true → persistence is deferred
+    (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+
+    await engineService.start();
+
+    // The deferred handle should have been created
+    expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+    expect(mockCancel).not.toHaveBeenCalled();
+
+    // Act — vault recovery triggers before deferred callback executes
+    await engineService.initializeVaultFromBackup();
+
+    // Assert — the stale deferred callback was cancelled
+    expect(mockCancel).toHaveBeenCalledTimes(1);
+
+    // Restore
+    jest.useFakeTimers();
+  });
+
   it('navigates to vault recovery when Engine fails to initialize', async () => {
     jest.spyOn(Engine, 'init').mockImplementation(() => {
       throw new Error('Failed to initialize Engine');

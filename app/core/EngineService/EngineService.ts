@@ -50,6 +50,18 @@ export class EngineService {
   // be canceled if EngineService is torn down before it executes.
   private deferredPersistenceHandle: { cancel: () => void } | null = null;
 
+  /**
+   * Cancels any pending deferred persistence setup. Must be called before
+   * re-initializing the engine (vault recovery, repeated start) to prevent
+   * the stale callback from setting up persistence with outdated state.
+   */
+  private cancelDeferredPersistence() {
+    if (this.deferredPersistenceHandle) {
+      this.deferredPersistenceHandle.cancel();
+      this.deferredPersistenceHandle = null;
+    }
+  }
+
   private updateBatcher = new Batcher<string>((keys) =>
     batchFunc(() => {
       keys.forEach((key) => {
@@ -137,6 +149,7 @@ export class EngineService {
     // until after the current interaction completes. No persisted state exists
     // yet, so the comparison/initial-persist pass is pure overhead on the path
     // to the first onboarding screen.
+    this.cancelDeferredPersistence();
     if (deferPersistence) {
       this.deferredPersistenceHandle =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -430,6 +443,7 @@ export class EngineService {
       }
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
+    this.cancelDeferredPersistence();
     const vaultBackupResult = await getVaultFromBackup();
     const persistedState = await ControllerStorage.getAllPersistedState();
     const state = persistedState?.backgroundState ?? {};
