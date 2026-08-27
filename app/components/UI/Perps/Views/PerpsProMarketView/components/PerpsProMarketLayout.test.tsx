@@ -16,6 +16,7 @@ const renderLayout = (
     <PerpsProMarketLayout
       orderForm={<View testID="mock-order-form" />}
       orderBook={<View testID="mock-order-book" />}
+      orderBookPosition="right"
       {...props}
     />,
   );

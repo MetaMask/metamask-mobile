@@ -1,4 +1,5 @@
 import { AnimationDuration } from '@metamask/design-tokens';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, { type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated, {
@@ -8,7 +9,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import type { PerpsProOrderBookPosition } from '../../../hooks/usePerpsProOrderBookPosition';
 import { createStyles } from './PerpsProMarketLayout.styles';
 
 interface PerpsProMarketLayoutProps {
@@ -28,9 +28,9 @@ interface PerpsProMarketLayoutProps {
   /**
    * Side the order-book column is pinned to, from the user's persisted
    * preference. Only the column order changes; widths and the divider are the
-   * same either way.
+   * same either way. Required so a caller cannot silently pin a side.
    */
-  orderBookPosition?: PerpsProOrderBookPosition;
+  orderBookPosition: ProLayoutPreferences['orderBookPosition'];
 }
 
 /**
@@ -42,7 +42,7 @@ const PerpsProMarketLayout = ({
   orderForm,
   orderBook,
   isOrderBookCollapsed = false,
-  orderBookPosition = 'left',
+  orderBookPosition,
 }: PerpsProMarketLayoutProps) => {
   const { styles } = useStyles(createStyles);
 
