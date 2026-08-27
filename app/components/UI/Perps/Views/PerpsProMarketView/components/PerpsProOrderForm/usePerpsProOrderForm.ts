@@ -597,10 +597,17 @@ export const usePerpsProOrderForm = ({
   const isScaleOrderSupportPendingRef = useRef(isScaleOrderSupportPending);
   const scaleProviderIdRef = useRef(scaleProviderId);
   const checkScaleOrderSupportRef = useRef(checkScaleOrderSupport);
-  isScaleOrdersEnabledRef.current = isScaleOrdersEnabled;
-  isScaleOrderSupportPendingRef.current = isScaleOrderSupportPending;
-  scaleProviderIdRef.current = scaleProviderId;
-  checkScaleOrderSupportRef.current = checkScaleOrderSupport;
+  useLayoutEffect(() => {
+    isScaleOrdersEnabledRef.current = isScaleOrdersEnabled;
+    isScaleOrderSupportPendingRef.current = isScaleOrderSupportPending;
+    scaleProviderIdRef.current = scaleProviderId;
+    checkScaleOrderSupportRef.current = checkScaleOrderSupport;
+  }, [
+    checkScaleOrderSupport,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    scaleProviderId,
+  ]);
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
