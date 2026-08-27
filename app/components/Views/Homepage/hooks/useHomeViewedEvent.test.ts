@@ -647,6 +647,33 @@ describe('useHomeViewedEvent', () => {
       expect(mockSubscribeToScroll).not.toHaveBeenCalled();
     });
 
+    it('does not use stale shared visibility while loading', () => {
+      const mockRef = createMockRef(800, 200);
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          isLoading: true,
+          isVisible: true,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not use stale shared visibility after the section is removed', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          isVisible: true,
+          fireImmediateWhenNoView: false,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('subscribes to scroll when a sectionRef is provided', () => {
       const mockRef = createMockRef(800, 200); // below viewport so no immediate fire
       renderHook(() =>

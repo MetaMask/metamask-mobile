@@ -45,6 +45,8 @@ interface UseSectionPerformanceConfig {
   data?: Record<string, string | number | boolean>;
   /** Restarts TTC/DFD when one mounted surface begins a new data generation. */
   generationKey?: string;
+  /** Accept content that is already valid when a warm generation starts. */
+  acceptReadyContentOnGenerationStart?: boolean;
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
@@ -99,6 +101,7 @@ export const useSectionPerformance = ({
   tags,
   data,
   generationKey,
+  acceptReadyContentOnGenerationStart = false,
 }: UseSectionPerformanceConfig) => {
   const nextTagsRef = useRef(sanitizeMetadata(tags));
   nextTagsRef.current = sanitizeMetadata(tags);
@@ -108,6 +111,11 @@ export const useSectionPerformance = ({
   pendingGenerationKeyRef.current = generationKey;
   const contentReadyRef = useRef(contentReady);
   contentReadyRef.current = contentReady;
+  const acceptReadyContentOnGenerationStartRef = useRef(
+    acceptReadyContentOnGenerationStart,
+  );
+  acceptReadyContentOnGenerationStartRef.current =
+    acceptReadyContentOnGenerationStart;
   const activeGenerationKeyRef = useRef(generationKey);
   const tagsRef = useRef(nextTagsRef.current);
   const dataRef = useRef(nextDataRef.current);
@@ -164,7 +172,10 @@ export const useSectionPerformance = ({
     const startedGenerationKey = generationKey;
     const isRestart = hasStartedTtcGeneration.current;
     hasStartedTtcGeneration.current = true;
-    ttcReadyForCompletion.current = !isRestart || !contentReadyRef.current;
+    ttcReadyForCompletion.current =
+      !isRestart ||
+      !contentReadyRef.current ||
+      acceptReadyContentOnGenerationStartRef.current;
     ttcTraceId.current = uuidv4();
     ttcEnded.current = false;
     trace({

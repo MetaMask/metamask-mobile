@@ -838,5 +838,33 @@ describe('useSectionPerformance', () => {
         }),
       );
     });
+
+    it('accepts ready resident content for an opted-in restarted TTC', () => {
+      const { rerender } = renderHook(
+        ({ generationKey }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady: true,
+            generationKey,
+            acceptReadyContentOnGenerationStart: true,
+          }),
+        { initialProps: { generationKey: 'session-1' } },
+      );
+      jest.clearAllMocks();
+
+      rerender({ generationKey: 'session-2' });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+    });
   });
 });

@@ -154,10 +154,10 @@ const useHomeViewedEvent = ({
   }, [sectionRef, isLoading, fireEvent, visitId, fireImmediateWhenNoView]);
 
   useEffect(() => {
-    if (isVisible) {
+    if (sectionRef !== null && !isLoading && isVisible) {
       fireEvent();
     }
-  }, [fireEvent, isVisible]);
+  }, [fireEvent, isLoading, isVisible, sectionRef]);
 
   // Holds the latest checkVisibility so the onLayout callback can re-trigger
   // a check after the native layout pass completes.

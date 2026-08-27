@@ -419,6 +419,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       sectionId: HomeSectionNames.PERPS,
       enabled: Boolean(sessionId),
       generationKey: sessionId,
+      acceptReadyContentOnGenerationStart:
+        lifecycle === 'navigate_return' || lifecycle === 'background_short',
       contentReady,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
@@ -438,6 +440,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             content_state: 'empty',
             ...completionCountData,
             ...cohortTags,
+            content_variant: 'hidden',
           },
           sessionId,
         );

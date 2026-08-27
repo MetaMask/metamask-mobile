@@ -1364,6 +1364,7 @@ describe('PerpsSection', () => {
         expect.objectContaining({
           success: true,
           content_state: 'empty',
+          content_variant: 'hidden',
         }),
         'session-id-1',
       );
