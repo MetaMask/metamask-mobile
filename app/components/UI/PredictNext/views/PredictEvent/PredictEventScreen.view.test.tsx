@@ -443,6 +443,36 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('plots a Team history from the Outcome that carries Game Selection', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    resolveEvent({
+      ...event,
+      markets: [
+        {
+          ...awayMarket,
+          outcomes: [
+            { ...awayMarket.outcomes[0], gameSelection: undefined },
+            { ...awayMarket.outcomes[1], gameSelection: 'away' as const },
+          ],
+        },
+        homeMarket,
+      ],
+    });
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      view.getByLabelText(/Panthers 42%, Cardinals 58%/),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
+  });
+
   it('omits a Team chart line whose history has fewer than two points', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
     messengerCall.mockImplementation(

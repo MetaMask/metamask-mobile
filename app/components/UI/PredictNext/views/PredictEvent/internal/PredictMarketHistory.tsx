@@ -16,7 +16,9 @@ import { useTheme } from '../../../../../../util/theme';
 import { useMarketHistory } from '../../../hooks/useMarketHistory';
 import type {
   PredictMarket,
+  PredictMarketHistoryPoint,
   PredictMarketHistoryRange,
+  PredictOutcome,
   PredictTeam,
   PredictVenueId,
 } from '../../../types';
@@ -72,11 +74,12 @@ interface MarketHistorySeries {
 }
 
 const toChartPoints = (
-  points: readonly { timestamp: string; yesPrice: string }[],
+  points: readonly PredictMarketHistoryPoint[],
+  field: 'yesPrice' | 'noPrice',
 ): PredictMarketChartPoint[] =>
   points.map((point) => ({
     time: Date.parse(point.timestamp),
-    value: Number(point.yesPrice),
+    value: Number(point[field]),
   }));
 
 interface MarketHistoryContentProps {
@@ -231,10 +234,7 @@ export const PredictMarketHistory = ({
             id: yesOutcome.id,
             label: yesOutcome.label || strings('predict.market_details.yes'),
             color: colors.primary.default,
-            points: points.map((point) => ({
-              time: Date.parse(point.timestamp),
-              value: Number(point.yesPrice),
-            })),
+            points: toChartPoints(points, 'yesPrice'),
           },
         ]
       : []),
@@ -247,10 +247,7 @@ export const PredictMarketHistory = ({
                 ? noOutcome.label
                 : strings('predict.market_details.no'),
             color: colors.error.default,
-            points: points.map((point) => ({
-              time: Date.parse(point.timestamp),
-              value: Number(point.noPrice),
-            })),
+            points: toChartPoints(points, 'noPrice'),
           },
         ]
       : []),
@@ -270,8 +267,8 @@ export const PredictMarketHistory = ({
 
 interface PredictGameMarketHistoryProps {
   venueId: PredictVenueId;
-  home: { market: PredictMarket; team: PredictTeam };
-  away: { market: PredictMarket; team: PredictTeam };
+  home: { market: PredictMarket; outcome: PredictOutcome; team: PredictTeam };
+  away: { market: PredictMarket; outcome: PredictOutcome; team: PredictTeam };
 }
 
 const getCompactTeamLabel = (team: PredictTeam) => {
@@ -289,20 +286,26 @@ export const PredictGameMarketHistory = ({
   const homeHistory = useMarketHistory(venueId, home.market.id, range);
   const awayHistory = useMarketHistory(venueId, away.market.id, range);
   const hasCompleteData = Boolean(homeHistory.data && awayHistory.data);
-  // The Predict API merges both team markets of a game into complementary
-  // series, so each line plots its own market's history unchanged.
+  // Each line plots the last-traded probability of the Outcome that
+  // carries that Team's Game Selection.
   const series: MarketHistorySeries[] = [
     {
       id: home.market.id,
       label: getCompactTeamLabel(home.team),
       color: home.team.primaryColor ?? colors.success.default,
-      points: toChartPoints(homeHistory.data?.points ?? []),
+      points: toChartPoints(
+        homeHistory.data?.points ?? [],
+        home.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+      ),
     },
     {
       id: away.market.id,
       label: getCompactTeamLabel(away.team),
       color: away.team.primaryColor ?? colors.info.default,
-      points: toChartPoints(awayHistory.data?.points ?? []),
+      points: toChartPoints(
+        awayHistory.data?.points ?? [],
+        away.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+      ),
     },
   ];
 
