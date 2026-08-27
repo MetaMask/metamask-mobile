@@ -26,6 +26,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
       'social_leaderboard.feed.just_now': 'Just now',
+      'social_leaderboard.feed.action.spot_bought': 'bought',
+      'social_leaderboard.feed.action.perps_closed': 'closed',
       'social_leaderboard.feed.action.traded': 'Traded',
     };
     return literals[key] ?? key;
@@ -118,6 +120,7 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('$120K')).toBeOnTheScreen();
     expect(screen.getByText('$900K')).toBeOnTheScreen();
     expect(screen.getByText(/ MC/)).toBeOnTheScreen();
+    expect(screen.getByText(/bought/)).toBeOnTheScreen();
   });
 
   it('omits value and PnL labels when both fields are missing from the API', () => {
@@ -242,6 +245,7 @@ describe('FeedItemRow', () => {
     expect(
       screen.getByTestId('feed-item-perp-badges-perp-1-leverage'),
     ).toBeOnTheScreen();
+    expect(screen.getByText(/closed/)).toBeOnTheScreen();
   });
 
   it('hides the leverage pill when leverage is null', () => {

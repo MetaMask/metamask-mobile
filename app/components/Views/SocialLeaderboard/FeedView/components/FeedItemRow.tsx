@@ -22,6 +22,7 @@ import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import type { FeedItem } from '../types';
 import FeedSubHeaderText from './FeedSubHeaderText';
 import { formatFeedTimestamp } from '../../utils/formatters';
+import { getTradeActionI18nKey } from '../../utils/tradeAction';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,
@@ -88,7 +89,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const isPerp = item.type === 'perps';
   const assetClass = isPerp ? 'perps' : 'spot';
   const action = item.action;
-  const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
+  const actionLabel = strings(getTradeActionI18nKey('feed', isPerp, action));
   const timeLabel = formatFeedTimestamp(item.timestamp, now);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
