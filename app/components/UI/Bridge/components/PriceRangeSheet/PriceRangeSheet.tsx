@@ -195,7 +195,8 @@ const PriceRangeSheet = ({
   const hasLivePrice =
     selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
-  const canConfirm = isClearedRange || isValidPriceRange(pendingMin, pendingMax);
+  const canConfirm =
+    isClearedRange || isValidPriceRange(pendingMin, pendingMax);
   const currencySymbol = getCurrencySymbol(currentCurrency);
   const isKeypadOpen = focusedField !== null;
 

@@ -92,7 +92,10 @@ const BridgeRecurringBuyViewContent = ({
     closeKeypad();
   }, [closeKeypad]);
 
-  const effectiveRange = isPriceRangeInCurrentCurrency(priceRange, currentCurrency)
+  const effectiveRange = isPriceRangeInCurrentCurrency(
+    priceRange,
+    currentCurrency,
+  )
     ? priceRange
     : undefined;
   const priceRangeToken =
