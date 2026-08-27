@@ -41,8 +41,6 @@ jest.mock('./useMoneyAccount', () => ({
 jest.mock('../utils/firstTimeDeposit', () => ({
   shouldShowMoneyFirstTimeDepositAnimation: jest.fn(() => false),
 }));
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
@@ -188,27 +186,19 @@ describe('useMoneyTransactionStatus', () => {
   const mockCloseToast = jest.fn();
 
   const baseInProgressToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Loading,
     hasNoTimeout: true,
     hapticsType: NotificationMoment.Warning,
-    labelOptions: [{ label: 'In progress', isBold: true }],
+    title: 'In progress',
   };
   const baseSuccessToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Confirmation,
     hasNoTimeout: false,
-    iconColor: '#success',
     hapticsType: NotificationMoment.Success,
-    labelOptions: [{ label: 'Success', isBold: true }],
+    title: 'Success',
   };
   const baseFailedToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.CircleX,
     hasNoTimeout: false,
-    iconColor: '#error',
     hapticsType: NotificationMoment.Error,
-    labelOptions: [{ label: 'Failed', isBold: true }],
+    title: 'Failed',
   };
 
   const depositInProgressFn = jest.fn<
