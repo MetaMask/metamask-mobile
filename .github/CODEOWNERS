@@ -369,7 +369,7 @@ tests/*.js                                                      @MetaMask/qa
 tests/*.ts                                                      @MetaMask/qa
 tests/api-mocking/                                              @MetaMask/qa
 tests/component-view/                                           @MetaMask/qa
-tests/component-view/renderers/predictNext.ts                    @MetaMask/qa @MetaMask/predict
+tests/component-view/renderers/predictNext.ts                   @MetaMask/qa @MetaMask/predict
 tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa
