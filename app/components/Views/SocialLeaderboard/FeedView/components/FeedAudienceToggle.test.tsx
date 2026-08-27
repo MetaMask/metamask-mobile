@@ -78,4 +78,17 @@ describe('FeedAudienceToggle', () => {
         .accessibilityState?.selected,
     ).toBe(false);
   });
+
+  it('keeps Following and All segments from shrinking in a tight row', () => {
+    renderWithProvider(
+      <FeedAudienceToggle value="following" onChange={jest.fn()} />,
+    );
+
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props.style,
+    ).toEqual(expect.objectContaining({ flexShrink: 0 }));
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props.style,
+    ).toEqual(expect.objectContaining({ flexShrink: 0 }));
+  });
 });

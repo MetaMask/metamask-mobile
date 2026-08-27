@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
+
+const MARKET_INSIGHTS_QUERY_KEY = 'market-insights';
 
 /**
  * Result interface for the useMarketInsights hook
@@ -34,51 +37,54 @@ export const useMarketInsights = (
   assetIdentifier: string | undefined | null,
   isEnabled = false,
 ): UseMarketInsightsResult => {
-  const [report, setReport] = useState<MarketInsightsReport | null>(null);
-  const [reportAssetId, setReportAssetId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(
-    Boolean(isEnabled && assetIdentifier),
-  );
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchInsights = useCallback(async () => {
-    if (!isEnabled || !assetIdentifier) {
-      setReport(null);
-      setReportAssetId(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setReport(null);
-    setReportAssetId(null);
-    setError(null);
-
-    try {
-      const data =
-        await Engine.context.AiDigestController.fetchMarketInsights(
-          assetIdentifier,
-        );
-      setReport(data as MarketInsightsReport | null);
-      setReportAssetId(data ? assetIdentifier : null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch insights');
-      setReport(null);
-      setReportAssetId(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [assetIdentifier, isEnabled]);
+  const queryAssetIdentifier = assetIdentifier ?? '';
+  const isQueryEnabled = isEnabled && queryAssetIdentifier.length > 0;
+  const queryClient = useQueryClient();
+  const query = useQuery<MarketInsightsReport | null, unknown>({
+    queryKey: [MARKET_INSIGHTS_QUERY_KEY, queryAssetIdentifier],
+    queryFn: () =>
+      Engine.context.AiDigestController.fetchMarketInsights(
+        queryAssetIdentifier,
+      ),
+    enabled: isQueryEnabled,
+    retry: false,
+    // The controller can satisfy this request from its persisted cache while
+    // offline. Let it decide whether a network request is necessary.
+    networkMode: 'always',
+    // AiDigestController owns the 10-minute cache and intentionally does not
+    // cache empty results. React Query only coordinates active requests here.
+    staleTime: 0,
+    cacheTime: 0,
+  });
 
   useEffect(() => {
-    fetchInsights();
-  }, [fetchInsights]);
+    if (!isQueryEnabled) {
+      queryClient.removeQueries({
+        queryKey: [MARKET_INSIGHTS_QUERY_KEY, queryAssetIdentifier],
+        exact: true,
+      });
+    }
+  }, [isQueryEnabled, queryAssetIdentifier, queryClient]);
+
+  const report = isQueryEnabled ? (query.data ?? null) : null;
+  const reportAssetId = report ? queryAssetIdentifier : null;
+  const error =
+    isQueryEnabled && !report && query.error
+      ? query.error instanceof Error
+        ? query.error.message
+        : 'Failed to fetch insights'
+      : null;
 
   const timeAgo = useMemo(
     () => (report ? formatRelativeTime(report.generatedAt) : ''),
     [report],
   );
 
-  return { report, reportAssetId, isLoading, error, timeAgo };
+  return {
+    report,
+    reportAssetId,
+    isLoading: isQueryEnabled && query.isLoading,
+    error,
+    timeAgo,
+  };
 };

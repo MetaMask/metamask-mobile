@@ -36,6 +36,11 @@
         "steps": [],
         "totalSteps": 0
       },
+      "recurring": {
+        "everyValue": "1",
+        "everyUnit": "hour",
+        "repeatCount": "10"
+      },
       "isDestTokenManuallySet": false,
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
