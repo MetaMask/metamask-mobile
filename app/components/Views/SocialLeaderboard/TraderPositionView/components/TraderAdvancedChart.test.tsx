@@ -1006,6 +1006,91 @@ describe('TraderAdvancedChart', () => {
     expect(mockFocusTime).not.toHaveBeenCalled();
   });
 
+  it('does not widen the candle period when the user changes period during a focus fetch', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - 7 * 24 * 60 * 60 * 1000;
+
+    let resolveFetch: (value: {
+      requestId: string;
+      seriesGeneration: number;
+      bars: [];
+      noData: boolean;
+    }) => void = () => undefined;
+    const mockFetchOlder = jest.fn(
+      () =>
+        new Promise<Parameters<typeof resolveFetch>[0]>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    const mockRequestCandlePeriod = jest.fn();
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    const chartProps = {
+      ...defaultProps,
+      assetId: undefined,
+      isPerp: true,
+      perpSymbol: 'BTC',
+      selectedCandlePeriod: CandlePeriod.FifteenMinutes,
+      chartType: ChartType.Candles,
+      historicalPrices: [] as TokenPrice[],
+      onRequestCandlePeriod: mockRequestCandlePeriod,
+      trades: [
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: oldTradeTime / 1000,
+          transactionHash: '0xold',
+        },
+      ],
+      focusRequest: {
+        id: '0xold',
+        timestamp: oldTradeTime / 1000,
+        nonce: 1,
+        spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+      },
+    };
+
+    const { rerender } = render(<TraderAdvancedChart {...chartProps} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetchOlder).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        selectedCandlePeriod={CandlePeriod.OneHour}
+      />,
+    );
+
+    await act(async () => {
+      resolveFetch({
+        requestId: 'focus-1',
+        seriesGeneration: 1,
+        bars: [],
+        noData: true,
+      });
+    });
+
+    expect(mockRequestCandlePeriod).not.toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+  });
+
   it('falls back to the legacy chart for a perp with insufficient adapter data', () => {
     setOHLCV([]);
     setPerpAdapter(makeBars(2));

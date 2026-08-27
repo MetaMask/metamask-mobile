@@ -444,6 +444,8 @@ const TraderPerpAdvancedChart = ({
   const historyLayoutPendingRef = useRef(false);
   const focusRequestRef = useRef(focusRequest);
   focusRequestRef.current = focusRequest;
+  const selectedCandlePeriodRef = useRef(selectedCandlePeriod);
+  selectedCandlePeriodRef.current = selectedCandlePeriod;
   const [paginationEpoch, setPaginationEpoch] = useState(0);
   const pendingFocusAfterSettleRef = useRef<{
     tradeTime: number;
@@ -605,29 +607,32 @@ const TraderPerpAdvancedChart = ({
       }
       paginationInFlightRef.current = true;
       const requestedNonce = focusRequest.nonce;
+      const requestedPeriod = selectedCandlePeriod;
       handleFetchOlderBarsRequest(
         buildPerpOlderBarsRequest({
           perpSymbol,
-          selectedCandlePeriod,
+          selectedCandlePeriod: requestedPeriod,
           focusNonce: requestedNonce,
           tradeTimeMs: tradeTime,
           oldestLoadedTimeMs: firstBarTime,
         }),
       )
         .then((response) => {
+          if (
+            focusRequestRef.current?.nonce !== requestedNonce ||
+            selectedCandlePeriodRef.current !== requestedPeriod
+          ) {
+            return;
+          }
           if (!response.noData) {
             historyLayoutPendingRef.current = true;
-          }
-          if (focusRequestRef.current?.nonce !== requestedNonce) {
-            return;
           }
           if (response.error) {
             handledFocusNonceRef.current = requestedNonce;
             return;
           }
           if (response.noData) {
-            const widerPeriod =
-              getNextWiderPerpCandlePeriod(selectedCandlePeriod);
+            const widerPeriod = getNextWiderPerpCandlePeriod(requestedPeriod);
             if (widerPeriod && onRequestCandlePeriod) {
               onRequestCandlePeriod(widerPeriod);
               return;

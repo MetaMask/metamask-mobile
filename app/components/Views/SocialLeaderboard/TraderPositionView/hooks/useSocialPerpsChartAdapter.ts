@@ -90,7 +90,12 @@ export function useSocialPerpsChartAdapter({
    * Merge accumulated older bars with the base adapter's ohlcvData.
    * Deduplicates by `time` and returns bars sorted ascending by time.
    *
-   * When pagination expands the series, AdvancedChart sends a full
+   * Only trade-focus fetches accumulate here. Pan pagination stays in the
+   * WebView: growing React `ohlcvData` by more than one bar would send a full
+   * SET_OHLCV_DATA whose visibleFromMs/visibleToMs still frame the live
+   * window, snapping the chart back to now.
+   *
+   * When a focus fetch does expand the series, AdvancedChart sends a full
    * SET_OHLCV_DATA replacement (length changed). That payload must include
    * the current realtime bar or the last candle rolls back until the next
    * tick — realtimeBar is unchanged, so no follow-up REALTIME_UPDATE fires.
@@ -120,7 +125,11 @@ export function useSocialPerpsChartAdapter({
     async (req: FetchOlderBarsRequest): Promise<FetchOlderBarsResponse> => {
       const generation = historyGenerationRef.current;
       const response = await baseFetchOlderBarsRef.current(req);
+      // `TraderPerpAdvancedChart` tags tap-to-focus fetches with `focus-`.
+      // Pan-originated requests must not merge into React state.
+      const isFocusFetch = req.requestId.startsWith('focus-');
       if (
+        isFocusFetch &&
         historyGenerationRef.current === generation &&
         response.bars.length > 0
       ) {

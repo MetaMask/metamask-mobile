@@ -48,6 +48,15 @@ const olderRequest = (
   ...overrides,
 });
 
+const focusOlderRequest = (
+  overrides: Partial<FetchOlderBarsRequest> = {},
+): FetchOlderBarsRequest =>
+  olderRequest({
+    requestId: 'focus-1',
+    seriesGeneration: 1,
+    ...overrides,
+  });
+
 const mockBaseHandleFetchOlderBars = jest.fn();
 
 const setBaseAdapter = (
@@ -99,7 +108,30 @@ describe('useSocialPerpsChartAdapter', () => {
     expect(result.current.ohlcvData).toEqual(bars);
   });
 
-  it('merges older bars returned from handleFetchOlderBarsRequest into ohlcvData', async () => {
+  it('merges older bars from a tap-to-focus fetch into ohlcvData', async () => {
+    const baseBars = [bar(3000), bar(4000)];
+    setBaseAdapter(baseBars, `${SYMBOL}|${INTERVAL}`);
+    const { result } = render();
+
+    mockBaseHandleFetchOlderBars.mockResolvedValueOnce({
+      requestId: 'focus-1',
+      seriesGeneration: 1,
+      bars: [bar(1000), bar(2000)],
+      noData: false,
+    });
+
+    await act(async () => {
+      await result.current.handleFetchOlderBarsRequest(
+        focusOlderRequest({ oldestLoadedTimeMs: 3000 }),
+      );
+    });
+
+    expect(result.current.ohlcvData.map((b) => b.time)).toEqual([
+      1000, 2000, 3000, 4000,
+    ]);
+  });
+
+  it('does not merge pan-originated older bars into ohlcvData', async () => {
     const baseBars = [bar(3000), bar(4000)];
     setBaseAdapter(baseBars, `${SYMBOL}|${INTERVAL}`);
     const { result } = render();
@@ -117,9 +149,7 @@ describe('useSocialPerpsChartAdapter', () => {
       );
     });
 
-    expect(result.current.ohlcvData.map((b) => b.time)).toEqual([
-      1000, 2000, 3000, 4000,
-    ]);
+    expect(result.current.ohlcvData).toEqual(baseBars);
   });
 
   it('resets accumulated history on symbol or interval change', async () => {
@@ -136,7 +166,7 @@ describe('useSocialPerpsChartAdapter', () => {
 
     await act(async () => {
       await result.current.handleFetchOlderBarsRequest(
-        olderRequest({ oldestLoadedTimeMs: 3000 }),
+        focusOlderRequest({ oldestLoadedTimeMs: 3000 }),
       );
     });
 
@@ -166,7 +196,7 @@ describe('useSocialPerpsChartAdapter', () => {
     const { result, rerender } = render();
 
     const pending = result.current.handleFetchOlderBarsRequest(
-      olderRequest({ oldestLoadedTimeMs: 3000 }),
+      focusOlderRequest({ oldestLoadedTimeMs: 3000 }),
     );
 
     const nextBars = [bar(4000), bar(8000)];
@@ -240,7 +270,7 @@ describe('useSocialPerpsChartAdapter', () => {
 
     await act(async () => {
       await result.current.handleFetchOlderBarsRequest(
-        olderRequest({ oldestLoadedTimeMs: 3000 }),
+        focusOlderRequest({ oldestLoadedTimeMs: 3000 }),
       );
     });
 
@@ -363,7 +393,7 @@ describe('useSocialPerpsChartAdapter', () => {
 
     await act(async () => {
       await result.current.handleFetchOlderBarsRequest(
-        olderRequest({ oldestLoadedTimeMs: 3000 }),
+        focusOlderRequest({ oldestLoadedTimeMs: 3000 }),
       );
     });
 
