@@ -4,45 +4,53 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 
+export interface PayMoneyAccountAvailability {
+  isAvailable: boolean;
+  /**
+   * The balance is still loading. Callers that would otherwise select a
+   * different payment source must wait rather than treat this as unavailable,
+   * or they win the race every time.
+   */
+  isPending: boolean;
+}
+
 /**
  * Whether the Money Account is available as a payment source.
  *
- * Centralises the check for the MetaMask Pay decision points that independently
- * route payment to the Money Account: the pay-with listing
- * (`usePayWithMoneyAccountSection`) and the `defaultPaySelectedSection` feature
- * flag (`useIsMoneyAccountFlagDefault`). Both decide on their own, so both
- * consult this rather than re-deriving their own rules.
+ * Selecting an unfunded Money Account produces a quote that reverts during
+ * simulation, so this fails closed.
  *
- * The `payWithOption` nav-param path is deliberately *not* covered here: it
- * originates from Money home, whose transfer entry point is already disabled
- * unless there is a spendable balance, so the param is a trusted signal.
+ * Only funding flows require a balance. Post-quote flows pay *into* the Money
+ * Account, where a zero balance is expected and must not make it unavailable.
  *
- * Selecting an unfunded Money Account produces a quote whose nested delegation
- * redeems against an empty (often codeless) account, which reverts during
- * simulation.
- *
- * Two cases are deliberately distinguished. Funding flows (deposits) pay *from*
- * the Money Account, so they require a confirmed positive balance. Post-quote
- * flows (`perpsWithdraw`, `predictWithdraw`, `moneyAccountWithdraw`) pay *into*
- * it, where a zero balance is expected and must not make it unavailable.
- *
- * Outside a confirmation there is no transaction metadata, which correctly
- * falls through to the stricter funding case.
- *
- * Fails closed while the balance is loading or unavailable: `withdrawableMusd`
- * is `undefined` in both cases, and an unverifiable balance cannot safely seed
- * a quote.
+ * @param options - Hook options.
+ * @param options.enabled - Set `false` when the caller has already ruled the
+ * Money Account out, to skip fetching a balance that cannot change the answer.
  */
-export function usePayMoneyAccountAvailable(): boolean {
+export function usePayMoneyAccountAvailable({
+  enabled = true,
+}: { enabled?: boolean } = {}): PayMoneyAccountAvailability {
   const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { withdrawableMusd } = useMoneyAccountBalance();
 
-  if (!moneyAccount) {
-    return false;
-  }
-
+  const isApplicable = enabled && Boolean(moneyAccount);
   const isFundingSource = !isTransactionPayWithdraw(transactionMeta);
 
-  return !isFundingSource || Boolean(withdrawableMusd?.isGreaterThan(0));
+  const { isBalanceLoading, withdrawableMusd } = useMoneyAccountBalance({
+    enabled: isApplicable && isFundingSource,
+  });
+
+  if (!isApplicable) {
+    return { isAvailable: false, isPending: false };
+  }
+
+  // Receiving flows do not spend from the account, so no balance is required.
+  if (!isFundingSource) {
+    return { isAvailable: true, isPending: false };
+  }
+
+  return {
+    isAvailable: Boolean(withdrawableMusd?.isGreaterThan(0)),
+    isPending: isBalanceLoading,
+  };
 }

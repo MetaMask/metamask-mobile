@@ -45,7 +45,10 @@ describe('useIsMoneyAccountFlagDefault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({});
-    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue(true);
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue({
+      isAvailable: true,
+      isPending: false,
+    });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       DEFAULT_FLAGS,
     );
@@ -88,7 +91,10 @@ describe('useIsMoneyAccountFlagDefault', () => {
   );
 
   it('returns false when the money account is unavailable (missing or unfunded)', () => {
-    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue(false);
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue({
+      isAvailable: false,
+      isPending: false,
+    });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       MONEY_ACCOUNT_FLAG,
     );

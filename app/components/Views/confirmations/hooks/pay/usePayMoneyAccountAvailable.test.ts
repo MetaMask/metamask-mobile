@@ -20,8 +20,12 @@ const MONEY_ACCOUNT = {
   address: '0xabc1111111111111111111111111111111111111',
 };
 
-const mockBalance = (withdrawableMusd: BigNumber | undefined) => {
+const mockBalance = (
+  withdrawableMusd: BigNumber | undefined,
+  isBalanceLoading = false,
+) => {
   jest.mocked(useMoneyAccountBalance).mockReturnValue({
+    isBalanceLoading,
     withdrawableMusd,
   } as never);
 };
@@ -32,8 +36,8 @@ const mockTransactionType = (type: TransactionType | undefined) => {
   );
 };
 
-const render = () =>
-  renderHookWithProvider(() => usePayMoneyAccountAvailable());
+const render = (options?: { enabled?: boolean }) =>
+  renderHookWithProvider(() => usePayMoneyAccountAvailable(options));
 
 describe('usePayMoneyAccountAvailable', () => {
   beforeEach(() => {
@@ -45,38 +49,59 @@ describe('usePayMoneyAccountAvailable', () => {
     mockTransactionType(TransactionType.perpsDeposit);
   });
 
-  it('returns false when there is no money account', () => {
+  it('is unavailable when there is no money account', () => {
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
       undefined,
     );
 
-    expect(render().result.current).toBe(false);
+    expect(render().result.current).toStrictEqual({
+      isAvailable: false,
+      isPending: false,
+    });
   });
 
   describe('funding flows', () => {
     it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-      'returns true for %s when the balance is positive',
+      'is available for %s when the balance is positive',
       (type) => {
         mockTransactionType(type);
 
-        expect(render().result.current).toBe(true);
+        expect(render().result.current).toStrictEqual({
+          isAvailable: true,
+          isPending: false,
+        });
       },
     );
 
     it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-      'returns false for %s when the balance is zero',
+      'is unavailable for %s when the balance is zero',
       (type) => {
         mockTransactionType(type);
         mockBalance(new BigNumber(0));
 
-        expect(render().result.current).toBe(false);
+        expect(render().result.current).toStrictEqual({
+          isAvailable: false,
+          isPending: false,
+        });
       },
     );
 
-    it('returns false when the balance is unknown, e.g. loading or fetch error', () => {
+    it('is pending while the balance is loading', () => {
+      mockBalance(undefined, true);
+
+      expect(render().result.current).toStrictEqual({
+        isAvailable: false,
+        isPending: true,
+      });
+    });
+
+    it('is unavailable and settled when the balance cannot be fetched', () => {
       mockBalance(undefined);
 
-      expect(render().result.current).toBe(false);
+      expect(render().result.current).toStrictEqual({
+        isAvailable: false,
+        isPending: false,
+      });
     });
   });
 
@@ -85,11 +110,39 @@ describe('usePayMoneyAccountAvailable', () => {
       TransactionType.perpsWithdraw,
       TransactionType.predictWithdraw,
       TransactionType.moneyAccountWithdraw,
-    ])('returns true for %s despite a zero balance', (type) => {
+    ])('is available for %s despite a zero balance', (type) => {
       mockTransactionType(type);
       mockBalance(new BigNumber(0));
 
-      expect(render().result.current).toBe(true);
+      expect(render().result.current).toStrictEqual({
+        isAvailable: true,
+        isPending: false,
+      });
+    });
+
+    it('does not fetch a balance it cannot use', () => {
+      mockTransactionType(TransactionType.perpsWithdraw);
+
+      render();
+
+      expect(useMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
+    });
+  });
+
+  describe('when disabled', () => {
+    it('reports neither available nor pending', () => {
+      mockBalance(undefined, true);
+
+      expect(render({ enabled: false }).result.current).toStrictEqual({
+        isAvailable: false,
+        isPending: false,
+      });
+    });
+
+    it('does not fetch a balance', () => {
+      render({ enabled: false });
+
+      expect(useMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
     });
   });
 
@@ -98,13 +151,13 @@ describe('usePayMoneyAccountAvailable', () => {
       mockTransactionType(undefined);
       mockBalance(new BigNumber(0));
 
-      expect(render().result.current).toBe(false);
+      expect(render().result.current.isAvailable).toBe(false);
     });
 
     it('is available when there is no transaction metadata and a balance exists', () => {
       mockTransactionType(undefined);
 
-      expect(render().result.current).toBe(true);
+      expect(render().result.current.isAvailable).toBe(true);
     });
   });
 });

@@ -37,7 +37,8 @@ export function useIsMoneyAccountFlagDefault(): boolean {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const { defaultPaySelectedSection } = useSelector(selectMetaMaskPayFlags);
   const transactionMeta = useTransactionMetadataRequest();
-  const isMoneyAccountAvailable = usePayMoneyAccountAvailable();
+  const { isAvailable: isMoneyAccountAvailable } =
+    usePayMoneyAccountAvailable();
 
   const isPerpsOrPredict = hasTransactionType(
     transactionMeta,

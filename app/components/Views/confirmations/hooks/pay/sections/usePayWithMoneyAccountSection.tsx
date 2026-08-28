@@ -39,7 +39,8 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     selectMetaMaskPayFlags,
   );
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
-  const isMoneyAccountAvailable = usePayMoneyAccountAvailable();
+  const { isAvailable: isMoneyAccountAvailable } =
+    usePayMoneyAccountAvailable();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
