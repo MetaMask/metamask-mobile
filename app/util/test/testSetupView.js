@@ -380,6 +380,29 @@ jest.mock('react-native-quick-crypto', () => {
   };
 });
 
+// Mock react-native-quick-base64. v3's `index.ts` calls
+// `TurboModuleRegistry.getEnforcing('QuickBase64')` at import time, which
+// throws in Jest since no native binary is registered. This module is a
+// transitive dependency of `Engine` (via the OAuth login handlers used for
+// seedless onboarding), so it must be mocked globally rather than per-file.
+jest.mock('react-native-quick-base64', () => {
+  // eslint-disable-next-line import-x/no-nodejs-modules
+  const { Buffer: NodeBuffer } = require('buffer');
+  return {
+    byteLength: (b64) => NodeBuffer.from(b64, 'base64').length,
+    toByteArray: (b64) => new Uint8Array(NodeBuffer.from(b64, 'base64')),
+    fromByteArray: (uint8) => NodeBuffer.from(uint8).toString('base64'),
+    btoa: (str) => NodeBuffer.from(str, 'binary').toString('base64'),
+    atob: (b64) => NodeBuffer.from(b64, 'base64').toString('binary'),
+    shim: jest.fn(),
+    getNative: () => ({
+      base64FromArrayBuffer: global.base64FromArrayBuffer,
+      base64ToArrayBuffer: global.base64ToArrayBuffer,
+    }),
+    trimBase64Padding: (str) => str.replace(/[.=]{1,2}$/, ''),
+  };
+});
+
 // Mock global crypto
 global.crypto = {
   getRandomValues: (arr) => getRandomValuesCompat(arr),
