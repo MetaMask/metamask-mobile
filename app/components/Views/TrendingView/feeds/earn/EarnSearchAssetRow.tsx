@@ -34,21 +34,18 @@ const EarnSearchAssetRow = ({
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
-  const description =
-    item.asset.kind === 'held' &&
-    hasMinDepositAmount &&
-    fiatBalance !== undefined ? (
-      <SensitiveText
-        variant={TextVariant.BodySm}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Medium}
-        testID="earn-search-asset-balance"
-      >
-        {fiatBalance}
-      </SensitiveText>
-    ) : (
-      metadata.symbol
-    );
+  const description = hasMinDepositAmount ? (
+    <SensitiveText
+      variant={TextVariant.BodySm}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+      testID="earn-search-asset-balance"
+    >
+      {fiatBalance}
+    </SensitiveText>
+  ) : (
+    metadata.symbol
+  );
 
   return (
     <ListItem

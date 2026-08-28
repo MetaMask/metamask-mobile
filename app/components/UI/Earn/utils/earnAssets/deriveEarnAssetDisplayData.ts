@@ -24,10 +24,16 @@ export interface EarnAssetDisplayData {
  */
 export const deriveEarnAssetDisplayData = (
   asset: EarnSectionRankedAsset,
-): EarnAssetDisplayData => ({
-  metadata: getEarnAssetMetadata(asset),
-  fiatBalance: getEarnAssetFiatDisplay(asset),
-  hasMinDepositAmount: !isEarnAssetBalanceBelowMinDepositAmount(asset),
-  hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
-  rateCopy: getEarnAssetRateCopy({ asset }),
-});
+): EarnAssetDisplayData => {
+  const fiatBalance = getEarnAssetFiatDisplay(asset);
+
+  return {
+    metadata: getEarnAssetMetadata(asset),
+    fiatBalance,
+    hasMinDepositAmount:
+      fiatBalance !== undefined &&
+      !isEarnAssetBalanceBelowMinDepositAmount(asset),
+    hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
+    rateCopy: getEarnAssetRateCopy({ asset }),
+  };
+};
