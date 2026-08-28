@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
@@ -149,6 +150,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
 const navigate = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
+let mockPrivacyMode = false;
 
 const createSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
@@ -195,10 +197,11 @@ describe('EarnSection', () => {
     resetEarnSectionRefreshForTests();
     mockUseIsFocused.mockReturnValue(true);
     mockMoneyAccountVisible = false;
+    mockPrivacyMode = false;
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
         ? mockMoneyAccountVisible
-        : undefined,
+        : mockPrivacyMode,
     );
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -414,6 +417,25 @@ describe('EarnSection', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('masks the Money balance when privacy mode is enabled', () => {
+    mockMoneyAccountVisible = true;
+    mockPrivacyMode = true;
+    mockUseMoneyAccountBalance.mockReturnValue({
+      totalFiatFormatted: '$10.00',
+      totalFiatRaw: '10',
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockSectionResult({ assetSlots: [] });
+
+    renderEarnSection();
+
+    expect(
+      within(
+        screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_CARD),
+      ).getByText('•'.repeat(9)),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('$10.00')).not.toBeOnTheScreen();
+  });
+
   it('hides New on the Money card when balance is unavailable', () => {
     mockMoneyAccountVisible = true;
     mockUseMoneyAccountBalance.mockReturnValue({
@@ -501,6 +523,19 @@ describe('EarnSection', () => {
     expect(
       screen.queryByText(strings('earn_module.get_started')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('masks the asset balance when privacy mode is enabled', () => {
+    mockPrivacyMode = true;
+
+    renderEarnSection();
+
+    expect(
+      within(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0))).getByText(
+        '•'.repeat(9),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('$10.00')).not.toBeOnTheScreen();
   });
 
   it('removes green arrows from Money and asset tiles', () => {

@@ -21,6 +21,8 @@ import {
   IconSize,
   SectionDivider,
   SectionHeader,
+  SensitiveText,
+  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
@@ -42,6 +44,7 @@ import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import { truncateNumber } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
+import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -55,6 +58,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
 import { EarnSectionTestIds } from './EarnSection.testIds';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -97,6 +101,34 @@ const renderUnavailableAssetCard = (key: string) => (
   />
 );
 
+const renderAssetSecondaryText = ({
+  hasMinDepositAmount,
+  fiatBalance,
+  metadata,
+  privacyMode,
+}: Pick<
+  EarnAssetDisplayData,
+  'hasMinDepositAmount' | 'fiatBalance' | 'metadata'
+> & { privacyMode: boolean }) => {
+  if (!hasMinDepositAmount) {
+    return metadata.name ?? metadata.ticker ?? metadata.symbol;
+  }
+
+  if (!fiatBalance) {
+    return strings('earn_module.balance_unavailable');
+  }
+
+  return (
+    <SensitiveText
+      variant={TextVariant.BodyMd}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+    >
+      {fiatBalance}
+    </SensitiveText>
+  );
+};
+
 // Module-level promise to prevent multiple concurrent refreshes.
 let refreshPromise: Promise<void> | undefined;
 
@@ -125,6 +157,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
     const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
+    const privacyMode = useSelector(selectPrivacyMode);
     const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
     const sectionViewRef = useRef<View>(null);
@@ -228,13 +261,24 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         return strings('money.asset_overview.cta.start_earning');
       }
 
+      if (!moneyAccountBalanceFiat) {
+        return strings('earn_module.balance_unavailable');
+      }
+
       return (
-        moneyAccountBalanceFiat ?? strings('earn_module.balance_unavailable')
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+        >
+          {moneyAccountBalanceFiat}
+        </SensitiveText>
       );
     }, [
       isOnboardingRedirectNeeded,
       moneyAccountBalanceFiat,
       moneyAccountBalanceRaw,
+      privacyMode,
     ]);
 
     const handleMoneyAccountCardPress = useCallback(() => {
@@ -290,18 +334,19 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                 ) : undefined
               }
               primaryText={metadata.ticker ?? metadata.symbol}
-              secondaryText={
-                hasMinDepositAmount
-                  ? (fiatBalance ?? strings('earn_module.balance_unavailable'))
-                  : (metadata.name ?? metadata.ticker ?? metadata.symbol)
-              }
+              secondaryText={renderAssetSecondaryText({
+                hasMinDepositAmount,
+                fiatBalance,
+                metadata,
+                privacyMode,
+              })}
               tertiaryText={rateCopy}
               testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />
           );
         }),
-      [assetSlots, handleAssetCardPress],
+      [assetSlots, handleAssetCardPress, privacyMode],
     );
 
     return (
