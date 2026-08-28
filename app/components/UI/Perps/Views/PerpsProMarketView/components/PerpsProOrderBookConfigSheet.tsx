@@ -10,6 +10,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, {
   useCallback,
   useEffect,
@@ -17,7 +18,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
@@ -28,6 +29,8 @@ import {
   type OrderBookListMetric,
 } from '../../../utils/orderBookGrouping';
 import PerpsProModalPortal from './PerpsProModalPortal';
+import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
+import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
@@ -36,10 +39,13 @@ export interface PerpsProOrderBookConfigSheetProps {
   metric: OrderBookListMetric;
   grouping: number | null;
   groupingOptions: number[];
+  /** Side the order-book column is currently pinned to. */
+  layout: ProLayoutPreferences['orderBookPosition'];
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
+    layout: ProLayoutPreferences['orderBookPosition'];
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -73,6 +79,15 @@ const createChipStyles = (colors: Colors) =>
     chipUnselected: {
       borderColor: colors.border.muted,
     },
+    chipWithThumbnail: {
+      height: 'auto',
+      paddingVertical: 12,
+      gap: 8,
+    },
+    thumbnail: {
+      flexDirection: 'row',
+      gap: 8,
+    },
   });
 
 interface OptionChipProps {
@@ -80,6 +95,8 @@ interface OptionChipProps {
   isSelected: boolean;
   onPress: () => void;
   testID: string;
+  /** Optional thumbnail rendered above the label (layout picker). */
+  thumbnail?: React.ReactNode;
 }
 
 /**
@@ -92,6 +109,7 @@ const OptionChip = ({
   isSelected,
   onPress,
   testID,
+  thumbnail,
 }: OptionChipProps) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createChipStyles(colors), [colors]);
@@ -105,8 +123,10 @@ const OptionChip = ({
       style={[
         styles.chip,
         isSelected ? styles.chipSelected : styles.chipUnselected,
+        thumbnail ? styles.chipWithThumbnail : null,
       ]}
     >
+      {thumbnail ? <View style={styles.thumbnail}>{thumbnail}</View> : null}
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
@@ -119,8 +139,8 @@ const OptionChip = ({
 };
 
 /**
- * Bottom sheet for Pro order-book list currency, metric, and price grouping.
- * Matches Figma "Order book settings" (layout section omitted).
+ * Bottom sheet for Pro order-book list currency, metric, price grouping, and
+ * the side the order-book column is pinned to.
  *
  * Rendered inside a Pro modal portal so the sheet is not clipped by the narrow
  * order-book column. The portal preserves the Android View/Modal rendering
@@ -134,6 +154,7 @@ const PerpsProOrderBookConfigSheet = ({
   metric,
   grouping,
   groupingOptions,
+  layout,
   onApply,
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
@@ -145,6 +166,8 @@ const PerpsProOrderBookConfigSheet = ({
     useState<OrderBookListCurrency>(currency);
   const [draftMetric, setDraftMetric] = useState<OrderBookListMetric>(metric);
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
+  const [draftLayout, setDraftLayout] =
+    useState<ProLayoutPreferences['orderBookPosition']>(layout);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -159,8 +182,9 @@ const PerpsProOrderBookConfigSheet = ({
     setDraftCurrency(currency);
     setDraftMetric(metric);
     setDraftGrouping(grouping);
+    setDraftLayout(layout);
     sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, currency, metric, grouping]);
+  }, [isVisible, currency, metric, grouping, layout]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onClose);
@@ -199,6 +223,17 @@ const PerpsProOrderBookConfigSheet = ({
     [draftGrouping, playSelection],
   );
 
+  const handleLayoutSelect = useCallback(
+    (next: ProLayoutPreferences['orderBookPosition']) => {
+      if (draftLayout === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftLayout(next);
+    },
+    [draftLayout, playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
@@ -208,12 +243,14 @@ const PerpsProOrderBookConfigSheet = ({
       currency: draftCurrency,
       metric: draftMetric,
       grouping: draftGrouping,
+      layout: draftLayout,
     });
     handleClose();
   }, [
     draftCurrency,
     draftMetric,
     draftGrouping,
+    draftLayout,
     onApply,
     handleClose,
     playImpact,
@@ -327,6 +364,48 @@ const PerpsProOrderBookConfigSheet = ({
                   ))}
                 </Box>
               ))}
+            </Box>
+          </Box>
+
+          <Box twClassName="w-full gap-2">
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {strings('perps.order_book.layout')}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="w-full gap-2 px-4"
+              testID={`${testID}-layout`}
+            >
+              <OptionChip
+                label={strings('perps.order_book.layout_left')}
+                isSelected={draftLayout === 'left'}
+                onPress={() => handleLayoutSelect('left')}
+                testID={`${testID}-layout-left`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderBookGlyph align="left" />
+                    <PerpsProOrderFormGlyph />
+                  </>
+                }
+              />
+              <OptionChip
+                label={strings('perps.order_book.layout_right')}
+                isSelected={draftLayout === 'right'}
+                onPress={() => handleLayoutSelect('right')}
+                testID={`${testID}-layout-right`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderFormGlyph />
+                    <PerpsProOrderBookGlyph align="right" />
+                  </>
+                }
+              />
             </Box>
           </Box>
         </Box>
