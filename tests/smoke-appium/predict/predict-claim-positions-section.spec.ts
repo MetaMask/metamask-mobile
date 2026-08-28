@@ -10,12 +10,11 @@ import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBot
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
 import PredictPositions from '../../page-objects/Predict/PredictPositions.js';
+import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import {
   loginForPredictTests,
   PredictHelpers,
 } from './helpers/predict-helpers.js';
-import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
-import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import {
   postClaimMocks,
   predictionMarketFeature,
@@ -58,14 +57,13 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await verifyResolvedPositionsRemoved();
 
-          // Claim confirm `goBack` can leave a Predict stack on top after RN v7.
-          // Reach wallet home before Activity so details open on a clean stack.
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-
-          await TabBarComponent.tapWallet();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
+          // Confirm `goBack` returns to Positions, not wallet home. Claim toast
+          // covers the header back control until it dismisses.
+          await ToastModal.waitForToastToDismiss();
+          await PredictPositions.tapBackButton();
+          await PredictMarketList.waitForScreenToDisplay({
+            description: 'Predict market list should be visible after claim',
+          });
           await Assertions.expectTextDisplayed('$48.16');
         },
       );

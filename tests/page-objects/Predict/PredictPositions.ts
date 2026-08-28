@@ -12,6 +12,12 @@ class PredictPositions {
     return Matchers.getElementByID(PredictPositionsViewSelectorsIDs.CONTAINER);
   }
 
+  get backButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PredictPositionsViewSelectorsIDs.BACK_BUTTON,
+    );
+  }
+
   get claimButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictPositionsViewSelectorsIDs.CLAIM_CTA);
   }
@@ -33,6 +39,12 @@ class PredictPositions {
   async tapClaimButton(): Promise<void> {
     await Gestures.waitAndTap(this.claimButton, {
       elemDescription: 'Predict Positions claim winnings button',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button on Predict Positions',
     });
   }
 }
