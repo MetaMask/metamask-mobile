@@ -17,6 +17,7 @@ import {
   getPredictFeedSelector,
   getPredictMarketListSelector,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { PREDICT_PORTFOLIO_TEST_IDS } from '../../../app/components/UI/Predict/views/PredictHome/components/PredictPortfolio/PredictPortfolio.testIds';
 
 type CategoryTab = 'trending' | 'new' | 'sports' | 'crypto' | 'politics';
 type CategoryTabScrollDirection = 'left' | 'right';
@@ -57,6 +58,10 @@ class PredictMarketList {
 
   get addFundsButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Add funds');
+  }
+
+  get claimButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON);
   }
 
   get balanceCard(): Promise<AppiumElement> {
@@ -263,6 +268,12 @@ class PredictMarketList {
   async tapAddFundsButton(): Promise<void> {
     await Gestures.waitAndTap(this.addFundsButton, {
       elemDescription: 'Predict add funds button',
+    });
+  }
+
+  async tapClaimButton(): Promise<void> {
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Predict claim winnings button',
     });
   }
 

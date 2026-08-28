@@ -3,11 +3,11 @@ import { SmokePredictions } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
-import WalletView from '../../page-objects/wallet/WalletView.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
 import {
   loginForPredictTests,
   PredictHelpers,
@@ -22,7 +22,7 @@ import {
 
 appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
   appiumTest(
-    'claim winnings via predictions section',
+    'claim winnings via Predict tab',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -39,7 +39,12 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           await PredictHelpers.setPortugalLocation();
           await loginForPredictTests();
 
-          await WalletView.tapClaimButton();
+          await TabBarComponent.tapActions();
+          await WalletActionsBottomSheet.tapPredictButton();
+          await PredictMarketList.waitForScreenToDisplay({
+            description: 'Predict market list should be visible',
+          });
+          await PredictMarketList.tapClaimButton();
 
           await postClaimMocks(mockServer);
 
