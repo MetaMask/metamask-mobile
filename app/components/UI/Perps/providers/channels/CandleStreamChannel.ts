@@ -39,8 +39,6 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
-  protected aggregateDeliveryRevision = 0;
-  protected readonly deliveryRevisions = new Map<string, number>();
   readonly #onDataPersist?: () => void;
 
   constructor(onDataPersist?: () => void) {
@@ -49,25 +47,6 @@ abstract class StreamChannel<T> {
 
   protected triggerPersist(): void {
     this.#onDataPersist?.();
-  }
-
-  /**
-   * Record that a real subscriber callback ran for `cacheKey`. Callers must
-   * invoke this AFTER the callback so a revision read never leads the data the
-   * subscriber actually rendered. Notifications with no matching subscriber
-   * (prewarm, cleared-cache delivery) intentionally do not record anything —
-   * they are not evidence that the selected symbol+interval refreshed.
-   */
-  protected recordDelivery(cacheKey: string): void {
-    this.deliveryRevisions.set(
-      cacheKey,
-      (this.deliveryRevisions.get(cacheKey) ?? 0) + 1,
-    );
-    this.aggregateDeliveryRevision += 1;
-  }
-
-  protected getKeyDeliveryRevision(cacheKey: string): number {
-    return this.deliveryRevisions.get(cacheKey) ?? 0;
   }
 
   protected notifySubscribers(
@@ -90,9 +69,6 @@ abstract class StreamChannel<T> {
         subscriber.callback(updates);
         subscriber.onDelivery?.(source);
         subscriber.hasReceivedFirstUpdate = true;
-        if (source === 'fresh') {
-          this.recordDelivery(cacheKey);
-        }
         return;
       }
 
@@ -100,9 +76,6 @@ abstract class StreamChannel<T> {
       if (!subscriber.throttleMs) {
         subscriber.callback(updates);
         subscriber.onDelivery?.(source);
-        if (source === 'fresh') {
-          this.recordDelivery(cacheKey);
-        }
         return;
       }
 
@@ -119,9 +92,6 @@ abstract class StreamChannel<T> {
             subscriber.onDelivery?.(pendingSource);
             subscriber.pendingUpdate = undefined;
             subscriber.pendingSource = undefined;
-            if (pendingSource === 'fresh') {
-              this.recordDelivery(subscriber.cacheKey);
-            }
           }
           subscriber.timer = undefined;
         }, subscriber.throttleMs);
@@ -135,10 +105,6 @@ abstract class StreamChannel<T> {
 
   public resume(): void {
     this.isPaused = false;
-  }
-
-  public getDeliveryRevision(): number {
-    return this.aggregateDeliveryRevision;
   }
 
   public clearCache(): void {
@@ -637,25 +603,6 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       unsubscribe();
       this.wsSubscriptions.delete(cacheKey);
     }
-  }
-
-  /**
-   * Delivery revision for one symbol+interval, or the channel-wide aggregate
-   * when called without arguments.
-   *
-   * Readiness callers must pass the selected symbol+interval: a channel-wide
-   * count also moves for other cached intervals (e.g. the 1h series behind
-   * market stats), which would let a retained 5m chart record as resolved
-   * before its own candles arrived.
-   */
-  public override getDeliveryRevision(
-    symbol?: string,
-    interval?: CandlePeriod,
-  ): number {
-    if (symbol === undefined || interval === undefined) {
-      return super.getDeliveryRevision();
-    }
-    return this.getKeyDeliveryRevision(this.getCacheKey(symbol, interval));
   }
 
   /**

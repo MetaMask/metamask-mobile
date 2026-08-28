@@ -692,7 +692,7 @@ describe('CandleStreamChannel', () => {
     });
   });
 
-  describe('Delivery Revisions', () => {
+  describe('Delivery Sources', () => {
     const subscribeAndCaptureLiveCallbacks = () => {
       const liveCallbacks = new Map<string, (data: CandleData) => void>();
       mockSubscribeToCandles.mockImplementation(
@@ -704,79 +704,16 @@ describe('CandleStreamChannel', () => {
       return liveCallbacks;
     };
 
-    it('advances only the delivered symbol+interval revision', () => {
-      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.FiveMinutes,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-      flushConnectDebounce();
-
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.FiveMinutes)).toBe(
-        0,
-      );
-      // The no-arg aggregate stays channel-wide for existing callers.
-      expect(channel.getDeliveryRevision()).toBe(1);
-    });
-
-    it('advances on an unthrottled update after the first', () => {
-      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-      flushConnectDebounce();
-
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
-    });
-
-    it('advances a throttled update only when the flush delivers it', () => {
-      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-        throttleMs: 1000,
-      });
-      flushConnectDebounce();
-
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
-
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-      // Still pending — the revision must not lead the rendered update.
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
-
-      jest.advanceTimersByTime(1000);
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
-    });
-
     it('uses the source of the payload that survives throttling', async () => {
       const liveCallbacks = subscribeAndCaptureLiveCallbacks();
       const callback = jest.fn();
+      const onDelivery = jest.fn();
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback,
+        onDelivery,
         throttleMs: 1000,
       });
       flushConnectDebounce();
@@ -795,45 +732,7 @@ describe('CandleStreamChannel', () => {
 
       jest.advanceTimersByTime(1000);
 
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
-    });
-
-    it('does not count cached replay as a fresh delivery', async () => {
-      mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
-      subscribeAndCaptureLiveCallbacks();
-
-      await channel.prewarmCandles(
-        'BTC',
-        CandlePeriod.OneHour,
-        TimeDuration.OneDay,
-      );
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(0);
-
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(0);
-    });
-
-    it('does not record the empty delivery from clearCache', () => {
-      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
-      channel.subscribe({
-        symbol: 'BTC',
-        interval: CandlePeriod.OneHour,
-        duration: TimeDuration.OneDay,
-        callback: jest.fn(),
-      });
-      flushConnectDebounce();
-      liveCallbacks.get('BTC-1h')?.(mockCandleData);
-
-      channel.clearCache();
-
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+      expect(onDelivery).toHaveBeenLastCalledWith('historical');
     });
   });
 

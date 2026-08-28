@@ -84,7 +84,6 @@ export interface UsePerpsAdvancedChartAdapterResult {
   visibleToMs: number | undefined;
   isLoading: boolean;
   hasCurrentSeriesData?: boolean;
-  hasCurrentSeriesDelivery?: boolean;
   deliveryRevision: number;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
@@ -123,8 +122,6 @@ export function usePerpsAdvancedChartAdapter({
   const prevLastBarRef = useRef<OHLCVBar | null>(null);
   /** Cleared once the first delivery (or an error) lands, so the skeleton never hangs. */
   const hasReceivedFirstUpdateRef = useRef(false);
-  /** True once this chart has rendered at least one valid candle batch. */
-  const hasLoadedBarsRef = useRef(false);
 
   useEffect(() => {
     if (!symbol || typeof stream.candles.prewarmCandles !== 'function') {
@@ -149,7 +146,6 @@ export function usePerpsAdvancedChartAdapter({
     // before that instance loads so an empty response cannot leave old bars.
     setIsLoading(true);
     setOhlcvData([]);
-    hasLoadedBarsRef.current = false;
     setRealtimeBar(undefined);
     setLatestBarSeriesKey(undefined);
     prevLastBarRef.current = null;
@@ -166,7 +162,6 @@ export function usePerpsAdvancedChartAdapter({
           latestCandleDataRef.current = null;
           prevLastBarRef.current = null;
           hasReceivedFirstUpdateRef.current = false;
-          hasLoadedBarsRef.current = false;
           setOhlcvData([]);
           setRealtimeBar(undefined);
           setLatestBarSeriesKey(undefined);
@@ -199,7 +194,6 @@ export function usePerpsAdvancedChartAdapter({
         if (converted.length === 0) {
           setOhlcvData([]);
           setLatestBarSeriesKey(`${symbol}|${interval}`);
-          hasLoadedBarsRef.current = false;
           prevLastBarRef.current = null;
           setRealtimeBar(undefined);
           return;
@@ -212,7 +206,6 @@ export function usePerpsAdvancedChartAdapter({
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
           setLatestBarSeriesKey(`${symbol}|${interval}`);
-          hasLoadedBarsRef.current = true;
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
         } else if (
           lastBar.time !== prev.time ||
@@ -320,7 +313,6 @@ export function usePerpsAdvancedChartAdapter({
     visibleToMs,
     isLoading,
     hasCurrentSeriesData: latestBarSeriesKey === `${symbol}|${interval}`,
-    hasCurrentSeriesDelivery: latestBarSeriesKey === `${symbol}|${interval}`,
     deliveryRevision,
     handleFetchOlderBarsRequest,
   };

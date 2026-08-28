@@ -33,6 +33,7 @@ jest.mock('../services/PerpsConnectionManager', () => ({
     getConnectionGeneration: () => mockConnectionGeneration,
     getInitializedConnectionGeneration: () =>
       mockInitializedConnectionGeneration,
+    getConnectionState: () => ({ isInitialized: mockIsInitialized }),
     subscribeToConnectionGeneration: (listener: () => void) => {
       mockGenerationListener = listener;
       return jest.fn();
@@ -43,9 +44,6 @@ jest.mock('../services/PerpsConnectionManager', () => ({
       return jest.fn();
     },
   },
-}));
-jest.mock('./usePerpsConnection', () => ({
-  usePerpsConnection: () => ({ isInitialized: mockIsInitialized }),
 }));
 
 describe('usePerpsMarketContext', () => {

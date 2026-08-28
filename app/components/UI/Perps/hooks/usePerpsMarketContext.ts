@@ -6,7 +6,6 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-import { usePerpsConnection } from './usePerpsConnection';
 import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
@@ -28,6 +27,8 @@ const getConnectionGenerationSnapshot = () =>
   PerpsConnectionManager.getConnectionGeneration();
 const getInitializedConnectionGenerationSnapshot = () =>
   PerpsConnectionManager.getInitializedConnectionGeneration();
+const getConnectionInitializedSnapshot = () =>
+  PerpsConnectionManager.getConnectionState().isInitialized;
 const subscribeToInitializedUserContext = (listener: () => void) =>
   PerpsConnectionManager.subscribeToInitializedUserContext(listener);
 const getUserContextReadySnapshot = () =>
@@ -42,7 +43,6 @@ export function usePerpsMarketContext(): PerpsMarketContext {
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
-  const { isInitialized } = usePerpsConnection();
   const selectedContextKey = buildPerpsMarketContextKey(
     network,
     provider,
@@ -63,6 +63,11 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     getInitializedMarketContextSnapshot,
     getInitializedMarketContextSnapshot,
   );
+  const isConnectionInitialized = useSyncExternalStore(
+    subscribeToInitializedMarketContext,
+    getConnectionInitializedSnapshot,
+    getConnectionInitializedSnapshot,
+  );
   const isReady =
     initializedKey === selectedContextKey &&
     initializedConnectionGeneration === connectionGeneration;
@@ -76,6 +81,6 @@ export function usePerpsMarketContext(): PerpsMarketContext {
     identityKey: selectedContextKey,
     isReady,
     isUserReady,
-    isConnectionInitialized: isInitialized,
+    isConnectionInitialized,
   };
 }

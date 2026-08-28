@@ -233,8 +233,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     visibleFromMs,
     visibleToMs,
     isLoading,
-    hasCurrentSeriesData = true,
-    hasCurrentSeriesDelivery = false,
+    hasCurrentSeriesData = false,
     deliveryRevision,
     handleFetchOlderBarsRequest,
   } = usePerpsAdvancedChartAdapter({
@@ -475,14 +474,14 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     if (
       !isLoading &&
       hasCurrentSeriesData &&
-      hasCurrentSeriesDelivery &&
+      deliveryRevision > 0 &&
       ohlcvData.length === 0
     ) {
       settleSeries();
     }
   }, [
+    deliveryRevision,
     hasCurrentSeriesData,
-    hasCurrentSeriesDelivery,
     isLoading,
     ohlcvData.length,
     settleSeries,
