@@ -5,6 +5,7 @@ import type {
   PredictDecimal,
   PredictEntityId,
   PredictGame,
+  PredictHexColor,
   PredictMarket,
   PredictOutcome,
   PredictTimestamp,
@@ -144,12 +145,12 @@ describe('MarketFooterCard', () => {
         awayTeam: {
           name: 'Arizona Cardinals',
           abbreviation: 'ARI',
-          primaryColor: `#${'97233F'}`,
+          primaryColor: `#${'97233F'}` as PredictHexColor,
         },
         homeTeam: {
           name: 'Carolina Panthers',
           abbreviation: 'CAR',
-          primaryColor: `#${'0085CA'}`,
+          primaryColor: `#${'0085CA'}` as PredictHexColor,
         },
       }),
     });

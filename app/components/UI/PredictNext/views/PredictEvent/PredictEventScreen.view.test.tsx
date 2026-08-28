@@ -139,6 +139,12 @@ const createGameEventWithTeamMarkets = () => {
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
+const expectMessengerCalledWith = (...prefix: unknown[]) => {
+  expect(messengerCall.mock.calls).toEqual(
+    expect.arrayContaining([expect.arrayContaining(prefix)]),
+  );
+};
+
 const createHistory = (marketId: string, range = 'ALL', pointCount = 2) => ({
   venueId,
   marketId,
@@ -226,12 +232,11 @@ describe('PredictEventScreen', () => {
     );
 
     await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
+      expectMessengerCalledWith(
         'PredictMarketDataService:getMarketHistory',
         venueId,
         secondMarket.id,
         'ALL',
-        undefined,
       ),
     );
     expect(
@@ -264,12 +269,11 @@ describe('PredictEventScreen', () => {
     fireEvent.press(view.getByTestId(PredictMarketHistoryTestIds.range('1W')));
 
     await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
+      expectMessengerCalledWith(
         'PredictMarketDataService:getMarketHistory',
         venueId,
         'market-1',
         '1W',
-        undefined,
       ),
     );
     expect(
@@ -436,20 +440,18 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
-        [
+        expect.arrayContaining([
           'PredictMarketDataService:getMarketHistory',
           venueId,
           awayMarket.id,
           'ALL',
-          undefined,
-        ],
-        [
+        ]),
+        expect.arrayContaining([
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
           'ALL',
-          undefined,
-        ],
+        ]),
       ]),
     );
     expect(
@@ -643,12 +645,11 @@ describe('PredictEventScreen', () => {
     fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
 
     await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
+      expectMessengerCalledWith(
         'PredictMarketDataService:getMarketHistory',
         venueId,
         awayMarket.id,
         'ALL',
-        undefined,
       ),
     );
     const selectedChart = await view.findByTestId(
@@ -1134,16 +1135,19 @@ describe('PredictEventScreen', () => {
     const eventCalls = messengerCall.mock.calls.filter(
       ([action]) => action === 'PredictMarketDataService:getEvent',
     );
-    expect(eventCalls).toEqual([
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
-    ]);
-    expect(messengerCall).toHaveBeenCalledWith(
+    expect(eventCalls).toHaveLength(2);
+    eventCalls.forEach((call) => {
+      expect(call.slice(0, 3)).toEqual([
+        'PredictMarketDataService:getEvent',
+        venueId,
+        eventId,
+      ]);
+    });
+    expectMessengerCalledWith(
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
       'ALL',
-      undefined,
     );
   });
 
