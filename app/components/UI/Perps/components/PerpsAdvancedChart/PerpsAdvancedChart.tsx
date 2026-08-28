@@ -576,9 +576,8 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onResolved?.(ohlcvSeriesKey, state);
       }
       if (
-        (hasFreshCurrentSeriesDelivery ||
-          fallbackDeliveryRevision >
-            fallbackDeliveryBaselineRef.current.revision) &&
+        fallbackDeliveryRevision >
+          fallbackDeliveryBaselineRef.current.revision &&
         reportedFallbackFreshResolutionRef.current !== resolutionKey
       ) {
         reportedFallbackFreshResolutionRef.current = resolutionKey;
@@ -589,7 +588,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     fallbackCandleData,
     fallbackDeliveryRevision,
     hasFailed,
-    hasFreshCurrentSeriesDelivery,
     interval,
     ohlcvSeriesKey,
     onFreshDelivery,

@@ -792,7 +792,7 @@ describe('PerpsAdvancedChart', () => {
     expect(onResolved).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards fresh selected-series evidence when fallback activates', () => {
+  it('does not borrow Advanced freshness for the Lightweight fallback', () => {
     const onFreshDelivery = jest.fn();
     const fallbackCandleData: CandleData = {
       symbol: 'BTC',
@@ -809,23 +809,39 @@ describe('PerpsAdvancedChart', () => {
       advancedChartProps().onError?.('chart failed');
     });
 
-    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+    expect(onFreshDelivery).not.toHaveBeenCalled();
   });
 
-  it('does not forward cached fallback data as fresh', () => {
+  it('forwards the exact Lightweight fallback delivery', () => {
     const onFreshDelivery = jest.fn();
     const fallbackCandleData: CandleData = {
       symbol: 'BTC',
       interval: CandlePeriod.OneHour,
       candles: [],
     };
-    renderChart({ fallbackCandleData, onFreshDelivery });
+    const { rerender } = renderChart({
+      fallbackCandleData,
+      fallbackDeliveryRevision: 0,
+      onFreshDelivery,
+    });
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={fallbackCandleData}
+        fallbackDeliveryRevision={1}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
 
     act(() => {
       advancedChartProps().onError?.('chart failed');
     });
 
-    expect(onFreshDelivery).not.toHaveBeenCalled();
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
   });
 });
 
