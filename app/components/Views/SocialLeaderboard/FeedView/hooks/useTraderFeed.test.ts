@@ -376,6 +376,27 @@ describe('useTraderFeed', () => {
     expect(result.current.hasLoadedItems).toBe(true);
   });
 
+  it('uses a 5 minute staleTime and 24 hour gcTime on the UI query', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } },
+    });
+
+    const { result, unmount } = renderHook(
+      () => useTraderFeed({ audience: 'all' }),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    const cachedQuery = queryClient.getQueryCache().getAll()[0];
+    expect(cachedQuery?.options.staleTime).toBe(1000 * 60 * 5);
+    expect(cachedQuery?.options.gcTime).toBe(1000 * 60 * 60 * 24);
+
+    unmount();
+    queryClient.clear();
+  });
+
   it('does not refetch when first-page data is already in the cache', async () => {
     mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
     const queryClient = new QueryClient({
