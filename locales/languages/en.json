@@ -2699,6 +2699,9 @@
       "listed_by": "Listed by",
       "value_type": "Value type",
       "group_by": "Group by",
+      "layout": "Order book layout",
+      "layout_left": "Left",
+      "layout_right": "Right",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -8731,6 +8734,9 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "repeat_info_title": "Repeat orders",
+      "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
         "not_set": "Not set",
@@ -8749,16 +8755,26 @@
         "minute": "minute",
         "hour": "hour",
         "day": "day",
-        "week": "week"
+        "week": "week",
+        "month": "month"
+      },
+      "unit_plural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
       },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
         "day": "Day",
-        "week": "Week"
+        "week": "Week",
+        "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",
+      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "filled": "Filled"
     },

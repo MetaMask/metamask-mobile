@@ -11,6 +11,8 @@ import { createBridgeTestState } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { strings } from '../../../../../../../locales/i18n';
+import { initialRecurringState } from '../../../utils/recurringSchedule';
 
 jest.mock(
   '../../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -140,5 +142,78 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the spend summary for the default schedule', () => {
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: '1.0',
+        symbol: 'ETH',
+        everyValue: '1',
+        unit: strings('bridge.recurring.unit.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('uses the plural unit when every is greater than 1', () => {
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: {
+          recurring: {
+            ...initialRecurringState,
+            everyValue: '2',
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: '1.0',
+        symbol: 'ETH',
+        everyValue: '2',
+        unit: strings('bridge.recurring.unit_plural.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('hides the spend summary when repeat count is empty', () => {
+    const { getByTestId, queryByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: {
+          recurring: {
+            ...initialRecurringState,
+            repeatCount: '',
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toBeNull();
+  });
+
+  it('hides the spend summary when source amount is missing', () => {
+    const { queryByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { sourceAmount: undefined },
+      }),
+    );
+
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toBeNull();
   });
 });
