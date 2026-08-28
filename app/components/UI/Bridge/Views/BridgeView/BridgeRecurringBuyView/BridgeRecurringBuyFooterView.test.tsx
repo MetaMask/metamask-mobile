@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
@@ -76,8 +77,23 @@ function buildActiveQuoteState(
   });
 }
 
-function renderFooter(state: DeepPartial<RootState>) {
-  return renderWithProvider(<BridgeRecurringBuyFooterView />, { state });
+function renderFooter(
+  state: DeepPartial<RootState>,
+  {
+    onPreviewOrder = jest.fn(),
+    isPreviewDisabled,
+  }: {
+    onPreviewOrder?: () => void;
+    isPreviewDisabled?: boolean;
+  } = {},
+) {
+  return renderWithProvider(
+    <BridgeRecurringBuyFooterView
+      onPreviewOrder={onPreviewOrder}
+      isPreviewDisabled={isPreviewDisabled}
+    />,
+    { state },
+  );
 }
 
 describe('BridgeRecurringBuyFooterView', () => {
@@ -142,6 +158,34 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+  });
+
+  it('calls onPreviewOrder when Preview Order is pressed', () => {
+    const onPreviewOrder = jest.fn();
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+      onPreviewOrder,
+    });
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+    expect(onPreviewOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onPreviewOrder when Preview Order is disabled', () => {
+    const onPreviewOrder = jest.fn();
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+      onPreviewOrder,
+      isPreviewDisabled: true,
+    });
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+    expect(onPreviewOrder).not.toHaveBeenCalled();
   });
 
   it('renders the spend summary for the default schedule', () => {

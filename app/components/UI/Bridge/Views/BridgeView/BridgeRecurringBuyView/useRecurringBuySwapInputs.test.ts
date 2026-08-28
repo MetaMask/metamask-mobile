@@ -36,8 +36,10 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
+const mockUseBridgeQuoteRequest = jest.fn(() => mockUpdateQuoteParams);
 jest.mock('../../../hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: () => mockUpdateQuoteParams,
+  useBridgeQuoteRequest: (options?: unknown) =>
+    mockUseBridgeQuoteRequest(options),
 }));
 
 jest.mock('../../../hooks/useIsNetworkEnabled', () => ({
@@ -359,5 +361,27 @@ describe('useRecurringBuySwapInputs', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setSourceToken(expect.anything()),
     );
+  });
+
+  it('requests quotes without a Recurring slippage override', () => {
+    const sourceToken = getNativeSourceToken('eip155:1');
+    const destToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'USDC',
+      address: '0xdest',
+    });
+
+    renderRecurringBuySwapInputsHook(
+      {
+        sourceToken,
+        destToken,
+        sourceAmount: '1',
+      },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(mockUseBridgeQuoteRequest).toHaveBeenCalledWith({
+      latestSourceAtomicBalance: undefined,
+    });
   });
 });

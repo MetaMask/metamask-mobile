@@ -24,7 +24,15 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { parsePositiveInteger } from '../../../utils/recurringSchedule';
 
-export const BridgeRecurringBuyFooterView = () => {
+interface BridgeRecurringBuyFooterViewProps {
+  onPreviewOrder: () => void;
+  isPreviewDisabled?: boolean;
+}
+
+export const BridgeRecurringBuyFooterView = ({
+  onPreviewOrder,
+  isPreviewDisabled,
+}: BridgeRecurringBuyFooterViewProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -78,9 +86,10 @@ export const BridgeRecurringBuyFooterView = () => {
       style={{ paddingBottom: bottomInset }}
     >
       <SwapsRecurringBuyConfirmButton
-        onPress={() => 'test'}
-        label="test"
+        onPress={onPreviewOrder}
+        label={strings('bridge.recurring.preview_order')}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+        disabled={isPreviewDisabled}
       />
       {spendSummary ? (
         <Text
