@@ -1031,9 +1031,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     symbol: market?.symbol,
     deliveryRevisions: {
       account: accountDeliveryRevision,
-      chart: isAdvancedChartEnabled
-        ? chartDeliveryRevision
-        : priceDeliveryRevision,
+      chart:
+        isAdvancedChartEnabled &&
+        chartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+          ? chartDeliveryRevision
+          : priceDeliveryRevision,
       orders: ordersDeliveryRevision,
       positions: positionsDeliveryRevision,
       price: priceDeliveryRevision,

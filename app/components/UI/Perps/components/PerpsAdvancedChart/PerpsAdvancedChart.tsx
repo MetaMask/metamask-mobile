@@ -557,7 +557,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       const resolutionKey = `${ohlcvSeriesKey}|${state}`;
       if (reportedFallbackResolutionRef.current !== resolutionKey) {
         reportedFallbackResolutionRef.current = resolutionKey;
-        onFreshDelivery?.();
         onResolved?.(ohlcvSeriesKey, state);
       }
     }
