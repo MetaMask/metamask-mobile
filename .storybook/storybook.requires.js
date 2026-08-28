@@ -144,6 +144,7 @@ const getStories = () => {
     "./app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx"),
     "./app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
+    "./app/uk-card-migration-prototype.stories.tsx": require("../app/uk-card-migration-prototype.stories.tsx"),
   };
 };
 
