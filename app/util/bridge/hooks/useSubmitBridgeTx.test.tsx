@@ -101,6 +101,11 @@ const inactiveABTestResult: MockABTestResult = {
   isActive: false,
 };
 
+const expectedDefaultQuotesReceivedContext = expect.objectContaining({
+  custom_slippage: false,
+  slippage_limit: 0,
+});
+
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
     numpad = inactiveABTestResult,
@@ -159,6 +164,8 @@ describe('useSubmitBridgeTx', () => {
       bridge: {
         abTestContext: undefined,
         isGasIncludedSTXSendBundleSupported: true,
+        slippage: undefined,
+        isSlippageUserOverride: false,
       },
       swaps: {
         featureFlags: {
@@ -209,7 +216,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
@@ -263,7 +270,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -312,7 +319,7 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
@@ -523,6 +530,7 @@ describe('useSubmitBridgeTx', () => {
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
@@ -558,7 +566,8 @@ describe('useSubmitBridgeTx', () => {
       ],
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
-      migrationPhase: '1.5',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -598,7 +607,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       transactionActiveAbTests,
@@ -646,7 +655,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -701,7 +710,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -762,7 +771,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -791,6 +800,8 @@ describe('useSubmitBridgeTx', () => {
           bridge: {
             abTestContext: undefined,
             isGasIncludedSTXSendBundleSupported: true,
+            slippage: undefined,
+            isSlippageUserOverride: false,
             destToken: {
               symbol: 'SCAM',
               securityData: {
@@ -829,7 +840,7 @@ describe('useSubmitBridgeTx', () => {
       '0x1234567890123456789012345678901234567890',
       expect.any(Object),
       expect.any(Boolean),
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
