@@ -1726,6 +1726,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
+      appium_retries_override: 0
       # Mirrors build-android-apps' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-

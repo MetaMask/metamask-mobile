@@ -66,6 +66,11 @@ on:
         required: false
         type: string
         default: 'default'
+      appium_retries_override:
+        description: 'Override for Appium test retries (0 disables retries)'
+        required: false
+        type: number
+        # No default - only set if explicitly passed
 
 permissions:
   contents: read
@@ -123,7 +128,6 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           OUTPUT_PATH: ./e2e-timings.json
-
       # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
       - name: Download previous Playwright results (on re-run)
         if: ${{ github.run_attempt > 1 }}
@@ -196,6 +200,14 @@ jobs:
           configure-keystores: 'false'
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Set APPIUM_RETRIES_OVERRIDE
+        run: |
+          if [[ -n "${{ inputs.appium_retries_override }}" ]]; then
+            export APPIUM_RETRIES_OVERRIDE="${{ inputs.appium_retries_override }}"
+            echo "APPIUM_RETRIES_OVERRIDE set to: ${APPIUM_RETRIES_OVERRIDE}"
+          fi
+        shell: bash
 
       - name: Setup E2E environment (iOS)
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
