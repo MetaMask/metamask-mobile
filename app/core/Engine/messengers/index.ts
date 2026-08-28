@@ -117,6 +117,7 @@ import {
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
+import { getPhishingDataServiceMessenger } from './phishing-data-service-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
 import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
@@ -377,6 +378,10 @@ export const MESSENGER_FACTORIES = {
   },
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PhishingDataService: {
+    getMessenger: getPhishingDataServiceMessenger,
     getInitMessenger: noop,
   },
   RewardsController: {

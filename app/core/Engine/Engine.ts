@@ -169,6 +169,7 @@ import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
+import { phishingDataServiceInit } from './controllers/phishing-data-service-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
@@ -380,6 +381,7 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
+        PhishingDataService: phishingDataServiceInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictNextController: predictNextControllerInit,
@@ -605,6 +607,7 @@ export class Engine {
       CurrencyRateController: currencyRateController,
       NetworkController: networkController,
       PhishingController: phishingController,
+      PhishingDataService: messengerClientsByName.PhishingDataService,
       PreferencesController: preferencesController,
       TokenBalancesController: tokenBalancesController,
       TokenRatesController: tokenRatesController,

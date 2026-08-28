@@ -20,6 +20,15 @@ export function getPhishingControllerMessenger(
     actions: [
       'AddressBookController:getState',
       'TransactionController:getState',
+      'PhishingDataService:getStalelist',
+      'PhishingDataService:getHotlistDiffs',
+      'PhishingDataService:getC2DomainBlocklist',
+      'PhishingDataService:scanUrl',
+      'PhishingDataService:bulkScanUrls',
+      'PhishingDataService:scanToken',
+      'PhishingDataService:bulkScanTokens',
+      'PhishingDataService:scanAddress',
+      'PhishingDataService:getApprovals',
     ],
     events: [
       'AddressBookController:stateChange',
