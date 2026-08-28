@@ -13,3 +13,4 @@ export {
 } from './earnAssetBalance';
 export { hasEarnAssetSubsidizedFee } from './earnAssetFee';
 export { deriveEarnAssetDisplayData } from './deriveEarnAssetDisplayData';
+export { deriveMoneyDepositAssets } from './deriveMoneyDepositAssets';

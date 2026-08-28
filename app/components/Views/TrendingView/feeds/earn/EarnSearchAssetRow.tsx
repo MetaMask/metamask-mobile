@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 import {
   FontWeight,
   ListItem,
+  SensitiveText,
+  SensitiveTextLength,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -13,9 +15,14 @@ import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 interface EarnSearchAssetRowProps {
   item: EarnAssetSearchItem;
   onPress: (item: EarnAssetSearchItem) => void;
+  privacyMode?: boolean;
 }
 
-const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
+const EarnSearchAssetRow = ({
+  item,
+  onPress,
+  privacyMode = false,
+}: EarnSearchAssetRowProps) => {
   const { asset } = item;
   const {
     metadata,
@@ -26,6 +33,22 @@ const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
   } = deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
+
+  const description =
+    item.asset.kind === 'held' &&
+    hasMinDepositAmount &&
+    fiatBalance !== undefined ? (
+      <SensitiveText
+        variant={TextVariant.BodySm}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Medium}
+        testID="earn-search-asset-balance"
+      >
+        {fiatBalance}
+      </SensitiveText>
+    ) : (
+      metadata.symbol
+    );
 
   return (
     <ListItem
@@ -40,7 +63,7 @@ const EarnSearchAssetRow = ({ item, onPress }: EarnSearchAssetRowProps) => {
       titleProps={{
         numberOfLines: 1,
       }}
-      description={hasMinDepositAmount ? fiatBalance : metadata.symbol}
+      description={description}
       descriptionProps={{
         numberOfLines: 1,
       }}

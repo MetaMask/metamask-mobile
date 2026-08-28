@@ -3,6 +3,8 @@ import {
   FontWeight,
   ListItem,
   Skeleton,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -16,9 +18,14 @@ import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
 interface EarnMoneyAccountRowProps {
   item: EarnMoneyAccountSearchItem;
   onPress: (item: EarnMoneyAccountSearchItem) => void;
+  privacyMode?: boolean;
 }
 
-const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
+const EarnMoneyAccountRow = ({
+  item,
+  onPress,
+  privacyMode = false,
+}: EarnMoneyAccountRowProps) => {
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
   const balanceText =
@@ -55,6 +62,33 @@ const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
     );
   };
 
+  const renderBalanceText = () => {
+    if (item.isBalanceLoading) {
+      return (
+        <Skeleton
+          height={20}
+          width={70}
+          testID="earn-search-money-balance-skeleton"
+        />
+      );
+    }
+
+    if (item.balanceRaw !== '0' && item.balanceFiat !== undefined) {
+      return (
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+          testID="earn-search-money-balance"
+        >
+          {item.balanceFiat}
+        </SensitiveText>
+      );
+    }
+
+    return balanceText;
+  };
+
   return (
     <ListItem
       key={`earn-search-money-account-row`}
@@ -68,17 +102,7 @@ const EarnMoneyAccountRow = ({ item, onPress }: EarnMoneyAccountRowProps) => {
       titleProps={{
         numberOfLines: 1,
       }}
-      description={
-        item.isBalanceLoading ? (
-          <Skeleton
-            height={20}
-            width={70}
-            testID="earn-search-money-balance-skeleton"
-          />
-        ) : (
-          balanceText
-        )
-      }
+      description={renderBalanceText()}
       descriptionProps={{
         numberOfLines: 1,
       }}

@@ -1,16 +1,20 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import useEarnOpportunityNavigation from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 
 const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
     tokenDetailsSource: TokenDetailsSource.ExploreEarn,
   });
+
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const handlePress = useCallback(() => {
     if (item.kind === 'money-account') {
@@ -22,9 +26,17 @@ const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
   }, [item, navigateToEarnOpportunity, navigateToMoneyHome]);
 
   return item.kind === 'money-account' ? (
-    <EarnMoneyAccountRow item={item} onPress={handlePress} />
+    <EarnMoneyAccountRow
+      item={item}
+      onPress={handlePress}
+      privacyMode={privacyMode}
+    />
   ) : (
-    <EarnSearchAssetRow item={item} onPress={handlePress} />
+    <EarnSearchAssetRow
+      item={item}
+      onPress={handlePress}
+      privacyMode={privacyMode}
+    />
   );
 };
 
