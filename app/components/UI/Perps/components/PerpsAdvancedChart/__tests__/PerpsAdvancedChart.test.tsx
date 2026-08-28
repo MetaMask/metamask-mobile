@@ -79,6 +79,7 @@ const mockAdapterResult = {
   visibleFromMs: undefined,
   visibleToMs: undefined,
   isLoading: false,
+  deliveryRevision: 0,
   handleFetchOlderBarsRequest: jest.fn(),
 };
 

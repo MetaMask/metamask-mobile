@@ -52,6 +52,7 @@ export interface DetailGenerationIdentity {
 
 export interface DetailDeliveryRevisions {
   account: number;
+  chart: number;
   price: number;
   orders: number;
   positions: number;
@@ -136,8 +137,9 @@ export function hasFreshSectionDelivery(
       : generation >= connectionGenerationBaseline);
   switch (section) {
     case PERPS_MARKET_DETAIL_SECTION.PRICE:
-    case PERPS_MARKET_DETAIL_SECTION.CHART:
       return connectionFresh && current.price > baseline.price;
+    case PERPS_MARKET_DETAIL_SECTION.CHART:
+      return connectionFresh && current.chart > baseline.chart;
     case PERPS_MARKET_DETAIL_SECTION.ACCOUNT:
       return connectionFresh && current.account > baseline.account;
     case PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS:

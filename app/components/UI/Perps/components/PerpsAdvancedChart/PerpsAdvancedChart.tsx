@@ -54,6 +54,8 @@ export interface PerpsAdvancedChartProps {
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
   /** Fires when the initial chart or its Lightweight fallback has resolved. */
   onResolved?: (seriesKey: string, state: 'content' | 'empty') => void;
+  /** Fires after this chart's exact consumer accepts a fresh delivery. */
+  onFreshDelivery?: () => void;
   /** Identifies which Perps chart surface is being measured. */
   surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
@@ -217,6 +219,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onError,
   onSkeletonHidden,
   onResolved,
+  onFreshDelivery,
   surface = 'market_detail',
   fallbackCandleData,
   fallbackFetchMoreHistory,
@@ -232,6 +235,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     isLoading,
     hasCurrentSeriesData = true,
     hasCurrentSeriesDelivery = false,
+    deliveryRevision,
     handleFetchOlderBarsRequest,
   } = usePerpsAdvancedChartAdapter({
     symbol,
@@ -244,6 +248,14 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const [hasFailed, setHasFailed] = useState(false);
   const reportedResolutionRef = useRef<string | null>(null);
   const reportedFallbackResolutionRef = useRef<string | null>(null);
+  const previousDeliveryRevisionRef = useRef(deliveryRevision);
+
+  useEffect(() => {
+    if (deliveryRevision > previousDeliveryRevisionRef.current) {
+      onFreshDelivery?.();
+    }
+    previousDeliveryRevisionRef.current = deliveryRevision;
+  }, [deliveryRevision, onFreshDelivery]);
 
   const { colors } = useTheme();
 
@@ -546,6 +558,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       const resolutionKey = `${ohlcvSeriesKey}|${state}`;
       if (reportedFallbackResolutionRef.current !== resolutionKey) {
         reportedFallbackResolutionRef.current = resolutionKey;
+        onFreshDelivery?.();
         onResolved?.(ohlcvSeriesKey, state);
       }
     }
@@ -555,6 +568,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     interval,
     ohlcvSeriesKey,
     onResolved,
+    onFreshDelivery,
     symbol,
   ]);
 

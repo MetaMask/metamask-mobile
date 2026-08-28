@@ -85,6 +85,7 @@ export interface UsePerpsAdvancedChartAdapterResult {
   isLoading: boolean;
   hasCurrentSeriesData?: boolean;
   hasCurrentSeriesDelivery?: boolean;
+  deliveryRevision: number;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -113,6 +114,8 @@ export function usePerpsAdvancedChartAdapter({
   const [isLoading, setIsLoading] = useState(true);
   const [cacheGeneration, setCacheGeneration] = useState(0);
   const [latestBarSeriesKey, setLatestBarSeriesKey] = useState<string>();
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -158,6 +161,7 @@ export function usePerpsAdvancedChartAdapter({
       interval,
       duration: TimeDuration.OneWeek,
       callback: (candleData: CandleData) => {
+        acceptedDeliveryRef.current = false;
         if (candleData.symbol === '' && candleData.candles.length === 0) {
           latestCandleDataRef.current = null;
           prevLastBarRef.current = null;
@@ -180,6 +184,7 @@ export function usePerpsAdvancedChartAdapter({
         }
 
         latestCandleDataRef.current = candleData;
+        acceptedDeliveryRef.current = true;
 
         const converted = convertCandlesToOHLCVBars(candleData.candles);
 
@@ -224,6 +229,12 @@ export function usePerpsAdvancedChartAdapter({
         // If nothing changed (e.g. throttle burst with same values), skip update.
 
         prevLastBarRef.current = lastBar;
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       onError: (err: Error) => {
         // Surface the error by clearing the skeleton so the chart never hangs on a
@@ -310,6 +321,7 @@ export function usePerpsAdvancedChartAdapter({
     isLoading,
     hasCurrentSeriesData: latestBarSeriesKey === `${symbol}|${interval}`,
     hasCurrentSeriesDelivery: latestBarSeriesKey === `${symbol}|${interval}`,
+    deliveryRevision,
     handleFetchOlderBarsRequest,
   };
 }

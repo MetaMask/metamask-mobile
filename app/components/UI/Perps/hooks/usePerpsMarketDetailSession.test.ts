@@ -16,6 +16,7 @@ let mockIsUserContextReady = true;
 let mockConnectionGeneration = 0;
 const mockDeliveryRevisions = {
   account: 0,
+  chart: 0,
   orders: 0,
   positions: 0,
   price: 0,
@@ -226,6 +227,7 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).not.toHaveBeenCalled();
 
     mockDeliveryRevisions.price += 1;
+    mockDeliveryRevisions.chart += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
@@ -250,6 +252,7 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).not.toHaveBeenCalled();
 
     mockDeliveryRevisions.price += 1;
+    mockDeliveryRevisions.chart += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
@@ -312,6 +315,7 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).not.toHaveBeenCalled();
 
     mockDeliveryRevisions.price += 1;
+    mockDeliveryRevisions.chart += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
@@ -346,6 +350,7 @@ describe('usePerpsMarketDetailSession', () => {
       expect(endTrace).not.toHaveBeenCalled();
 
       mockDeliveryRevisions.price += 1;
+      mockDeliveryRevisions.chart += 1;
       rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
       expect(endTrace).toHaveBeenCalledWith(
@@ -365,6 +370,7 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).not.toHaveBeenCalled();
 
     mockDeliveryRevisions.price += 1;
+    mockDeliveryRevisions.chart += 1;
     rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(endTrace).toHaveBeenCalledWith(

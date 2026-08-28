@@ -99,6 +99,7 @@ interface PerpsProChartPanelProps {
     state: PerpsMarketDetailSectionState,
     contextKey: string,
   ) => void;
+  onFreshDelivery?: () => void;
 }
 
 /**
@@ -118,6 +119,7 @@ const PerpsProChartPanel = ({
   currentPrice,
   onLatestPriceChange,
   onResolvedStateChange,
+  onFreshDelivery,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -305,6 +307,7 @@ const PerpsProChartPanel = ({
         onCrosshairDataChange={setOhlcData}
         onLatestPriceChange={onLatestPriceChange}
         onResolved={handleAdvancedChartResolved}
+        onFreshDelivery={onFreshDelivery}
         onError={onChartError}
         fallbackCandleData={candleData}
         fallbackFetchMoreHistory={fetchMoreHistory}

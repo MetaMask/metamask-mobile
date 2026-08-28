@@ -457,6 +457,7 @@ export function usePerpsMarketDetailSession({
     foregroundGeneration,
     generationTrigger,
     hip3ConfigVersion,
+    marketContextKey,
     mode,
     network,
     provider,

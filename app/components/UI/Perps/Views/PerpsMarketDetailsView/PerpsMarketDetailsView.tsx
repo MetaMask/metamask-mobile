@@ -508,6 +508,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>;
   } | null>(null);
   const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
+  const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -1030,6 +1031,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     symbol: market?.symbol,
     deliveryRevisions: {
       account: accountDeliveryRevision,
+      chart: isAdvancedChartEnabled
+        ? chartDeliveryRevision
+        : priceDeliveryRevision,
       orders: ordersDeliveryRevision,
       positions: positionsDeliveryRevision,
       price: priceDeliveryRevision,
@@ -1744,6 +1748,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         onCrosshairDataChange={setOhlcData}
         onLatestPriceChange={setAdvancedChartCurrentPrice}
         onResolved={handleAdvancedChartResolved}
+        onFreshDelivery={() =>
+          setChartDeliveryRevision((revision) => revision + 1)
+        }
         onError={handleChartError}
         fallbackCandleData={candleData}
         fallbackFetchMoreHistory={fetchMoreHistory}

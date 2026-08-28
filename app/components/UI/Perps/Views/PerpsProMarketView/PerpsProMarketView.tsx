@@ -323,6 +323,7 @@ const PerpsProMarketView = ({
     useState(false);
 
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const currentSymbol = market?.symbol;
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const {
@@ -462,6 +463,7 @@ const PerpsProMarketView = ({
     symbol: currentSymbol,
     deliveryRevisions: {
       account: accountDeliveryRevision,
+      chart: chartDeliveryRevision,
       price: priceDeliveryRevision,
       orders: positionsOrdersDeliveryRevisions?.orders ?? 0,
       positions: positionsOrdersDeliveryRevisions?.positions ?? 0,
@@ -567,6 +569,9 @@ const PerpsProMarketView = ({
           currentPrice={syncedChartCurrentPrice}
           onLatestPriceChange={setAdvancedChartCurrentPrice}
           onResolvedStateChange={handleChartResolvedStateChange}
+          onFreshDelivery={() =>
+            setChartDeliveryRevision((revision) => revision + 1)
+          }
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would
