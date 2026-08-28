@@ -214,6 +214,7 @@ describe('usePerpsMarketDetailSession', () => {
       // baseline captured by the AppState listener.
       mockConnectionGeneration += 1;
     });
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(trace).toHaveBeenCalledTimes(1);
     expect(trace).toHaveBeenCalledWith(
@@ -235,6 +236,14 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({ data: { success: true } }),
     );
+
+    jest.clearAllMocks();
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(trace).toHaveBeenCalledTimes(1);
+    expect(result.current.generationTrigger).toBe('network_switch');
+    expect(endTrace).not.toHaveBeenCalled();
   });
 
   it('accepts fresh resume deliveries when the generation advanced in the background', () => {
@@ -376,6 +385,14 @@ describe('usePerpsMarketDetailSession', () => {
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({ data: { success: true } }),
     );
+
+    jest.clearAllMocks();
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(trace).toHaveBeenCalledTimes(1);
+    expect(result.current.generationTrigger).toBe('network_switch');
+    expect(endTrace).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -503,6 +520,7 @@ describe('usePerpsMarketDetailSession', () => {
     expect(result.current.isLiveDeliveryFresh).toBe(true);
 
     resumeFromBackground();
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
 
     expect(result.current.isLiveDeliveryFresh).toBe(false);
 

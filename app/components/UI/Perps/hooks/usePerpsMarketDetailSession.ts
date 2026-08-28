@@ -155,6 +155,7 @@ export function usePerpsMarketDetailSession({
   const foregroundDeliveryBaselineRef =
     useRef<ForegroundDeliveryBaseline | null>(null);
   const backgroundConnectionGenerationRef = useRef<number | null>(null);
+  const pendingForegroundResumeRef = useRef(false);
   const [foregroundGeneration, setForegroundGeneration] = useState(0);
   const [sessionRevision, setSessionRevision] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -353,11 +354,19 @@ export function usePerpsMarketDetailSession({
             connectionGenerationAtForeground,
         };
         backgroundConnectionGenerationRef.current = null;
-        setForegroundGeneration((generation) => generation + 1);
+        pendingForegroundResumeRef.current = true;
       }
     });
     return () => subscription.remove();
   }, [endActiveSession]);
+
+  useEffect(() => {
+    if (!pendingForegroundResumeRef.current) {
+      return;
+    }
+    pendingForegroundResumeRef.current = false;
+    setForegroundGeneration((generation) => generation + 1);
+  }, [marketContextKey]);
 
   useLayoutEffect(() => {
     if (!symbol) {
@@ -367,6 +376,9 @@ export function usePerpsMarketDetailSession({
       return;
     }
     if (AppState.currentState !== 'active') {
+      return;
+    }
+    if (pendingForegroundResumeRef.current) {
       return;
     }
 
