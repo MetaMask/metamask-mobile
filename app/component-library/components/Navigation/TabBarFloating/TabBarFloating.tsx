@@ -18,7 +18,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -33,15 +32,11 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { colorWithOpacity } from '../../../../util/colors';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
-import { getDecimalChainId } from '../../../../util/networks';
-import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
-import { selectChainId } from '../../../../selectors/networkController';
 import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
-import { TabBarProps, TabBarIconKey } from '../TabBar/TabBar.types';
+import { TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import {
@@ -78,8 +73,6 @@ const TabBarFloating = ({
 }: TabBarFloatingProps) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const chainId = useSelector(selectChainId);
   const { navigateToMoneyHome } = useMoneyNavigation();
 
   const handleLayout = useCallback(
@@ -245,19 +238,6 @@ const TabBarFloating = ({
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
             break;
-          case Routes.MODAL.WALLET_ACTIONS:
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.MODAL.WALLET_ACTIONS,
-            });
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
-                .addProperties({
-                  text: '',
-                  chain_id: getDecimalChainId(chainId),
-                })
-                .build(),
-            );
-            break;
         }
       };
 
@@ -281,9 +261,6 @@ const TabBarFloating = ({
       state.index,
       navigation,
       navigateToMoneyHome,
-      trackEvent,
-      createEventBuilder,
-      chainId,
     ],
   );
 
@@ -324,7 +301,7 @@ const TabBarFloating = ({
             ]}
             testID={TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT}
           />
-          {state.routes.map(renderTabBarItem)}
+          {state.routes.map((route, index) => renderTabBarItem(route, index))}
         </Box>
         <ButtonIcon
           iconName={IconName.Search}
