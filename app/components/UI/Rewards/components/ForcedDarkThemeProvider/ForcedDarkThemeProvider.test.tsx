@@ -3,13 +3,11 @@ import { Appearance, Platform, StatusBar, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { resolveDarkTheme } from '@metamask/design-tokens';
+import { darkTheme } from '@metamask/design-tokens';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
 import ForcedDarkThemeProvider from './ForcedDarkThemeProvider';
 import { Theme as DesignSystemTheme } from '@metamask/design-system-twrnc-preset';
-
-const resolvedDarkTheme = resolveDarkTheme(true);
 
 const mockDesignSystemThemeProvider = jest.fn(
   ({ children }: { children: React.ReactNode }) => children,
@@ -81,7 +79,7 @@ describe('ForcedDarkThemeProvider', () => {
     );
     expect(getByTestId('appearance')).toHaveTextContent(AppThemeKey.dark);
     expect(getByTestId('background')).toHaveTextContent(
-      resolvedDarkTheme.colors.background.default,
+      darkTheme.colors.background.default,
     );
   });
 

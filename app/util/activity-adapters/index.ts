@@ -20,6 +20,10 @@ export {
   enrichLocalActivity,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
+export {
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from './adapters/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';

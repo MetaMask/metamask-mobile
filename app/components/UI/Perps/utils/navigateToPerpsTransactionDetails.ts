@@ -35,22 +35,18 @@ function getPerpsActivityMappingIds(isTestnet: boolean): {
 export function navigateToPerpsTransactionDetails(
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   transaction: PerpsTransaction,
-  isTransactionsRedesignEnabled: boolean,
   isTestnet: boolean,
 ): void {
-  if (isTransactionsRedesignEnabled) {
-    const { chainId, collateralAssetId } =
-      getPerpsActivityMappingIds(isTestnet);
-    const item = mapPerpsTransaction({
-      transaction,
-      chainId,
-      collateralAssetId,
-    });
-    const detailsRoute = item ? getActivityDetailsRoute(item) : null;
-    if (detailsRoute) {
-      navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-      return;
-    }
+  const { chainId, collateralAssetId } = getPerpsActivityMappingIds(isTestnet);
+  const item = mapPerpsTransaction({
+    transaction,
+    chainId,
+    collateralAssetId,
+  });
+  const detailsRoute = item ? getActivityDetailsRoute(item) : null;
+  if (detailsRoute) {
+    navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+    return;
   }
 
   if (transaction.type === 'trade') {

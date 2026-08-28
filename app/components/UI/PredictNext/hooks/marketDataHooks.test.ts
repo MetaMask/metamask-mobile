@@ -53,6 +53,8 @@ describe('PredictNext market data hooks', () => {
         nextCursor: 'next',
       },
       [],
+      undefined,
+      [],
     );
 
     expect(options.queryKey).toEqual([
@@ -76,6 +78,8 @@ describe('PredictNext market data hooks', () => {
         events: [],
         nextCursor: '',
       },
+      [],
+      undefined,
       [],
     );
 

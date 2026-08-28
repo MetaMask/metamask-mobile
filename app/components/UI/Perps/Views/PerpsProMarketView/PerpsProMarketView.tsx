@@ -439,7 +439,6 @@ const PerpsProMarketView = () => {
             key={market.symbol}
             initialAsset={market.symbol}
             initialDirection={initialDirection}
-            initialType="market"
             fallbackAmount=""
           >
             <PerpsProMarketLayout

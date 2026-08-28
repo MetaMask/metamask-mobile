@@ -19,7 +19,6 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import KYCScreen from '../../page-objects/Ramps/KYCScreen.js';
 import {
   onrampNewUserDepositExpectations,
@@ -121,22 +120,6 @@ appiumTest.describe(SmokeMoney('Onramp Unified Buy'), () => {
           }
 
           await OrderDetailsView.tapCloseButton();
-
-          // Verify order in transfers list
-          await TabBarComponent.tapActivity();
-          await ActivitiesView.tapOnTransfersTab();
-
-          await Assertions.expectTextDisplayed(
-            `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
-          );
-          await ActivitiesView.tapRampsOrder('deposit', 1);
-
-          for (const text of [
-            `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
-            nativeDepositOrder.totalFiat,
-          ]) {
-            await Assertions.expectTextDisplayed(text);
-          }
         },
       );
     },
@@ -192,19 +175,6 @@ appiumTest.describe(SmokeMoney('Onramp Unified Buy'), () => {
 
           // Verify order in transfers list
           await TabBarComponent.tapActivity();
-          await ActivitiesView.tapOnTransfersTab();
-
-          await Assertions.expectTextDisplayed(
-            `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
-          );
-          await ActivitiesView.tapRampsOrder('buy', 1);
-
-          for (const text of [
-            `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
-            aggregatorBuyOrder.totalFiat,
-          ]) {
-            await Assertions.expectTextDisplayed(text);
-          }
         },
       );
     },

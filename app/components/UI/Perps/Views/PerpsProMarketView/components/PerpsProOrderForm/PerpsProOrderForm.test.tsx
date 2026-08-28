@@ -11,6 +11,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
+import { strings } from '../../../../../../../../locales/i18n';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
@@ -19,7 +20,6 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
-import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -102,6 +102,9 @@ const createProps = (
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
+const getMountedInput = (testID: string) =>
+  screen.getByTestId(testID, { includeHiddenElements: true });
+
 describe('PerpsProOrderForm', () => {
   beforeEach(() => {
     jest.mocked(playImpact).mockClear();
@@ -126,7 +129,7 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceChange = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceChange });
 
-      fireEvent.changeText(screen.getByTestId(ids.LIMIT_PRICE_INPUT), '.123');
+      fireEvent.changeText(getMountedInput(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
     });
@@ -134,7 +137,7 @@ describe('PerpsProOrderForm', () => {
     it('omits the Mid chip when onUseMidPricePress is not provided', () => {
       renderForm({ orderType: 'limit' });
 
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
       expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
     });
 
@@ -148,7 +151,7 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceBlur = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceBlur });
 
-      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'blur');
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'blur');
 
       expect(onLimitPriceBlur).toHaveBeenCalledTimes(1);
     });
@@ -157,7 +160,7 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceFocus = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceFocus });
 
-      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'focus');
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'focus');
 
       expect(onLimitPriceFocus).toHaveBeenCalledTimes(1);
     });
@@ -168,7 +171,7 @@ describe('PerpsProOrderForm', () => {
 
       // `pressIn` rather than `focus`: re-tapping a focused input fires no
       // focus event, which is the case this callback exists to cover.
-      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'pressIn');
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'pressIn');
 
       expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -183,11 +186,13 @@ describe('PerpsProOrderForm', () => {
     it('renders limit price input for limit orders', () => {
       renderForm({ orderType: 'limit' });
 
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
     });
 
-    it('renders the dollar prefix for limit prices', () => {
+    it('reveals the dollar prefix after activating a limit price field', () => {
       renderForm({ orderType: 'limit' });
+
+      fireEvent.press(screen.getByTestId(`${ids.LIMIT_PRICE_INPUT}-field`));
 
       expect(screen.getByTestId(ids.LIMIT_PRICE_PREFIX)).toHaveTextContent('$');
     });
@@ -196,6 +201,80 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { orderType: 'market' as const, labels: [] },
+      {
+        orderType: 'limit' as const,
+        labels: [
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+    ])('assigns the $orderType price labels', ({ orderType, labels }) => {
+      renderForm({ orderType });
+
+      const expectedLabels = new Map(
+        labels.map(({ inputID, label }) => [inputID, label]),
+      );
+      for (const inputID of [ids.TRIGGER_PRICE_INPUT, ids.LIMIT_PRICE_INPUT]) {
+        const labelTestID = `${inputID}-label`;
+        const expectedLabel = expectedLabels.get(inputID);
+        if (expectedLabel) {
+          expect(screen.getByTestId(labelTestID)).toHaveTextContent(
+            expectedLabel,
+          );
+        } else {
+          expect(screen.queryByTestId(labelTestID)).not.toBeOnTheScreen();
+        }
+      }
     });
 
     it.each([
@@ -212,8 +291,8 @@ describe('PerpsProOrderForm', () => {
           onUseMidPricePress,
         });
 
-        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
-        expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+        expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
         expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
         expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
           title,
@@ -230,7 +309,7 @@ describe('PerpsProOrderForm', () => {
       (orderType) => {
         renderForm({ orderType });
 
-        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
         expect(
           screen.queryByTestId(ids.LIMIT_PRICE_INPUT),
         ).not.toBeOnTheScreen();
@@ -298,7 +377,7 @@ describe('PerpsProOrderForm', () => {
       const onTriggerPriceChange = jest.fn();
       renderForm({ orderType: 'stop_market', onTriggerPriceChange });
 
-      fireEvent.changeText(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), '.123');
+      fireEvent.changeText(getMountedInput(ids.TRIGGER_PRICE_INPUT), '.123');
 
       expect(onTriggerPriceChange).toHaveBeenCalledWith('.123');
     });
@@ -307,7 +386,7 @@ describe('PerpsProOrderForm', () => {
       const onTriggerPriceBlur = jest.fn();
       renderForm({ orderType: 'take_profit_market', onTriggerPriceBlur });
 
-      fireEvent(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), 'blur');
+      fireEvent(getMountedInput(ids.TRIGGER_PRICE_INPUT), 'blur');
 
       expect(onTriggerPriceBlur).toHaveBeenCalledTimes(1);
     });
@@ -450,8 +529,8 @@ describe('PerpsProOrderForm', () => {
     it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
       renderForm({ orderType: 'stop_market' });
 
-      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         triggerAccessoryID,
       );
@@ -466,7 +545,7 @@ describe('PerpsProOrderForm', () => {
         'inputAccessoryViewID',
         sizeAccessoryID,
       );
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         limitPriceAccessoryID,
       );
