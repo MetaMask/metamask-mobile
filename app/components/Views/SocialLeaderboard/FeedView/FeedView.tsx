@@ -57,7 +57,10 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import FeedAudienceToggle from './components/FeedAudienceToggle';
+import FeedAudienceToggle, {
+  DEFAULT_FEED_AUDIENCE_ORDER,
+  type FeedAudienceOrder,
+} from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
@@ -98,6 +101,12 @@ export interface FeedViewProps {
    */
   isActive?: boolean;
   /**
+   * Audience the feed opens on. Set by the tabs container when an entry point
+   * requests a specific landing scope (TSA-1042 lands the homepage carousel on
+   * the Feed tab with "All" selected). Defaults to `following`.
+   */
+  initialAudience?: FeedAudience;
+  /**
    * Opens the QuickBuy sheet for a spot token. The sheet is hosted by the
    * parent (above the tab `PagerView`) rather than inside this page so it isn't
    * clipped by the pager and can leave the content behind it interactive (no
@@ -134,6 +143,7 @@ export interface FeedViewProps {
  */
 const FeedView: React.FC<FeedViewProps> = ({
   isActive = true,
+  initialAudience = 'following',
   onQuickBuy,
   onSpotAvailabilityChange,
   onScroll,
@@ -150,9 +160,19 @@ const FeedView: React.FC<FeedViewProps> = ({
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
 
-  // Default to "Following": the backend "leaderboard" scope isn't implemented
-  // yet, so the feed opens on the Following scope (the only one the API serves).
-  const [audience, setAudience] = useState<FeedAudience>('following');
+  // Defaults to "Following" unless the entry point requested a landing scope
+  // (see `initialAudience`).
+  const [audience, setAudience] = useState<FeedAudience>(initialAudience);
+  // Keep the preselected audience as the leftmost segment. Read from the
+  // landing audience only (not the live selection) so toggling never reshuffles
+  // the segments under the user's finger.
+  const audienceOrder = useMemo<FeedAudienceOrder>(
+    () =>
+      initialAudience === 'all'
+        ? ['all', 'following']
+        : DEFAULT_FEED_AUDIENCE_ORDER,
+    [initialAudience],
+  );
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
   const audienceRef = useRef(audience);
   const typeFilterRef = useRef(typeFilter);
@@ -507,10 +527,14 @@ const FeedView: React.FC<FeedViewProps> = ({
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
-        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
+        <FeedAudienceToggle
+          value={audience}
+          order={audienceOrder}
+          onChange={handleAudienceChange}
+        />
       </Box>
     ),
-    [typeFilter, audience, handleAudienceChange],
+    [typeFilter, audience, audienceOrder, handleAudienceChange],
   );
 
   const content = useMemo(() => {

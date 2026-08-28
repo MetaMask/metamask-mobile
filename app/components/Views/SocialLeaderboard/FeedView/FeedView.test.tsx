@@ -107,8 +107,12 @@ const buildResult = (
 
 let mockFeedResult: UseTraderFeedResult = buildResult();
 
+const mockUseTraderFeed = jest.fn();
 jest.mock('./hooks/useTraderFeed', () => ({
-  useTraderFeed: () => mockFeedResult,
+  useTraderFeed: (options: unknown) => {
+    mockUseTraderFeed(options);
+    return mockFeedResult;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -155,6 +159,15 @@ jest.mock('../components/Filters', () => {
     },
   };
 });
+
+/** Left-to-right order of the audience toggle segments as rendered. */
+const getAudienceToggleOrder = () =>
+  screen
+    .getAllByRole('button')
+    .map((option) => option.props.testID as string | undefined)
+    .filter((id): id is string =>
+      Boolean(id?.startsWith(`${FeedViewSelectorsIDs.AUDIENCE_TOGGLE}-`)),
+    );
 
 describe('FeedView', () => {
   beforeEach(() => {
@@ -308,6 +321,52 @@ describe('FeedView', () => {
         feed_type_filter: 'all',
       }),
     );
+  });
+
+  it('opens on the Following audience by default', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'following' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+  });
+
+  it('opens on the audience requested by the entry point', () => {
+    renderWithProvider(<FeedView initialAudience="all" />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'all' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.objectContaining({ feed_audience: 'all' }),
+    );
+  });
+
+  it('puts the preselected audience first in the toggle', () => {
+    renderWithProvider(<FeedView initialAudience="all" />);
+
+    const toggleOptions = getAudienceToggleOrder();
+
+    expect(toggleOptions[0]).toBe(getFeedAudienceOptionTestId('all'));
+    expect(toggleOptions[1]).toBe(getFeedAudienceOptionTestId('following'));
+  });
+
+  it('keeps Following first in the toggle by default', () => {
+    renderWithProvider(<FeedView />);
+
+    const toggleOptions = getAudienceToggleOrder();
+
+    expect(toggleOptions[0]).toBe(getFeedAudienceOptionTestId('following'));
+    expect(toggleOptions[1]).toBe(getFeedAudienceOptionTestId('all'));
   });
 
   it('tracks audience filter changes via Trader Feed Interaction', () => {
