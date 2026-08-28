@@ -102,6 +102,56 @@ jobs:
         uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
 
+      - name: Setup Node for shard selection
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download frozen qa-stats timings
+        id: download-timings
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./
+
+      - name: Fetch qa-stats timings fallback
+        if: steps.download-timings.outcome != 'success'
+        run: node .github/scripts/e2e-freeze-timings.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          OUTPUT_PATH: ./e2e-timings.json
+
+      # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
+      - name: Download previous Playwright results (on re-run)
+        if: ${{ github.run_attempt > 1 }}
+        id: download-previous-results
+        continue-on-error: true
+        uses: ./.github/actions/download-e2e-artifact
+        with:
+          name: playwright-json-report-${{ inputs.test-suite-name }}
+          path: ./previous-playwright-json/
+          runner-provider: ${{ inputs.runner_provider }}
+
+      - name: Select specs for this shard (timing bin-pack)
+        id: select-specs
+        run: node .github/scripts/e2e-split-tags-shards.mjs
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+          SPLIT_NUMBER: ${{ inputs.split_number }}
+          TOTAL_SPLITS: ${{ inputs.total_splits }}
+          BASE_DIR: tests/smoke-appium
+          E2E_TIMINGS_PATH: ./e2e-timings.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}
+
       # This workflow mounted no cache volume, so every shard ran a cold
       # `yarn install` (~51s vs 4.2s warm). `.metamask` is the foundryup
       # download cache and lives in the workspace, so only a mount can serve it.
@@ -112,7 +162,7 @@ jobs:
       # WebDriverAgent from node_modules, so it is exposed to that; Android
       # runs no Xcode or Gradle and does not republish node_modules.
       - name: Configure Namespace cache (Android)
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -124,7 +174,7 @@ jobs:
       # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
       # never runs pod install.
       - name: Configure Namespace cache (iOS)
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -133,7 +183,7 @@ jobs:
             .yarn/cache
 
       - name: Setup E2E environment (Android)
-        if: ${{ inputs.platform == 'android' }}
+        if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: android
@@ -148,7 +198,7 @@ jobs:
           runner_provider: ${{ inputs.runner_provider }}
 
       - name: Setup E2E environment (iOS)
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
@@ -160,7 +210,7 @@ jobs:
           runner_provider: ${{ inputs.runner_provider }}
 
       - name: Cache ffmpeg (Homebrew)
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/mms-ffmpeg
@@ -169,12 +219,12 @@ jobs:
             brew-ffmpeg-${{ runner.os }}-
 
       - name: Install ffmpeg for XCUITest screen recording
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         run: bash scripts/e2e/ensure-ffmpeg-ci.sh
         shell: bash
 
       - name: Determine Android artifact paths
-        if: ${{ inputs.platform == 'android' }}
+        if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         id: android-artifacts
         run: |
           if [[ "${{ inputs.build_type }}" == "flask" ]]; then
@@ -190,7 +240,7 @@ jobs:
           fi
 
       - name: Download Android build artifacts (Namespace)
-        if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
         id: download-android-apk-namespace
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -202,6 +252,7 @@ jobs:
           ${{
             inputs.platform == 'android' &&
             inputs.runner_provider == 'namespace' &&
+            steps.select-specs.outputs.spec_count != '0' &&
             steps.download-android-apk-namespace.outcome != 'success'
           }}
         uses: actions/download-artifact@v4
@@ -209,14 +260,14 @@ jobs:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
       - name: Download Android build artifacts (current)
-        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
 
       - name: Download iOS build artifacts (Namespace)
-        if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
         id: download-ios-app-namespace
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -231,6 +282,7 @@ jobs:
           ${{
             inputs.platform == 'ios' &&
             inputs.runner_provider == 'namespace' &&
+            steps.select-specs.outputs.spec_count != '0' &&
             steps.download-ios-app-namespace.outcome != 'success'
           }}
         shell: bash
@@ -240,6 +292,7 @@ jobs:
           ${{
             inputs.platform == 'ios' &&
             inputs.runner_provider == 'namespace' &&
+            steps.select-specs.outputs.spec_count != '0' &&
             steps.download-ios-app-namespace.outcome != 'success'
           }}
         uses: actions/download-artifact@v4
@@ -247,14 +300,14 @@ jobs:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       - name: Download iOS build artifacts (current)
-        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
 
       - name: Restore iOS bundle executable permissions
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         env:
           APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
         run: |
@@ -290,17 +343,17 @@ jobs:
         shell: bash
 
       - name: Resolve XCUITest driver version for WDA cache key
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: xcuitest-version
         run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
 
       - name: Get Xcode version for WDA cache key
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: xcode-version
         run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Restore WDA DerivedData cache
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v4
         with:
           path: ~/appium-wda
@@ -309,7 +362,7 @@ jobs:
             wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Check if WDA is prebuilt
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: wda-prebuilt
         run: |
           WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
@@ -324,7 +377,7 @@ jobs:
         shell: bash
 
       - name: Prepare iOS Appium runner
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: prepare-ios-appium
         timeout-minutes: 30
         run: node scripts/e2e/prepare-ios-appium-runner.mjs
@@ -336,61 +389,8 @@ jobs:
           IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
           IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
 
-      - name: Download frozen qa-stats timings
-        id: download-timings
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: e2e-timings-${{ github.run_id }}
-          path: ./
-
-      - name: Fetch qa-stats timings fallback
-        if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-          OUTPUT_PATH: ./e2e-timings.json
-
-      # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
-      - name: Download previous Playwright results (on re-run) (Namespace)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider == 'namespace' }}
-        id: download-previous-results-namespace
-        continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: ./previous-playwright-json/
-
-      - name: Download previous Playwright results (on re-run) (current)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider != 'namespace' }}
-        id: download-previous-results-current
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: ./previous-playwright-json/
-
-      - name: Select specs for this shard (timing bin-pack)
-        id: select-specs
-        run: node .github/scripts/e2e-split-tags-shards.mjs
-        env:
-          PLATFORM: ${{ inputs.platform }}
-          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
-          SPLIT_NUMBER: ${{ inputs.split_number }}
-          TOTAL_SPLITS: ${{ inputs.total_splits }}
-          BASE_DIR: tests/smoke-appium
-          E2E_TIMINGS_PATH: ./e2e-timings.json
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-          CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          PREVIOUS_RESULTS_PATH: ${{ (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') && './previous-playwright-json' || '' }}
-
       - name: Verify Appium runner connectivity (iOS)
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
         env:
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
@@ -479,83 +479,52 @@ jobs:
             "$report" \
             tests/test-reports/playwright-json/shard-status.json
 
-      - name: Upload Playwright HTML report (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload Playwright HTML report (artifact stores)
+        if: ${{ always() && steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright HTML report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload Playwright JSON report (Namespace)
+      - name: Upload Playwright JSON report (artifact stores)
         # Fixed inner filename (playwright-report.json) for github-tools playwright-test-health-report;
         # suite/shard identity is in the artifact name prefix playwright-json-report-*.
         # Also includes shard-status.json for re-run filtering across attempts.
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        # Dual-uploads non-empty shard reports to GitHub so collect-qa-stats.mjs / e2e-freeze-timings can see it.
+        if: ${{ always() && steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/
           if-no-files-found: ignore
           retention-days: 7
-      # Always upload to GitHub Artifacts too. Namespace storage is invisible to
-      # collect-qa-stats.mjs / e2e-freeze-timings (GitHub API only), which need
-      # these JSON reports to publish e2e_test_times for timing-balanced sharding.
-      - name: Upload Playwright JSON report (GitHub)
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/playwright-json/
-          if-no-files-found: ignore
-          retention-days: 7
-          overwrite: true
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload Appium phase timings (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload Appium phase timings (artifact stores)
+        if: ${{ always() && steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Appium phase timings (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-timings-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-timings/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload failure screen recordings (Namespace)
-        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload failure screen recordings (artifact stores)
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload failure screen recordings (current)
-        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Publish test results to GitHub Checks
-        if: always()
+        if: ${{ always() && steps.select-specs.outputs.spec_count != '0' }}
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: Appium ${{ inputs.test-suite-name }} (${{ inputs.platform }})
@@ -564,9 +533,10 @@ jobs:
           fail-on-error: false
           list-suites: all
           list-tests: failed
+          fail-on-empty: false
 
       - name: Upload fixture validation reports
-        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' }}
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/upload-artifact@v4
         with:
           name: fixture-validation-results-${{ inputs.test-suite-name }}

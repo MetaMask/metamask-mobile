@@ -223,7 +223,7 @@ app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/Engine/controllers/compliance/ @MetaMask/perps
 app/core/Engine/messengers/compliance/ @MetaMask/perps
-app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/core/DeeplinkManager/handlers/intent/handlePerpsUrl.ts @MetaMask/perps
 app/dev-tools/AgenticService/        @MetaMask/perps @MetaMask/mobile-platform
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
@@ -257,7 +257,7 @@ app/components/UI/Predict/                                    @MetaMask/predict
 app/components/UI/PredictNext/                                @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
-app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts @MetaMask/predict
 **/Predict/**                                                 @MetaMask/predict
 **/predict/**                                                 @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
@@ -369,6 +369,7 @@ tests/*.js                                                      @MetaMask/qa
 tests/*.ts                                                      @MetaMask/qa
 tests/api-mocking/                                              @MetaMask/qa
 tests/component-view/                                           @MetaMask/qa
+tests/component-view/renderers/predictNext.ts                   @MetaMask/qa @MetaMask/predict
 tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa
@@ -384,6 +385,8 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
+.github/actions/download-e2e-artifact/                          @MetaMask/qa
+.github/actions/dual-upload-e2e-artifact/                       @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
 .github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa

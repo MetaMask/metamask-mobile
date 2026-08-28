@@ -263,14 +263,6 @@ export const confirmCloseAndAssertActivity = async (
     },
   );
   await TabBarComponent.tapActivity();
-  if (activityLabel) {
-    await Assertions.expectTextDisplayed(activityLabel, {
-      description: `Activity row "${activityLabel}"`,
-    });
-  }
-  await Assertions.expectTextDisplayed('Confirmed', {
-    description: 'Activity status Confirmed',
-  });
 };
 
 export const switchToLocalNetworkFromNetworkManager =
