@@ -20,10 +20,7 @@ import {
   renderComponentViewScreen,
   renderScreenWithRoutes,
 } from '../render';
-import {
-  initialStateActivity,
-  initialStateActivityWithRedesignEnabled,
-} from '../presets/activity';
+import { initialStateActivityWithRedesignEnabled } from '../presets/activity';
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import type { ActivityListItem } from '../../../app/util/activity-adapters';
 import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
@@ -98,7 +95,6 @@ interface RenderActivityListViewWithRoutesOptions
 
 interface RenderActivityViewOptions {
   overrides?: DeepPartial<RootState>;
-  redesignEnabled?: boolean;
 }
 
 interface RenderActivityViewWithRoutesOptions
@@ -151,15 +147,12 @@ export { ActivityDetailsWithProviders };
 function buildActivityState(options: {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;
-  redesignEnabled?: boolean;
 }) {
   if (options.state) {
     return options.state;
   }
 
-  const builder = options.redesignEnabled
-    ? initialStateActivityWithRedesignEnabled()
-    : initialStateActivity();
+  const builder = initialStateActivityWithRedesignEnabled();
   if (options.overrides) {
     builder.withOverrides(options.overrides);
   }
@@ -287,7 +280,6 @@ export function renderActivityView(
 ): ReturnType<typeof renderComponentViewScreen> {
   const state = buildActivityState({
     overrides: options.overrides,
-    redesignEnabled: options.redesignEnabled,
   });
 
   return renderComponentViewScreen(
@@ -302,7 +294,6 @@ export function renderActivityViewWithRoutes(
 ): ReturnType<typeof renderScreenWithRoutes> {
   const state = buildActivityState({
     overrides: options.overrides,
-    redesignEnabled: options.redesignEnabled,
   });
 
   return renderScreenWithRoutes(
@@ -319,7 +310,6 @@ export function renderActivityDetailsView(
   const state = buildActivityState({
     overrides: options.overrides,
     state: options.state,
-    redesignEnabled: true,
   });
 
   return renderScreenWithRoutes(
