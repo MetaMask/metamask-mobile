@@ -1,6 +1,6 @@
 # E2E Test Decision Tree
 
-The following diagram shows the intended decision flow used for Mobile CI (ci.yml) to determine whether E2E tests (and builds) should run, for which platform, and whether AI-powered test selection is applied. It is intended to stay high-level for readability reasons, focusing only on when E2E tests should run.
+The following diagram shows the intended decision flow used for `Mobile CI` (ci.yml) to determine whether E2E tests (and builds) should run, for which platform, and whether AI-powered test selection is applied. It is intended to stay high-level for readability reasons, focusing only on when E2E tests should run.
 
 This diagram is the source of truth for the intended E2E trigger policy. CI should follow this flow, and agents should not modify it unless a human is intentionally changing that policy.
 
