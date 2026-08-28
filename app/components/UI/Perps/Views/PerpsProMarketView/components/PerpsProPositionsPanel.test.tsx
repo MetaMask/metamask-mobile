@@ -235,7 +235,10 @@ describe('PerpsProPositionsPanel', () => {
       { state: { engine: { backgroundState } } },
     );
 
-    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'loading');
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'loading', {
+      positions: 0,
+      orders: 0,
+    });
   });
 
   it('shows the global empty state when there are no positions', () => {

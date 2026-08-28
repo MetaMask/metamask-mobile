@@ -158,10 +158,10 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
-  it('keeps the AdvancedChart WebView instance stable across interval changes', () => {
+  it('resets the AdvancedChart WebView when the interval changes', () => {
     const { rerender } = renderChart();
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|1h|perps');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|1h');
 
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
@@ -179,7 +179,7 @@ describe('PerpsAdvancedChart', () => {
       />,
     );
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|4h|perps');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
   });
 

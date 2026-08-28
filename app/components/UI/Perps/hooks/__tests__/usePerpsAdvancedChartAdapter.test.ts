@@ -306,7 +306,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.realtimeBar).toBeUndefined();
   });
 
-  it('keeps previous candles visible during interval refresh and replaces them when fresh data arrives', () => {
+  it('clears previous candles during interval refresh and loads the new series', () => {
     const { result, rerender } = renderHook(
       ({ interval }) =>
         usePerpsAdvancedChartAdapter({
@@ -325,9 +325,8 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       });
     });
 
-    const previousBars = result.current.ohlcvData;
     expect(result.current.isLoading).toBe(false);
-    expect(previousBars).toEqual([
+    expect(result.current.ohlcvData).toEqual([
       { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
       { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
@@ -336,8 +335,8 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     rerender({ interval: CandlePeriod.FourHours });
 
     expect(mockSubscribe).toHaveBeenCalledTimes(2);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.ohlcvData).toBe(previousBars);
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.ohlcvData).toEqual([]);
     expect(result.current.latestBar).toBeUndefined();
 
     act(() => {
@@ -361,6 +360,41 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
     expect(result.current.visibleToMs).toBe(8000);
     expect(result.current.visibleFromMs).toBe(8000 - fourHourIntervalMs * 45);
+  });
+
+  it('clears retained bars before resolving an empty new interval', () => {
+    const { result, rerender } = renderHook(
+      ({ interval }) =>
+        usePerpsAdvancedChartAdapter({
+          symbol: SYMBOL,
+          interval,
+          visibleCandleCount: 45,
+        }),
+      { initialProps: { interval: INTERVAL } },
+    );
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+
+    rerender({ interval: CandlePeriod.FourHours });
+
+    act(() => {
+      subscribeParams(1).callback({
+        symbol: SYMBOL,
+        interval: CandlePeriod.FourHours,
+        candles: [],
+      });
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.hasCurrentSeriesData).toBe(true);
+    expect(result.current.latestBar).toBeUndefined();
   });
 
   it('clears isLoading when the subscription reports an error', () => {

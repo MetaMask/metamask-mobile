@@ -769,7 +769,7 @@ describe('CandleStreamChannel', () => {
       expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
     });
 
-    it('records the cached delivery to a new subscriber but not the prewarm that filled it', async () => {
+    it('does not count cached replay as a fresh delivery', async () => {
       mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
       subscribeAndCaptureLiveCallbacks();
 
@@ -788,7 +788,7 @@ describe('CandleStreamChannel', () => {
         callback: jest.fn(),
       });
 
-      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(0);
     });
 
     it('does not record the empty delivery from clearCache', () => {

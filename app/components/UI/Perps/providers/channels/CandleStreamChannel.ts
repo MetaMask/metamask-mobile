@@ -13,10 +13,13 @@ import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // Generic subscription parameters
+type CandleDeliverySource = 'cache' | 'fresh';
+
 interface StreamSubscription<T> {
   id: string;
   cacheKey: string; // Associated cacheKey (symbol-interval) for filtering
   callback: (data: T) => void;
+  onDelivery?: (source: CandleDeliverySource) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
@@ -75,6 +78,7 @@ abstract class StreamChannel<T> {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
         subscriber.callback(updates);
+        subscriber.onDelivery?.('fresh');
         subscriber.hasReceivedFirstUpdate = true;
         this.recordDelivery(cacheKey);
         return;
@@ -83,6 +87,7 @@ abstract class StreamChannel<T> {
       // If no throttling, notify immediately
       if (!subscriber.throttleMs) {
         subscriber.callback(updates);
+        subscriber.onDelivery?.('fresh');
         this.recordDelivery(cacheKey);
         return;
       }
@@ -95,6 +100,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
             subscriber.callback(subscriber.pendingUpdate);
+            subscriber.onDelivery?.('fresh');
             subscriber.pendingUpdate = undefined;
             this.recordDelivery(subscriber.cacheKey);
           }
@@ -136,6 +142,7 @@ abstract class StreamChannel<T> {
     // Notify subscribers with cleared data
     this.subscribers.forEach((subscriber) => {
       subscriber.callback(this.getClearedData());
+      subscriber.onDelivery?.('fresh');
     });
   }
 
@@ -346,10 +353,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     interval: CandlePeriod;
     duration: TimeDuration;
     callback: (data: CandleData) => void;
+    onDelivery?: (source: CandleDeliverySource) => void;
     throttleMs?: number;
     onError?: (error: Error) => void;
   }): () => void {
-    const { symbol, interval, callback, throttleMs, onError } = params;
+    const { symbol, interval, callback, onDelivery, throttleMs, onError } =
+      params;
     const cacheKey = this.getCacheKey(symbol, interval);
     const id = Math.random().toString(36);
 
@@ -357,6 +366,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       id,
       cacheKey,
       callback,
+      onDelivery,
       throttleMs,
       hasReceivedFirstUpdate: false,
       onError,
@@ -377,8 +387,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const cached = this.cache.get(cacheKey);
     if (cached && CandleStreamChannel.isCacheFresh(cached)) {
       callback(cached);
+      onDelivery?.('cache');
       subscription.hasReceivedFirstUpdate = true;
-      this.recordDelivery(cacheKey);
     } else if (cached) {
       this.prewarmCandles(symbol, interval, params.duration).catch((error) => {
         DevLogger.log('CandleStreamChannel: Failed to refresh stale cache', {

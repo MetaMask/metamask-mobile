@@ -335,15 +335,22 @@ const PerpsProMarketView = ({
 
   // Same parent-owned merge as Lite: last candle close, overridden by the
   // Advanced Chart latest-bar close while that chart is reporting.
-  const { syncedChartCurrentPrice, setAdvancedChartCurrentPrice } =
-    usePerpsSyncedChartPrice({
-      symbol: market?.symbol || '',
-      interval: selectedCandlePeriod,
-      isAdvancedChartEnabled,
-      marketContextKey,
-      isMarketContextReady,
-    });
-  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const {
+    syncedChartCurrentPrice,
+    setAdvancedChartCurrentPrice,
+    priceDeliveryRevision,
+  } = usePerpsSyncedChartPrice({
+    symbol: market?.symbol || '',
+    interval: selectedCandlePeriod,
+    isAdvancedChartEnabled,
+    marketContextKey,
+    isMarketContextReady,
+  });
+  const {
+    account,
+    isInitialLoading: isLoadingAccount,
+    deliveryRevision: accountDeliveryRevision = 0,
+  } = usePerpsLiveAccount();
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
@@ -438,6 +445,7 @@ const PerpsProMarketView = ({
     onStatsResolved: handleStatsResolvedStateChange,
     sections: detailSections,
     statsState: statsSectionState,
+    positionsOrdersDeliveryRevisions,
   } = usePerpsProSectionReadiness({
     accountState: accountSectionState,
     chartContextKey,
@@ -452,7 +460,12 @@ const PerpsProMarketView = ({
   const detailSession = usePerpsMarketDetailSession({
     mode: 'pro',
     symbol: currentSymbol,
-    selectedCandlePeriod,
+    deliveryRevisions: {
+      account: accountDeliveryRevision,
+      price: priceDeliveryRevision,
+      orders: positionsOrdersDeliveryRevisions?.orders ?? 0,
+      positions: positionsOrdersDeliveryRevisions?.positions ?? 0,
+    },
     configuredChartLibrary,
     renderedChartLibrary: effectiveChartLibrary,
     marketSource: resolveProMarketSource(
@@ -609,6 +622,7 @@ const PerpsProMarketView = ({
           <PerpsProPositionsPanel
             symbol={market.symbol}
             isMarketContextReady={isMarketContextReady}
+            marketContextKey={userSectionContextKey}
             onSelectMarket={handleSelectMarket}
             onHistoryPress={handleHistoryPress}
             onResolvedStateChange={handlePositionsOrdersResolvedStateChange}

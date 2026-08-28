@@ -60,6 +60,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.OneHour,
       duration: TimeDuration.OneDay,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
     });
@@ -111,6 +112,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.OneHour,
       duration: TimeDuration.OneDay,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
     });
@@ -168,6 +170,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.FiveMinutes,
       duration: TimeDuration.OneDay,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
     });
@@ -175,8 +178,10 @@ describe('usePerpsLiveCandles', () => {
 
   it('waits for a new market context before accepting candles', () => {
     const callbacks: ((data: CandleData) => void)[] = [];
-    mockCandleSubscribe.mockImplementation(({ callback }) => {
+    const deliveryCallbacks: ((source: 'cache' | 'fresh') => void)[] = [];
+    mockCandleSubscribe.mockImplementation(({ callback, onDelivery }) => {
       callbacks.push(callback);
+      deliveryCallbacks.push(onDelivery);
       return jest.fn();
     });
 
@@ -192,19 +197,29 @@ describe('usePerpsLiveCandles', () => {
       { initialProps: { enabled: true, resetKey: 'testnet|hyperliquid|1' } },
     );
 
-    act(() => callbacks[0](mockCandleData));
+    act(() => {
+      callbacks[0](mockCandleData);
+      deliveryCallbacks[0]('fresh');
+    });
     expect(result.current.candleData).toBe(mockCandleData);
+    expect(result.current.deliveryRevision).toBe(1);
 
     rerender({ enabled: false, resetKey: 'mainnet|hyperliquid|1' });
     expect(result.current.candleData).toBeNull();
+    expect(result.current.deliveryRevision).toBe(1);
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(1);
 
     rerender({ enabled: true, resetKey: 'mainnet|hyperliquid|1' });
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(result.current.candleData).toBeNull();
+    expect(result.current.deliveryRevision).toBe(1);
 
-    act(() => callbacks[1](mockCandleData));
+    act(() => {
+      callbacks[1](mockCandleData);
+      deliveryCallbacks[1]('fresh');
+    });
     expect(result.current.candleData).toBe(mockCandleData);
+    expect(result.current.deliveryRevision).toBe(2);
   });
 
   it('handles empty symbol gracefully', () => {
@@ -338,6 +353,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.OneHour,
       duration: TimeDuration.OneDay,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
     });
@@ -421,6 +437,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.OneHour,
       duration: TimeDuration.OneWeek,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
       onError: expect.any(Function),
     });
@@ -443,6 +460,7 @@ describe('usePerpsLiveCandles', () => {
       interval: CandlePeriod.OneHour,
       duration: TimeDuration.OneDay,
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 2000,
       onError: expect.any(Function),
     });

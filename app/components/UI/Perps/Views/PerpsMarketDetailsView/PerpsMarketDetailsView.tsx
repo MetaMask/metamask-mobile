@@ -516,8 +516,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
   // Get real-time open orders via WebSocket
-  const { orders: ordersData, isInitialLoading: areOrdersInitiallyLoading } =
-    usePerpsLiveOrders({});
+  const {
+    orders: ordersData,
+    isInitialLoading: areOrdersInitiallyLoading,
+    deliveryRevision: ordersDeliveryRevision = 0,
+  } = usePerpsLiveOrders({});
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
@@ -616,6 +619,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     fetchMoreHistory,
     syncedChartCurrentPrice,
     setAdvancedChartCurrentPrice,
+    priceDeliveryRevision,
   } = usePerpsSyncedChartPrice({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
@@ -652,12 +656,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     isLoading: isLoadingPosition,
     existingPosition,
     positionOpenedTimestamp,
+    deliveryRevision: positionsDeliveryRevision,
   } = useHasExistingPosition({
     asset: market?.symbol || '',
     loadOnMount: true,
   });
 
-  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const {
+    account,
+    isInitialLoading: isLoadingAccount,
+    deliveryRevision: accountDeliveryRevision = 0,
+  } = usePerpsLiveAccount();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -1019,7 +1028,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const detailSession = usePerpsMarketDetailSession({
     mode: 'lite',
     symbol: market?.symbol,
-    selectedCandlePeriod,
+    deliveryRevisions: {
+      account: accountDeliveryRevision,
+      orders: ordersDeliveryRevision,
+      positions: positionsDeliveryRevision,
+      price: priceDeliveryRevision,
+    },
     configuredChartLibrary,
     renderedChartLibrary: chartLibrary,
     marketSource: detailMarketSource,

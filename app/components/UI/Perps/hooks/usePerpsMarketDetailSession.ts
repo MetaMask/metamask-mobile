@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
-import type { CandlePeriod } from '@metamask/perps-controller';
 import performance from 'react-native-performance';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,19 +30,18 @@ import { buildPerpsCufStartTags } from '../utils/perpsCufTrace';
 import { PERPS_LOADING_SESSION_TIMEOUT_MS } from '../utils/perpsLoadingSession';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
 import {
-  getStreamDeliveryRevisions,
   hasFreshLiveDelivery,
   hasFreshSectionDelivery,
   PERPS_MARKET_DETAIL_SECTION,
   resolveGenerationTrigger,
   roundedOffsets,
   type DetailDeliveryEvidence,
+  type DetailDeliveryRevisions,
   type DetailGenerationIdentity,
   type PerpsMarketDetailGenerationTrigger,
   type PerpsMarketDetailMode,
   type PerpsMarketDetailSection,
   type PerpsMarketDetailSections,
-  type SelectedCandleKey,
 } from './perpsMarketDetailSessionState';
 
 export {
@@ -90,7 +88,7 @@ type ForegroundDeliveryBaseline = Required<
 interface UsePerpsMarketDetailSessionOptions {
   mode: PerpsMarketDetailMode;
   symbol?: string;
-  selectedCandlePeriod?: CandlePeriod;
+  deliveryRevisions: DetailDeliveryRevisions;
   configuredChartLibrary: string;
   renderedChartLibrary: string;
   marketSource: 'route' | 'stream_enrichment' | 'unknown';
@@ -126,7 +124,7 @@ interface EndSessionOptions {
 export function usePerpsMarketDetailSession({
   mode,
   symbol,
-  selectedCandlePeriod,
+  deliveryRevisions,
   configuredChartLibrary,
   renderedChartLibrary,
   marketSource,
@@ -144,6 +142,8 @@ export function usePerpsMarketDetailSession({
   const activeSessionRef = useRef<ActiveDetailSession | null>(null);
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
+  const deliveryRevisionsRef = useRef(deliveryRevisions);
+  deliveryRevisionsRef.current = deliveryRevisions;
   const renderedChartLibraryRef = useRef(renderedChartLibrary);
   renderedChartLibraryRef.current = renderedChartLibrary;
   const marketSourceRef = useRef(marketSource);
@@ -174,19 +174,7 @@ export function usePerpsMarketDetailSession({
         .join('|'),
     [sections],
   );
-  const selectedCandleKey: SelectedCandleKey | undefined = useMemo(
-    () =>
-      symbol && selectedCandlePeriod
-        ? { symbol, interval: selectedCandlePeriod }
-        : undefined,
-    [selectedCandlePeriod, symbol],
-  );
-  const selectedCandleKeyRef = useRef(selectedCandleKey);
-  selectedCandleKeyRef.current = selectedCandleKey;
-  const previousCandlePeriodRef = useRef(selectedCandlePeriod);
-  const streamDeliveryRevisionsKey = Object.values(
-    getStreamDeliveryRevisions(selectedCandleKey),
-  ).join('|');
+  const deliveryRevisionsKey = Object.values(deliveryRevisions).join('|');
   const generationIdentity: DetailGenerationIdentity | null = symbol
     ? {
         address,
@@ -252,7 +240,6 @@ export function usePerpsMarketDetailSession({
     key: '',
     evidence: {
       requiresConnectionGenerationAdvance: false,
-      requiresCandleFreshness: true,
     },
   });
   if (liveDeliveryEvidenceRef.current.key !== liveResetKey) {
@@ -264,7 +251,7 @@ export function usePerpsMarketDetailSession({
       generationTrigger === 'account_switch' ||
       generationTrigger === 'network_switch'
         ? {
-            deliveryBaselines: getStreamDeliveryRevisions(selectedCandleKey),
+            deliveryBaselines: deliveryRevisions,
             connectionGenerationBaseline:
               PerpsConnectionManager.getConnectionGeneration(),
           }
@@ -275,13 +262,12 @@ export function usePerpsMarketDetailSession({
         ...(foregroundBaseline ?? contextSwitchBaseline ?? {}),
         requiresConnectionGenerationAdvance:
           generationTrigger === 'background_resume',
-        requiresCandleFreshness: true,
       },
     };
   }
   const isLiveDeliveryFresh = hasFreshLiveDelivery(
     liveDeliveryEvidenceRef.current.evidence,
-    selectedCandleKey,
+    deliveryRevisions,
   );
 
   const endActiveSession = useCallback(
@@ -355,9 +341,7 @@ export function usePerpsMarketDetailSession({
         const connectionGenerationAtForeground =
           PerpsConnectionManager.getConnectionGeneration();
         foregroundDeliveryBaselineRef.current = {
-          deliveryBaselines: getStreamDeliveryRevisions(
-            selectedCandleKeyRef.current,
-          ),
+          deliveryBaselines: deliveryRevisionsRef.current,
           connectionGenerationBaseline:
             backgroundConnectionGenerationRef.current ??
             connectionGenerationAtForeground,
@@ -502,27 +486,6 @@ export function usePerpsMarketDetailSession({
     );
   }, [marketSource]);
 
-  // A mid-session interval switch replaces the series the chart section proves
-  // itself with, so only that field is rebaselined — every other section keeps
-  // the generation baseline it is already being judged against. Declared ahead
-  // of the section-recording effect so the switch never lets the new interval
-  // inherit the previous interval's delivery evidence.
-  useEffect(() => {
-    const session = activeSessionRef.current;
-    if (
-      !session?.deliveryBaselines ||
-      previousCandlePeriodRef.current === selectedCandlePeriod
-    ) {
-      previousCandlePeriodRef.current = selectedCandlePeriod;
-      return;
-    }
-    previousCandlePeriodRef.current = selectedCandlePeriod;
-    session.deliveryBaselines = {
-      ...session.deliveryBaselines,
-      candles: getStreamDeliveryRevisions(selectedCandleKeyRef.current).candles,
-    };
-  }, [selectedCandlePeriod]);
-
   useEffect(() => {
     const session = activeSessionRef.current;
     if (
@@ -550,10 +513,9 @@ export function usePerpsMarketDetailSession({
           !hasFreshSectionDelivery(
             section,
             session.deliveryBaselines,
+            deliveryRevisionsRef.current,
             session.connectionGenerationBaseline,
             session.requiresConnectionGenerationAdvance,
-            session.requiresCandleFreshness,
-            selectedCandleKey,
           ))
       ) {
         continue;
@@ -611,9 +573,8 @@ export function usePerpsMarketDetailSession({
     isUserContextReady,
     mode,
     sectionStatesKey,
-    selectedCandleKey,
     sessionRevision,
-    streamDeliveryRevisionsKey,
+    deliveryRevisionsKey,
     symbol,
   ]);
 

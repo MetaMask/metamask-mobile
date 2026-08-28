@@ -17,7 +17,13 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
@@ -79,8 +85,10 @@ interface PerpsProPositionsPanelProps {
   onResolvedStateChange?: (
     symbol: string,
     state: PerpsMarketDetailSectionState,
+    deliveryRevisions: { positions: number; orders: number },
   ) => void;
   isMarketContextReady?: boolean;
+  marketContextKey?: string;
 }
 
 /**
@@ -102,6 +110,7 @@ const PerpsProPositionsPanel = ({
   onHistoryPress,
   onResolvedStateChange,
   isMarketContextReady = true,
+  marketContextKey = '',
 }: PerpsProPositionsPanelProps) => {
   const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -130,12 +139,22 @@ const PerpsProPositionsPanel = ({
     },
     [isTickerOnly, playSelection],
   );
-  const { positions, isInitialLoading } = usePerpsLivePositions({
-    throttleMs: 1000,
-    useLivePnl: true,
-  });
-  const { orders, isInitialLoading: areOrdersInitiallyLoading } =
-    usePerpsLiveOrders({ throttleMs: 1000 });
+  const {
+    positions,
+    isInitialLoading,
+    deliveryRevision: positionsDeliveryRevision = 0,
+  } = usePerpsLivePositions({ throttleMs: 1000, useLivePnl: true });
+  const {
+    orders,
+    isInitialLoading: areOrdersInitiallyLoading,
+    deliveryRevision: ordersDeliveryRevision = 0,
+  } = usePerpsLiveOrders({ throttleMs: 1000 });
+  const deliveryBaselineRef = useRef<{
+    contextKey: string;
+    positions: number;
+    orders: number;
+    requiresFreshDelivery: boolean;
+  } | null>(null);
   const {
     handleClosePosition,
     handleReversePosition,
@@ -158,25 +177,57 @@ const PerpsProPositionsPanel = ({
   const { markets } = usePerpsMarkets();
 
   useEffect(() => {
+    const deliveryRevisions = {
+      positions: positionsDeliveryRevision,
+      orders: ordersDeliveryRevision,
+    };
+    const previousBaseline = deliveryBaselineRef.current;
+    if (previousBaseline?.contextKey !== marketContextKey) {
+      deliveryBaselineRef.current = {
+        contextKey: marketContextKey,
+        ...deliveryRevisions,
+        requiresFreshDelivery: previousBaseline !== null,
+      };
+      if (previousBaseline !== null) {
+        onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+        return;
+      }
+    }
     if (!isMarketContextReady) {
-      onResolvedStateChange?.(symbol, 'loading');
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
       return;
     }
     if (isInitialLoading || areOrdersInitiallyLoading) {
-      onResolvedStateChange?.(symbol, 'loading');
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
       return;
+    }
+    const baseline = deliveryBaselineRef.current;
+    if (
+      baseline?.requiresFreshDelivery &&
+      (positionsDeliveryRevision <= baseline.positions ||
+        ordersDeliveryRevision <= baseline.orders)
+    ) {
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+      return;
+    }
+    if (baseline) {
+      baseline.requiresFreshDelivery = false;
     }
     onResolvedStateChange?.(
       symbol,
       positions.length > 0 || orders.length > 0 ? 'content' : 'empty',
+      deliveryRevisions,
     );
   }, [
     areOrdersInitiallyLoading,
     isInitialLoading,
     isMarketContextReady,
+    marketContextKey,
     onResolvedStateChange,
     orders.length,
+    ordersDeliveryRevision,
     positions.length,
+    positionsDeliveryRevision,
     symbol,
   ]);
 

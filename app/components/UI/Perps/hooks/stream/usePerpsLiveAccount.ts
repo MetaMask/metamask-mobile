@@ -17,6 +17,8 @@ export interface UsePerpsLiveAccountReturn {
   account: AccountState | null;
   /** Whether we're waiting for the first real WebSocket data */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -50,6 +52,7 @@ export function usePerpsLiveAccount(
     const hasCached = hasPreloadedData('cachedAccountState');
     return !hasCached;
   });
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
 
   useEffect(() => {
     if (!enabled || !streamManager) return;
@@ -68,6 +71,11 @@ export function usePerpsLiveAccount(
 
     const unsubscribe = streamManager.account.subscribe({
       callback: handleAccountUpdate,
+      onDelivery: (source) => {
+        if (source !== 'cache') {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+      },
       throttleMs,
     });
 
@@ -78,5 +86,6 @@ export function usePerpsLiveAccount(
   return {
     account: identityMatches ? account : null,
     isInitialLoading: !identityMatches || isInitialLoading,
+    deliveryRevision,
   };
 }

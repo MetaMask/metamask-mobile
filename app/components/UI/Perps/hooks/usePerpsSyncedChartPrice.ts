@@ -26,6 +26,8 @@ export interface UsePerpsSyncedChartPriceResult {
    */
   syncedChartCurrentPrice: number;
   setAdvancedChartCurrentPrice: (price: number | undefined) => void;
+  /** Deliveries accepted by the selected candle subscription. */
+  priceDeliveryRevision: number;
 }
 
 /**
@@ -42,15 +44,20 @@ export function usePerpsSyncedChartPrice({
   marketContextKey = '',
   isMarketContextReady = true,
 }: UsePerpsSyncedChartPriceParams): UsePerpsSyncedChartPriceResult {
-  const { candleData, isLoading, hasHistoricalData, fetchMoreHistory } =
-    usePerpsLiveCandles({
-      symbol,
-      interval,
-      duration: TimeDuration.YearToDate,
-      throttleMs: 1000,
-      resetKey: marketContextKey,
-      enabled: isMarketContextReady,
-    });
+  const {
+    candleData,
+    isLoading,
+    hasHistoricalData,
+    fetchMoreHistory,
+    deliveryRevision: priceDeliveryRevision = 0,
+  } = usePerpsLiveCandles({
+    symbol,
+    interval,
+    duration: TimeDuration.YearToDate,
+    throttleMs: 1000,
+    resetKey: marketContextKey,
+    enabled: isMarketContextReady,
+  });
 
   const chartCurrentPrice = useMemo(() => {
     if (
@@ -102,5 +109,6 @@ export function usePerpsSyncedChartPrice({
     fetchMoreHistory,
     syncedChartCurrentPrice,
     setAdvancedChartCurrentPrice,
+    priceDeliveryRevision,
   };
 }

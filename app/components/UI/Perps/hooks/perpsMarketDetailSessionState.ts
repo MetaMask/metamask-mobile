@@ -1,5 +1,3 @@
-import type { CandlePeriod } from '@metamask/perps-controller';
-import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 export const PERPS_MARKET_DETAIL_SECTION = {
@@ -51,19 +49,11 @@ export interface DetailGenerationIdentity {
   symbol: string;
 }
 
-export interface StreamDeliveryRevisions {
+export interface DetailDeliveryRevisions {
   account: number;
-  candles: number;
-  focusedPrice: number;
+  price: number;
   orders: number;
   positions: number;
-  prices: number;
-}
-
-/** The symbol+interval whose candle deliveries prove chart readiness. */
-export interface SelectedCandleKey {
-  symbol: string;
-  interval: CandlePeriod;
 }
 
 /**
@@ -72,10 +62,9 @@ export interface SelectedCandleKey {
  * report the same readiness.
  */
 export interface DetailDeliveryEvidence {
-  deliveryBaselines?: StreamDeliveryRevisions;
+  deliveryBaselines?: DetailDeliveryRevisions;
   connectionGenerationBaseline?: number;
   requiresConnectionGenerationAdvance: boolean;
-  requiresCandleFreshness: boolean;
 }
 
 /** Sections the `PerpsMarketDetailLive` trace waits on. */
@@ -129,33 +118,14 @@ export const roundedOffsets = (
     ]),
   );
 
-export const getStreamDeliveryRevisions = (
-  selectedCandle?: SelectedCandleKey,
-): StreamDeliveryRevisions => {
-  const stream = getStreamManagerInstance();
-  return {
-    account: stream.account.getDeliveryRevision(),
-    candles: stream.candles.getDeliveryRevision(
-      selectedCandle?.symbol,
-      selectedCandle?.interval,
-    ),
-    focusedPrice: stream.focusedPrice.getDeliveryRevision(),
-    orders: stream.orders.getDeliveryRevision(),
-    positions: stream.positions.getDeliveryRevision(),
-    prices: stream.prices.getDeliveryRevision(),
-  };
-};
-
 export function hasFreshSectionDelivery(
   section: PerpsMarketDetailSection,
-  baseline: StreamDeliveryRevisions | undefined,
+  baseline: DetailDeliveryRevisions | undefined,
+  current: DetailDeliveryRevisions,
   connectionGenerationBaseline: number | undefined,
   requiresConnectionGenerationAdvance: boolean,
-  requiresCandleFreshness: boolean,
-  selectedCandle?: SelectedCandleKey,
 ): boolean {
   if (!baseline) return true;
-  const current = getStreamDeliveryRevisions(selectedCandle);
   const generation = PerpsConnectionManager.getConnectionGeneration();
   const connectionFresh =
     connectionGenerationBaseline !== undefined &&
@@ -164,20 +134,10 @@ export function hasFreshSectionDelivery(
       : generation >= connectionGenerationBaseline);
   switch (section) {
     case PERPS_MARKET_DETAIL_SECTION.PRICE:
-      return (
-        connectionFresh &&
-        (current.focusedPrice > baseline.focusedPrice ||
-          current.prices > baseline.prices)
-      );
     case PERPS_MARKET_DETAIL_SECTION.CHART:
-      return (
-        !requiresCandleFreshness ||
-        (connectionFresh && current.candles > baseline.candles)
-      );
+      return connectionFresh && current.price > baseline.price;
     case PERPS_MARKET_DETAIL_SECTION.ACCOUNT:
       return connectionFresh && current.account > baseline.account;
-    case PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK:
-      return true;
     case PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS:
       return (
         connectionFresh &&
@@ -197,17 +157,16 @@ export function hasFreshSectionDelivery(
  */
 export function hasFreshLiveDelivery(
   evidence: DetailDeliveryEvidence,
-  selectedCandle?: SelectedCandleKey,
+  current: DetailDeliveryRevisions,
 ): boolean {
   if (!evidence.deliveryBaselines) return true;
   return MARKET_DETAIL_LIVE_SECTIONS.every((section) =>
     hasFreshSectionDelivery(
       section,
       evidence.deliveryBaselines,
+      current,
       evidence.connectionGenerationBaseline,
       evidence.requiresConnectionGenerationAdvance,
-      evidence.requiresCandleFreshness,
-      selectedCandle,
     ),
   );
 }

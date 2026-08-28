@@ -13,6 +13,7 @@ type ResolvedSections = Partial<
       symbol: string;
       state: PerpsMarketDetailSectionState;
       contextKey?: string;
+      deliveryRevisions?: { positions: number; orders: number };
     }
   >
 >;
@@ -50,19 +51,23 @@ export function usePerpsProSectionReadiness({
       symbol: string,
       state: PerpsMarketDetailSectionState,
       contextKey?: string,
+      deliveryRevisions?: { positions: number; orders: number },
     ) => {
       setResolvedSections((current) => {
         const previous = current[section];
         if (
           previous?.symbol === symbol &&
           previous.state === state &&
-          previous.contextKey === contextKey
+          previous.contextKey === contextKey &&
+          previous.deliveryRevisions?.positions ===
+            deliveryRevisions?.positions &&
+          previous.deliveryRevisions?.orders === deliveryRevisions?.orders
         ) {
           return current;
         }
         return {
           ...current,
-          [section]: { symbol, state, contextKey },
+          [section]: { symbol, state, contextKey, deliveryRevisions },
         };
       });
     },
@@ -103,10 +108,28 @@ export function usePerpsProSectionReadiness({
     [marketContextKey, updateResolvedSection],
   );
   const onPositionsOrdersResolved = useCallback(
-    (symbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection('positions_orders', symbol, state, userContextKey),
+    (
+      symbol: string,
+      state: PerpsMarketDetailSectionState,
+      deliveryRevisions: { positions: number; orders: number },
+    ) =>
+      updateResolvedSection(
+        'positions_orders',
+        symbol,
+        state,
+        userContextKey,
+        deliveryRevisions,
+      ),
     [updateResolvedSection, userContextKey],
   );
+
+  const positionsOrdersResolution = resolvedSections.positions_orders;
+  const positionsOrdersDeliveryRevisions =
+    positionsOrdersResolution &&
+    positionsOrdersResolution.symbol === currentSymbol &&
+    positionsOrdersResolution.contextKey === userContextKey
+      ? positionsOrdersResolution.deliveryRevisions
+      : undefined;
 
   const statsState = stateForCurrentSymbol('stats', marketContextKey);
   const sections = useMemo<PerpsMarketDetailSections>(
@@ -147,6 +170,7 @@ export function usePerpsProSectionReadiness({
     onOrderBookResolved,
     onPositionsOrdersResolved,
     onStatsResolved,
+    positionsOrdersDeliveryRevisions,
     sections,
     statsState,
   };

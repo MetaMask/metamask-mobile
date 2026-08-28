@@ -121,7 +121,6 @@ export function usePerpsAdvancedChartAdapter({
   const hasReceivedFirstUpdateRef = useRef(false);
   /** True once this chart has rendered at least one valid candle batch. */
   const hasLoadedBarsRef = useRef(false);
-  const previousSymbolRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!symbol || typeof stream.candles.prewarmCandles !== 'function') {
@@ -142,16 +141,11 @@ export function usePerpsAdvancedChartAdapter({
   }, [symbol, stream]);
 
   useEffect(() => {
-    const isIntervalRefresh =
-      previousSymbolRef.current === symbol && hasLoadedBarsRef.current;
-    previousSymbolRef.current = symbol;
-
-    // Reset on symbol change; keep the existing chart visible during interval refresh.
-    setIsLoading(!isIntervalRefresh);
-    if (!isIntervalRefresh) {
-      setOhlcvData([]);
-      hasLoadedBarsRef.current = false;
-    }
+    // The WebView remounts for each symbol+interval. Clear the prior series
+    // before that instance loads so an empty response cannot leave old bars.
+    setIsLoading(true);
+    setOhlcvData([]);
+    hasLoadedBarsRef.current = false;
     setRealtimeBar(undefined);
     setLatestBarSeriesKey(undefined);
     prevLastBarRef.current = null;
@@ -187,7 +181,6 @@ export function usePerpsAdvancedChartAdapter({
         latestCandleDataRef.current = candleData;
 
         const converted = convertCandlesToOHLCVBars(candleData.candles);
-        setLatestBarSeriesKey(`${symbol}|${interval}`);
 
         // Clear the skeleton on the first delivery for this subscription, even if the
         // frame is empty (matches usePerpsLiveCandles). Otherwise an empty initial frame
@@ -197,7 +190,12 @@ export function usePerpsAdvancedChartAdapter({
           setIsLoading(false);
         }
 
-        if (converted.length === 0) return;
+        if (converted.length === 0) {
+          setOhlcvData([]);
+          setLatestBarSeriesKey(`${symbol}|${interval}`);
+          hasLoadedBarsRef.current = false;
+          return;
+        }
 
         const lastBar = converted[converted.length - 1];
         const prev = prevLastBarRef.current;

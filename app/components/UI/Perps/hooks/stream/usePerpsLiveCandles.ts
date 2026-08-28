@@ -45,6 +45,8 @@ export interface UsePerpsLiveCandlesReturn {
   error: Error | null;
   /** Fetch more historical candles before the current oldest candle */
   fetchMoreHistory: () => Promise<void>;
+  /** Deliveries accepted by this exact symbol+interval subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -85,6 +87,7 @@ export function usePerpsLiveCandles(
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
@@ -141,6 +144,11 @@ export function usePerpsLiveCandles(
           }
 
           setCandleData(newCandleData);
+        },
+        onDelivery: (source) => {
+          if (source !== 'cache') {
+            setDeliveryRevision((revision) => revision + 1);
+          }
         },
         throttleMs,
         onError: (err: Error) => {
@@ -246,5 +254,6 @@ export function usePerpsLiveCandles(
     hasHistoricalData,
     error,
     fetchMoreHistory,
+    deliveryRevision,
   };
 }
