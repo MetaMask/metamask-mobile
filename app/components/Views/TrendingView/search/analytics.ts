@@ -44,7 +44,7 @@ export type SearchInteractionType =
 export type SearchFeedPill = SearchFeedId | 'all';
 
 /** Surface the user tapped to open search. Only set on `opened`. */
-export type SearchEntryPoint = 'home' | 'explore';
+export type SearchEntryPoint = 'home' | 'explore' | 'nav_bar';
 
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;

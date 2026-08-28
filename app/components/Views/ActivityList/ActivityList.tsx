@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useNavigation } from '@react-navigation/native';
 import type {
   AppNavigationProp,
@@ -1199,9 +1200,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const { bottom: bottomInset } = useSafeAreaInsets();
     const tabBarHeight = useContext(BottomTabBarHeightContext);
+    const floatingTabBarInset = useFloatingTabBarInset();
     const listContentStyle = useMemo(
-      () => ({ paddingBottom: tabBarHeight ? 0 : bottomInset }),
-      [tabBarHeight, bottomInset],
+      () => ({
+        paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
+      }),
+      [floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
     const isPerpsLoading =

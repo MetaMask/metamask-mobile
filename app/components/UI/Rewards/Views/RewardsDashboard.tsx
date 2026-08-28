@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
   Box,
   ButtonIcon,
@@ -68,6 +69,7 @@ const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
@@ -503,6 +505,7 @@ const RewardsDashboard: React.FC = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
+          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
         >
           <Box twClassName="gap-3">
             <CampaignsPreview />

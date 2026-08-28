@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, RefreshControl } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 
 interface ExploreScrollProps {
   refreshing: boolean;
@@ -22,12 +23,13 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const floatingTabBarInset = useFloatingTabBarInset();
 
   return (
     <ScrollView
       testID={testID}
       style={tw.style('flex-1 pt-3')}
-      contentContainerStyle={tw.style('pb-4')}
+      contentContainerStyle={tw.style(`pb-[${16 + floatingTabBarInset}px]`)}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl

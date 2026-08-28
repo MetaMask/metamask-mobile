@@ -71,6 +71,7 @@ import {
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -882,12 +883,19 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  const floatingTabBarInset = useFloatingTabBarInset();
+
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
+      {
+        flex: undefined,
+        flexGrow: 0,
+        overflow: 'visible' as const,
+        paddingBottom: floatingTabBarInset,
+      },
     ],
-    [styles.wrapper],
+    [styles.wrapper, floatingTabBarInset],
   );
 
   const handleRefresh = useCallback(async () => {
