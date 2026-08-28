@@ -90,7 +90,8 @@ describe('usePerpsLiveOrders', () => {
 
   it('updates orders when callback is invoked', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
-    let capturedOnDelivery: (source: 'fresh') => void = jest.fn();
+    let capturedOnDelivery: (source: 'fresh' | 'cache' | 'optimistic') => void =
+      jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
       capturedOnDelivery = params.onDelivery;
@@ -111,6 +112,13 @@ describe('usePerpsLiveOrders', () => {
       mockOrder,
       { ...mockOrder, orderId: 'order-2', symbol: 'ETH-PERP' } as Order,
     ];
+
+    act(() => {
+      capturedCallback(orders);
+      capturedOnDelivery('optimistic');
+    });
+
+    expect(result.current.deliveryRevision).toBe(0);
 
     act(() => {
       capturedCallback(orders);

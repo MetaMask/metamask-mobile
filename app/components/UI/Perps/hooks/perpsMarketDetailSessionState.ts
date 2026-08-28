@@ -44,6 +44,7 @@ export interface DetailGenerationIdentity {
   expectedSectionsKey: string;
   foregroundGeneration: number;
   hip3ConfigVersion: number;
+  marketContextKey: string;
   network: string;
   provider?: string;
   symbol: string;
@@ -93,7 +94,8 @@ export function resolveGenerationTrigger(
   if (
     previous.provider !== current.provider ||
     previous.network !== current.network ||
-    previous.hip3ConfigVersion !== current.hip3ConfigVersion
+    previous.hip3ConfigVersion !== current.hip3ConfigVersion ||
+    previous.marketContextKey !== current.marketContextKey
   ) {
     return 'network_switch';
   }

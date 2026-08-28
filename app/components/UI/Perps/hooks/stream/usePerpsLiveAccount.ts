@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type AccountState } from '@metamask/perps-controller';
@@ -53,12 +53,14 @@ export function usePerpsLiveAccount(
     return !hasCached;
   });
   const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !streamManager) return;
 
     // Mark as no longer loading once we get first update
     const handleAccountUpdate = (newAccount: AccountState | null) => {
+      acceptedDeliveryRef.current = false;
       setAccount(newAccount);
       setAccountAddress(selectedAddress);
       if (newAccount === null) {
@@ -67,14 +69,16 @@ export function usePerpsLiveAccount(
       }
       // Only set loading to false if we have actual data
       setIsInitialLoading(false);
+      acceptedDeliveryRef.current = true;
     };
 
     const unsubscribe = streamManager.account.subscribe({
       callback: handleAccountUpdate,
       onDelivery: (source) => {
-        if (source !== 'cache') {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
           setDeliveryRevision((revision) => revision + 1);
         }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });

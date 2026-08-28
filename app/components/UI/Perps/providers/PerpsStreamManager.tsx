@@ -127,7 +127,7 @@ function clearCapturedLoadingSessionTraceData(traceId: string): void {
   loadingSessionDataByTraceId.delete(traceId);
 }
 
-type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
+type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic' | 'cleared';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -760,7 +760,7 @@ abstract class StreamChannel<T> {
     this.subscribers.forEach((subscriber) => {
       // Send cleared data to indicate "no data yet" (loading state)
       subscriber.callback(this.getClearedData());
-      subscriber.onDelivery?.('fresh');
+      subscriber.onDelivery?.('cleared');
     });
 
     // If we have active subscribers, they'll trigger reconnect in their next render
@@ -2679,7 +2679,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       if (!preserveCache) {
         subscriber.hasReceivedFirstFreshUpdate = false;
         subscriber.callback([]);
-        subscriber.onDelivery?.('fresh');
+        subscriber.onDelivery?.('cleared');
       }
     });
   }

@@ -199,6 +199,13 @@ describe('usePerpsLiveCandles', () => {
 
     act(() => {
       callbacks[0](mockCandleData);
+      deliveryCallbacks[0]('cache');
+    });
+    expect(result.current.candleData).toBe(mockCandleData);
+    expect(result.current.deliveryRevision).toBe(0);
+
+    act(() => {
+      callbacks[0](mockCandleData);
       deliveryCallbacks[0]('fresh');
     });
     expect(result.current.candleData).toBe(mockCandleData);

@@ -89,6 +89,7 @@ export function usePerpsLiveCandles(
   const [error, setError] = useState<Error | null>(null);
   const [deliveryRevision, setDeliveryRevision] = useState(0);
   const hasReceivedFirstUpdate = useRef(false);
+  const acceptedDeliveryRef = useRef(false);
 
   useEffect(() => {
     let isActive = true;
@@ -114,6 +115,7 @@ export function usePerpsLiveCandles(
         interval,
         duration,
         callback: (newCandleData) => {
+          acceptedDeliveryRef.current = false;
           if (!isActive) return;
           // null/undefined means no cached data yet, keep loading state
           if (newCandleData === null || newCandleData === undefined) {
@@ -144,11 +146,13 @@ export function usePerpsLiveCandles(
           }
 
           setCandleData(newCandleData);
+          acceptedDeliveryRef.current = true;
         },
         onDelivery: (source) => {
-          if (source !== 'cache') {
+          if (source === 'fresh' && acceptedDeliveryRef.current) {
             setDeliveryRevision((revision) => revision + 1);
           }
+          acceptedDeliveryRef.current = false;
         },
         throttleMs,
         onError: (err: Error) => {

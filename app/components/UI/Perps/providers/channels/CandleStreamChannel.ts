@@ -13,7 +13,12 @@ import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // Generic subscription parameters
-type CandleDeliverySource = 'cache' | 'fresh';
+type CandleDeliverySource =
+  | 'cache'
+  | 'fresh'
+  | 'historical'
+  | 'prewarm'
+  | 'cleared';
 
 interface StreamSubscription<T> {
   id: string;
@@ -64,7 +69,11 @@ abstract class StreamChannel<T> {
     return this.deliveryRevisions.get(cacheKey) ?? 0;
   }
 
-  protected notifySubscribers(cacheKey: string, updates: T) {
+  protected notifySubscribers(
+    cacheKey: string,
+    updates: T,
+    source: CandleDeliverySource = 'fresh',
+  ) {
     if (this.isPaused) {
       return;
     }
@@ -78,17 +87,21 @@ abstract class StreamChannel<T> {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
         subscriber.callback(updates);
-        subscriber.onDelivery?.('fresh');
+        subscriber.onDelivery?.(source);
         subscriber.hasReceivedFirstUpdate = true;
-        this.recordDelivery(cacheKey);
+        if (source === 'fresh') {
+          this.recordDelivery(cacheKey);
+        }
         return;
       }
 
       // If no throttling, notify immediately
       if (!subscriber.throttleMs) {
         subscriber.callback(updates);
-        subscriber.onDelivery?.('fresh');
-        this.recordDelivery(cacheKey);
+        subscriber.onDelivery?.(source);
+        if (source === 'fresh') {
+          this.recordDelivery(cacheKey);
+        }
         return;
       }
 
@@ -100,9 +113,11 @@ abstract class StreamChannel<T> {
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
             subscriber.callback(subscriber.pendingUpdate);
-            subscriber.onDelivery?.('fresh');
+            subscriber.onDelivery?.(source);
             subscriber.pendingUpdate = undefined;
-            this.recordDelivery(subscriber.cacheKey);
+            if (source === 'fresh') {
+              this.recordDelivery(subscriber.cacheKey);
+            }
           }
           subscriber.timer = undefined;
         }, subscriber.throttleMs);
@@ -142,7 +157,7 @@ abstract class StreamChannel<T> {
     // Notify subscribers with cleared data
     this.subscribers.forEach((subscriber) => {
       subscriber.callback(this.getClearedData());
-      subscriber.onDelivery?.('fresh');
+      subscriber.onDelivery?.('cleared');
     });
   }
 
@@ -775,7 +790,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.cache.set(cacheKey, updatedData);
 
       // Notify all subscribers of the updated data
-      this.notifySubscribers(cacheKey, updatedData);
+      this.notifySubscribers(cacheKey, updatedData, 'historical');
 
       DevLogger.log(
         'CandleStreamChannel: Successfully fetched and merged historical candles',
@@ -892,7 +907,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         );
 
         this.cache.set(cacheKey, warmedData);
-        this.notifySubscribers(cacheKey, warmedData);
+        this.notifySubscribers(cacheKey, warmedData, 'prewarm');
       } catch (error) {
         if (isAbortError(error)) {
           throw error;

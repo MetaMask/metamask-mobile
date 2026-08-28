@@ -36,6 +36,7 @@ jest.mock('../selectors/selectedAccountAddress', () => ({
 }));
 jest.mock('./usePerpsMarketContext', () => ({
   usePerpsMarketContext: () => ({
+    key: `${mockNetwork}|${mockProvider}|${mockConnectionGeneration}`,
     isReady: mockIsMarketContextReady,
     isUserReady: mockIsUserContextReady,
   }),
@@ -352,6 +353,24 @@ describe('usePerpsMarketDetailSession', () => {
       );
     },
   );
+
+  it('restarts readiness for a same-context reconnect', () => {
+    const { result, rerender } = renderSession();
+    jest.clearAllMocks();
+
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(result.current.generationTrigger).toBe('network_switch');
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockDeliveryRevisions.price += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
+  });
 
   it.each([
     ['chart strategy', { configuredChartLibrary: 'advanced' }],

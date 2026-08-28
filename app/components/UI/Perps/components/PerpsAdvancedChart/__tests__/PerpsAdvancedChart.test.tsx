@@ -459,6 +459,7 @@ describe('PerpsAdvancedChart', () => {
       ...mockAdapterResult,
       isLoading: false,
       hasCurrentSeriesData: true,
+      hasCurrentSeriesDelivery: true,
     });
     rerender(
       <PerpsAdvancedChart

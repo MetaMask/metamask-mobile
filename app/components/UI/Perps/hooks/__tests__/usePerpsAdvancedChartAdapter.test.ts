@@ -397,6 +397,30 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.latestBar).toBeUndefined();
   });
 
+  it('loads content after an empty frame for the same interval', () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [],
+      });
+    });
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+    });
+
+    expect(result.current.ohlcvData).toEqual([
+      { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+    ]);
+    expect(result.current.latestBar?.time).toBe(1000);
+  });
+
   it('clears isLoading when the subscription reports an error', () => {
     const { result } = renderAdapter();
 

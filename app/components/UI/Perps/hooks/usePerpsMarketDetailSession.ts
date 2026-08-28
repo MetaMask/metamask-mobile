@@ -137,8 +137,11 @@ export function usePerpsMarketDetailSession({
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
-  const { isReady: isMarketContextReady, isUserReady: isUserContextReady } =
-    usePerpsMarketContext();
+  const {
+    key: marketContextKey,
+    isReady: isMarketContextReady,
+    isUserReady: isUserContextReady,
+  } = usePerpsMarketContext();
   const activeSessionRef = useRef<ActiveDetailSession | null>(null);
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
@@ -184,6 +187,7 @@ export function usePerpsMarketDetailSession({
         expectedSectionsKey,
         foregroundGeneration,
         hip3ConfigVersion,
+        marketContextKey,
         network,
         provider,
         symbol,
@@ -207,6 +211,7 @@ export function usePerpsMarketDetailSession({
         address ?? '',
         provider ?? '',
         network,
+        marketContextKey,
         hip3ConfigVersion,
         configurationKey,
         foregroundGeneration,
@@ -221,6 +226,7 @@ export function usePerpsMarketDetailSession({
       foregroundGeneration,
       hip3ConfigVersion,
       mode,
+      marketContextKey,
       network,
       provider,
       symbol,

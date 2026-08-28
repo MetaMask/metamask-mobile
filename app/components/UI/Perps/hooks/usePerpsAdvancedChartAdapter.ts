@@ -84,6 +84,7 @@ export interface UsePerpsAdvancedChartAdapterResult {
   visibleToMs: number | undefined;
   isLoading: boolean;
   hasCurrentSeriesData?: boolean;
+  hasCurrentSeriesDelivery?: boolean;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -194,6 +195,8 @@ export function usePerpsAdvancedChartAdapter({
           setOhlcvData([]);
           setLatestBarSeriesKey(`${symbol}|${interval}`);
           hasLoadedBarsRef.current = false;
+          prevLastBarRef.current = null;
+          setRealtimeBar(undefined);
           return;
         }
 
@@ -306,6 +309,7 @@ export function usePerpsAdvancedChartAdapter({
     visibleToMs,
     isLoading,
     hasCurrentSeriesData: latestBarSeriesKey === `${symbol}|${interval}`,
+    hasCurrentSeriesDelivery: latestBarSeriesKey === `${symbol}|${interval}`,
     handleFetchOlderBarsRequest,
   };
 }

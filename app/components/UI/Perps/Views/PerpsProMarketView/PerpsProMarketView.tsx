@@ -331,7 +331,7 @@ const PerpsProMarketView = ({
     isUserReady: isUserContextReady,
   } = usePerpsMarketContext();
   const marketSectionContextKey = `${currentSymbol ?? ''}|${marketContextKey}`;
-  const userSectionContextKey = `${marketSectionContextKey}|${selectedAddress ?? ''}`;
+  const userSectionContextKey = `${marketContextKey}|${selectedAddress ?? ''}`;
 
   // Same parent-owned merge as Lite: last candle close, overridden by the
   // Advanced Chart latest-bar close while that chart is reporting.

@@ -231,6 +231,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     visibleToMs,
     isLoading,
     hasCurrentSeriesData = true,
+    hasCurrentSeriesDelivery = false,
     handleFetchOlderBarsRequest,
   } = usePerpsAdvancedChartAdapter({
     symbol,
@@ -445,7 +446,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         reportedResolutionRef.current = resolutionKey;
         onResolved?.(ohlcvSeriesKey, state);
       }
-      settleSignalRef.current = null;
     },
     [
       isLoading,
@@ -458,6 +458,23 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onResolved,
     ],
   );
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      hasCurrentSeriesData &&
+      hasCurrentSeriesDelivery &&
+      ohlcvData.length === 0
+    ) {
+      settleSeries();
+    }
+  }, [
+    hasCurrentSeriesData,
+    hasCurrentSeriesDelivery,
+    isLoading,
+    ohlcvData.length,
+    settleSeries,
+  ]);
 
   const markSeriesSettled = useCallback(
     (payload?: ChartRangeSettlePayload) => {

@@ -126,8 +126,7 @@ export function usePerpsProSectionReadiness({
   const positionsOrdersResolution = resolvedSections.positions_orders;
   const positionsOrdersDeliveryRevisions =
     positionsOrdersResolution &&
-    positionsOrdersResolution.symbol === currentSymbol &&
-    positionsOrdersResolution.contextKey === userContextKey
+    positionsOrdersResolution.symbol === currentSymbol
       ? positionsOrdersResolution.deliveryRevisions
       : undefined;
 
