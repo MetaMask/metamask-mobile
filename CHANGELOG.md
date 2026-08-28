@@ -200,6 +200,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed gas estimation failing on networks whose RPC nodes reject hex values with leading zeros (such as `0x00`) (#34412)
 - Fixed wallet activity push notifications so they are only hidden in the foreground and still appear when the app is backgrounded or closed (#34411)
 
+## [8.8.3]
+
+### Fixed
+
+- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
+
 ## [8.8.2]
 
 ### Fixed
@@ -13610,7 +13616,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.0...HEAD
-[8.9.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.9.0
+[8.9.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.3...v8.9.0
+[8.8.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.8.3
 [8.8.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.1...v8.8.2
 [8.8.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...v8.8.1
 [8.8.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...v8.8.0
