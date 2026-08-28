@@ -14,18 +14,33 @@ import {
   startDeeplinkProcessedTrace,
 } from './DeeplinkPerformance';
 
-jest.mock('../../util/trace', () => ({
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-  TraceName: {
-    DeeplinkProcessed: 'Deeplink Processed',
-    DeeplinkNavigated: 'Deeplink Navigated',
-  },
-  TraceOperation: {
-    DeeplinkPerformance: 'deeplink.performance',
-  },
-  TRACES_CLEANUP_INTERVAL: 5 * 60 * 1000,
-}));
+jest.mock('../../util/trace', () => {
+  const mockTraceFn = jest.fn();
+  const mockEndTraceFn = jest.fn();
+  return {
+    trace: mockTraceFn,
+    endTrace: mockEndTraceFn,
+    // Mirror the real module: a span is in flight between its trace() start
+    // and the matching endTrace().
+    getTraceContext: jest.fn(({ name }: { name: string }) => {
+      const started = mockTraceFn.mock.calls.filter(
+        ([request]: [{ name: string }]) => request.name === name,
+      ).length;
+      const ended = mockEndTraceFn.mock.calls.filter(
+        ([request]: [{ name: string }]) => request.name === name,
+      ).length;
+      return started > ended ? { name } : undefined;
+    }),
+    TraceName: {
+      DeeplinkProcessed: 'Deeplink Processed',
+      DeeplinkNavigated: 'Deeplink Navigated',
+    },
+    TraceOperation: {
+      DeeplinkPerformance: 'deeplink.performance',
+    },
+    TRACES_CLEANUP_INTERVAL: 5 * 60 * 1000,
+  };
+});
 
 const mockTrace = jest.mocked(trace);
 const mockEndTrace = jest.mocked(endTrace);
