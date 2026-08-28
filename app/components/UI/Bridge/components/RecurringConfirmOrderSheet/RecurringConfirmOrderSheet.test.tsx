@@ -159,7 +159,7 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('shows estimated dest amounts per order and across all orders', () => {
-    const { getByTestId } = renderSheet();
+    const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
       getByTestId(
@@ -175,6 +175,11 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(
       `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
     );
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('caps paying and est receiving decimals like market min received', () => {
@@ -257,13 +262,143 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('shows the per-order network fee from the quote', () => {
-    const { getByTestId } = renderSheet();
+    const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE),
     ).toHaveTextContent(
       `${strings('bridge.recurring.est_network_fee_per_order')}$1.23`,
     );
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows skeletons for quote-dependent values while a quote is loading', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        destTokenAmount: '24.44',
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+      }));
+
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
+      ),
+    ).not.toHaveTextContent('24.44');
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
+      ),
+    ).not.toHaveTextContent('244.4');
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE),
+    ).not.toHaveTextContent('$1.23');
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId } = renderSheet({
+      state: buildState({ slippage: '2' }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
+    ).toHaveTextContent(`${strings('bridge.recurring.paying_per_order')}120 ETH`);
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.paying_all_orders')}1,200 ETH`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
+    ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.expires_after')}180 ${strings('bridge.recurring.unit_plural.day')}`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
+    ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}2%`);
+  });
+
+  it('shows placeholders for est receiving and network fee when there is no quote', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_per_order')}--`,
+    );
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_all_orders')}--`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_network_fee_per_order')}-`,
+    );
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the shared slippage sheet from the edit control', () => {

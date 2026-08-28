@@ -34,6 +34,7 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 import type { BridgeToken } from '../../types';
@@ -48,6 +49,9 @@ import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
+
+const QUOTE_VALUE_SKELETON_WIDTH = 72;
+const QUOTE_VALUE_SKELETON_HEIGHT = 20;
 
 const NETWORK_BADGE_SIZE = 10;
 
@@ -98,11 +102,15 @@ function ConfirmOrderRow({
   value,
   testID,
   trailing,
+  isLoading,
+  skeletonTestID,
 }: {
   label: string;
   value: string;
   testID: string;
   trailing?: ReactNode;
+  isLoading?: boolean;
+  skeletonTestID?: string;
 }) {
   return (
     <Box
@@ -123,13 +131,21 @@ function ConfirmOrderRow({
         gap={2}
         twClassName="shrink"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          twClassName="text-right"
-        >
-          {value}
-        </Text>
+        {isLoading ? (
+          <Skeleton
+            width={QUOTE_VALUE_SKELETON_WIDTH}
+            height={QUOTE_VALUE_SKELETON_HEIGHT}
+            testID={skeletonTestID}
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            twClassName="text-right"
+          >
+            {value}
+          </Text>
+        )}
         {trailing}
       </Box>
     </Box>
@@ -158,9 +174,10 @@ const RecurringConfirmOrderSheet = ({
   const destToken = useSelector(selectDestToken);
   const repeatCount = useSelector(selectRecurringRepeatCount);
   const slippage = useSelector(selectSlippage);
-  const { activeQuote, destTokenAmount, formattedQuoteData } =
+  const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
   const { infoText } = useFeeDisclaimer({ activeQuote });
+  const showQuoteSkeletons = isLoading;
 
   const repeat = parsePositiveInteger(repeatCount);
   const payingPerOrder = formatTokenAmountValue(
@@ -269,12 +286,20 @@ const RecurringConfirmOrderSheet = ({
           label={strings('bridge.recurring.est_receiving_per_order')}
           value={estReceivingPerOrder}
           testID={RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER}
+          isLoading={showQuoteSkeletons}
+          skeletonTestID={
+            RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON
+          }
         />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_receiving_all_orders')}
           value={estReceivingAllOrders}
           testID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS
+          }
+          isLoading={showQuoteSkeletons}
+          skeletonTestID={
+            RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON
           }
         />
         <ConfirmOrderRow
@@ -300,6 +325,10 @@ const RecurringConfirmOrderSheet = ({
           label={strings('bridge.recurring.est_network_fee_per_order')}
           value={formattedQuoteData?.networkFee ?? '-'}
           testID={RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE}
+          isLoading={showQuoteSkeletons}
+          skeletonTestID={
+            RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON
+          }
           trailing={
             nativeToken ? (
               <AvatarToken
@@ -318,7 +347,19 @@ const RecurringConfirmOrderSheet = ({
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
-      {infoText ? (
+      {showQuoteSkeletons ? (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          paddingHorizontal={4}
+          paddingBottom={4}
+        >
+          <Skeleton
+            width="80%"
+            height={16}
+            testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER_SKELETON}
+          />
+        </Box>
+      ) : infoText ? (
         <Box
           alignItems={BoxAlignItems.Center}
           paddingHorizontal={4}
