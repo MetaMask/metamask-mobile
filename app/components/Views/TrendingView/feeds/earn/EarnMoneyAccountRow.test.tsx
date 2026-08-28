@@ -3,6 +3,9 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
 import EarnMoneyAccountRow from './EarnMoneyAccountRow';
+import { EarnMoneyAccountRowTestIds } from './EarnMoneyAccountRow.testIds';
+
+const mockEarnMoneyAccountRowTestIds = EarnMoneyAccountRowTestIds;
 
 jest.mock('../../../../../../images/money-balance.svg', () => {
   const { Text } = jest.requireActual('react-native');
@@ -13,7 +16,7 @@ jest.mock('../../../../../../images/money-balance.svg', () => {
 jest.mock('../../../../UI/Earn/components/EarnNewTag', () => {
   const { Text } = jest.requireActual('react-native');
 
-  return () => <Text testID="earn-search-money-new-tag">New</Text>;
+  return () => <Text testID={mockEarnMoneyAccountRowTestIds.NEW_TAG}>New</Text>;
 });
 
 describe('EarnMoneyAccountRow', () => {
@@ -35,7 +38,9 @@ describe('EarnMoneyAccountRow', () => {
       />,
     );
 
-    expect(getByTestId('earn-search-money-balance-skeleton')).toBeOnTheScreen();
+    expect(
+      getByTestId(EarnMoneyAccountRowTestIds.BALANCE_SKELETON),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('earn_module.rate_apy', { percentage: '4.2' })),
     ).toBeOnTheScreen();
@@ -60,7 +65,9 @@ describe('EarnMoneyAccountRow', () => {
       />,
     );
 
-    expect(getByTestId('earn-search-money-apy-skeleton')).toBeOnTheScreen();
+    expect(
+      getByTestId(EarnMoneyAccountRowTestIds.APY_SKELETON),
+    ).toBeOnTheScreen();
     expect(getByText('$12.00')).toBeOnTheScreen();
     expect(queryByText(strings('earn_module.rate_unavailable'))).toBeNull();
   });
@@ -83,7 +90,7 @@ describe('EarnMoneyAccountRow', () => {
       />,
     );
 
-    expect(getByTestId('earn-search-money-new-tag')).toBeOnTheScreen();
+    expect(getByTestId(EarnMoneyAccountRowTestIds.NEW_TAG)).toBeOnTheScreen();
     expect(getByText(strings('earn_module.get_started'))).toBeOnTheScreen();
   });
 
@@ -131,7 +138,7 @@ describe('EarnMoneyAccountRow', () => {
     );
 
     expect(getByText('$12.00')).toBeOnTheScreen();
-    expect(queryByTestId('earn-search-money-new-tag')).toBeNull();
+    expect(queryByTestId(EarnMoneyAccountRowTestIds.NEW_TAG)).toBeNull();
   });
 
   it('masks a non-zero fiat balance when privacy mode is enabled', () => {
@@ -154,7 +161,7 @@ describe('EarnMoneyAccountRow', () => {
       />,
     );
 
-    expect(getByTestId('earn-search-money-balance')).toHaveTextContent(
+    expect(getByTestId(EarnMoneyAccountRowTestIds.BALANCE)).toHaveTextContent(
       '•'.repeat(9),
     );
     expect(queryByText('$12.00')).toBeNull();
@@ -250,7 +257,7 @@ describe('EarnMoneyAccountRow', () => {
       />,
     );
 
-    fireEvent.press(getByTestId('earn-search-money-row'));
+    fireEvent.press(getByTestId(EarnMoneyAccountRowTestIds.ROW));
 
     expect(onPress).toHaveBeenCalledWith(item);
   });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ComponentProps } from 'react';
 import { EthAccountType } from '@metamask/keyring-api';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { Asset } from '@metamask/assets-controllers';
@@ -12,22 +12,18 @@ import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
 import { rankEarnAssets } from '../../../../UI/Earn/utils/earnSection';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
 import EarnSearchAssetRow from './EarnSearchAssetRow';
+import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
+import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
+
+const mockEarnSearchAssetRowTestIds = EarnSearchAssetRowTestIds;
 
 jest.mock('../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon', () => {
   const { Text: TextComponent } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
-    default: ({
-      asset,
-    }: {
-      asset: {
-        kind: 'held' | 'discovery';
-        asset?: { chainId?: string };
-        metadata?: { chainId?: string };
-      };
-    }) => (
-      <TextComponent testID="earn-search-asset-network-badge">
+    default: ({ asset }: ComponentProps<typeof EarnAssetIcon>) => (
+      <TextComponent testID={mockEarnSearchAssetRowTestIds.NETWORK_BADGE}>
         {asset.kind === 'held' ? asset.asset?.chainId : asset.metadata?.chainId}
       </TextComponent>
     ),
@@ -161,9 +157,9 @@ describe('EarnSearchAssetRow', () => {
       <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
-    expect(getByTestId('earn-search-asset-network-badge')).toHaveTextContent(
-      '0x1',
-    );
+    expect(
+      getByTestId(EarnSearchAssetRowTestIds.NETWORK_BADGE),
+    ).toHaveTextContent('0x1');
   });
 
   it('passes the asset item to onPress', () => {
@@ -174,7 +170,7 @@ describe('EarnSearchAssetRow', () => {
       <EarnSearchAssetRow item={item} onPress={onPress} />,
     );
 
-    fireEvent.press(getByTestId('earn-search-asset-row'));
+    fireEvent.press(getByTestId(EarnSearchAssetRowTestIds.ROW));
 
     expect(onPress).toHaveBeenCalledWith(item);
   });
@@ -186,7 +182,7 @@ describe('EarnSearchAssetRow', () => {
       <EarnSearchAssetRow item={item} onPress={jest.fn()} privacyMode />,
     );
 
-    expect(getByTestId('earn-search-asset-balance')).toHaveTextContent(
+    expect(getByTestId(EarnSearchAssetRowTestIds.BALANCE)).toHaveTextContent(
       '•'.repeat(9),
     );
     expect(queryByText('$10.00')).toBeNull();

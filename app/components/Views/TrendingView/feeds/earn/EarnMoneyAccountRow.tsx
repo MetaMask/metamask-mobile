@@ -14,6 +14,7 @@ import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { truncateNumber } from '../../../../UI/Earn/utils';
 import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
 import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
+import { EarnMoneyAccountRowTestIds } from './EarnMoneyAccountRow.testIds';
 
 interface EarnMoneyAccountRowProps {
   item: EarnMoneyAccountSearchItem;
@@ -60,7 +61,7 @@ const EarnMoneyAccountRow = ({
         <Skeleton
           height={20}
           width={70}
-          testID="earn-search-money-apy-skeleton"
+          testID={EarnMoneyAccountRowTestIds.APY_SKELETON}
         />
       );
     }
@@ -82,7 +83,7 @@ const EarnMoneyAccountRow = ({
         <Skeleton
           height={20}
           width={70}
-          testID="earn-search-money-balance-skeleton"
+          testID={EarnMoneyAccountRowTestIds.BALANCE_SKELETON}
         />
       );
     }
@@ -93,7 +94,7 @@ const EarnMoneyAccountRow = ({
           variant={TextVariant.BodyMd}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
-          testID="earn-search-money-balance"
+          testID={EarnMoneyAccountRowTestIds.BALANCE}
         >
           {item.balanceFiat}
         </SensitiveText>
@@ -109,7 +110,7 @@ const EarnMoneyAccountRow = ({
       isInteractive
       accessibilityRole="button"
       onPress={handlePress}
-      testID="earn-search-money-row"
+      testID={EarnMoneyAccountRowTestIds.ROW}
       avatar={<MoneyBalanceIcon width={40} height={40} name="money-balance" />}
       title={strings('earn_module.money_account')}
       titleEndAccessory={item.balanceRaw === '0' ? <EarnNewTag /> : undefined}

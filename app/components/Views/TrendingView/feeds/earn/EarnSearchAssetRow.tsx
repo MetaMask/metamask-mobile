@@ -11,6 +11,7 @@ import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAsse
 import { deriveEarnAssetDisplayData } from '../../../../UI/Earn/utils/earnAssets';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
 import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
+import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
 
 interface EarnSearchAssetRowProps {
   item: EarnAssetSearchItem;
@@ -46,7 +47,7 @@ const EarnSearchAssetRow = ({
       variant={TextVariant.BodySm}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
-      testID="earn-search-asset-balance"
+      testID={EarnSearchAssetRowTestIds.BALANCE}
     >
       {fiatBalance}
     </SensitiveText>
@@ -60,7 +61,7 @@ const EarnSearchAssetRow = ({
       isInteractive
       accessibilityRole="button"
       onPress={handlePress}
-      testID="earn-search-asset-row"
+      testID={EarnSearchAssetRowTestIds.ROW}
       avatar={<EarnAssetIcon asset={asset} />}
       title={metadata.name}
       titleEndAccessory={hasSubsidizedFee ? <EarnNoFeeTag /> : undefined}
