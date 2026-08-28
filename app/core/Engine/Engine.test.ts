@@ -13,6 +13,7 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
@@ -465,15 +466,17 @@ describe('Engine', () => {
   });
 
   describe('RemoteFeatureFlagController startup fetch', () => {
-    const authStateWithCanonicalId = (canonicalProfileId?: string) =>
-      canonicalProfileId === undefined
-        ? { isSignedIn: false, srpSessionData: {} }
-        : {
-            isSignedIn: true,
-            srpSessionData: {
+    const authStateWithCanonicalId = (
+      canonicalProfileId?: string,
+    ): AuthenticationControllerState =>
+      ({
+        isSignedIn: Boolean(canonicalProfileId),
+        srpSessionData: canonicalProfileId
+          ? {
               'srp-1': { profile: { canonicalProfileId } },
-            },
-          };
+            }
+          : {},
+      }) as AuthenticationControllerState;
 
     const spyForcedFlagRefresh = (engine: ReturnType<typeof Engine.init>) => {
       const updateSpy = jest
