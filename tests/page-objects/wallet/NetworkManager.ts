@@ -157,6 +157,61 @@ class NetworkManager {
     });
   }
 
+  /**
+   * Check that a token row is mounted, whether or not it is on screen.
+   *
+   * Rows below the fold report isDisplayed=false, so
+   * {@link checkTokenIsVisible} cannot prove that a token is still held.
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to appear.
+   */
+  async checkTokenExists(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should be in the asset list`,
+      timeout,
+    });
+  }
+
+  /**
+   * Some lists are virtualized and require scrolling
+   *
+   * @param symbol - Token symbol to scroll to.
+   */
+  async scrollToToken(symbol: string): Promise<void> {
+    const container = Matchers.scrollContainer(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+    try {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'down',
+        scrollAmount: 50,
+      });
+    } catch {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'up',
+        scrollAmount: 50,
+      });
+    }
+  }
+
+  /**
+   * Check that a token row is absent from the hierarchy.
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to go away.
+   * Raise it when the row is expected to disappear as the result of async work
+   * (for example the spam cleanup that runs after unlock).
+   */
+  async checkTokenDoesNotExist(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToNotExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should not be in the asset list`,
+      timeout,
+    });
+  }
+
   async checkBaseControlBarText(caipChainId: CaipChainId) {
     const elem = this.getBaseControlBarText(caipChainId);
     await Assertions.expectElementToBeVisible(elem, {
