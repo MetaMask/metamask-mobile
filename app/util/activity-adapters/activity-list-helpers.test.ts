@@ -78,6 +78,47 @@ describe('activity list helpers', () => {
       expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
     });
 
+    it.each(['stake', 'unstake', 'claim'] as const)(
+      'prefers the local %s when the API copy carries no network fee',
+      (type) => {
+        const local = makeItem({
+          type,
+          data: {
+            fees: [
+              { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+            ],
+          },
+        });
+        const api = makeItem({ type, data: {} });
+
+        expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
+      },
+    );
+
+    it('keeps the API staking copy once it carries a network fee', () => {
+      const fees = [
+        { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+      ];
+      const local = makeItem({ type: 'stake', data: { fees } });
+      const api = makeItem({ type: 'stake', data: { fees } });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
+    it('does not extend the staking fee preference to other kinds', () => {
+      const local = makeItem({
+        type: 'deposit',
+        data: {
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      const api = makeItem({ type: 'deposit', data: {} });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
     it('does not let a gas-token local contractInteraction beat an API send', () => {
       const local = makeItem({
         type: 'contractInteraction',

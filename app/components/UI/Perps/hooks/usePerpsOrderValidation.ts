@@ -12,6 +12,7 @@ import {
   isTriggerOrderType,
   type OrderParams,
   type OrderFormState,
+  type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
@@ -48,6 +49,14 @@ interface UsePerpsOrderValidationParams {
   midPrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
+  /** TWAP running time in whole minutes. */
+  twapDuration?: number;
+  /** Whether the venue should randomize TWAP suborder sizes. */
+  twapRandomize?: boolean;
+  /** Provider route required for strategy validation. */
+  providerId?: PerpsProviderType;
+  /** Protocol error codes whose UI is owned by the calling form. */
+  suppressedProtocolErrorCodes?: readonly string[];
 }
 
 interface ValidationState {
@@ -95,6 +104,9 @@ interface BuildOrderParamsInput {
   isFullClose?: boolean;
   triggerPrice?: string;
   szDecimals?: number;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  providerId?: PerpsProviderType;
 }
 
 interface ImmediateValidationInput {
@@ -117,6 +129,7 @@ interface ProtocolValidationErrorsInput {
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
   minimumOrderSize: number;
+  suppressedProtocolErrors: ReadonlySet<string>;
 }
 
 interface BuildValidationOutcomeInput {
@@ -195,6 +208,9 @@ const buildOrderParams = ({
   isFullClose,
   triggerPrice,
   szDecimals,
+  twapDuration,
+  twapRandomize,
+  providerId,
 }: BuildOrderParamsInput): OrderParams => ({
   symbol: orderForm.asset,
   isBuy: orderForm.direction === 'long',
@@ -216,6 +232,9 @@ const buildOrderParams = ({
     : {}),
   ...(reduceOnly !== undefined ? { reduceOnly } : {}),
   ...(isFullClose !== undefined ? { isFullClose } : {}),
+  ...(twapDuration !== undefined ? { twapDuration } : {}),
+  ...(twapRandomize !== undefined ? { twapRandomize } : {}),
+  ...(providerId !== undefined ? { providerId } : {}),
 });
 
 const getProtocolErrorContext = ({
@@ -268,6 +287,7 @@ const getProtocolValidationErrors = ({
   orderForm,
   existingPositionLeverage,
   minimumOrderSize,
+  suppressedProtocolErrors,
 }: ProtocolValidationErrorsInput): string[] => {
   const errors: string[] = [];
   const { error } = protocolValidation;
@@ -276,7 +296,12 @@ const getProtocolValidationErrors = ({
     requestFieldIssues.length > 0 &&
     FIELD_OWNED_PROTOCOL_ERRORS.has(error);
 
-  if (!protocolValidation.isValid && error && !isFieldOwnedError) {
+  if (
+    !protocolValidation.isValid &&
+    error &&
+    !isFieldOwnedError &&
+    !suppressedProtocolErrors.has(error)
+  ) {
     const translatedError = translatePerpsError(
       error,
       getProtocolErrorContext({
@@ -368,6 +393,10 @@ export function usePerpsOrderValidation(
     triggerPrice,
     midPrice = assetPrice,
     szDecimals,
+    twapDuration,
+    twapRandomize,
+    providerId,
+    suppressedProtocolErrorCodes = EMPTY_ERRORS,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -396,6 +425,13 @@ export function usePerpsOrderValidation(
     isValidating: false, // Start with false to prevent initial flickering
   });
 
+  const stableSuppressedProtocolErrorCodes = useStableArray([
+    ...suppressedProtocolErrorCodes,
+  ]);
+  const suppressedProtocolErrors = useMemo(
+    () => new Set(stableSuppressedProtocolErrorCodes),
+    [stableSuppressedProtocolErrorCodes],
+  );
   const fieldIssues = useMemo(
     () =>
       getOrderFormFieldIssues({
@@ -513,6 +549,9 @@ export function usePerpsOrderValidation(
           isFullClose,
           triggerPrice,
           szDecimals,
+          twapDuration,
+          twapRandomize,
+          providerId,
         });
 
         // Get protocol-specific validation
@@ -536,6 +575,7 @@ export function usePerpsOrderValidation(
             orderForm: orderFormValidationData,
             existingPositionLeverage,
             minimumOrderSize,
+            suppressedProtocolErrors,
           }),
           warnings: getValidationWarnings(orderFormValidationData.leverage),
           protocolValid: protocolValidation.isValid,
@@ -565,6 +605,10 @@ export function usePerpsOrderValidation(
       reduceOnly,
       szDecimals,
       triggerPrice,
+      twapDuration,
+      twapRandomize,
+      providerId,
+      suppressedProtocolErrors,
       validateOrder,
     ],
   );

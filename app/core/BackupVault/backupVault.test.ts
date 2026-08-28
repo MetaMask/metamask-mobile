@@ -26,8 +26,6 @@ const mockStorageType = STORAGE_TYPE.AES_GCM;
 jest.mock('react-native-keychain', () => ({
   ...jest.requireActual('react-native-keychain'),
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
@@ -50,8 +48,8 @@ jest.mock('react-native-keychain', () => ({
   getInternetCredentials: jest.fn(
     async (server: string) => mockKeychainState[server],
   ),
-  resetInternetCredentials: jest.fn(async (server: string) => {
-    delete mockKeychainState[server];
+  resetInternetCredentials: jest.fn(async (options: { server: string }) => {
+    delete mockKeychainState[options.server];
   }),
 }));
 
