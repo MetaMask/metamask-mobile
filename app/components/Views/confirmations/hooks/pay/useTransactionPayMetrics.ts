@@ -185,31 +185,19 @@ export function useTransactionPayMetrics() {
   const isInfoLoaded =
     hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
 
+  // Anchors the *start* of "time to load info". `confirmation_time_to_open_ms`
+  // is owned by `useConfirmationLoadMetrics`, which anchors it at the
+  // confirmation body's first paint rather than at this hook's mount.
   const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
-
-  const didDispatchTimeToOpen = useRef(false);
   useEffect(() => {
     if (
-      didDispatchTimeToOpen.current ||
+      confirmationOpenedAtMs.current !== undefined ||
       typeof transactionMeta?.time !== 'number' ||
       transactionMeta.time <= 0
     )
       return;
     confirmationOpenedAtMs.current = Date.now();
-    didDispatchTimeToOpen.current = true;
-    dispatch(
-      updateConfirmationMetric({
-        id: transactionId,
-        params: {
-          properties: {
-            confirmation_time_to_open_ms: Math.round(
-              confirmationOpenedAtMs.current - transactionMeta.time,
-            ),
-          },
-        },
-      }),
-    );
-  }, [transactionMeta?.time, dispatch, transactionId]);
+  }, [transactionMeta?.time]);
 
   const didDispatchTimeToLoadInfo = useRef(false);
   useEffect(() => {
