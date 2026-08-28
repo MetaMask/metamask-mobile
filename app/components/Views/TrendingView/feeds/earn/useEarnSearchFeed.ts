@@ -14,10 +14,21 @@ import type {
 } from './earnSearchTypes';
 
 interface UseEarnSearchFeedOptions {
+  /** Text used to filter Earn asset metadata. */
   query?: string;
+  /** Whether catalogue and Money balance queries are enabled. */
   enabled?: boolean;
 }
 
+/**
+ * Provides Money and Earn asset results for Explore search.
+ *
+ * Catalogue failures are exposed through `error` with a retry callback; they
+ * are not silently converted into an empty result set.
+ *
+ * @param options - Search text and enabled state for the feed.
+ * @returns Search results and loading/error state.
+ */
 export const useEarnSearchFeed = ({
   query = '',
   enabled = true,

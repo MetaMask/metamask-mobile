@@ -18,6 +18,13 @@ interface EarnSearchAssetRowProps {
   privacyMode?: boolean;
 }
 
+/**
+ * Renders an Earn asset as a search result.
+ *
+ * @param item - Earn asset and its catalogue display data.
+ * @param onPress - Callback invoked when the row is pressed.
+ * @param privacyMode - Whether the asset balance should be masked.
+ */
 const EarnSearchAssetRow = ({
   item,
   onPress,

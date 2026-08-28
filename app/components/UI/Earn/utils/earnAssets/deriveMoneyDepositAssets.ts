@@ -15,6 +15,9 @@ const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
  *
  * The catalogue is the source of truth for both eligibility and ordering.
  * Discovery assets and assets without a Money deposit experience are excluded.
+ *
+ * @param assets - Earn catalogue assets.
+ * @returns Held EVM assets eligible for Money deposits, in catalogue order.
  */
 export const deriveMoneyDepositAssets = (
   assets: readonly EarnAsset[],

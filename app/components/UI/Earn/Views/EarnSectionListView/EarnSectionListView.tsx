@@ -174,6 +174,9 @@ const MoneyProjection = ({
   );
 };
 
+/**
+ * Displays the Earn eligible assets and Money projections.
+ */
 const EarnSectionListView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
@@ -466,9 +469,9 @@ const EarnSectionListView = () => {
 
   const listEmptyComponent = useMemo(
     () =>
-      isMoneyAccountVisible ? null : isLoading ? (
+      isLoading ? (
         <EarnSectionListSkeleton />
-      ) : (
+      ) : isMoneyAccountVisible ? null : (
         <Box testID={EARN_SECTION_LIST_TEST_IDS.EMPTY} twClassName="flex-1">
           <TabEmptyState
             description={strings('earn_module.empty_state_description')}

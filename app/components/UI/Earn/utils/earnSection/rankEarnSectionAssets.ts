@@ -5,14 +5,17 @@ import type {
 } from '../../types/earnAssets';
 import { getEarnAssetFiatNumber, hasEarnAssetBalance } from '../earnAssets';
 
+/** Maximum number of assets displayed in the horizontal Earn section. */
 export const EARN_SECTION_ASSET_LIMIT = 5;
 
+/** Earn asset enriched with aggregate rate information for display and sorting. */
 export type EarnSectionRankedAsset = EarnAsset & {
   highestRatePercent?: number;
   highestRateExperience?: EarnExperience;
   rateStatus: EarnRateStatus;
 };
 
+/** A rendered Earn section asset slot or an unavailable placeholder slot. */
 export type EarnSectionAssetSlot =
   | {
       kind: 'asset';
@@ -84,6 +87,9 @@ const compareByKey = (
  *
  * Rates are compared as displayed numeric percentages; APR and APY values are
  * not normalized to a common yield type.
+ *
+ * @param assets - Earn catalogue assets to enrich and sort.
+ * @returns All assets ordered for display.
  */
 export const rankEarnAssets = (
   assets: readonly EarnAsset[],
@@ -124,6 +130,10 @@ export const rankEarnAssets = (
  * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
  * fixed homepage slots. Held assets rank before discovery assets, and missing
  * assets are padded so the section always renders five slots by default.
+ *
+ * @param assets - Earn catalogue assets to place into section slots.
+ * @param limit - Maximum number of asset slots to return.
+ * @returns Ranked asset slots padded with unavailable placeholders.
  */
 export const rankEarnSectionAssets = (
   assets: readonly EarnAsset[],

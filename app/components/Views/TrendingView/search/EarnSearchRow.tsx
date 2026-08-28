@@ -8,6 +8,11 @@ import useEarnOpportunityNavigation from '../../../UI/Earn/hooks/useEarnOpportun
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 
+/**
+ * Renders the appropriate Earn search result row and handles navigation.
+ *
+ * @param item - Money account or Earn asset search result.
+ */
 const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
   const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
     useMoneyNavigation();

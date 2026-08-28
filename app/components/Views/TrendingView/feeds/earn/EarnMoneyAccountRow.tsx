@@ -22,6 +22,14 @@ interface EarnMoneyAccountRowProps {
   privacyMode?: boolean;
 }
 
+/**
+ * Renders the Money account as an Earn search result.
+ *
+ * @param item - Money account balance and rate data.
+ * @param onPress - Callback invoked when the row is pressed.
+ * @param isOnboardingRedirectNeeded - Whether pressing should start onboarding.
+ * @param privacyMode - Whether the account balance should be masked.
+ */
 const EarnMoneyAccountRow = ({
   item,
   onPress,

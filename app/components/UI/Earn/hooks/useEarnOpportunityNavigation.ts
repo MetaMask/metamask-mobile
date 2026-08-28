@@ -14,6 +14,9 @@ interface UseEarnOpportunityNavigationOptions {
 /**
  * Navigates an Earn opportunity to strategy selection or Token Details based
  * on whether the asset meets the minimum deposit amount.
+ *
+ * @param tokenDetailsSource - Attribution source for Token Details navigation.
+ * @returns Earn opportunity navigation callback.
  */
 const useEarnOpportunityNavigation = ({
   tokenDetailsSource,
