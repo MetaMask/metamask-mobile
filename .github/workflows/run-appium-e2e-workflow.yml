@@ -201,14 +201,6 @@ jobs:
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Set APPIUM_RETRIES_OVERRIDE
-        run: |
-          if [[ -n "${{ inputs.appium_retries_override }}" ]]; then
-            export APPIUM_RETRIES_OVERRIDE="${{ inputs.appium_retries_override }}"
-            echo "APPIUM_RETRIES_OVERRIDE set to: ${APPIUM_RETRIES_OVERRIDE}"
-          fi
-        shell: bash
-
       - name: Setup E2E environment (iOS)
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/setup-e2e-env
@@ -420,6 +412,7 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.appium_retries_override }}
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
@@ -460,6 +453,7 @@ jobs:
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           USE_PREBUILT_WDA: 'true'
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.appium_retries_override }}
           IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
