@@ -301,9 +301,6 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
 }));
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: jest.fn(),
-}));
 jest.mock('../../../reducers/collectibles', () => ({
   collectibleContractsSelector: jest.fn(),
 }));
@@ -540,6 +537,7 @@ describe('UnconnectedTransactions', () => {
 
     it('opens the asset chain explorer for asset details', () => {
       const transaction = { id: 'transaction', time: 1 };
+      mockGroupActivityListItems.mockReturnValue([]);
       (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
         'https://polygonscan.com',
       );
@@ -634,7 +632,6 @@ describe('UnconnectedTransactions', () => {
       ]);
 
       const rendered = renderTransactions({
-        isActivityRedesignEnabled: true,
         location: TransactionDetailLocation.AssetDetails,
         transactions: [transaction],
       });

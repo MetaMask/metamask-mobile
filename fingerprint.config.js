@@ -245,7 +245,6 @@ const config = {
 
     // Fire-and-forget dispatchers/re-runners around `ci.yml` (which is itself tracked) -
     // these don't run any build steps of their own.
-    '.github/workflows/ci-bitrise-shadow.yml',
     '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
 
     // Notification-only.

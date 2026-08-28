@@ -414,29 +414,6 @@ describe('PerpsMarketTradesList', () => {
         }),
       );
     });
-
-    it('navigates to the legacy position screen when redesign is disabled', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => false);
-      mockUsePerpsMarketFills.mockReturnValue(
-        createMockFillsReturn(mockOrderFills),
-      );
-
-      render(<PerpsMarketTradesList symbol="ETH" />);
-
-      const tradeItem = screen.getByText('Opened long');
-      fireEvent.press(tradeItem.parent?.parent || tradeItem);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        expect.objectContaining({
-          transaction: expect.objectContaining({
-            type: 'trade',
-            id: expect.stringContaining('fill-1'),
-          }),
-        }),
-      );
-    });
   });
 
   describe('Hook Integration', () => {

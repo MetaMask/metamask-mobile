@@ -11,6 +11,7 @@ import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
+import { useAccountTokensLoading } from '../../../hooks/send/useAccountTokensLoading';
 import { Asset } from './asset';
 
 const mockTokens: AssetType[] = [
@@ -95,6 +96,10 @@ jest.mock('../../../hooks/send/useSendTokens', () => ({
 
 jest.mock('../../../hooks/send/useTokenSearch', () => ({
   useTokenSearch: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useAccountTokensLoading', () => ({
+  useAccountTokensLoading: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/useNfts', () => ({
@@ -245,6 +250,7 @@ const mockUseSendTokens = jest.mocked(useSendTokens);
 const mockUseTokenSearch = jest.mocked(useTokenSearch);
 const mockUseEVMNfts = jest.mocked(useEVMNfts);
 const mockUseAssetSelectionMetrics = jest.mocked(useAssetSelectionMetrics);
+const mockUseAccountTokensLoading = jest.mocked(useAccountTokensLoading);
 const mockSetSearchQuery = jest.fn();
 const mockClearSearch = jest.fn();
 const mockSetAssetListSize = jest.fn();
@@ -257,6 +263,7 @@ describe('Asset', () => {
 
     mockUseSendTokens.mockReturnValue(mockTokens);
     mockUseEVMNfts.mockReturnValue({ nfts: mockNfts, isLoading: false });
+    mockUseAccountTokensLoading.mockReturnValue(false);
 
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
@@ -637,6 +644,53 @@ describe('Asset', () => {
 
     expect(screen.getByText('No assets available')).toBeOnTheScreen();
     expect(screen.queryByText('Clear all filters')).toBeNull();
+  });
+
+  describe('when an account group asset load is in flight', () => {
+    beforeEach(() => {
+      mockUseAccountTokensLoading.mockReturnValue(true);
+    });
+
+    it('shows skeleton rows instead of the empty message', () => {
+      mockUseTokenSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: mockSetSearchQuery,
+        filteredTokens: [],
+        filteredNfts: [],
+        clearSearch: mockClearSearch,
+      });
+
+      render(<Asset />);
+
+      expect(
+        screen.getByTestId('pay-with-token-list-skeleton'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('No assets available')).toBeNull();
+    });
+
+    it('takes precedence over the active-filters empty message', () => {
+      mockUseTokenSearch.mockReturnValue({
+        searchQuery: 'xyz',
+        setSearchQuery: mockSetSearchQuery,
+        filteredTokens: [],
+        filteredNfts: [],
+        clearSearch: mockClearSearch,
+      });
+
+      render(<Asset />);
+
+      expect(
+        screen.getByTestId('pay-with-token-list-skeleton'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('No tokens match your filters')).toBeNull();
+    });
+
+    it('still renders available tokens rather than the skeleton', () => {
+      render(<Asset />);
+
+      expect(screen.getByTestId('token-list')).toBeOnTheScreen();
+      expect(screen.queryByTestId('pay-with-token-list-skeleton')).toBeNull();
+    });
   });
 
   it('calls handleClearAllFilters when clear filters button is pressed', () => {
