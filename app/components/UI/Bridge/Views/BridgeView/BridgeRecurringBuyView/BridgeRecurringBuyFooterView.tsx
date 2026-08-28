@@ -90,6 +90,7 @@ export const BridgeRecurringBuyFooterView = ({
         label={strings('bridge.recurring.preview_order')}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={isPreviewDisabled}
+        loading={isLoading}
       />
       {spendSummary ? (
         <Text

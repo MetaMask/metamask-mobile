@@ -88,7 +88,7 @@ const BridgeRecurringBuyViewContent = ({
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const scheduleValidation = useSelector(selectRecurringScheduleValidation);
-  const { activeQuote } = useBridgeQuoteDataContext();
+  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const sourceFiatRate = useTokenFiatRate(sourceToken);
   const destFiatRate = useTokenFiatRate(destToken);
 
@@ -271,6 +271,7 @@ const BridgeRecurringBuyViewContent = ({
               label={strings('bridge.recurring.preview_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
+              loading={isLoading}
             />
           ) : (
             <GaslessQuickPickOptions

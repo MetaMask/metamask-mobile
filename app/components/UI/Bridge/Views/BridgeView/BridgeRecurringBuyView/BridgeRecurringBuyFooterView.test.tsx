@@ -163,6 +163,22 @@ describe('BridgeRecurringBuyFooterView', () => {
     ).toHaveTextContent(strings('bridge.recurring.preview_order'));
   });
 
+  it('shows the confirm button as loading when the quote is refreshing', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+      }));
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props.accessibilityState
+        ?.busy,
+    ).toBe(true);
+  });
+
   it('calls onPreviewOrder when Preview Order is pressed', () => {
     const onPreviewOrder = jest.fn();
 
