@@ -28,6 +28,7 @@ interface StreamSubscription<T> {
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
+  pendingSource?: CandleDeliverySource;
   hasReceivedFirstUpdate?: boolean;
   onError?: (error: Error) => void;
 }
@@ -107,15 +108,18 @@ abstract class StreamChannel<T> {
 
       // Store pending update
       subscriber.pendingUpdate = updates;
+      subscriber.pendingSource = source;
 
       // Throttle pattern
       if (!subscriber.timer) {
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
+            const pendingSource = subscriber.pendingSource ?? 'fresh';
             subscriber.callback(subscriber.pendingUpdate);
-            subscriber.onDelivery?.(source);
+            subscriber.onDelivery?.(pendingSource);
             subscriber.pendingUpdate = undefined;
-            if (source === 'fresh') {
+            subscriber.pendingSource = undefined;
+            if (pendingSource === 'fresh') {
               this.recordDelivery(subscriber.cacheKey);
             }
           }
@@ -144,6 +148,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingSource = undefined;
     });
 
     // Disconnect all WebSocket subscriptions
@@ -955,6 +960,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingSource = undefined;
     });
 
     this.wsSubscriptions.forEach((unsubscribe) => {

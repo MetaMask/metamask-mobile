@@ -769,6 +769,35 @@ describe('CandleStreamChannel', () => {
       expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(2);
     });
 
+    it('uses the source of the payload that survives throttling', async () => {
+      const liveCallbacks = subscribeAndCaptureLiveCallbacks();
+      const callback = jest.fn();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback,
+        throttleMs: 1000,
+      });
+      flushConnectDebounce();
+
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+      liveCallbacks.get('BTC-1h')?.(mockCandleData);
+      mockFetchHistoricalCandles.mockResolvedValue({
+        ...mockCandleData,
+        candles: [{ ...mockCandleData.candles[0], time: 1699996400000 }],
+      });
+      await channel.fetchHistoricalCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
+      );
+
+      jest.advanceTimersByTime(1000);
+
+      expect(channel.getDeliveryRevision('BTC', CandlePeriod.OneHour)).toBe(1);
+    });
+
     it('does not count cached replay as a fresh delivery', async () => {
       mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
       subscribeAndCaptureLiveCallbacks();
