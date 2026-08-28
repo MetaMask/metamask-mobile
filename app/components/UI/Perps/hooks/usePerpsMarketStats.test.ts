@@ -6,6 +6,7 @@ let mockNetwork = 'testnet';
 let mockProvider = 'hyperliquid';
 let mockHip3ConfigVersion = 1;
 let mockInitializedMarketContextKey: string | null = 'testnet|hyperliquid|1';
+let mockConnectionInitialized = true;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
@@ -23,6 +24,7 @@ jest.mock('../services/PerpsConnectionManager', () => ({
     subscribeToInitializedMarketContext: () => jest.fn(),
     getConnectionGeneration: () => 1,
     getInitializedConnectionGeneration: () => 1,
+    getConnectionState: () => ({ isInitialized: mockConnectionInitialized }),
     subscribeToConnectionGeneration: () => jest.fn(),
     subscribeToInitializedUserContext: () => jest.fn(),
     isSelectedUserContextReady: () => true,
@@ -62,6 +64,7 @@ describe('usePerpsMarketStats', () => {
     mockProvider = 'hyperliquid';
     mockHip3ConfigVersion = 1;
     mockInitializedMarketContextKey = 'testnet|hyperliquid|1';
+    mockConnectionInitialized = true;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,
@@ -323,6 +326,7 @@ describe('usePerpsMarketStats', () => {
       act(() => callbacks[0]([mockPriceData.BTC]));
       expect(result.current.dataSymbol).toBeUndefined();
 
+      mockConnectionInitialized = false;
       mockedUsePerpsConnection.mockReturnValue({
         ...connectionState,
         isInitialized: false,
@@ -331,6 +335,7 @@ describe('usePerpsMarketStats', () => {
       expect(callbacks).toHaveLength(1);
 
       mockInitializedMarketContextKey = `${mockNetwork}|${mockProvider}|${mockHip3ConfigVersion}`;
+      mockConnectionInitialized = true;
       mockedUsePerpsConnection.mockReturnValue({
         ...connectionState,
         isInitialized: true,
@@ -364,6 +369,7 @@ describe('usePerpsMarketStats', () => {
     act(() => callbacks[0]([mockPriceData.BTC]));
     expect(result.current.dataSymbol).toBe('BTC');
 
+    mockConnectionInitialized = false;
     mockedUsePerpsConnection.mockReturnValue({
       ...connectionState,
       isInitialized: false,
@@ -375,6 +381,7 @@ describe('usePerpsMarketStats', () => {
     act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 1 }]));
     expect(result.current.volume24h).toBe('$1.23B');
 
+    mockConnectionInitialized = true;
     mockedUsePerpsConnection.mockReturnValue(connectionState);
     rerender();
     expect(callbacks).toHaveLength(2);
@@ -472,6 +479,7 @@ describe('usePerpsMarketStats', () => {
 
   it('does not subscribe until the Perps connection is initialized', () => {
     // Arrange: connection has not finished initializing
+    mockConnectionInitialized = false;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: false,
       isConnected: false,
@@ -536,6 +544,7 @@ describe('usePerpsMarketStats', () => {
 
   it('subscribes after the Perps connection initializes', () => {
     // Arrange: start uninitialized, then flip to initialized
+    mockConnectionInitialized = false;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: false,
       isConnected: false,
@@ -561,6 +570,7 @@ describe('usePerpsMarketStats', () => {
 
     expect(mockSubscribeToPrices).not.toHaveBeenCalled();
 
+    mockConnectionInitialized = true;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,
