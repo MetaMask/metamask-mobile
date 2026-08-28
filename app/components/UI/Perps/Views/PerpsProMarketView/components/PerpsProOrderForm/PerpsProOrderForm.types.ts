@@ -55,6 +55,18 @@ export interface PerpsProOrderSummaryProps {
   onFeesInfoPress?: () => void;
 }
 
+export interface PerpsProTwapModel {
+  days: string;
+  hours: string;
+  minutes: string;
+  randomize: boolean;
+  durationError?: string;
+  onDaysChange: (value: string) => void;
+  onHoursChange: (value: string) => void;
+  onMinutesChange: (value: string) => void;
+  onRandomizeChange: (value: boolean) => void;
+}
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
@@ -106,6 +118,8 @@ export interface PerpsProOrderFormProps {
   onAddFundsPress?: () => void;
   reduceOnly: boolean;
   onReduceOnlyChange: (value: boolean) => void;
+  twap: PerpsProTwapModel;
+  onTwapDurationPress: () => void;
   isTPSLConfigured: boolean;
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];

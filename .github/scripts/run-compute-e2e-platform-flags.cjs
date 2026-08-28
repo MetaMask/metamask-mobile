@@ -72,7 +72,20 @@ const flags = resolveE2EPlatformRequirements({
   e2eSmokeInfraCount: readInt(process.env.E2E_SMOKE_INFRA_COUNT),
 });
 
-if (labelOverrideInput.runAppiumIosLabel) {
+const runAppiumIos = flags.runAppiumIos;
+
+// Only explain a run that is actually happening — flags.runAppiumIos is the
+// resolved value, and it is always false for PRs into main.
+if (!runAppiumIos) {
+  if (
+    labelOverrideInput.githubEventName === 'pull_request' &&
+    labelOverrideInput.prBaseRef === 'main'
+  ) {
+    console.log(
+      '-> RUN_APPIUM_IOS=false — iOS not requested for this PR into main. Add run-appium-ios-tests, or skip-smart-e2e-selection when path filters already require iOS.',
+    );
+  }
+} else if (labelOverrideInput.runAppiumIosLabel) {
   console.log(
     "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
   );
@@ -85,8 +98,6 @@ if (labelOverrideInput.runAppiumIosLabel) {
     '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework/smoke-appium)',
   );
 }
-
-const runAppiumIos = flags.runAppiumIos;
 
 let blockMerge = false;
 if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {

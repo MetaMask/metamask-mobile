@@ -159,6 +159,7 @@ type StreamCallback<T> = (data: T | null) => void;
 interface MutableStreamChannel<T> {
   subscribe: (params: { callback: StreamCallback<T> }) => () => void;
   getSnapshot: () => T | null;
+  getLastDeliveredAt: () => number | null;
   emit: (data: T | null) => void;
   refresh: () => Promise<void>;
   clearCache: () => void;
@@ -177,10 +178,12 @@ function mutableChannelWithInitialValue<T>(
   initialValue: T,
 ): MutableStreamChannel<T> {
   let snapshot: T | null = initialValue;
+  let lastDeliveredAt: number | null = null;
   const subscribers = new Set<StreamCallback<T>>();
 
   const emit = (data: T | null) => {
     snapshot = data;
+    lastDeliveredAt = Date.now();
     subscribers.forEach((callback) => callback(snapshot));
   };
 
@@ -188,6 +191,7 @@ function mutableChannelWithInitialValue<T>(
     subscribe: (params: { callback: StreamCallback<T> }): (() => void) => {
       if (params?.callback) {
         subscribers.add(params.callback);
+        lastDeliveredAt = Date.now();
         params.callback(snapshot);
       }
       return () => {
@@ -195,6 +199,7 @@ function mutableChannelWithInitialValue<T>(
       };
     },
     getSnapshot: () => snapshot,
+    getLastDeliveredAt: () => lastDeliveredAt,
     emit,
     refresh: async (): Promise<void> => undefined,
     clearCache: (): void => {
