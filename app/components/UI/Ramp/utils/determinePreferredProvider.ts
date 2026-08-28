@@ -82,6 +82,13 @@ function normalizeProviderId(providerId?: string): string | undefined {
  * 1. Provider from most recent completed order (autoSelected: false)
  * 2. Backend-ranked default provider (autoSelected: true)
  *
+ * Transak as the native default is a **wallet** control, not an on-ramp API
+ * catalog gate. RC vs store should use Remote Feature Flag Controller
+ * `environment=rc` vs `environment=prod` (same Client Config split other
+ * teams use). Do not move this de-rank to the API until default selection
+ * lives server-side (TRAM-3837). `x-metamask-clientenvironment` must not
+ * switch provider merchant keys or API hosts.
+ *
  * @param completedOrders - Completed orders from any source (legacy + controller)
  * @param availableProviders - Available providers from RampsController
  * @param backendDefaultProviderId - Default provider ID from backend ranking

@@ -5,6 +5,8 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
+import { getBaseSemVerVersion } from '../../../../util/version';
+import { getFeatureFlagAppEnvironment } from '../remote-feature-flag-controller/utils';
 
 /**
  * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
@@ -50,6 +52,23 @@ export function getRampsContext(): string {
 }
 
 /**
+ * MetaMask client identity sent on every UB2 on-ramp request.
+ * `clientEnvironment` matches Remote Feature Flag Client Config (`prod`/`rc`/…).
+ * It does not select the API host — that remains `getRampsEnvironment()`.
+ */
+export function getRampsClientIdentity(): {
+  clientProduct: 'metamask-mobile';
+  clientVersion: string;
+  clientEnvironment: string;
+} {
+  return {
+    clientProduct: 'metamask-mobile',
+    clientVersion: getBaseSemVerVersion(),
+    clientEnvironment: getFeatureFlagAppEnvironment(),
+  };
+}
+
+/**
  * Initialize the on-ramp service.
  *
  * @param request - The request object.
@@ -65,6 +84,7 @@ export const rampsServiceInit: MessengerClientInitFunction<
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
+    ...getRampsClientIdentity(),
   });
 
   return {
