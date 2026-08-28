@@ -56,6 +56,7 @@ jest.mock('@metamask/perps-controller', () => {
       actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
     DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
     VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
+    HYPERLIQUID_TWAP_LIMITS: actualConstants.HYPERLIQUID_TWAP_LIMITS,
   };
 });
 
@@ -99,7 +100,7 @@ describe('perps controller init', () => {
     );
   });
 
-  it('controller state should be default state when no initial state is passed in', () => {
+  it('controller state should be default state with the mobile pro-layout defaults when no initial state is passed in', () => {
     const defaultPerpsControllerState = jest
       .requireActual('@metamask/perps-controller/PerpsController')
       .getDefaultPerpsControllerState();
@@ -109,7 +110,16 @@ describe('perps controller init', () => {
     const perpsControllerState =
       perpsControllerClassMock.mock.calls[0][0].state;
 
-    expect(perpsControllerState).toEqual(defaultPerpsControllerState);
+    // Mobile shows the order book pinned right; the shared default is the
+    // Extension behavior (closed, left).
+    expect(perpsControllerState).toEqual({
+      ...defaultPerpsControllerState,
+      proLayoutPreferences: {
+        ...defaultPerpsControllerState.proLayoutPreferences,
+        orderBookExpanded: true,
+        orderBookPosition: 'right',
+      },
+    });
   });
 
   it('controller state should be initial state when initial state is passed in', () => {
