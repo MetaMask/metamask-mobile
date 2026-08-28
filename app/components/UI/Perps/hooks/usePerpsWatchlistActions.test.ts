@@ -72,6 +72,61 @@ describe('usePerpsWatchlistActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetWatchlistMarkets.mockReturnValue(['BTC']);
+    // clearAllMocks leaves return values in place, so reset the persist promise
+    // or a deferred one from the latency cases leaks into later tests.
+    mockToggleWatchlistMarket.mockResolvedValue(undefined);
+  });
+
+  describe('feedback latency', () => {
+    // TAT-3787: the toast and its haptic used to wait on the AUS network write
+    // inside toggleWatchlistMarket, costing 500-1000ms after the press.
+    it('shows the added toast before the persist settles', async () => {
+      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+      let resolvePersist: () => void = () => undefined;
+      mockToggleWatchlistMarket.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolvePersist = resolve;
+        }),
+      );
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      let pending: Promise<void> = Promise.resolve();
+      await act(async () => {
+        pending = result.current.addToWatchlist('ETH');
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+
+      await act(async () => {
+        resolvePersist();
+        await pending;
+      });
+    });
+
+    it('shows the removed toast before the persist settles', async () => {
+      mockGetWatchlistMarkets.mockReturnValue(['ETH']);
+      let resolvePersist: () => void = () => undefined;
+      mockToggleWatchlistMarket.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolvePersist = resolve;
+        }),
+      );
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      let pending: Promise<void> = Promise.resolve();
+      await act(async () => {
+        pending = result.current.removeFromWatchlist('BTC');
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+
+      await act(async () => {
+        resolvePersist();
+        await pending;
+      });
+    });
   });
 
   describe('addToWatchlist', () => {
