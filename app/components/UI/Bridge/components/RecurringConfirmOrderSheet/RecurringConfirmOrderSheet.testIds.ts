@@ -17,5 +17,4 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   NETWORK_FEE: 'recurring-confirm-network-fee',
   NETWORK_FEE_SKELETON: 'recurring-confirm-network-fee-skeleton',
   FEE_DISCLAIMER: 'recurring-confirm-fee-disclaimer',
-  FEE_DISCLAIMER_SKELETON: 'recurring-confirm-fee-disclaimer-skeleton',
 } as const;

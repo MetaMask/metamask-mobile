@@ -22,6 +22,7 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -47,6 +48,8 @@ import {
 } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
 
@@ -176,8 +179,11 @@ const RecurringConfirmOrderSheet = ({
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
-  const { infoText } = useFeeDisclaimer({ activeQuote });
+  const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
+    useFeeDisclaimer({ activeQuote });
   const showQuoteSkeletons = isLoading;
+  const hasFeeDisclaimer =
+    Boolean(infoText) || Boolean(infoSuffix) || Boolean(discountBadge);
 
   const repeat = parsePositiveInteger(repeatCount);
   const payingPerOrder = formatTokenAmountValue(
@@ -347,32 +353,49 @@ const RecurringConfirmOrderSheet = ({
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
-      {showQuoteSkeletons ? (
+      {!showQuoteSkeletons && hasFeeDisclaimer ? (
         <Box
+          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          gap={2}
           paddingHorizontal={4}
           paddingBottom={4}
+          twClassName="flex-wrap"
+          testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER}
         >
-          <Skeleton
-            width="80%"
-            height={16}
-            testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER_SKELETON}
-          />
-        </Box>
-      ) : infoText ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          paddingHorizontal={4}
-          paddingBottom={4}
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER}
-          >
-            {infoText}
-          </Text>
+          {discountBadge?.type === DiscountType.VIP ? (
+            <RewardsVipBadge />
+          ) : null}
+          {discountBadge && discountBadge.type !== DiscountType.VIP ? (
+            <RewardsDiscountBadge label={discountBadge.label} />
+          ) : null}
+          {infoText ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {infoText}
+            </Text>
+          ) : null}
+          {baseFeePercentage ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              twClassName="line-through"
+            >
+              {baseFeePercentage}
+            </Text>
+          ) : null}
+          {infoSuffix ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {infoSuffix}
+            </Text>
+          ) : null}
         </Box>
       ) : null}
     </BottomSheet>

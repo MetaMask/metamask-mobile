@@ -5,6 +5,8 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
@@ -304,11 +306,6 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER_SKELETON,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).not.toHaveTextContent('24.44');
@@ -399,6 +396,87 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows the MetaMask fee disclaimer from the quote', () => {
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).toHaveTextContent(
+      strings('bridge.fee_disclaimer', { feePercentage: BRIDGE_MM_FEE_RATE }),
+    );
+  });
+
+  it('shows the discounted fee disclaimer when the quote has a promo discount', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        destTokenAmount: '24.44',
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            feeData: {
+              metabridge: [
+                {
+                  quoteBpsFee: 0,
+                  baseBpsFee: 87.5,
+                  discountType: 'promo',
+                },
+              ],
+            },
+          },
+        },
+      }));
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).toHaveTextContent(
+      `${strings('bridge.discount_badge_promo')}${strings('bridge.fee_percentage', { feePercentage: 0.875 })}${strings('bridge.fee_percentage_meta_mask', { feePercentage: 0 })}`,
+    );
+  });
+
+  it('shows the no MetaMask fee disclaimer when dest fee is zero', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        destTokenAmount: '24.44',
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            dest: {
+              ...mockQuoteWithMetadata.quote.dest,
+              asset: {
+                ...mockQuoteWithMetadata.quote.dest.asset,
+                symbol: 'mUSD',
+              },
+            },
+            feeData: { metabridge: [{ quoteBpsFee: 0, baseBpsFee: 87.5 }] },
+          },
+        },
+      }));
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).toHaveTextContent(
+      strings('bridge.no_mm_fee_disclaimer', { destTokenSymbol: 'mUSD' }),
+    );
   });
 
   it('opens the shared slippage sheet from the edit control', () => {
