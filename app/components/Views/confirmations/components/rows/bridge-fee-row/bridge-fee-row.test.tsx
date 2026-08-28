@@ -167,7 +167,7 @@ describe('BridgeFeeRow', () => {
           metaMask: { usd: '0', fiat: '0' },
         },
       } as TransactionPayTotals);
-      const { getByTestId, queryByText } = render();
+      const { getByTestId, queryByTestId, queryByText } = render();
 
       await act(async () => {
         fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
@@ -175,7 +175,7 @@ describe('BridgeFeeRow', () => {
 
       expect(queryByText('On-ramp fee')).toBeNull();
       expect(
-        queryByText(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+        queryByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
       ).toBeNull();
       // The whole provider fee stays on the provider row.
       expect(
