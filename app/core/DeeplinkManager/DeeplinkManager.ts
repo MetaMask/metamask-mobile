@@ -114,21 +114,7 @@ export class DeeplinkManager {
       processedTraceToken,
     });
 
-    const handled = typeof result === 'boolean' ? result : Boolean(result);
-
-    if (handled) {
-      endDeeplinkProcessedTrace({
-        seam: 'handler_finished',
-        traceToken: processedTraceToken,
-      });
-    } else {
-      cancelDeeplinkProcessedTrace({
-        reason: 'rejected',
-        traceToken: processedTraceToken,
-      });
-    }
-
-    return handled;
+    return typeof result === 'boolean' ? result : Boolean(result);
   }
 
   async resolve(

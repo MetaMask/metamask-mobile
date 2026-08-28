@@ -115,6 +115,10 @@ async function parseDeeplink({
           return null;
         }
         connectWithWC({ handled, wcURL, origin, params });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       case PROTOCOLS.ETHEREUM:
         if (mode === 'resolve') {
@@ -127,6 +131,10 @@ async function parseDeeplink({
         }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
@@ -136,8 +144,16 @@ async function parseDeeplink({
           return createDappDeeplinkIntent({ url: getDappUrl(urlObj) });
         }
         handleDappUrl({ handled, urlObj, browserCallBack });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       default:
+        cancelDeeplinkProcessedTrace({
+          reason: 'rejected',
+          traceToken: processedTraceToken,
+        });
         return false;
     }
 
@@ -153,13 +169,18 @@ async function parseDeeplink({
           strings('qr_scanner.unrecognized_address_qr_code_title'),
           strings('qr_scanner.unrecognized_address_qr_code_desc'),
         );
-
-        // Return true to indicate we handled this
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         return true;
       }
       Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
-
+    cancelDeeplinkProcessedTrace({
+      reason: 'error',
+      traceToken: processedTraceToken,
+    });
     return false;
   }
 }

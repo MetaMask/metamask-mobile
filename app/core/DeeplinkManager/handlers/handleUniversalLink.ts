@@ -627,6 +627,9 @@ async function handleUniversalLink({
           },
         } as DeepLinkModalParams;
 
+        // Modal is always shown for invalid/unsupported links; pause the Processed span
+        // so modal dwell time is excluded from app-work measurement (same as public/private).
+        markDeeplinkInterstitialShown();
         // Pass modal params for display
         handleDeepLinkModalDisplay(modalParams);
         return;

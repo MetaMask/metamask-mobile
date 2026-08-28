@@ -173,7 +173,7 @@ describe('DeeplinkManager', () => {
     const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
     const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
 
-    it('starts on parse and ends at the handler_finished seam when handled', async () => {
+    it('starts a trace and threads the token into parseDeeplink, which owns the trace lifecycle', async () => {
       mockParseDeeplink.mockResolvedValueOnce(true);
       mockStartProcessed.mockReturnValueOnce(42);
 
@@ -184,16 +184,12 @@ describe('DeeplinkManager', () => {
         source: 'parse',
         appStartType: 'warm',
       });
-      // The owning token is threaded into parseDeeplink (for the detached
-      // universal-link settle) and into the end call, so neither can touch a
-      // later run's span.
+      // Token threaded into parseDeeplink; parseDeeplink is now solely
+      // responsible for ending/cancelling the trace in execute mode.
       expect(mockParseDeeplink).toHaveBeenCalledWith(
         expect.objectContaining({ processedTraceToken: 42 }),
       );
-      expect(mockEndProcessed).toHaveBeenCalledWith({
-        seam: 'handler_finished',
-        traceToken: 42,
-      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
       expect(mockCancelProcessed).not.toHaveBeenCalled();
     });
 
@@ -209,16 +205,14 @@ describe('DeeplinkManager', () => {
       });
     });
 
-    it('cancels as rejected when parse does not handle the link', async () => {
+    it('does not cancel the trace directly — parseDeeplink owns the cancel in execute mode', async () => {
       mockParseDeeplink.mockResolvedValueOnce(false);
       mockStartProcessed.mockReturnValueOnce(42);
 
       await deeplinkManager.parse(url, { origin });
 
-      expect(mockCancelProcessed).toHaveBeenCalledWith({
-        reason: 'rejected',
-        traceToken: 42,
-      });
+      // parseDeeplink (mocked here) is responsible for cancelling; DeeplinkManager.parse no longer does.
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
       expect(mockEndProcessed).not.toHaveBeenCalled();
     });
 

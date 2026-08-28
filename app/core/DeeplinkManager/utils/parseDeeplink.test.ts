@@ -273,6 +273,86 @@ describe('parseDeeplink', () => {
     });
   });
 
+  describe('Processed trace settlement for non-HTTP protocols', () => {
+    const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
+    const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
+
+    it('ends the trace at handler_finished for WC protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'wc://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('ends the trace at handler_finished for ethereum protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'ethereum://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('ends the trace at handler_finished for dapp protocol in execute mode', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'dapp://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as rejected for unsupported protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'unsupported://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as error for invalid URL', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'not-a-url',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'error',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+  });
+
   describe('detached universal-link Processed trace settlement', () => {
     // The universal-link flow is not awaited in execute mode (it can block on
     // the interstitial), so the Processed trace is settled from a detached
