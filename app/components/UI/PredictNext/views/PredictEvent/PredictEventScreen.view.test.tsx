@@ -690,14 +690,12 @@ describe('PredictEventScreen', () => {
           venueId,
           'nfl-composite-away-market',
           'ALL',
-          undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           'nfl-composite-home-market',
           'ALL',
-          undefined,
         ],
       ]),
     );
@@ -706,7 +704,6 @@ describe('PredictEventScreen', () => {
       venueId,
       'nfl-spread-new-england-2-5',
       'ALL',
-      undefined,
     );
   });
 
@@ -736,7 +733,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'nfl-total-220-5',
         'ALL',
-        undefined,
       ),
     );
     expect(
@@ -776,7 +772,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'nfl-total-220-5',
         'ALL',
-        undefined,
       ),
     );
   });
@@ -872,7 +867,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'nfl-total-220-5',
         'ALL',
-        undefined,
       ),
     );
   });
