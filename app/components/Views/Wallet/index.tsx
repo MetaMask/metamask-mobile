@@ -300,6 +300,19 @@ export const useHomeDeepLinkEffects = (opts: {
 };
 
 /**
+ * TEMP perf-debug toggles for manual binary search on wallet-unlock JS-thread spike.
+ * Flip ONE flag at a time (false -> true) re-adding a subtree, re-measure with
+ * Flashlight/Perf Monitor between each flip. Remove this block before merging.
+ */
+const PERF_DEBUG = {
+  walletHeader: true, // does not cause any issues
+  portfolioHeader: true, // does not cause any issues
+  homepage: true, // causes continuous use of JS thread
+  assetPollingProvider: true, // this is not causing any issues
+  perpsAlwaysOnProvider: false, // causes continuous use of JS thread
+};
+
+/**
  * Main view for the wallet
  */
 const Wallet = ({
@@ -1091,85 +1104,93 @@ const Wallet = ({
     [styles],
   );
 
-  return (
-    <ErrorBoundary navigation={navigation} view="Wallet">
-      <PerpsAlwaysOnProvider>
-        <SafeAreaView
-          style={[
-            baseStyles.flexGrow,
-            { backgroundColor: colors.background.default },
-          ]}
-          edges={{ top: 'additive' }}
-          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
-        >
-          {selectedInternalAccount ? (
-            <>
-              <WalletHeader
-                displayName={displayName}
-                navigation={navigation}
-                isMoneyAccountVisible={isMoneyAccountVisible}
-                isNotificationEnabled={isNotificationEnabled}
-                unreadNotificationCount={unreadNotificationCount}
-                handleSearchPress={handleSearchPress}
-                handleActivityPress={handleActivityPress}
-                handleCardPress={handleCardPress}
-                handleHamburgerPress={handleHamburgerPress}
-                touchAreaSlop={touchAreaSlop}
-                headerActionButtonsContainerStyle={
-                  styles.headerActionButtonsContainer
-                }
-                headerAccountPickerStyle={styles.headerAccountPickerStyle}
-              />
-              <View
-                ref={containerViewRef}
-                style={styles.wrapper}
-                testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-                onLayout={(e) => {
-                  setViewportHeight(e.nativeEvent.layout.height);
-                  containerViewRef.current?.measureInWindow((_x, y) => {
-                    setContainerScreenY(y);
-                  });
+  const walletHomeContent = (
+    <SafeAreaView
+      style={[
+        baseStyles.flexGrow,
+        { backgroundColor: colors.background.default },
+      ]}
+      edges={{ top: 'additive' }}
+      testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
+    >
+      {selectedInternalAccount ? (
+        <>
+          {PERF_DEBUG.walletHeader && (
+            <WalletHeader
+              displayName={displayName}
+              navigation={navigation}
+              isMoneyAccountVisible={isMoneyAccountVisible}
+              isNotificationEnabled={isNotificationEnabled}
+              unreadNotificationCount={unreadNotificationCount}
+              handleSearchPress={handleSearchPress}
+              handleActivityPress={handleActivityPress}
+              handleCardPress={handleCardPress}
+              handleHamburgerPress={handleHamburgerPress}
+              touchAreaSlop={touchAreaSlop}
+              headerActionButtonsContainerStyle={
+                styles.headerActionButtonsContainer
+              }
+              headerAccountPickerStyle={styles.headerAccountPickerStyle}
+            />
+          )}
+          <View
+            ref={containerViewRef}
+            style={styles.wrapper}
+            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+            onLayout={(e) => {
+              setViewportHeight(e.nativeEvent.layout.height);
+              containerViewRef.current?.measureInWindow((_x, y) => {
+                setContainerScreenY(y);
+              });
+            }}
+          >
+            {PERF_DEBUG.assetPollingProvider && isFocused && (
+              <AssetPollingProvider chainIds={evmChainIds} />
+            )}
+            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
+              <ConditionalScrollView
+                ref={scrollViewRef}
+                isScrollEnabled
+                scrollViewProps={{
+                  testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                  contentContainerStyle: scrollViewContentStyle,
+                  showsVerticalScrollIndicator: false,
+                  onScroll: handleHomepageScroll,
+                  scrollEventThrottle: 16,
+                  refreshControl: (
+                    <RefreshControl
+                      colors={[colors.primary.default]}
+                      tintColor={colors.icon.default}
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  ),
                 }}
               >
-                {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-                <HomepageScrollContext.Provider
-                  value={homepageScrollContextValue}
-                >
-                  <ConditionalScrollView
-                    ref={scrollViewRef}
-                    isScrollEnabled
-                    scrollViewProps={{
-                      testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
-                      contentContainerStyle: scrollViewContentStyle,
-                      showsVerticalScrollIndicator: false,
-                      onScroll: handleHomepageScroll,
-                      scrollEventThrottle: 16,
-                      refreshControl: (
-                        <RefreshControl
-                          colors={[colors.primary.default]}
-                          tintColor={colors.icon.default}
-                          refreshing={refreshing}
-                          onRefresh={handleRefresh}
-                        />
-                      ),
-                    }}
-                  >
-                    {portfolioHeader}
-                    <Homepage
-                      ref={homepageRef}
-                      balanceBreakdownSectionProps={
-                        balanceBreakdownSectionProps
-                      }
-                    />
-                  </ConditionalScrollView>
-                </HomepageScrollContext.Provider>
-              </View>
-            </>
-          ) : (
-            renderLoader()
-          )}
-        </SafeAreaView>
-      </PerpsAlwaysOnProvider>
+                {PERF_DEBUG.portfolioHeader && portfolioHeader}
+                {PERF_DEBUG.homepage && (
+                  <Homepage
+                    ref={homepageRef}
+                    balanceBreakdownSectionProps={balanceBreakdownSectionProps}
+                  />
+                )}
+              </ConditionalScrollView>
+            </HomepageScrollContext.Provider>
+          </View>
+        </>
+      ) : (
+        renderLoader()
+      )}
+    </SafeAreaView>
+  );
+
+  return (
+    <ErrorBoundary navigation={navigation} view="Wallet">
+      {PERF_DEBUG.perpsAlwaysOnProvider ? (
+        <PerpsAlwaysOnProvider>{walletHomeContent}</PerpsAlwaysOnProvider>
+      ) : (
+        walletHomeContent
+      )}
     </ErrorBoundary>
   );
 };

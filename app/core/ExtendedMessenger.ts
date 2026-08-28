@@ -13,26 +13,33 @@ const SUBSCRIPTION_NOT_FOUND_PREFIX = 'Subscription not found for event:';
  * controller untouched. Remove this block before merging.
  */
 export const PERF_DEBUG_UNLOCK_LISTENERS: Record<string, boolean> = {
-  AccountTrackerController: true,
-  AssetsController: true,
-  AuthenticationController: true, //One of the root causes UNBLOCKED
-  BackendWebSocketService: true,
-  CardController: true,
+  AccountTrackerController: true, // Not a problem causer f
+  AssetsController: true, // Not a problem causer f
+  AuthenticationController: false, // Not a problem causer for now
+  BackendWebSocketService: true, // Not a problem causer f
+  CardController: true, // Not a problem causer f
+  // Second picture
+
   ConfigRegistryController: true,
   MoneyAccountUpgradeControllerInitialization: true,
   MultichainAssetsRatesController: true,
   NetworkConnectionBannerController: true,
   NotificationServicesController: true,
+  //Third picture
+
   PermissionControllerInit: true,
   ProfileMetricsController: true,
   RewardsController: true,
   Root: true,
   SnapAccountService: true,
+  //Fourth
+
   SnapControllerInit: true,
   TokenBalancesController: true,
   TokenDetectionController: true,
   TransactionControllerInit: true,
   UserStorageController: true,
+  //fifth
 };
 
 const PERF_DEBUG_EVENT_TYPE = 'KeyringController:unlock';
