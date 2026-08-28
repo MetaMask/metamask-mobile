@@ -5,6 +5,7 @@ import {
   MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID,
   MONEY_DEV_MIGRATION_STATUS_TEST_ID,
   MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID,
+  MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID,
   MoneyUiDeveloperOptionsSection,
 } from './MoneyUiDeveloperOptionsSection';
 import { UserActionType } from '../../../../actions/user/types';
@@ -374,6 +375,141 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
 
       expect(mockMigrate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('unprompted migration POC with phase timings', () => {
+    const enterDestination = (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+    ) => {
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_DESTINATION,
+      );
+    };
+
+    it('disables the timing run button when destination is empty', () => {
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(
+        getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
+      ).toBeDisabled();
+    });
+
+    it('calls migrate without the Run/Cancel confirm alert', async () => {
+      const alertSpy = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      enterDestination(getByTestId);
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
+        );
+      });
+
+      expect(mockMigrate).toHaveBeenCalledWith({
+        source: MOCK_ADDRESS,
+        destination: MOCK_DESTINATION,
+        onBeforePhase: expect.any(Function),
+      });
+      expect(alertSpy).not.toHaveBeenCalledWith(
+        'Run Money Account migration POC?',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('does not show a blocking prompt for a migration phase', async () => {
+      mockMigrate.mockImplementation(
+        async ({ onBeforePhase }: MigrationParams) => {
+          await onBeforePhase?.('collect-inventory');
+        },
+      );
+      const alertSpy = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      enterDestination(getByTestId);
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
+        );
+      });
+
+      expect(alertSpy).not.toHaveBeenCalledWith(
+        'Migration phase: collect-inventory',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('prints phase timings after migrate finishes', async () => {
+      mockMigrate.mockImplementation(
+        async ({ onBeforePhase }: MigrationParams) => {
+          await onBeforePhase?.('collect-inventory');
+          await onBeforePhase?.('teardown');
+        },
+      );
+      const alertSpy = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      enterDestination(getByTestId);
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
+        );
+      });
+
+      const status = getByTestId(MONEY_DEV_MIGRATION_STATUS_TEST_ID);
+      expect(status).toHaveTextContent(/Migration finished/);
+      expect(status).toHaveTextContent(/collect-inventory: \d+ms/);
+      expect(status).toHaveTextContent(/teardown: \d+ms/);
+      expect(status).toHaveTextContent(/Total: \d+ms/);
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Migration phase timings',
+        expect.stringMatching(
+          /collect-inventory: \d+ms\nteardown: \d+ms\nTotal: \d+ms/,
+        ),
+      );
+    });
+
+    it('prints phase timings and the error when migrate throws', async () => {
+      mockMigrate.mockImplementation(
+        async ({ onBeforePhase }: MigrationParams) => {
+          await onBeforePhase?.('collect-inventory');
+          await onBeforePhase?.('teardown');
+          throw new Error('exit-batch-failed');
+        },
+      );
+      const alertSpy = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      enterDestination(getByTestId);
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
+        );
+      });
+
+      const status = getByTestId(MONEY_DEV_MIGRATION_STATUS_TEST_ID);
+      expect(status).toHaveTextContent(/Migration failed: exit-batch-failed/);
+      expect(status).toHaveTextContent(/collect-inventory: \d+ms/);
+      expect(status).toHaveTextContent(/teardown: \d+ms/);
+      expect(status).toHaveTextContent(/Total: \d+ms/);
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Migration phase timings (failed)',
+        expect.stringMatching(
+          /exit-batch-failed\n\ncollect-inventory: \d+ms\nteardown: \d+ms\nTotal: \d+ms/,
+        ),
+      );
     });
   });
 });

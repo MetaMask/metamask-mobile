@@ -43,7 +43,22 @@ export const MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID =
   'money-dev-migration-destination-input';
 export const MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID =
   'money-dev-run-migration-button';
+export const MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID =
+  'money-dev-run-migration-perf-button';
 export const MONEY_DEV_MIGRATION_STATUS_TEST_ID = 'money-dev-migration-status';
+
+type PhaseTiming = { phase: string; durationMs: number };
+
+const formatPhaseTimings = (
+  timings: PhaseTiming[],
+): { summary: string; totalMs: number } => {
+  const totalMs = timings.reduce((sum, t) => sum + t.durationMs, 0);
+  const summary = [
+    ...timings.map((t) => `${t.phase}: ${t.durationMs}ms`),
+    `Total: ${totalMs}ms`,
+  ].join('\n');
+  return { summary, totalMs };
+};
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -157,6 +172,78 @@ export const MoneyUiDeveloperOptionsSection = () => {
       ],
     );
   }, [canRunMigration, moneyAccountAddress, runMigration, trimmedDestination]);
+
+  const runMigrationWithTimings = useCallback(async () => {
+    if (!moneyAccountAddress || !isValidHexAddress(trimmedDestination)) {
+      return;
+    }
+    setIsMigrationRunning(true);
+    setMigrationStatus('Migration running…');
+
+    const timings: PhaseTiming[] = [];
+    let currentPhase: string | null = null;
+    let phaseStartedAt = 0;
+
+    const closePhase = () => {
+      if (currentPhase) {
+        timings.push({
+          phase: currentPhase,
+          durationMs: Date.now() - phaseStartedAt,
+        });
+        currentPhase = null;
+      }
+    };
+
+    const recordPhaseStart: MigrationPhasePrompt = async (phase) => {
+      closePhase();
+      currentPhase = phase;
+      phaseStartedAt = Date.now();
+    };
+
+    const dumpTimings = (failedMessage?: string) => {
+      closePhase();
+      const { summary, totalMs } = formatPhaseTimings(timings);
+      Logger.log('MoneyUiDeveloperOptionsSection: migration POC timings', {
+        timings,
+        totalMs,
+      });
+      if (failedMessage !== undefined) {
+        setMigrationStatus(`Migration failed: ${failedMessage}\n${summary}`);
+        Alert.alert(
+          'Migration phase timings (failed)',
+          `${failedMessage}\n\n${summary}`,
+        );
+        return;
+      }
+      setMigrationStatus(`Migration finished\n${summary}`);
+      Alert.alert('Migration phase timings', summary);
+    };
+
+    try {
+      await MoneyAccountMigrationPoc.migrate({
+        source: moneyAccountAddress as Hex,
+        destination: trimmedDestination as Hex,
+        onBeforePhase: recordPhaseStart,
+      });
+      dumpTimings();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      Logger.error(
+        error instanceof Error ? error : new Error(message),
+        'MoneyUiDeveloperOptionsSection: migration POC failed',
+      );
+      dumpTimings(message);
+    } finally {
+      setIsMigrationRunning(false);
+    }
+  }, [moneyAccountAddress, trimmedDestination]);
+
+  const handleRunMigrationWithTimings = useCallback(() => {
+    if (!canRunMigration || !moneyAccountAddress) {
+      return;
+    }
+    void runMigrationWithTimings();
+  }, [canRunMigration, moneyAccountAddress, runMigrationWithTimings]);
 
   return (
     <Box twClassName="gap-2">
@@ -296,6 +383,19 @@ export const MoneyUiDeveloperOptionsSection = () => {
           {isMigrationRunning
             ? 'Migration running…'
             : 'Run Money Account migration POC'}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleRunMigrationWithTimings}
+          isDisabled={!canRunMigration}
+          isFullWidth
+          testID={MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID}
+        >
+          {isMigrationRunning
+            ? 'Migration running…'
+            : 'Run migration POC (no prompt, log timings)'}
         </Button>
         {migrationStatus ? (
           <Text
