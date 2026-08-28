@@ -151,10 +151,8 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import {
-  getOrderManagementToastKey,
-  willFlipPosition,
-} from '../../utils/orderUtils';
+import { willFlipPosition } from '../../utils/orderUtils';
+import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
@@ -326,6 +324,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Get order form state from context; balanceForValidation respects custom token amount when set
   const {
     orderForm,
+    updateOrderForm,
     setAmount,
     setLeverage,
     setTakeProfitPrice,
@@ -1581,10 +1580,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Clear pending trade config after successful submission to prevent
-        // stale TP/SL values from being restored on the next order form visit
+        // stale TP/SL values from being restored on the next order form visit.
+        // Size, TP/SL, and limit price reset; leverage and order type persist.
         Engine.context.PerpsController?.clearPendingTradeConfiguration(
           orderForm.asset,
         );
+        updateOrderForm({
+          amount: '',
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          limitPrice: undefined,
+        });
+        setLimitPrice(undefined);
       } finally {
         // Always reset submission flag
         isSubmittingRef.current = false;
@@ -1615,6 +1622,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       currentMarketPosition,
       executeOrder,
       showToast,
+      updateOrderForm,
+      setLimitPrice,
       PerpsToastOptions.formValidation.orderForm,
       PerpsToastOptions.orderManagement,
       PerpsToastOptions.positionManagement.tpsl,

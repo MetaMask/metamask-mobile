@@ -476,6 +476,18 @@ jest.mock('../../../../UI/WhatsHappening', () => {
     return <View testID="whats-happening-section" />;
   };
 });
+jest.mock('../../../../UI/WhatsHappening/hooks', () => {
+  const actual = jest.requireActual('../../../../UI/WhatsHappening/hooks');
+  return {
+    ...actual,
+    useWhatsHappening: jest.fn(() => ({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    })),
+  };
+});
 jest.mock(
   '../../../../../selectors/featureFlagController/whatsHappening',
   () => ({
