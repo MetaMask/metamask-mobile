@@ -79,16 +79,17 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            quote.cost?.valueInCurrency ? new BigNumber(quote.cost.valueInCurrency):
-            new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
-              isGaslessQuote(quote.quote)
-                ? (sumAmounts(quote.quote.feeData?.txFee)?.valueInCurrency ??
-                    '0')
-                : (sumAmounts(
-                    quote.quote.feeData?.network,
-                    quote.quote.feeData?.relayer,
-                  )?.valueInCurrency ?? '0'),
-            ),
+            quote.cost?.valueInCurrency
+              ? new BigNumber(quote.cost.valueInCurrency)
+              : new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
+                  isGaslessQuote(quote.quote)
+                    ? (sumAmounts(quote.quote.feeData?.txFee)
+                        ?.valueInCurrency ?? '0')
+                    : (sumAmounts(
+                        quote.quote.feeData?.network,
+                        quote.quote.feeData?.relayer,
+                      )?.valueInCurrency ?? '0'),
+                ),
             currency,
           ),
           receiveAmount:
