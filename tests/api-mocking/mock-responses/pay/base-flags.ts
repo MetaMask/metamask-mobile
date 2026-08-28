@@ -326,7 +326,16 @@ const BASE_CONFIRMATIONS_FLAGS = [
   },
   {
     confirmations_pay_hardware: {
-      enabled: false,
+      versions: {
+        '0.0.0': {
+          enabled: false,
+        },
+        '8.9.0': {
+          default: {
+            enabled: false,
+          },
+        },
+      },
     },
   },
   {

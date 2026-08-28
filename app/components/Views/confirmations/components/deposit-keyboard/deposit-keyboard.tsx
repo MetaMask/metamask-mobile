@@ -10,7 +10,6 @@ import { View } from 'react-native';
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
-import { noop } from 'lodash';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -37,11 +36,11 @@ const MAX_BUTTON = {
 };
 
 export interface DepositKeyboardProps {
-  alertMessage?: string;
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
   hidePercentageButtons?: boolean;
+  isDoneDisabled?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -50,11 +49,11 @@ export interface DepositKeyboardProps {
 
 export const DepositKeyboard = memo(
   ({
-    alertMessage,
     doneLabel,
     hasInput,
     hasMax,
     hidePercentageButtons,
+    isDoneDisabled,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -97,19 +96,7 @@ export const DepositKeyboard = memo(
           justifyContent={JustifyContent.spaceBetween}
           gap={10}
         >
-          {alertMessage && (
-            <Button
-              testID="deposit-keyboard-alert"
-              style={[styles.button, styles.disabledButton]}
-              onPress={noop}
-              isDisabled
-              variant={ButtonVariant.Primary}
-            >
-              {alertMessage}
-            </Button>
-          )}
-          {!alertMessage &&
-            !hasInput &&
+          {!hasInput &&
             !hidePercentageButtons &&
             buttons.map(({ label, value: buttonValue }) => (
               <Button
@@ -121,11 +108,12 @@ export const DepositKeyboard = memo(
                 {label}
               </Button>
             ))}
-          {!alertMessage && hasInput && (
+          {hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
               style={styles.button}
               onPress={onDonePress}
+              isDisabled={isDoneDisabled}
               variant={ButtonVariant.Primary}
             >
               {doneLabel ?? strings('confirm.edit_amount_done')}

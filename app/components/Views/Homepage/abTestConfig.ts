@@ -267,6 +267,7 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
 export enum HomepageBalanceBreakdownVariant {
   Control = 'control',
   Icons = 'icons',
+  IconsWithArrows = 'iconsWithArrows',
   Allocation = 'allocation',
 }
 
@@ -274,6 +275,7 @@ export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
 
 interface HomepageBalanceBreakdownVariantConfig {
   layout: HomepageBalanceBreakdownLayout | null;
+  showRowArrows: boolean;
 }
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
@@ -282,12 +284,19 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
 > = {
   [HomepageBalanceBreakdownVariant.Control]: {
     layout: null,
+    showRowArrows: false,
   },
   [HomepageBalanceBreakdownVariant.Icons]: {
     layout: 'icons',
+    showRowArrows: false,
+  },
+  [HomepageBalanceBreakdownVariant.IconsWithArrows]: {
+    layout: 'icons',
+    showRowArrows: true,
   },
   [HomepageBalanceBreakdownVariant.Allocation]: {
     layout: 'allocation',
+    showRowArrows: false,
   },
 };
 
@@ -296,6 +305,7 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
   variationNames: {
     control: 'Current homepage without balance breakdown',
     icons: 'Primitive breakdown with icons',
+    iconsWithArrows: 'Primitive breakdown with icons and row arrows',
     allocation: 'Primitive allocation breakdown',
   },
 } as const;

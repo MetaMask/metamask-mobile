@@ -1,10 +1,15 @@
-import type { Order } from '@metamask/perps-controller';
+import {
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
+  type Order,
+  type ProOrdersSortDirection,
+  type ProOrdersSortField,
+} from '@metamask/perps-controller';
 import { resolveOrderDisplayPriceAndLabel } from '../../../utils/orderUtils';
-import { compareProSortValues, type ProSortDirection } from './proSortCompare';
+import { compareProSortValues } from './proSortCompare';
 
-export type ProOrderSortField = 'orderValue' | 'size' | 'price' | 'time';
+export type ProOrderSortField = ProOrdersSortField;
 
-export type ProOrderSortDirection = ProSortDirection;
+export type ProOrderSortDirection = ProOrdersSortDirection;
 
 export interface ProOrderSortConfig {
   field: ProOrderSortField;
@@ -12,8 +17,8 @@ export interface ProOrderSortConfig {
 }
 
 export const DEFAULT_PRO_ORDER_SORT: ProOrderSortConfig = {
-  field: 'time',
-  direction: 'desc',
+  field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
+  direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
 };
 
 export const PRO_ORDER_SORT_OPTIONS: {

@@ -55,5 +55,11 @@ export interface PerpsModeToggleProps {
    */
   source?: string;
 
+  /**
+   * When true, fires the medium TabChange haptic on a meaningful mode change.
+   * Defaults off for callers that do not opt into mode feedback.
+   */
+  enableHaptics?: boolean;
+
   testID?: string;
 }

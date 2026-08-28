@@ -1,14 +1,35 @@
 import React, { createRef } from 'react';
-import { initialState } from '../../_mocks_/initialState';
+import { CaipChainId } from '@metamask/utils';
+import { ethToken1Address, initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockTrackUnifiedSwapBridgeEvent = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
+          mockTrackUnifiedSwapBridgeEvent(...args),
+      },
+    },
+  },
 }));
 
 // Mock Input to expose focus/blur/isFocused on its ref for imperative handle tests.
@@ -111,6 +132,73 @@ describe('TokenInputArea', () => {
     mockUseFormattedBalanceWithThreshold.mockReturnValue('100');
     mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
     mockUseIsInsufficientBalance.mockReturnValue(false);
+  });
+
+  describe('empty state token selector navigation', () => {
+    it('navigates to the source token selector with enabledChainIds when the source "Select token" button is pressed', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            isSourceToken
+            enabledChainIds={enabledChainIds}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Source,
+        enabledChainIds,
+      });
+    });
+
+    it('navigates to the destination token selector with enabledChainIds when the dest "Select token" button is pressed', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            enabledChainIds={enabledChainIds}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Dest,
+        enabledChainIds,
+      });
+    });
+
+    it('navigates with enabledChainIds undefined when the prop is not provided', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Dest,
+        enabledChainIds: undefined,
+      });
+    });
   });
 
   it('renders with initial state', () => {
@@ -908,6 +996,77 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(mockOnAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the currency value of an unpriced token when hideFiatValueWhenUnpriced is set', () => {
+      // Arrange — mockToken has no market data in the mocked state
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+
+      // Act
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amount="1"
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert
+      expect(queryByText('$0.00')).toBeNull();
+    });
+
+    it('keeps the currency value of a priced token when hideFiatValueWhenUnpriced is set', () => {
+      // Arrange
+      mockUseDisplayCurrencyValue.mockReturnValue('$50.00');
+
+      // Act
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={{ ...mockToken, address: ethToken1Address }}
+            amount="1"
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByText('$50.00')).toBeTruthy();
+    });
+
+    it('shows token amount as primary for an unpriced destination when fiat-as-primary and hideFiatValueWhenUnpriced are both set', () => {
+      // Arrange — mockToken has no market data; limit/recurring buys pass both flags
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+
+      // Act
+      const { getByTestId, queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={mockToken}
+            amount="1.5"
+            showFiatAmountAsPrimary
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert — fall back to token amount rather than rendering the unpriced "$0.00"
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByText('$0.00')).toBeNull();
     });
   });
 

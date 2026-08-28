@@ -7,6 +7,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
+  isTriggerOrderType,
   type OrderParams,
   type OrderResult,
   type Position,
@@ -31,6 +32,7 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { getOrderPlacementKind } from '../utils/orderUtils';
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
@@ -92,13 +94,14 @@ export function usePerpsOrderExecution(
   const placeOrder = useCallback(
     async (orderParams: OrderParams): Promise<OrderResult | undefined> => {
       // Market orders measure submit -> position rendered (toast coupled to the
-      // same stream render) via PerpsPlaceOrderToPositionRendered. Limit orders
-      // measure submit -> resting order rendered in the orders stream (no
-      // exchange fill-wait time) via PerpsPlaceLimitOrderToOrderRendered. Each
-      // start mints a unique op id so overlapping orders never collide.
-      // Only an explicit limit order takes the order-render path; anything else
-      // (including an omitted orderType) is treated as market.
-      const isMarketOrder = orderParams.orderType !== 'limit';
+      // same stream render) via PerpsPlaceOrderToPositionRendered. Limit and
+      // trigger orders measure submit -> resting order rendered in the orders
+      // stream (no exchange fill-wait time) via
+      // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
+      // overlapping orders never collide.
+      const isRestingOrder =
+        getOrderPlacementKind(orderParams.orderType) === 'resting';
+      const isMarketOrder = !isRestingOrder;
       const cufOpId = startPerpsCufTrace({
         name: isMarketOrder
           ? TraceName.PerpsPlaceOrderToPositionRendered
@@ -200,10 +203,10 @@ export function usePerpsOrderExecution(
             result,
           );
 
-          if (!isMarketOrder) {
-            // Resting limit order: accepted, no position renders now. Confirm
-            // immediately, then end the order-render CUF when the resting
-            // order appears in the stream (or on timeout).
+          if (isRestingOrder) {
+            // Resting orders: accepted, no position renders now. Confirm
+            // immediately, then end the order-render CUF when the resting order
+            // appears in the stream (or on timeout).
             onSuccess?.();
             const orderId = result.orderId;
             if (typeof orderId !== 'string') {
@@ -218,19 +221,16 @@ export function usePerpsOrderExecution(
               // instant, not now.
               endCufStreamRendered(stream.orders.getLastDeliveredAt());
             } else {
-              // End when the order rests in the orders stream, or — for a
-              // marketable limit that fills immediately — when it renders as a
-              // new/changed position (baseline tells a fill from a prior hold).
-              const renderedPosition = stream.positions
-                .getSnapshot()
-                ?.find((p) => p.symbol === orderParams.symbol);
-              // A synchronous fill is a position that appeared/changed versus the
-              // baseline, OR a pre-existing position now absent because the fill
-              // reduced it fully to zero (a marketable limit that closed the
-              // hold). Delegates to the same predicate the stream matcher uses,
-              // so the fast path and the matcher cannot drift. Only trusted with
-              // a loaded baseline; otherwise defer to the stream matcher.
+              // A plain limit can be marketable and fill before its order
+              // renders. Trigger orders must remain on the orders path because
+              // their execution style only applies after activation.
+              const renderedPosition = isTriggerOrderType(orderParams.orderType)
+                ? undefined
+                : stream.positions
+                    .getSnapshot()
+                    ?.find((p) => p.symbol === orderParams.symbol);
               const filledSynchronously =
+                !isTriggerOrderType(orderParams.orderType) &&
                 positionsLoaded &&
                 isPerpsFillRendered(renderedPosition, positionBaselineSnapshot);
               if (filledSynchronously) {

@@ -7625,7 +7625,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.5.5, @metamask/account-tree-controller@npm:^7.6.1":
+"@metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.6.1":
   version: 7.6.1
   resolution: "@metamask/account-tree-controller@npm:7.6.1"
   dependencies:
@@ -7771,9 +7771,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:13.1.2":
-  version: 13.1.2
-  resolution: "@metamask/assets-controller@npm:13.1.2"
+"@metamask/assets-controller@npm:13.1.3":
+  version: 13.1.3
+  resolution: "@metamask/assets-controller@npm:13.1.3"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7800,19 +7800,19 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/transaction-controller": "npm:^69.5.1"
+    "@metamask/transaction-controller": "npm:^69.5.2"
     "@metamask/utils": "npm:^11.11.0"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/ddb51f7a1799632fcf2c86c89b6584d982ad6511348751a87972df306fa9c8019c9753d3e47f184a0a3bbc637f823e94326be17434050f05f9f540193d8d1bf5
+  checksum: 10/ab10ee0078552cc01812a2fccfdcad811c1d7c8d420aa4def5ea41ee8db2b9baaf083691b2535618658ea793cf97958eaf1dbc3fc395cf3132a5f4e3504677bb
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch":
-  version: 13.1.2
-  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch::version=13.1.2&hash=6a77e2"
+"@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch":
+  version: 13.1.3
+  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch::version=13.1.3&hash=bf6c3c"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7839,13 +7839,13 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/transaction-controller": "npm:^69.5.1"
+    "@metamask/transaction-controller": "npm:^69.5.2"
     "@metamask/utils": "npm:^11.11.0"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/5ea1f118cdac0b379ea1dfddd51433ce079275e282897edb81ec38293789a20b1b42856e60ebddd30a38a56acfcbe22f8581ac49cc38ea08e3c0b5096e2d2493
+  checksum: 10/e7d611472f14e7909218a4cbfb765247c3a922c60e94a1b6a0d82fa0ec94a9359e90eadf803522efd7967e7e755c7c34395bf04ec8838f128764be862e67cd46
   languageName: node
   linkType: hard
 
@@ -8185,17 +8185,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-utils@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@metamask/client-utils@npm:1.2.1"
+"@metamask/client-utils@npm:^2.0.1":
+  version: 2.0.2
+  resolution: "@metamask/client-utils@npm:2.0.2"
   dependencies:
     "@metamask/contract-metadata": "npm:^2.4.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^7.0.0"
-    "@metamask/keyring-api": "npm:^23.5.0"
-    "@metamask/transaction-controller": "npm:^69.2.1"
+    "@metamask/core-backend": "npm:^8.1.1"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/slip44": "npm:^4.3.0"
+    "@metamask/transaction-controller": "npm:^69.5.2"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/69f00137b4831e8f02335dbef244e65e09b33acc450db27bac9744c392a81cc8fd3107bb5b4c09bf3d01c1ecc75aa1655853ede31cbda62244bcea7d9d4b9b1f
+    eth-chainlist: "npm:^0.0.795"
+  checksum: 10/ca3a3f1c2f4d9a88c6cb67327616b7fa99d2bb2c52ec77328dd70e1803976105944a158c34ed4e56ae80747ed9f3d5c372e7083c18d50001546acdb3e5685ae9
   languageName: node
   linkType: hard
 
@@ -8249,7 +8251,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.20.0":
+"@metamask/controller-utils@npm:^11.14.1":
   version: 11.20.0
   resolution: "@metamask/controller-utils@npm:11.20.0"
   dependencies:
@@ -8289,24 +8291,6 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
   checksum: 10/4f67b480a8522f3f89e1988631f57cfde5a7fca6c6df68f4f88e1cdcb54efccb4239befd3a8b3b7b2735479a47733b99eb059d8a0c7ddf28bdc85be4b8c04afb
-  languageName: node
-  linkType: hard
-
-"@metamask/core-backend@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/core-backend@npm:7.0.0"
-  dependencies:
-    "@metamask/account-tree-controller": "npm:^7.5.5"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/profile-sync-controller": "npm:^28.3.0"
-    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-    "@metamask/utils": "npm:^11.11.0"
-    "@tanstack/query-core": "npm:^5.62.16"
-    async-mutex: "npm:^0.5.0"
-    uuid: "npm:^8.3.2"
-  checksum: 10/306ccde8856832b236984dcd6ae7044b8664c6319a80f199b23a2cd91883188d921968387bb515defe8d36cd3d06d3f9db0144e821248a844ad1907ca9ec902b
   languageName: node
   linkType: hard
 
@@ -8422,21 +8406,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:^12.1.0":
-  version: 12.1.0
-  resolution: "@metamask/earn-controller@npm:12.1.0"
+"@metamask/earn-controller@npm:^12.2.5":
+  version: 12.2.5
+  resolution: "@metamask/earn-controller@npm:12.2.5"
   dependencies:
     "@ethersproject/bignumber": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/account-tree-controller": "npm:^7.2.0"
+    "@metamask/account-tree-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^30.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/network-controller": "npm:^35.0.1"
     "@metamask/stake-sdk": "npm:^3.2.1"
     reselect: "npm:^5.1.1"
-  checksum: 10/db61ea9277181738597709903e88a8456abe2e8d262471236ad6e9dc03691f18959460ed736e89d5f91af78038087c2fe9b5595a9c2892d178d0bfa510c4940f
+  checksum: 10/22ef44bc7ca6c672031e73f42275e6ee545550a2d1dd6657aa1db547a5ade3442997419810cbc3abaf8402db49ff34b9e91e5407c79d2ca766433dd752a66f4e
   languageName: node
   linkType: hard
 
@@ -9315,7 +9299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^13.0.1, @metamask/multichain-account-service@npm:^13.0.2":
+"@metamask/multichain-account-service@npm:^13.0.0":
   version: 13.0.2
   resolution: "@metamask/multichain-account-service@npm:13.0.2"
   dependencies:
@@ -9430,6 +9414,23 @@ __metadata:
     react-native: "*"
     react-native-nitro-modules: ^0.29.4
   checksum: 10/2dd16fe5e9511e453cd3b15b6066311471e41a9a58b82f898ae82fdd73c0684893fa4c92ae954b6f31fb1c811c918531fc93e81b5c2986fa8dec491e7a738e83
+  languageName: node
+  linkType: hard
+
+"@metamask/network-connection-banner-controller@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/network-connection-banner-controller@npm:0.2.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/client-controller": "npm:^1.0.1"
+    "@metamask/connectivity-controller": "npm:^0.3.0"
+    "@metamask/keyring-controller": "npm:^27.1.1"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/network-controller": "npm:^35.0.1"
+    "@metamask/network-enablement-controller": "npm:^6.0.3"
+    "@metamask/utils": "npm:^11.11.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/1175b4a8aa5eb8c423cd3e19a5c5a070c4071c23278b096c59f7861a66ac4a45bc3ea40204883c133609e9aaedaa6413331869686655c240420fc115828e6d7f
   languageName: node
   linkType: hard
 
@@ -9618,9 +9619,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/perps-controller@npm:11.0.0"
+"@metamask/perps-controller@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@metamask/perps-controller@npm:12.0.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9636,7 +9637,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/939d34a777283025a34b80d4d4a5c8b38dbc224c2a027eaa077c8f0232e8047d5652e3db0f6cf28f6a117b768ea06501c8a59985118336644210609791a197b8
+  checksum: 10/99afb97183c274b466ed09143dbf19b4ee5a403769443010beb31ec0f0cd80852d99cfe125e2e5bde16ea325a5003e3707a683a7dcdf3d24d8b939ae2184595c
   languageName: node
   linkType: hard
 
@@ -12955,7 +12956,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-cookies/cookies@npm:^6.2.1":
+"@react-native-cookies/cookies@npm:6.2.1":
   version: 6.2.1
   resolution: "@react-native-cookies/cookies@npm:6.2.1"
   dependencies:
@@ -12963,6 +12964,17 @@ __metadata:
   peerDependencies:
     react-native: ">= 0.60.2"
   checksum: 10/cf479715f803f346dc46d4e73b08de76115370657bbc298ce0e6f2d87fafcd8c75a618b0a4943435ef312df142f2134deacf8a1aae7086f14f1265d1b46f8a56
+  languageName: node
+  linkType: hard
+
+"@react-native-cookies/cookies@patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch":
+  version: 6.2.1
+  resolution: "@react-native-cookies/cookies@patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch::version=6.2.1&hash=a9a1fe"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    react-native: ">= 0.60.2"
+  checksum: 10/4ecb60f6b96a8a4f3e7520a6659d2023d10f4a1e7997d506376a5366eed70bfe946797070d7a3fb0ce02b043fb727e2e45e8b4fbcff0e13fddf54c6cb45fa97c
   languageName: node
   linkType: hard
 
@@ -28701,6 +28713,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eth-chainlist@npm:^0.0.795":
+  version: 0.0.795
+  resolution: "eth-chainlist@npm:0.0.795"
+  checksum: 10/1bdc634d107fd114c4b5567fba2003acc740c3e4e877dcc56db2b00071842003a2b918da1601c07451ae497291b63c923c89429d4f77dc41faf04cd186725a5e
+  languageName: node
+  linkType: hard
+
 "eth-ens-namehash@npm:2.0.8, eth-ens-namehash@npm:^2.0.8":
   version: 2.0.8
   resolution: "eth-ens-namehash@npm:2.0.8"
@@ -32377,13 +32396,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-regex@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "ip-regex@npm:5.0.0"
-  checksum: 10/4098b2df89c015f1484a5946e733ec126af8c1828719d90e09f04af23ce487e1a852670e4d3f51b0dc6dfbaf7d8bfab23fd7893ca60e69833da99b7b1ee3623b
-  languageName: node
-  linkType: hard
-
 "ipaddr.js@npm:1.9.1":
   version: 1.9.1
   resolution: "ipaddr.js@npm:1.9.1"
@@ -35671,7 +35683,7 @@ __metadata:
     "@metamask/analytics-controller": "npm:^2.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch"
+    "@metamask/assets-controller": "patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch"
     "@metamask/assets-controllers": "npm:^111.0.0"
     "@metamask/authenticated-user-storage": "npm:^3.0.1"
     "@metamask/auto-changelog": "npm:^6.2.0"
@@ -35689,7 +35701,7 @@ __metadata:
     "@metamask/claims-controller": "npm:^0.6.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/client-mcp-core": "npm:^0.8.0"
-    "@metamask/client-utils": "npm:^1.2.1"
+    "@metamask/client-utils": "npm:^2.0.1"
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/config-registry-controller": "npm:^2.0.1"
     "@metamask/connectivity-controller": "npm:^0.3.0"
@@ -35701,7 +35713,7 @@ __metadata:
     "@metamask/design-system-twrnc-preset": "npm:^0.9.0"
     "@metamask/design-tokens": "npm:^9.0.0"
     "@metamask/device-mcp": "npm:^0.3.0"
-    "@metamask/earn-controller": "npm:^12.1.0"
+    "@metamask/earn-controller": "npm:^12.2.5"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.2.0"
@@ -35753,12 +35765,13 @@ __metadata:
     "@metamask/multichain-network-controller": "npm:^3.2.3"
     "@metamask/multichain-transactions-controller": "npm:^7.1.2"
     "@metamask/native-utils": "npm:^0.8.0"
+    "@metamask/network-connection-banner-controller": "npm:^0.2.0"
     "@metamask/network-controller": "npm:^35.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
     "@metamask/notification-services-controller": "npm:^26.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^11.0.0"
+    "@metamask/perps-controller": "npm:^12.0.0"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
@@ -35833,7 +35846,7 @@ __metadata:
     "@react-native-community/datetimepicker": "npm:^8.5.1"
     "@react-native-community/netinfo": "npm:11.5.2"
     "@react-native-community/slider": "npm:5.2.0"
-    "@react-native-cookies/cookies": "npm:^6.2.1"
+    "@react-native-cookies/cookies": "patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch"
     "@react-native-firebase/app": "npm:^20.5.0"
     "@react-native-firebase/messaging": "npm:^20.5.0"
     "@react-native-masked-view/masked-view": "npm:^0.3.1"
@@ -35994,7 +36007,6 @@ __metadata:
     https-browserify: "npm:0.0.1"
     humanize-duration: "npm:^3.27.2"
     husky: "npm:^9.1.7"
-    ip-regex: "npm:^5.0.0"
     is-url: "npm:^1.2.4"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
@@ -36024,7 +36036,6 @@ __metadata:
     prettier-2: "npm:prettier@^2.8.8"
     prompts: "npm:^2.4.2"
     prop-types: "npm:15.7.2"
-    psl: "npm:^1.15.0"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
     qs: "npm:6.15.2"
@@ -36034,7 +36045,7 @@ __metadata:
     react-compiler-runtime: "npm:^19.1.0-rc.2"
     react-dom: "npm:19.2.0"
     react-native: "patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch"
-    react-native-aes-crypto: "npm:3.0.3"
+    react-native-aes-crypto: "patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch"
     react-native-aes-crypto-forked: "patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch"
     react-native-animatable: "npm:^1.3.3"
     react-native-background-timer: "npm:2.1.1"
@@ -36062,7 +36073,7 @@ __metadata:
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.20.7"
     react-native-keychain: "npm:^9.0.0"
-    react-native-launch-arguments: "npm:^4.0.1"
+    react-native-launch-arguments: "patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
     react-native-material-textfield: "npm:0.16.1"
@@ -36074,7 +36085,7 @@ __metadata:
     react-native-nitro-websockets: "npm:^1.0.3"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.0"
-    react-native-performance: "npm:^6.0.0"
+    react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:6.3.21"
@@ -36101,7 +36112,7 @@ __metadata:
     react-native-tcp-socket: "npm:^6.3.0"
     react-native-url-polyfill: "npm:^1.3.0"
     react-native-vector-icons: "npm:10.2.0"
-    react-native-video: "npm:^6.19.0"
+    react-native-video: "npm:^6.19.2"
     react-native-view-shot: "npm:5.1.1"
     react-native-vision-camera: "npm:^4.7.3"
     react-native-worklets: "patch:react-native-worklets@npm%3A0.7.4#~/.yarn/patches/react-native-worklets-npm-0.7.4-072a5d46f9.patch"
@@ -39604,7 +39615,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"psl@npm:^1.1.33, psl@npm:^1.15.0":
+"psl@npm:^1.1.33":
   version: 1.15.0
   resolution: "psl@npm:1.15.0"
   dependencies:
@@ -40082,6 +40093,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-aes-crypto@patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch":
+  version: 3.0.3
+  resolution: "react-native-aes-crypto@patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch::version=3.0.3&hash=771f0f"
+  checksum: 10/1c08e586c01d1e54facac02ae0a3de630af37c1453e18fc9c9ee6dc5ad133e4a79f8b880c0b2ca439073adb9147fa1ea0998f6a83f7dac74b7293ebdf51db262
+  languageName: node
+  linkType: hard
+
 "react-native-animatable@npm:1.4.0, react-native-animatable@npm:^1.3.3":
   version: 1.4.0
   resolution: "react-native-animatable@npm:1.4.0"
@@ -40421,13 +40439,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-launch-arguments@npm:^4.0.1":
+"react-native-launch-arguments@npm:4.0.1":
   version: 4.0.1
   resolution: "react-native-launch-arguments@npm:4.0.1"
   peerDependencies:
     react: ">=16.8.1"
     react-native: ">=0.60.0-rc.0 <1.0.x"
   checksum: 10/e05eb17421d850e588e6852a1050e403588c5c93ec131a5424e895879c1693ff97b4a0fa94deef19a14e7fc4b1e3429d84c35d23668a535b8ae81741e4053255
+  languageName: node
+  linkType: hard
+
+"react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch":
+  version: 4.0.1
+  resolution: "react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch::version=4.0.1&hash=6171f1"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 10/1e4ce775e89bbd6bcf8c49789104a80a0092b3aa83ac9b8564124e487ea8bbbc6bb625116b78f130beeb63d39112c4d7d089dde9cad2fd03e58c6c4aae9089cb
   languageName: node
   linkType: hard
 
@@ -40605,12 +40633,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-performance@npm:^6.0.0":
+"react-native-performance@npm:6.0.0":
   version: 6.0.0
   resolution: "react-native-performance@npm:6.0.0"
   peerDependencies:
     react-native: "*"
   checksum: 10/0228eb759760308b84d1ee96a60634bea5a0e25b89c77817bbcd23fbc35cc3597d5f05079a85cd5003ec6ec007d9e22f70fc502e8e4b01a4747c67b42c215659
+  languageName: node
+  linkType: hard
+
+"react-native-performance@patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch":
+  version: 6.0.0
+  resolution: "react-native-performance@patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch::version=6.0.0&hash=942a8d"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/e64e1446f6dd39081624e3006349ef20acce34a24d5ad510406cb1e7c0bc621d81f8255a281c1a6ccdbc4077802a8d5dbeafd624d665eeb27f237f1ca310c178
   languageName: node
   linkType: hard
 
@@ -41011,13 +41048,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-video@npm:^6.19.0":
-  version: 6.19.1
-  resolution: "react-native-video@npm:6.19.1"
+"react-native-video@npm:^6.19.2":
+  version: 6.19.2
+  resolution: "react-native-video@npm:6.19.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/9b5fad2d9966d0f9d95bc2232492a7d6741235b008d0ee539c2a3f7363749deb0546c6710bb87ca60a07bdd52460e0544c399f96c4cecec375b9512dec62d45f
+  checksum: 10/c7992bc2d2c2114eb422459d9292626fcbe6f779c695e107b672e51292000d61f45ed4d27b33c34850f10ee8ed3b1684bb6688b2d95afabadeab43f61d1141c0
   languageName: node
   linkType: hard
 
