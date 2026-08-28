@@ -6,7 +6,6 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
-import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
@@ -41,9 +40,6 @@ export const MultichainAssetDetailsActivityListItem = ({
   location,
 }: MultichainAssetDetailsActivityListItemProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const keyringState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
@@ -68,12 +64,10 @@ export const MultichainAssetDetailsActivityListItem = ({
       );
     }
 
-    if (isTransactionsRedesignEnabled) {
-      const detailsRoute = getActivityDetailsRoute(item);
-      if (detailsRoute) {
-        navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-        return;
-      }
+    const detailsRoute = getActivityDetailsRoute(item);
+    if (detailsRoute) {
+      navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+      return;
     }
 
     if (bridgeHistoryItem && isBridgeTxHistoryItemBridge(bridgeHistoryItem)) {
@@ -99,7 +93,6 @@ export const MultichainAssetDetailsActivityListItem = ({
     chainId,
     createEventBuilder,
     displayData,
-    isTransactionsRedesignEnabled,
     location,
     navigation,
     trackEvent,

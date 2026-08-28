@@ -38,6 +38,7 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
+import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -50,6 +51,7 @@ jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
+jest.mock('./useAutomaticMoneyAccountPayToken');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -132,6 +134,9 @@ describe('useAutomaticTransactionPayToken', () => {
     selectMetaMaskPayTokensFlags,
   );
   const selectRelayFixedSpreadMock = jest.mocked(selectRelayFixedSpread);
+  const useAutomaticMoneyAccountPayTokenMock = jest.mocked(
+    useAutomaticMoneyAccountPayToken,
+  );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -200,6 +205,11 @@ describe('useAutomaticTransactionPayToken', () => {
     jest.mocked(useMMPayFiatConfig).mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+      isPending: false,
+      shouldSelect: false,
     });
   });
 
@@ -1688,5 +1698,37 @@ describe('useAutomaticTransactionPayToken', () => {
         });
       },
     );
+  });
+
+  describe('money account fallback', () => {
+    it('does not select a token while money account auto-select is pending', () => {
+      useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+        isPending: true,
+        shouldSelect: false,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+
+    it('does not select a token when money account auto-select should run', () => {
+      useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+        isPending: false,
+        shouldSelect: true,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
   });
 });

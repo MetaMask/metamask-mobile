@@ -103,16 +103,24 @@ const createGameEventWithTeamMarkets = () => {
     ...baseMarket,
     id: 'away-market' as PredictEntityId,
     outcomes: [
-      { ...baseMarket.outcomes[0], gameSelection: 'away' as const },
-      baseMarket.outcomes[1],
+      {
+        ...baseMarket.outcomes[0],
+        id: 'away-yes' as PredictEntityId,
+        gameSelection: 'away' as const,
+      },
+      { ...baseMarket.outcomes[1], id: 'away-no' as PredictEntityId },
     ] as typeof baseMarket.outcomes,
   };
   const homeMarket = {
     ...baseMarket,
     id: 'home-market' as PredictEntityId,
     outcomes: [
-      { ...baseMarket.outcomes[0], gameSelection: 'home' as const },
-      baseMarket.outcomes[1],
+      {
+        ...baseMarket.outcomes[0],
+        id: 'home-yes' as PredictEntityId,
+        gameSelection: 'home' as const,
+      },
+      { ...baseMarket.outcomes[1], id: 'home-no' as PredictEntityId },
     ] as typeof baseMarket.outcomes,
   };
 
@@ -217,7 +225,6 @@ describe('PredictEventScreen', () => {
         venueId,
         secondMarket.id,
         'ALL',
-        undefined,
       ),
     );
     expect(
@@ -255,7 +262,6 @@ describe('PredictEventScreen', () => {
         venueId,
         'market-1',
         '1W',
-        undefined,
       ),
     );
     expect(
@@ -407,12 +413,12 @@ describe('PredictEventScreen', () => {
 
     expect(
       view.getByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.id}`,
+        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
       ).props.stroke.payload,
     ).toEqual(processColor(awayTeamColor));
     expect(
       view.getByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
+        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.outcomes[0].id}`,
       ).props.stroke.payload,
     ).toEqual(processColor(homeTeamColor));
     // The API serves complementary series per market; each line ends at its
@@ -427,20 +433,90 @@ describe('PredictEventScreen', () => {
           venueId,
           awayMarket.id,
           'ALL',
-          undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
           'ALL',
-          undefined,
         ],
       ]),
     );
     expect(
       view.queryByTestId(PredictEventScreenTestIds.MARKETS),
     ).not.toBeOnTheScreen();
+  });
+
+  it('plots a Team history from the Outcome that carries Game Selection', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    resolveEvent({
+      ...event,
+      markets: [
+        {
+          ...awayMarket,
+          outcomes: [
+            { ...awayMarket.outcomes[0], gameSelection: undefined },
+            { ...awayMarket.outcomes[1], gameSelection: 'away' as const },
+          ],
+        },
+        homeMarket,
+      ],
+    });
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      view.getByLabelText(/Panthers 42%, Cardinals 58%/),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('plots both Team lines when Game Selections share one Market', async () => {
+    const { event, homeMarket } = createGameEventWithTeamMarkets();
+    const sharedMarket = {
+      ...homeMarket,
+      id: 'moneyline' as PredictEntityId,
+      outcomes: [
+        {
+          ...homeMarket.outcomes[0],
+          id: 'home-yes' as PredictEntityId,
+          gameSelection: 'home' as const,
+        },
+        {
+          ...homeMarket.outcomes[1],
+          id: 'away-no' as PredictEntityId,
+          side: 'no' as const,
+          gameSelection: 'away' as const,
+        },
+      ] as typeof homeMarket.outcomes,
+    };
+    resolveEvent({ ...event, markets: [sharedMarket] });
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${sharedMarket.outcomes[0].id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${sharedMarket.outcomes[1].id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByLabelText(/Panthers 42%, Cardinals 58%/),
+    ).toBeOnTheScreen();
   });
 
   it('omits a Team chart line whose history has fewer than two points', async () => {
@@ -467,12 +543,12 @@ describe('PredictEventScreen', () => {
 
     expect(
       view.getByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.id}`,
+        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
       ),
     ).toBeOnTheScreen();
     expect(
       view.queryByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.id}`,
+        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.outcomes[0].id}`,
       ),
     ).not.toBeOnTheScreen();
     expect(
@@ -869,15 +945,14 @@ describe('PredictEventScreen', () => {
       ([action]) => action === 'PredictMarketDataService:getEvent',
     );
     expect(eventCalls).toEqual([
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
-      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
+      ['PredictMarketDataService:getEvent', venueId, eventId],
     ]);
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
       'ALL',
-      undefined,
     );
   });
 

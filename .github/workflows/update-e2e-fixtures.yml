@@ -42,7 +42,7 @@ jobs:
         github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
       }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       actions: write
@@ -84,7 +84,7 @@ jobs:
   is-fork-pull-request:
     name: Validate PR
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
@@ -101,7 +101,7 @@ jobs:
 
   prepare:
     name: Prepare build artifacts
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 10
     needs: is-fork-pull-request
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
@@ -401,7 +401,7 @@ jobs:
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 10
     permissions:
       contents: write
@@ -479,7 +479,7 @@ jobs:
 
   check-status:
     name: Check whether the fixture update succeeded
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     needs:
@@ -500,7 +500,7 @@ jobs:
   failure-comment:
     name: Comment about the fixture update failure
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       contents: read
