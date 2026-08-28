@@ -2053,6 +2053,42 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('restores Scale validation after switching order types', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      const validationNotice = {
+        id: 'scale',
+        variant: 'banner',
+        message: strings(
+          'perps.pro_order_form.scale.validation.invalid_order_count',
+          {
+            minOrderCount: SCALE_ORDER_COUNT.min,
+            maxOrderCount: SCALE_ORDER_COUNT.max,
+          },
+        ),
+      };
+
+      configureScaleOrder(result);
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange(
+          String(SCALE_ORDER_COUNT.min - 1),
+        );
+      });
+
+      expect(result.current.notices).toContainEqual(validationNotice);
+
+      mockOrderForm.type = 'limit';
+      rerender({});
+
+      expect(result.current.notices).not.toContainEqual(validationNotice);
+
+      mockOrderForm.type = 'scale';
+      rerender({});
+
+      expect(result.current.notices).toContainEqual(validationNotice);
+    });
+
     it('bounds ladder sizing work for an extreme accepted skew', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '999999999';

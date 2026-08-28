@@ -134,6 +134,17 @@ describe('PerpsProCompactInput', () => {
       },
     );
 
+    it('hides the inline-labeled decorative label from assistive technology', () => {
+      render(
+        <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
+      );
+
+      const label = screen.getByText(defaultProps.label);
+
+      expect(label).toHaveProp('accessible', false);
+      expect(label).toHaveProp('importantForAccessibility', 'no');
+    });
+
     it('shrinks the label and reveals the input when the row is pressed', () => {
       render(
         <PerpsProCompactInput

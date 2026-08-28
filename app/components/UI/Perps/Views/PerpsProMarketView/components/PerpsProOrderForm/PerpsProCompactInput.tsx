@@ -248,6 +248,8 @@ const PerpsProCompactInput = React.forwardRef<
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
               numberOfLines={labelNumberOfLines}
+              accessible={false}
+              importantForAccessibility="no"
             >
               {label}
             </Text>

@@ -158,7 +158,6 @@ export const usePerpsProSizeInput = ({
 
   useEffect(() => {
     if (forceUsd && denominationUnit !== 'usd') {
-      setDenominationUnit('usd');
       setUsdDraft(usdAmount);
     }
   }, [denominationUnit, forceUsd, usdAmount]);

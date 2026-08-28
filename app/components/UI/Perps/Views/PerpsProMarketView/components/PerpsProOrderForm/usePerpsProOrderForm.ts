@@ -658,11 +658,6 @@ export const usePerpsProOrderForm = ({
     marketData?.maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage;
   const isLoadingMarketData = isMarketDataLoading && marketData === null;
   const isScaleOrder = orderForm.type === 'scale';
-  useEffect(() => {
-    if (!isScaleOrder) {
-      setHasScaleValidationInteraction(false);
-    }
-  }, [isScaleOrder]);
   const guardScaleMutation = useCallback((mutation: () => void) => {
     if (isScalePlacementLockedRef.current) {
       return;
