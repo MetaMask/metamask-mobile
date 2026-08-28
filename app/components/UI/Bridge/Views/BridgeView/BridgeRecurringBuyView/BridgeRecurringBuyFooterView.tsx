@@ -21,7 +21,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton/index.tsx';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
+import { formatMinimumReceived } from '../../../utils/currencyUtils';
 import { parsePositiveInteger } from '../../../utils/recurringSchedule';
 
 interface BridgeRecurringBuyFooterViewProps {
@@ -54,7 +54,7 @@ export const BridgeRecurringBuyFooterView = ({
     sourceAmount &&
     sourceToken?.symbol
       ? strings('bridge.recurring.spend_summary', {
-          amount: formatAmountWithLocaleSeparators(sourceAmount),
+          amount: formatMinimumReceived(sourceAmount),
           symbol: sourceToken.symbol,
           everyValue,
           unit: strings(

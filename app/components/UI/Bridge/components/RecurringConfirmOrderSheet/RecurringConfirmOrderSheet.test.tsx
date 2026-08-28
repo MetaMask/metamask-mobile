@@ -12,6 +12,8 @@ import { strings } from '../../../../../../locales/i18n';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { formatMinimumReceived } from '../../utils/currencyUtils';
+import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
 
 /**
  * CV cannot cover this sheet: Recurring remounts on tab switch and resets
@@ -172,6 +174,55 @@ describe('RecurringConfirmOrderSheet', () => {
       ),
     ).toHaveTextContent(
       `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
+    );
+  });
+
+  it('caps paying and est receiving decimals like market min received', () => {
+    const sourceAmount = '1.123456789012';
+    const destTokenAmount = '0.012579999123';
+    const repeat = 10;
+
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        destTokenAmount,
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+      }));
+
+    const { getByTestId } = renderSheet({
+      state: buildState({ sourceAmount }),
+    });
+
+    const payingAll = multiplyAmountByCount(sourceAmount, repeat);
+    const receivingAll = multiplyAmountByCount(destTokenAmount, repeat);
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.paying_per_order')}${formatMinimumReceived(sourceAmount)} ETH`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.paying_all_orders')}${formatMinimumReceived(payingAll ?? sourceAmount)} ETH`,
+    );
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_per_order')}${formatMinimumReceived(destTokenAmount)}`,
+    );
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_all_orders')}${formatMinimumReceived(receivingAll ?? destTokenAmount)}`,
     );
   });
 

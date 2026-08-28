@@ -37,7 +37,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 import type { BridgeToken } from '../../types';
-import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
 import {
@@ -144,7 +144,7 @@ function formatTokenAmountValue(
     return '--';
   }
 
-  return `${formatAmountWithLocaleSeparators(amount)} ${symbol}`;
+  return `${formatMinimumReceived(amount)} ${symbol}`;
 }
 
 const RecurringConfirmOrderSheet = ({
@@ -174,11 +174,11 @@ const RecurringConfirmOrderSheet = ({
     sourceToken?.symbol,
   );
   const estReceivingPerOrder = destTokenAmount
-    ? formatAmountWithLocaleSeparators(destTokenAmount)
+    ? formatMinimumReceived(destTokenAmount)
     : '--';
   const estReceivingAllOrders =
     destTokenAmount && repeat !== undefined
-      ? formatAmountWithLocaleSeparators(
+      ? formatMinimumReceived(
           multiplyAmountByCount(destTokenAmount, repeat) ?? destTokenAmount,
         )
       : '--';

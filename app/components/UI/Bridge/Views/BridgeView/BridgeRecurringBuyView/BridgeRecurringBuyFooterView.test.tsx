@@ -13,6 +13,7 @@ import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { strings } from '../../../../../../../locales/i18n';
+import { formatMinimumReceived } from '../../../utils/currencyUtils';
 import { initialRecurringState } from '../../../utils/recurringSchedule';
 
 jest.mock(
@@ -211,7 +212,7 @@ describe('BridgeRecurringBuyFooterView', () => {
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
     ).toHaveTextContent(
       strings('bridge.recurring.spend_summary', {
-        amount: '1.0',
+        amount: formatMinimumReceived('1.0'),
         symbol: 'ETH',
         everyValue: '1',
         unit: strings('bridge.recurring.unit.hour'),
@@ -236,10 +237,31 @@ describe('BridgeRecurringBuyFooterView', () => {
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
     ).toHaveTextContent(
       strings('bridge.recurring.spend_summary', {
-        amount: '1.0',
+        amount: formatMinimumReceived('1.0'),
         symbol: 'ETH',
         everyValue: '2',
         unit: strings('bridge.recurring.unit_plural.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('caps spend summary amount decimals like market min received', () => {
+    const sourceAmount = '1.123456789012';
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { sourceAmount },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: formatMinimumReceived(sourceAmount),
+        symbol: 'ETH',
+        everyValue: '1',
+        unit: strings('bridge.recurring.unit.hour'),
         repeatCount: '10',
       }),
     );
