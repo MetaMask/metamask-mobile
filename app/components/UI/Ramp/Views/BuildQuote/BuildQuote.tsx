@@ -17,7 +17,6 @@ import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
-import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
 import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -41,7 +40,10 @@ import styleSheet from './BuildQuote.styles';
 import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeRampsAssetId,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
@@ -419,7 +421,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: normalizeAssetIdForApi(selectedToken.assetId),
+            assetId: normalizeRampsAssetId(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),

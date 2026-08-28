@@ -1,65 +1,78 @@
 import { captureException } from '@sentry/react-native';
-import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
+import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../components/UI/Perps/constants/perpsConfig';
 import { ensureValidState } from './util';
 
-/**
- * Migration 151: delete persisted `rawRemoteFeatureFlags`.
- *
- * `@metamask/remote-feature-flag-controller` 6.0.0 stops redacting IDs from
- * `rawRemoteFeatureFlags`. Existing persisted (redacted) values must not be
- * used to recompute flags.
- */
 export const migrationVersion = 151;
 
-const migration = (state: unknown): unknown => {
+interface PerpsControllerLike {
+  proLayoutPreferences?: unknown;
+}
+
+/**
+ * Migration 151: Apply the mobile Pro-mode order-book layout defaults.
+ *
+ * The shared controller defaults (order book closed, pinned left) match
+ * Extension. Mobile is deliberately the opposite — open and pinned right — so
+ * installs created before that split have the Extension values on disk.
+ *
+ * Neither preference was reachable from shipped mobile UI before this change:
+ * the position switcher did not exist, and open/closed was component state that
+ * was never persisted. So no stored value here reflects a user's choice, and
+ * overwriting both is safe.
+ *
+ * @param state - The persisted Redux state.
+ * @returns The migrated Redux state.
+ */
+export default function migrate(state: unknown): unknown {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  try {
-    const { backgroundState } = state.engine;
-    if (
-      !hasProperty(backgroundState, 'RemoteFeatureFlagController') ||
-      !isObject(backgroundState.RemoteFeatureFlagController)
-    ) {
-      return state;
-    }
+  const perpsController = state.engine.backgroundState.PerpsController as
+    | PerpsControllerLike
+    | undefined;
 
-    if (
-      !hasProperty(
-        backgroundState.RemoteFeatureFlagController,
-        'rawRemoteFeatureFlags',
-      )
-    ) {
-      return state;
-    }
-
-    const controllerState = {
-      ...backgroundState.RemoteFeatureFlagController,
-    };
-    delete controllerState.rawRemoteFeatureFlags;
-
-    return {
-      ...state,
-      engine: {
-        ...state.engine,
-        backgroundState: {
-          ...backgroundState,
-          RemoteFeatureFlagController: controllerState,
-        },
-      },
-    };
-  } catch (error) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: Failed to strip RemoteFeatureFlagController rawRemoteFeatureFlags: ${getErrorMessage(
-          error,
-        )}`,
-      ),
-    );
+  if (perpsController === undefined) {
+    return state;
   }
 
-  return state;
-};
+  if (!isObject(perpsController)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid PerpsController state: '${typeof perpsController}'`,
+      ),
+    );
+    return state;
+  }
 
-export default migration;
+  if (!hasProperty(perpsController, 'proLayoutPreferences')) {
+    // Persisted state predates the field. Controller init only seeds the mobile
+    // defaults when the whole controller is absent, so write them here or these
+    // users would read the shared Extension defaults instead.
+    perpsController.proLayoutPreferences = {
+      ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+      ...MOBILE_PRO_LAYOUT_DEFAULTS,
+    };
+    return state;
+  }
+
+  const { proLayoutPreferences } = perpsController;
+
+  if (!isObject(proLayoutPreferences)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid proLayoutPreferences state: '${typeof proLayoutPreferences}'`,
+      ),
+    );
+    return state;
+  }
+
+  perpsController.proLayoutPreferences = {
+    ...proLayoutPreferences,
+    ...MOBILE_PRO_LAYOUT_DEFAULTS,
+  };
+
+  return state;
+}
