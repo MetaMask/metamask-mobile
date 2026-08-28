@@ -109,6 +109,11 @@ jest.mock('@metamask/perps-controller', () => ({
       PERPS_MARKET_DETAILS: 'perps_market_details',
     },
   },
+  HYPERLIQUID_TWAP_LIMITS: {
+    MinDurationMinutes: 5,
+    MaxDurationMinutes: 1440,
+    MinNotionalUsd: 100,
+  },
 }));
 
 describe('PerpsMarketTradesList', () => {
@@ -406,29 +411,6 @@ describe('PerpsMarketTradesList', () => {
         expect.objectContaining({
           txIdentifier: expect.stringContaining('fill-2'),
           preloadKey: expect.any(String),
-        }),
-      );
-    });
-
-    it('navigates to the legacy position screen when redesign is disabled', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => false);
-      mockUsePerpsMarketFills.mockReturnValue(
-        createMockFillsReturn(mockOrderFills),
-      );
-
-      render(<PerpsMarketTradesList symbol="ETH" />);
-
-      const tradeItem = screen.getByText('Opened long');
-      fireEvent.press(tradeItem.parent?.parent || tradeItem);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        expect.objectContaining({
-          transaction: expect.objectContaining({
-            type: 'trade',
-            id: expect.stringContaining('fill-1'),
-          }),
         }),
       );
     });

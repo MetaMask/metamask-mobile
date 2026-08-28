@@ -42,7 +42,6 @@ on:
           - inherit
           - current
           - namespace
-          - bitrise
         default: inherit
       pr_number:
         description: 'PR number (shadow correlation, optional)'
@@ -188,7 +187,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -210,7 +209,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
@@ -269,7 +268,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
@@ -321,7 +320,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     strategy:
@@ -409,7 +408,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     permissions:
@@ -614,7 +613,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -674,9 +673,7 @@ jobs:
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     needs: [js-bundle-size-check]
-    # Skip on Bitrise trial runs: cron against main would otherwise push duplicate
-    # entries to the external mobile_bundlesize_stats repo.
-    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     permissions:
       id-token: write
       contents: read
@@ -746,7 +743,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
@@ -778,11 +775,18 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
+      # Last job in the Linux cohort still cloning from github.com on Namespace;
+      # everything else uses the in-region git mirror. Namespace scales network
+      # bandwidth with machine shape, so an internet clone costs roughly twice
+      # the wall-clock on the 4x8 profile as it did on 8x16.
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -815,7 +819,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -866,6 +870,16 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
+      # QA Stats reads artifacts through the GitHub API, which cannot see
+      # artifacts stored by namespace-actions/upload-artifact.
+      - name: Upload unit test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload coverage unit shard (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
@@ -906,7 +920,7 @@ jobs:
       - integration-tests
     # Wait for integration shards so coverage can merge into Sonar, but still run
     # when integration fails — missing integration artifacts are tolerated below.
-    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1100,8 +1114,7 @@ jobs:
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload cv-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
@@ -1135,8 +1148,8 @@ jobs:
           path: ./tests/coverage-integration-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+      - name: Upload integration-test-coverage-summary (GitHub)
+        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-coverage-summary
@@ -1153,8 +1166,7 @@ jobs:
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-coverage-summary (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Upload unit-test-coverage-summary (GitHub)
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
@@ -1185,7 +1197,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1237,6 +1249,14 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
+      - name: Upload component view test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload coverage CV shard (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
@@ -1267,7 +1287,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1328,6 +1348,14 @@ jobs:
         with:
           name: coverage-integration-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration test results for QA Stats (GitHub)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration-${{ matrix.shard }}
+          path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload coverage integration shard (current)
@@ -1394,7 +1422,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: ${{ inputs.runner_provider != 'bitrise' }}
+          post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   run-performance-tests-pr:
@@ -1408,7 +1436,6 @@ jobs:
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
-        inputs.runner_provider != 'bitrise' &&
         github.event_name == 'pull_request' &&
         !cancelled() &&
         (
@@ -1445,7 +1472,6 @@ jobs:
     name: 'Build Android APKs'
     if: >-
       ${{
-        inputs.runner_provider != 'bitrise' &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1526,6 +1552,13 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # PRs into main do not build iOS from path filters alone — it has to be
+    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
+    # path filters already require iOS. Both opt-ins are resolved into
+    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
+    # only built when iOS E2E will actually run. Pushes to main/release/*, the
+    # nightly schedule, and PRs into release/* are unaffected.
     if: >-
       ${{
         !cancelled() &&
@@ -1662,6 +1695,10 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # Runs on iOS only, so on PRs into main it runs only when iOS was requested via
+  # run-appium-ios-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # release/* that build iOS. Moving this to Android would make it unconditional
+  # on PRs again — tracked separately.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
     if: >-
@@ -1710,7 +1747,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -1731,7 +1768,6 @@ jobs:
           path: fixture-results/
 
       - name: Report results
-        if: ${{ inputs.runner_provider != 'bitrise' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
@@ -1757,7 +1793,7 @@ jobs:
         }}
     needs: merge-unit-and-component-view-tests
     # Run when merged coverage is ready even if optional integration shards failed upstream.
-    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1835,7 +1871,7 @@ jobs:
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     needs: sonar-cloud
-    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     permissions:
       contents: read
       issues: read
@@ -1926,7 +1962,7 @@ jobs:
   cleanup-ci-js-deps:
     name: Delete CI JS deps artifact
     runs-on: ubuntu-latest
-    if: ${{ always() && inputs.runner_provider != 'bitrise' }}
+    if: ${{ always() }}
     needs:
       - unit-tests
       - component-view-tests
@@ -1960,7 +1996,7 @@ jobs:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
-    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
+    if: ${{ always() && !cancelled() }}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -2028,7 +2064,7 @@ jobs:
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     # Only run this job if the merge group event fails, skip on forks
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
+    if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:
