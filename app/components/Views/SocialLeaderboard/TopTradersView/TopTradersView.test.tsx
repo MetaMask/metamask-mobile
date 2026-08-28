@@ -266,13 +266,13 @@ const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
   expect(latestCalls).toEqual([
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: ['base', 'solana', 'ethereum', 'robinhood', 'hyperliquid'],
         enabled: expected.all,
       }),
     ],
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'robinhood'],
         enabled: expected.tokens,
       }),
     ],
@@ -700,14 +700,14 @@ describe('TopTradersView', () => {
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'robinhood'],
         enabled: true,
       }),
     );
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'robinhood'],
         enabled: false,
       }),
     );

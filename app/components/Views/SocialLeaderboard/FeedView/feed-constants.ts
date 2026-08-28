@@ -9,6 +9,7 @@ import type { CaipChainId } from '@metamask/utils';
 export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'eip155:8453', // base
   'eip155:1', // ethereum
+  'eip155:4663', // robinhood
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // solana mainnet
   'eip155:999', // hyperliquid
 ];
