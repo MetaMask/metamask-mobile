@@ -1,6 +1,8 @@
 import {
   array,
   enums,
+  integer,
+  literal,
   mask,
   number,
   object,
@@ -152,12 +154,42 @@ const binaryOutcomes = refine(
   (outcomes) => new Set(outcomes.map((outcome) => outcome.side)).size === 2,
 );
 
+const nonEmptyTrimmed = refine(
+  string(),
+  'NonEmptyTrimmed',
+  (value) => value.trim().length > 0,
+);
+
+const marketGroupSchema = refine(
+  object({
+    key: nonEmptyTrimmed,
+    groupType: nonEmptyTrimmed,
+    marketType: optional(nonEmptyTrimmed),
+    option: optional(
+      object({
+        type: literal('number'),
+        value: refine(number(), 'FiniteNumber', (value) =>
+          Number.isFinite(value),
+        ),
+      }),
+    ),
+    displayOrder: optional(
+      refine(integer(), 'NonNegativeInt', (value) => value >= 0),
+    ),
+  }),
+  'PredictMarketGroup',
+  (group) =>
+    group.groupType !== 'marketSelector' ||
+    (group.marketType !== undefined && group.option !== undefined),
+);
+
 const marketSchema = object({
   id: entityId,
   question: string(),
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: optional(marketGroupSchema),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),

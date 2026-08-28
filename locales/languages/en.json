@@ -2861,7 +2861,9 @@
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
     "market": {
-      "volume": "{{value}} Vol."
+      "volume": "{{value}} Vol.",
+      "draw": "Draw",
+      "footer_price_unavailable": "price unavailable"
     },
     "rules": {
       "event_accessibility_label": "View event rules",

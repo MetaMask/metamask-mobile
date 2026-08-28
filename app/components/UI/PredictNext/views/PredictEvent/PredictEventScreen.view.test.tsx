@@ -6,8 +6,10 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
 import { processColor, StyleSheet } from 'react-native';
 import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
+import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import type {
+  PredictDecimal,
   PredictEntityId,
   PredictHttpsUrl,
   PredictEvent,
@@ -106,6 +108,8 @@ const createGameEventWithTeamMarkets = () => {
       {
         ...baseMarket.outcomes[0],
         id: 'away-yes' as PredictEntityId,
+        label: 'Arizona Cardinals',
+        askPrice: '0.47' as PredictDecimal,
         gameSelection: 'away' as const,
       },
       { ...baseMarket.outcomes[1], id: 'away-no' as PredictEntityId },
@@ -118,6 +122,8 @@ const createGameEventWithTeamMarkets = () => {
       {
         ...baseMarket.outcomes[0],
         id: 'home-yes' as PredictEntityId,
+        label: 'Carolina Panthers',
+        askPrice: '0.53' as PredictDecimal,
         gameSelection: 'home' as const,
       },
       { ...baseMarket.outcomes[1], id: 'home-no' as PredictEntityId },
@@ -225,6 +231,7 @@ describe('PredictEventScreen', () => {
         venueId,
         secondMarket.id,
         'ALL',
+        undefined,
       ),
     );
     expect(
@@ -262,6 +269,7 @@ describe('PredictEventScreen', () => {
         venueId,
         'market-1',
         '1W',
+        undefined,
       ),
     );
     expect(
@@ -433,12 +441,14 @@ describe('PredictEventScreen', () => {
           venueId,
           awayMarket.id,
           'ALL',
+          undefined,
         ],
         [
           'PredictMarketDataService:getMarketHistory',
           venueId,
           homeMarket.id,
           'ALL',
+          undefined,
         ],
       ]),
     );
@@ -553,6 +563,186 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.EMPTY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders winner Markets as footer buttons instead of standard cards', async () => {
+    const { event } = createGameEventWithTeamMarkets();
+    resolveEvent(event);
+    const view = renderPredictEventScreen(routeParams);
+
+    expect(
+      await view.findByTestId(MarketFooterCardTestIds.ROOT),
+    ).toBeOnTheScreen();
+    expect(view.getByText('ARI · 47¢')).toBeOnTheScreen();
+    expect(view.getByText('CAR · 53¢')).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.card('home-market')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps non-winner Markets in the Predict list', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    const totalMarket = {
+      ...awayMarket,
+      id: 'total-market' as PredictEntityId,
+      outcomes: [
+        {
+          ...awayMarket.outcomes[0],
+          id: 'total-yes' as PredictEntityId,
+          label: 'Over',
+          askPrice: '0.55' as PredictDecimal,
+          gameSelection: undefined,
+        },
+        {
+          ...awayMarket.outcomes[1],
+          id: 'total-no' as PredictEntityId,
+          label: 'Under',
+        },
+      ] as typeof awayMarket.outcomes,
+    };
+    resolveEvent({
+      ...event,
+      markets: [awayMarket, homeMarket, totalMarket],
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(MarketFooterCardTestIds.ROOT);
+
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.card('total-market')),
+    ).toBeOnTheScreen();
+    expect(view.getByText('Over')).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.card('home-market')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('loads winner Market history from the footer and restores dual-line history', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    resolveEvent(event);
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+    await view.findByTestId(
+      `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
+    );
+    messengerCall.mockClear();
+
+    fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        awayMarket.id,
+        'ALL',
+        undefined,
+      ),
+    );
+    const selectedChart = await view.findByTestId(
+      PredictMarketHistoryTestIds.CHART,
+    );
+    fireEvent(selectedChart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictMarketHistoryTestIds.chartLabel(awayMarket.outcomes[0].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        PredictMarketHistoryTestIds.chartLabel(awayMarket.outcomes[1].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.outcomes[0].id}`,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
+
+    const restoredChart = await view.findByTestId(
+      PredictMarketHistoryTestIds.CHART,
+    );
+    fireEvent(restoredChart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 250 } },
+    });
+
+    expect(
+      await view.findByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.outcomes[0].id}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps standard cards when winner quotes are missing', async () => {
+    const { event, homeMarket } = createGameEventWithTeamMarkets();
+    resolveEvent({ ...event, markets: [homeMarket] });
+    const view = renderPredictEventScreen(routeParams);
+
+    expect(
+      await view.findByTestId(MarketStandardCardTestIds.card('home-market')),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketFooterCardTestIds.ROOT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('resolves the winner footer when grouped spreads also carry Game Selection', async () => {
+    const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    const spreadMarket = {
+      ...awayMarket,
+      id: 'spread-away' as PredictEntityId,
+      group: {
+        key: 'spread-1',
+        groupType: 'marketSelector' as const,
+        marketType: 'spread',
+        option: { type: 'number' as const, value: 3.5 },
+      },
+      outcomes: [
+        {
+          ...awayMarket.outcomes[0],
+          id: 'spread-away-yes' as PredictEntityId,
+          label: 'ARI +3.5',
+          gameSelection: 'away' as const,
+        },
+        { ...awayMarket.outcomes[1], id: 'spread-away-no' as PredictEntityId },
+      ] as typeof awayMarket.outcomes,
+    };
+    resolveEvent({
+      ...event,
+      markets: [awayMarket, homeMarket, spreadMarket],
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(MarketFooterCardTestIds.ROOT);
+
+    expect(view.getByText('ARI · 47¢')).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.card('spread-away')),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
     ).not.toBeOnTheScreen();
   });
 
@@ -945,14 +1135,15 @@ describe('PredictEventScreen', () => {
       ([action]) => action === 'PredictMarketDataService:getEvent',
     );
     expect(eventCalls).toEqual([
-      ['PredictMarketDataService:getEvent', venueId, eventId],
-      ['PredictMarketDataService:getEvent', venueId, eventId],
+      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
+      ['PredictMarketDataService:getEvent', venueId, eventId, undefined],
     ]);
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getMarketHistory',
       venueId,
       'market-1',
       'ALL',
+      undefined,
     );
   });
 

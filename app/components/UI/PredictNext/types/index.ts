@@ -99,12 +99,35 @@ export interface PredictOutcome {
   gameSelection?: PredictGameSelection;
 }
 
+export interface PredictMarketOption {
+  type: 'number';
+  value: number;
+}
+
+export interface PredictMarketSelectorGroup {
+  key: string;
+  groupType: 'marketSelector';
+  marketType: string;
+  option: PredictMarketOption;
+  displayOrder?: number;
+}
+
+export interface PredictUnsupportedMarketGroup {
+  key: string;
+  groupType: string;
+}
+
+export type PredictMarketGroup =
+  | PredictMarketSelectorGroup
+  | PredictUnsupportedMarketGroup;
+
 export interface PredictMarket {
   id: PredictEntityId;
   question: string;
   rules?: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
+  group?: PredictMarketGroup;
   volume?: string;
   volume24h?: string;
   createdAt?: PredictTimestamp;

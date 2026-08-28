@@ -7,6 +7,7 @@ import type {
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketGroup,
   PredictTimestamp,
 } from '../../../app/components/UI/PredictNext/types';
 
@@ -166,6 +167,72 @@ export const makePredictNextGameEvent = (
           {
             ...homeOutcome,
             id: `${id}-home-no` as PredictEntityId,
+          },
+        ],
+      },
+    ],
+  };
+};
+
+const spreadGroup: PredictMarketGroup = {
+  key: 'spread-1',
+  groupType: 'marketSelector',
+  marketType: 'spread',
+  option: { type: 'number', value: 3.5 },
+};
+
+export const makePredictNextComposedGameEvent = (
+  id = 'nfl-composed',
+): PredictEvent => {
+  const event = makePredictNextGameEvent(id, 'Panthers', 'Cardinals', 'NFL', {
+    askPrices: { away: '0.47', home: '0.53' },
+  });
+  const [awayMarket] = event.markets;
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      {
+        ...awayMarket,
+        id: `${id}-spread-away` as PredictEntityId,
+        question: `${event.title} spread`,
+        group: spreadGroup,
+        outcomes: [
+          {
+            ...awayMarket.outcomes[0],
+            id: `${id}-spread-away-yes` as PredictEntityId,
+            label: 'Panthers +3.5',
+            gameSelection: 'away',
+          },
+          {
+            ...awayMarket.outcomes[1],
+            id: `${id}-spread-away-no` as PredictEntityId,
+          },
+        ],
+      },
+      {
+        ...awayMarket,
+        id: `${id}-total` as PredictEntityId,
+        question: 'Total points',
+        group: {
+          key: 'total-1',
+          groupType: 'marketSelector',
+          marketType: 'total',
+          option: { type: 'number', value: 44.5 },
+        },
+        outcomes: [
+          {
+            ...awayMarket.outcomes[0],
+            id: `${id}-total-yes` as PredictEntityId,
+            label: 'Over',
+            askPrice: '0.55' as PredictDecimal,
+            gameSelection: undefined,
+          },
+          {
+            ...awayMarket.outcomes[1],
+            id: `${id}-total-no` as PredictEntityId,
+            label: 'Under',
           },
         ],
       },

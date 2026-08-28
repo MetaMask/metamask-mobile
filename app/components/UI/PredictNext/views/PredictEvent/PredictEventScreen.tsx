@@ -19,8 +19,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { findGameSelectionQuote, getEventGame } from '../../events/game';
-import { MarketList, MarketStandardCard } from '../../events/markets';
+import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
+import {
+  MarketFooterCard,
+  MarketList,
+  MarketStandardCard,
+} from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
@@ -55,9 +59,11 @@ type RulesTarget =
 
 const EventScreenLayout = ({
   children,
+  footer,
   onBack,
 }: {
   children: React.ReactNode;
+  footer?: React.ReactNode;
   onBack: () => void;
 }) => {
   const tw = useTailwind();
@@ -75,6 +81,7 @@ const EventScreenLayout = ({
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
+      {footer}
     </Box>
   );
 };
@@ -119,6 +126,11 @@ export const PredictEventScreen = () => {
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
+  const handleWinnerSelect = useCallback((marketId: string) => {
+    setSelectedMarketId((current) =>
+      current === marketId ? undefined : marketId,
+    );
+  }, []);
 
   if (query.data) {
     const event = query.data;
@@ -131,22 +143,47 @@ export const PredictEventScreen = () => {
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
     const game = getEventGame(event);
-    const homeQuote = findGameSelectionQuote(event, 'home');
-    const awayQuote = findGameSelectionQuote(event, 'away');
+    const winnerQuotes = findWinnerMarketQuotes(event);
+    const winnerMarketIds = new Set(
+      winnerQuotes
+        ? [
+            winnerQuotes.away.market.id,
+            winnerQuotes.home.market.id,
+            ...(winnerQuotes.draw ? [winnerQuotes.draw.market.id] : []),
+          ]
+        : [],
+    );
+    const listMarkets = event.markets.filter(
+      (market) => !winnerMarketIds.has(market.id),
+    );
 
     const renderMarketHistory = () => {
-      if (game && homeQuote && awayQuote) {
+      if (selectedMarketId) {
+        const selectedMarket = event.markets.find(
+          (market) => market.id === selectedMarketId,
+        );
+        if (selectedMarket) {
+          return (
+            <PredictMarketHistory
+              venueId={event.venueId}
+              market={selectedMarket}
+            />
+          );
+        }
+      }
+
+      if (game && winnerQuotes) {
         return (
           <PredictGameMarketHistory
             venueId={event.venueId}
             home={{
-              market: homeQuote.market,
-              outcome: homeQuote.outcome,
+              market: winnerQuotes.home.market,
+              outcome: winnerQuotes.home.outcome,
               team: game.homeTeam,
             }}
             away={{
-              market: awayQuote.market,
-              outcome: awayQuote.outcome,
+              market: winnerQuotes.away.market,
+              outcome: winnerQuotes.away.outcome,
               team: game.awayTeam,
             }}
           />
@@ -167,7 +204,21 @@ export const PredictEventScreen = () => {
 
     return (
       <>
-        <EventScreenLayout onBack={handleBack}>
+        <EventScreenLayout
+          onBack={handleBack}
+          footer={
+            game && winnerQuotes ? (
+              <MarketFooterCard
+                game={game}
+                awayQuote={winnerQuotes.away}
+                homeQuote={winnerQuotes.home}
+                drawQuote={winnerQuotes.draw}
+                selectedMarketId={selectedMarketId}
+                onSelectMarket={handleWinnerSelect}
+              />
+            ) : undefined
+          }
+        >
           {game ? (
             <GameEventHeader
               event={event}
@@ -179,7 +230,7 @@ export const PredictEventScreen = () => {
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           )}
-          {event.markets.length > 1 && !(game && homeQuote && awayQuote) ? (
+          {event.markets.length > 1 && !winnerQuotes ? (
             <FilterButtonGroup
               value={historyMarket?.id ?? ''}
               onChange={setSelectedMarketId}
@@ -204,23 +255,25 @@ export const PredictEventScreen = () => {
             </FilterButtonGroup>
           ) : null}
           {renderMarketHistory()}
-          <Box
-            testID={PredictEventScreenTestIds.PREDICT_SECTION}
-            twClassName="mt-8 gap-[14px]"
-          >
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('wallet.predict')}
-            </Text>
-            <MarketList>
-              {event.markets.map((market) => (
-                <MarketStandardCard
-                  key={market.id}
-                  market={market}
-                  onRulesPress={handleMarketRulesPress}
-                />
-              ))}
-            </MarketList>
-          </Box>
+          {listMarkets.length > 0 ? (
+            <Box
+              testID={PredictEventScreenTestIds.PREDICT_SECTION}
+              twClassName="mt-8 gap-[14px]"
+            >
+              <Text variant={TextVariant.HeadingMd}>
+                {strings('wallet.predict')}
+              </Text>
+              <MarketList>
+                {listMarkets.map((market) => (
+                  <MarketStandardCard
+                    key={market.id}
+                    market={market}
+                    onRulesPress={handleMarketRulesPress}
+                  />
+                ))}
+              </MarketList>
+            </Box>
+          ) : null}
         </EventScreenLayout>
         <RulesBottomSheet
           isVisible={rulesTarget !== null}

@@ -149,12 +149,26 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
+interface PredictMarketSelectorGroup {
+  key: string;
+  groupType: 'marketSelector';
+  marketType: string;
+  option: { type: 'number'; value: number };
+  displayOrder?: number;
+}
+
+interface PredictUnsupportedMarketGroup {
+  key: string;
+  groupType: string;
+}
+
 interface PredictMarket {
   id: PredictEntityId;
   question: string;
   rules?: string;
   status: PredictMarketStatus;
   outcomes: readonly [PredictOutcome, PredictOutcome];
+  group?: PredictMarketSelectorGroup | PredictUnsupportedMarketGroup;
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -220,6 +234,7 @@ interface PredictFeed {
 - `Game.observedAt` records when the backend observed the Game snapshot so mobile can identify stale REST data.
 - `Outcome.gameSelection` is authoritative when present. Mobile must not infer a Team or draw association from an Outcome label, Market question, title, ticker, or array order.
 - A `no` Outcome opposite a Team's `yes` Outcome does not automatically represent the other Team; draws and Venue resolution rules can make that inference false.
+- Winner UI uses unique ungrouped `gameSelection` quotes. Markets that carry `group` are not winner Markets.
 
 ## Series and rolling Events
 
