@@ -98,6 +98,7 @@ jest.mock('../../store/persistConfig', () => ({
     ),
     setItem: jest.fn(),
     getItem: jest.fn(),
+    getItemStrict: jest.fn(),
     removeItem: jest.fn(),
   },
   createPersistController: jest.fn(() => jest.fn()),
@@ -395,7 +396,7 @@ describe('EngineService', () => {
     });
 
     // No vault on disk so isNewUser stays true → persistence is deferred
-    (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
     await engineService.start();
 
@@ -457,7 +458,7 @@ describe('EngineService', () => {
       writable: true,
       configurable: true,
     });
-    (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
     // hydrateSocialFollowing throws after initializeControllers has set the handle
     (hydrateSocialFollowing as jest.Mock).mockImplementation(() => {
@@ -777,7 +778,7 @@ describe('EngineService', () => {
       });
 
       // No vault on disk — truly a new user
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
       await engineService.start();
@@ -805,13 +806,13 @@ describe('EngineService', () => {
       });
 
       // No vault on disk — truly a new user
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
       await engineService.start();
 
       // Assert — safety check ran but found nothing, so full read was skipped
-      expect(ControllerStorage.getItem).toHaveBeenCalledWith(
+      expect(ControllerStorage.getItemStrict).toHaveBeenCalledWith(
         'persist:KeyringController',
       );
       expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
@@ -855,7 +856,7 @@ describe('EngineService', () => {
       });
 
       // No vault on disk — truly a new user
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
       await engineService.start();
@@ -947,7 +948,7 @@ describe('EngineService', () => {
         KeyringController: { vault: 'encrypted-vault-data' },
       };
 
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
         JSON.stringify({ vault: 'encrypted-vault-data', keyrings: [] }),
       );
       (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
@@ -961,7 +962,7 @@ describe('EngineService', () => {
       await engineService.start();
 
       // Assert — safety check found vault, so full read was performed
-      expect(ControllerStorage.getItem).toHaveBeenCalledWith(
+      expect(ControllerStorage.getItemStrict).toHaveBeenCalledWith(
         'persist:KeyringController',
       );
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
@@ -999,7 +1000,7 @@ describe('EngineService', () => {
         configurable: true,
       });
 
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
         'not-valid-json{{{',
       );
 
@@ -1023,7 +1024,7 @@ describe('EngineService', () => {
         configurable: true,
       });
 
-      (ControllerStorage.getItem as jest.Mock).mockResolvedValue(
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
         JSON.stringify({ keyrings: [], isUnlocked: false }),
       );
 
@@ -1032,6 +1033,36 @@ describe('EngineService', () => {
 
       // Assert — no vault found, so new-user optimization still applies
       expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
+    });
+
+    it('falls back to existing-user path when filesystem read fails during safety check', async () => {
+      // Arrange — existingUser false, but getItemStrict throws (I/O error, permission denied)
+      mockRunAfterInteractions.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItemStrict as jest.Mock).mockRejectedValue(
+        new Error('EACCES: permission denied'),
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — cannot confirm file is absent, so full read must happen
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Safety-check filesystem read failed — falling back to existing-user path',
+        ),
+      );
     });
   });
 

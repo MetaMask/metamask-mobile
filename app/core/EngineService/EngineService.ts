@@ -199,23 +199,35 @@ export class EngineService {
     // actually exists on disk. The flag can desync from reality due to Redux
     // persist corruption, incomplete persistence, or vault recovery flows.
     // Overwriting a real vault with defaults would destroy the wallet.
+    //
+    // Uses getItemStrict (not getItem) so that filesystem I/O errors throw
+    // instead of being silently swallowed and treated as "file missing".
     if (isNewUser) {
-      const keyringData = await ControllerStorage.getItem(
-        'persist:KeyringController',
-      );
-      if (keyringData) {
-        try {
-          const parsed = JSON.parse(keyringData);
-          if (parsed?.vault) {
-            Logger.log(
-              `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing user to prevent data loss`,
-            );
+      try {
+        const keyringData = await ControllerStorage.getItemStrict(
+          'persist:KeyringController',
+        );
+        if (keyringData) {
+          try {
+            const parsed = JSON.parse(keyringData);
+            if (parsed?.vault) {
+              Logger.log(
+                `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing user to prevent data loss`,
+              );
+              isNewUser = false;
+            }
+          } catch {
+            // Corrupted JSON — fall back to full read to be safe.
             isNewUser = false;
           }
-        } catch {
-          // Corrupted data — fall back to full read to be safe.
-          isNewUser = false;
         }
+      } catch {
+        // Filesystem read failed — cannot confirm the file is truly absent,
+        // so fall back to the existing-user path to prevent data loss.
+        Logger.log(
+          `${LOG_TAG}: Safety-check filesystem read failed — falling back to existing-user path to prevent data loss`,
+        );
+        isNewUser = false;
       }
     }
 

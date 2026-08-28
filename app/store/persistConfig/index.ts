@@ -77,6 +77,18 @@ export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
 
+  /**
+   * Reads a key from filesystem storage without swallowing I/O errors.
+   * Returns null when the file genuinely doesn't exist; throws on read failure.
+   *
+   * Unlike `getItem()` (which silently returns undefined on any error), this
+   * method lets callers distinguish "file missing" from "read failed" — critical
+   * for safety checks where a silent failure could lead to data loss.
+   */
+  async getItemStrict(key: string): Promise<string | null> {
+    return FilesystemStorage.getItem(key);
+  },
+
   async getAllPersistedState(): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
