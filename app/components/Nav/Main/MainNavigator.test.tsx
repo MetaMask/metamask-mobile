@@ -1297,6 +1297,64 @@ describe('MainNavigator', () => {
     expect(topTradersScreen?.component.name).toBe('SocialTradersTabsView');
   });
 
+  describe('Rewards route placement across the Header & NavBar arms', () => {
+    const stateForArm = (headerNavBarVariant?: string) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              ...(headerNavBarVariant
+                ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+            },
+          },
+        },
+      },
+    });
+
+    const rootStackScreenNames = (container: {
+      root: ReactTestInstance;
+    }): string[] =>
+      container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => child.props.name);
+
+    it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: stateForArm('treatment'),
+      });
+
+      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+    });
+
+    it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: stateForArm('control'),
+      });
+
+      // Registered in both arms so the route always resolves. Control also has
+      // the tab, and the tab navigator is nearer the caller, so it takes it.
+      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+    });
+  });
+
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,

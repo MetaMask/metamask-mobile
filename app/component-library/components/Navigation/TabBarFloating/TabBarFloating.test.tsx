@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { getAnimatedStyle } from 'react-native-reanimated';
 import type { ReactTestInstance } from 'react-test-renderer';
 import {
   ParamListBase,
@@ -88,6 +89,26 @@ const descriptors: Record<string, TestTabDescriptor> = {
   },
 };
 
+const barElement = (
+  overrides: Partial<Record<string, TestTabDescriptor>> = {},
+  onHeightChange?: (height: number) => void,
+  activeIndex = 0,
+) => (
+  <TabBarFloating
+    state={
+      { ...state, index: activeIndex } as TabNavigationState<ParamListBase>
+    }
+    descriptors={
+      { ...descriptors, ...overrides } as Record<
+        string,
+        ExtendedBottomTabDescriptor
+      >
+    }
+    navigation={navigation}
+    onHeightChange={onHeightChange}
+  />
+);
+
 const renderBar = (
   overrides: Partial<Record<string, TestTabDescriptor>> = {},
   onHeightChange?: (height: number) => void,
@@ -110,10 +131,16 @@ const renderBar = (
     { state: mockInitialState },
   );
 
+// Highlight movement is a reanimated timing, so tests settle it before asserting.
+const flushAnimations = () => act(() => jest.advanceTimersByTime(2000));
+
 describe('TabBarFloating', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
   });
+
+  afterAll(() => jest.useRealTimers());
 
   it('renders the pill, the four treatment tabs, and the search button', () => {
     const { getByTestId } = renderBar();
@@ -153,26 +180,134 @@ describe('TabBarFloating', () => {
     expect(bottom >>> 24).toBeGreaterThan(0);
   });
 
-  it('highlights only the active tab, and follows it when the tab changes', () => {
-    const highlightOf = (element: ReactTestInstance) =>
-      StyleSheet.flatten(element.props.style).backgroundColor;
+  it('slides the shared highlight onto the active slot', () => {
+    const SLOT_WIDTH = 80;
+    const layoutSlots = (getByTestId: (id: string) => ReactTestInstance) => {
+      [
+        TabBarIconKey.Wallet,
+        TabBarIconKey.Trending,
+        TabBarIconKey.Money,
+        TabBarIconKey.Social,
+      ].forEach((key, slot) => {
+        fireEvent(getByTestId(`tab-bar-item-${key}`), 'layout', {
+          nativeEvent: {
+            layout: {
+              x: slot * SLOT_WIDTH,
+              width: SLOT_WIDTH,
+              height: 48,
+              y: 0,
+            },
+          },
+        });
+      });
+    };
 
     const onHome = renderBar();
-    const homeHighlight = highlightOf(
-      onHome.getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`),
-    );
+    layoutSlots(onHome.getByTestId);
+    flushAnimations();
     expect(
-      highlightOf(onHome.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`)),
-    ).not.toBe(homeHighlight);
+      onHome.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      width: SLOT_WIDTH,
+      transform: [{ translateX: 0 }, { scaleX: 1 }],
+    });
 
-    // Money active instead of Home: the highlight moves with it.
+    // Money is the third slot, so the highlight lands two widths across.
     const onMoney = renderBar({}, undefined, 2);
+    layoutSlots(onMoney.getByTestId);
+    flushAnimations();
     expect(
-      highlightOf(onMoney.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`)),
-    ).toBe(homeHighlight);
+      onMoney.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      width: SLOT_WIDTH,
+      transform: [{ translateX: 2 * SLOT_WIDTH }, { scaleX: 1 }],
+    });
+  });
+
+  it('starts the slide on press rather than waiting for navigation', () => {
+    const SLOT_WIDTH = 80;
+    const { getByTestId } = renderBar();
+
+    fireEvent(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`), 'layout', {
+      nativeEvent: {
+        layout: { x: 3 * SLOT_WIDTH, width: SLOT_WIDTH, height: 48, y: 0 },
+      },
+    });
+    // Press without the navigator ever reporting a new active index.
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+    flushAnimations();
+
     expect(
-      highlightOf(onMoney.getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`)),
-    ).not.toBe(homeHighlight);
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      transform: [{ translateX: 3 * SLOT_WIDTH }, { scaleX: 1 }],
+    });
+  });
+
+  it('does not restart the slide when navigation confirms the same tab', () => {
+    const SLOT_WIDTH = 80;
+    const layoutSlots = (view: { getByTestId: (id: string) => unknown }) => {
+      [
+        TabBarIconKey.Wallet,
+        TabBarIconKey.Trending,
+        TabBarIconKey.Money,
+        TabBarIconKey.Social,
+      ].forEach((key, slot) => {
+        fireEvent(
+          view.getByTestId(`tab-bar-item-${key}`) as ReactTestInstance,
+          'layout',
+          {
+            nativeEvent: {
+              layout: {
+                x: slot * SLOT_WIDTH,
+                width: SLOT_WIDTH,
+                height: 48,
+                y: 0,
+              },
+            },
+          },
+        );
+      });
+    };
+    const positionOf = (view: { getByTestId: (id: string) => unknown }) =>
+      getAnimatedStyle(
+        view.getByTestId(
+          TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT,
+        ) as ReactTestInstance,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ).transform as any;
+
+    // Baseline: press Money and let the spring run undisturbed.
+    const baseline = renderBar();
+    layoutSlots(baseline);
+    fireEvent.press(
+      baseline.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`),
+    );
+    act(() => jest.advanceTimersByTime(300));
+    const undisturbed = positionOf(baseline);
+
+    // Same timeline, but navigation confirms the in-flight slot at 110ms.
+    const confirmed = renderBar();
+    layoutSlots(confirmed);
+    fireEvent.press(
+      confirmed.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`),
+    );
+    act(() => jest.advanceTimersByTime(110));
+    confirmed.rerender(barElement({}, undefined, 2));
+    act(() => jest.advanceTimersByTime(190));
+
+    // Identical progress: a restart would reset the spring and fall behind.
+    expect(positionOf(confirmed)).toEqual(undisturbed);
+  });
+
+  it('leaves the active background to the shared highlight, not the item', () => {
+    const { getByTestId } = renderBar();
+
+    const activeItem = StyleSheet.flatten(
+      getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`).props.style,
+    );
+
+    expect(activeItem.backgroundColor).toBe('transparent');
   });
 
   it('sizes the search button to a circle matching the pill height', () => {

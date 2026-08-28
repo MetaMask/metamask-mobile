@@ -35,6 +35,7 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
   SCRIM: 'tab-bar-floating-scrim',
+  HIGHLIGHT: 'tab-bar-floating-highlight',
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
 } as const;

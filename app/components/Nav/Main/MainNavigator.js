@@ -1057,7 +1057,6 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1067,6 +1066,19 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <NativeStack.Screen name="Home" component={HomeTabs} />
+      {/*
+       * Fallback home for Rewards. Treatment gives the tab slot to Social, so
+       * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
+       * bubbles up to here. Control registers the tab too, and the tab
+       * navigator is nearer to the caller, so it wins and this is never
+       * reached. Registered unconditionally so the route always resolves
+       * regardless of how the arms are configured.
+       */}
+      <NativeStack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsHome}
+        options={{ headerShown: false }}
+      />
       {/*
        * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
        * is its own native stack pushed onto the root native stack; nesting a native

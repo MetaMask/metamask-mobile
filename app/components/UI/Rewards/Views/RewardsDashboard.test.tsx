@@ -28,6 +28,9 @@ const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
 
 // Mock navigation
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+// False by default: control keeps Rewards as a tab, which has nothing to pop.
+const mockCanGoBack = jest.fn(() => false);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -36,6 +39,8 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -572,6 +577,39 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(getByText('Rewards')).toBeOnTheScreen();
+    });
+
+    describe('when pushed onto the stack instead of shown as a tab', () => {
+      beforeEach(() => mockCanGoBack.mockReturnValue(true));
+      afterEach(() => mockCanGoBack.mockReturnValue(false));
+
+      it('renders a back button that pops the screen', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON));
+
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+
+      it('keeps the header action icons alongside the back button', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+        ).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+    });
+
+    it('renders no back button as a tab, where there is nothing to pop', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders settings button in header', () => {
