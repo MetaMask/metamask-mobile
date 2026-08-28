@@ -51,6 +51,7 @@
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "start:ios": "./scripts/build.sh ios main dev --local",
+    "start:ios:rc-nightly": "./scripts/build.sh ios main rc-nightly --local",
     "start:ios:flask": "./scripts/build.sh ios flask dev --local",
     "start:android": "./scripts/build.sh android main dev --local",
     "start:android:rc-nightly": "./scripts/build.sh android main rc-nightly --local",
