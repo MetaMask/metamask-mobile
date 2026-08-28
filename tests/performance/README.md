@@ -737,11 +737,11 @@ node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /
 
 Outputs:
 
-| File | Description |
-| ---- | ----------- |
-| `report.json` | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
-| `slack.md` | Slack-ready markdown (leads include BrowserStack recording links for peaks) |
-| `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings) |
+| File             | Description                                                                   |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `report.json`    | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
+| `slack.md`       | Slack-ready markdown (leads include BrowserStack recording links for peaks)   |
+| `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings)            |
 
 Recommended automation: schedule the prompt in
 [`.cursor/automations/weekly-app-profiling-report.md`](../../.cursor/automations/weekly-app-profiling-report.md).

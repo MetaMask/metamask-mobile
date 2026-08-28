@@ -3,9 +3,11 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -24,6 +26,17 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
+  totalFee: 5,
+  undiscountedTotalFee: 6,
+  protocolFee: 4,
+  metamaskFee: 1,
+  metamaskFeeRate: 0.01,
+  protocolFeeRate: 0.02,
+  originalMetamaskFeeRate: 0.01,
+  feeDiscountPercentage: 10,
+  estimatedPoints: 100,
+}));
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
@@ -44,7 +57,8 @@ const mockOrderForm = {
     | 'stop_market'
     | 'stop_limit'
     | 'take_profit_limit'
-    | 'take_profit_market',
+    | 'take_profit_market'
+    | 'twap',
   amount: '100',
   leverage: 5,
   balancePercent: 10,
@@ -85,6 +99,7 @@ const mockContextValue = {
   setTriggerPrice: mockSetTriggerPrice,
   resetPriceInputInteraction: mockResetPriceInputInteraction,
   setOrderType: mockSetOrderType,
+  pendingReduceOnly: undefined as boolean | undefined,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
@@ -119,6 +134,9 @@ let mockLiveMarkPrice = '90000';
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
 const creationFailed = jest.fn(() => ({ id: 'failed' }));
+const twapSubmitted = jest.fn(() => ({ id: 'twap-submitted' }));
+const twapConfirmed = jest.fn(() => ({ id: 'twap-confirmed' }));
+const twapCreationFailed = jest.fn(() => ({ id: 'twap-failed' }));
 const validationError = jest.fn((message: string) => ({
   id: 'validationError',
   message,
@@ -133,6 +151,11 @@ const mockPerpsToastOptions = {
   orderManagement: {
     market: { submitted, confirmed, creationFailed },
     limit: { submitted, confirmed, creationFailed },
+    twap: {
+      submitted: twapSubmitted,
+      confirmed: twapConfirmed,
+      creationFailed: twapCreationFailed,
+    },
   },
   formValidation: { orderForm: { validationError, limitPriceRequired } },
   positionManagement: { tpsl: { updateTPSLError } },
@@ -166,16 +189,7 @@ jest.mock('../../../../hooks', () => ({
     mockExecutionOptions = opts;
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
-  usePerpsOrderFees: () => ({
-    totalFee: 5,
-    undiscountedTotalFee: 6,
-    metamaskFee: 1,
-    metamaskFeeRate: 0.01,
-    protocolFeeRate: 0.02,
-    originalMetamaskFeeRate: 0.01,
-    feeDiscountPercentage: 10,
-    estimatedPoints: 100,
-  }),
+  usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
   usePerpsOrderValidation: () => mockValidation,
   usePerpsToasts: () => ({
     showToast: mockShowToast,
@@ -261,6 +275,10 @@ jest.mock('../../../../../../../selectors/accountsController', () => ({
 
 jest.mock('../../../../../../../util/haptics');
 
+jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
+  usePerpsSavePendingConfig: jest.fn(),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -270,10 +288,27 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
-const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
+const market = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  providerId: 'hyperliquid',
+} as PerpsMarketData;
 
-const renderProForm = (isTriggeredOrdersEnabled = true) =>
-  renderHook(() => usePerpsProOrderForm({ market, isTriggeredOrdersEnabled }));
+const renderProForm = (
+  isTriggeredOrdersEnabled = true,
+  isTwapEnabled = true,
+  resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
+  isTwapAvailabilityPending = false,
+) =>
+  renderHook(() =>
+    usePerpsProOrderForm({
+      market,
+      isTriggeredOrdersEnabled,
+      isTwapEnabled,
+      isTwapAvailabilityPending,
+      resolvedTwapProviderId,
+    }),
+  );
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
@@ -287,6 +322,7 @@ describe('usePerpsProOrderForm', () => {
     mockContextValue.triggerPrice = undefined;
     mockContextValue.hasBlurredLimitPrice = false;
     mockContextValue.hasBlurredTriggerPrice = false;
+    mockContextValue.pendingReduceOnly = undefined;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
     mockValidation.isValid = true;
@@ -371,9 +407,105 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
     });
+
+    it('uses the controller fee result unchanged for a TWAP order', () => {
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          symbol: 'BTC',
+          providerId: 'hyperliquid',
+        }),
+      );
+      expect(result.current.summary.fee).toBe(5);
+      expect(result.current.summary.originalFee).toBe(6);
+      expect(result.current.summary.feeDiscountPercentage).toBe(10);
+      expect(result.current.feeMetamaskFeeRate).toBe(0.01);
+      expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
   });
 
   describe('notices', () => {
+    it.each([0, 1])(
+      'blocks a %s-minute TWAP duration below the controller minimum',
+      (minutes) => {
+        mockOrderForm.type = 'twap';
+        const { result } = renderProForm();
+
+        act(() => {
+          result.current.twap.onMinutesChange(String(minutes));
+        });
+
+        expect(
+          result.current.notices.find(
+            (notice) => notice.id === 'twap-duration',
+          ),
+        ).toEqual({
+          id: 'twap-duration',
+          variant: 'inline',
+          message: strings(
+            'perps.pro_order_form.twap.duration_range',
+            PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+          ),
+        });
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
+
+    it('blocks TWAP totals below the controller-supported minimum', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '99';
+
+      const { result } = renderProForm();
+
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-min-size'),
+      ).toEqual({
+        id: 'twap-min-size',
+        variant: 'inline',
+        message: strings(
+          'perps.pro_order_form.twap.minimum_size',
+          PERPS_TWAP_UI_CONFIG.MinimumSizeI18nValues,
+        ),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('shows a required notice when the TWAP duration is empty', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onMinutesChange('');
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'twap-duration-required',
+        ),
+      ).toEqual({
+        id: 'twap-duration-required',
+        variant: 'inline',
+        message: strings('perps.errors.orderValidation.twapDurationRequired'),
+      });
+    });
+
+    it('keeps an empty TWAP size silent while disabling placement', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '';
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-min-size'),
+      ).toBeUndefined();
+    });
+
     it('maps a margin validation error to a priority banner', () => {
       // Arrange
       mockValidation.isValid = false;
@@ -608,6 +740,338 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('handlePlaceOrder', () => {
+    it('starts a new TWAP draft at the Figma default of 30 minutes', () => {
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(result.current.twap).toMatchObject({
+        days: '',
+        hours: '',
+        minutes: '30',
+      });
+    });
+
+    it('submits valid TWAP params with live mid price and Randomize', async () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+      act(() => {
+        result.current.twap.onHoursChange('1');
+        result.current.twap.onMinutesChange('30');
+        result.current.twap.onRandomizeChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          currentPrice: 90000,
+          priceAtCalculation: 90000,
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        }),
+      );
+      expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('price');
+      expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
+        'maxSlippageBps',
+      );
+      expect(mockExecuteOrder.mock.calls[0][0].trackingData).not.toHaveProperty(
+        'twapDuration',
+      );
+      expect(mockExecuteOrder.mock.calls[0][0].trackingData).not.toHaveProperty(
+        'twapRandomize',
+      );
+      expect(twapSubmitted).toHaveBeenCalledWith(
+        'long',
+        expect.any(String),
+        'BTC',
+        90,
+      );
+    });
+
+    it('resets the TWAP draft after accepted placement', async () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('0');
+        result.current.twap.onMinutesChange('0');
+        result.current.twap.onRandomizeChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.twap).toMatchObject({
+        days: '',
+        hours: '',
+        minutes: PERPS_TWAP_UI_CONFIG.DefaultMinutes,
+        randomize: false,
+      });
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: '',
+        }),
+      );
+    });
+
+    it('shows TWAP-specific confirmation for accepted placement', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+      act(() => {
+        result.current.twap.onMinutesChange('45');
+      });
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(twapConfirmed).toHaveBeenCalledWith(
+        'long',
+        expect.any(String),
+        'BTC',
+        45,
+      );
+      expect(confirmed).not.toHaveBeenCalled();
+    });
+
+    it('shows TWAP-specific failure copy for rejected placement', () => {
+      mockOrderForm.type = 'twap';
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onError?.('TWAP rejected');
+      });
+
+      expect(twapCreationFailed).toHaveBeenCalledWith('TWAP rejected');
+      expect(creationFailed).not.toHaveBeenCalled();
+    });
+
+    it('blocks TWAP placement after the feature gate is disabled', async () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm(true, false);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
+    it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
+      let continuePlacement: (() => Promise<unknown>) | undefined;
+      mockComplianceGate.mockImplementation((action) => {
+        continuePlacement = action;
+        return Promise.resolve();
+      });
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      rerender({ isTwapEnabled: false });
+      await act(async () => {
+        await continuePlacement?.();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
+    it('blocks TWAP placement when its resolved route changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ providerId }: { providerId: PerpsProviderType }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: providerId,
+          }),
+        { initialProps: { providerId: 'hyperliquid' } },
+      );
+      await act(async () => {
+        result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      rerender({ providerId: 'myx' });
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
+    it('resets a selected TWAP after rollout availability disappears', () => {
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+      mockSetOrderType.mockClear();
+
+      rerender({ isTwapEnabled: false });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('clears the TWAP draft after rollout availability disappears', () => {
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({ isTwapEnabled }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+          }),
+        { initialProps: { isTwapEnabled: true } },
+      );
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('2');
+        result.current.twap.onMinutesChange('30');
+        result.current.twap.onRandomizeChange(true);
+      });
+
+      rerender({ isTwapEnabled: false });
+
+      expect(result.current.twap).toMatchObject({
+        days: '',
+        hours: '',
+        minutes: PERPS_TWAP_UI_CONFIG.DefaultMinutes,
+        randomize: false,
+      });
+    });
+
+    it('preserves a selected TWAP draft through capability reinitialization', () => {
+      mockOrderForm.type = 'twap';
+      const { result, rerender } = renderHook(
+        ({
+          isTwapEnabled,
+          isTwapAvailabilityPending,
+          resolvedTwapProviderId,
+        }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled,
+            isTwapAvailabilityPending,
+            resolvedTwapProviderId,
+          }),
+        {
+          initialProps: {
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid' as
+              | PerpsProviderType
+              | undefined,
+          },
+        },
+      );
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('2');
+        result.current.twap.onMinutesChange('30');
+        result.current.twap.onRandomizeChange(true);
+      });
+      mockSetOrderType.mockClear();
+
+      rerender({
+        isTwapEnabled: false,
+        isTwapAvailabilityPending: true,
+        resolvedTwapProviderId: undefined,
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(result.current.twap).toMatchObject({
+        days: '1',
+        hours: '2',
+        minutes: '30',
+        randomize: true,
+      });
+
+      rerender({
+        isTwapEnabled: true,
+        isTwapAvailabilityPending: false,
+        resolvedTwapProviderId: 'hyperliquid',
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(result.current.twap).toMatchObject({
+        days: '1',
+        hours: '2',
+        minutes: '30',
+        randomize: true,
+      });
+    });
+
+    it('keeps ordinary placement on controller default routing', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.not.objectContaining({ providerId: expect.anything() }),
+      );
+    });
+
     it('executes order for an eligible compliant user', async () => {
       const { result } = renderProForm();
 
@@ -746,7 +1210,6 @@ describe('usePerpsProOrderForm', () => {
       expect(mockUpdateOrderForm).toHaveBeenCalledWith({
         amount: '',
         direction: 'long',
-        type: 'market',
         balancePercent: 0,
         limitPrice: undefined,
         takeProfitPrice: undefined,
@@ -2064,6 +2527,14 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('reduceOnly toggle', () => {
+    it('restores reduceOnly from the pending trade draft', () => {
+      mockContextValue.pendingReduceOnly = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.reduceOnly).toBe(true);
+    });
+
     it('clears TP/SL state when Reduce Only turns on', () => {
       mockOrderForm.takeProfitPrice = '95000';
       mockOrderForm.stopLossPrice = '80000';
@@ -2359,6 +2830,80 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetOrderType).toHaveBeenCalledWith('limit');
     });
 
+    it('clears incompatible prices when TWAP is selected', () => {
+      mockOrderForm.limitPrice = '91000';
+      mockContextValue.triggerPrice = '92000';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onOrderTypeSelect('twap');
+      });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('twap');
+      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
+    });
+
+    it('ignores TWAP selection while the feature gate is disabled', () => {
+      const { result } = renderProForm(true, false);
+
+      act(() => {
+        result.current.onOrderTypeSelect('twap');
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+    });
+
+    it('preserves typed digits while blocking an out-of-range duration part', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onHoursChange('24');
+      });
+
+      expect(result.current.twap.hours).toBe('24');
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeDefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('normalizes leading zeros in TWAP duration parts', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onMinutesChange('0000005');
+      });
+
+      expect(result.current.twap.minutes).toBe('5');
+    });
+
+    it('blocks a TWAP duration whose individually valid parts exceed the total maximum', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('1');
+        result.current.twap.onMinutesChange('0');
+      });
+
+      expect(result.current.twap).toMatchObject({
+        days: '1',
+        hours: '1',
+        minutes: '0',
+      });
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeDefined();
+    });
+
     it('preserves price values while resetting presentation for a new order type', () => {
       // Arrange
       mockOrderForm.type = 'stop_market';
@@ -2398,7 +2943,6 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.priceCardMessage).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
-
     it('ignores size input over nine digits and forwards valid input', () => {
       // Arrange
       const { result } = renderProForm();
