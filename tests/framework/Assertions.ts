@@ -68,19 +68,6 @@ export default class Assertions {
   }
 
   /**
-   * Assert element is absent from the hierarchy with auto-retry.
-   * Use instead of expectElementToNotBeVisible when the element could be
-   * mounted but scrolled off screen.
-   */
-  static async expectElementToNotExist(
-    elem: EncapsulatedElementType | (() => EncapsulatedElementType),
-    options: AssertionOptions = {},
-  ): Promise<void> {
-    const resolved = typeof elem === 'function' ? elem() : elem;
-    return PlaywrightAssertions.expectElementToNotExist(resolved, options);
-  }
-
-  /**
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
