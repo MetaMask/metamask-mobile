@@ -354,23 +354,15 @@ jobs:
           OUTPUT_PATH: ./e2e-timings.json
 
       # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
-      - name: Download previous Playwright results (on re-run) (Namespace)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider == 'namespace' }}
-        id: download-previous-results-namespace
+      - name: Download previous Playwright results (on re-run)
+        if: ${{ github.run_attempt > 1 }}
+        id: download-previous-results
         continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        uses: ./.github/actions/download-e2e-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: ./previous-playwright-json/
-
-      - name: Download previous Playwright results (on re-run) (current)
-        if: ${{ github.run_attempt > 1 && inputs.runner_provider != 'namespace' }}
-        id: download-previous-results-current
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: ./previous-playwright-json/
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Select specs for this shard (timing bin-pack)
         id: select-specs
@@ -387,7 +379,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
-          PREVIOUS_RESULTS_PATH: ${{ (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') && './previous-playwright-json' || '' }}
+          PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}
 
       - name: Verify Appium runner connectivity (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -479,80 +471,49 @@ jobs:
             "$report" \
             tests/test-reports/playwright-json/shard-status.json
 
-      - name: Upload Playwright HTML report (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload Playwright HTML report (artifact stores)
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright HTML report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload Playwright JSON report (Namespace)
+      - name: Upload Playwright JSON report (artifact stores)
         # Fixed inner filename (playwright-report.json) for github-tools playwright-test-health-report;
         # suite/shard identity is in the artifact name prefix playwright-json-report-*.
         # Also includes shard-status.json for re-run filtering across attempts.
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        # Dual-uploads to GitHub so collect-qa-stats.mjs / e2e-freeze-timings can see it.
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/
           if-no-files-found: ignore
           retention-days: 7
-      # Always upload to GitHub Artifacts too. Namespace storage is invisible to
-      # collect-qa-stats.mjs / e2e-freeze-timings (GitHub API only), which need
-      # these JSON reports to publish e2e_test_times for timing-balanced sharding.
-      - name: Upload Playwright JSON report (GitHub)
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-json-report-${{ inputs.test-suite-name }}
-          path: tests/test-reports/playwright-json/
-          if-no-files-found: ignore
-          retention-days: 7
-          overwrite: true
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload Appium phase timings (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload Appium phase timings (artifact stores)
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Appium phase timings (GitHub)
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-timings-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-timings/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Upload failure screen recordings (Namespace)
-        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload failure screen recordings (artifact stores)
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: appium-smoke-videos-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload failure screen recordings (current)
-        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-videos-${{ inputs.test-suite-name }}
-          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
-          if-no-files-found: ignore
-          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Publish test results to GitHub Checks
         if: always()

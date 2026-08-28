@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.10.0",
+  "version": "8.11.0",
   "private": true,
   "imports": {
     "#app/*": [
@@ -552,7 +552,7 @@
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keyboard-controller": "1.21.6",
-    "react-native-keychain": "^9.0.0",
+    "react-native-keychain": "^10.0.0",
     "react-native-level-fs": "3.0.1",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-material-textfield": "0.16.1",
