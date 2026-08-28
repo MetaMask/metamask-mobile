@@ -641,7 +641,7 @@
     "@metamask/test-dapp-bitcoin": "^0.2.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
     "@metamask/test-dapp-solana": "^0.3.0",
-    "@metamask/tooling-insight": "^1.0.0",
+    "@metamask/tooling-insight": "^1.0.1",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/meta-schema": "^1.14.9",
     "@open-rpc/mock-server": "^1.7.5",
