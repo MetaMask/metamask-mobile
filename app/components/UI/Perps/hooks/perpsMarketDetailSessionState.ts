@@ -85,6 +85,7 @@ export function resolveGenerationTrigger(
     'initial' | 'market_switch' | 'mode_switch'
   >,
   activeTrigger: PerpsMarketDetailGenerationTrigger,
+  preserveAccountSwitch = false,
 ): PerpsMarketDetailGenerationTrigger {
   if (!previous) return surfaceTrigger;
   if (previous.foregroundGeneration !== current.foregroundGeneration) {
@@ -100,7 +101,7 @@ export function resolveGenerationTrigger(
     return 'network_switch';
   }
   if (previous.marketContextKey !== current.marketContextKey) {
-    return activeTrigger === 'account_switch'
+    return preserveAccountSwitch && activeTrigger === 'account_switch'
       ? 'account_switch'
       : 'network_switch';
   }

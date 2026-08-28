@@ -325,6 +325,7 @@ const PerpsProChartPanel = ({
         onFreshDelivery={onFreshDelivery}
         onError={onChartError}
         fallbackCandleData={candleData}
+        fallbackDeliveryRevision={deliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
         paginationDuration={TimeDuration.YearToDate}
       />

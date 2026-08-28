@@ -791,6 +791,42 @@ describe('PerpsAdvancedChart', () => {
 
     expect(onResolved).toHaveBeenCalledTimes(1);
   });
+
+  it('forwards fresh selected-series evidence when fallback activates', () => {
+    const onFreshDelivery = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    renderChart({ fallbackCandleData, onFreshDelivery });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not forward cached fallback data as fresh', () => {
+    const onFreshDelivery = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    renderChart({ fallbackCandleData, onFreshDelivery });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onFreshDelivery).not.toHaveBeenCalled();
+  });
 });
 
 describe('mapTpslToPositionLines', () => {

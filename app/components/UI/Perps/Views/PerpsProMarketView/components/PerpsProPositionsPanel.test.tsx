@@ -241,6 +241,43 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('reports resolved data when a ready context follows fresh deliveries', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+      deliveryRevision: 4,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+      deliveryRevision: 7,
+    });
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady
+        marketContextKey="context-1"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    view.rerender(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady
+        marketContextKey="context-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'empty', {
+      positions: 4,
+      orders: 7,
+    });
+  });
+
   it('shows the global empty state when there are no positions', () => {
     renderPanel();
 

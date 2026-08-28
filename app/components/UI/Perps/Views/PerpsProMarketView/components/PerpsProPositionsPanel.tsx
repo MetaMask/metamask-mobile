@@ -149,12 +149,6 @@ const PerpsProPositionsPanel = ({
     isInitialLoading: areOrdersInitiallyLoading,
     deliveryRevision: ordersDeliveryRevision = 0,
   } = usePerpsLiveOrders({ throttleMs: 1000 });
-  const deliveryBaselineRef = useRef<{
-    contextKey: string;
-    positions: number;
-    orders: number;
-    requiresFreshDelivery: boolean;
-  } | null>(null);
   const {
     handleClosePosition,
     handleReversePosition,
@@ -181,18 +175,6 @@ const PerpsProPositionsPanel = ({
       positions: positionsDeliveryRevision,
       orders: ordersDeliveryRevision,
     };
-    const previousBaseline = deliveryBaselineRef.current;
-    if (previousBaseline?.contextKey !== marketContextKey) {
-      deliveryBaselineRef.current = {
-        contextKey: marketContextKey,
-        ...deliveryRevisions,
-        requiresFreshDelivery: previousBaseline !== null,
-      };
-      if (previousBaseline !== null) {
-        onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
-        return;
-      }
-    }
     if (!isMarketContextReady) {
       onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
       return;
@@ -200,18 +182,6 @@ const PerpsProPositionsPanel = ({
     if (isInitialLoading || areOrdersInitiallyLoading) {
       onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
       return;
-    }
-    const baseline = deliveryBaselineRef.current;
-    if (
-      baseline?.requiresFreshDelivery &&
-      (positionsDeliveryRevision <= baseline.positions ||
-        ordersDeliveryRevision <= baseline.orders)
-    ) {
-      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
-      return;
-    }
-    if (baseline) {
-      baseline.requiresFreshDelivery = false;
     }
     onResolvedStateChange?.(
       symbol,

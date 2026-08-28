@@ -163,6 +163,7 @@ export function usePerpsMarketDetailSession({
   const activeGenerationTriggerRef =
     useRef<PerpsMarketDetailGenerationTrigger>(surfaceTrigger);
   const previousGenerationRef = useRef<DetailGenerationIdentity | null>(null);
+  const pendingAccountSwitchHandoffRef = useRef(false);
 
   const expectedSectionsKey = useMemo(
     () =>
@@ -203,6 +204,7 @@ export function usePerpsMarketDetailSession({
         generationIdentity,
         surfaceTrigger,
         activeGenerationTriggerRef.current,
+        pendingAccountSwitchHandoffRef.current,
       )
     : activeGenerationTriggerRef.current;
   const liveResetKey = useMemo(
@@ -348,14 +350,23 @@ export function usePerpsMarketDetailSession({
       if (previousState !== 'active') {
         const connectionGenerationAtForeground =
           PerpsConnectionManager.getConnectionGeneration();
+        const backgroundConnectionGeneration =
+          backgroundConnectionGenerationRef.current;
         foregroundDeliveryBaselineRef.current = {
           deliveryBaselines: deliveryRevisionsRef.current,
           connectionGenerationBaseline:
-            backgroundConnectionGenerationRef.current ??
-            connectionGenerationAtForeground,
+            backgroundConnectionGeneration ?? connectionGenerationAtForeground,
         };
         backgroundConnectionGenerationRef.current = null;
-        pendingForegroundResumeRef.current = true;
+        if (
+          backgroundConnectionGeneration !== null &&
+          connectionGenerationAtForeground > backgroundConnectionGeneration
+        ) {
+          pendingForegroundResumeRef.current = false;
+          setForegroundGeneration((generation) => generation + 1);
+        } else {
+          pendingForegroundResumeRef.current = true;
+        }
       }
     });
     return () => subscription.remove();
@@ -390,6 +401,19 @@ export function usePerpsMarketDetailSession({
     const currentGenerationIdentity = generationIdentityRef.current;
     if (!currentGenerationIdentity) {
       return;
+    }
+    const previousGenerationIdentity = previousGenerationRef.current;
+    if (
+      previousGenerationIdentity?.address !== currentGenerationIdentity.address
+    ) {
+      pendingAccountSwitchHandoffRef.current =
+        previousGenerationIdentity?.marketContextKey ===
+        currentGenerationIdentity.marketContextKey;
+    } else if (
+      previousGenerationIdentity?.marketContextKey !==
+      currentGenerationIdentity.marketContextKey
+    ) {
+      pendingAccountSwitchHandoffRef.current = false;
     }
     previousGenerationRef.current = currentGenerationIdentity;
     activeGenerationTriggerRef.current = generationTrigger;

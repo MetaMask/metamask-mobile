@@ -60,6 +60,8 @@ export interface PerpsAdvancedChartProps {
   surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
   fallbackCandleData: CandleData | null;
+  /** Fresh-delivery revision for the Lightweight fallback consumer. */
+  fallbackDeliveryRevision?: number;
   /** Fallback fetch-more-history for the Lightweight chart fallback. */
   fallbackFetchMoreHistory?: () => void;
   /** Duration used for RN-backed older-bar pagination. */
@@ -222,6 +224,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onFreshDelivery,
   surface = 'market_detail',
   fallbackCandleData,
+  fallbackDeliveryRevision = 0,
   fallbackFetchMoreHistory,
   paginationDuration,
 }) => {
@@ -248,7 +251,19 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const [hasFailed, setHasFailed] = useState(false);
   const reportedResolutionRef = useRef<string | null>(null);
   const reportedFallbackResolutionRef = useRef<string | null>(null);
+  const reportedFallbackFreshResolutionRef = useRef<string | null>(null);
   const previousDeliveryRevisionRef = useRef(deliveryRevision);
+  const fallbackSeriesKey = `${symbol}|${interval}`;
+  const fallbackDeliveryBaselineRef = useRef({
+    key: fallbackSeriesKey,
+    revision: fallbackDeliveryRevision,
+  });
+  if (fallbackDeliveryBaselineRef.current.key !== fallbackSeriesKey) {
+    fallbackDeliveryBaselineRef.current = {
+      key: fallbackSeriesKey,
+      revision: fallbackDeliveryRevision,
+    };
+  }
 
   useEffect(() => {
     if (!hasFailed && deliveryRevision > previousDeliveryRevisionRef.current) {
@@ -560,12 +575,24 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         reportedFallbackResolutionRef.current = resolutionKey;
         onResolved?.(ohlcvSeriesKey, state);
       }
+      if (
+        (hasFreshCurrentSeriesDelivery ||
+          fallbackDeliveryRevision >
+            fallbackDeliveryBaselineRef.current.revision) &&
+        reportedFallbackFreshResolutionRef.current !== resolutionKey
+      ) {
+        reportedFallbackFreshResolutionRef.current = resolutionKey;
+        onFreshDelivery?.();
+      }
     }
   }, [
     fallbackCandleData,
+    fallbackDeliveryRevision,
     hasFailed,
+    hasFreshCurrentSeriesDelivery,
     interval,
     ohlcvSeriesKey,
+    onFreshDelivery,
     onResolved,
     symbol,
   ]);

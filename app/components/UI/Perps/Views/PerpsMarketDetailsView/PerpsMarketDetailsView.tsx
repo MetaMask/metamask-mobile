@@ -385,9 +385,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
   );
-  useEffect(() => {
-    setEffectiveChartLibrary(configuredChartLibrary);
-  }, [configuredChartLibrary, market?.symbol]);
   const chartLibrary = isAdvancedChartEnabled
     ? effectiveChartLibrary
     : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
@@ -614,7 +611,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   } = usePerpsMarketContext();
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
-  }, [configuredChartLibrary, marketContextKey]);
+  }, [configuredChartLibrary, market?.symbol, marketContextKey]);
 
   const {
     candleData,
@@ -1764,6 +1761,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         }
         onError={handleChartError}
         fallbackCandleData={candleData}
+        fallbackDeliveryRevision={priceDeliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
         paginationDuration={TimeDuration.YearToDate}
       />

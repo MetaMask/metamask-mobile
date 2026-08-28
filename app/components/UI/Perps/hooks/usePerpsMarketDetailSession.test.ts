@@ -272,6 +272,32 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
+  it('starts the resume generation when the connection advanced before foreground', () => {
+    const { result, rerender } = renderSession();
+    jest.clearAllMocks();
+
+    act(() => {
+      appState = 'background';
+      appStateListener('background');
+      mockConnectionGeneration += 1;
+    });
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    act(() => {
+      appState = 'active';
+      appStateListener('active');
+    });
+
+    expect(result.current.generationTrigger).toBe('background_resume');
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          generation_trigger: 'background_resume',
+        }),
+      }),
+    );
+  });
+
   it('does not fabricate a numeric offset for a non-applicable section', () => {
     renderSession({
       ...resolvedSections,
@@ -352,6 +378,12 @@ describe('usePerpsMarketDetailSession', () => {
         tags: expect.objectContaining({ generation_trigger: 'account_switch' }),
       }),
     );
+
+    jest.clearAllMocks();
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(result.current.generationTrigger).toBe('network_switch');
   });
 
   it.each([
