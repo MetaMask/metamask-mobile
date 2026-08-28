@@ -149,6 +149,7 @@ export function usePerpsMarketDetailSession({
   deliveryRevisionsRef.current = deliveryRevisions;
   const renderedChartLibraryRef = useRef(renderedChartLibrary);
   renderedChartLibraryRef.current = renderedChartLibrary;
+  const previousRenderedChartLibraryRef = useRef(renderedChartLibrary);
   const marketSourceRef = useRef(marketSource);
   marketSourceRef.current = marketSource;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -504,6 +505,22 @@ export function usePerpsMarketDetailSession({
       { market_source: marketSource },
     );
   }, [marketSource]);
+
+  useLayoutEffect(() => {
+    const previousLibrary = previousRenderedChartLibraryRef.current;
+    previousRenderedChartLibraryRef.current = renderedChartLibrary;
+    const session = activeSessionRef.current;
+    if (
+      previousLibrary === renderedChartLibrary ||
+      !session?.deliveryBaselines
+    ) {
+      return;
+    }
+    session.deliveryBaselines = {
+      ...session.deliveryBaselines,
+      chart: deliveryRevisionsRef.current.chart,
+    };
+  }, [renderedChartLibrary]);
 
   useEffect(() => {
     const session = activeSessionRef.current;

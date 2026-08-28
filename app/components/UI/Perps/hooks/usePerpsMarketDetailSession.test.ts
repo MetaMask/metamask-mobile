@@ -124,6 +124,7 @@ describe('usePerpsMarketDetailSession', () => {
     symbol: string;
     configurationKey?: string;
     configuredChartLibrary?: string;
+    renderedChartLibrary?: string;
     entrySource?: string;
   }
 
@@ -138,6 +139,7 @@ describe('usePerpsMarketDetailSession', () => {
         symbol,
         configurationKey = '',
         configuredChartLibrary = 'lightweight',
+        renderedChartLibrary = configuredChartLibrary,
         entrySource,
       }: SessionTestProps) =>
         usePerpsMarketDetailSession({
@@ -145,7 +147,7 @@ describe('usePerpsMarketDetailSession', () => {
           symbol,
           deliveryRevisions: { ...mockDeliveryRevisions },
           configuredChartLibrary,
-          renderedChartLibrary: 'lightweight',
+          renderedChartLibrary,
           marketSource: 'route',
           surfaceTrigger,
           configurationKey,
@@ -393,6 +395,56 @@ describe('usePerpsMarketDetailSession', () => {
     expect(trace).toHaveBeenCalledTimes(1);
     expect(result.current.generationTrigger).toBe('network_switch');
     expect(endTrace).not.toHaveBeenCalled();
+  });
+
+  it('requires a fresh chart delivery after the rendered library falls back', () => {
+    const loadingChartSections = {
+      ...resolvedSections,
+      [PERPS_MARKET_DETAIL_SECTION.CHART]: 'loading' as const,
+    };
+    const { rerender } = renderSession(loadingChartSections, 'initial', {
+      configuredChartLibrary: 'advanced',
+      renderedChartLibrary: 'advanced',
+    });
+    jest.clearAllMocks();
+
+    mockConnectionGeneration += 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: loadingChartSections,
+      configuredChartLibrary: 'advanced',
+      renderedChartLibrary: 'advanced',
+    });
+    jest.clearAllMocks();
+
+    mockDeliveryRevisions.price += 1;
+    mockDeliveryRevisions.chart += 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: loadingChartSections,
+      configuredChartLibrary: 'advanced',
+      renderedChartLibrary: 'lightweight',
+    });
+
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      configuredChartLibrary: 'advanced',
+      renderedChartLibrary: 'lightweight',
+    });
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockDeliveryRevisions.chart += 1;
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      configuredChartLibrary: 'advanced',
+      renderedChartLibrary: 'lightweight',
+    });
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
   });
 
   it.each([
