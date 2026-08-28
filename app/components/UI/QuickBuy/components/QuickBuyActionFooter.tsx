@@ -17,6 +17,7 @@ import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import QuickBuyDisabledSection from './QuickBuyDisabledSection';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
@@ -55,7 +56,10 @@ const QuickBuyActionFooter: React.FC = () => {
       {/* Everything between the banners and the CTA depends on a quote that can
           never arrive without funds, so it is dimmed and inert as one block —
           leaving the "Add funds" CTA below as the only live control. */}
-      <QuickBuyDisabledSection isDisabled={hasNoPayWithFunds}>
+      <QuickBuyDisabledSection
+        isDisabled={hasNoPayWithFunds}
+        testID="quick-buy-disabled-footer"
+      >
         {features.quickAmountPills ? (
           <Box twClassName="pb-3">
             <QuickBuyQuickAmounts />
@@ -78,7 +82,7 @@ const QuickBuyActionFooter: React.FC = () => {
             disabled={!features.payWithSheet || hasNoPayWithFunds}
             activeOpacity={0.7}
             accessibilityRole="button"
-            testID="quick-buy-pay-with-button"
+            testID={QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON}
             onPress={() => setActiveScreen('payWith')}
           >
             <Box
@@ -144,7 +148,7 @@ const QuickBuyActionFooter: React.FC = () => {
         isDisabled={isConfirmDisabled}
         onPress={handleBuy}
         tradeMode={tradeMode}
-        testID="quick-buy-confirm-button"
+        testID={QuickBuySheetSelectorsIDs.CONFIRM_BUTTON}
       />
 
       {metamaskFeePercent > 0 ? (

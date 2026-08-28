@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { UnconnectedTransactions } from '.';
+import { UnconnectedTransactions, mapStateToProps } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import Engine from '../../../core/Engine';
@@ -16,6 +16,12 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { speedUpTransaction } from '../../../util/transaction-controller';
+import {
+  selectChainId,
+  selectNetworkClientId,
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
@@ -141,6 +147,7 @@ jest.mock('../../../util/networks', () => ({
 jest.mock('../../../util/address', () => ({ isHardwareAccount: jest.fn() }));
 jest.mock('../../../core/NotificationManager', () => ({
   getTransactionToView: jest.fn(),
+  setTransactionToView: jest.fn(),
 }));
 jest.mock('../../../util/transaction-controller', () => ({
   getPreviousGasFromController: jest.fn(),
@@ -183,6 +190,9 @@ jest.mock('../../../core/Engine', () => ({
     TransactionController: {
       cancelTransaction: jest.fn(),
       stopTransaction: jest.fn(),
+      state: {
+        transactions: [],
+      },
     },
   },
 }));
@@ -291,9 +301,6 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
 }));
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: jest.fn(),
-}));
 jest.mock('../../../reducers/collectibles', () => ({
   collectibleContractsSelector: jest.fn(),
 }));
@@ -324,15 +331,8 @@ const createDefaultTestProps = () => ({
   transactions: [],
 });
 
-const renderTransactions = (props = {}) => {
-  const result = render(
-    <UnconnectedTransactions {...createDefaultTestProps()} {...props} />,
-  );
-  act(() => {
-    jest.advanceTimersByTime(100);
-  });
-  return result;
-};
+const renderTransactions = (props = {}) =>
+  render(<UnconnectedTransactions {...createDefaultTestProps()} {...props} />);
 
 const asComponentType = (name: string) =>
   name as unknown as React.ComponentType;
@@ -420,6 +420,41 @@ describe('UnconnectedTransactions', () => {
       expect(getTransactionElement(rendered).props.tx).toEqual(transaction);
     });
 
+    it('requeues the notification transaction id if unmounted before it opens', () => {
+      // getTransactionToView() destructively pops the id. If we unmount
+      // before the 1s delay elapses (e.g. a fast remount), it must be
+      // pushed back so a later mount can still act on it.
+      const transaction = { id: 'notification-transaction', time: 2 };
+      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
+        transaction.id,
+      );
+
+      const rendered = renderTransactions({ transactions: [transaction] });
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+      rendered.unmount();
+
+      expect(NotificationManager.setTransactionToView).toHaveBeenCalledWith(
+        transaction.id,
+      );
+    });
+
+    it('does not requeue the notification transaction id once it has opened', () => {
+      const transaction = { id: 'notification-transaction', time: 2 };
+      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
+        transaction.id,
+      );
+
+      const rendered = renderTransactions({ transactions: [transaction] });
+      act(() => {
+        jest.advanceTimersByTime(1100);
+      });
+      rendered.unmount();
+
+      expect(NotificationManager.setTransactionToView).not.toHaveBeenCalled();
+    });
+
     it('sorts submitted transactions without mutating the input', () => {
       const submittedTransactions = [
         { id: 'older', time: 1 },
@@ -502,6 +537,7 @@ describe('UnconnectedTransactions', () => {
 
     it('opens the asset chain explorer for asset details', () => {
       const transaction = { id: 'transaction', time: 1 };
+      mockGroupActivityListItems.mockReturnValue([]);
       (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
         'https://polygonscan.com',
       );
@@ -596,7 +632,6 @@ describe('UnconnectedTransactions', () => {
       ]);
 
       const rendered = renderTransactions({
-        isActivityRedesignEnabled: true,
         location: TransactionDetailLocation.AssetDetails,
         transactions: [transaction],
       });
@@ -832,6 +867,71 @@ describe('UnconnectedTransactions', () => {
         'QRSigningTransactionModal',
         expect.any(Object),
       );
+    });
+  });
+});
+
+describe('mapStateToProps', () => {
+  const mockState = {} as never;
+
+  beforeEach(() => {
+    jest.mocked(selectChainId).mockReturnValue('0x1');
+    jest.mocked(selectProviderConfig).mockReturnValue({
+      type: 'mainnet',
+    } as ReturnType<typeof selectProviderConfig>);
+    jest.mocked(selectNetworkClientId).mockReturnValue('mainnet-client');
+    jest.mocked(selectProviderType).mockReturnValue('mainnet');
+  });
+
+  describe('when used for Token Details (tokenChainId is provided)', () => {
+    const ownProps = { tokenChainId: '0x89' };
+
+    it('derives chainId from tokenChainId instead of the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.chainId).toBe('0x89');
+      expect(selectChainId).not.toHaveBeenCalled();
+    });
+
+    it('does not read the globally selected network client or type', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.networkClientId).toBeUndefined();
+      expect(result.networkType).toBeUndefined();
+      expect(selectNetworkClientId).not.toHaveBeenCalled();
+      expect(selectProviderType).not.toHaveBeenCalled();
+    });
+
+    it('returns a referentially stable providerConfig across separate calls', () => {
+      // Regression test: mapStateToProps runs on every store update, so a
+      // fresh `{}` literal here would break shallow-equality checks in
+      // `connect()` and force this component to re-render on every Redux
+      // dispatch, even when nothing relevant to it changed.
+      const first = mapStateToProps(mockState, ownProps);
+      const second = mapStateToProps(mockState, ownProps);
+
+      expect(first.providerConfig).toBe(second.providerConfig);
+      expect(selectProviderConfig).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when used for the Activity tab (no tokenChainId)', () => {
+    const ownProps = {};
+
+    it('derives chainId and providerConfig from the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(selectChainId).toHaveBeenCalledWith(mockState);
+      expect(result.chainId).toBe('0x1');
+      expect(selectProviderConfig).toHaveBeenCalledWith(mockState);
+      expect(result.providerConfig).toEqual({ type: 'mainnet' });
+    });
+
+    it('reads networkClientId and networkType from the globally selected network', () => {
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result.networkClientId).toBe('mainnet-client');
+      expect(result.networkType).toBe('mainnet');
     });
   });
 });

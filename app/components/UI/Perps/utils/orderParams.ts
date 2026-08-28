@@ -1,9 +1,13 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
+  isLimitExecutionOrderType,
+  isStrategyOrderType,
+  isTriggerOrderType,
   type InputMethod,
   type Order,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
@@ -89,20 +93,26 @@ export const buildPerpsOrderTrackingData = ({
 export interface BuildPerpsOrderParamsInput {
   asset: string;
   isBuy: boolean;
-  /** Position size (token units) — kept for backward compat; provider recalculates from usdAmount. */
+  /** Position size (token units); exact full closes intentionally omit usdAmount. */
   size: string;
   orderType: OrderType;
   /** Effective price used for both `currentPrice` and `priceAtCalculation`. */
   effectivePrice: number;
   leverage: number;
-  usdAmount: string;
-  /** User-configured max slippage (bps); limit orders override to the fixed default. */
+  usdAmount?: string;
+  /** Effective max slippage (bps); limit-execution orders override to the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
+  /** Trigger price for stop/take placements; omitted for market and limit. */
+  triggerPrice?: string;
   takeProfitPrice?: string;
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  /** Provider route required for strategy placement. */
+  providerId?: PerpsProviderType;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -113,9 +123,10 @@ export interface BuildPerpsOrderParamsInput {
 
 /**
  * Pure assembly of the controller `OrderParams` shared by the lite
- * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit orders
- * use the fixed default slippage; TP/SL/limit price and `reduceOnly` are only
- * included when present. TP/SL are never attached to reduce-only orders.
+ * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit-execution
+ * orders use the fixed default slippage; TP/SL, limit price, trigger price, and
+ * `reduceOnly` are only included when present. TP/SL are never attached to
+ * reduce-only or trigger orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -130,32 +141,56 @@ export const buildPerpsOrderParams = ({
   usdAmount,
   maxSlippageBps,
   limitPrice,
+  triggerPrice,
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  twapDuration,
+  twapRandomize,
+  providerId,
   isFullClose,
   trackingData,
-}: BuildPerpsOrderParamsInput): OrderParams => ({
-  symbol: asset,
-  isBuy,
-  size,
-  orderType,
-  currentPrice: effectivePrice,
-  leverage,
-  usdAmount,
-  priceAtCalculation: effectivePrice,
-  maxSlippageBps:
-    orderType === 'limit'
-      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps,
-  ...(reduceOnly !== undefined ? { reduceOnly } : {}),
-  ...(isFullClose !== undefined ? { isFullClose } : {}),
-  ...(orderType === 'limit' && limitPrice ? { price: limitPrice } : {}),
-  // Reduce-only closes cannot attach TP/SL — omit even if stale values remain.
-  ...(!reduceOnly && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
-  ...(!reduceOnly && stopLossPrice?.trim() ? { stopLossPrice } : {}),
-  trackingData,
-});
+}: BuildPerpsOrderParamsInput): OrderParams => {
+  const isStrategyOrder = isStrategyOrderType(orderType);
+  const canAttachTpSl =
+    !reduceOnly && !isTriggerOrderType(orderType) && !isStrategyOrder;
+
+  return {
+    symbol: asset,
+    isBuy,
+    size,
+    orderType,
+    currentPrice: effectivePrice,
+    leverage,
+    ...(usdAmount !== undefined ? { usdAmount } : {}),
+    priceAtCalculation: effectivePrice,
+    ...(!isStrategyOrder
+      ? {
+          maxSlippageBps: isLimitExecutionOrderType(orderType)
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : maxSlippageBps,
+        }
+      : {}),
+    ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+    ...(isFullClose !== undefined ? { isFullClose } : {}),
+    ...(isLimitExecutionOrderType(orderType) && limitPrice
+      ? { price: limitPrice }
+      : {}),
+    ...(isTriggerOrderType(orderType) && triggerPrice?.trim()
+      ? { triggerPrice }
+      : {}),
+    ...(orderType === 'twap' && twapDuration !== undefined
+      ? { twapDuration }
+      : {}),
+    ...(orderType === 'twap' && twapRandomize !== undefined
+      ? { twapRandomize }
+      : {}),
+    ...(providerId !== undefined ? { providerId } : {}),
+    ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
+    ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
+    trackingData,
+  };
+};
 
 export interface BuildEditOrderParamsInput {
   order: Order;

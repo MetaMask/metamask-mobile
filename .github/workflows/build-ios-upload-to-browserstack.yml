@@ -29,10 +29,12 @@ on:
         description: 'Build variant (rc = release, exp = experimental)'
         default: 'e2e'
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
@@ -65,13 +67,14 @@ on:
         required: false
         type: string
       runner_provider:
-        description: Runner provider for this manual trial run
+        description: Runner provider for this manual trial run. inherit uses repo NAMESPACE_RUNNER_* variables.
         required: false
         type: choice
         options:
+          - inherit
           - current
           - namespace
-        default: current
+        default: inherit
 
 permissions:
   contents: write
@@ -80,7 +83,7 @@ permissions:
 jobs:
   check-builds-needed:
     name: Check if iOS builds are needed
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     outputs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
 
@@ -120,7 +123,12 @@ jobs:
 
   download-and-upload-to-browserstack:
     name: Download IPAs and Upload to BrowserStack
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
     needs: [check-builds-needed, trigger-ios-with-srp-build, trigger-ios-without-srp-build]
     if: (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success')
     outputs:

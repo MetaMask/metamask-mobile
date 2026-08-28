@@ -125,7 +125,7 @@ describe('HeroNft', () => {
     });
 
     expect(getByTestId('nft-image')).toBeOnTheScreen();
-    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+    expect(getByTestId('hero-nft-badge-network')).toBeOnTheScreen();
     expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#12345')).toBeOnTheScreen();
@@ -176,7 +176,7 @@ describe('HeroNft', () => {
     });
 
     expect(getByTestId('nft-image')).toBeOnTheScreen();
-    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+    expect(getByTestId('hero-nft-badge-network')).toBeOnTheScreen();
     expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#12345')).toBeOnTheScreen();
@@ -200,6 +200,6 @@ describe('HeroNft', () => {
     });
 
     expect(queryByTestId('nft-image')).toBeOnTheScreen();
-    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
+    expect(queryByTestId('hero-nft-badge-network')).not.toBeOnTheScreen();
   });
 });

@@ -17,7 +17,6 @@ const transactionKeys = {
   list: (
     providerId: string | null,
     providerUserId: string,
-    searchQuery: string,
     fromDate?: number,
     toDate?: number,
   ) =>
@@ -25,10 +24,14 @@ const transactionKeys = {
       ...transactionKeys.all(),
       providerId,
       providerUserId,
-      searchQuery,
       fromDate,
       toDate,
     ] as const,
+  detail: (transactionId: string) =>
+    [...transactionKeys.all(), 'detail', transactionId] as const,
+  /** Bounded Money Account enrichment index; scoped per provider/user. */
+  index: (providerId: string | null, providerUserId: string) =>
+    [...transactionKeys.all(), 'index', providerId, providerUserId] as const,
 };
 
 export const cardQueries = {

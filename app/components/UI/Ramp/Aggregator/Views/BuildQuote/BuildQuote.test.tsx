@@ -1,8 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { Pressable, Text } from 'react-native';
-import type BN4 from 'bnjs4';
+import { BackHandler, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -23,7 +22,7 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
@@ -227,7 +226,7 @@ jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balance: '5.36385',
   balanceFiat: '$27.02',
-  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
+  balanceBN: toTokenMinimalUnit('5.36385', 18),
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
@@ -279,7 +278,7 @@ const mockUseGasPriceEstimationInitialValue: ReturnType<
   estimatedGasFee: toTokenMinimalUnit(
     '0.01',
     mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ) as BN4,
+  ),
 };
 
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
@@ -336,6 +335,7 @@ describe('BuildQuote View', () => {
     mockPop.mockClear();
     mockTrackEvent.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   beforeEach(() => {
@@ -785,9 +785,15 @@ describe('BuildQuote View', () => {
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(`${symbol}${quickAmount}`));
+      expect(getByRoleButton(`${symbol}${quickAmount}`)).toBeOnTheScreen();
       expect(
-        screen.queryAllByRole('button', { name: `${symbol}${quickAmount}` }),
-      ).toHaveLength(2);
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', {
+          name: `${symbol}${mockUseLimitsInitialValues?.limits?.quickAmounts?.[1]}`,
+        }),
+      ).not.toBeOnTheScreen();
     });
 
     it('validates the max limit', () => {
@@ -848,13 +854,159 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+      expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).toBeOnTheScreen();
 
+      fireEvent.press(getByRoleButton('1'));
       fireEvent.press(getByRoleButton('Done'));
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('replaces quick amounts with Done confirm when an amount is entered', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+      const quickAmount =
+        mockUseLimitsInitialValues?.limits?.quickAmounts?.[0]?.toString();
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+
+      expect(getByRoleButton(`${denomSymbol}${quickAmount}`)).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.queryByRole('button', {
+          name: `${denomSymbol}${quickAmount}`,
+        }),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('dismisses the amount keypad when hardware back is pressed', () => {
+      let backPressHandler: (() => boolean | undefined) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean | undefined;
+          return { remove: jest.fn() };
+        });
+
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+
+      let handled: boolean | undefined;
+      act(() => {
+        handled = backPressHandler?.();
+      });
+
+      expect(handled).toBe(true);
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes the amount keypad before opening the region selector', async () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+
+      await act(async () =>
+        fireEvent.press(
+          getByRoleButton(mockUseRegionsValues.selectedRegion?.emoji),
+        ),
+      );
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+        screen: 'RampRegionSelectorModal',
+        params: {
+          regions: mockRegionsData,
+        },
+      });
+    });
+
+    it('closes the amount keypad before opening the asset selector', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
+      );
+    });
+
+    it('closes the amount keypad before opening the payment method selector', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('Change'));
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentMethodSelectorModal',
+        }),
+      );
+    });
+
+    it('removes the hardware back listener on unmount', () => {
+      const mockRemove = jest.fn();
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
+      const { unmount } = render(BuildQuote);
+      unmount();
+
+      expect(mockRemove).toHaveBeenCalled();
     });
 
     it('does not reset the amount when switching assets in the buy flow', () => {
@@ -906,6 +1058,42 @@ describe('BuildQuote View', () => {
       mockUseRampSDKValues.isSell = true;
     });
 
+    it('opens the amount keypad bottom sheet when the sell amount input is pressed', () => {
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the amount keypad before opening the fiat selector in sell mode', () => {
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createFiatSelectorModalNavigationDetails({
+          currencies: mockFiatCurrenciesData,
+        }),
+      );
+    });
+
     it('updates the amount input', () => {
       render(BuildQuote);
       const initialAmount = '0';
@@ -949,7 +1137,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '5',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -970,7 +1158,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '0',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       render(BuildQuote);
       const initialAmount = '0';
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
@@ -987,19 +1175,61 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '1',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', { name: 'Max' }),
+      ).not.toBeOnTheScreen();
+    });
 
-      fireEvent.press(getByRoleButton(`0.25 ${symbol}`));
+    it('sets max amount from quick amount when amount is zero', () => {
+      render(BuildQuote);
+
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '1',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      );
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
       fireEvent.press(getByRoleButton('Max'));
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('replaces quick amounts with Done confirm when a sell amount is entered', () => {
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '1',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      );
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      expect(getByRoleButton('25%')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.queryByRole('button', { name: '25%' }),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('updates the amount input up to the max considering gas for native asset', () => {
-      render(BuildQuote);
       const initialAmount = '0';
       const quickAmount = 'Max';
       mockUseRampSDKValues = {
@@ -1018,14 +1248,15 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
+      render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton(quickAmount));
@@ -1033,7 +1264,6 @@ describe('BuildQuote View', () => {
     });
 
     it('updates the amount input up to the percentage considering gas', () => {
-      render(BuildQuote);
       const initialAmount = '0';
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
@@ -1051,20 +1281,27 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
+      render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('75%'));
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
 
-      fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
+      // Quick percentages are replaced by Done once an amount is set.
+      for (let i = 0; i < 4; i++) {
+        fireEvent.press(
+          screen.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        );
+      }
+
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
@@ -1085,7 +1322,7 @@ describe('BuildQuote View', () => {
                 mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
                   '5.36385',
                   mockCryptoCurrenciesData[1].decimals || 18,
-                ) as BN4;
+                );
                 setSelectedAssetVersion((version) => version + 1);
               }}
             >

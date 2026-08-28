@@ -20,6 +20,7 @@ export type NotificationAccountListProps = ReturnType<
 interface AccountsListProps {
   accountProps: AccountProps;
   notificationAccountListProps: NotificationAccountListProps;
+  ListHeaderComponent?: React.ReactElement;
   /** When true, disables all account switches. */
   disabled?: boolean;
 }
@@ -27,6 +28,7 @@ interface AccountsListProps {
 export const AccountsList = ({
   accountProps,
   notificationAccountListProps,
+  ListHeaderComponent,
   disabled = false,
 }: AccountsListProps) => {
   const theme = useTheme();
@@ -83,29 +85,31 @@ export const AccountsList = ({
     [accountWalletGroups],
   );
 
-  if (accountWalletGroups.length === 0) {
-    return null;
-  }
-
   return (
-    <View>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => (
+    <SectionList
+      testID={NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST}
+      style={styles.walletActivityList}
+      contentContainerStyle={styles.walletActivityListContent}
+      sections={sections}
+      keyExtractor={(item) => item.id}
+      stickySectionHeadersEnabled={false}
+      ListHeaderComponent={ListHeaderComponent}
+      renderSectionHeader={({ section }) => (
+        <View style={disabled ? styles.disabledContent : undefined}>
           <AccountListHeader
             title={section.title}
             containerStyle={styles.accountHeader}
           />
-        )}
-        renderItem={({ item }) => {
-          const evmAddress = getEvmAddress(item.accounts);
-          if (!evmAddress) {
-            return null;
-          }
+        </View>
+      )}
+      renderItem={({ item }) => {
+        const evmAddress = getEvmAddress(item.accounts);
+        if (!evmAddress) {
+          return null;
+        }
 
-          return (
+        return (
+          <View style={disabled ? styles.disabledContent : undefined}>
             <NotificationOptionToggle
               key={item.id}
               item={item}
@@ -123,9 +127,9 @@ export const AccountsList = ({
                 evmAddress,
               )}
             />
-          );
-        }}
-      />
-    </View>
+          </View>
+        );
+      }}
+    />
   );
 };

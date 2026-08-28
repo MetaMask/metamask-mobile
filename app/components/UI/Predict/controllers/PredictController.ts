@@ -119,6 +119,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewMaxBuyOrderParams,
   PriceUpdateCallback,
   OrderbookCallback,
   Result,
@@ -1156,6 +1157,9 @@ export class PredictController extends BaseController<
             providerId: POLYMARKET_PROVIDER_ID,
             symbol: params.symbol,
             variant: params.variant,
+            ...(params.twapWindowSeconds !== undefined && {
+              twapWindowSeconds: params.twapWindowSeconds,
+            }),
           },
         },
         errorContext: {
@@ -1164,6 +1168,7 @@ export class PredictController extends BaseController<
           eventStartTime: params.eventStartTime,
           variant: params.variant,
           endDate: params.endDate,
+          twapWindowSeconds: params.twapWindowSeconds,
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
         traceData: (history) => ({ pointCount: history.length }),
@@ -1783,6 +1788,29 @@ export class PredictController extends BaseController<
         this.getErrorContext('previewOrder', {
           providerId: POLYMARKET_PROVIDER_ID,
           side: params.side,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams,
+  ): Promise<OrderPreview | null> {
+    try {
+      const provider = this.provider;
+      const signer = this.getSigner();
+
+      return provider.previewMaxBuyOrder({ ...params, signer });
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewMaxBuyOrder', {
+          providerId: POLYMARKET_PROVIDER_ID,
+          side: Side.BUY,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
         }),

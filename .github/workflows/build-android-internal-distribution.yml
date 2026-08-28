@@ -22,13 +22,14 @@ on:
         type: string
         default: 'main'
       runner_provider:
-        description: Runner provider for this run
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
         type: choice
         options:
-          - current
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
 
 permissions:
   contents: read
@@ -49,7 +50,12 @@ jobs:
   publish-apk:
     name: Publish branch-named APK
     needs: [build]
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
     outputs:
       apk_artifact_name: ${{ steps.rename.outputs.apk_artifact_name }}
       apk_file_name: ${{ steps.rename.outputs.apk_file_name }}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
@@ -70,6 +70,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockPerpsModeToggle = jest.fn();
+let mockPerpsModeValue = PerpsMode.Lite;
 
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
@@ -84,11 +85,13 @@ jest.mock('../../components/PerpsModeToggle', () => {
     default: ({
       onChange,
       variant,
+      enableHaptics,
     }: {
       onChange?: (mode: string) => void;
       variant?: string;
+      enableHaptics?: boolean;
     }) => {
-      mockPerpsModeToggle({ variant });
+      mockPerpsModeToggle({ variant, enableHaptics });
       return ReactActual.createElement(TouchableOpacity, {
         testID: SelectorsIDs.CONTAINER,
         // Simulate the user switching to Pro from the stubbed toggle.
@@ -155,7 +158,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
   usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
+    mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
 }));
@@ -473,6 +476,18 @@ jest.mock('../../../../UI/WhatsHappening', () => {
     return <View testID="whats-happening-section" />;
   };
 });
+jest.mock('../../../../UI/WhatsHappening/hooks', () => {
+  const actual = jest.requireActual('../../../../UI/WhatsHappening/hooks');
+  return {
+    ...actual,
+    useWhatsHappening: jest.fn(() => ({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    })),
+  };
+});
 jest.mock(
   '../../../../../selectors/featureFlagController/whatsHappening',
   () => ({
@@ -558,6 +573,7 @@ describe('PerpsHomeView', () => {
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
+    mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
@@ -606,7 +622,7 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
+  it('enables mode-toggle haptics for the Lite mode header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -623,7 +639,27 @@ describe('PerpsHomeView', () => {
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(mockPerpsModeToggle).toHaveBeenCalledWith({ variant: 'active' });
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
+  });
+
+  it('enables mode-toggle haptics for the Pro mode header', () => {
+    // Arrange
+    mockPerpsModeValue = PerpsMode.Pro;
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    render(<PerpsHomeView />);
+
+    // Assert
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
   });
 
   it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
@@ -1288,6 +1324,10 @@ describe('PerpsHomeView', () => {
 
     interface TrackingOptions {
       properties?: Record<string, unknown>;
+      navigationAnalyticsContext?: {
+        id: string;
+        attribution: string;
+      };
     }
 
     const getBaseEventProperties = (
@@ -1302,6 +1342,27 @@ describe('PerpsHomeView', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+    });
+
+    it('delegates source attribution to Perps event tracking', () => {
+      mockRouteParams = {
+        analyticsContext: {
+          id: 'balance-breakdown-navigation',
+          attribution: 'homescreen_balance_breakdown',
+        },
+      };
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.source).toBe('main_action_button');
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigationAnalyticsContext: mockRouteParams.analyticsContext,
+        }),
+      );
     });
 
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {
