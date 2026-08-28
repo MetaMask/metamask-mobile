@@ -9817,20 +9817,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^20.0.0":
-  version: 20.1.0
-  resolution: "@metamask/ramps-controller@npm:20.1.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/profile-sync-controller": "npm:^29.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^6.1.0"
-  checksum: 10/146d4bb787bffa855d25d81a4f9a67808fd97e5584721dc91957212dfd90fa13d6e7d3bc393577e37af767aeabe404ffac195b43c4407568954cfc48e014c3de
-  languageName: node
-  linkType: hard
-
-"@metamask/ramps-controller@npm:^20.2.0":
+"@metamask/ramps-controller@npm:^20.0.0, @metamask/ramps-controller@npm:^20.2.0":
   version: 20.2.0
   resolution: "@metamask/ramps-controller@npm:20.2.0"
   dependencies:
