@@ -1,0 +1,216 @@
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+index 7fcd10847c9c599737d33b0961cf63c06aaf9002..7241833f6ae6c1ac7c3b0d3c42f6be171fc8bc97 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+@@ -33,6 +33,13 @@ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+ const react_native_reanimated_1 = __importStar(require("react-native-reanimated"));
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+ const react_native_worklets_1 = require("react-native-worklets");
++// MM patch: capture the bare function, not the module namespace. The Worklets
++// babel plugin otherwise captures `react_native_worklets_1` (which contains the
++// WorkletsModule NativeWorklets instance) into worklet closures, and worklets
++// >=0.10 throws "Cannot copy value of type `NativeWorklets`" when serializing
++// them — fatal on Android bridgeless (kills the React host at sheet/toast open).
++const scheduleOnRN = react_native_worklets_1.scheduleOnRN;
++const withTiming = react_native_reanimated_1.withTiming;
+ // Internal dependencies.
+ const BottomSheetDialog_constants_1 = require("./BottomSheetDialog.constants.cjs");
+ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen = false, isInteractable = true, keyboardAvoidingViewEnabled = true, onClose, onOpen, style, twClassName, ...props }, ref) => {
+@@ -58,10 +65,10 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+         onClose?.();
+     }, [onClose]);
+     const onCloseDialog = (0, react_1.useCallback)((callback) => {
+-        currentYOffset.value = (0, react_native_reanimated_1.withTiming)(bottomOfDialogYValue.value, { duration: BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION }, () => {
+-            (0, react_native_worklets_1.scheduleOnRN)(onCloseCB);
++        currentYOffset.value = withTiming(bottomOfDialogYValue.value, { duration: BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION }, () => {
++            scheduleOnRN(onCloseCB);
+             if (callback) {
+-                (0, react_native_worklets_1.scheduleOnRN)(callback);
++                scheduleOnRN(callback);
+             }
+         });
+         // Ref values do not affect deps.
+@@ -132,11 +139,11 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+             }
+             const isDismissed = finalYOffset === bottomOfDialogYValue.value;
+             if (isDismissed) {
+-                (0, react_native_worklets_1.scheduleOnRN)(onCloseDialog);
++                scheduleOnRN(onCloseDialog);
+             }
+             else {
+                 // Only animate dialog to a certain Y position instead
+-                currentYOffset.value = (0, react_native_reanimated_1.withTiming)(finalYOffset, {
++                currentYOffset.value = withTiming(finalYOffset, {
+                     duration: BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+                 });
+             }
+@@ -155,12 +162,12 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+         // Starts setting the Y position of the dialog to the bottom of the dialog
+         currentYOffset.value = bottomOfDialogYValue.value;
+         // Animate the Y position to the top of the dialog, then call onOpenCB
+-        currentYOffset.value = (0, react_native_reanimated_1.withTiming)(topOfDialogYValue.value, {
++        currentYOffset.value = withTiming(topOfDialogYValue.value, {
+             duration: BottomSheetDialog_constants_1.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+         }, () => {
+-            (0, react_native_worklets_1.scheduleOnRN)(onOpenCB);
++            scheduleOnRN(onOpenCB);
+             if (callback) {
+-                (0, react_native_worklets_1.scheduleOnRN)(callback);
++                scheduleOnRN(callback);
+             }
+         });
+     };
+@@ -172,6 +179,19 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+     // Disable for now since network switches causes the screen to hang with this on.
+     // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+     onDebouncedCloseDialog.cancel(), [children, onDebouncedCloseDialog]);
++    // Reanimated 4 / Fabric can miss the initial Animated.View onLayout that
++    // normally triggers onOpenDialog, leaving the sheet translated off-screen
++    // (Appium: node exists but displayed=false). Open once on mount if layout
++    // has not already done so.
++    (0, react_1.useEffect)(() => {
++        const frame = requestAnimationFrame(() => {
++            if (!isMounted.current) {
++                isMounted.current = true;
++                onOpenDialog();
++            }
++        });
++        return () => cancelAnimationFrame(frame);
++    }, []);
+     const updateSheetHeight = (e) => {
+         const { height } = e.nativeEvent.layout;
+         bottomOfDialogYValue.value = height;
+@@ -216,7 +236,7 @@ exports.BottomSheetDialog = (0, react_1.forwardRef)(({ children, isFullscreen =
+     }));
+     return (<react_native_1.KeyboardAvoidingView style={tw.style('absolute bottom-0 inset-x-0')} behavior={react_native_1.Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={react_native_1.Platform.OS === 'ios' ? -screenBottomPadding : frameY} enabled={keyboardAvoidingViewEnabled} {...props}>
+         <react_native_gesture_handler_1.GestureDetector gesture={gestureHandler}>
+-          <react_native_reanimated_1.default.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
++          <react_native_reanimated_1.default.View collapsable={false} onLayout={updateSheetHeight} style={combinedSheetStyle}>
+             {isInteractable && (<react_native_1.View style={tw.style('self-stretch items-center p-1')}>
+                 <react_native_1.View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
+               </react_native_1.View>)}
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+index d48eb56d611614affc8dd2bac497a498d1f88784..6863f5d5c27af64377c69e8b02f5113c65da8faf 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+@@ -154,6 +154,21 @@ export const BottomSheetDialog = forwardRef(({ children, isFullscreen = false, i
+     // Disable for now since network switches causes the screen to hang with this on.
+     // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+     onDebouncedCloseDialog.cancel(), [children, onDebouncedCloseDialog]);
++    // Reanimated 4 / Fabric can miss the initial Animated.View onLayout that
++    // normally triggers onOpenDialog, leaving the sheet translated off-screen
++    // (Appium: node exists but displayed=false). Open once on mount if layout
++    // has not already done so.
++    useEffect(() => {
++        const frame = requestAnimationFrame(() => {
++            if (!isMounted.current) {
++                isMounted.current = true;
++                onOpenDialog();
++            }
++        });
++        return () => cancelAnimationFrame(frame);
++        // Mount-once fallback; onOpenDialog closes over stable shared values.
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, []);
+     const updateSheetHeight = (e) => {
+         const { height } = e.nativeEvent.layout;
+         bottomOfDialogYValue.value = height;
+@@ -198,7 +213,7 @@ export const BottomSheetDialog = forwardRef(({ children, isFullscreen = false, i
+     }));
+     return (<KeyboardAvoidingView style={tw.style('absolute bottom-0 inset-x-0')} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? -screenBottomPadding : frameY} enabled={keyboardAvoidingViewEnabled} {...props}>
+         <GestureDetector gesture={gestureHandler}>
+-          <Animated.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
++          <Animated.View collapsable={false} onLayout={updateSheetHeight} style={combinedSheetStyle}>
+             {isInteractable && (<View style={tw.style('self-stretch items-center p-1')}>
+                 <View style={tw.style('h-1 w-10 rounded-sm bg-border-muted')}/>
+               </View>)}
+diff --git a/dist/components/Toast/Toaster.cjs b/dist/components/Toast/Toaster.cjs
+index 80e8a16649d90c513bb76b45817aa8af631cf4c3..be8db97d09f4a172e5eb945be476fb2f220d0d6f 100644
+--- a/dist/components/Toast/Toaster.cjs
++++ b/dist/components/Toast/Toaster.cjs
+@@ -32,6 +32,14 @@ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+ const react_native_reanimated_1 = __importStar(require("react-native-reanimated"));
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+ const react_native_worklets_1 = require("react-native-worklets");
++// MM patch: capture the bare function, not the module namespace. The Worklets
++// babel plugin otherwise captures `react_native_worklets_1` (which contains the
++// WorkletsModule NativeWorklets instance) into worklet closures, and worklets
++// >=0.10 throws "Cannot copy value of type `NativeWorklets`" when serializing
++// them — fatal on Android bridgeless (kills the React host at sheet/toast open).
++const scheduleOnRN = react_native_worklets_1.scheduleOnRN;
++const withSpring = react_native_reanimated_1.withSpring;
++const cancelAnimation = react_native_reanimated_1.cancelAnimation;
+ // Internal dependencies.
+ const Toast_1 = require("./Toast.cjs");
+ const Toast_constants_1 = require("./Toast.constants.cjs");
+@@ -101,9 +109,9 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+         clearScheduledAutoDismiss();
+         isDismissing.value = true;
+         visibleAtRef.current = null;
+-        translateYProgress.value = (0, react_native_reanimated_1.withSpring)(hiddenTranslateY.value, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
++        translateYProgress.value = withSpring(hiddenTranslateY.value, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
+             if (finished) {
+-                (0, react_native_worklets_1.scheduleOnRN)(resetState);
++                scheduleOnRN(resetState);
+             }
+         });
+     };
+@@ -146,7 +154,7 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+             // when the replacement is persistent (hasNoTimeout). Otherwise the old
+             // timer can fire and dismiss the new toast.
+             clearScheduledAutoDismiss();
+-            (0, react_native_reanimated_1.cancelAnimation)(translateYProgress);
++            cancelAnimation(translateYProgress);
+             timeoutDuration = 100;
+             animationStartedRef.current = false;
+             visibleAtRef.current = null;
+@@ -198,11 +206,11 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+         const springBackAfterSwipe = () => {
+             'worklet';
+             const generationAtSpringStart = toastGeneration.value;
+-            translateYProgress.value = (0, react_native_reanimated_1.withSpring)(visibleTranslateY.value, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
++            translateYProgress.value = withSpring(visibleTranslateY.value, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
+                 // A new pan cancels this spring via cancelAnimation; only resume
+                 // auto-dismiss when the spring-back completed naturally.
+                 if (finished) {
+-                    (0, react_native_worklets_1.scheduleOnRN)(resumeAutoDismissFromSwipe, generationAtSpringStart);
++                    scheduleOnRN(resumeAutoDismissFromSwipe, generationAtSpringStart);
+                 }
+             });
+         };
+@@ -216,8 +224,8 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+                 return;
+             }
+             isSwipeActive.value = true;
+-            (0, react_native_worklets_1.scheduleOnRN)(clearScheduledAutoDismissFromSwipe);
+-            (0, react_native_reanimated_1.cancelAnimation)(translateYProgress);
++            scheduleOnRN(clearScheduledAutoDismissFromSwipe);
++            cancelAnimation(translateYProgress);
+             gestureStartY.value = translateYProgress.value;
+         })
+             .onUpdate((event) => {
+@@ -246,7 +254,7 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+             const shouldDismiss = hasReachedDismissOffset ||
+                 (hasReachedSwipeThreshold && isQuickDismissing);
+             if (shouldDismiss) {
+-                (0, react_native_worklets_1.scheduleOnRN)(dismissToastFromSwipe);
++                scheduleOnRN(dismissToastFromSwipe);
+                 return;
+             }
+             springBackAfterSwipe();
+@@ -311,12 +319,12 @@ const ToasterComponent = (0, react_1.forwardRef)(({ twClassName, ...props }, ref
+         animationStartedRef.current = true;
+         translateYProgress.value = nextHiddenTranslateY;
+         if (toastOptions.hasNoTimeout) {
+-            translateYProgress.value = (0, react_native_reanimated_1.withSpring)(nextVisibleTranslateY, Toast_constants_1.TOAST_SPRING_CONFIG);
++            translateYProgress.value = withSpring(nextVisibleTranslateY, Toast_constants_1.TOAST_SPRING_CONFIG);
+         }
+         else {
+-            translateYProgress.value = (0, react_native_reanimated_1.withSpring)(nextVisibleTranslateY, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
++            translateYProgress.value = withSpring(nextVisibleTranslateY, Toast_constants_1.TOAST_SPRING_CONFIG, (finished) => {
+                 if (finished) {
+-                    (0, react_native_worklets_1.scheduleOnRN)(beginAutoDismiss);
++                    scheduleOnRN(beginAutoDismiss);
+                 }
+             });
+         }
