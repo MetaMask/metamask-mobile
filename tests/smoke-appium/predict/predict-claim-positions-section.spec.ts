@@ -8,6 +8,8 @@ import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
+import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
+import PredictPositions from '../../page-objects/Predict/PredictPositions.js';
 import {
   loginForPredictTests,
   PredictHelpers,
@@ -22,7 +24,7 @@ import {
 
 appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
   appiumTest(
-    'claim winnings via Predict tab',
+    'claim winnings via Predict Positions',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -44,7 +46,9 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           await PredictMarketList.waitForScreenToDisplay({
             description: 'Predict market list should be visible',
           });
-          await PredictMarketList.tapClaimButton();
+          await PredictBalance.tapPositions();
+          await PredictPositions.waitForScreenToDisplay();
+          await PredictPositions.tapClaimButton();
 
           await postClaimMocks(mockServer);
 
