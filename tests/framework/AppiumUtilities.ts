@@ -71,6 +71,49 @@ export function getDriver(): WebdriverIO.Browser {
   return drv;
 }
 
+/** Logcat lines that indicate a JVM/native crash or app process death. */
+const ANDROID_CRASH_LOG_PATTERN =
+  /FATAL EXCEPTION|AndroidRuntime|Fatal signal|beginning of crash|backtrace:|#\d{2} pc |Process .*io\.metamask.*(died|has died)|ReactNativeJS.*(Error|Exception)/;
+/** Raw logcat tail size attached alongside the crash-matched lines. */
+const ANDROID_CRASH_LOG_TAIL_LINES = 300;
+
+/**
+ * On Android failures, attach recent device logs so app crashes (process
+ * death → element "never displayed") are diagnosable from CI artifacts.
+ * Attaches crash-matched lines plus a raw tail of the recent buffer.
+ */
+async function attachAndroidCrashLog(methodName: string): Promise<void> {
+  try {
+    if (!PlatformDetector.isAndroid()) return;
+    const driver = getDriver();
+    const entries = (await driver.getLogs('logcat')) as { message?: string }[];
+    const lines = entries
+      .map((entry) => entry?.message ?? '')
+      .filter((line) => line.length > 0);
+    if (lines.length === 0) return;
+
+    const crashLines = lines.filter((line) =>
+      ANDROID_CRASH_LOG_PATTERN.test(line),
+    );
+    const tail = lines.slice(-ANDROID_CRASH_LOG_TAIL_LINES);
+    const body = [
+      `=== crash-matched lines (${crashLines.length}) ===`,
+      ...crashLines,
+      '',
+      `=== last ${tail.length} logcat lines ===`,
+      ...tail,
+    ].join('\n');
+
+    await test.info().attach(`${methodName}-device-log`, {
+      body: Buffer.from(body, 'utf-8'),
+      contentType: 'text/plain',
+    });
+  } catch (logError) {
+    // Never fail the test path because log capture failed.
+    logger.warn('Failed to capture Android device log:', logError);
+  }
+}
+
 interface AppiumDeepLinkArgs {
   url: string;
   package?: string;
@@ -256,6 +299,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
             // Don't fail if screenshot fails
             logger.warn('Failed to capture error screenshot:', screenshotError);
           }
+          await attachAndroidCrashLog(methodName);
           throw error;
         }
       },
