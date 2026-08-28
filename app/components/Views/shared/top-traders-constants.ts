@@ -8,6 +8,7 @@ export const SPOT_CHAINS: string[] = [
   'base',
   'solana',
   'ethereum',
+  'bsc',
   'robinhood',
 ];
 
