@@ -1,0 +1,81 @@
+diff --git a/src/memory/serializable.native.ts b/src/memory/serializable.native.ts
+index 5417b6e2bb956e74a483e028a65683b6dad708c3..b676389e5e5c4b02026944108b10c630ba31c47e 100644
+--- a/src/memory/serializable.native.ts
++++ b/src/memory/serializable.native.ts
+@@ -359,11 +359,20 @@ function cloneObjectProperties<T extends object>(
+     if (key === '__initData' && clonedProps.__initData !== undefined) {
+       continue;
+     }
+-    clonedProps[key] = createSerializable(
+-      element,
+-      shouldPersistRemote,
+-      depth + 1
+-    );
++    try {
++      clonedProps[key] = createSerializable(
++        element,
++        shouldPersistRemote,
++        depth + 1
++      );
++    } catch (error) {
++      // MM diagnostic: record the property path on the way up so the final
++      // error names the exact capture site instead of only the leaf value.
++      if (error instanceof Error) {
++        error.message += ` <- prop \`${key}\``;
++      }
++      throw error;
++    }
+   }
+   return clonedProps;
+ }
+@@ -386,9 +395,17 @@ function cloneArray<T extends unknown[]>(
+   shouldPersistRemote: boolean,
+   depth: number
+ ): SerializableRef<T> {
+-  const clonedElements = value.map((element) =>
+-    createSerializable(element, shouldPersistRemote, depth + 1)
+-  );
++  const clonedElements = value.map((element, index) => {
++    try {
++      return createSerializable(element, shouldPersistRemote, depth + 1);
++    } catch (error) {
++      // MM diagnostic: record the array index on the way up.
++      if (error instanceof Error) {
++        error.message += ` <- index [${index}]`;
++      }
++      throw error;
++    }
++  });
+   const clone = WorkletsModule.createSerializableArray(
+     clonedElements,
+     shouldPersistRemote
+@@ -455,11 +472,24 @@ function cloneWorklet<TValue extends WorkletFunction>(
+     // seems more elegant to handle it this way.
+     delete (value as WorkletFunction).__stackDetails;
+   }
+-  const clonedProps: Record<string, unknown> = cloneObjectProperties(
+-    value,
+-    shouldPersistRemote,
+-    depth
+-  );
++  let clonedProps: Record<string, unknown>;
++  try {
++    clonedProps = cloneObjectProperties(value, shouldPersistRemote, depth);
++  } catch (error) {
++    // MM diagnostic: identify the worklet whose closure failed to serialize.
++    if (error instanceof Error) {
++      const initData = value.__initData as
++        | { location?: string; code?: string }
++        | undefined;
++      const identity =
++        initData?.location ??
++        (initData?.code ? initData.code.slice(0, 200) : 'unknown');
++      error.message += ` <- worklet(hash=${String(
++        value.__workletHash
++      )}, ${identity})`;
++    }
++    throw error;
++  }
+   // to save on transferring static __initData field of worklet structure
+   // we request serializable value to persist its UI counterpart. This means
+   // that the __initData field that contains long strings representing the
