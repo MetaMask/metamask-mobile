@@ -228,7 +228,8 @@
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
-    "@metamask/assets-controller@npm:^13.1.2": "patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch"
+    "@metamask/assets-controller@npm:^13.1.2": "patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch",
+    "@metamask/assets-controller@npm:^13.1.4": "patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
