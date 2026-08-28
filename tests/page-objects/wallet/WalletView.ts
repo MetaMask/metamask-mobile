@@ -2,66 +2,41 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
-import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
-import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import Utilities from '../../framework/Utilities';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-  asDetoxElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
 class WalletView extends WalletHomeSectionsBase {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
   /**
    * Wallet header root — high in the Android view hierarchy (above scroll /
-   * homepage sections). Appium uses resourceIdMatches so package-qualified
-   * IDs resolve quickly without deep tree walks into token lists.
+   * homepage sections). Partial ID match so package-qualified resource IDs
+   * resolve without deep tree walks into token lists.
    */
-  get headerRoot(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
-            { exact: false },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
-          ),
-      },
-    });
+  get headerRoot(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      new RegExp(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+    );
   }
 
   get walletScrollContainer(): string {
     return WalletHomeScroll.walletScrollContainer;
   }
 
-  get walletScrollView(): EncapsulatedElementType {
+  get walletScrollView(): Promise<AppiumElement> {
     return WalletHomeScroll.walletScrollView;
   }
 
-  get activityButton(): EncapsulatedElementType {
+  get activityButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
     );
@@ -73,90 +48,64 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
-  get earnButton(): EncapsulatedElementType {
+  get earnButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
-  get accountIcon(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.ACCOUNT_ICON,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            WalletViewSelectorsIDs.ACCOUNT_ICON,
-          ),
-      },
-    });
+  get accountIcon(): Promise<AppiumElement> {
+    const id = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    if (PlatformDetector.isIOS()) {
+      // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
+      return Matchers.getElementByNativeXPath(
+        `//*[contains(@name,'${id}') or contains(@label,'${id}') or contains(@text,'${id}')]`,
+      );
+    }
+    return Matchers.getElementByID(id);
   }
 
-  get eyeSlashIcon(): EncapsulatedElementType {
+  get eyeSlashIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
   }
 
-  get hamburgerMenuButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
-          { exact: true },
-        ),
-    });
+  get hamburgerMenuButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+    );
   }
 
-  get navbarNetworkText(): EncapsulatedElementType {
+  get navbarNetworkText(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
-  get navbarNetworkPicker(): EncapsulatedElementType {
+  get navbarNetworkPicker(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
   }
 
-  get navbarCardButton(): EncapsulatedElementType {
+  get navbarCardButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
-  get importNFTButton(): EncapsulatedElementType {
+  get importNFTButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
-  get importTokensButton(): EncapsulatedElementType {
+  get importTokensButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
-  get totalBalance(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
-        ),
-    });
+  get totalBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
   }
 
-  get accountNameLabelText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
-          { exact: true },
-        ),
-    });
+  get accountNameLabelText(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+    );
   }
 
-  get accountName(): EncapsulatedElementType {
+  get accountName(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
@@ -166,135 +115,70 @@ class WalletView extends WalletHomeSectionsBase {
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
-    await PlaywrightAssertions.expectElementText(
-      asPlaywrightElement(this.accountNameLabelText),
+    await Assertions.expectElementToHaveText(
+      this.accountNameLabelText,
       expectedName,
       { timeout },
     );
   }
 
-  get hideTokensLabel(): EncapsulatedElementType {
+  get hideTokensLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get currentMainWalletAccountActions(): EncapsulatedElementType {
+  get currentMainWalletAccountActions(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
   }
 
-  get tokenNetworkFilter(): EncapsulatedElementType {
+  get tokenNetworkFilter(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  get sortButton(): EncapsulatedElementType {
+  get sortButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
   }
 
-  get carouselContainer(): EncapsulatedElementType {
+  get carouselContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-  get carouselProgressDots(): EncapsulatedElementType {
+  get carouselProgressDots(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
     );
   }
-  get testCollectible(): EncapsulatedElementType {
+  get testCollectible(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
-  get testCollectibleFallback(): EncapsulatedElementType {
+  get testCollectibleFallback(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
       1,
     );
   }
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.WALLET_BUY_BUTTON,
-          { exact: true },
-        ),
-    });
+  get walletBuyButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
   }
 
-  get walletSwapButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-          ),
-      },
-    });
+  get walletSwapButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
   }
 
-  get walletSendButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
-          ),
-      },
-    });
-  }
-
-  get musdAssetListConversionCta(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
-    );
-  }
-
-  get cashGetMusdContainer(): EncapsulatedElementType {
-    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
-  }
-
-  get getMusdButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Get mUSD');
-  }
-
-  get getStartedButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Get Started');
-  }
-
-  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): EncapsulatedElementType {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
-  }
-
-  get assetOverviewMusdCta(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
-    );
+  get walletSendButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
   }
 
   // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): EncapsulatedElementType {
+  get balanceEmptyStateContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
     );
   }
 
-  get balanceEmptyStateActionButton(): EncapsulatedElementType {
+  get balanceEmptyStateActionButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
     );
@@ -306,61 +190,20 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
-  tokenRow(token: string, index = 0): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(token, index),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(getAssetTestId(token), {
-            exact: true,
-          }),
-        // iOS: match accessibilityIdentifier (= RN testID), not accessibilityLabel
-        // (label is "Name, $fiat, balance" and does not contain asset-SYMBOL).
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
-      },
-    });
+  tokenRow(token: string, index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(getAssetTestId(token), index);
   }
 
   async tapOnToken(token: string, index = 0): Promise<void> {
     const tokenLabel = token || WalletViewSelectorsText.DEFAULT_TOKEN;
-    await encapsulatedAction({
-      detox: async () => {
-        const elem = Matchers.getElementByText(tokenLabel, index);
-        await Assertions.expectElementToBeVisible(elem, {
-          description: `${tokenLabel} token in wallet list`,
-        });
-        // Wait for the token list to finish loading/reordering before tapping.
-        // New tokens appearing asynchronously can shift positions mid-tap.
-        await Utilities.waitForElementToStopMoving(elem, {
-          timeout: 20000,
-          interval: 500,
-          stableCount: 6,
-        });
-        await Gestures.waitAndTap(elem, {
-          elemDescription: 'Token',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.tokenRow(tokenLabel), {
-          description: 'Token',
-        });
-      },
+    await Gestures.waitAndTap(this.tokenRow(tokenLabel, index), {
+      elemDescription: 'Token',
     });
   }
 
   async tapIdenticon(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.accountIcon, {
-          elemDescription: 'Top Account Icon',
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.accountIcon),
-        );
-      },
+    await Gestures.waitAndTap(this.accountIcon, {
+      elemDescription: 'Top Account Icon',
     });
   }
 
@@ -390,7 +233,7 @@ class WalletView extends WalletHomeSectionsBase {
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
     await Gestures.scrollToElement(
-      this.tokenInWallet(tokenName) as unknown as DetoxElement,
+      this.tokenInWallet(tokenName),
       Matchers.scrollContainer(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
@@ -433,11 +276,11 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
-  async tokenInWallet(tokenName: string): Promise<EncapsulatedElementType> {
+  async tokenInWallet(tokenName: string): Promise<AppiumElement> {
     return Matchers.getElementByText(tokenName);
   }
 
-  async nftInWallet(nftName: string): Promise<EncapsulatedElementType> {
+  async nftInWallet(nftName: string): Promise<AppiumElement> {
     return Matchers.getElementByText(nftName);
   }
 
@@ -484,94 +327,76 @@ class WalletView extends WalletHomeSectionsBase {
       sameResultTimeout = 8000,
     } = options;
 
-    let result = '';
-    await encapsulatedAction({
-      appium: async () => {
-        const startTime = Date.now();
-        const isIOS = await PlatformDetector.isIOS();
+    const startTime = Date.now();
+    const isIOS = PlatformDetector.isIOS();
 
-        if (isIOS) {
-          // iOS: Element lookups are extremely slow (15-30s each).
-          // Skip stability loop and just wait for a valid balance once.
-          let previousBalance = '';
-          while (Date.now() - startTime < maxWaitTime) {
-            try {
-              const balanceEl = await asPlaywrightElement(this.totalBalance);
-              const rawBalance = await balanceEl.textContent();
-              const balance = (rawBalance || '').trim();
-              previousBalance = balance;
+    if (isIOS) {
+      // iOS: Element lookups are extremely slow (15-30s each).
+      // Skip stability loop and just wait for a valid balance once.
+      let previousBalance = '';
+      while (Date.now() - startTime < maxWaitTime) {
+        try {
+          const balance = (
+            await Utilities.getElementText(this.totalBalance)
+          ).trim();
+          previousBalance = balance;
 
-              if (balance && balance !== '' && balance !== '$0.00') {
-                result = balance;
-                return;
-              }
-            } catch {
-              // Element not found yet, retry
-            }
-            await new Promise((r) => setTimeout(r, 1000));
+          if (balance && balance !== '' && balance !== '$0.00') {
+            return balance;
           }
-          result = previousBalance;
-          return;
+        } catch {
+          // Element not found yet, retry
         }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      return previousBalance;
+    }
 
-        // Android: Fast element lookups, use stability polling
-        let previousBalance = '';
-        let sameResultStartTime: number | null = null;
+    // Android: Fast element lookups, use stability polling
+    let previousBalance = '';
+    let sameResultStartTime: number | null = null;
 
-        while (true) {
-          if (Date.now() - startTime > maxWaitTime) {
-            result = previousBalance;
-            return;
-          }
+    while (true) {
+      if (Date.now() - startTime > maxWaitTime) {
+        return previousBalance;
+      }
 
-          let currentBalance: string;
-          try {
-            const balanceEl = await asPlaywrightElement(this.totalBalance);
-            const rawBalance = await balanceEl.textContent();
-            currentBalance = (rawBalance || '').trim();
-          } catch {
-            await new Promise((r) => setTimeout(r, pollInterval));
-            continue;
-          }
+      let currentBalance: string;
+      try {
+        currentBalance = (
+          await Utilities.getElementText(this.totalBalance)
+        ).trim();
+      } catch {
+        await new Promise((r) => setTimeout(r, pollInterval));
+        continue;
+      }
 
-          if (
-            !currentBalance ||
-            currentBalance === '' ||
-            currentBalance === '$0.00'
-          ) {
-            await new Promise((r) => setTimeout(r, pollInterval));
-            continue;
-          }
+      if (
+        !currentBalance ||
+        currentBalance === '' ||
+        currentBalance === '$0.00'
+      ) {
+        await new Promise((r) => setTimeout(r, pollInterval));
+        continue;
+      }
 
-          if (currentBalance === previousBalance && sameResultStartTime) {
-            const timeSinceSameResult = Date.now() - sameResultStartTime;
-            if (timeSinceSameResult >= sameResultTimeout) {
-              result = currentBalance;
-              return;
-            }
-          } else {
-            sameResultStartTime = Date.now();
-            previousBalance = currentBalance;
-          }
-
-          await new Promise((r) => setTimeout(r, pollInterval));
+      if (currentBalance === previousBalance && sameResultStartTime) {
+        const timeSinceSameResult = Date.now() - sameResultStartTime;
+        if (timeSinceSameResult >= sameResultTimeout) {
+          return currentBalance;
         }
-      },
-    });
-    return result;
+      } else {
+        sameResultStartTime = Date.now();
+        previousBalance = currentBalance;
+      }
+
+      await new Promise((r) => setTimeout(r, pollInterval));
+    }
   }
 
-  // TODO test this
   async getBalanceText(): Promise<string> {
-    const balanceElement = asDetoxElement(this.totalBalance);
-    await Assertions.expectElementToBeVisible(balanceElement);
-
-    const elem = await balanceElement;
-    const attributes = await (elem as IndexableNativeElement).getAttributes();
-    return (
-      (attributes as { text: string; label: string }).text ||
-      (attributes as { text: string; label: string }).label
-    );
+    await Assertions.expectElementToBeVisible(this.totalBalance);
+    return Utilities.getElementText(this.totalBalance);
   }
 
   /**
@@ -622,68 +447,14 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   async tapWalletSwapButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.walletSwapButton, {
-      description: 'Wallet Swap Button',
+    await Gestures.waitAndTap(this.walletSwapButton, {
+      elemDescription: 'Wallet Swap Button',
     });
   }
 
   async tapWalletSendButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.walletSendButton, {
-      description: 'Wallet Send Button',
-    });
-  }
-
-  async tapGetMusdButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getMusdButton, {
-      elemDescription: 'Get mUSD button',
-    });
-  }
-
-  async tapGetStartedButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getStartedButton, {
-      elemDescription: 'Get Started button on education screen',
-    });
-  }
-
-  /** Tap the "Get X% mUSD bonus" CTA on a token list row (visible when user has mUSD balance). Uses checkStability + delay so list is fully loaded before tap. */
-  async tapTokenListItemConvertToMusdCta(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenListItemConvertToMusdCta, {
-      checkStability: true,
-      delay: 1000,
-      elemDescription: 'Token list item mUSD conversion CTA',
-    });
-  }
-
-  /**
-   * Scrolls down on the Asset Overview screen until the mUSD conversion CTA is visible,
-   * then asserts it is visible so the caller can safely tap. Uses the same scroll
-   * container as the Asset/Transactions screen (transactions-container).
-   */
-  async scrollDownToAssetOverviewMusdCta(): Promise<void> {
-    const assetOverviewScrollContainer = Matchers.scrollContainer(
-      'transactions-container',
-    );
-    await Gestures.scrollToElement(
-      this.assetOverviewMusdCta as unknown as DetoxElement,
-      assetOverviewScrollContainer,
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Asset Overview mUSD CTA',
-        timeout: 15000,
-      },
-    );
-    await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
-      timeout: 5000,
-      description: 'Asset Overview mUSD CTA should be visible after scroll',
-    });
-  }
-
-  async tapAssetOverviewMusdCta(): Promise<void> {
-    await Gestures.waitAndTap(this.assetOverviewMusdCta, {
-      checkStability: true,
-      delay: 800,
-      elemDescription: 'Asset Overview mUSD CTA',
+    await Gestures.waitAndTap(this.walletSendButton, {
+      elemDescription: 'Wallet Send Button',
     });
   }
 

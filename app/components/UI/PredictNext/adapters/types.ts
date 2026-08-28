@@ -1,20 +1,29 @@
 import type {
-  FetchEventsParams,
-  PaginatedResult,
+  FetchFeedParams,
   PredictEntityId,
   PredictEvent,
+  PredictFeed,
+  PredictFeedId,
+  PredictMarketHistory,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueStatus,
 } from '../types';
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
-  fetchEvents(
-    params: FetchEventsParams,
+  fetchFeed(
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
-  ): Promise<PaginatedResult<PredictEvent>>;
+  ): Promise<PredictFeed>;
   fetchEvent(
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<PredictEvent>;
+  fetchMarketHistory(
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<PredictMarketHistory>;
 }

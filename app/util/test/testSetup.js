@@ -54,10 +54,25 @@ jest.mock('expo-modules-core', () => ({
   NativeModulesProxy: {},
   requireNativeModule: jest.fn(() => ({})),
   requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
   Platform: { OS: 'ios' },
   CodedError: class CodedError extends Error {},
   UnavailabilityError: class UnavailabilityError extends Error {},
   LegacyEventEmitter: jest.fn(),
+}));
+
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws in Jest.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
 }));
 
 // Mock Expo's fetch implementation
@@ -390,18 +405,10 @@ jest.mock('react-native-keychain', () => ({
 
   // Storage Type enum
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
     RSA: 'KeystoreRSAECB',
-  },
-
-  // Security Rules enum
-  SECURITY_RULES: {
-    NONE: 'none',
-    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
   },
 
   // Generic password functions
@@ -437,6 +444,7 @@ jest.mock('react-native-keychain', () => ({
   getSecurityLevel: jest
     .fn()
     .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 
   // Shared web credentials (iOS only)
   requestSharedWebCredentials: jest.fn().mockResolvedValue({
@@ -1096,6 +1104,13 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 
   // User feedback
   lastEventId: jest.fn(),

@@ -1,17 +1,30 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { Keyboard } from 'react-native';
+import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
+import { strings } from '../../../../../../../../locales/i18n';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../../util/haptics';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+
+jest.mock('../../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
@@ -41,6 +54,20 @@ const createSizeSlider = (
   ...overrides,
 });
 
+const createTwap = (
+  overrides: Partial<PerpsProOrderFormProps['twap']> = {},
+): PerpsProOrderFormProps['twap'] => ({
+  days: '',
+  hours: '',
+  minutes: '5',
+  randomize: false,
+  onDaysChange: jest.fn(),
+  onHoursChange: jest.fn(),
+  onMinutesChange: jest.fn(),
+  onRandomizeChange: jest.fn(),
+  ...overrides,
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
@@ -60,6 +87,8 @@ const createProps = (
     availableBalance: '-- available',
     reduceOnly: false,
     onReduceOnlyChange: jest.fn(),
+    twap: createTwap(),
+    onTwapDurationPress: jest.fn(),
     isTPSLConfigured: false,
     notices: [],
     summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
@@ -73,7 +102,15 @@ const createProps = (
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
+const getMountedInput = (testID: string) =>
+  screen.getByTestId(testID, { includeHiddenElements: true });
+
 describe('PerpsProOrderForm', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -92,28 +129,70 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceChange = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceChange });
 
-      fireEvent.changeText(screen.getByTestId(ids.LIMIT_PRICE_INPUT), '.123');
+      fireEvent.changeText(getMountedInput(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('omits the Mid chip when onUseMidPricePress is not provided', () => {
+      renderForm({ orderType: 'limit' });
+
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+    });
+
+    it('renders the Mid chip for a plain limit order when provided', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
     });
 
     it('wires limit price blur to onLimitPriceBlur', () => {
       const onLimitPriceBlur = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceBlur });
 
-      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'blur');
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'blur');
 
       expect(onLimitPriceBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards limit price focus to onLimitPriceFocus', () => {
+      const onLimitPriceFocus = jest.fn();
+      renderForm({ orderType: 'limit', onLimitPriceFocus });
+
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'focus');
+
+      expect(onLimitPriceFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports every limit price tap so an already-focused field can realign', () => {
+      const onLimitPriceFieldPress = jest.fn();
+      renderForm({ orderType: 'limit', onLimitPriceFieldPress });
+
+      // `pressIn` rather than `focus`: re-tapping a focused input fires no
+      // focus event, which is the case this callback exists to cover.
+      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'pressIn');
+
+      expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes the order-type card so it can be measured against the keyboard', () => {
+      const orderTypeCardRef = React.createRef<View>();
+      renderForm({ orderType: 'limit', orderTypeCardRef });
+
+      expect(orderTypeCardRef.current).not.toBeNull();
     });
 
     it('renders limit price input for limit orders', () => {
       renderForm({ orderType: 'limit' });
 
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
     });
 
-    it('renders the dollar prefix for limit prices', () => {
+    it('reveals the dollar prefix after activating a limit price field', () => {
       renderForm({ orderType: 'limit' });
+
+      fireEvent.press(screen.getByTestId(`${ids.LIMIT_PRICE_INPUT}-field`));
 
       expect(screen.getByTestId(ids.LIMIT_PRICE_PREFIX)).toHaveTextContent('$');
     });
@@ -122,6 +201,208 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { orderType: 'market' as const, labels: [] },
+      {
+        orderType: 'limit' as const,
+        labels: [
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_market' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'stop_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+      {
+        orderType: 'take_profit_limit' as const,
+        labels: [
+          {
+            inputID: ids.TRIGGER_PRICE_INPUT,
+            label: strings('perps.order.trigger_price'),
+          },
+          {
+            inputID: ids.LIMIT_PRICE_INPUT,
+            label: strings('perps.order.limit_price'),
+          },
+        ],
+      },
+    ])('assigns the $orderType price labels', ({ orderType, labels }) => {
+      renderForm({ orderType });
+
+      const expectedLabels = new Map(
+        labels.map(({ inputID, label }) => [inputID, label]),
+      );
+      for (const inputID of [ids.TRIGGER_PRICE_INPUT, ids.LIMIT_PRICE_INPUT]) {
+        const labelTestID = `${inputID}-label`;
+        const expectedLabel = expectedLabels.get(inputID);
+        if (expectedLabel) {
+          expect(screen.getByTestId(labelTestID)).toHaveTextContent(
+            expectedLabel,
+          );
+        } else {
+          expect(screen.queryByTestId(labelTestID)).not.toBeOnTheScreen();
+        }
+      }
+    });
+
+    it.each([
+      { orderType: 'stop_limit' as const, title: 'Stop limit' },
+      { orderType: 'take_profit_limit' as const, title: 'Take limit' },
+    ])(
+      'renders trigger and limit price inputs with Mid for $orderType orders',
+      ({ orderType, title }) => {
+        const onUseMidPricePress = jest.fn();
+
+        renderForm({
+          orderType,
+          triggerPrice: '91000',
+          onUseMidPricePress,
+        });
+
+        expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+          title,
+        );
+
+        fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
+        expect(onUseMidPricePress).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it.each(['stop_market', 'take_profit_market'] as const)(
+      'renders trigger price and omits limit price for %s orders',
+      (orderType) => {
+        renderForm({ orderType });
+
+        expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.LIMIT_PRICE_INPUT),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.MID_PRICE_BUTTON),
+        ).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      },
+    );
+
+    it('hides TP/SL for take-profit order types', () => {
+      renderForm({
+        orderType: 'take_profit_limit',
+        onTPSLPress: jest.fn(),
+      });
+
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('groups TWAP runtime and Randomize inside the order card', () => {
+      renderForm({ orderType: 'twap' });
+      const orderCard = within(screen.getByTestId(ids.ORDER_TYPE_CARD));
+
+      expect(orderCard.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_DURATION_BUTTON)).toBeOnTheScreen();
+      expect(orderCard.getByTestId(ids.TWAP_RANDOMIZE)).toBeOnTheScreen();
+    });
+
+    it('opens the TWAP duration sheet from the compact Runtime row', () => {
+      const onTwapDurationPress = jest.fn();
+      renderForm({ orderType: 'twap', onTwapDurationPress });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
+
+      expect(onTwapDurationPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the compact TWAP duration value', () => {
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ days: '1', hours: '2', minutes: '30' }),
+      });
+
+      expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
+        '1d 2h 30m',
+      );
+      expect(
+        screen.queryByTestId(ids.TWAP_DURATION_PICKER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('updates TWAP Randomize from the compact card row', () => {
+      const onRandomizeChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ onRandomizeChange }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
+
+      expect(onRandomizeChange).toHaveBeenCalledWith(true);
+    });
+
+    it('passes raw trigger price text to onTriggerPriceChange', () => {
+      const onTriggerPriceChange = jest.fn();
+      renderForm({ orderType: 'stop_market', onTriggerPriceChange });
+
+      fireEvent.changeText(getMountedInput(ids.TRIGGER_PRICE_INPUT), '.123');
+
+      expect(onTriggerPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('wires trigger price blur to onTriggerPriceBlur', () => {
+      const onTriggerPriceBlur = jest.fn();
+      renderForm({ orderType: 'take_profit_market', onTriggerPriceBlur });
+
+      fireEvent(getMountedInput(ids.TRIGGER_PRICE_INPUT), 'blur');
+
+      expect(onTriggerPriceBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a blocking helper under the price card', () => {
+      renderForm({
+        orderType: 'stop_market',
+        priceCardMessage: {
+          severity: 'error',
+          message: 'Trigger price must be higher than mid price',
+        },
+      });
+
+      expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+        'Trigger price must be higher than mid price',
+      );
     });
 
     it('renders the size label with the active unit', () => {
@@ -198,30 +479,78 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
 
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
-    it('connects each iOS numeric input to its own keyboard accessory', () => {
-      renderForm({ orderType: 'limit' });
+    it('does not play Add funds haptics when the action is disabled', () => {
+      renderForm({ onAddFundsPress: undefined });
 
-      const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
-      const limitPriceAccessoryID = getPerpsProInputAccessoryID(
-        ids.LIMIT_PRICE_INPUT,
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
+    const triggerAccessoryID = getPerpsProInputAccessoryID(
+      ids.TRIGGER_PRICE_INPUT,
+    );
+    const limitPriceAccessoryID = getPerpsProInputAccessoryID(
+      ids.LIMIT_PRICE_INPUT,
+    );
+    const expectedAccessoryIDs = [
+      sizeAccessoryID,
+      triggerAccessoryID,
+      limitPriceAccessoryID,
+    ];
+    const mountedAccessoryIDs = () =>
+      screen
+        .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
+        .map((accessory) => accessory.props.nativeID);
+
+    it('keeps all keyboard accessories mounted on market', () => {
+      renderForm({ orderType: 'market' });
+
+      expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
+    });
+
+    it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
+      renderForm({ orderType: 'stop_market' });
+
+      expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(getMountedInput(ids.TRIGGER_PRICE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        triggerAccessoryID,
       );
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
+    });
+
+    it('connects each visible iOS numeric input to its own keyboard accessory', () => {
+      renderForm({ orderType: 'limit' });
 
       expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         sizeAccessoryID,
       );
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.LIMIT_PRICE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(
-        screen
-          .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
-          .map((accessory) => accessory.props.nativeID),
-      ).toEqual([sizeAccessoryID, limitPriceAccessoryID]);
+      expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {
@@ -312,6 +641,17 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play a haptic when the current direction is re-selected', () => {
+      const onDirectionChange = jest.fn();
+      renderForm({ onDirectionChange, direction: 'long' });
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_LONG));
+
+      expect(onDirectionChange).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('calls onOrderTypeButtonPress when order type is pressed', () => {
@@ -321,6 +661,15 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
 
       expect(onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the Mid price preset is pressed', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('exposes Reduce only with checked checkbox semantics', () => {
@@ -343,6 +692,22 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
 
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the size denomination toggle is pressed', () => {
+      const onToggleDenomination = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({
+          canToggleDenomination: true,
+          onToggleDenomination,
+        }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+      expect(onToggleDenomination).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('hides the TP/SL row when Reduce Only is on', () => {
@@ -379,7 +744,17 @@ describe('PerpsProOrderForm', () => {
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onSlippagePress when the slippage value is pressed', () => {
+    it('plays selection when leverage is opened', () => {
+      const onLeveragePress = jest.fn();
+      renderForm({ onLeveragePress });
+
+      fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
+
+      expect(onLeveragePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the slippage summary value opens the sheet', () => {
       const onSlippagePress = jest.fn();
       renderForm({
         summary: {
@@ -393,6 +768,21 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
 
       expect(onSlippagePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps haptics silent when the slippage summary action is disabled', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('disables Place Order when requested', () => {
@@ -403,7 +793,6 @@ describe('PerpsProOrderForm', () => {
 
     it.each([
       ['leverage', ids.LEVERAGE_BUTTON],
-      ['Mid price', ids.MID_PRICE_BUTTON],
       ['size denomination', ids.SIZE_UNIT_BUTTON],
       ['Add funds', ids.ADD_FUNDS_BUTTON],
       ['TP/SL', ids.TPSL],
@@ -415,7 +804,6 @@ describe('PerpsProOrderForm', () => {
         sizeInput: createSizeInput({ canToggleDenomination: false }),
         onAddFundsPress: undefined,
         onTPSLPress: undefined,
-        onUseMidPricePress: undefined,
         onLeveragePress: undefined,
         summary: {
           margin: '--',
@@ -425,6 +813,76 @@ describe('PerpsProOrderForm', () => {
       });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
+    });
+  });
+
+  describe('slippage edit control', () => {
+    const slippageSummary = {
+      margin: '--',
+      liquidationPrice: '--',
+      slippage: '0.50% / 1%',
+    };
+
+    const backgroundOf = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style)
+        ?.backgroundColor;
+
+    it('renders the slippage edit affordance as an icon-only button', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toBeOnTheScreen();
+      expect(
+        within(editButton).queryByText(slippageSummary.slippage),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).getByText(
+          slippageSummary.slippage,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('names the slippage edit affordance and keeps it reachable at the minimum tap size', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+
+      const editButton = screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      expect(editButton).toHaveProp('accessibilityRole', 'button');
+      expect(editButton).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.slippage.config_title'),
+      );
+      expect(editButton).toHaveProp('hitSlop', 12);
+    });
+
+    it('applies a pressed background to the slippage edit affordance while held', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).not.toBe(
+        restingBackground,
+      );
+    });
+
+    it('restores the resting background once the slippage edit affordance is released', () => {
+      renderForm({
+        summary: { ...slippageSummary, onSlippagePress: jest.fn() },
+      });
+      const restingBackground = backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON);
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressIn');
+
+      fireEvent(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON), 'pressOut');
+
+      expect(backgroundOf(ids.SUMMARY_SLIPPAGE_BUTTON)).toBe(restingBackground);
     });
   });
 
@@ -487,6 +945,7 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
   });
 

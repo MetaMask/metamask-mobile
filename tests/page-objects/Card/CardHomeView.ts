@@ -1,42 +1,42 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class CardHomeView {
-  get tryAgainButton(): EncapsulatedElementType {
+  get tryAgainButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.TRY_AGAIN_BUTTON);
   }
 
-  get privacyToggleButton(): EncapsulatedElementType {
+  get privacyToggleButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
   }
 
-  get addFundsButton(): EncapsulatedElementType {
+  get addFundsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON);
   }
 
-  get addFundsBottomSheet(): EncapsulatedElementType {
+  get addFundsBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET);
   }
 
-  get addFundsBottomSheetDepositOption(): EncapsulatedElementType {
+  get addFundsBottomSheetDepositOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
     );
   }
 
-  get addFundsBottomSheetSwapOption(): EncapsulatedElementType {
+  get addFundsBottomSheetSwapOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
     );
   }
 
-  get cardViewTitle(): EncapsulatedElementType {
+  get cardViewTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.CARD_VIEW_TITLE);
   }
 
-  get swapScreenSourceTokenArea(): EncapsulatedElementType {
+  get swapScreenSourceTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID('source-token-area');
   }
 

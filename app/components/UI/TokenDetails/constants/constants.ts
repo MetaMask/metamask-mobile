@@ -25,6 +25,8 @@ export enum TokenDetailsSource {
   ExploreRwasStocks = 'explore_rwas_stocks',
   /** Explore omni-search result tap */
   ExploreSearch = 'explore_search',
+  /** Explore Earn section */
+  ExploreEarn = 'explore_earn',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Swap discovery feed — hot tokens / movers pills */
@@ -33,6 +35,8 @@ export enum TokenDetailsSource {
   RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Robinhood Chain promo banner on the Swaps screen */
   BannerRobinhoodSwaps = 'banner-robinhood-swaps',
+  /** Robinhood Chain promo banner on the Explore Crypto tab */
+  BannerRobinhoodExplore = 'banner-robinhood-explore',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */
@@ -57,7 +61,9 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
+  TokenDetailsSource.ExploreEarn,
   TokenDetailsSource.Trending,
+  TokenDetailsSource.BannerRobinhoodExplore,
 ]);
 
 /**

@@ -62,6 +62,7 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
@@ -80,6 +81,8 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
+import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
+import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -131,7 +134,7 @@ import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -153,7 +156,7 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersView,
+  SocialTradersTabsView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -175,6 +178,7 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -187,11 +191,16 @@ import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePrice
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
-import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const WalletWithMessenger = withRouteMessenger(Wallet, {
+  capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const styles = StyleSheet.create({
   headerLogo: {
@@ -261,7 +270,7 @@ const WalletTabStackFlow = () => {
     >
       <NativeStack.Screen
         name="WalletView"
-        component={Wallet}
+        component={WalletWithMessenger}
         options={{
           headerShown: false,
           animation: 'none',
@@ -333,6 +342,8 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
+  // Tab time-to-content: tap Rewards → onboarding content or dashboard shell.
+  useRewardsTabPerformance({ isVersionBlocked });
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -414,7 +425,7 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
 
@@ -587,11 +598,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -1037,6 +1044,11 @@ const MainNavigator = () => {
         options={rewardsModalScreenOptions}
       />
       <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+        component={RewardsInfoSheetModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
         component={RewardsClaimBottomSheetModal}
         options={rewardsModalScreenOptions}
@@ -1205,10 +1217,21 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
+      {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
+      <NativeStack.Screen
+        name={Routes.RAMP.GET_PIX_KEY}
+        component={GetPixKey}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_VERIFY_IDENTITY}
+        component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={slideFromRightNativeOptions}
+        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1395,7 +1418,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersView}
+          component={SocialTradersTabsView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

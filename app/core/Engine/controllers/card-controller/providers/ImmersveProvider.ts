@@ -36,12 +36,20 @@ import {
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
   CardStatus,
+  CardTransaction,
+  CardTransactionDetails,
+  CardTransactionListParams,
+  CardTransactionPage,
+  CardTransactionStatus,
+  CardTransactionType,
   CardType,
   emptyCardHomeData,
   FundingAssetStatus,
   ICardProvider,
   isCardAuthTokenError,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -85,6 +93,33 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'immersve' },
     context: { name: 'ImmersveProvider', data: { method, ...extra } },
   };
+}
+
+/**
+ * Report non-auth API failures to Sentry, then rethrow as CardProviderError.
+ * Auth-token / 401 errors are intentionally excluded to avoid Sentry noise
+ * (matching setCardPin / getCardHomeData).
+ */
+function reportAndMap(
+  error: unknown,
+  method: string,
+  extra?: Record<string, unknown>,
+): never {
+  const isAuthFailure =
+    isCardAuthTokenError(error) ||
+    (error instanceof CardApiError && error.statusCode === 401);
+  if (!isAuthFailure) {
+    Logger.error(
+      error as Error,
+      getErrorContext(method, {
+        httpStatus:
+          error instanceof CardApiError ? error.statusCode : undefined,
+        errorCode: error instanceof CardApiError ? error.errorCode : undefined,
+        ...extra,
+      }),
+    );
+  }
+  throw mapApiError(error, method);
 }
 
 function mapApiError(error: unknown, operation: string): CardProviderError {
@@ -248,6 +283,78 @@ interface ImmersvePanTokenResponse {
   callbackUrl: string;
 }
 
+interface ImmersveCardAcceptor {
+  name: string;
+  city: string;
+  countryCode: string;
+}
+
+interface ImmersveTransactionRaw {
+  id: string;
+  description: string;
+  accountId: string;
+  status: 'init' | 'holding' | 'cleared' | 'reversed';
+  cardId: string;
+  amount: string;
+  currency: string;
+  acquirerAmount?: string;
+  acquirerCurrency?: string;
+  feeAmount?: string;
+  transactionDate: string;
+  processedDate?: string;
+  reference: string;
+  cardAcceptor: ImmersveCardAcceptor;
+  creditDebitIndicator?: 'credit' | 'debit';
+  paymentType: 'purchase' | 'refund' | 'adjustment';
+  relatedPaymentId?: string;
+  securityChallenge?: { ref?: string; outcome?: string };
+  failureReason?: string;
+  panFirst6?: string;
+  panLast6?: string;
+}
+
+interface ImmersveTransactionListResponse {
+  items?: ImmersveTransactionRaw[];
+  pageInfo?: { nextCursor?: string };
+}
+
+interface ImmersveCursorPayload {
+  c: string;
+}
+
+function mapImmersveStatus(
+  status: ImmersveTransactionRaw['status'],
+  failureReason?: string,
+): CardTransactionStatus {
+  if (failureReason) {
+    return CardTransactionStatus.Failed;
+  }
+  switch (status) {
+    case 'init':
+      return CardTransactionStatus.Pending;
+    case 'reversed':
+      return CardTransactionStatus.Reversed;
+    case 'holding':
+    case 'cleared':
+    default:
+      return CardTransactionStatus.Completed;
+  }
+}
+
+function mapImmersveType(
+  paymentType: ImmersveTransactionRaw['paymentType'],
+): CardTransactionType {
+  switch (paymentType) {
+    case 'refund':
+      return CardTransactionType.Refund;
+    case 'adjustment':
+      return CardTransactionType.Adjustment;
+    case 'purchase':
+    default:
+      return CardTransactionType.Purchase;
+  }
+}
+
 export interface CardResumeInfo {
   cardProgramId?: string;
   fundingSourceIds: string[];
@@ -271,7 +378,8 @@ export class ImmersveProvider implements ICardProvider {
     supportsCredit: false,
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
-    supportsTransactionHistory: false,
+    supportsTransactionHistory: true,
+    supportsMoneyAccountLinking: false,
   };
 
   private readonly service: ImmersveService;
@@ -374,7 +482,10 @@ export class ImmersveProvider implements ICardProvider {
         },
       };
     } catch (error) {
-      throw mapApiError(error, 'initiateAuth');
+      reportAndMap(error, 'initiateAuth', {
+        network: this.network,
+        country,
+      });
     }
   }
 
@@ -399,7 +510,13 @@ export class ImmersveProvider implements ICardProvider {
         },
       );
     } catch (error) {
-      throw mapApiError(error, 'submitCredentials');
+      reportAndMap(error, 'submitCredentials', {
+        network: this.network,
+        country:
+          typeof session._metadata?.country === 'string'
+            ? session._metadata.country
+            : undefined,
+      });
     }
 
     const tokenSet: CardAuthTokens = {
@@ -439,6 +556,8 @@ export class ImmersveProvider implements ICardProvider {
         { origin: this.appUrl },
       );
     } catch (error) {
+      // Auth refresh rejection (400/401/403) is expected session expiry —
+      // do not report to Sentry.
       if (
         error instanceof CardApiError &&
         [400, 401, 403].includes(error.statusCode)
@@ -449,7 +568,7 @@ export class ImmersveProvider implements ICardProvider {
           error.statusCode,
         );
       }
-      throw mapApiError(error, 'refreshTokens');
+      reportAndMap(error, 'refreshTokens');
     }
 
     const refreshToken = response.refreshToken ?? tokens.refreshToken;
@@ -525,7 +644,7 @@ export class ImmersveProvider implements ICardProvider {
         balanceCurrency: response.balanceCurrency,
       };
     } catch (error) {
-      throw mapApiError(error, 'createFundingSource');
+      reportAndMap(error, 'createFundingSource', { network: this.network });
     }
   }
 
@@ -553,7 +672,7 @@ export class ImmersveProvider implements ICardProvider {
         fundingChannelId: item.fundingChannelId,
       }));
     } catch (error) {
-      throw mapApiError(error, 'getFundingSources');
+      reportAndMap(error, 'getFundingSources');
     }
   }
 
@@ -583,7 +702,7 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'patchContactDetails');
+      reportAndMap(error, 'patchContactDetails');
     }
   }
 
@@ -608,7 +727,10 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'getSpendingPrerequisites');
+      reportAndMap(error, 'getSpendingPrerequisites', {
+        fundingSourceId,
+        kycRegion: params.kycRegion,
+      });
     }
   }
 
@@ -626,7 +748,7 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'createCard');
+      reportAndMap(error, 'createCard', { fundingSourceId });
     }
   }
 
@@ -647,7 +769,7 @@ export class ImmersveProvider implements ICardProvider {
         fundingSourceIds: detail.fundingSourceIds ?? [],
       };
     } catch (error) {
-      throw mapApiError(error, 'getResumeCardInfo');
+      reportAndMap(error, 'getResumeCardInfo');
     }
   }
 
@@ -764,7 +886,75 @@ export class ImmersveProvider implements ICardProvider {
         regionCode: detail.regionCode ?? card.regionCode,
       });
     } catch (error) {
-      throw mapApiError(error, 'getCardDetails');
+      reportAndMap(error, 'getCardDetails');
+    }
+  }
+
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'listTransactions: missing cardholder account id',
+      );
+    }
+
+    const limit = params.limit ?? 50;
+    const cursor = params.cursor
+      ? decodeCardCursor<ImmersveCursorPayload>(params.cursor, this.id)?.c
+      : undefined;
+
+    try {
+      const query = new URLSearchParams({
+        statuses: 'all',
+        limit: String(limit),
+      });
+      if (cursor) {
+        query.set('cursor', cursor);
+      }
+      if (params.fromDate != null) {
+        query.set('fromUTC', new Date(params.fromDate).toISOString());
+      }
+      if (params.toDate != null) {
+        query.set('toUTC', new Date(params.toDate).toISOString());
+      }
+
+      const response = await this.service.get<ImmersveTransactionListResponse>(
+        `/api/accounts/${accountId}/transactions?${query.toString()}`,
+        tokens,
+      );
+
+      const items = (response.items ?? []).map((raw) =>
+        this.mapImmersveTransaction(raw),
+      );
+      const nextApiCursor = response.pageInfo?.nextCursor;
+      const nextCursor = nextApiCursor
+        ? encodeCardCursor(this.id, {
+            c: nextApiCursor,
+          } satisfies ImmersveCursorPayload)
+        : undefined;
+
+      return { items, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
+    }
+  }
+
+  async getTransaction(
+    id: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionDetails> {
+    try {
+      const raw = await this.service.get<ImmersveTransactionRaw>(
+        `/api/transactions/${id}`,
+        tokens,
+      );
+      return this.mapImmersveTransactionDetails(raw);
+    } catch (error) {
+      throw mapApiError(error, 'getTransaction');
     }
   }
 
@@ -772,7 +962,7 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post(`/api/cards/${cardId}/freeze`, {}, tokens);
     } catch (error) {
-      throw mapApiError(error, 'freezeCard');
+      reportAndMap(error, 'freezeCard');
     }
   }
 
@@ -780,7 +970,7 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
     } catch (error) {
-      throw mapApiError(error, 'unfreezeCard');
+      reportAndMap(error, 'unfreezeCard');
     }
   }
 
@@ -797,18 +987,7 @@ export class ImmersveProvider implements ICardProvider {
         baseURL: this.secureApiBaseUrl,
       });
     } catch (error) {
-      if (!(error instanceof CardApiError && error.statusCode === 401)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('setCardPin', {
-            httpStatus:
-              error instanceof CardApiError ? error.statusCode : undefined,
-            errorCode:
-              error instanceof CardApiError ? error.errorCode : undefined,
-          }),
-        );
-      }
-      throw mapApiError(error, 'setCardPin');
+      reportAndMap(error, 'setCardPin');
     }
   }
 
@@ -832,7 +1011,7 @@ export class ImmersveProvider implements ICardProvider {
       );
       return await this.service.get<CardSensitiveDetails>(callbackUrl);
     } catch (error) {
-      throw mapApiError(error, 'getCardSensitiveDetails');
+      reportAndMap(error, 'getCardSensitiveDetails');
     }
   }
 
@@ -847,6 +1026,70 @@ export class ImmersveProvider implements ICardProvider {
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
       regionCode: detail.regionCode,
       hasPin: true,
+    };
+  }
+
+  private mapImmersveTransaction(raw: ImmersveTransactionRaw): CardTransaction {
+    const isDebit = raw.creditDebitIndicator !== 'credit';
+    const billingCurrency = raw.currency;
+    const feeValue =
+      raw.feeAmount && raw.feeAmount !== '0'
+        ? minorUnitsToDecimal(raw.feeAmount, billingCurrency)
+        : undefined;
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.transactionDate).getTime(),
+      processedAt: raw.processedDate
+        ? new Date(raw.processedDate).getTime()
+        : undefined,
+      status: mapImmersveStatus(raw.status, raw.failureReason),
+      type: mapImmersveType(raw.paymentType),
+      isDebit,
+      billingAmount: {
+        value: minorUnitsToDecimal(raw.amount, billingCurrency),
+        currency: billingCurrency,
+      },
+      originalAmount:
+        raw.acquirerCurrency &&
+        raw.acquirerAmount &&
+        raw.acquirerCurrency !== billingCurrency
+          ? {
+              value: minorUnitsToDecimal(
+                raw.acquirerAmount,
+                raw.acquirerCurrency,
+              ),
+              currency: raw.acquirerCurrency,
+            }
+          : undefined,
+      feeAmount: feeValue
+        ? { value: feeValue, currency: billingCurrency }
+        : undefined,
+      merchant: {
+        name: raw.cardAcceptor.name,
+        city: raw.cardAcceptor.city,
+        countryCode: raw.cardAcceptor.countryCode,
+      },
+      description: raw.description,
+      reference: raw.reference,
+      cardLastFour: raw.panLast6?.slice(-4),
+      declineReason: raw.failureReason
+        ? { code: raw.failureReason }
+        : undefined,
+      fundingSources: [],
+    };
+  }
+
+  private mapImmersveTransactionDetails(
+    raw: ImmersveTransactionRaw,
+  ): CardTransactionDetails {
+    return {
+      ...this.mapImmersveTransaction(raw),
+      cardFirstSix: raw.panFirst6,
+      cardLastFour: raw.panLast6?.slice(-4) ?? undefined,
+      securityChallengeOutcome: raw.securityChallenge?.outcome,
+      relatedTransactionId: raw.relatedPaymentId,
     };
   }
 

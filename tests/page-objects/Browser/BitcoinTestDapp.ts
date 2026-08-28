@@ -6,8 +6,8 @@ import {
 import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
@@ -158,41 +158,146 @@ class BitcoinTestDapp {
     await this.waitForDappLoaded();
   }
 
-  private async isElementPresent(
-    cssSelector: string,
+  /**
+   * After Connect, the modal shows either a wallet option (provider ready) or
+   * "No wallet available" (mount captured wallets=[]). Exit early on empty so
+   * we can reload instead of burning the full poll window.
+   */
+  private async waitForWalletModalOutcome(
+    walletOptionSelector: string,
+    timeoutMs: number,
+  ): Promise<'wallet' | 'empty' | 'timeout'> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const state = await this.evaluate<{
+        hasWallet: boolean;
+        noWallet: boolean;
+      }>(
+        `(() => {
+          const hasWallet = Boolean(
+            document.querySelector(${JSON.stringify(walletOptionSelector)}),
+          );
+          const noWallet = Array.from(document.querySelectorAll('p')).some(
+            (el) => el.textContent?.includes('No wallet available'),
+          );
+          return { hasWallet, noWallet };
+        })()`,
+      ).catch(() => null);
+
+      if (state?.hasWallet) return 'wallet';
+      if (state?.noWallet) return 'empty';
+      await wait(POLL_MS);
+    }
+    return 'timeout';
+  }
+
+  /**
+   * Detect whether MetaMask's Bitcoin wallet-standard provider has registered
+   * in the page via the app-ready / register-wallet handshake.
+   */
+  private async isBitcoinWalletRegistered(): Promise<boolean> {
+    const count = await this.evaluate<number>(
+      `(() => {
+        let n = 0;
+        const handler = (event) => {
+          try {
+            event.detail.callback({ register() { n += 1; } });
+          } catch (_) {}
+        };
+        window.addEventListener('wallet-standard:register-wallet', handler);
+        try {
+          window.dispatchEvent(new Event('wallet-standard:app-ready'));
+        } catch (_) {}
+        window.removeEventListener('wallet-standard:register-wallet', handler);
+        return n;
+      })()`,
+    );
+    return (count ?? 0) > 0;
+  }
+
+  /**
+   * Poll until the Bitcoin wallet-standard provider registers, or the timeout
+   * elapses. Returns whether registration was observed (does not throw — the
+   * Connect recovery loop still handles empty-wallet outcomes).
+   */
+  private async waitForBitcoinWalletRegistered(
     timeoutMs = 10_000,
   ): Promise<boolean> {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
-      const exists = await this.evaluate<boolean>(
-        `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
-      ).catch(() => false);
-      if (exists) return true;
+      if (await this.isBitcoinWalletRegistered()) {
+        return true;
+      }
       await wait(POLL_MS);
     }
     return false;
   }
 
   /**
+   * Best-effort close of the empty wallet-selection modal before remounting.
+   * Backdrop click / Escape match the dapp's modal dismiss handlers.
+   */
+  private async closeWalletSelectionModalBestEffort(): Promise<void> {
+    await this.evaluate(
+      `(() => {
+        const modal = document.querySelector(${JSON.stringify(
+          sel(walletSelectionModal.id),
+        )});
+        if (!modal) return false;
+        const overlay = modal.parentElement;
+        if (overlay instanceof HTMLElement) {
+          overlay.click();
+        }
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+        );
+        return true;
+      })()`,
+    );
+  }
+
+  /**
    * Opens the wallet-selection modal. On Android CI the Bitcoin provider can
-   * register after test-dapp-bitcoin's one-shot mount effect, leaving
-   * wallets=[] ("No wallet available") until reload. One reload + reconnect
-   * recovers that race; re-tapping Connect alone cannot.
+   * register after test-dapp-bitcoin's one-shot mount `useEffect([])`, leaving
+   * wallets=[] ("No wallet available") until reload. Reload remounts the
+   * effect; re-tapping Connect alone cannot.
+   *
+   * Blind reload loops (3 Connect attempts) still flake when the provider is
+   * slower than the remount. Wait for wallet-standard registration, then
+   * remount so the mount effect captures a non-empty wallets list before
+   * Connect. Retry that provider-ready remount path up to maxAttempts.
    */
   private async openWalletSelectionModal(): Promise<void> {
     const walletOptionSelector = `button${sel(
       walletSelectionModal.walletOption,
     )}`;
     const connectSelector = `button${sel(header.connect)}`;
+    const maxAttempts = 5;
 
-    await this.click(connectSelector);
-    if (await this.isElementPresent(walletOptionSelector, 10_000)) {
-      return;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        await this.closeWalletSelectionModalBestEffort();
+      }
+
+      // Provider must be present *before* remount so the dapp's one-shot
+      // useEffect sees MetaMask Bitcoin instead of wallets=[].
+      await this.waitForBitcoinWalletRegistered(attempt === 1 ? 15_000 : 8_000);
+      await this.reloadDapp();
+
+      await this.click(connectSelector);
+      const waitMs = attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 12_000;
+      const outcome = await this.waitForWalletModalOutcome(
+        walletOptionSelector,
+        waitMs,
+      );
+      if (outcome === 'wallet') {
+        return;
+      }
     }
 
-    await this.reloadDapp();
-    await this.click(connectSelector);
-    await this.waitForElement(walletOptionSelector, CONNECT_TIMEOUT_MS);
+    throw new Error(
+      `Timed out waiting for "${walletOptionSelector}" to appear after ${maxAttempts} provider-ready reload + connect attempt(s)`,
+    );
   }
 
   async connect(): Promise<void> {
@@ -223,10 +328,10 @@ class BitcoinTestDapp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText('Approve', true);
-    await PlaywrightGestures.waitAndTap(el, {
+    await Gestures.waitAndTap(Matchers.getElementByText('Approve'), {
       checkForDisplayed: true,
       timeout: 15_000,
+      elemDescription: 'Approve sign message',
     });
   }
 
