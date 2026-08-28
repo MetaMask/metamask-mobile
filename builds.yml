@@ -245,6 +245,8 @@ builds:
 
   # Nightly Main from `main` (MCRM-142). Same LD ReleaseCandidate + RC signing
   # as main-rc; Mixpanel suffix is *-rc-nightly, not *-release-candidate.
+  # CI yarn: build.yml replaces hyphens in the build key with colons, so this
+  # must have package.json scripts build:{android,ios}:main:rc:nightly.
   main-rc-nightly:
     github_environment: build-rc
     signing: *signing_rc

@@ -38,11 +38,16 @@ const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
 // Match the OTA environment selection logic from app.config.js:
 // - "production" and "rc" use their own certificates
+// - "rc-nightly" shares RC certs/channel so Main nightly OTA keeps working
 // - all other environments (exp, dev, test, e2e, beta, etc.) fall back to "exp"
 function getOtaEnvironment(environment) {
-  return environment === 'production' || environment === 'rc'
-    ? environment
-    : 'exp';
+  if (environment === 'production') {
+    return 'production';
+  }
+  if (environment === 'rc' || environment === 'rc-nightly') {
+    return 'rc';
+  }
+  return 'exp';
 }
 
 const CODE_SIGNING_CERTS = {
@@ -192,6 +197,10 @@ function loadCodeSigningConfiguration(environment) {
  * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
 function getConfigForEnvironment(environment) {
+  // rc-nightly is a Mixpanel/LD split, not a new OTA channel. Apply RC plist/manifest.
+  if (environment === 'rc-nightly') {
+    return CONFIG_MAP.rc;
+  }
   return CONFIG_MAP[environment];
 }
 
