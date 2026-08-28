@@ -533,7 +533,7 @@ jobs:
           fail-on-error: false
           list-suites: all
           list-tests: failed
-          fail-on-empty: 'false'
+          fail-on-empty: false
 
       - name: Upload fixture validation reports
         if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && steps.select-specs.outputs.spec_count != '0' }}
