@@ -129,6 +129,7 @@ jest.mock('../../../components/SwapsBanners', () => ({
   InsufficientNativeReserveBanner: () => null,
   MissingQuoteAndAssetsPriceDataBanner: () => null,
   QuoteErrorBanner: () => null,
+  StellarTrustlineBanner: () => null,
   TokenWarningBanner: () => null,
 }));
 
