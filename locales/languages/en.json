@@ -1353,6 +1353,76 @@
       "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
   },
+  "social_trading": {
+    "title": "Social trading",
+    "prototype_banner": "Prototype preview. All traders, trades, and returns are simulated. Copying a trade doesn't move real funds.",
+    "tabs": {
+      "feed": "Feed",
+      "leaderboard": "Leaders",
+      "portfolio": "Portfolio"
+    },
+    "feed": {
+      "all_trades": "All trades",
+      "following": "Following",
+      "empty_title": "No trades yet",
+      "empty_description": "Follow traders in the Leaders tab to see their trades here."
+    },
+    "trade": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "like": "Like trade",
+      "time_ago": "{{time}} ago",
+      "copied_count": "{{count}} copied",
+      "copy_trade": "Copy trade"
+    },
+    "sheet": {
+      "title": "Copy trade",
+      "a_trader": "this trader",
+      "by_trader": "By {{name}} {{handle}}",
+      "amount_label": "Amount to copy",
+      "est_entry": "Est. entry",
+      "est_entry_value": "{{price}} per {{symbol}}",
+      "simulation_notice": "This is a simulation. No transaction is created and no funds move.",
+      "confirm": "Copy for {{amount}} (simulated)",
+      "done_title": "Trade copied",
+      "done_description": "{{amount}} mirroring {{trader}}'s {{symbol}} trade was added to your simulated portfolio."
+    },
+    "leaderboard": {
+      "range_7d": "7D",
+      "range_30d": "30D",
+      "range_90d": "90D",
+      "stats": "{{winRate}}% win rate · {{copiers}} copiers",
+      "follow": "Follow",
+      "following": "Following"
+    },
+    "portfolio": {
+      "value_label": "Simulated copied positions value",
+      "open_following": "{{open}} open · {{following}} following",
+      "positions_title": "Copied positions",
+      "empty_title": "Nothing copied yet",
+      "empty_description": "Copy a trade from the feed and it will show up here with simulated performance.",
+      "long": "long",
+      "short": "short",
+      "copying": "Copying {{name}} · {{amount}} in",
+      "close_position": "Close position",
+      "following_title": "Traders you follow",
+      "following_empty": "You aren't following anyone yet. Find traders in the Leaders tab."
+    },
+    "profile": {
+      "title": "Trader",
+      "not_found": "Trader not found",
+      "go_back": "Go back",
+      "followers": "{{count}} followers",
+      "stat_pnl_30d": "30D PnL",
+      "stat_win_rate": "Win rate",
+      "stat_copiers": "Copiers",
+      "stat_aum": "AUM",
+      "performance_title": "Performance",
+      "performance_caption": "Last 10 weeks, relative returns (simulated)",
+      "recent_trades": "Recent trades",
+      "no_trades": "No public trades in the last 24 hours."
+    }
+  },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",

@@ -171,6 +171,8 @@ import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
+import SocialTradingScreenStack from '../../../features/SocialTrading/routes';
+import { selectSocialTradingPrototypeEnabled } from '../../../features/SocialTrading/selectors/socialTradingPrototypeEnabled';
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -1016,6 +1018,10 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  // Get feature flag state for conditional Social Trading prototype registration
+  const isSocialTradingPrototypeEnabled = useSelector(
+    selectSocialTradingPrototypeEnabled,
+  );
 
   return (
     <NativeStack.Navigator
@@ -1517,6 +1523,13 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
+      {isSocialTradingPrototypeEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_TRADING.ROOT}
+          component={SocialTradingScreenStack}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

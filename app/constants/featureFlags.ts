@@ -20,6 +20,7 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  socialTradingPrototypeEnabled = 'socialTradingPrototypeEnabled',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -46,4 +47,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.socialTradingPrototypeEnabled]: false,
 };

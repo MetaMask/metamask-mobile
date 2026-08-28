@@ -542,6 +542,11 @@ const Routes = {
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
   ///: END:ONLY_INCLUDE_IF
+  SOCIAL_TRADING: {
+    ROOT: 'SocialTrading',
+    HOME: 'SocialTradingHome',
+    TRADER_PROFILE: 'SocialTradingTraderProfile',
+  },
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',

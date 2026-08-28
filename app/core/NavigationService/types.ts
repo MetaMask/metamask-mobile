@@ -1121,6 +1121,11 @@ export type RootStackParamList = {
   SampleFeature: undefined;
   ///: END:ONLY_INCLUDE_IF
 
+  // Social trading prototype (feature-flagged, mock data only)
+  SocialTrading: undefined;
+  SocialTradingHome: undefined;
+  SocialTradingTraderProfile: { traderId: string };
+
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
