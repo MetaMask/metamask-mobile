@@ -157,6 +157,7 @@ export class EngineService {
         // completes. requestIdleCallback is not available on Android.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+          // NOSONAR - intentional use of deprecated API (no cross-platform alternative)
           this.deferredPersistenceHandle = null;
           this.setupEnginePersistence(initialState);
         });
