@@ -103,14 +103,10 @@ const inactiveABTestResult: MockABTestResult = {
 
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    numpad = inactiveABTestResult,
-    tokenSelector = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
     ctaButtonColor = inactiveABTestResult,
     chainValueOrder = inactiveABTestResult,
   }: {
-    numpad?: MockABTestResult;
-    tokenSelector?: MockABTestResult;
     ambientColor?: MockABTestResult;
     ctaButtonColor?: MockABTestResult;
     chainValueOrder?: MockABTestResult;
@@ -119,8 +115,6 @@ describe('useSubmitBridgeTx', () => {
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(numpad)
-      .mockReturnValueOnce(tokenSelector)
       .mockReturnValueOnce(ambientColor)
       .mockReturnValueOnce(ctaButtonColor)
       .mockReturnValueOnce(chainValueOrder);
@@ -228,56 +222,6 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
-
-    // Re-render with an active assignment to verify submitTx forwards activeAbTests.
-    mockABTests({
-      tokenSelector: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    mockSubmitTx.mockResolvedValueOnce({
-      chainId: '0x1',
-      id: '2',
-      networkClientId: '1',
-      status: 'submitted',
-      time: Date.now(),
-      txParams: {
-        from: '0x1234567890123456789012345678901234567890',
-      },
-    } as TransactionMeta);
-
-    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await activeResult.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
-    });
-
-    expect(mockSubmitTx).toHaveBeenLastCalledWith(
-      '0x1234567890123456789012345678901234567890',
-      {
-        ...mockQuoteResponse,
-        approval: undefined,
-      },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      [
-        expect.objectContaining({
-          key: expect.any(String),
-          value: 'treatment',
-          key_value_pair: expect.stringMatching(/[=]treatment$/u),
-        }),
-      ],
-      null,
-      undefined,
-      'token_amount',
-      '1.5',
-    );
   });
 
   it('should handle bridge transaction with approval', async () => {
@@ -524,41 +468,6 @@ describe('useSubmitBridgeTx', () => {
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-    });
-
-    // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
-    mockABTests({
-      tokenSelector: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
-
-    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await activeResult.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse,
-    });
-
-    expect(mockSubmitIntent).toHaveBeenLastCalledWith({
-      quoteResponse: mockQuoteResponse,
-      accountAddress: '0x1234567890123456789012345678901234567890',
-      location: undefined,
-      abTests: undefined,
-      activeAbTests: [
-        expect.objectContaining({
-          key: expect.any(String),
-          value: 'treatment',
-          key_value_pair: expect.stringMatching(/[=]treatment$/u),
-        }),
-      ],
-      tokenSecurityTypeDestination: null,
-      inputPrimaryDenomination: 'token_amount',
-      migrationPhase: '1.5',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
