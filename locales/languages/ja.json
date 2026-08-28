@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- 使用可能",
       "est_liquidation": "推定清算価格",
       "tpsl": "TP / SL",
-      "place_order": "注文を出す"
+      "place_order": "注文を出す",
+      "close_keyboard": "キーボードを閉じる"
     },
     "pro_positions_panel": {
       "order_history": "注文履歴",

@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- διαθέσιμο",
       "est_liquidation": "Εκτ. ρευστοποίηση",
       "tpsl": "ΛΚ/ΠΖ",
-      "place_order": "Καταχώριση εντολής"
+      "place_order": "Καταχώριση εντολής",
+      "close_keyboard": "Απόκρυψη πληκτρολογίου"
     },
     "pro_positions_panel": {
       "order_history": "Ιστορικό εντολών",

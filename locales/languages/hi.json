@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- उपलब्ध",
       "est_liquidation": "अनुमानित लिक्विडेशन",
       "tpsl": "TP / SL",
-      "place_order": "ऑर्डर करें"
+      "place_order": "ऑर्डर करें",
+      "close_keyboard": "कीबोर्ड बंद करें"
     },
     "pro_positions_panel": {
       "order_history": "ऑर्डर हिस्ट्री",

@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- tersedia",
       "est_liquidation": "Estimasi Likuidasi",
       "tpsl": "TP/SL",
-      "place_order": "Buat order"
+      "place_order": "Buat order",
+      "close_keyboard": "Tutup keyboard"
     },
     "pro_positions_panel": {
       "order_history": "Riwayat order",

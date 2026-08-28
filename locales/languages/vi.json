@@ -1540,7 +1540,8 @@
       "available_balance_unavailable": "-- khả dụng",
       "est_liquidation": "Giá thanh lý ước tính",
       "tpsl": "Chốt lời/Cắt lỗ",
-      "place_order": "Đặt lệnh"
+      "place_order": "Đặt lệnh",
+      "close_keyboard": "Đóng bàn phím"
     },
     "pro_positions_panel": {
       "order_history": "Lịch sử lệnh",
