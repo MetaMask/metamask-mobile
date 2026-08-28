@@ -85,6 +85,7 @@ export interface UsePerpsAdvancedChartAdapterResult {
   isLoading: boolean;
   hasCurrentSeriesData?: boolean;
   deliveryRevision: number;
+  hasFreshCurrentSeriesDelivery: boolean;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -114,6 +115,9 @@ export function usePerpsAdvancedChartAdapter({
   const [cacheGeneration, setCacheGeneration] = useState(0);
   const [latestBarSeriesKey, setLatestBarSeriesKey] = useState<string>();
   const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const [freshDeliverySeriesKey, setFreshDeliverySeriesKey] = useState<
+    string | undefined
+  >();
   const acceptedDeliveryRef = useRef(false);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
@@ -148,6 +152,7 @@ export function usePerpsAdvancedChartAdapter({
     setOhlcvData([]);
     setRealtimeBar(undefined);
     setLatestBarSeriesKey(undefined);
+    setFreshDeliverySeriesKey(undefined);
     prevLastBarRef.current = null;
     latestCandleDataRef.current = null;
     hasReceivedFirstUpdateRef.current = false;
@@ -226,6 +231,7 @@ export function usePerpsAdvancedChartAdapter({
       onDelivery: (source) => {
         if (source === 'fresh' && acceptedDeliveryRef.current) {
           setDeliveryRevision((revision) => revision + 1);
+          setFreshDeliverySeriesKey(`${symbol}|${interval}`);
         }
         acceptedDeliveryRef.current = false;
       },
@@ -314,6 +320,8 @@ export function usePerpsAdvancedChartAdapter({
     isLoading,
     hasCurrentSeriesData: latestBarSeriesKey === `${symbol}|${interval}`,
     deliveryRevision,
+    hasFreshCurrentSeriesDelivery:
+      freshDeliverySeriesKey === `${symbol}|${interval}`,
     handleFetchOlderBarsRequest,
   };
 }

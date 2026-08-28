@@ -323,6 +323,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
         interval: INTERVAL,
         candles: [candle(1000), candle(2000)],
       });
+      subscribeParams().onDelivery?.('fresh');
     });
 
     expect(result.current.isLoading).toBe(false);
@@ -331,6 +332,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
     expect(result.current.latestBar?.time).toBe(2000);
+    expect(result.current.hasFreshCurrentSeriesDelivery).toBe(true);
 
     rerender({ interval: CandlePeriod.FourHours });
 
@@ -338,6 +340,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.ohlcvData).toEqual([]);
     expect(result.current.latestBar).toBeUndefined();
+    expect(result.current.hasFreshCurrentSeriesDelivery).toBe(false);
 
     act(() => {
       subscribeParams(1).callback({
@@ -345,6 +348,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
         interval: CandlePeriod.FourHours,
         candles: [candle(4000), candle(8000)],
       });
+      subscribeParams(1).onDelivery?.('fresh');
     });
 
     expect(result.current.isLoading).toBe(false);
@@ -353,6 +357,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       { time: 8000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
     expect(result.current.latestBar?.time).toBe(8000);
+    expect(result.current.hasFreshCurrentSeriesDelivery).toBe(true);
     const fourHourIntervalMs = INTERVAL_MS[CandlePeriod.FourHours];
     if (fourHourIntervalMs === undefined) {
       throw new Error('Expected 4h interval duration to be defined');

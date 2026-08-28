@@ -81,6 +81,7 @@ const mockAdapterResult = {
   isLoading: false,
   hasCurrentSeriesData: true,
   deliveryRevision: 0,
+  hasFreshCurrentSeriesDelivery: false,
   handleFetchOlderBarsRequest: jest.fn(),
 };
 
@@ -428,6 +429,7 @@ describe('PerpsAdvancedChart', () => {
       isLoading: false,
       hasCurrentSeriesData: true,
       deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
     });
     rerender(
       <PerpsAdvancedChart
@@ -463,6 +465,7 @@ describe('PerpsAdvancedChart', () => {
       isLoading: false,
       hasCurrentSeriesData: true,
       deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
     });
     rerender(
       <PerpsAdvancedChart
