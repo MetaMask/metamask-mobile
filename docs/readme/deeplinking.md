@@ -145,7 +145,7 @@ switch (urlObj.protocol.replace(':', '')) {
 ### 3. Signature Verification (for HTTPS links)
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 if (hasSignature(validatedUrl)) {
   const result = await verifyDeeplinkSignature(validatedUrl);
 
@@ -179,7 +179,7 @@ Unless the action is whitelisted or bypassed, users see an interstitial:
 ### 5. Action Routing
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 switch (action) {
   case SUPPORTED_ACTIONS.SWAP:
     handleSwapUrl({ swapPath });
@@ -258,7 +258,7 @@ export enum ACTIONS {
 ### Step 2: Add to Supported Actions
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 enum SUPPORTED_ACTIONS {
   // ... existing actions
   YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
@@ -304,7 +304,7 @@ export const handleYourAction = async ({
 ### Step 4: Import and Add Routing Logic
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 import { handleYourAction } from './handleYourAction';
 
 async function handleUniversalLink(/* ... */) {
@@ -572,9 +572,9 @@ const inAppLinkSources = [
 
 - [MetaMask Signer (Consensys employees only)](https://api.signer.link.metamask.consensys.io)
 - [Signature Verification Implementation](../../app/core/DeeplinkManager/utils/verifySignature.ts)
-- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)
+- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/handleUniversalLink.ts)
 - [Deeplink Constants](../../app/constants/deeplinks.ts)
-- [Test Suite](../../app/core/DeeplinkManager/handlers/legacy/__tests__/handleUniversalLink.test.ts)
+- [Test Suite](../../app/core/DeeplinkManager/handlers/__tests__/handleUniversalLink.test.ts)
 - [Link Signer API](https://github.com/MetaMask/link-signer-api)
 
 ## Example: Complete Flow
@@ -903,6 +903,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 | `predict`              | Prediction markets          | `handlePredictUrl`       | Params: `market`/`marketId`, `feed` (generic ids), `tab`, `filter`, `q`/`query`, `utm_source`                                                                                                                                                                                                                                                                                                                                      |
 | `rewards`              | Rewards program             | `handleRewardsUrl`       | Params: `referral` (referral code)                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `trending`             | Explore / Trending          | `handleTrendingUrl`      | Params: `tab=now\|macro\|rwas\|crypto\|sports\|sites`, `screen=stocks\|trending-tokens\|sites\|favorite-sites\|search`, `q`/`query` (prefills search when `screen=search`), `chainId` (CAIP, e.g. `eip155:4663`; chain-filters the trending tokens list when `screen=trending-tokens`; invalid values are dropped), `timeframe=5m\|1h\|6h\|24h` (preselects the trending tokens time filter) (unknown values fall back to Explore) |
+| `privacy`              | Security & Privacy settings | `handlePrivacyUrl`       | Params: `setting=metametrics\|data-collection` (scrolls to that section; unknown values fall back to `metametrics`)                                                                                                                                                                                                                                                                                                                |
 | `wc`                   | WalletConnect               | Recursive `parse()` call |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `onboarding`           | Fast onboarding             | `handleFastOnboarding`   |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `enable-card-button`   | Enable card feature         | `handleEnableCardButton` |                                                                                                                                                                                                                                                                                                                                                                                                                                    |

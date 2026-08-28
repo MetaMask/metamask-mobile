@@ -28,6 +28,8 @@ import {
   ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -41,6 +43,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
 
@@ -67,12 +70,10 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-          transaction,
-        });
+        navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
       }
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   const renderItem = useCallback(

@@ -17,6 +17,9 @@ const ORDER_TYPE_EVENT_VALUES = {
   stop_limit: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_LIMIT,
   take_profit_market: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
   take_profit_limit: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_LIMIT,
+  twap: PERPS_EVENT_VALUE.ORDER_TYPE.TWAP,
+  scale: PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
+  chase: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
 } satisfies Record<OrderType, string>;
 
 interface PerpsOrderTypeBottomSheetProps {
@@ -28,7 +31,7 @@ interface PerpsOrderTypeBottomSheetProps {
   direction?: 'long' | 'short';
   title?: string;
   showSelectedIcon?: boolean;
-  showTriggeredTypes?: boolean;
+  availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -41,7 +44,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   direction = 'long',
   title,
   showSelectedIcon = false,
-  showTriggeredTypes = false,
+  availableOrderTypes,
   sheetRef: externalSheetRef,
 }) => {
   const { track } = usePerpsEventTracking();
@@ -74,7 +77,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       currentOrderType={currentOrderType}
       title={title}
       showSelectedIcon={showSelectedIcon}
-      showTriggeredTypes={showTriggeredTypes}
+      availableOrderTypes={availableOrderTypes}
       sheetRef={externalSheetRef}
     />
   );

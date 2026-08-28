@@ -1,5 +1,9 @@
 import { PredictErrorCode } from '../../errors';
-import type { PredictEntityId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictFeedId,
+  PredictMarketHistoryRange,
+} from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   type PredictApiReadTransport,
@@ -7,6 +11,9 @@ import {
 } from './PredictApiReadClient';
 
 const eventId = 'event-1' as PredictEntityId;
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
+const marketId = 'market-1' as PredictEntityId;
+const range: PredictMarketHistoryRange = '1D';
 
 const createEvent = (overrides = {}) => ({
   venueId: 'kalshi',
@@ -16,7 +23,7 @@ const createEvent = (overrides = {}) => ({
     {
       id: 'market-1',
       question: 'Will the team win?',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'market-1-yes',
@@ -38,10 +45,26 @@ const createEvent = (overrides = {}) => ({
   ...overrides,
 });
 
+const createMarketHistory = (overrides = {}) => ({
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range,
+  observedAt: '2026-08-07T12:00:00Z',
+  points: [
+    {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
+  ...overrides,
+});
+
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
-  fetchEvents: jest.fn(),
+  fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
+  fetchMarketHistory: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -54,37 +77,51 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('parses canonical Events from the Predict API', async () => {
-    client.fetchEvents.mockResolvedValue({ items: [createEvent()] });
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+    });
 
-    const result = await adapter.marketData.fetchEvents({ limit: 20 });
+    const result = await adapter.marketData.fetchFeed(feedId, { limit: 20 });
 
-    expect(result.items[0].markets[0].outcomes[0].askPrice).toBe('0.42');
+    expect(result.events[0].markets[0].outcomes[0].askPrice).toBe('0.42');
   });
 
   it('forwards Event query parameters and cancellation', async () => {
-    client.fetchEvents.mockResolvedValue({ items: [createEvent()] });
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+    });
     const signal = new AbortController().signal;
 
-    await adapter.marketData.fetchEvents({ limit: 20 }, { signal });
+    await adapter.marketData.fetchFeed(feedId, { limit: 20 }, { signal });
 
-    expect(client.fetchEvents).toHaveBeenCalledWith(
+    expect(client.fetchFeed).toHaveBeenCalledWith(
       adapter.venueId,
+      feedId,
       { limit: 20 },
       { signal },
     );
   });
 
   it('rejects an Event list containing another Venue', async () => {
-    client.fetchEvents.mockResolvedValue({
-      items: [createEvent({ venueId: 'other' })],
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: feedId,
+      title: 'NFL Games',
+      events: [createEvent({ venueId: 'other' })],
     });
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 
-  it('parses Event detail from the Predict API', async () => {
+  it('parses an immutable Event from the Predict API', async () => {
     client.fetchEvent.mockResolvedValue(createEvent());
 
     const result = await adapter.marketData.fetchEvent(eventId);
@@ -92,10 +129,47 @@ describe('KalshiRemoteAdapter', () => {
     expect(result.id).toBe(eventId);
   });
 
-  it('rejects Event detail with another Event ID', async () => {
+  it('rejects an immutable Event with another Event ID', async () => {
     client.fetchEvent.mockResolvedValue(createEvent({ id: 'event-2' }));
 
     await expect(adapter.marketData.fetchEvent(eventId)).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses Market history', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+
+    const result = await adapter.marketData.fetchMarketHistory(marketId, range);
+
+    expect(result.points[0].yesPrice).toBe('0.42');
+    expect(result.points[0].noPrice).toBe('0.58');
+  });
+
+  it('forwards Market history cancellation', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+    const signal = new AbortController().signal;
+
+    await adapter.marketData.fetchMarketHistory(marketId, range, { signal });
+
+    expect(client.fetchMarketHistory).toHaveBeenCalledWith(
+      adapter.venueId,
+      marketId,
+      range,
+      { signal },
+    );
+  });
+
+  it.each([
+    ['Venue ID', { venueId: 'other' }],
+    ['Market ID', { marketId: 'market-2' }],
+    ['range', { range: '1W' }],
+  ])('rejects Market history with another %s', async (_field, overrides) => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory(overrides));
+
+    const result = adapter.marketData.fetchMarketHistory(marketId, range);
+
+    await expect(result).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
@@ -125,9 +199,9 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('maps HTTP 429 to RATE_LIMITED without response data', async () => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(429));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(429));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.RATE_LIMITED,
         metadata: undefined,
@@ -136,9 +210,9 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('maps HTTP 503 to VENUE_UNAVAILABLE', async () => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(503));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(503));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.VENUE_UNAVAILABLE,
       }),
@@ -146,17 +220,17 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it.each([500, 502, 504])('maps HTTP %s to NETWORK_ERROR', async (status) => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(status));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.NETWORK_ERROR }),
     );
   });
 
   it('maps other transport failures to INVALID_RESPONSE', async () => {
-    client.fetchEvents.mockRejectedValue(new Error('network detail'));
+    client.fetchFeed.mockRejectedValue(new Error('network detail'));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
@@ -164,8 +238,10 @@ describe('KalshiRemoteAdapter', () => {
   it('preserves AbortError', async () => {
     const abortError = new Error('aborted');
     abortError.name = 'AbortError';
-    client.fetchEvents.mockRejectedValue(abortError);
+    client.fetchFeed.mockRejectedValue(abortError);
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toBe(abortError);
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toBe(
+      abortError,
+    );
   });
 });

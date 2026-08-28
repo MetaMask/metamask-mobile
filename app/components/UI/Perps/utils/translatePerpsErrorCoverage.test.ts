@@ -9,8 +9,9 @@ import enTranslations from '../../../../../locales/languages/en.json';
  * read the installed controller's full code list.
  *
  * A controller upgrade that widens `PerpsErrorCode` — as v11 did with the
- * trigger-order, TP/SL linkage and exchange codes — fails here rather than
- * shipping an untranslated code to users.
+ * trigger-order, TP/SL linkage and exchange codes, and v12 with strategy
+ * placement codes — fails here rather than shipping an untranslated code to
+ * users.
  */
 const resolveTranslation = (i18nKey: string): string | undefined => {
   let node: unknown = enTranslations;
@@ -53,6 +54,48 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     ];
 
     const unmapped = v11Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+
+    expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v12 strategy placement codes', () => {
+    const v12Codes = [
+      PERPS_ERROR_CODES.ORDER_STRATEGY_PARAMS_NOT_SUPPORTED,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_FIELD_UNSUPPORTED,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_MARKET_UNSUPPORTED,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_HANDLE_UNKNOWN,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE,
+      PERPS_ERROR_CODES.ORDER_EDIT_STRATEGY_UNSUPPORTED,
+      PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED,
+      PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+      PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL,
+      PERPS_ERROR_CODES.ORDER_SCALE_RANGE_REQUIRED,
+      PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID,
+      PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID,
+      PERPS_ERROR_CODES.ORDER_SCALE_SIZE_TOO_SMALL,
+      PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL,
+      PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID,
+      PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID,
+      PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED,
+      PERPS_ERROR_CODES.ORDER_CHASE_ABANDONED,
+      PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE,
+    ];
+
+    const unmapped = v12Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+
+    expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v13 provider, strategy, chase, and TP/SL codes', () => {
+    const v13Codes = [
+      PERPS_ERROR_CODES.PROVIDER_NOT_FOUND,
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_ROUTE_UNAVAILABLE,
+      PERPS_ERROR_CODES.ORDER_CHASE_MAX_DISTANCE_INVALID,
+      PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
+    ];
+
+    const unmapped = v13Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
 
     expect(unmapped).toStrictEqual([]);
   });

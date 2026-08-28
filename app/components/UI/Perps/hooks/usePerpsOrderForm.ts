@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TRADING_DEFAULTS,
+  DECIMAL_PRECISION_CONFIG,
   OrderType,
   getMaxAllowedAmount,
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
   type OrderFormState,
@@ -15,7 +18,15 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
+import {
+  getMaxAllowedAmountAtExecutionPrice,
+  getProspectiveExecutionPrice,
+  getTriggerMarketSlippageCapPrice,
+} from '../utils/orderSizing';
+import { canonicalizeOrderPrice } from '../utils/triggerOrderValidation';
+import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -39,6 +50,17 @@ export interface UsePerpsOrderFormReturn {
   setTakeProfitPrice: (price?: string) => void;
   setStopLossPrice: (price?: string) => void;
   setLimitPrice: (price?: string) => void;
+  /** Marks a limit price as user-committed (including order-book selection). */
+  commitLimitPrice: (price?: string) => void;
+  /** Marks the trigger price as user-committed (including order-book selection). */
+  commitTriggerPrice: (price?: string) => void;
+  hasBlurredLimitPrice: boolean;
+  hasBlurredTriggerPrice: boolean;
+  /** Local to the form; not part of controller `OrderFormState`. */
+  triggerPrice: string | undefined;
+  setTriggerPrice: (price?: string) => void;
+  /** Clears price-field interaction state without clearing entered prices. */
+  resetPriceInputInteraction: () => void;
   setOrderType: (type: OrderType) => void;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
@@ -71,6 +93,7 @@ export function usePerpsOrderForm(
   } = params;
 
   const currentNetwork = usePerpsNetwork();
+  const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
   const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
@@ -145,7 +168,8 @@ export function usePerpsOrderForm(
     const tempMaxAmount = getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -201,31 +225,84 @@ export function usePerpsOrderForm(
   const [maxPossibleAmountOverride, setMaxPossibleAmountOverride] = useState<
     number | null
   >(null);
+  const [triggerPrice, setTriggerPrice] = useState<string | undefined>();
+  const [hasBlurredLimitPrice, setHasBlurredLimitPrice] = useState(false);
+  const [hasBlurredTriggerPrice, setHasBlurredTriggerPrice] = useState(false);
+  const resetPriceInputInteraction = useCallback(() => {
+    setHasBlurredLimitPrice(false);
+    setHasBlurredTriggerPrice(false);
+  }, []);
+  const effectiveMaxSlippageBps = useMemo(
+    () =>
+      resolvePerpsMaxSlippageBps({
+        orderType: orderForm.type,
+        maxSlippageBps,
+        maxSlippageSource,
+      }),
+    [maxSlippageBps, maxSlippageSource, orderForm.type],
+  );
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
-  // For limit orders, use the limit price instead of market price so the 100% slider
+  // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const effectiveAssetPrice =
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      Number.parseFloat(orderForm.limitPrice) > 0
-        ? Number.parseFloat(orderForm.limitPrice)
-        : marketPrice;
+    const sizeDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+    const canonicalLimitPrice = canonicalizeOrderPrice(
+      orderForm.limitPrice,
+      sizeDecimals,
+    );
+    const canonicalTriggerPrice = canonicalizeOrderPrice(
+      triggerPrice,
+      sizeDecimals,
+    );
+    const effectiveAssetPrice = getProspectiveExecutionPrice({
+      orderType: orderForm.type,
+      limitPrice: canonicalLimitPrice,
+      triggerPrice: canonicalTriggerPrice,
+      marketPrice,
+    });
+    const isTriggerMarketOrder =
+      isTriggerOrderType(orderForm.type) &&
+      !isLimitExecutionOrderType(orderForm.type);
+    const triggerMarketCapPrice =
+      isTriggerMarketOrder && canonicalTriggerPrice
+        ? getTriggerMarketSlippageCapPrice({
+            triggerPrice: canonicalTriggerPrice,
+            isBuy: orderForm.direction === 'long',
+            maxSlippageBps: effectiveMaxSlippageBps,
+            szDecimals: sizeDecimals,
+          })
+        : undefined;
+
+    if (triggerMarketCapPrice !== undefined) {
+      return getMaxAllowedAmountAtExecutionPrice({
+        spendableBalance: balanceForMax,
+        sizePrice: effectiveAssetPrice,
+        executionPrice: triggerMarketCapPrice,
+        assetSzDecimals: sizeDecimals,
+        leverage: orderForm.leverage,
+      });
+    }
+
     return getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: effectiveAssetPrice,
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: orderForm.leverage,
     });
   }, [
     balanceForMax,
     currentPrice?.price,
     orderForm.type,
+    orderForm.direction,
     orderForm.limitPrice,
+    triggerPrice,
     marketData?.szDecimals,
     orderForm.leverage,
+    effectiveMaxSlippageBps,
   ]);
 
   const maxPossibleAmount =
@@ -331,9 +408,20 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, direction }));
   }, []);
 
-  const setAsset = useCallback((asset: string) => {
-    setOrderForm((prev) => ({ ...prev, asset }));
-  }, []);
+  // Asset-specific price drafts and their blur-validation state must not carry
+  // across markets.
+  const setAsset = useCallback(
+    (asset: string) => {
+      setOrderForm((prev) => ({
+        ...prev,
+        asset,
+        limitPrice: undefined,
+      }));
+      setTriggerPrice(undefined);
+      resetPriceInputInteraction();
+    },
+    [resetPriceInputInteraction],
+  );
 
   const setTakeProfitPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
@@ -361,6 +449,22 @@ export function usePerpsOrderForm(
       const newState = { ...prev, limitPrice: price };
       return newState;
     });
+    setHasBlurredLimitPrice(false);
+  }, []);
+
+  const setTriggerPriceValue = useCallback((price?: string) => {
+    setTriggerPrice(price);
+    setHasBlurredTriggerPrice(false);
+  }, []);
+
+  const commitLimitPrice = useCallback((price?: string) => {
+    setOrderForm((prev) => ({ ...prev, limitPrice: price }));
+    setHasBlurredLimitPrice(true);
+  }, []);
+
+  const commitTriggerPrice = useCallback((price?: string) => {
+    setTriggerPrice(price);
+    setHasBlurredTriggerPrice(true);
   }, []);
 
   const setOrderType = useCallback((type: OrderType) => {
@@ -413,6 +517,13 @@ export function usePerpsOrderForm(
       setTakeProfitPrice,
       setStopLossPrice,
       setLimitPrice,
+      commitLimitPrice,
+      commitTriggerPrice,
+      hasBlurredLimitPrice,
+      hasBlurredTriggerPrice,
+      triggerPrice,
+      setTriggerPrice: setTriggerPriceValue,
+      resetPriceInputInteraction,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,
@@ -431,6 +542,13 @@ export function usePerpsOrderForm(
       setTakeProfitPrice,
       setStopLossPrice,
       setLimitPrice,
+      commitLimitPrice,
+      commitTriggerPrice,
+      hasBlurredLimitPrice,
+      hasBlurredTriggerPrice,
+      triggerPrice,
+      setTriggerPriceValue,
+      resetPriceInputInteraction,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,

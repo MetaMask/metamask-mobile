@@ -205,23 +205,27 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('should open Terms of Use URL when terms link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Terms of Use URL when terms link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Terms of Use'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.TERMS_OF_USE,
     );
   });
 
-  it('should open Risk Disclosure URL when risk disclosure link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Risk Disclosure URL when risk disclosure link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk disclosure'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );
@@ -488,7 +492,7 @@ describe('Footer', () => {
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
-      expect(getByText('High risk request')).toBeDefined();
+      expect(getByText('High-risk request')).toBeDefined();
       expect(
         getByText(
           'We suggest you reject this request. If you continue, you might put your assets at risk.',

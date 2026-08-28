@@ -15,6 +15,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -734,6 +737,7 @@ describe('PerpsMarketListView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playSelection).mockClear();
 
     // Reset watchlist flag so each test starts with it off
     mockWatchlistFlagEnabled = false;
@@ -1613,6 +1617,37 @@ describe('PerpsMarketListView', () => {
           }),
         }),
       );
+    });
+
+    it('plays selection haptics when enableHaptics is opted in', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          replaceOnSelect: true,
+          enableHaptics: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play selection haptics when enableHaptics is omitted', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: {},
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
   });
 
@@ -2732,10 +2767,56 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the rail while the watchlist filter is active', () => {
+    it('renders the rail when the watchlist filter is active', () => {
       mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['ETH']);
       mockUsePerpsMarketListView.mockReturnValueOnce(
         buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('recently-viewed-row-ETH')).toBeOnTheScreen();
+    });
+
+    it('keeps only watchlisted markets on the recently viewed rail when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1], mockMarketData[0]],
+        }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(screen.getByTestId('recently-viewed-row-BTC')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('recently-viewed-row-ETH'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the rail on the watchlist tab when recently viewed markets are not watchlisted', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1]],
+        }),
       );
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2763,7 +2844,7 @@ describe('PerpsMarketListView', () => {
       );
     });
 
-    it('keeps the search bar and both fixed filter rows above the rail', () => {
+    it('places the recently viewed rail above the sticky sort row', () => {
       mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2774,6 +2855,29 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-sort`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the market count and sort control visible when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
       expect(
         screen.getByTestId(
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,

@@ -60,13 +60,14 @@ const crossMarginWarningRoute: PerpsExtraRoute = {
 const emitEthPrice = (
   stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
   percentChange24h = '2',
+  price = '2500',
 ) => {
   act(() => {
     stream.emitPrices({
       ETH: {
         symbol: 'ETH',
-        price: '2500',
-        markPrice: '2500',
+        price,
+        markPrice: price,
         percentChange24h,
         timestamp: Date.now(),
         isTradable: true,
@@ -194,6 +195,108 @@ describe('PerpsOrderView', () => {
       { timeout: TIMEOUT_MS },
     );
     await waitForDeferredOrderData();
+  });
+
+  it('keeps the minimum-order error visible during protocol validation', async () => {
+    const validateOrder = Engine.context.PerpsController
+      .validateOrder as jest.Mock;
+    let resolvePendingValidation:
+      | ((result: { isValid: boolean }) => void)
+      | undefined;
+    const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
+      resolvePendingValidation = resolve;
+    });
+    validateOrder.mockReturnValue(pendingValidation);
+
+    renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '1',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      },
+    });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    const minimumOrderError = await screen.findByText(
+      strings('perps.order.validation.minimum_amount', { amount: '10' }),
+    );
+    expect(placeOrderButton).toBeDisabled();
+    fireEvent.press(placeOrderButton);
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(validateOrder).toHaveBeenCalled();
+    });
+
+    expect(placeOrderButton).toBeOnTheScreen();
+    expect(placeOrderButton).toBeDisabled();
+    expect(placeOrderButton.props.accessibilityState?.busy).not.toBe(true);
+    expect(minimumOrderError).toBeOnTheScreen();
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolvePendingValidation?.({ isValid: true });
+      await pendingValidation;
+    });
+    validateOrder.mockResolvedValue({ isValid: true });
+
+    await waitFor(() => {
+      expect(placeOrderButton).toBeDisabled();
+      expect(minimumOrderError).toBeOnTheScreen();
+    });
+  });
+
+  it('reopens a below-minimum order while market sizing is unavailable', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const renderOptions = {
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long' as const,
+        amount: '1',
+        leverage: 4,
+        defaultSzDecimals: undefined,
+        defaultMaxLeverage: undefined,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [],
+        prices: {},
+      },
+    };
+    const firstRender = renderPerpsOrderView(renderOptions);
+    await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.HEADER);
+    firstRender.unmount();
+
+    renderPerpsOrderView(renderOptions);
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDisabled();
+    fireEvent.press(placeOrderButton);
+    expect(placeOrder).not.toHaveBeenCalled();
   });
 
   it('switches to limit order, accepts the Mid preset, and routes to TP/SL setup', async () => {
