@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a "Last checked at" row to the Money Account campaign details card showing when the stats were last updated (#35253)
 - Added Limit and Recurring order history lists and a dedicated network filter for orders (#35088)
 - Added haptic feedback to Perps Pro trading interactions (#34516)
 - Added a unified Earn asset catalogue for eligible wallet opportunities (#35038)
@@ -117,6 +118,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Patch spam asset cleanup on unlock (#35423)
+- Fixed a bug that blocked Max deposits when paying with a token such as aUSDC even though the amount matched the available balance (#35361)
+- Fixed money account deposit prefill amount flickering when selecting a token (#35238)
+- Swap metadata calculation fails for read-only intent quotes (#35209)
 - Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
 - Fixed Max token deposits being blocked by an insufficient fees alert when the amount matched the available balance (#35247)
 - Fixed Money Sweepstakes showing a $0 shortfall when a day has a not_scored status (#35196)
