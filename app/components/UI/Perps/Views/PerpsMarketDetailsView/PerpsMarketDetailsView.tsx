@@ -612,6 +612,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     isReady: isMarketContextReady,
     isUserReady: isUserContextReady,
   } = usePerpsMarketContext();
+  useEffect(() => {
+    setEffectiveChartLibrary(configuredChartLibrary);
+  }, [configuredChartLibrary, marketContextKey]);
 
   const {
     candleData,

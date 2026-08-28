@@ -371,7 +371,7 @@ const PerpsProMarketView = ({
 
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
-  }, [configuredChartLibrary, market?.symbol]);
+  }, [configuredChartLibrary, market?.symbol, marketContextKey]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),

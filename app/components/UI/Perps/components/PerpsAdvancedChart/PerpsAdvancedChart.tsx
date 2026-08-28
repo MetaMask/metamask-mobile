@@ -567,7 +567,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     interval,
     ohlcvSeriesKey,
     onResolved,
-    onFreshDelivery,
     symbol,
   ]);
 
