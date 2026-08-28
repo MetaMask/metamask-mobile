@@ -204,7 +204,7 @@ export const useWhatsHappening = (
     // AiDigestController owns the cache. React Query only coordinates
     // in-flight requests here.
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     // Match the previous hook: fetch on mount / refresh / key change, not on
     // app resume or reconnect (those would mark every subscriber as fetching).
     refetchOnWindowFocus: false,
