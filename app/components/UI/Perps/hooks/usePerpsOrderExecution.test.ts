@@ -571,15 +571,20 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
-    it('completes Scale CUF when any accepted child order renders', async () => {
+    it('completes Scale CUF when any resting child order renders', async () => {
       jest.useFakeTimers();
       try {
         mockGetOrdersSnapshot.mockReturnValue([]);
         mockPlaceOrder.mockResolvedValue({
           success: true,
           orderId: 'scale-group',
-          childOrderIds: ['filled-child', 'resting-child'],
+          childOrderIds: ['resting-child'],
+          acceptedChildren: [
+            { orderId: 'filled-child', state: 'filled' },
+            { orderId: 'resting-child', state: 'resting' },
+          ],
           submittedSize: '0.2',
+          acceptedSize: '0.2',
         });
         const { result } = renderHook(() => usePerpsOrderExecution());
 
@@ -610,6 +615,124 @@ describe('usePerpsOrderExecution', () => {
         act(() => {
           jest.runOnlyPendingTimers();
         });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('tracks an all-filled Scale result through the position stream', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetPositionsSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: [],
+          acceptedChildren: [
+            { orderId: 'filled-1', state: 'filled' },
+            { orderId: 'filled-2', state: 'filled' },
+          ],
+          submittedSize: '0.2',
+          acceptedSize: '0.2',
+          filledSize: '0.2',
+          averagePrice: '50000',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              success: false,
+              reason: 'request_failed',
+            }),
+          }),
+        );
+
+        act(() => {
+          handlePerpsCufPositionsDelivered([mockPosition]);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps a waiting-only Scale result open for a stream boundary', async () => {
+      jest.useFakeTimers();
+      try {
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: [],
+          acceptedChildren: [
+            { state: 'waitingForFill' },
+            { state: 'waitingForTrigger' },
+          ],
+          submittedSize: '0.2',
+          acceptedSize: '0.2',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              success: false,
+              reason: 'request_failed',
+            }),
+          }),
+        );
+
+        // Waiting children have neither a resting ID nor a rendered fill. The
+        // only truthful CUF boundary is a later stream render, so silence ends
+        // as stream_timeout rather than request_failed or a false success.
+        act(() => {
+          jest.advanceTimersByTime(PERPS_CUF_STREAM_TIMEOUT_MS);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({
+              success: false,
+              reason: 'stream_timeout',
+            }),
+          }),
+        );
       } finally {
         jest.useRealTimers();
       }

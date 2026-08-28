@@ -305,9 +305,14 @@ export function usePerpsOrderExecution(
         },
         onSuccess: async (result) => {
           if (isRestingOrder) {
-            // Resting orders: accepted, no position renders now. Confirm
-            // immediately, then end the order-render CUF when the resting order
-            // appears in the stream (or on timeout).
+            // Confirm immediately, then end when a resting child or fill
+            // renders. A Scale batch can contain only filled or waiting
+            // children and therefore have no resting IDs; that is still a
+            // valid acceptance, so it stays open for a stream boundary or
+            // timeout rather than being marked as a request failure. The CUF
+            // boundary vocabulary only has STREAM, not controller acceptance,
+            // and waiting children expose no ID that the order stream can
+            // match.
             onSuccess?.();
             const orderIds = (
               orderParams.orderType === 'scale'
@@ -323,7 +328,10 @@ export function usePerpsOrderExecution(
                 ?.some((order) => order.orderId === orderId),
             );
             const orderId = renderedOrderId ?? orderIds[0];
-            if (!orderId) {
+            const hasAcceptedScaleChildren =
+              orderParams.orderType === 'scale' &&
+              (result.acceptedChildren?.length ?? 0) > 0;
+            if (!orderId && !hasAcceptedScaleChildren) {
               endCuf({
                 [PERPS_CUF_TAG.SUCCESS]: false,
                 [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,

@@ -2423,6 +2423,12 @@ describe('usePerpsProOrderForm', () => {
         success: true,
         childOrderIds: ['101', '102', '103'],
         submittedSize: '3.725',
+        acceptedSize: '3.725',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'resting' },
+          { orderId: '103', state: 'resting' },
+        ],
       });
       const { result } = renderProForm();
       configureScaleOrder(result);
@@ -2461,8 +2467,13 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.amount = '600';
       mockExecuteOrder.mockResolvedValueOnce({
         success: true,
-        childOrderIds: ['101', '102'],
-        submittedSize: '2.222',
+        childOrderIds: ['101'],
+        submittedSize: '3.725',
+        acceptedSize: '2.222',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { state: 'waitingForFill' },
+        ],
       });
       const { result } = renderProForm();
       configureScaleOrder(result);
@@ -2500,6 +2511,78 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
     });
+
+    it.each([
+      {
+        fallback: 'requested ladder for empty child arrays',
+        orderResult: {
+          success: true,
+          childOrderIds: [],
+          acceptedChildren: [],
+          submittedSize: '3.725',
+          acceptedSize: '3.725',
+        },
+        titleKey: 'perps.pro_order_form.scale.orders_placed',
+        summaryKey: 'perps.pro_order_form.scale.placement_summary',
+        acceptedCount: 3,
+        acceptedSize: '3.725',
+      },
+      {
+        fallback: 'legacy submitted size when accepted size is absent',
+        orderResult: {
+          success: true,
+          childOrderIds: ['101', '102'],
+          submittedSize: '2.222',
+        },
+        titleKey: 'perps.pro_order_form.scale.orders_partially_placed',
+        summaryKey: 'perps.pro_order_form.scale.partial_placement_summary',
+        acceptedCount: 2,
+        acceptedSize: '2.222',
+      },
+    ] as const)(
+      'uses $fallback in the confirmation copy',
+      async ({
+        orderResult,
+        titleKey,
+        summaryKey,
+        acceptedCount,
+        acceptedSize,
+      }) => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        mockExecuteOrder.mockResolvedValueOnce(orderResult);
+        const { result } = renderProForm();
+        configureScaleOrder(result);
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockShowToast).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            labelOptions: [
+              {
+                label: strings(titleKey),
+                isBold: true,
+              },
+              {
+                label: '\n',
+                isBold: false,
+              },
+              {
+                label: strings(summaryKey, {
+                  submittedCount: acceptedCount,
+                  totalCount: 3,
+                  size: acceptedSize,
+                  assetSymbol: 'BTC',
+                }),
+                isBold: false,
+              },
+            ],
+          }),
+        );
+      },
+    );
 
     it('uses resting-order failure copy when Scale placement fails', () => {
       mockOrderForm.type = 'scale';

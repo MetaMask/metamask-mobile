@@ -1951,13 +1951,22 @@ export const usePerpsProOrderForm = ({
           return;
         }
 
-        const submittedOrderCount =
-          orderResult.childOrderIds?.length ??
+        // Empty child arrays on a successful legacy result do not prove that
+        // zero rungs were accepted. Use non-empty explicit counts, otherwise
+        // fall back to the requested ladder rather than rendering "0 of N".
+        const acceptedOrderCount =
+          orderResult.acceptedChildren?.length ||
+          orderResult.childOrderIds?.length ||
           latestScale.scaleLadderResult.orderCount;
-        const submittedSize =
-          orderResult.submittedSize ?? latestScale.submissionPositionSize;
+        // Before `acceptedSize` existed, patched v13 providers returned the
+        // accepted rung total in `submittedSize`. Keep that fallback until all
+        // providers expose the new field, then fall back to the requested size.
+        const acceptedSize =
+          orderResult.acceptedSize ??
+          orderResult.submittedSize ??
+          latestScale.submissionPositionSize;
         const isPartialPlacement =
-          submittedOrderCount < latestScale.scaleLadderResult.orderCount;
+          acceptedOrderCount < latestScale.scaleLadderResult.orderCount;
         const scalePlacementTitle = strings(
           isPartialPlacement
             ? 'perps.pro_order_form.scale.orders_partially_placed'
@@ -1968,16 +1977,16 @@ export const usePerpsProOrderForm = ({
             ? 'perps.pro_order_form.scale.partial_placement_summary'
             : 'perps.pro_order_form.scale.placement_summary',
           {
-            submittedCount: submittedOrderCount,
+            submittedCount: acceptedOrderCount,
             totalCount: latestScale.scaleLadderResult.orderCount,
-            size: submittedSize,
+            size: acceptedSize,
             assetSymbol: latestScale.orderForm.asset,
           },
         );
         showToast({
           ...PerpsToastOptions.orderManagement.limit.confirmed(
             latestScale.orderForm.direction,
-            submittedSize,
+            acceptedSize,
             latestScale.orderForm.asset,
           ),
           labelOptions: getPerpsToastLabels(

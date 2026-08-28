@@ -243,17 +243,28 @@ describe('Perps order lifecycle — FLOW integration', () => {
         ],
         childOrderIds: ['101', '102', '103'],
         submittedSize: '0.6',
+        acceptedSize: '0.6',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'resting' },
+          { orderId: '103', state: 'resting' },
+        ],
         submittedValue: 30_134,
       },
       {
         placement: 'partial',
         statuses: [
           { resting: { oid: 101 } },
-          { resting: { oid: 102 } },
+          'waitingForFill',
           { error: 'Insufficient margin' },
         ],
-        childOrderIds: ['101', '102'],
-        submittedSize: '0.333',
+        childOrderIds: ['101'],
+        submittedSize: '0.6',
+        acceptedSize: '0.333',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { state: 'waitingForFill' },
+        ],
         submittedValue: 16_517,
       },
     ])(
@@ -263,6 +274,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
         statuses,
         childOrderIds,
         submittedSize,
+        acceptedSize,
+        acceptedChildren,
         submittedValue,
       }) => {
         // Arrange
@@ -306,17 +319,21 @@ describe('Perps order lifecycle — FLOW integration', () => {
           success: true,
           childOrderIds,
           submittedSize,
+          acceptedSize,
+          acceptedChildren,
         });
-        expect(Number(placeOrderResultRef.current?.averagePrice)).toBeCloseTo(
-          submittedValue / Number(submittedSize),
-        );
+        expect(placeOrderResultRef.current?.averagePrice).toBeUndefined();
+        expect(
+          Number(placeOrderResultRef.current?.weightedAverageLimitPrice),
+        ).toBeCloseTo(submittedValue / Number(acceptedSize));
         expect(
           perps.analytics.lastByName(PerpsAnalyticsEvent.TradeTransaction),
         ).toMatchObject({
           status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
           asset: 'BTC',
           order_type: 'scale',
-          order_size: Number(submittedSize),
+          order_size: Number(acceptedSize),
+          limit_price: submittedValue / Number(acceptedSize),
           order_value: submittedValue,
         });
         expect(
@@ -504,11 +521,15 @@ describe('Perps order lifecycle — FLOW integration', () => {
         responseShape: 'truncated status array',
         statuses: [{ resting: { oid: 101 } }],
         expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1, 2],
+        expectedChildOrderIds: [],
       },
       {
         responseShape: 'malformed status payload',
         statuses: { resting: { oid: 101 } },
         expectedCancels: null,
+        expectedCloidIndexes: [0, 1, 2],
+        expectedChildOrderIds: undefined,
       },
       {
         responseShape: 'unknown status entry',
@@ -517,11 +538,10 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { scheduled: { oid: 102 } },
           { error: 'Insufficient margin' },
         ],
-        expectedCancels: [
-          { a: 0, o: 101 },
-          { a: 0, o: 102 },
-        ],
-        cancelStatuses: ['success', 'success'],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+        expectedChildOrderIds: [],
+        cancelStatuses: ['success'],
       },
       {
         responseShape: 'malformed status entry',
@@ -531,6 +551,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { error: 'Insufficient margin' },
         ],
         expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+        expectedChildOrderIds: [],
       },
       {
         responseShape: 'hybrid accepted and error status entry',
@@ -539,11 +561,9 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { error: 'Insufficient margin' },
           { resting: { oid: 103 }, error: 'Invalid status' },
         ],
-        expectedCancels: [
-          { a: 0, o: 101 },
-          { a: 0, o: 103 },
-        ],
-        expectedChildOrderIds: ['101', '103'],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [2],
+        expectedChildOrderIds: [],
       },
       {
         responseShape: 'all-hybrid accepted and error status entries',
@@ -552,17 +572,16 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { resting: { oid: 102 }, error: 'Invalid status' },
           { filled: { oid: 103 }, error: 'Invalid status' },
         ],
-        expectedCancels: [
-          { a: 0, o: 101 },
-          { a: 0, o: 102 },
-        ],
-        expectedChildOrderIds: ['103', '101', '102'],
+        expectedCancels: null,
+        expectedCloidIndexes: [0, 1, 2],
+        expectedChildOrderIds: undefined,
       },
     ])(
       'rejects and cleans up a Scale ladder with a $responseShape',
       async ({
         statuses,
         expectedCancels,
+        expectedCloidIndexes,
         expectedChildOrderIds,
         cancelStatuses,
       }) => {
@@ -604,6 +623,16 @@ describe('Perps order lifecycle — FLOW integration', () => {
         expect(placeOrderResultRef.current?.childOrderIds).toEqual(
           expectedChildOrderIds,
         );
+        const submittedOrders =
+          perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+        expect(
+          perps.harness.mocks.exchangeClient.cancelByCloid,
+        ).toHaveBeenCalledWith({
+          cancels: expectedCloidIndexes.map((index) => ({
+            asset: 0,
+            cloid: submittedOrders[index].c,
+          })),
+        });
         if (expectedCancels) {
           expect(
             perps.harness.mocks.exchangeClient.cancel,
@@ -660,7 +689,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
 
       // Assert
       expect(placeOrderResultRef.current).toMatchObject({ success: false });
-      expect(placeOrderResultRef.current?.childOrderIds).toBeUndefined();
+      expect(placeOrderResultRef.current?.childOrderIds).toEqual([]);
       expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledWith({
         cancels: [
           { a: 0, o: 101 },
@@ -729,7 +758,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
         success: false,
         error: 'PROVIDER_LIFECYCLE_STALE',
       });
-      expect(placeOrderResult.childOrderIds).toBeUndefined();
+      expect(placeOrderResult.childOrderIds).toEqual([]);
       expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledWith({
         cancels: [
           { a: 0, o: 101 },

@@ -138,11 +138,42 @@ index 0a987fb49a1d711134c29f15f5e72d508b6e3ff2..04762f814204931a628eb104929ecc9d
      },
      SCREEN_NAME: {
          CONNECTION_ERROR: 'connection_error',
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 08c138f0470bf84b99ab1763cf4c0f8e45d4b63b..d848af7f382a6a1f74b897bebb01c196718e8813 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -32,7 +32,7 @@ export type { PerpsControllerApproveSubscriptionBuilderFeeAction, PerpsControlle
+ export { HyperLiquidProvider } from "./providers/HyperLiquidProvider.cjs";
+ export { ChaseOrderSuspensionError } from "./providers/AggregatedPerpsProvider.cjs";
+ export { WebSocketConnectionState, PerpsAnalyticsEvent, MARKET_CATEGORIES, MarketCategory, } from "./types/index.cjs";
+-export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, OrderResult, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from "./types/index.cjs";
++export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, OrderResult, ScaleOrderChild, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from "./types/index.cjs";
+ export { PerpsTraceNames, PerpsTraceOperations, isVersionGatedFeatureFlag, } from "./types/index.cjs";
+ export type { TestResultStatus, TestResult, SDKTestType, HyperliquidAsset, CandleStick, CandleData, OrderFormState, OrderDirection, ReconnectOptions, ExtendedAssetMeta, ExtendedPerpDex, } from "./types/index.cjs";
+ export type { BaseTransactionResult, LastTransactionResult, TransactionStatus, TransactionRecord, } from "./types/index.cjs";
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index f16a8dd302c963aae940b88c7fbe86e4680d71f8..fac24d9c7c42bf44e0c3d25542736b00718506e7 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -32,7 +32,7 @@ export type { PerpsControllerApproveSubscriptionBuilderFeeAction, PerpsControlle
+ export { HyperLiquidProvider } from "./providers/HyperLiquidProvider.mjs";
+ export { ChaseOrderSuspensionError } from "./providers/AggregatedPerpsProvider.mjs";
+ export { WebSocketConnectionState, PerpsAnalyticsEvent, MARKET_CATEGORIES, MarketCategory, } from "./types/index.mjs";
+-export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, OrderResult, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from "./types/index.mjs";
++export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, OrderResult, ScaleOrderChild, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from "./types/index.mjs";
+ export { PerpsTraceNames, PerpsTraceOperations, isVersionGatedFeatureFlag, } from "./types/index.mjs";
+ export type { TestResultStatus, TestResult, SDKTestType, HyperliquidAsset, CandleStick, CandleData, OrderFormState, OrderDirection, ReconnectOptions, ExtendedAssetMeta, ExtendedPerpDex, } from "./types/index.mjs";
+ export type { BaseTransactionResult, LastTransactionResult, TransactionStatus, TransactionRecord, } from "./types/index.mjs";
 diff --git a/dist/providers/HyperLiquidProvider.cjs b/dist/providers/HyperLiquidProvider.cjs
-index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda45858c5d473d 100644
+index f10d652a266dd75758a604a46acfcc2668433f78..803a6c3ec3324c6823954b75e62b2f737cd23352 100644
 --- a/dist/providers/HyperLiquidProvider.cjs
 +++ b/dist/providers/HyperLiquidProvider.cjs
-@@ -14,6 +14,7 @@ var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidP
+@@ -10,10 +10,11 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
++var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderCloidRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.HyperLiquidProvider = void 0;
  const utils_1 = require("@metamask/utils");
@@ -150,49 +181,64 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
  const bignumber_js_1 = require("bignumber.js");
  const uuid_1 = require("uuid");
  const eventNames_js_1 = require("../constants/eventNames.cjs");
-@@ -50,6 +51,84 @@ const stringParseUtils_js_1 = require("../utils/stringParseUtils.cjs");
+@@ -50,6 +51,129 @@ const stringParseUtils_js_1 = require("../utils/stringParseUtils.cjs");
   * @returns The result of the operation.
   */
  const isStatusObject = (status) => typeof status === 'object' && status !== null;
-+const getScaleBulkOrderStatusKind = (status) => {
++/**
++ * Parse every status the HyperLiquid bulk order API can return for a Scale
++ * rung. Unknown or malformed statuses are not exchange rejections.
++ *
++ * @param status - One status from a bulk order response.
++ * @returns The classified status, or undefined when it is malformed.
++ */
++const parseScaleBulkOrderStatus = (status) => {
++    if (status === 'waitingForFill' || status === 'waitingForTrigger') {
++        return { kind: 'accepted', state: status };
++    }
 +    if (!isStatusObject(status) || Object.keys(status).length !== 1) {
 +        return undefined;
 +    }
 +    if ((0, utils_1.hasProperty)(status, 'error')) {
-+        return typeof status.error === 'string' ? 'error' : undefined;
-+    }
-+    for (const state of ['resting', 'filled']) {
-+        if (!(0, utils_1.hasProperty)(status, state)) {
-+            continue;
-+        }
-+        const order = status[state];
-+        return isStatusObject(order) &&
-+            typeof order.oid === 'number' &&
-+            Number.isSafeInteger(order.oid) &&
-+            order.oid >= 0
-+            ? 'accepted'
++        return typeof status.error === 'string'
++            ? { kind: 'error', error: status.error }
 +            : undefined;
 +    }
++    if ((0, utils_1.hasProperty)(status, 'resting')) {
++        const order = status.resting;
++        if (isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0) {
++            return {
++                kind: 'accepted',
++                state: 'resting',
++                orderId: order.oid.toString(),
++            };
++        }
++    }
++    if ((0, utils_1.hasProperty)(status, 'filled')) {
++        const order = status.filled;
++        if (isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0 &&
++            typeof order.avgPx === 'string' &&
++            new bignumber_js_1.BigNumber(order.avgPx).isFinite() &&
++            new bignumber_js_1.BigNumber(order.avgPx).gt(0) &&
++            typeof order.totalSz === 'string' &&
++            new bignumber_js_1.BigNumber(order.totalSz).isFinite() &&
++            new bignumber_js_1.BigNumber(order.totalSz).gt(0)) {
++            return {
++                kind: 'accepted',
++                state: 'filled',
++                orderId: order.oid.toString(),
++                averagePrice: order.avgPx,
++                filledSize: order.totalSz,
++            };
++        }
++    }
 +    return undefined;
-+};
-+const getScaleBulkOrderCleanupOrderId = (status) => {
-+    if (!isStatusObject(status) ||
-+        Array.isArray(status) ||
-+        Object.keys(status).length !== 1) {
-+        return undefined;
-+    }
-+    const [value] = Object.values(status);
-+    if (!isStatusObject(value) ||
-+        Array.isArray(value) ||
-+        !(0, utils_1.hasProperty)(value, 'oid')) {
-+        return undefined;
-+    }
-+    const { oid } = value;
-+    return typeof oid === 'number' &&
-+        Number.isSafeInteger(oid) &&
-+        oid > 0
-+        ? oid.toString()
-+        : undefined;
 +};
 +/**
 + * Recover the bulk order response that the pinned SDK wraps in an
@@ -224,18 +270,61 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
 +    if (!Array.isArray(statuses) || statuses.length !== expectedStatusCount) {
 +        return undefined;
 +    }
-+    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
-+    if (statusKinds.some((kind) => kind === undefined) ||
-+        !statusKinds.includes('accepted') ||
-+        !statusKinds.includes('error')) {
++    const parsedStatuses = statuses.map(parseScaleBulkOrderStatus);
++    if (parsedStatuses.some((status) => status === undefined) ||
++        !parsedStatuses.some((status) => status?.kind === 'accepted') ||
++        !parsedStatuses.some((status) => status?.kind === 'error')) {
 +        return undefined;
 +    }
 +    return result;
 +};
++/**
++ * Read a complete cancel response from an SDK `ApiRequestError`.
++ *
++ * The SDK throws when any cancel entry is an error, including the benign
++ * already-gone response that confirms an order is no longer live.
++ *
++ * @param error - Error thrown by an exchange cancel method.
++ * @param expectedStatusCount - Number of cancel requests submitted.
++ * @returns The per-request statuses, or undefined for another error shape.
++ */
++const getCancelStatusesFromError = (error, expectedStatusCount) => {
++    if (!(error instanceof hyperliquid_1.HyperliquidError) ||
++        error.name !== 'ApiRequestError' ||
++        !(0, utils_1.hasProperty)(error, 'response')) {
++        return undefined;
++    }
++    const result = error.response;
++    if (!isStatusObject(result) || result.status !== 'ok') {
++        return undefined;
++    }
++    const { response } = result;
++    if (!isStatusObject(response) ||
++        response.type !== 'cancel' ||
++        !isStatusObject(response.data) ||
++        !Array.isArray(response.data.statuses) ||
++        response.data.statuses.length !== expectedStatusCount) {
++        return undefined;
++    }
++    return response.data.statuses;
++};
  /**
   * Exchange messages that mean a cancel was refused because the order is not on
   * the book any more.
-@@ -8117,8 +8196,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -7828,9 +7952,11 @@ async function _HyperLiquidProvider_submitPreparedStrategy(params, context, subm
+         }
+         throw error;
+     }
++    const resultFilledSize = new bignumber_js_1.BigNumber(result.filledSize ?? 0);
+     const hasVenueExposure = result.success === true ||
+         result.orderId !== undefined ||
+-        (result.childOrderIds?.length ?? 0) > 0;
++        (result.childOrderIds?.length ?? 0) > 0 ||
++        (resultFilledSize.isFinite() && resultFilledSize.gt(0));
+     if (dexName && transferInfo && !hasVenueExposure) {
+         await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_handleHip3OrderRollback).call(this, { dexName, transferInfo });
+         return result;
+@@ -8117,8 +8243,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   *
   * The whole ladder goes in a single `order` action, which is one round trip
   * and one signature rather than one per rung. It is **not** atomic: an `na`
@@ -246,16 +335,7 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
   *
   * @param params - Order parameters.
   * @param context - Prepared asset and sizing context.
-@@ -8126,7 +8205,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
-  * @returns A promise that resolves to the result.
-  */
- async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
--    const { assetId, formattedSize, ladder, builder } = context;
-+    const { assetId, szDecimals, formattedSize, ladder, builder } = context;
-     // Built and validated in `#prepareStrategyPlacement`, before anything was
-     // signed, so what is submitted here is exactly what the minimums were
-     // applied to.
-@@ -8153,20 +8232,71 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8153,33 +8279,106 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          sizes,
      });
      const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
@@ -263,8 +343,6 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
 -        orders,
 -        grouping: 'na',
 -        ...(builder && { builder }),
--    });
--    const statuses = result.response?.data?.statuses ?? [];
 +    let result;
 +    try {
 +        result = await exchangeClient.order({
@@ -282,98 +360,179 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
 +    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
-+    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
-     const outcomes = statuses
-         .slice(0, count)
-         .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
-     const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
--    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
--    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
-+    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome === undefined
-+        ? []
-+        : [
++    const outcomes = Array.from({ length: count }, (_unused, index) => parseScaleBulkOrderStatus(statuses[index]));
++    const acceptedCount = outcomes.filter((outcome) => outcome?.kind === 'accepted').length;
++    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome?.kind === 'accepted'
++        ? [
 +            {
-+                orderId: outcome.orderId,
-+                state: outcome.state,
++                outcome,
++                clientOrderId: clientOrderIds[index],
 +                price: prices[index],
 +                size: sizes[index],
 +            },
++        ]
++        : []);
++    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.outcome.state === 'resting' ? [rung.outcome.orderId] : []);
++    const waitingClientOrderIds = acceptedRungs.flatMap((rung) => rung.outcome.state === 'waitingForFill' ||
++        rung.outcome.state === 'waitingForTrigger'
++        ? [rung.clientOrderId]
++        : []);
++    const cleanupClientOrderIds = outcomes.flatMap((outcome, index) => outcome?.kind === 'error' || outcome?.state === 'resting'
++        ? []
++        : [clientOrderIds[index]]);
++    const acceptedChildren = acceptedRungs.map(({ outcome }) => outcome.state === 'resting' || outcome.state === 'filled'
++        ? { orderId: outcome.orderId, state: outcome.state }
++        : { state: outcome.state });
++    const acceptedSize = acceptedRungs.reduce((total, rung) => total.plus(rung.size), new bignumber_js_1.BigNumber(0));
++    const acceptedNotional = acceptedRungs.reduce((total, rung) => total.plus(new bignumber_js_1.BigNumber(rung.size).times(rung.price)), new bignumber_js_1.BigNumber(0));
++    const filledRungs = acceptedRungs.flatMap((rung) => rung.outcome.state === 'filled'
++        ? [{ ...rung, outcome: rung.outcome }]
++        : []);
++    const filledSize = filledRungs.reduce((total, rung) => total.plus(rung.outcome.filledSize), new bignumber_js_1.BigNumber(0));
++    const executedNotional = filledRungs.reduce((total, rung) => total.plus(new bignumber_js_1.BigNumber(rung.outcome.filledSize).times(rung.outcome.averagePrice)), new bignumber_js_1.BigNumber(0));
++    const acceptedResult = {
++        childOrderIds: restingChildOrderIds,
++        submittedSize: formattedSize,
++        acceptedSize: acceptedSize.toFixed(),
++        ...(acceptedSize.gt(0) && {
++            weightedAverageLimitPrice: acceptedNotional
++                .dividedBy(acceptedSize)
++                .toFixed(),
++        }),
++        acceptedChildren,
++        ...(filledSize.gt(0) && {
++            filledSize: filledSize.toFixed(),
++            averagePrice: executedNotional.dividedBy(filledSize).toFixed(),
++        }),
++    };
++    const buildAcceptedResult = () => ({
++        success: true,
++        orderId: groupId,
++        ...acceptedResult,
+     });
+-    const statuses = result.response?.data?.statuses ?? [];
+-    const outcomes = statuses
+-        .slice(0, count)
+-        .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
+-    const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
+-    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
+-    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
++    const cancelNonRejectedOrders = async () => {
++        const [orderIds, pendingClientOrderIds] = await Promise.all([
++            __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
++                a: assetId,
++                o: Number(orderId),
++            }))),
++            __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderCloidRequests).call(this, exchangeClient, cleanupClientOrderIds.map((clientOrderId) => ({
++                asset: assetId,
++                cloid: clientOrderId,
++            }))),
 +        ]);
-+    const acceptedChildOrderIds = acceptedRungs.map((rung) => rung.orderId);
-+    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'resting' ? [rung.orderId] : []);
-+    const filledChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'filled' ? [rung.orderId] : []);
-+    const cleanupOrderIds = [
-+        ...new Set([
-+            ...restingChildOrderIds,
-+            ...statuses.flatMap((status, index) => {
-+                if (statusKinds[index] !== undefined) {
-+                    return [];
-+                }
-+                const orderId = getScaleBulkOrderCleanupOrderId(status);
-+                return orderId === undefined ? [] : [orderId];
-+            }),
-+        ]),
-+    ];
-+    const buildAcceptedResult = () => {
-+        const submittedSize = acceptedCount === count
-+            ? formattedSize
-+            : (0, hyperLiquidAdapter_js_1.formatHyperLiquidSize)({
-+                size: acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
-+                szDecimals,
-+            });
-+        const submittedValue = acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
 +        return {
-+            success: true,
-+            orderId: groupId,
-+            childOrderIds: acceptedChildOrderIds,
-+            submittedSize,
-+            averagePrice: String(submittedValue / parseFloat(submittedSize)),
++            orderIds: orderIds.map(String),
++            clientOrderIds: pendingClientOrderIds,
 +        };
 +    };
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
 -        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
-+        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cleanupOrderIds.map((orderId) => ({
-             a: assetId,
-             o: Number(orderId),
-         })));
-@@ -8182,9 +8312,10 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
-             }),
+-            a: assetId,
+-            o: Number(orderId),
+-        })));
+-        const recoverableOrderIds = [
+-            ...filledChildOrderIds,
+-            ...remainingOrderIds.map(String),
+-        ];
++        const remaining = await cancelNonRejectedOrders();
++        if (remaining.orderIds.length > 0 ||
++            remaining.clientOrderIds.length > 0) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
++                symbol: params.symbol,
++                ...remaining,
++            });
++        }
+         return (0, hyperLiquidValidation_js_1.createErrorResult)(new Error(perpsErrorCodes_js_1.PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE), {
+             success: false,
+-            submittedSize: formattedSize,
+-            ...(recoverableOrderIds.length > 0 && {
+-                childOrderIds: recoverableOrderIds,
+-            }),
++            ...acceptedResult,
++            ...(remaining.orderIds.length > 0 ||
++                remaining.clientOrderIds.length > 0
++                ? { orderId: groupId }
++                : {}),
++            childOrderIds: remaining.orderIds,
          });
      }
--    if (result.status !== 'ok' ||
--        statuses.length !== count ||
--        acceptedCount !== count) {
-+    const isValidFull = result.status === 'ok' &&
-+        statuses.length === count &&
-+        statusKinds.every((kind) => kind === 'accepted');
-+    if (!isValidFull) {
+     if (result.status !== 'ok' ||
+@@ -8187,37 +8386,45 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         acceptedCount !== count) {
          __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale ladder was not fully accepted', {
              accepted: acceptedCount,
-             filled: filledChildOrderIds.length,
-@@ -8192,7 +8323,19 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+-            filled: filledChildOrderIds.length,
++            filled: filledRungs.length,
+             resting: restingChildOrderIds.length,
              requested: count,
              statuses,
          });
 -        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+-            a: assetId,
+-            o: Number(orderId),
+-        })));
+-        const recoverableOrderIds = [
+-            ...filledChildOrderIds,
+-            ...remainingOrderIds.map(String),
+-        ];
+-        if (remainingOrderIds.length > 0) {
+-            const remainingRestingOrderIds = remainingOrderIds.map(String);
++        const everyStatusClassified = statuses.length === count &&
++            outcomes.every((outcome) => outcome !== undefined);
++        const rejectedCount = outcomes.filter((outcome) => outcome?.kind === 'error').length;
 +        const isValidPartial = result.status === 'ok' &&
-+            statuses.length === count &&
-+            statusKinds.every((kind) => kind !== undefined) &&
-+            statusKinds.includes('accepted') &&
-+            statusKinds.includes('error');
++            everyStatusClassified &&
++            acceptedCount > 0 &&
++            rejectedCount > 0;
 +        if (isValidPartial) {
 +            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
 +                symbol: params.symbol,
 +                orderIds: restingChildOrderIds,
++                clientOrderIds: waitingClientOrderIds,
 +            });
 +            return buildAcceptedResult();
 +        }
-+        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cleanupOrderIds.map((orderId) => ({
-             a: assetId,
-             o: Number(orderId),
-         })));
-@@ -8226,12 +8369,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
++        const remaining = await cancelNonRejectedOrders();
++        if (remaining.orderIds.length > 0 ||
++            remaining.clientOrderIds.length > 0) {
+             __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
+                 symbol: params.symbol,
+-                orderIds: remainingRestingOrderIds,
++                ...remaining,
+             });
+             return (0, hyperLiquidValidation_js_1.createErrorResult)(new Error(perpsErrorCodes_js_1.PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE), {
+                 success: false,
+                 orderId: groupId,
+-                childOrderIds: recoverableOrderIds,
+-                submittedSize: formattedSize,
++                ...acceptedResult,
++                childOrderIds: remaining.orderIds,
+             });
+         }
+-        if (recoverableOrderIds.length > 0) {
++        if (acceptedCount > 0) {
+             return (0, hyperLiquidValidation_js_1.createErrorResult)(new Error(perpsErrorCodes_js_1.PERPS_ERROR_CODES.ORDER_REJECTED), {
+                 success: false,
+-                childOrderIds: recoverableOrderIds,
+-                submittedSize: formattedSize,
++                ...acceptedResult,
++                childOrderIds: [],
+             });
+         }
+         throw new Error(perpsErrorCodes_js_1.PERPS_ERROR_CODES.ORDER_REJECTED);
+@@ -8225,13 +8432,9 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+     __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
++        clientOrderIds: waitingClientOrderIds,
      });
 -    return {
 -        success: true,
@@ -385,61 +544,215 @@ index f10d652a266dd75758a604a46acfcc2668433f78..7730c14cc5f41987e90ab4bc7dda4585
  }, _HyperLiquidProvider_startChaseSession = 
  /**
   * Place a chase's first order and register the session that follows it.
+@@ -9372,14 +9575,22 @@ async function _HyperLiquidProvider_cancelScaleOrder(params) {
+         a: assetId,
+         o: Number(orderId),
+     }));
+-    const remaining = (await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cancelRequests)).map(String);
++    const cancelByCloidRequests = group.clientOrderIds.map((clientOrderId) => ({
++        asset: assetId,
++        cloid: clientOrderId,
++    }));
++    const [remainingOrderIds, remainingClientOrderIds] = await Promise.all([
++        __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cancelRequests),
++        __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderCloidRequests).call(this, exchangeClient, cancelByCloidRequests),
++    ]);
++    const remaining = remainingOrderIds.map(String);
+     /*
+      * A rung that filled or was cancelled individually comes back as a
+      * rejection, but nothing of it is resting. The shared cancellation helper
+      * distinguishes that result from a refusal while retaining every child
+      * after a malformed or non-ok batch response.
+      */
+-    if (remaining.length === 0) {
++    if (remaining.length === 0 && remainingClientOrderIds.length === 0) {
+         __classPrivateFieldGet(this, _HyperLiquidProvider_cancelledScaleOrderGroups, "f").add(params.orderId);
+         __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").delete(params.orderId);
+         return { success: true, orderId: params.orderId };
+@@ -9390,11 +9601,13 @@ async function _HyperLiquidProvider_cancelScaleOrder(params) {
+     __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(params.orderId, {
+         symbol: group.symbol,
+         orderIds: remaining,
++        clientOrderIds: remainingClientOrderIds,
+     });
+     __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale group cancel left children resting', {
+         groupId: params.orderId,
+-        remaining: remaining.length,
+-        total: group.orderIds.length,
++        remainingOrderIds: remaining.length,
++        remainingClientOrderIds: remainingClientOrderIds.length,
++        total: group.orderIds.length + group.clientOrderIds.length,
+     });
+     return (0, hyperLiquidValidation_js_1.createErrorResult)(new Error(perpsErrorCodes_js_1.PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE), { success: false, orderId: params.orderId });
+ }, _HyperLiquidProvider_cancelChaseOrder = 
+@@ -9492,6 +9705,43 @@ async function _HyperLiquidProvider_performChaseTermination(params) {
+ async function _HyperLiquidProvider_cancelOrderRequests(exchangeClient, requests) {
+     return (await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequestBatch).call(this, exchangeClient, requests))
+         .remainingOrderIds;
++}, _HyperLiquidProvider_cancelOrderCloidRequests = 
++/**
++ * Cancel pending orders by client order ID and retain every request that may
++ * still be live.
++ *
++ * @param exchangeClient - Client that owns the orders.
++ * @param requests - Venue cancel-by-CLOID requests.
++ * @returns Client order IDs that may still be pending.
++ */
++async function _HyperLiquidProvider_cancelOrderCloidRequests(exchangeClient, requests) {
++    if (requests.length === 0) {
++        return [];
++    }
++    const getRemainingClientOrderIds = (statuses) => requests.flatMap((request, index) => classifyCancelStatus(statuses[index]) === CancelChildOutcome.Refused
++        ? [request.cloid]
++        : []);
++    try {
++        const result = await exchangeClient.cancelByCloid({
++            cancels: requests,
++        });
++        const statuses = result.response?.data?.statuses ?? [];
++        if (result.status !== 'ok' || statuses.length !== requests.length) {
++            return requests.map((request) => request.cloid);
++        }
++        return getRemainingClientOrderIds(statuses);
++    }
++    catch (error) {
++        const statuses = getCancelStatusesFromError(error, requests.length);
++        if (statuses) {
++            return getRemainingClientOrderIds(statuses);
++        }
++        __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Order cancellation by CLOID failed', {
++            error: (0, errorUtils_js_1.ensureError)(error, 'HyperLiquidProvider.cancelOrderCloidRequests').message,
++            clientOrderIds: requests.map((request) => request.cloid),
++        });
++        return requests.map((request) => request.cloid);
++    }
+ }, _HyperLiquidProvider_cancelOrderRequestBatch = 
+ /**
+  * Cancel a batch while distinguishing confirmed cancellations from orders
+@@ -9509,16 +9759,7 @@ async function _HyperLiquidProvider_cancelOrderRequestBatch(exchangeClient, requ
+             responseComplete: true,
+         };
+     }
+-    try {
+-        const result = await exchangeClient.cancel({ cancels: requests });
+-        const statuses = result.response?.data?.statuses ?? [];
+-        if (result.status !== 'ok' || statuses.length !== requests.length) {
+-            return {
+-                remainingOrderIds: requests.map((request) => request.o),
+-                cancelledOrderIds: [],
+-                responseComplete: false,
+-            };
+-        }
++    const classifyStatuses = (statuses) => {
+         const remainingOrderIds = [];
+         const cancelledOrderIds = [];
+         requests.forEach((request, index) => {
+@@ -9531,8 +9772,24 @@ async function _HyperLiquidProvider_cancelOrderRequestBatch(exchangeClient, requ
+             }
+         });
+         return { remainingOrderIds, cancelledOrderIds, responseComplete: true };
++    };
++    try {
++        const result = await exchangeClient.cancel({ cancels: requests });
++        const statuses = result.response?.data?.statuses ?? [];
++        if (result.status !== 'ok' || statuses.length !== requests.length) {
++            return {
++                remainingOrderIds: requests.map((request) => request.o),
++                cancelledOrderIds: [],
++                responseComplete: false,
++            };
++        }
++        return classifyStatuses(statuses);
+     }
+     catch (error) {
++        const statuses = getCancelStatusesFromError(error, requests.length);
++        if (statuses) {
++            return classifyStatuses(statuses);
++        }
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Order cancellation batch failed', {
+             error: (0, errorUtils_js_1.ensureError)(error, 'HyperLiquidProvider.cancelOrderRequests')
+                 .message,
+@@ -9743,6 +10000,7 @@ async function _HyperLiquidProvider_queryDexPositions(dexName) {
+         const group = recovered.get(order.strategyGroupId) ?? {
+             symbol: order.symbol,
+             orderIds: [],
++            clientOrderIds: [],
+         };
+         group.orderIds.push(order.orderId);
+         recovered.set(order.strategyGroupId, group);
 diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
-index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a12d11ebc 100644
+index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ad94cf6d142bb743d471823c64838a45f9b4a381 100644
 --- a/dist/providers/HyperLiquidProvider.mjs
 +++ b/dist/providers/HyperLiquidProvider.mjs
-@@ -11,6 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+@@ -9,8 +9,9 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
  };
- var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
+-var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
++var _HyperLiquidProvider_instances, _a, _HyperLiquidProvider_deps, _HyperLiquidProvider_clientService, _HyperLiquidProvider_walletService, _HyperLiquidProvider_subscriptionService, _HyperLiquidProvider_symbolToAssetId, _HyperLiquidProvider_userFeeCache, _HyperLiquidProvider_maxLeverageCache, _HyperLiquidProvider_cachedMetaByDex, _HyperLiquidProvider_orderCapabilitiesMarketsByDex, _HyperLiquidProvider_orderCapabilitiesRefreshByDex, _HyperLiquidProvider_isDisconnected, _HyperLiquidProvider_disconnectOperationsInFlight, _HyperLiquidProvider_disconnectOperationPromise, _HyperLiquidProvider_lifecycleGeneration, _HyperLiquidProvider_cachedMarketDataWithPrices, _HyperLiquidProvider_cachedSpotMeta, _HyperLiquidProvider_dexDiscoveryCache, _HyperLiquidProvider_referralCheckCache, _HyperLiquidProvider_builderFeeCheckCache, _HyperLiquidProvider_ensureReadyPromise, _HyperLiquidProvider_pendingBuilderFeeApprovals, _HyperLiquidProvider_subscriptionBuilderApprovalEpoch, _HyperLiquidProvider_approvedBuilderAddresses, _HyperLiquidProvider_compiledAllowlistPatterns, _HyperLiquidProvider_compiledBlocklistPatterns, _HyperLiquidProvider_userFeeDiscountBips, _HyperLiquidProvider_userFeeResolution, _HyperLiquidProvider_hip3Enabled, _HyperLiquidProvider_allowlistMarkets, _HyperLiquidProvider_blocklistMarkets, _HyperLiquidProvider_useUnifiedAccount, _HyperLiquidProvider_dexDiscoveryComplete, _HyperLiquidProvider_unifiedAccountSetupNeedsRetry, _HyperLiquidProvider_pendingValidatedDexsPromise, _HyperLiquidProvider_cachedUsdcTokenId, _HyperLiquidProvider_errorMappings, _HyperLiquidProvider_scaleOrderGroups, _HyperLiquidProvider_cancelledScaleOrderGroups, _HyperLiquidProvider_trackedTwapOrdersByMessenger, _HyperLiquidProvider_trackedTwapOrders, _HyperLiquidProvider_chaseSessions, _HyperLiquidProvider_chaseTerminations, _HyperLiquidProvider_terminatedChaseHandles, _HyperLiquidProvider_chasePlacementsInFlight, _HyperLiquidProvider_chasePlacementWaiters, _HyperLiquidProvider_chaseTickQueue, _HyperLiquidProvider_strategyGeneration, _HyperLiquidProvider_chasePlacementBlockers, _HyperLiquidProvider_clientsInitialized, _HyperLiquidProvider_initializationPromise, _HyperLiquidProvider_messenger, _HyperLiquidProvider_builderAddressTestnet, _HyperLiquidProvider_builderAddressMainnet, _HyperLiquidProvider_subscriptionBuilderAddressTestnet, _HyperLiquidProvider_subscriptionBuilderAddressMainnet, _HyperLiquidProvider_priceDeviationLimit, _HyperLiquidProvider_onChaseOrderMaxDistanceReached, _HyperLiquidProvider_resolveOrderFeePolicy, _HyperLiquidProvider_assertProviderLifecycleCurrent, _HyperLiquidProvider_assertCacheWriteLifecycleCurrent, _HyperLiquidProvider_isCacheWriteLifecycleCurrent, _HyperLiquidProvider_getFreshOrderCapabilityMarkets, _HyperLiquidProvider_compilePatternsSafely, _HyperLiquidProvider_ensureClientsInitialized, _HyperLiquidProvider_isWalletOnHyperliquid, _HyperLiquidProvider_isHyperliquidMultiSigAccount, _HyperLiquidProvider_ensureUnifiedAccountEnabled, _HyperLiquidProvider_ensureReady, _HyperLiquidProvider_tradingSetupPromise, _HyperLiquidProvider_tradingSetupComplete, _HyperLiquidProvider_builderFeeSetupPromises, _HyperLiquidProvider_ensureBuilderFeeSetup, _HyperLiquidProvider_ensureReadyForTrading, _HyperLiquidProvider_getOrFetchPrice, _HyperLiquidProvider_filterFills, _HyperLiquidProvider_getAllAvailableDexs, _HyperLiquidProvider_getValidatedDexs, _HyperLiquidProvider_fetchValidatedDexsInternal, _HyperLiquidProvider_getCachedMeta, _HyperLiquidProvider_fetchMeta, _HyperLiquidProvider_cacheDexMetadata, _HyperLiquidProvider_cacheDexMetadataFromRead, _HyperLiquidProvider_backfillAssetMapForDex, _HyperLiquidProvider_getAssetIdWithRepair, _HyperLiquidProvider_getCachedSpotMeta, _HyperLiquidProvider_getCachedPerpDexs, _HyperLiquidProvider_calculateHip3FeeMultiplier, _HyperLiquidProvider_getCacheKey, _HyperLiquidProvider_getApprovedBuilderKey, _HyperLiquidProvider_fetchMarketsForDex, _HyperLiquidProvider_getUsdcTokenId, _HyperLiquidProvider_isUsdcCollateralDex, _HyperLiquidProvider_buildAssetMapping, _HyperLiquidProvider_queryUserDataAcrossDexs, _HyperLiquidProvider_mapError, _HyperLiquidProvider_getErrorContext, _HyperLiquidProvider_isMappedAccountModeExchangeError, _HyperLiquidProvider_getTradingErrorContext, _HyperLiquidProvider_checkBuilderFeeApproval, _HyperLiquidProvider_ensureBuilderFeeApproval, _HyperLiquidProvider_checkBuilderFeeStatus, _HyperLiquidProvider_getBalanceForDex, _HyperLiquidProvider_findSourceDexWithBalance, _HyperLiquidProvider_autoTransferForHip3Order, _HyperLiquidProvider_autoTransferBackAfterClose, _HyperLiquidProvider_calculateHip3RequiredMargin, _HyperLiquidProvider_handleHip3PostOrderRebalance, _HyperLiquidProvider_handleHip3OrderRollback, _HyperLiquidProvider_validateOrderBeforePlacement, _HyperLiquidProvider_getAssetInfo, _HyperLiquidProvider_prepareAssetForTrading, _HyperLiquidProvider_handleHip3PreOrder, _HyperLiquidProvider_submitOrderWithRollback, _HyperLiquidProvider_handleOrderError, _HyperLiquidProvider_placeStrategyOrder, _HyperLiquidProvider_submitPreparedStrategy, _HyperLiquidProvider_prepareStrategyPlacement, _HyperLiquidProvider_getMinimumOrderSize, _HyperLiquidProvider_buildScaleLadder, _HyperLiquidProvider_placeTwapOrder, _HyperLiquidProvider_placeScaleOrder, _HyperLiquidProvider_startChaseSession, _HyperLiquidProvider_getChaseQuotePrice, _HyperLiquidProvider_restChaseOrder, _HyperLiquidProvider_scheduleChaseTick, _HyperLiquidProvider_pauseChaseTicksForPlacement, _HyperLiquidProvider_resumeChaseTicksAfterPlacement, _HyperLiquidProvider_recoverFailedChaseTick, _HyperLiquidProvider_runChaseTick, _HyperLiquidProvider_resolveOwnRestingSizes, _HyperLiquidProvider_readOrderRemainder, _HyperLiquidProvider_cancelChaseChild, _HyperLiquidProvider_retractOrphanedChaseOrder, _HyperLiquidProvider_stopChaseSession, _HyperLiquidProvider_rebalanceChaseSession, _HyperLiquidProvider_adaptTwapOrder, _HyperLiquidProvider_rebalanceTrackedTwapOrder, _HyperLiquidProvider_rebalanceTerminalHip3Twaps, _HyperLiquidProvider_cancelStrategyOrder, _HyperLiquidProvider_cancelTwapOrder, _HyperLiquidProvider_cancelScaleOrder, _HyperLiquidProvider_cancelChaseOrder, _HyperLiquidProvider_performChaseTermination, _HyperLiquidProvider_cancelOrderRequests, _HyperLiquidProvider_cancelOrderCloidRequests, _HyperLiquidProvider_cancelOrderRequestBatch, _HyperLiquidProvider_readOrderPlacementOutcome, _HyperLiquidProvider_readOrderIdFromStatus, _HyperLiquidProvider_getDiscountedBuilderFee, _HyperLiquidProvider_getBuilderOrderContext, _HyperLiquidProvider_fetchOpenOrders, _HyperLiquidProvider_resolveReplacementOrderId, _HyperLiquidProvider_getStandaloneValidatedDexs, _HyperLiquidProvider_queryDexPositions, _HyperLiquidProvider_restoreScaleOrderGroups, _HyperLiquidProvider_getAllMids, _HyperLiquidProvider_fetchSingleDexFresh, _HyperLiquidProvider_excludeNonUsdcCollateralResults, _HyperLiquidProvider_mergeDexResultsInto, _HyperLiquidProvider_cacheFreshMarketDataSnapshot, _HyperLiquidProvider_getStaleMarketDataSnapshot, _HyperLiquidProvider_isFeeCacheValid, _HyperLiquidProvider_performDisconnect, _HyperLiquidProvider_getBuilderAddress, _HyperLiquidProvider_getSubscriptionBuilderAddress, _HyperLiquidProvider_getReferralCode, _HyperLiquidProvider_ensureReferralSet, _HyperLiquidProvider_isReferralCodeReady, _HyperLiquidProvider_checkReferralSet, _HyperLiquidProvider_setReferralCode;
  import { hasProperty, isHexString } from "@metamask/utils";
 +import { HyperliquidError } from "@nktkas/hyperliquid";
  import { BigNumber } from "bignumber.js";
  import { v4 as uuidv4 } from "uuid";
  import { PERPS_EVENT_PROPERTY, PERPS_EVENT_VALUE } from "../constants/eventNames.mjs";
-@@ -47,6 +48,84 @@ import { parseBoundedNonNegativeDecimal } from "../utils/stringParseUtils.mjs";
+@@ -47,6 +48,129 @@ import { parseBoundedNonNegativeDecimal } from "../utils/stringParseUtils.mjs";
   * @returns The result of the operation.
   */
  const isStatusObject = (status) => typeof status === 'object' && status !== null;
-+const getScaleBulkOrderStatusKind = (status) => {
++/**
++ * Parse every status the HyperLiquid bulk order API can return for a Scale
++ * rung. Unknown or malformed statuses are not exchange rejections.
++ *
++ * @param status - One status from a bulk order response.
++ * @returns The classified status, or undefined when it is malformed.
++ */
++const parseScaleBulkOrderStatus = (status) => {
++    if (status === 'waitingForFill' || status === 'waitingForTrigger') {
++        return { kind: 'accepted', state: status };
++    }
 +    if (!isStatusObject(status) || Object.keys(status).length !== 1) {
 +        return undefined;
 +    }
 +    if (hasProperty(status, 'error')) {
-+        return typeof status.error === 'string' ? 'error' : undefined;
-+    }
-+    for (const state of ['resting', 'filled']) {
-+        if (!hasProperty(status, state)) {
-+            continue;
-+        }
-+        const order = status[state];
-+        return isStatusObject(order) &&
-+            typeof order.oid === 'number' &&
-+            Number.isSafeInteger(order.oid) &&
-+            order.oid >= 0
-+            ? 'accepted'
++        return typeof status.error === 'string'
++            ? { kind: 'error', error: status.error }
 +            : undefined;
 +    }
++    if (hasProperty(status, 'resting')) {
++        const order = status.resting;
++        if (isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0) {
++            return {
++                kind: 'accepted',
++                state: 'resting',
++                orderId: order.oid.toString(),
++            };
++        }
++    }
++    if (hasProperty(status, 'filled')) {
++        const order = status.filled;
++        if (isStatusObject(order) &&
++            typeof order.oid === 'number' &&
++            Number.isSafeInteger(order.oid) &&
++            order.oid >= 0 &&
++            typeof order.avgPx === 'string' &&
++            new BigNumber(order.avgPx).isFinite() &&
++            new BigNumber(order.avgPx).gt(0) &&
++            typeof order.totalSz === 'string' &&
++            new BigNumber(order.totalSz).isFinite() &&
++            new BigNumber(order.totalSz).gt(0)) {
++            return {
++                kind: 'accepted',
++                state: 'filled',
++                orderId: order.oid.toString(),
++                averagePrice: order.avgPx,
++                filledSize: order.totalSz,
++            };
++        }
++    }
 +    return undefined;
-+};
-+const getScaleBulkOrderCleanupOrderId = (status) => {
-+    if (!isStatusObject(status) ||
-+        Array.isArray(status) ||
-+        Object.keys(status).length !== 1) {
-+        return undefined;
-+    }
-+    const [value] = Object.values(status);
-+    if (!isStatusObject(value) ||
-+        Array.isArray(value) ||
-+        !hasProperty(value, 'oid')) {
-+        return undefined;
-+    }
-+    const { oid } = value;
-+    return typeof oid === 'number' &&
-+        Number.isSafeInteger(oid) &&
-+        oid > 0
-+        ? oid.toString()
-+        : undefined;
 +};
 +/**
 + * Recover the bulk order response that the pinned SDK wraps in an
@@ -471,18 +784,61 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a
 +    if (!Array.isArray(statuses) || statuses.length !== expectedStatusCount) {
 +        return undefined;
 +    }
-+    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
-+    if (statusKinds.some((kind) => kind === undefined) ||
-+        !statusKinds.includes('accepted') ||
-+        !statusKinds.includes('error')) {
++    const parsedStatuses = statuses.map(parseScaleBulkOrderStatus);
++    if (parsedStatuses.some((status) => status === undefined) ||
++        !parsedStatuses.some((status) => status?.kind === 'accepted') ||
++        !parsedStatuses.some((status) => status?.kind === 'error')) {
 +        return undefined;
 +    }
 +    return result;
 +};
++/**
++ * Read a complete cancel response from an SDK `ApiRequestError`.
++ *
++ * The SDK throws when any cancel entry is an error, including the benign
++ * already-gone response that confirms an order is no longer live.
++ *
++ * @param error - Error thrown by an exchange cancel method.
++ * @param expectedStatusCount - Number of cancel requests submitted.
++ * @returns The per-request statuses, or undefined for another error shape.
++ */
++const getCancelStatusesFromError = (error, expectedStatusCount) => {
++    if (!(error instanceof HyperliquidError) ||
++        error.name !== 'ApiRequestError' ||
++        !hasProperty(error, 'response')) {
++        return undefined;
++    }
++    const result = error.response;
++    if (!isStatusObject(result) || result.status !== 'ok') {
++        return undefined;
++    }
++    const { response } = result;
++    if (!isStatusObject(response) ||
++        response.type !== 'cancel' ||
++        !isStatusObject(response.data) ||
++        !Array.isArray(response.data.statuses) ||
++        response.data.statuses.length !== expectedStatusCount) {
++        return undefined;
++    }
++    return response.data.statuses;
++};
  /**
   * Exchange messages that mean a cancel was refused because the order is not on
   * the book any more.
-@@ -8113,8 +8192,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
+@@ -7824,9 +7948,11 @@ async function _HyperLiquidProvider_submitPreparedStrategy(params, context, subm
+         }
+         throw error;
+     }
++    const resultFilledSize = new BigNumber(result.filledSize ?? 0);
+     const hasVenueExposure = result.success === true ||
+         result.orderId !== undefined ||
+-        (result.childOrderIds?.length ?? 0) > 0;
++        (result.childOrderIds?.length ?? 0) > 0 ||
++        (resultFilledSize.isFinite() && resultFilledSize.gt(0));
+     if (dexName && transferInfo && !hasVenueExposure) {
+         await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_handleHip3OrderRollback).call(this, { dexName, transferInfo });
+         return result;
+@@ -8113,8 +8239,8 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
   *
   * The whole ladder goes in a single `order` action, which is one round trip
   * and one signature rather than one per rung. It is **not** atomic: an `na`
@@ -493,16 +849,7 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a
   *
   * @param params - Order parameters.
   * @param context - Prepared asset and sizing context.
-@@ -8122,7 +8201,7 @@ async function _HyperLiquidProvider_placeTwapOrder(params, context, generation)
-  * @returns A promise that resolves to the result.
-  */
- async function _HyperLiquidProvider_placeScaleOrder(params, context, generation) {
--    const { assetId, formattedSize, ladder, builder } = context;
-+    const { assetId, szDecimals, formattedSize, ladder, builder } = context;
-     // Built and validated in `#prepareStrategyPlacement`, before anything was
-     // signed, so what is submitted here is exactly what the minimums were
-     // applied to.
-@@ -8149,20 +8228,71 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+@@ -8149,33 +8275,106 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
          sizes,
      });
      const exchangeClient = __classPrivateFieldGet(this, _HyperLiquidProvider_clientService, "f").getExchangeClient();
@@ -510,8 +857,6 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a
 -        orders,
 -        grouping: 'na',
 -        ...(builder && { builder }),
--    });
--    const statuses = result.response?.data?.statuses ?? [];
 +    let result;
 +    try {
 +        result = await exchangeClient.order({
@@ -529,98 +874,179 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a
 +    }
 +    const rawStatuses = result.response?.data?.statuses;
 +    const statuses = Array.isArray(rawStatuses) ? rawStatuses : [];
-+    const statusKinds = statuses.map(getScaleBulkOrderStatusKind);
-     const outcomes = statuses
-         .slice(0, count)
-         .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
-     const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
--    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
--    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
-+    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome === undefined
-+        ? []
-+        : [
++    const outcomes = Array.from({ length: count }, (_unused, index) => parseScaleBulkOrderStatus(statuses[index]));
++    const acceptedCount = outcomes.filter((outcome) => outcome?.kind === 'accepted').length;
++    const acceptedRungs = outcomes.flatMap((outcome, index) => outcome?.kind === 'accepted'
++        ? [
 +            {
-+                orderId: outcome.orderId,
-+                state: outcome.state,
++                outcome,
++                clientOrderId: clientOrderIds[index],
 +                price: prices[index],
 +                size: sizes[index],
 +            },
++        ]
++        : []);
++    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.outcome.state === 'resting' ? [rung.outcome.orderId] : []);
++    const waitingClientOrderIds = acceptedRungs.flatMap((rung) => rung.outcome.state === 'waitingForFill' ||
++        rung.outcome.state === 'waitingForTrigger'
++        ? [rung.clientOrderId]
++        : []);
++    const cleanupClientOrderIds = outcomes.flatMap((outcome, index) => outcome?.kind === 'error' || outcome?.state === 'resting'
++        ? []
++        : [clientOrderIds[index]]);
++    const acceptedChildren = acceptedRungs.map(({ outcome }) => outcome.state === 'resting' || outcome.state === 'filled'
++        ? { orderId: outcome.orderId, state: outcome.state }
++        : { state: outcome.state });
++    const acceptedSize = acceptedRungs.reduce((total, rung) => total.plus(rung.size), new BigNumber(0));
++    const acceptedNotional = acceptedRungs.reduce((total, rung) => total.plus(new BigNumber(rung.size).times(rung.price)), new BigNumber(0));
++    const filledRungs = acceptedRungs.flatMap((rung) => rung.outcome.state === 'filled'
++        ? [{ ...rung, outcome: rung.outcome }]
++        : []);
++    const filledSize = filledRungs.reduce((total, rung) => total.plus(rung.outcome.filledSize), new BigNumber(0));
++    const executedNotional = filledRungs.reduce((total, rung) => total.plus(new BigNumber(rung.outcome.filledSize).times(rung.outcome.averagePrice)), new BigNumber(0));
++    const acceptedResult = {
++        childOrderIds: restingChildOrderIds,
++        submittedSize: formattedSize,
++        acceptedSize: acceptedSize.toFixed(),
++        ...(acceptedSize.gt(0) && {
++            weightedAverageLimitPrice: acceptedNotional
++                .dividedBy(acceptedSize)
++                .toFixed(),
++        }),
++        acceptedChildren,
++        ...(filledSize.gt(0) && {
++            filledSize: filledSize.toFixed(),
++            averagePrice: executedNotional.dividedBy(filledSize).toFixed(),
++        }),
++    };
++    const buildAcceptedResult = () => ({
++        success: true,
++        orderId: groupId,
++        ...acceptedResult,
+     });
+-    const statuses = result.response?.data?.statuses ?? [];
+-    const outcomes = statuses
+-        .slice(0, count)
+-        .map((status) => __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_readOrderPlacementOutcome).call(this, status));
+-    const acceptedCount = outcomes.filter((outcome) => outcome !== undefined).length;
+-    const restingChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'resting' ? [outcome.orderId] : []);
+-    const filledChildOrderIds = outcomes.flatMap((outcome) => outcome?.state === 'filled' ? [outcome.orderId] : []);
++    const cancelNonRejectedOrders = async () => {
++        const [orderIds, pendingClientOrderIds] = await Promise.all([
++            __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
++                a: assetId,
++                o: Number(orderId),
++            }))),
++            __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderCloidRequests).call(this, exchangeClient, cleanupClientOrderIds.map((clientOrderId) => ({
++                asset: assetId,
++                cloid: clientOrderId,
++            }))),
 +        ]);
-+    const acceptedChildOrderIds = acceptedRungs.map((rung) => rung.orderId);
-+    const restingChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'resting' ? [rung.orderId] : []);
-+    const filledChildOrderIds = acceptedRungs.flatMap((rung) => rung.state === 'filled' ? [rung.orderId] : []);
-+    const cleanupOrderIds = [
-+        ...new Set([
-+            ...restingChildOrderIds,
-+            ...statuses.flatMap((status, index) => {
-+                if (statusKinds[index] !== undefined) {
-+                    return [];
-+                }
-+                const orderId = getScaleBulkOrderCleanupOrderId(status);
-+                return orderId === undefined ? [] : [orderId];
-+            }),
-+        ]),
-+    ];
-+    const buildAcceptedResult = () => {
-+        const submittedSize = acceptedCount === count
-+            ? formattedSize
-+            : formatHyperLiquidSize({
-+                size: acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size), 0),
-+                szDecimals,
-+            });
-+        const submittedValue = acceptedRungs.reduce((total, rung) => total + parseFloat(rung.size) * parseFloat(rung.price), 0);
 +        return {
-+            success: true,
-+            orderId: groupId,
-+            childOrderIds: acceptedChildOrderIds,
-+            submittedSize,
-+            averagePrice: String(submittedValue / parseFloat(submittedSize)),
++            orderIds: orderIds.map(String),
++            clientOrderIds: pendingClientOrderIds,
 +        };
 +    };
      if (generation !== __classPrivateFieldGet(this, _HyperLiquidProvider_strategyGeneration, "f")) {
 -        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
-+        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cleanupOrderIds.map((orderId) => ({
-             a: assetId,
-             o: Number(orderId),
-         })));
-@@ -8178,9 +8308,10 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
-             }),
+-            a: assetId,
+-            o: Number(orderId),
+-        })));
+-        const recoverableOrderIds = [
+-            ...filledChildOrderIds,
+-            ...remainingOrderIds.map(String),
+-        ];
++        const remaining = await cancelNonRejectedOrders();
++        if (remaining.orderIds.length > 0 ||
++            remaining.clientOrderIds.length > 0) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
++                symbol: params.symbol,
++                ...remaining,
++            });
++        }
+         return createErrorResult(new Error(PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE), {
+             success: false,
+-            submittedSize: formattedSize,
+-            ...(recoverableOrderIds.length > 0 && {
+-                childOrderIds: recoverableOrderIds,
+-            }),
++            ...acceptedResult,
++            ...(remaining.orderIds.length > 0 ||
++                remaining.clientOrderIds.length > 0
++                ? { orderId: groupId }
++                : {}),
++            childOrderIds: remaining.orderIds,
          });
      }
--    if (result.status !== 'ok' ||
--        statuses.length !== count ||
--        acceptedCount !== count) {
-+    const isValidFull = result.status === 'ok' &&
-+        statuses.length === count &&
-+        statusKinds.every((kind) => kind === 'accepted');
-+    if (!isValidFull) {
+     if (result.status !== 'ok' ||
+@@ -8183,37 +8382,45 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+         acceptedCount !== count) {
          __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale ladder was not fully accepted', {
              accepted: acceptedCount,
-             filled: filledChildOrderIds.length,
-@@ -8188,7 +8319,19 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+-            filled: filledChildOrderIds.length,
++            filled: filledRungs.length,
+             resting: restingChildOrderIds.length,
              requested: count,
              statuses,
          });
 -        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, restingChildOrderIds.map((orderId) => ({
+-            a: assetId,
+-            o: Number(orderId),
+-        })));
+-        const recoverableOrderIds = [
+-            ...filledChildOrderIds,
+-            ...remainingOrderIds.map(String),
+-        ];
+-        if (remainingOrderIds.length > 0) {
+-            const remainingRestingOrderIds = remainingOrderIds.map(String);
++        const everyStatusClassified = statuses.length === count &&
++            outcomes.every((outcome) => outcome !== undefined);
++        const rejectedCount = outcomes.filter((outcome) => outcome?.kind === 'error').length;
 +        const isValidPartial = result.status === 'ok' &&
-+            statuses.length === count &&
-+            statusKinds.every((kind) => kind !== undefined) &&
-+            statusKinds.includes('accepted') &&
-+            statusKinds.includes('error');
++            everyStatusClassified &&
++            acceptedCount > 0 &&
++            rejectedCount > 0;
 +        if (isValidPartial) {
 +            __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
 +                symbol: params.symbol,
 +                orderIds: restingChildOrderIds,
++                clientOrderIds: waitingClientOrderIds,
 +            });
 +            return buildAcceptedResult();
 +        }
-+        const remainingOrderIds = await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cleanupOrderIds.map((orderId) => ({
-             a: assetId,
-             o: Number(orderId),
-         })));
-@@ -8222,12 +8365,7 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
++        const remaining = await cancelNonRejectedOrders();
++        if (remaining.orderIds.length > 0 ||
++            remaining.clientOrderIds.length > 0) {
+             __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
+                 symbol: params.symbol,
+-                orderIds: remainingRestingOrderIds,
++                ...remaining,
+             });
+             return createErrorResult(new Error(PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE), {
+                 success: false,
+                 orderId: groupId,
+-                childOrderIds: recoverableOrderIds,
+-                submittedSize: formattedSize,
++                ...acceptedResult,
++                childOrderIds: remaining.orderIds,
+             });
+         }
+-        if (recoverableOrderIds.length > 0) {
++        if (acceptedCount > 0) {
+             return createErrorResult(new Error(PERPS_ERROR_CODES.ORDER_REJECTED), {
+                 success: false,
+-                childOrderIds: recoverableOrderIds,
+-                submittedSize: formattedSize,
++                ...acceptedResult,
++                childOrderIds: [],
+             });
+         }
+         throw new Error(PERPS_ERROR_CODES.ORDER_REJECTED);
+@@ -8221,13 +8428,9 @@ async function _HyperLiquidProvider_placeScaleOrder(params, context, generation)
+     __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(groupId, {
          symbol: params.symbol,
          orderIds: restingChildOrderIds,
++        clientOrderIds: waitingClientOrderIds,
      });
 -    return {
 -        success: true,
@@ -632,19 +1058,158 @@ index a21659ff69cf4d684d380aa0eb5de4a979f64da3..ae3b0a22fcfd5fe1f724b6de28a3120a
  }, _HyperLiquidProvider_startChaseSession = 
  /**
   * Place a chase's first order and register the session that follows it.
+@@ -9368,14 +9571,22 @@ async function _HyperLiquidProvider_cancelScaleOrder(params) {
+         a: assetId,
+         o: Number(orderId),
+     }));
+-    const remaining = (await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cancelRequests)).map(String);
++    const cancelByCloidRequests = group.clientOrderIds.map((clientOrderId) => ({
++        asset: assetId,
++        cloid: clientOrderId,
++    }));
++    const [remainingOrderIds, remainingClientOrderIds] = await Promise.all([
++        __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequests).call(this, exchangeClient, cancelRequests),
++        __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderCloidRequests).call(this, exchangeClient, cancelByCloidRequests),
++    ]);
++    const remaining = remainingOrderIds.map(String);
+     /*
+      * A rung that filled or was cancelled individually comes back as a
+      * rejection, but nothing of it is resting. The shared cancellation helper
+      * distinguishes that result from a refusal while retaining every child
+      * after a malformed or non-ok batch response.
+      */
+-    if (remaining.length === 0) {
++    if (remaining.length === 0 && remainingClientOrderIds.length === 0) {
+         __classPrivateFieldGet(this, _HyperLiquidProvider_cancelledScaleOrderGroups, "f").add(params.orderId);
+         __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").delete(params.orderId);
+         return { success: true, orderId: params.orderId };
+@@ -9386,11 +9597,13 @@ async function _HyperLiquidProvider_cancelScaleOrder(params) {
+     __classPrivateFieldGet(this, _HyperLiquidProvider_scaleOrderGroups, "f").set(params.orderId, {
+         symbol: group.symbol,
+         orderIds: remaining,
++        clientOrderIds: remainingClientOrderIds,
+     });
+     __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Scale group cancel left children resting', {
+         groupId: params.orderId,
+-        remaining: remaining.length,
+-        total: group.orderIds.length,
++        remainingOrderIds: remaining.length,
++        remainingClientOrderIds: remainingClientOrderIds.length,
++        total: group.orderIds.length + group.clientOrderIds.length,
+     });
+     return createErrorResult(new Error(PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE), { success: false, orderId: params.orderId });
+ }, _HyperLiquidProvider_cancelChaseOrder = 
+@@ -9488,6 +9701,43 @@ async function _HyperLiquidProvider_performChaseTermination(params) {
+ async function _HyperLiquidProvider_cancelOrderRequests(exchangeClient, requests) {
+     return (await __classPrivateFieldGet(this, _HyperLiquidProvider_instances, "m", _HyperLiquidProvider_cancelOrderRequestBatch).call(this, exchangeClient, requests))
+         .remainingOrderIds;
++}, _HyperLiquidProvider_cancelOrderCloidRequests = 
++/**
++ * Cancel pending orders by client order ID and retain every request that may
++ * still be live.
++ *
++ * @param exchangeClient - Client that owns the orders.
++ * @param requests - Venue cancel-by-CLOID requests.
++ * @returns Client order IDs that may still be pending.
++ */
++async function _HyperLiquidProvider_cancelOrderCloidRequests(exchangeClient, requests) {
++    if (requests.length === 0) {
++        return [];
++    }
++    const getRemainingClientOrderIds = (statuses) => requests.flatMap((request, index) => classifyCancelStatus(statuses[index]) === CancelChildOutcome.Refused
++        ? [request.cloid]
++        : []);
++    try {
++        const result = await exchangeClient.cancelByCloid({
++            cancels: requests,
++        });
++        const statuses = result.response?.data?.statuses ?? [];
++        if (result.status !== 'ok' || statuses.length !== requests.length) {
++            return requests.map((request) => request.cloid);
++        }
++        return getRemainingClientOrderIds(statuses);
++    }
++    catch (error) {
++        const statuses = getCancelStatusesFromError(error, requests.length);
++        if (statuses) {
++            return getRemainingClientOrderIds(statuses);
++        }
++        __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Order cancellation by CLOID failed', {
++            error: ensureError(error, 'HyperLiquidProvider.cancelOrderCloidRequests').message,
++            clientOrderIds: requests.map((request) => request.cloid),
++        });
++        return requests.map((request) => request.cloid);
++    }
+ }, _HyperLiquidProvider_cancelOrderRequestBatch = 
+ /**
+  * Cancel a batch while distinguishing confirmed cancellations from orders
+@@ -9505,16 +9755,7 @@ async function _HyperLiquidProvider_cancelOrderRequestBatch(exchangeClient, requ
+             responseComplete: true,
+         };
+     }
+-    try {
+-        const result = await exchangeClient.cancel({ cancels: requests });
+-        const statuses = result.response?.data?.statuses ?? [];
+-        if (result.status !== 'ok' || statuses.length !== requests.length) {
+-            return {
+-                remainingOrderIds: requests.map((request) => request.o),
+-                cancelledOrderIds: [],
+-                responseComplete: false,
+-            };
+-        }
++    const classifyStatuses = (statuses) => {
+         const remainingOrderIds = [];
+         const cancelledOrderIds = [];
+         requests.forEach((request, index) => {
+@@ -9527,8 +9768,24 @@ async function _HyperLiquidProvider_cancelOrderRequestBatch(exchangeClient, requ
+             }
+         });
+         return { remainingOrderIds, cancelledOrderIds, responseComplete: true };
++    };
++    try {
++        const result = await exchangeClient.cancel({ cancels: requests });
++        const statuses = result.response?.data?.statuses ?? [];
++        if (result.status !== 'ok' || statuses.length !== requests.length) {
++            return {
++                remainingOrderIds: requests.map((request) => request.o),
++                cancelledOrderIds: [],
++                responseComplete: false,
++            };
++        }
++        return classifyStatuses(statuses);
+     }
+     catch (error) {
++        const statuses = getCancelStatusesFromError(error, requests.length);
++        if (statuses) {
++            return classifyStatuses(statuses);
++        }
+         __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('Order cancellation batch failed', {
+             error: ensureError(error, 'HyperLiquidProvider.cancelOrderRequests')
+                 .message,
+@@ -9739,6 +9996,7 @@ async function _HyperLiquidProvider_queryDexPositions(dexName) {
+         const group = recovered.get(order.strategyGroupId) ?? {
+             symbol: order.symbol,
+             orderIds: [],
++            clientOrderIds: [],
+         };
+         group.orderIds.push(order.orderId);
+         recovered.set(order.strategyGroupId, group);
 diff --git a/dist/services/TradingService.cjs b/dist/services/TradingService.cjs
-index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fbf320ee22 100644
+index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..3048233569dcd4c52d9eec6de1d2f7e5e26a3825 100644
 --- a/dist/services/TradingService.cjs
 +++ b/dist/services/TradingService.cjs
-@@ -1360,6 +1360,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1360,6 +1360,10 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
      const status = result?.success === true
          ? eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED
          : eventNames_js_1.PERPS_EVENT_VALUE.STATUS.FAILED;
-+    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
++    const trackedOrderSize = parseFloat(result?.filledSize ??
++        result?.acceptedSize ??
++        result?.submittedSize ??
++        params.size);
      // Build base properties
      const properties = {
          [eventNames_js_1.PERPS_EVENT_PROPERTY.STATUS]: status,
-@@ -1369,7 +1370,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1369,7 +1373,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
              : eventNames_js_1.PERPS_EVENT_VALUE.DIRECTION.SHORT,
          [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
          [eventNames_js_1.PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
@@ -653,7 +1218,21 @@ index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fb
          [eventNames_js_1.PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
      };
      // Add optional properties
-@@ -1418,12 +1419,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1387,8 +1391,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     }
+     // Trigger limit placements carry a real limit price too, so the companion
+     // property must not go missing when order_type is stop_limit/take_profit_limit.
+-    if ((0, orderTypes_js_2.isLimitExecutionOrderType)(params.orderType) && params.price) {
+-        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(params.price);
++    const limitPrice = result?.weightedAverageLimitPrice ?? params.price;
++    if (limitPrice &&
++        (result?.weightedAverageLimitPrice ||
++            (0, orderTypes_js_2.isLimitExecutionOrderType)(params.orderType))) {
++        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(limitPrice);
+     }
+     if (params.trackingData?.source) {
+         properties[eventNames_js_1.PERPS_EVENT_PROPERTY.SOURCE] = params.trackingData.source;
+@@ -1418,12 +1425,16 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
              eventNames_js_1.PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
      }
      // Calculate order value in USD (size * price)
@@ -663,24 +1242,84 @@ index 1eeaf5d103571aed91098ed26a8e0ca86c0b443d..36e1b43f72b203b06e285b6cc3e932fb
          : params.trackingData?.marketPrice;
 -    if (assetPrice && orderSize) {
 -        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
-+    if (assetPrice && trackedOrderSize) {
-+        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
++    let orderValuePrice = assetPrice;
++    if (!result?.averagePrice && result?.weightedAverageLimitPrice) {
++        orderValuePrice = parseFloat(result.weightedAverageLimitPrice);
++    }
++    if (orderValuePrice && trackedOrderSize) {
++        properties[eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_VALUE] =
++            trackedOrderSize * orderValuePrice;
      }
      // Add success-specific properties
      if (status === eventNames_js_1.PERPS_EVENT_VALUE.STATUS.EXECUTED) {
+@@ -1471,37 +1482,38 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     // Emit an additional partially filled trade event when the fill is partial,
+     // mirroring the close path so the fill's partiality is visible in analytics
+     // rather than hidden behind a status=executed event. Classification is based
+-    // on the provider's final submitted size (post precision rounding, USD
+-    // recalculation, and $10-minimum retry), not the caller's pre-normalization
+-    // params.size — the provider transforms the size before submission and a
++    // on the provider's accepted size, falling back to its final submitted size
++    // when no accepted-size distinction applies. This avoids counting rejected
++    // Scale rungs as unfilled exposure. Both values are post-normalization, so a
+     // complete fill of the normalized size must not look partial. When the
+-    // provider did not report a submitted size we do not classify (rather than
+-    // guess from params.size). The partial event mirrors the close schema:
+-    // order_size = submitted size, amount_filled = filled, remaining = the rest.
++    // provider reports neither value we do not classify rather than guess from
++    // params.size. The partial event mirrors the close schema: order_size =
++    // accepted size, amount_filled = filled, remaining = the rest.
+     // Compare and subtract the decimal size strings with arbitrary-precision
+     // math (BigNumber): routing them through parseFloat can introduce
+     // binary-float artifacts that collapse distinct values (misclassifying the
+     // fill) or leave e-17 dust in remaining_amount. Only convert to Number for
+     // the emitted analytics values, after the exact decimal subtraction.
+-    const submittedSize = result?.submittedSize === undefined
++    const acceptedSizeString = result?.acceptedSize ?? result?.submittedSize;
++    const acceptedSize = acceptedSizeString === undefined
+         ? undefined
+-        : new bignumber_js_1.BigNumber(result.submittedSize);
++        : new bignumber_js_1.BigNumber(acceptedSizeString);
+     const filledSize = result?.filledSize === undefined
+         ? undefined
+         : new bignumber_js_1.BigNumber(result.filledSize);
+     if (result?.success === true &&
+-        submittedSize !== undefined &&
++        acceptedSize !== undefined &&
+         filledSize !== undefined &&
+-        submittedSize.isFinite() &&
++        acceptedSize.isFinite() &&
+         filledSize.isFinite() &&
+         filledSize.gt(0) &&
+-        filledSize.lt(submittedSize)) {
++        filledSize.lt(acceptedSize)) {
+         __classPrivateFieldGet(this, _TradingService_deps, "f").metrics.trackPerpsEvent(index_js_1.PerpsAnalyticsEvent.TradeTransaction, {
+             ...properties,
+             [eventNames_js_1.PERPS_EVENT_PROPERTY.STATUS]: eventNames_js_1.PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+-            [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: submittedSize.toNumber(),
++            [eventNames_js_1.PERPS_EVENT_PROPERTY.ORDER_SIZE]: acceptedSize.toNumber(),
+             [eventNames_js_1.PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: filledSize.toNumber(),
+-            [eventNames_js_1.PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: submittedSize
++            [eventNames_js_1.PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: acceptedSize
+                 .minus(filledSize)
+                 .toNumber(),
+         });
 diff --git a/dist/services/TradingService.mjs b/dist/services/TradingService.mjs
-index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a49c3a7c00 100644
+index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ff0a0f2bdc8a34118d9a3278486a8d8d9cdc338 100644
 --- a/dist/services/TradingService.mjs
 +++ b/dist/services/TradingService.mjs
-@@ -1356,6 +1356,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1356,6 +1356,10 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
      const status = result?.success === true
          ? PERPS_EVENT_VALUE.STATUS.EXECUTED
          : PERPS_EVENT_VALUE.STATUS.FAILED;
-+    const trackedOrderSize = parseFloat(result?.filledSize ?? result?.submittedSize ?? params.size);
++    const trackedOrderSize = parseFloat(result?.filledSize ??
++        result?.acceptedSize ??
++        result?.submittedSize ??
++        params.size);
      // Build base properties
      const properties = {
          [PERPS_EVENT_PROPERTY.STATUS]: status,
-@@ -1365,7 +1366,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1365,7 +1369,7 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
          [PERPS_EVENT_PROPERTY.LEVERAGE]: parseFloat(String(params.leverage ?? 1)),
@@ -689,7 +1328,21 @@ index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a4
          [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
      };
      // Add optional properties
-@@ -1414,12 +1415,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+@@ -1383,8 +1387,11 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     }
+     // Trigger limit placements carry a real limit price too, so the companion
+     // property must not go missing when order_type is stop_limit/take_profit_limit.
+-    if (isLimitExecutionOrderType(params.orderType) && params.price) {
+-        properties[PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(params.price);
++    const limitPrice = result?.weightedAverageLimitPrice ?? params.price;
++    if (limitPrice &&
++        (result?.weightedAverageLimitPrice ||
++            isLimitExecutionOrderType(params.orderType))) {
++        properties[PERPS_EVENT_PROPERTY.LIMIT_PRICE] = parseFloat(limitPrice);
+     }
+     if (params.trackingData?.source) {
+         properties[PERPS_EVENT_PROPERTY.SOURCE] = params.trackingData.source;
+@@ -1414,12 +1421,16 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
              PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
      }
      // Calculate order value in USD (size * price)
@@ -699,11 +1352,126 @@ index a307ed2b391a9cb0c3ebdd0cc6ce2cf930cad2db..4ccca4958ff9a94693821365be9900a4
          : params.trackingData?.marketPrice;
 -    if (assetPrice && orderSize) {
 -        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = orderSize * assetPrice;
-+    if (assetPrice && trackedOrderSize) {
-+        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] = trackedOrderSize * assetPrice;
++    let orderValuePrice = assetPrice;
++    if (!result?.averagePrice && result?.weightedAverageLimitPrice) {
++        orderValuePrice = parseFloat(result.weightedAverageLimitPrice);
++    }
++    if (orderValuePrice && trackedOrderSize) {
++        properties[PERPS_EVENT_PROPERTY.ORDER_VALUE] =
++            trackedOrderSize * orderValuePrice;
      }
      // Add success-specific properties
      if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
+@@ -1467,37 +1478,38 @@ _TradingService_deps = new WeakMap(), _TradingService_controllerDeps = new WeakM
+     // Emit an additional partially filled trade event when the fill is partial,
+     // mirroring the close path so the fill's partiality is visible in analytics
+     // rather than hidden behind a status=executed event. Classification is based
+-    // on the provider's final submitted size (post precision rounding, USD
+-    // recalculation, and $10-minimum retry), not the caller's pre-normalization
+-    // params.size — the provider transforms the size before submission and a
++    // on the provider's accepted size, falling back to its final submitted size
++    // when no accepted-size distinction applies. This avoids counting rejected
++    // Scale rungs as unfilled exposure. Both values are post-normalization, so a
+     // complete fill of the normalized size must not look partial. When the
+-    // provider did not report a submitted size we do not classify (rather than
+-    // guess from params.size). The partial event mirrors the close schema:
+-    // order_size = submitted size, amount_filled = filled, remaining = the rest.
++    // provider reports neither value we do not classify rather than guess from
++    // params.size. The partial event mirrors the close schema: order_size =
++    // accepted size, amount_filled = filled, remaining = the rest.
+     // Compare and subtract the decimal size strings with arbitrary-precision
+     // math (BigNumber): routing them through parseFloat can introduce
+     // binary-float artifacts that collapse distinct values (misclassifying the
+     // fill) or leave e-17 dust in remaining_amount. Only convert to Number for
+     // the emitted analytics values, after the exact decimal subtraction.
+-    const submittedSize = result?.submittedSize === undefined
++    const acceptedSizeString = result?.acceptedSize ?? result?.submittedSize;
++    const acceptedSize = acceptedSizeString === undefined
+         ? undefined
+-        : new BigNumber(result.submittedSize);
++        : new BigNumber(acceptedSizeString);
+     const filledSize = result?.filledSize === undefined
+         ? undefined
+         : new BigNumber(result.filledSize);
+     if (result?.success === true &&
+-        submittedSize !== undefined &&
++        acceptedSize !== undefined &&
+         filledSize !== undefined &&
+-        submittedSize.isFinite() &&
++        acceptedSize.isFinite() &&
+         filledSize.isFinite() &&
+         filledSize.gt(0) &&
+-        filledSize.lt(submittedSize)) {
++        filledSize.lt(acceptedSize)) {
+         __classPrivateFieldGet(this, _TradingService_deps, "f").metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
+             ...properties,
+             [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+-            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: submittedSize.toNumber(),
++            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: acceptedSize.toNumber(),
+             [PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: filledSize.toNumber(),
+-            [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: submittedSize
++            [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: acceptedSize
+                 .minus(filledSize)
+                 .toNumber(),
+         });
+diff --git a/dist/types/index.d.cts b/dist/types/index.d.cts
+index 90c060a569effb2924e79d671fbf3fb98e281f79..b3bd1ebb074dd0667192f6d120d410185776eeb2 100644
+--- a/dist/types/index.d.cts
++++ b/dist/types/index.d.cts
+@@ -198,6 +198,13 @@ export type OrderParams = {
+     trackingData?: TrackingData;
+     providerId?: PerpsProviderType;
+ };
++export type ScaleOrderChild = {
++    state: 'resting' | 'filled';
++    orderId: string;
++} | {
++    state: 'waitingForFill' | 'waitingForTrigger';
++    orderId?: never;
++};
+ export type OrderResult = {
+     success?: boolean;
+     /**
+@@ -218,7 +225,10 @@ export type OrderResult = {
+     error?: string;
+     filledSize?: string;
+     submittedSize?: string;
++    acceptedSize?: string;
+     averagePrice?: string;
++    weightedAverageLimitPrice?: string;
++    acceptedChildren?: ScaleOrderChild[];
+     childOrderIds?: string[];
+     providerId?: PerpsProviderType;
+ };
+diff --git a/dist/types/index.d.mts b/dist/types/index.d.mts
+index 4206398dc9a3a57dd06450b6f09994e4b65e4f7b..4841305f80179c2efc4363444f57dadbd9c37a00 100644
+--- a/dist/types/index.d.mts
++++ b/dist/types/index.d.mts
+@@ -198,6 +198,13 @@ export type OrderParams = {
+     trackingData?: TrackingData;
+     providerId?: PerpsProviderType;
+ };
++export type ScaleOrderChild = {
++    state: 'resting' | 'filled';
++    orderId: string;
++} | {
++    state: 'waitingForFill' | 'waitingForTrigger';
++    orderId?: never;
++};
+ export type OrderResult = {
+     success?: boolean;
+     /**
+@@ -218,7 +225,10 @@ export type OrderResult = {
+     error?: string;
+     filledSize?: string;
+     submittedSize?: string;
++    acceptedSize?: string;
+     averagePrice?: string;
++    weightedAverageLimitPrice?: string;
++    acceptedChildren?: ScaleOrderChild[];
+     childOrderIds?: string[];
+     providerId?: PerpsProviderType;
+ };
 diff --git a/dist/utils/orderCalculations.cjs b/dist/utils/orderCalculations.cjs
 index 2a598bd3207b56678c06a3194dc5333e0ed8ef47..d4536ec3ea340b29cb6d07ae137c5f7f4c017cb5 100644
 --- a/dist/utils/orderCalculations.cjs
