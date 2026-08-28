@@ -14,6 +14,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { SWAPS_CTA_BUTTON_COLOR_AB_KEY } from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
@@ -102,14 +103,10 @@ const inactiveABTestResult: MockABTestResult = {
 
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    numpad = inactiveABTestResult,
-    tokenSelector = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
     ctaButtonColor = inactiveABTestResult,
     chainValueOrder = inactiveABTestResult,
   }: {
-    numpad?: MockABTestResult;
-    tokenSelector?: MockABTestResult;
     ambientColor?: MockABTestResult;
     ctaButtonColor?: MockABTestResult;
     chainValueOrder?: MockABTestResult;
@@ -118,8 +115,6 @@ describe('useSubmitBridgeTx', () => {
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(numpad)
-      .mockReturnValueOnce(tokenSelector)
       .mockReturnValueOnce(ambientColor)
       .mockReturnValueOnce(ctaButtonColor)
       .mockReturnValueOnce(chainValueOrder);
@@ -215,6 +210,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -226,55 +222,6 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
-
-    // Re-render with an active assignment to verify submitTx forwards activeAbTests.
-    mockABTests({
-      tokenSelector: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    mockSubmitTx.mockResolvedValueOnce({
-      chainId: '0x1',
-      id: '2',
-      networkClientId: '1',
-      status: 'submitted',
-      time: Date.now(),
-      txParams: {
-        from: '0x1234567890123456789012345678901234567890',
-      },
-    } as TransactionMeta);
-
-    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await activeResult.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
-    });
-
-    expect(mockSubmitTx).toHaveBeenLastCalledWith(
-      '0x1234567890123456789012345678901234567890',
-      {
-        ...mockQuoteResponse,
-        approval: undefined,
-      },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      [
-        expect.objectContaining({
-          key: expect.any(String),
-          value: 'treatment',
-          key_value_pair: expect.stringMatching(/[=]treatment$/u),
-        }),
-      ],
-      null,
-      undefined,
-      'token_amount',
-    );
   });
 
   it('should handle bridge transaction with approval', async () => {
@@ -316,6 +263,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -519,40 +467,7 @@ describe('useSubmitBridgeTx', () => {
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
-    });
-
-    // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
-    mockABTests({
-      tokenSelector: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
-
-    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await activeResult.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse,
-    });
-
-    expect(mockSubmitIntent).toHaveBeenLastCalledWith({
-      quoteResponse: mockQuoteResponse,
-      accountAddress: '0x1234567890123456789012345678901234567890',
-      location: undefined,
-      abTests: undefined,
-      activeAbTests: [
-        expect.objectContaining({
-          key: expect.any(String),
-          value: 'treatment',
-          key_value_pair: expect.stringMatching(/[=]treatment$/u),
-        }),
-      ],
-      tokenSecurityTypeDestination: null,
-      inputPrimaryDenomination: 'token_amount',
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -599,6 +514,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -651,6 +567,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -706,6 +623,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -771,6 +689,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
   });
 
@@ -826,6 +745,7 @@ describe('useSubmitBridgeTx', () => {
       'Malicious',
       undefined,
       'fiat_value',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 });

@@ -1,6 +1,5 @@
 import type {
   MetaMetricsSwapsEventSource,
-  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
@@ -13,14 +12,6 @@ import {
   selectIsGasIncludedSTXSendBundleSupported,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
-import {
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-} from '../../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-} from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
   SWAPS_CTA_BUTTON_COLOR_AB_KEY,
   SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
@@ -44,6 +35,7 @@ import {
   createActiveABTestAssignment,
   normalizeActiveABTestAssignments,
 } from '../../analytics/activeABTestAssignments';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -64,15 +56,6 @@ export default function useSubmitBridgeTx() {
   const destToken = useSelector(selectDestToken);
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const abTestContext = useSelector(selectAbTestContext);
-  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
-    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
-  const {
-    variantName: tokenSelectorVariantName,
-    isActive: isTokenSelectorAbActive,
-  } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
   const {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
@@ -98,24 +81,6 @@ export default function useSubmitBridgeTx() {
     : undefined;
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
-
-    if (isNumpadAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          NUMPAD_QUICK_ACTIONS_AB_KEY,
-          numpadVariantName,
-        ),
-      );
-    }
-
-    if (isTokenSelectorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-          tokenSelectorVariantName,
-        ),
-      );
-    }
 
     if (isAmbientColorAbActive) {
       tests.push(
@@ -146,10 +111,6 @@ export default function useSubmitBridgeTx() {
 
     return tests.length > 0 ? tests : undefined;
   }, [
-    isNumpadAbActive,
-    numpadVariantName,
-    isTokenSelectorAbActive,
-    tokenSelectorVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
     isCtaButtonColorAbActive,
@@ -163,7 +124,7 @@ export default function useSubmitBridgeTx() {
     location,
     transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
-    quoteResponse: QuoteResponse & QuoteMetadata;
+    quoteResponse: QuoteResponse;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
     /** Route-carried A/B assignments merged at submit time. */
@@ -192,6 +153,7 @@ export default function useSubmitBridgeTx() {
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
             inputPrimaryDenomination,
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
@@ -205,6 +167,7 @@ export default function useSubmitBridgeTx() {
           tokenSecurityTypeDestination,
           undefined, // batchSellTrades
           inputPrimaryDenomination,
+          BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
         );
       },
     );

@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import WebView from '../../../framework/WebView.js';
-import { getDriver } from '../../../framework/PlaywrightUtilities.js';
+import { getDriver } from '../../../framework/AppiumUtilities.js';
 import { sleep } from '../../../framework/Utilities.js';
 import { getAppiumServerUrl } from '../../../framework/services/appium/AppiumServer.js';
 
