@@ -146,15 +146,30 @@ const PerpsProChartPanel = ({
     [effectiveChartLibrary],
   );
 
-  const { candleData, isLoading, hasHistoricalData, fetchMoreHistory } =
-    usePerpsLiveCandles({
-      symbol,
-      interval: selectedCandlePeriod,
-      duration: TimeDuration.YearToDate,
-      throttleMs: 1000,
-      resetKey: marketContextKey,
-      enabled: isMarketContextReady,
-    });
+  const {
+    candleData,
+    isLoading,
+    hasHistoricalData,
+    fetchMoreHistory,
+    deliveryRevision = 0,
+  } = usePerpsLiveCandles({
+    symbol,
+    interval: selectedCandlePeriod,
+    duration: TimeDuration.YearToDate,
+    throttleMs: 1000,
+    resetKey: marketContextKey,
+    enabled: isMarketContextReady,
+  });
+  const previousDeliveryRevisionRef = useRef(deliveryRevision);
+  useEffect(() => {
+    if (
+      effectiveChartLibrary !== PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED &&
+      deliveryRevision > previousDeliveryRevisionRef.current
+    ) {
+      onFreshDelivery?.();
+    }
+    previousDeliveryRevisionRef.current = deliveryRevision;
+  }, [deliveryRevision, effectiveChartLibrary, onFreshDelivery]);
   useEffect(() => {
     if (!isMarketContextReady) {
       setOhlcData(null);

@@ -463,11 +463,7 @@ const PerpsProMarketView = ({
     symbol: currentSymbol,
     deliveryRevisions: {
       account: accountDeliveryRevision,
-      chart:
-        isAdvancedChartEnabled &&
-        effectiveChartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
-          ? chartDeliveryRevision
-          : priceDeliveryRevision,
+      chart: chartDeliveryRevision,
       price: priceDeliveryRevision,
       orders: positionsOrdersDeliveryRevisions?.orders ?? 0,
       positions: positionsOrdersDeliveryRevisions?.positions ?? 0,

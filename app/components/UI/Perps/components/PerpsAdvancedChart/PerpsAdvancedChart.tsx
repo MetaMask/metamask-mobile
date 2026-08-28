@@ -251,11 +251,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const previousDeliveryRevisionRef = useRef(deliveryRevision);
 
   useEffect(() => {
-    if (deliveryRevision > previousDeliveryRevisionRef.current) {
+    if (!hasFailed && deliveryRevision > previousDeliveryRevisionRef.current) {
       onFreshDelivery?.();
     }
     previousDeliveryRevisionRef.current = deliveryRevision;
-  }, [deliveryRevision, onFreshDelivery]);
+  }, [deliveryRevision, hasFailed, onFreshDelivery]);
 
   const { colors } = useTheme();
 

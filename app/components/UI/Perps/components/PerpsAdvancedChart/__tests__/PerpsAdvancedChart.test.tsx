@@ -205,6 +205,50 @@ describe('PerpsAdvancedChart', () => {
     expect(onLatestPriceChange).toHaveBeenCalledWith(42050);
   });
 
+  it('forwards only active Advanced Chart fresh deliveries', () => {
+    const onFreshDelivery = jest.fn();
+    const { rerender } = renderChart({ onFreshDelivery });
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      latestAdvancedChartProps().onError?.('chart failed');
+    });
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      deliveryRevision: 2,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the native price line for latest close instead of a custom position shape', () => {
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
       ...mockAdapterResult,

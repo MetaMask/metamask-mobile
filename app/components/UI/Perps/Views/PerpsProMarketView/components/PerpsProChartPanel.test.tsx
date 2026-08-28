@@ -230,6 +230,7 @@ describe('PerpsProChartPanel', () => {
       isLoading: false,
       hasHistoricalData: true,
       fetchMoreHistory: mockFetchMoreHistory,
+      deliveryRevision: 0,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
@@ -249,6 +250,40 @@ describe('PerpsProChartPanel', () => {
       isChartExpanded: true,
       setChartExpanded: mockSetChartExpanded,
     });
+  });
+
+  it('forwards fresh Lightweight delivery revisions', () => {
+    const onFreshDelivery = jest.fn();
+    const props = {
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      onFreshDelivery,
+    };
+    const { rerender } = renderChartPanel(props);
+
+    mockUsePerpsLiveCandles.mockReturnValue({
+      candleData: MOCK_CANDLE_DATA,
+      isLoading: false,
+      hasHistoricalData: true,
+      fetchMoreHistory: mockFetchMoreHistory,
+      deliveryRevision: 1,
+    });
+    rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+        {...props}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
   });
 
   it('passes resting BTC limit orders to the Advanced Chart', () => {
