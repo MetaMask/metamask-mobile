@@ -36,7 +36,6 @@ import {
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CustomAmount,
   CustomAmountSkeleton,
@@ -134,8 +133,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     useClearConfirmationOnBackSwipe();
 
-    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
-
     useAutomaticTransactionPayToken({
       autoSelectFiatPayment,
       disable: disablePay,
@@ -157,7 +154,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       amountFiatDebounced,
       amountHuman,
-      amountHumanDebounced,
       hasInput,
       hasPrefetchedQuote,
       isDepositPrefillEnabled,
@@ -222,7 +218,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
-        pendingTokenAmount: amountHumanDebounced,
         pendingFiatAmount: amountFiatDebounced,
       });
 
@@ -403,7 +398,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               !isFiatPrefillSkip &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            preserveAmountOnMaxQuoteLoad={isMoneyAccountDeposit}
             onPress={
               stage === CustomAmountStage.Loading && !canEditZeroAmount
                 ? undefined
@@ -459,13 +453,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {!hasAccountNoFunds && (
-                <CustomAmountTotals
-                  amountFiat={amountFiat}
-                  canSelectWithdrawToken={canSelectWithdrawToken}
-                  stage={stage}
-                />
-              )}
+              {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}
           {footerText && (
