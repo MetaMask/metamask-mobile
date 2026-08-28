@@ -102,11 +102,6 @@ describe('useWhatsHappening', () => {
     mockFetchFrontPageItem.mockResolvedValue(null);
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
-      logger: {
-        log: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-      },
     });
   });
 
