@@ -258,79 +258,62 @@ describe('useQuickBuyQuotes', () => {
     expect(fetchQuotesMock).not.toHaveBeenCalled();
   });
 
-  it('debounces fetchQuotes calls', async () => {
-    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+  // Only a committed value (`immediateFetchToken` bump, e.g. slider release)
+  // bypasses the debounce; mounting and typing both wait it out.
+  it.each([
+    {
+      trigger: 'mounting',
+      update: undefined,
+      bypassesDebounce: false,
+    },
+    {
+      trigger: 'incrementing immediateFetchToken',
+      update: { amount: '0.001', token: 1 },
+      bypassesDebounce: true,
+    },
+    {
+      trigger: 'changing the typed amount',
+      update: { amount: '0.002', token: 0 },
+      bypassesDebounce: false,
+    },
+  ])(
+    'fetches quotes when $trigger (bypasses debounce: $bypassesDebounce)',
+    async ({ update, bypassesDebounce }) => {
+      fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
-    renderHook(() =>
-      useQuickBuyQuotes(
-        quotesParams({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: '0.001',
-        }),
-      ),
-    );
+      const { rerender } = renderHook(
+        ({ amount, token }: { amount: string; token: number }) =>
+          useQuickBuyQuotes(
+            quotesParams({
+              sourceToken: createSourceToken(),
+              destToken: createDestToken(),
+              sourceTokenAmount: amount,
+              immediateFetchToken: token,
+            }),
+          ),
+        { initialProps: { amount: '0.001', token: 0 } },
+      );
 
-    expect(fetchQuotesMock).not.toHaveBeenCalled();
+      if (update) {
+        fetchQuotesMock.mockClear();
+        rerender(update);
+      }
 
-    act(() => {
-      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
-    });
+      if (bypassesDebounce) {
+        // No timer advance: being called at all proves it did not debounce.
+        expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
+        return;
+      }
 
-    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
-  });
+      expect(fetchQuotesMock).not.toHaveBeenCalled();
 
-  it('fetches immediately without waiting for the debounce when immediateFetchToken increments', async () => {
-    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+      act(() => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
 
-    const { rerender } = renderHook(
-      ({ token }: { token: number }) =>
-        useQuickBuyQuotes(
-          quotesParams({
-            sourceToken: createSourceToken(),
-            destToken: createDestToken(),
-            sourceTokenAmount: '0.001',
-            immediateFetchToken: token,
-          }),
-        ),
-      { initialProps: { token: 0 } },
-    );
-
-    fetchQuotesMock.mockClear();
-
-    rerender({ token: 1 });
-
-    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
-  });
-
-  it('keeps typed input debounced when immediateFetchToken is unchanged', async () => {
-    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
-
-    const { rerender } = renderHook(
-      ({ amount }: { amount: string }) =>
-        useQuickBuyQuotes(
-          quotesParams({
-            sourceToken: createSourceToken(),
-            destToken: createDestToken(),
-            sourceTokenAmount: amount,
-            immediateFetchToken: 0,
-          }),
-        ),
-      { initialProps: { amount: '0.001' } },
-    );
-
-    fetchQuotesMock.mockClear();
-
-    rerender({ amount: '0.002' });
-
-    expect(fetchQuotesMock).not.toHaveBeenCalled();
-
-    act(() => {
-      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
-    });
-
-    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
-  });
+      await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    },
+  );
 
   it('aborts the in-flight request and applies only the latest when slides are committed in quick succession', async () => {
     const staleQuote = createFetchedQuote();
