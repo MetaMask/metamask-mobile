@@ -279,6 +279,25 @@ describe('useEarnSearchFeed', () => {
     ]);
   });
 
+  it('Query uses word boundary matching for name', () => {
+    const ethereum = createDiscoverySearchAsset('Ethereum', {
+      symbol: 'ETH',
+      ticker: 'ETH',
+    });
+    const tether = createDiscoverySearchAsset('Tether USD', {
+      symbol: 'USDT',
+      ticker: 'USDT',
+    });
+    mockCatalogue({ assets: [ethereum, tether] });
+
+    const { result } = renderHook(() => useEarnSearchFeed({ query: 'ETH' }));
+
+    // Excludes Tether when searching for ETH
+    expect(result.current.data.map((item) => item.id)).toEqual([
+      ethereum.assetId,
+    ]);
+  });
+
   it('omits Money when the account is hidden', () => {
     mockCatalogue({ assets: [discoveryUsdt] });
 

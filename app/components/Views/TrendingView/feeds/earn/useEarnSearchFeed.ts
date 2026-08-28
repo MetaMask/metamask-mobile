@@ -20,6 +20,18 @@ interface UseEarnSearchFeedOptions {
   enabled?: boolean;
 }
 
+// Match names only at word starts, avoiding false positives like "ETH" in "Tether".
+const matchesNameAtWordBoundary = (
+  name: string | undefined,
+  normalizedQuery: string,
+) =>
+  name
+    ? new RegExp(
+        `(?:^|\\W)${normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+        'i',
+      ).test(name)
+    : false;
+
 /**
  * Provides Money and Earn asset results for Explore search.
  *
@@ -60,8 +72,11 @@ export const useEarnSearchFeed = ({
       rankedAssets.filter((asset) => {
         if (!normalizedQuery) return true;
         const metadata = getEarnAssetMetadata(asset);
-        return [metadata.name, metadata.ticker, metadata.symbol].some((value) =>
-          value?.toLowerCase().includes(normalizedQuery),
+        return (
+          matchesNameAtWordBoundary(metadata.name, normalizedQuery) ||
+          [metadata.ticker, metadata.symbol].some((value) =>
+            value?.toLowerCase().includes(normalizedQuery),
+          )
         );
       }),
     [normalizedQuery, rankedAssets],
