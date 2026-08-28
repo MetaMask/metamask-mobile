@@ -48,12 +48,6 @@ jest.mock('./accountsController', () => ({
     state.fallbackEvmAddress,
 }));
 
-jest.mock('./featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: (state: {
-    isActivityRedesignEnabled?: boolean;
-  }) => state.isActivityRedesignEnabled ?? true,
-}));
-
 describe('TransactionController Selectors', () => {
   describe('selectTransactions', () => {
     it('returns transactions from TransactionController state', () => {
@@ -338,7 +332,6 @@ describe('TransactionController Selectors', () => {
   describe('selectExcludedActivityTransactionHashes', () => {
     it('unions required child hashes and gas_payment hashes when redesign is on', () => {
       const state = {
-        isActivityRedesignEnabled: true,
         engine: {
           backgroundState: {
             TransactionController: {
@@ -364,37 +357,6 @@ describe('TransactionController Selectors', () => {
 
       expect(selectExcludedActivityTransactionHashes(state)).toStrictEqual(
         new Set(['0xchild', '0xfee']),
-      );
-    });
-
-    it('excludes only required hashes when activity redesign is off', () => {
-      const state = {
-        isActivityRedesignEnabled: false,
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  id: 'parent',
-                  requiredTransactionIds: ['child'],
-                },
-                {
-                  id: 'child',
-                  hash: '0xCHILD',
-                },
-                {
-                  id: 'fee',
-                  type: TransactionType.gasPayment,
-                  hash: '0xFEE',
-                },
-              ],
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectExcludedActivityTransactionHashes(state)).toStrictEqual(
-        new Set(['0xchild']),
       );
     });
   });
@@ -480,14 +442,11 @@ describe('TransactionController Selectors', () => {
     const buildLocalTxState = ({
       groupEvmAccount = { address: evmAddress },
       transactions,
-      isActivityRedesignEnabled = true,
     }: {
       groupEvmAccount?: { address: string } | null;
       transactions?: unknown[];
-      isActivityRedesignEnabled?: boolean;
     } = {}) =>
       ({
-        isActivityRedesignEnabled,
         engine: {
           backgroundState: {
             TransactionController: {
@@ -546,36 +505,6 @@ describe('TransactionController Selectors', () => {
       expect(selectLocalTransactions(state)).toStrictEqual([
         expect.objectContaining({ id: 'send' }),
       ]);
-    });
-
-    it('keeps gas_payment fee legs when activity redesign is off', () => {
-      const state = buildLocalTxState({
-        isActivityRedesignEnabled: false,
-        transactions: [
-          {
-            id: 'send',
-            chainId: '0x1',
-            time: 200,
-            type: TransactionType.simpleSend,
-            selectedGasFeeToken: '0xtoken',
-            txParams: { from: evmAddress, nonce: '0x1' },
-          },
-          {
-            id: 'fee',
-            chainId: '0x1',
-            time: 201,
-            type: TransactionType.gasPayment,
-            hash: '0xfee',
-            txParams: { from: evmAddress, nonce: '0x2' },
-          },
-        ],
-      });
-
-      expect(
-        selectLocalTransactions(state)
-          .map((tx) => ('id' in tx ? tx.id : undefined))
-          .sort(),
-      ).toEqual(['fee', 'send']);
     });
 
     it('returns no transactions when the selected group has no EVM account', () => {

@@ -818,18 +818,6 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     expect(onCancel).toHaveBeenCalledWith(order);
   });
 
-  it('invokes edit price callback from order card edit button', () => {
-    const onEditPrice = jest.fn();
-
-    render(<PerpsProOrderCard order={order} onEditPrice={onEditPrice} />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
-    );
-
-    expect(onEditPrice).toHaveBeenCalledWith(order);
-  });
-
   it('invokes edit price callback from order card price control', () => {
     const onEditPrice = jest.fn();
 

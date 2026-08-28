@@ -1002,6 +1002,12 @@ export type RootStackParamList = {
          * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
          * on the leaderboard with a CTA to open device settings. */
         showNotificationsBanner?: boolean;
+        /** Tab the Follow Trading surface should open on. Set by the homepage
+         * Top Traders entry points from the TSA-1042 landing A/B test; absent
+         * for every other entry point, which keeps the leaderboard landing. */
+        landingTab?: 'leaderboard' | 'feed';
+        /** Audience preselected on the Feed tab when `landingTab` is `feed`. */
+        landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
   TraderProfileView: {
@@ -1068,6 +1074,7 @@ export type RootStackParamList = {
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
+  EarnStrategySelection: EarnScreensStackParamList['EarnStrategySelection'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];

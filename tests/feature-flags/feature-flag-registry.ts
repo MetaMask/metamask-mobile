@@ -3421,6 +3421,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnExploreSectionEnabled: {
+    name: 'earnExploreSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyTokenListItemCtaEnabled: {
     name: 'earnMoneyTokenListItemCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -4084,6 +4095,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.8.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMobileTwap: {
+    name: 'perpsMobileTwap',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4825,6 +4847,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         gaslessBridgeWith7702Enabled: false,
       },
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialAiTSA1042AbtestLeaderboardLandingFeed: {
+    name: 'socialAiTSA1042AbtestLeaderboardLandingFeed',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 

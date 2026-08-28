@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
+import EarnStrategySelectionView from '../Views/EarnStrategySelectionView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -38,6 +39,11 @@ const EarnScreenStack = () => {
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
         options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
+      />
+      <Stack.Screen
+        name={Routes.EARN.STRATEGY_SELECTION}
+        component={EarnStrategySelectionView}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
