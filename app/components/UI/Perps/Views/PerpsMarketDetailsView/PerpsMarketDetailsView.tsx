@@ -628,6 +628,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     marketContextKey,
     isMarketContextReady,
   });
+  const previousPriceDeliveryRevisionRef = useRef(priceDeliveryRevision);
+  useEffect(() => {
+    if (
+      chartLibrary !== PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED &&
+      priceDeliveryRevision > previousPriceDeliveryRevisionRef.current
+    ) {
+      setChartDeliveryRevision((revision) => revision + 1);
+    }
+    previousPriceDeliveryRevisionRef.current = priceDeliveryRevision;
+  }, [chartLibrary, priceDeliveryRevision]);
   useEffect(() => {
     if (!isMarketContextReady) {
       setOhlcData(null);
@@ -1031,11 +1041,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     symbol: market?.symbol,
     deliveryRevisions: {
       account: accountDeliveryRevision,
-      chart:
-        isAdvancedChartEnabled &&
-        chartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
-          ? chartDeliveryRevision
-          : priceDeliveryRevision,
+      chart: chartDeliveryRevision,
       orders: ordersDeliveryRevision,
       positions: positionsDeliveryRevision,
       price: priceDeliveryRevision,

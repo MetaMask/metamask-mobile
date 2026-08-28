@@ -270,6 +270,42 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.ohlcvData).toHaveLength(1);
   });
 
+  it('does not count rejected or non-fresh chart deliveries', () => {
+    const { result } = renderAdapter();
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: 'ETH',
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+      subscribeParams().onDelivery?.('fresh');
+    });
+    expect(result.current.deliveryRevision).toBe(0);
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000)],
+      });
+      subscribeParams().onDelivery?.('cache');
+    });
+    expect(result.current.deliveryRevision).toBe(0);
+    expect(result.current.hasFreshCurrentSeriesDelivery).toBe(false);
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(2000)],
+      });
+      subscribeParams().onDelivery?.('prewarm');
+    });
+    expect(result.current.deliveryRevision).toBe(0);
+    expect(result.current.hasFreshCurrentSeriesDelivery).toBe(false);
+  });
+
   it('replaces stale chart history after the candle cache is cleared', () => {
     const { result } = renderAdapter();
     const initialSeriesKey = result.current.ohlcvSeriesKey;
