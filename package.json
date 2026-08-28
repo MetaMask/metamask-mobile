@@ -184,6 +184,16 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "20.0.0-preview-eb263b0ee"
+    },
+    "@metamask/transaction-pay-controller": {
+      "type": "non-breaking",
+      "previewVersion": "27.0.0-preview-eb263b0ee"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "35.0.0",
     "@metamask/analytics-controller": "^2.0.0",
