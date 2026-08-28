@@ -335,6 +335,25 @@ describe('usePerpsMarketDetailSession', () => {
     );
   });
 
+  it('keeps the account-switch trigger across its reconnect handoff', () => {
+    const { result, rerender } = renderSession();
+
+    mockAddress = '0xdef';
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+    expect(result.current.generationTrigger).toBe('account_switch');
+
+    jest.clearAllMocks();
+    mockConnectionGeneration += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(result.current.generationTrigger).toBe('account_switch');
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({ generation_trigger: 'account_switch' }),
+      }),
+    );
+  });
+
   it.each([
     ['provider', () => (mockProvider = 'myx')],
     ['network', () => (mockNetwork = 'mainnet')],

@@ -95,10 +95,14 @@ export function resolveGenerationTrigger(
   if (
     previous.provider !== current.provider ||
     previous.network !== current.network ||
-    previous.hip3ConfigVersion !== current.hip3ConfigVersion ||
-    previous.marketContextKey !== current.marketContextKey
+    previous.hip3ConfigVersion !== current.hip3ConfigVersion
   ) {
     return 'network_switch';
+  }
+  if (previous.marketContextKey !== current.marketContextKey) {
+    return activeTrigger === 'account_switch'
+      ? 'account_switch'
+      : 'network_switch';
   }
   if (
     previous.configurationKey !== current.configurationKey ||
