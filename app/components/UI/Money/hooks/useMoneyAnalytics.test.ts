@@ -316,7 +316,7 @@ describe('useMoneyAnalytics', () => {
     describe('is_money_balance_loading', () => {
       it('sets is_money_balance_loading to true and is_account_funded to null during initial fetch', () => {
         mockGetQueryState.mockReturnValue({
-          status: 'loading',
+          status: 'pending',
           fetchStatus: 'fetching',
           data: undefined,
         });

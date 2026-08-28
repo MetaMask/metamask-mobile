@@ -12,7 +12,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
-import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
@@ -107,14 +106,8 @@ const createTransaction = (
 
 const mockUseSelector = jest.mocked(useSelector);
 
-const mockSelectors = ({
-  redesignEnabled = false,
-  keyringTransactions = [] as Transaction[],
-} = {}) => {
+const mockSelectors = ({ keyringTransactions = [] as Transaction[] } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectIsTransactionsRedesignEnabled) {
-      return redesignEnabled;
-    }
     if (selector === selectNonEvmTransactionsForSelectedAccountGroup) {
       return { transactions: keyringTransactions };
     }
@@ -128,11 +121,10 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     mockSelectors();
   });
 
-  it('routes to the ActivityDetails screen when the redesign is enabled', () => {
+  it('routes to the ActivityDetails screen', () => {
     const navigation = createNavigation();
     const transaction = createTransaction();
     mockSelectors({
-      redesignEnabled: true,
       keyringTransactions: [transaction],
     });
 
@@ -176,7 +168,7 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     expect(ActivityListItemRow.mock.calls[0][0]).not.toHaveProperty('title');
   });
 
-  it('opens multichain details when transaction has import insertion point', () => {
+  it('routes import-time rows to ActivityDetails', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
     mockSelectors({ keyringTransactions: [transaction] });
@@ -196,9 +188,10 @@ describe('MultichainAssetDetailsActivityListItem', () => {
       queryByTestId('activity-list-account-import-time-row'),
     ).not.toBeOnTheScreen();
     expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
+      Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+        chainId: SolScope.Mainnet,
+        txIdentifier: 'tx-1',
       }),
     );
   });
@@ -231,7 +224,6 @@ describe('MultichainAssetDetailsActivityListItem', () => {
       const navigation = createNavigation();
       const transaction = createTransaction({ type: TransactionType.Swap });
       mockSelectors({
-        redesignEnabled: true,
         keyringTransactions: [transaction],
       });
 
@@ -261,7 +253,6 @@ describe('MultichainAssetDetailsActivityListItem', () => {
       const navigation = createNavigation();
       const transaction = createTransaction({ type: TransactionType.Swap });
       mockSelectors({
-        redesignEnabled: true,
         keyringTransactions: [transaction],
       });
 
@@ -284,31 +275,6 @@ describe('MultichainAssetDetailsActivityListItem', () => {
       expect(navigation.navigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({ txIdentifier: 'tx-1' }),
-      );
-    });
-
-    it('falls back to the bridge-status screen for a cross-chain bridge when the redesign is off', () => {
-      const navigation = createNavigation();
-      const transaction = createTransaction({ type: TransactionType.Swap });
-      mockSelectors({ keyringTransactions: [transaction] });
-
-      const { getByTestId } = render(
-        <MultichainAssetDetailsActivityListItem
-          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
-          bridgeHistoryItem={createBridgeHistoryItem(
-            SolScope.Mainnet,
-            'eip155:1',
-          )}
-          index={0}
-          chainId={SolScope.Mainnet}
-          navigation={navigation}
-        />,
-      );
-
-      fireEvent.press(getByTestId('activity-list-item-row'));
-
-      expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
-        expect.objectContaining({ multiChainTx: transaction }),
       );
     });
 
