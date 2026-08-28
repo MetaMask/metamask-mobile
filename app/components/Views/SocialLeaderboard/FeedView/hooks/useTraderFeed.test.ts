@@ -1,6 +1,10 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  type QueryObserverOptions,
+} from '@tanstack/react-query';
 import { useTraderFeed } from './useTraderFeed';
 import type { FeedTypeFilter } from '../types';
 import { FEED_CAIP2_CHAINS } from '../feed-constants';
@@ -390,8 +394,9 @@ describe('useTraderFeed', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(1));
 
     const cachedQuery = queryClient.getQueryCache().getAll()[0];
-    expect(cachedQuery?.options.staleTime).toBe(1000 * 60 * 5);
-    expect(cachedQuery?.options.gcTime).toBe(1000 * 60 * 60 * 24);
+    const queryOptions = cachedQuery?.options as QueryObserverOptions;
+    expect(queryOptions.staleTime).toBe(1000 * 60 * 5);
+    expect(queryOptions.gcTime).toBe(1000 * 60 * 60 * 24);
 
     unmount();
     queryClient.clear();
