@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EthAccountType } from '@metamask/keyring-api';
 import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
 import Routes from '../../../../constants/navigation/Routes';
-import type { HeldEarnAsset } from '../types/earnAssets';
+import type { DiscoveryEarnAsset, HeldEarnAsset } from '../types/earnAssets';
 import useEarnOpportunityNavigation from './useEarnOpportunityNavigation';
 
 const mockNavigate = jest.fn();
@@ -37,6 +37,22 @@ const createEarnAsset = (fiatBalance: number): HeldEarnAsset => ({
     },
     isNative: false,
   } as unknown as HeldEarnAsset['asset'],
+  experiences: [],
+});
+
+const createDiscoveryEarnAsset = (): DiscoveryEarnAsset => ({
+  kind: 'discovery',
+  assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7' as const,
+  metadata: {
+    address: assetAddress,
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdt.png',
+    name: 'Tether USD',
+    symbol: 'USDT',
+    logo: 'usdt.png',
+    isETH: false,
+  },
   experiences: [],
 });
 
@@ -83,6 +99,28 @@ describe('useEarnOpportunityNavigation', () => {
       expect.objectContaining({
         address: assetAddress,
         chainId: earnAsset.asset.chainId,
+        source: TokenDetailsSource.ExploreEarn,
+      }),
+    );
+  });
+
+  it('navigates a discovery asset to Token Details', () => {
+    const earnAsset = createDiscoveryEarnAsset();
+    const { result } = renderHook(() =>
+      useEarnOpportunityNavigation({
+        tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      }),
+    );
+
+    act(() => {
+      result.current.navigateToEarnOpportunity(earnAsset);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        address: earnAsset.metadata.address,
+        chainId: earnAsset.metadata.chainId,
         source: TokenDetailsSource.ExploreEarn,
       }),
     );

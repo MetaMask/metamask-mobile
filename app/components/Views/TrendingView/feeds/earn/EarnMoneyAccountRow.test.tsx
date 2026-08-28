@@ -94,6 +94,27 @@ describe('EarnMoneyAccountRow', () => {
     expect(queryByTestId('earn-search-money-new-tag')).toBeNull();
   });
 
+  it('masks a non-zero fiat balance when privacy mode is enabled', () => {
+    const item = {
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '12',
+      balanceFiat: '$12.00',
+      isBalanceLoading: false,
+      rateStatus: 'ready',
+      apyPercent: 4.2,
+    } satisfies EarnMoneyAccountSearchItem;
+
+    const { getByTestId, queryByText } = render(
+      <EarnMoneyAccountRow item={item} onPress={jest.fn()} privacyMode />,
+    );
+
+    expect(getByTestId('earn-search-money-balance')).toHaveTextContent(
+      '•'.repeat(9),
+    );
+    expect(queryByText('$12.00')).toBeNull();
+  });
+
   it('renders balance unavailable when a non-zero balance has no fiat value', () => {
     const item = {
       kind: 'money-account',

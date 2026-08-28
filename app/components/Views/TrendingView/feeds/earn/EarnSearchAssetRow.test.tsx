@@ -178,4 +178,17 @@ describe('EarnSearchAssetRow', () => {
 
     expect(onPress).toHaveBeenCalledWith(item);
   });
+
+  it('masks a held asset fiat balance when privacy mode is enabled', () => {
+    const item = createItem(createHeldSearchAsset('USDC', '10'));
+
+    const { getByTestId, queryByText } = render(
+      <EarnSearchAssetRow item={item} onPress={jest.fn()} privacyMode />,
+    );
+
+    expect(getByTestId('earn-search-asset-balance')).toHaveTextContent(
+      '•'.repeat(9),
+    );
+    expect(queryByText('$10.00')).toBeNull();
+  });
 });
