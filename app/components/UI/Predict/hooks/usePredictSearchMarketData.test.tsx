@@ -24,12 +24,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
-    logger: {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-    },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
