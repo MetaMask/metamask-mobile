@@ -16,10 +16,6 @@ export type HomepagePredictMarketSlot =
   | HomepagePredictSeriesSlot
   | HomepagePredictEventSlot;
 
-export const isHomepagePredictEventSlot = (
-  slot: HomepagePredictMarketSlot,
-): slot is HomepagePredictEventSlot => slot.type === 'event';
-
 export const HOMEPAGE_PREDICT_SERIES_SLOT = {
   type: 'series',
   series: BTC_UP_OR_DOWN_5M_SERIES,
@@ -54,6 +50,14 @@ export const HOMEPAGE_PREDICT_MARKET_SLOTS = [
     slug: 'epl-2027-champion-20260701200428749',
   },
 ] as const satisfies readonly HomepagePredictMarketSlot[];
+
+type HomepagePredictConfiguredSlot =
+  (typeof HOMEPAGE_PREDICT_MARKET_SLOTS)[number];
+
+export const isHomepagePredictEventSlot = (
+  slot: HomepagePredictConfiguredSlot,
+): slot is Extract<HomepagePredictConfiguredSlot, { type: 'event' }> =>
+  slot.type === 'event';
 
 export const HOMEPAGE_PREDICT_EVENT_SLOTS =
   HOMEPAGE_PREDICT_MARKET_SLOTS.filter(isHomepagePredictEventSlot);
