@@ -185,6 +185,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           // Every spam row must still be held: a failed floor lookup must never
           // be read as "no floor", which would delete the whole set.
           for (const { symbol } of SPAM_ASSETS) {
+            await NetworkManager.scrollToToken(symbol);
             await NetworkManager.checkTokenExists(symbol);
           }
         },
@@ -217,6 +218,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
           // With useUnlockCleanup off the cleanup must not run, so even the
           // below-floor spam tokens survive unlock.
           for (const { symbol } of SPAM_ASSETS) {
+            await NetworkManager.scrollToToken(symbol);
             await NetworkManager.checkTokenExists(symbol);
           }
         },
