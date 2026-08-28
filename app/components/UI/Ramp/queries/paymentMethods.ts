@@ -1,7 +1,9 @@
 import { queryOptions } from '@tanstack/react-query';
-import type { PaymentMethodsForContextResponse } from '@metamask/ramps-controller';
+import {
+  normalizeRampsAssetId,
+  type PaymentMethodsForContextResponse,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export interface PaymentMethodsQueryParams {
   regionCode: string;
@@ -18,7 +20,7 @@ export interface PaymentMethodsQueryParams {
 const normalizeContext = (params: PaymentMethodsQueryParams) => ({
   ...params,
   regionCode: params.regionCode.trim().toLowerCase(),
-  assetId: normalizeAssetIdForApi(params.assetId.trim()),
+  assetId: normalizeRampsAssetId(params.assetId),
   providerId: params.providerId?.trim(),
 });
 
