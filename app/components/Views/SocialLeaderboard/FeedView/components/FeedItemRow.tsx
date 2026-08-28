@@ -19,10 +19,10 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { getTradeActionI18nKey } from '../../utils/tradeAction';
 import type { FeedItem } from '../types';
 import FeedSubHeaderText from './FeedSubHeaderText';
 import { formatFeedTimestamp } from '../../utils/formatters';
+import { getTradeActionI18nKey } from '../../utils/tradeAction';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,
@@ -54,6 +54,12 @@ export interface FeedItemRowProps {
   onTradePress: (item: FeedItem) => void;
   onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
+  /**
+   * Wall-clock instant used to format the relative timestamp. Parent should
+   * bump this after pull-to-refresh so memoized rows recompute even when the
+   * feed payload is unchanged. Defaults to `Date.now()`.
+   */
+  now?: number;
 }
 
 /**
@@ -66,6 +72,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   onTradePress,
   onPositionPress,
   onTraderPress,
+  now,
 }) => {
   const handleTradePress = useCallback(() => {
     onTradePress(item);
@@ -83,7 +90,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const assetClass = isPerp ? 'perps' : 'spot';
   const action = item.action;
   const actionLabel = strings(getTradeActionI18nKey('feed', isPerp, action));
-  const timeLabel = formatFeedTimestamp(item.timestamp);
+  const timeLabel = formatFeedTimestamp(item.timestamp, now);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
   // For rows whose value/P&L hasn't arrived yet, surface an intentional state

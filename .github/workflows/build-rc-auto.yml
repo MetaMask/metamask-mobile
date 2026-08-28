@@ -3,15 +3,44 @@
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
 # It runs automatically on every commit pushed to a release branch that has an open PR.
 #
-# OTA hotfix branches (release/X.Y.Z-ota) are excluded from the push trigger. They keep
+# Manual / dispatched entry:
+#   The open-PR requirement means the pushes made during a release cut (Runway creating the
+#   branch, then the version-bump commit) all land before the release PR exists, so none of
+#   them can build. auto-create-release-pr.yml therefore dispatches this workflow on the
+#   release branch once the PR is open — that dispatch is the first RC build of a cycle.
+#   Because a dispatch run shares github.workflow and github.ref with a push run, the
+#   concurrency group below still collapses the two into a single build.
+#
+# OTA hotfix branches (release/X.Y.Z-ota) are excluded from every trigger — the push filter
+# below AND the branch-name check in validate-and-find-pr, since workflow_dispatch (manual
+# recovery, or a future caller) bypasses the push filter entirely. OTA branches keep
 # package.json at the previous native version (create-release-pr.yml skips the semver bump
 # for them), so a native RC cut here would build, upload to TestFlight, and announce the
 # wrong version. An OTA hotfix ships a JS bundle, not a binary — its RC is published from
-# Runway via runway-ota-rc.yml.
+# Runway via runway-ota-rc.yml. Relying solely on the internal `ota_bump` check inside
+# auto-rc-ota-build-core.yml is not enough: skipped jobs still report `success`, so the
+# PR-comment / Slack-notification jobs fire with empty build metadata, and once the OTA tag
+# exists that check's "already shipped" early-exit can even flip `ota_bump` back to false on
+# a later run — see the incident behind #35321 for what that looks like in practice.
 #
 # Rolling builds: when a new run starts for the same release branch, any queued or
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
+#
+# Non-shipping-only pushes: the `paths-ignore` filter below keeps a push whose whole diff is
+# confined to CHANGELOG.md, docs/**, or tests/** from starting a run at all — none of those
+# paths reach the compiled app (docs/** is repo documentation, tests/** is the Appium/Detox
+# suite, not app/ios/android source). Two things follow from that, and both are the point of
+# the filter: no RC build is spent on a commit that cannot change the app, and — because no
+# run is created — nothing joins the concurrency group, so an RC build already in flight for
+# that branch survives. Filtering has to happen here, on the trigger: GitHub resolves
+# `cancel-in-progress` when the run is queued, before any job runs, so a job-level "should I
+# skip?" check would cancel the earlier build first and only then decide it had nothing to do.
+#
+# A push that mixes an ignored path with anything else (a cherry-pick that also updates the
+# changelog, or touches both tests/** and app code, say) is not confined to the ignored set
+# and builds as usual. `workflow_dispatch` ignores path filters entirely, so the release-cut
+# dispatch described above is unaffected.
 #
 # Version bump: generate-build-version, then iOS and Android builds are triggered in parallel
 # via auto-rc-ota-build-core.yml with the generated number applied locally at build time.
@@ -50,6 +79,12 @@ on:
     branches:
       - 'release/*'
       - '!release/*-ota'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'docs/**'
+      - 'tests/**'
+
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -88,16 +123,22 @@ jobs:
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-          # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
+          # OTA hotfix branches never get a native RC build here, regardless of trigger —
+          # see the header comment for why. This must be enforced here (not just in the
+          # `push` filter above) because workflow_dispatch bypasses that filter.
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+-ota$ ]]; then
+            echo "::error::Branch '$BRANCH_NAME' is an OTA hotfix branch. build-rc-auto.yml does not build native RCs here — OTA release candidates ship via runway-ota-rc.yml. Skipping."
+            echo "semver=" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          # Validate branch matches release/x.y.z format
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
-            # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
-            # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
-            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$BRANCH_NAME' does not match release/x.y.z or release/x.y.z-ota pattern. Skipping."
+            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
             echo "semver=" >> "$GITHUB_OUTPUT"
             exit 1
           fi

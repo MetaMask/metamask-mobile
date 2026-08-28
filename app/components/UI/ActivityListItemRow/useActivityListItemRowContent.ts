@@ -1,6 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
@@ -470,7 +470,7 @@ function resolveAvatarTokens(
   }
 
   const { data } = item;
-  return uniqueTokens([
+  const tokens = uniqueTokens([
     'sourceToken' in data
       ? enrichStablecoinTokenMetadata(data.sourceToken, item.chainId)
       : undefined,
@@ -481,10 +481,24 @@ function resolveAvatarTokens(
       ? enrichStablecoinTokenMetadata(data.token, item.chainId)
       : undefined,
   ]);
+
+  return tokens.length === 0 && isEvmStakingKind(item)
+    ? [{ direction: 'in', symbol: 'ETH', assetId: `${item.chainId}/slip44:60` }]
+    : tokens;
 }
 
 function isNamelessNftToken(token: TokenAmount | undefined): boolean {
   return Boolean(token?.amount && !token.symbol && !token.assetId);
+}
+
+/** EVM pooled staking is ETH-only; other chains stake their own asset. */
+function isEvmStakingKind(item: ActivityListItem): boolean {
+  return (
+    (item.type === 'stake' ||
+      item.type === 'unstake' ||
+      item.type === 'claim') &&
+    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+  );
 }
 
 function resolveCoreContent(
@@ -642,14 +656,12 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      // Pooled staking is ETH-only, so stake/unstake read the full asset name
-      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
-      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
       let displayNoun = symbol;
-      if (isStakingKind) {
-        displayNoun = 'Ethereum';
-      } else if (isNamelessNftBuy) {
+      if (isNamelessNftBuy) {
         displayNoun = 'NFT';
+      } else if (!symbol && isEvmStakingKind(item)) {
+        // The unstake leg moves no token, so there is no ticker to read.
+        displayNoun = 'ETH';
       }
       const labels = TOKEN_ACTION_LABELS[item.type];
 
