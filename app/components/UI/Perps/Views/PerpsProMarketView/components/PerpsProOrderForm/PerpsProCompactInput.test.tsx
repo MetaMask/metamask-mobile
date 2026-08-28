@@ -140,9 +140,11 @@ describe('PerpsProCompactInput', () => {
       );
 
       const label = screen.getByText(defaultProps.label);
+      const input = screen.getByTestId(defaultProps.testID);
 
       expect(label).toHaveProp('accessible', false);
       expect(label).toHaveProp('importantForAccessibility', 'no');
+      expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
     });
 
     it('shrinks the label and reveals the input when the row is pressed', () => {

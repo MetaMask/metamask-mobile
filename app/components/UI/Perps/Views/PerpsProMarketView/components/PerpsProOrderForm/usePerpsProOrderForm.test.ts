@@ -2313,7 +2313,7 @@ describe('usePerpsProOrderForm', () => {
     it('resets Scale configuration after controller placement succeeds', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
-      const { result } = renderProForm();
+      const { result, rerender } = renderProForm();
       configureScaleOrder(result);
 
       await act(async () => {
@@ -2342,6 +2342,15 @@ describe('usePerpsProOrderForm', () => {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
         }),
+      );
+
+      mockOrderForm.type = 'limit';
+      rerender({});
+      mockOrderForm.type = 'scale';
+      rerender({});
+
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
       );
     });
 

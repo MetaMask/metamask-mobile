@@ -156,12 +156,6 @@ export const usePerpsProSizeInput = ({
   // echoes and from live price ticks that should keep a dirty asset draft.
   const pendingInternalUsdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (forceUsd && denominationUnit !== 'usd') {
-      setUsdDraft(usdAmount);
-    }
-  }, [denominationUnit, forceUsd, usdAmount]);
-
   const clearSliderPreview = useCallback(() => {
     sliderPreviewRef.current = null;
     setSliderPreview(null);

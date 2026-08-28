@@ -174,7 +174,7 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.denomination.unit).toBe('usd');
   });
 
-  it('restores asset denomination after USD is forced', () => {
+  it('keeps forced USD drafts through canonical echoes and restores the asset draft', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       { initialProps: createParams({ usdAmount: '90000' }) },
@@ -196,13 +196,39 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.canToggleDenomination).toBe(false);
 
     act(() => {
-      result.current.sizeInput.onToggleDenomination();
+      result.current.sizeInput.onChange('120');
     });
-    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
 
-    rerender(createParams({ usdAmount: '90000', forceUsd: false }));
+    expect(mockSetAmount).toHaveBeenLastCalledWith('120');
 
-    expect(result.current.sizeInput.value).toBe('1');
+    rerender(createParams({ usdAmount: '120', forceUsd: true }));
+
+    expect(result.current.sizeInput.value).toBe('120');
+
+    rerender(createParams({ usdAmount: '120', forceUsd: false }));
+
+    expect(result.current.sizeInput.value).toBe('0.001');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+
+    rerender(createParams({ usdAmount: '120', forceUsd: true }));
+
+    act(() => {
+      result.current.sizeInput.onChange('');
+    });
+
+    expect(mockSetAmount).toHaveBeenLastCalledWith('0');
+
+    rerender(createParams({ usdAmount: '0', forceUsd: true }));
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.effectiveUsdAmount).toBe('0');
+
+    rerender(createParams({ usdAmount: '0', forceUsd: false }));
+
+    expect(result.current.sizeInput.value).toBe('0');
     expect(result.current.sizeInput.denomination).toEqual({
       unit: 'asset',
       symbol: 'BTC',
