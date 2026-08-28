@@ -27,7 +27,7 @@ export type EarnSectionAssetSlot =
 const getRateStatus = (
   experiences: readonly EarnExperience[],
 ): EarnRateStatus => {
-  if (experiences.some(({ rate }) => rate.percentage !== undefined)) {
+  if (experiences.some(({ rate }) => rate.status === 'ready')) {
     return 'ready';
   }
   if (experiences.some(({ rate }) => rate.status === 'loading')) {
@@ -41,7 +41,7 @@ const getRateStatus = (
 
 const getHighestRatePercent = (experiences: readonly EarnExperience[]) =>
   experiences.reduce<number | undefined>((highest, { rate }) => {
-    if (rate.percentage === undefined || !Number.isFinite(rate.percentage)) {
+    if (rate.status !== 'ready' || !Number.isFinite(rate.percentage)) {
       return highest;
     }
     return highest === undefined
@@ -52,12 +52,12 @@ const getHighestRatePercent = (experiences: readonly EarnExperience[]) =>
 const getHighestRateExperience = (experiences: readonly EarnExperience[]) =>
   experiences.reduce<EarnExperience | undefined>((highest, experience) => {
     if (
-      experience.rate.percentage === undefined ||
+      experience.rate.status !== 'ready' ||
       !Number.isFinite(experience.rate.percentage)
     ) {
       return highest;
     }
-    return highest?.rate.percentage !== undefined &&
+    return highest?.rate.status === 'ready' &&
       highest.rate.percentage >= experience.rate.percentage
       ? highest
       : experience;

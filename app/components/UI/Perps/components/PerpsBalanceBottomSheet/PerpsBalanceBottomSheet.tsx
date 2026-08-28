@@ -181,15 +181,17 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               bottomLabelWrapperProps={{ twClassName: 'w-full' }}
             />
 
-            <ButtonIcon
-              size={ButtonIconSize.Md}
-              iconName={IconName.Close}
-              onPress={handleClose}
-              accessibilityLabel={strings(
-                'perps.balance_bottom_sheet.close_button',
-              )}
-              testID={PerpsBalanceBottomSheetSelectorsIDs.CLOSE_BUTTON}
-            />
+            <Box alignItems={BoxAlignItems.Center}>
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                iconName={IconName.Close}
+                onPress={handleClose}
+                accessibilityLabel={strings(
+                  'perps.balance_bottom_sheet.close_button',
+                )}
+                testID={PerpsBalanceBottomSheetSelectorsIDs.CLOSE_BUTTON}
+              />
+            </Box>
           </Box>
         </Box>
 

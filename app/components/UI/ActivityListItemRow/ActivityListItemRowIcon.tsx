@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Image, ImageSourcePropType, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -15,16 +15,6 @@ import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
-
-function getImageUri(
-  source: ImageSourcePropType | undefined,
-): string | undefined {
-  if (source && typeof source === 'object' && 'uri' in source) {
-    return source.uri;
-  }
-
-  return undefined;
-}
 
 function TokenAvatar({
   fallbackIconName,
@@ -52,15 +42,6 @@ function TokenAvatar({
       ),
     [tokens, iconUrl],
   );
-
-  useEffect(() => {
-    tokenImageSources.forEach((source) => {
-      const uri = getImageUri(source);
-      if (uri) {
-        Image.prefetch(uri);
-      }
-    });
-  }, [tokenImageSources]);
 
   if (perpsMarketSymbol) {
     return (
@@ -160,13 +141,6 @@ export function ActivityListItemRowIcon({
   testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
-  useEffect(() => {
-    const uri = getImageUri(networkImageSource);
-    if (uri) {
-      Image.prefetch(uri);
-    }
-  }, [networkImageSource]);
-
   const avatar = (
     <TokenAvatar
       fallbackIconName={fallbackIconName}
