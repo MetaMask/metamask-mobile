@@ -29,7 +29,10 @@ export function getNeoBankServiceMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'AuthenticationController:getSessionProfile',
+    ],
     events: [],
     messenger,
   });

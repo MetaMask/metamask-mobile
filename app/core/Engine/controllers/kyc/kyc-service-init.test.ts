@@ -38,19 +38,17 @@ describe('kycServiceInit', () => {
     expect(controller).toBeInstanceOf(KycService);
   });
 
-  it('passes messenger, fetch, and environment-derived KYC / Fractal URLs', () => {
+  it('passes messenger, fetch, localhost KYC URL, and environment-derived idOS JWKS URLs', () => {
     const requestMock = getInitRequestMock();
 
     const { controller } = kycServiceInit(requestMock);
 
-    // `transform-inline-environment-variables` bakes `METAMASK_ENVIRONMENT`
-    // as `'test'` (see jest.config.js), so the constructor receives the dev
-    // KYC host and the Fractal DEV JWKS host.
     expect(controller).toMatchObject({
       messenger: requestMock.controllerMessenger,
       fetch,
-      baseUrl: 'https://kyc-api.dev-api.cx.metamask.io',
-      fractalEncryptionBaseUrl: AppConstants.FRACTAL_ENCRYPTION_URL.DEV,
+      baseUrl: 'http://localhost:3000',
+      idosEnclaveBaseUrl: AppConstants.IDOS_ENCLAVE_URL.DEV,
+      idosRelayBaseUrl: AppConstants.IDOS_RELAY_URL.DEV,
     });
   });
 });

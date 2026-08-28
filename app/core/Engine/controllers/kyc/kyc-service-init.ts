@@ -31,31 +31,33 @@ function getKycApiBaseUrl(): string {
 }
 
 /**
- * Resolves the Fractal encryption service base URL for the current build
- * target (dev / uat / production), mirroring how other MetaMask features branch
- * on `METAMASK_ENVIRONMENT`. The service fetches the JWKS from this host to
- * verify the UKYC wrapping-key `jwtChain`.
+ * Picks the idOS host for the current build target (dev / uat / production).
  *
- * @returns The Fractal encryption service base URL for this environment.
+ * @param urls - Per-environment idOS hosts.
+ * @returns The host for this environment.
  */
-function getFractalEncryptionBaseUrl(): string {
+function getIdosUrlForEnvironment(urls: {
+  DEV: string;
+  UAT: string;
+  PRD: string;
+}): string {
   const env = process.env.METAMASK_ENVIRONMENT;
   if (env === 'dev' || env === 'exp' || env === 'test' || env === 'e2e') {
-    return AppConstants.FRACTAL_ENCRYPTION_URL.DEV;
+    return urls.DEV;
   }
   if (env === 'production' || env === 'beta' || env === 'rc') {
-    return AppConstants.FRACTAL_ENCRYPTION_URL.PRD;
+    return urls.PRD;
   }
-  return AppConstants.FRACTAL_ENCRYPTION_URL.UAT;
+  return urls.UAT;
 }
 
 /**
  * Initialize the KycService.
  *
  * The service is a stateless HTTP client for the Universal KYC backend. It
- * resolves its base URL from `KYC_API_URL` (with an environment fallback) and
- * obtains the wallet bearer token / geolocation through delegated messenger
- * actions.
+ * currently hardcodes `http://localhost:3000` (demo) and obtains the wallet
+ * bearer token / geolocation through delegated messenger actions. JWKS for
+ * UKYC encryption schemas come from the idOS enclave and idOS relay hosts.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
@@ -69,7 +71,10 @@ export const kycServiceInit: MessengerClientInitFunction<
     fetch,
     messenger: controllerMessenger,
     baseUrl: getKycApiBaseUrl(),
-    fractalEncryptionBaseUrl: getFractalEncryptionBaseUrl(),
+    idosEnclaveBaseUrl: getIdosUrlForEnvironment(
+      AppConstants.IDOS_ENCLAVE_URL,
+    ),
+    idosRelayBaseUrl: getIdosUrlForEnvironment(AppConstants.IDOS_RELAY_URL),
   });
 
   return { controller };
