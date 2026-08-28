@@ -171,6 +171,28 @@ class NetworkManager {
   }
 
   /**
+   * Some lists are virtualized and require scrolling
+   *
+   * @param symbol - Token symbol to scroll to.
+   */
+  async scrollToToken(symbol: string): Promise<void> {
+    const container = Matchers.scrollContainer(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+    try {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'down',
+        scrollAmount: 50,
+      });
+    } catch {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'up',
+        scrollAmount: 50,
+      });
+    }
+  }
+
+  /**
    * Check that a token row is absent from the hierarchy.
    *
    * @param symbol - Token symbol rendered on the asset row.
