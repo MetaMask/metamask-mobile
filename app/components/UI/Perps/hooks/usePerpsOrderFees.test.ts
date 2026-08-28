@@ -223,6 +223,67 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBe(45); // protocol + metamask
     });
 
+    it('routes TWAP fee quotes to the selected provider', async () => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'twap',
+            amount: '1000',
+            symbol: 'BTC',
+            providerId: 'hyperliquid',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'twap',
+        isMaker: false,
+        amount: '1000',
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0);
+    });
+
+    it('uses controller default routing for strategy fees without a provider route', async () => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'twap',
+            amount: '1000',
+            symbol: 'BTC',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'twap',
+        isMaker: false,
+        amount: '1000',
+        symbol: 'BTC',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0);
+    });
+
     it('derives total fees from protocol and MetaMask rates when provider fee amount is stale', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.0005,

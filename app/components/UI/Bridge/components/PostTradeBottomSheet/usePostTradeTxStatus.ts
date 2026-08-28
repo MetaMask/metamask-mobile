@@ -1,8 +1,7 @@
 import { useSelector } from 'react-redux';
 import {
   formatChainIdToCaip,
-  isSolanaChainId,
-  isStellarChainId,
+  isNonEvmChainId,
   StatusTypes,
 } from '@metamask/bridge-controller';
 import {
@@ -90,12 +89,12 @@ export const usePostTradeTxStatus = ({
     ? quote.srcChainId !== quote.destChainId
     : false;
   const isBridgeTx = isBridge || isCrossChainQuote;
-  // Same-chain Solana swaps never terminalize in `BridgeStatusController`, so
-  // resolve them from `MultichainTransactionsController` instead
+  // Same-chain non-EVM swaps are not reliably terminalized by
+  // `BridgeStatusController` or `TransactionController` (Tron is polled in
+  // Core, but that poll often never reaches COMPLETE), so resolve them from
+  // `MultichainTransactionsController` instead.
   const shouldResolveFromMultichain = Boolean(
-    !isBridgeTx &&
-      quote &&
-      (isSolanaChainId(quote.srcChainId) || isStellarChainId(quote.srcChainId)),
+    !isBridgeTx && quote && isNonEvmChainId(quote.srcChainId),
   );
 
   const multichainStatus = useSelector((state: RootState) =>

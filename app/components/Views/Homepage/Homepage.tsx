@@ -33,8 +33,8 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import EarnSection from './Sections/EarnSection';
 import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { HomepageEarnSection } from './Sections/EarnSection';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -170,10 +170,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               />
             )}
             {isEarnSectionEnabled && (
-              <EarnSection
+              <HomepageEarnSection
                 ref={earnSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
                 totalSectionsLoaded={totalSectionsLoaded}
+                showDividers
               />
             )}
             <PredictionsSection

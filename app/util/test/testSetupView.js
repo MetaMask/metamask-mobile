@@ -828,6 +828,8 @@ jest.mock('../../components/Base/RemoteImage', () => {
 });
 
 // Mock MMDS BottomSheet so open/close callbacks run synchronously in view tests.
+// toast() throws unless <Toaster /> is mounted; view tests do not mount App's
+// Toaster, so stub the imperative API (same package is already mocked here).
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
@@ -887,9 +889,65 @@ jest.mock('@metamask/design-system-react-native', () => {
     accessibilityLabel: PropTypes.string,
   };
 
+  // QuickBuyRoot (and similar sheets) register onOpenDialog after mount and
+  // keep a skeleton until that callback fires. Invoke it synchronously so
+  // content is reachable without Reanimated sheet animations.
+  const BottomSheetDialog = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenDialog: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseDialog: (callback) => {
+          onClose?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-dialog-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheetDialog.displayName = 'BottomSheetDialog';
+  BottomSheetDialog.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
   return {
     ...actual,
     BottomSheet,
+    BottomSheetDialog,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
