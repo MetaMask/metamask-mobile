@@ -276,6 +276,9 @@ jest.mock('../../app/core/Engine', () => {
         // react-query layers run for real in component-view tests.
         getProviders: jest.fn().mockResolvedValue({ providers: [] }),
         getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getPaymentMethodsForContext: jest
+          .fn()
+          .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
@@ -353,6 +356,10 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
+      },
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
       PredictNextController: {},
       PredictController: {
@@ -519,6 +526,9 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedPaymentToken: jest.fn(),
         setPerpsMode: jest.fn(),
         setProLayoutPreferences: jest.fn(),
+        setSelectedOrderType: jest.fn(),
+        setOrderBookPreferences: jest.fn(),
+        saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),

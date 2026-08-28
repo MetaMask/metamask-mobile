@@ -13,6 +13,8 @@ const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
+const mockSetOrderBookPosition = jest.fn();
+let mockOrderBookPosition: 'left' | 'right' = 'right';
 
 jest.mock('../../../../../../util/haptics');
 
@@ -24,6 +26,23 @@ jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: (symbol: string) => ({
     savedGrouping: mockSavedGroupingBySymbol[symbol],
     saveGrouping: mockSaveGrouping,
+  }),
+}));
+
+// Persistence through to `setProLayoutPreferences` is covered by
+// usePerpsProOrderBookPosition.test.ts; here only the panel wiring matters.
+jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
+  usePerpsProOrderBookPosition: () => ({
+    orderBookPosition: mockOrderBookPosition,
+    setOrderBookPosition: mockSetOrderBookPosition,
+  }),
+}));
+
+const mockSetOrderBookPreferences = jest.fn();
+jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: mockSetOrderBookPreferences,
   }),
 }));
 
@@ -118,6 +137,7 @@ describe('PerpsProOrderBookPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderBookPosition = 'right';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -348,6 +368,171 @@ describe('PerpsProOrderBookPanel', () => {
     fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
 
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
+
+  it('persists the chosen order book side on save', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+
+    expect(mockSetOrderBookPosition).toHaveBeenCalledWith('right');
+  });
+
+  it('leaves the order book side untouched when the sheet is dismissed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-close`));
+
+    expect(mockSetOrderBookPosition).not.toHaveBeenCalled();
+  });
+
+  it('seeds the sheet with the persisted order book side', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(getByTestId(`${testID}-config-sheet-layout-right`)).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+    expect(getByTestId(`${testID}-config-sheet-layout-left`)).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
+  });
+
+  it('mirrors the column headers when the book is pinned left', () => {
+    mockOrderBookPosition = 'left';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    // Value leads and price trails, mirroring the ladder rows below.
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-value`,
+      `${testID}-column-header-price`,
+    ]);
+  });
+
+  it('keeps the default column header order when the book is pinned right', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-price`,
+      `${testID}-column-header-value`,
+    ]);
+  });
+
+  // Header order and row order come from separate derivations of the same
+  // condition, so the ladder itself needs its own assertions.
+  const getLadderRowOrder = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) =>
+    within(view.getByTestId(rowTestID))
+      .getAllByTestId(/-(price|value)$/)
+      .map((cell) => cell.props.testID);
+
+  const getDepthBarAnchor = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) => {
+    const { left, right } = StyleSheet.flatten(
+      view.getByTestId(`${rowTestID}-depth-bar`).props.style,
+    );
+
+    return { left, right };
+  };
+
+  const renderLadder = (position: 'left' | 'right') => {
+    mockOrderBookPosition = position;
+
+    return renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+  };
+
+  // Row order and depth-bar anchor are separate expressions, so they get
+  // separate cases — one regressing must not hide behind the other passing.
+  it('mirrors the ladder row columns when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    // Value leads and price trails on both halves of the ladder.
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-value`,
+      `${testID}-ask-row-0-price`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-value`,
+      `${testID}-bid-row-0-price`,
+    ]);
+  });
+
+  it('keeps the default ladder row columns when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-price`,
+      `${testID}-ask-row-0-value`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-price`,
+      `${testID}-bid-row-0-value`,
+    ]);
+  });
+
+  it('grows the depth bars from the left edge when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+  });
+
+  it('grows the depth bars from the right edge when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {
