@@ -1775,8 +1775,13 @@ describe('useAutomaticTransactionPayToken', () => {
         shouldSelect: false,
       });
       useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [] as AssetType[],
-        hasTokens: false,
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+          },
+        ] as AssetType[],
+        hasTokens: true,
       });
 
       runHook();

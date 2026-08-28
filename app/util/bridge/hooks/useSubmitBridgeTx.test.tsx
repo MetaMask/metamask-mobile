@@ -108,14 +108,10 @@ const expectedDefaultQuotesReceivedContext = expect.objectContaining({
 
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    numpad = inactiveABTestResult,
-    tokenSelector = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
     ctaButtonColor = inactiveABTestResult,
     chainValueOrder = inactiveABTestResult,
   }: {
-    numpad?: MockABTestResult;
-    tokenSelector?: MockABTestResult;
     ambientColor?: MockABTestResult;
     ctaButtonColor?: MockABTestResult;
     chainValueOrder?: MockABTestResult;
@@ -124,8 +120,6 @@ describe('useSubmitBridgeTx', () => {
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(numpad)
-      .mockReturnValueOnce(tokenSelector)
       .mockReturnValueOnce(ambientColor)
       .mockReturnValueOnce(ctaButtonColor)
       .mockReturnValueOnce(chainValueOrder);
@@ -235,10 +229,9 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
-
     // Re-render with an active assignment to verify submitTx forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -533,10 +526,9 @@ describe('useSubmitBridgeTx', () => {
       quotesReceivedContext: expectedDefaultQuotesReceivedContext,
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
-
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
