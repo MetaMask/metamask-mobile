@@ -98,14 +98,11 @@ export default class Assertions {
    * mounted but scrolled off screen.
    */
   static async expectElementToNotExist(
-    elem:
-      | AppiumElement
-      | Promise<AppiumElement>
-      | (() => AppiumElement | Promise<AppiumElement>),
+    elem: EncapsulatedElementType | (() => EncapsulatedElementType),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return AppiumAssertions.expectElementToNotExist(resolved, options);
+    return PlaywrightAssertions.expectElementToNotExist(resolved, options);
   }
 
   /**

@@ -216,7 +216,7 @@ export default class PlaywrightAssertions {
    * isDisplayed=false, so absence from the viewport does not prove removal.
    */
   static async expectElementToNotExist(
-    targetElement: AppiumElement | Promise<AppiumElement>,
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const el = await targetElement;
