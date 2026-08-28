@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.8.3]
 
+### Fixed
+
+- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
+
 ## [8.8.2]
 
 ### Fixed
