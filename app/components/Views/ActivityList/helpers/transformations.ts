@@ -15,7 +15,11 @@ import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
-import { type ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  type ActivityListItem,
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { normalizeActivityItemTokenDecimals } from '../../../../util/activity-adapters/adapters/normalize-token-decimals';
 import { equalsIgnoreCase } from '../../../../util/string';
@@ -154,11 +158,14 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
+    const activity = {
+      ...mapApiTransaction({ subjectAddress, transaction: tx }),
+      raw: { type: 'apiEvmTransaction' as const, data: tx },
+    } as ActivityListItem;
     items.push(
-      normalizeActivityItemTokenDecimals({
-        ...mapApiTransaction({ subjectAddress, transaction: tx }),
-        raw: { type: 'apiEvmTransaction' as const, data: tx },
-      } as ActivityListItem),
+      normalizeActivityItemTokenDecimals(
+        classifyPooledStakingActivity(tx, activity),
+      ),
     );
   }
 
@@ -188,7 +195,7 @@ export function mapNonEvmTransactions(
 ): ActivityListItem[] {
   return transactions.map((transaction) => {
     const subjectAddress = getSubjectAddress?.(transaction);
-    const activity = {
+    const activity = classifyKeyringStakingActivity(transaction, {
       ...mapKeyringTransaction({
         transaction: {
           ...transaction,
@@ -197,7 +204,7 @@ export function mapNonEvmTransactions(
         subjectAddress,
       }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
-    } as ActivityListItem;
+    } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
     const quote = bridgeHistoryItem?.quote;
 

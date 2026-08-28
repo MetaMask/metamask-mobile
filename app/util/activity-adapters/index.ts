@@ -21,6 +21,10 @@ export {
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
 export { normalizeActivityItemTokenDecimals } from './adapters/normalize-token-decimals';
+export {
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from './adapters/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
