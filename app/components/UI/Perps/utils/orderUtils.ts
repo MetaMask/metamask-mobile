@@ -2,7 +2,6 @@ import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
   isTPSLOrder,
-  isTriggerOrderType,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -26,35 +25,6 @@ const SYNTHETIC_TP_ID_SUFFIX = '-synthetic-tp';
 const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
-
-export type OrderPlacementKind = 'immediate' | 'resting';
-
-/**
- * Identifies whether submitting an order creates an immediate fill or a
- * resting order. Trigger-market describes how the order executes after its
- * trigger fires; it still rests in the open-orders stream at placement time.
- *
- * @param orderType - Order type being submitted.
- * @returns The placement lifecycle for the order.
- */
-export const getOrderPlacementKind = (
-  orderType: OrderType | undefined,
-): OrderPlacementKind =>
-  orderType === undefined ||
-  (!isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType))
-    ? 'immediate'
-    : 'resting';
-
-/**
- * Selects the toast family for the placement lifecycle.
- *
- * @param orderType - Order type being submitted.
- * @returns The toast family whose confirmation copy matches placement.
- */
-export const getOrderManagementToastKey = (
-  orderType: OrderType | undefined,
-): 'market' | 'limit' =>
-  getOrderPlacementKind(orderType) === 'resting' ? 'limit' : 'market';
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.
@@ -111,7 +81,6 @@ export const isPriceOutsideDeviationBand = (
 };
 
 type OrderPriceLabelKey =
-  | 'perps.order.trigger_price'
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
 
@@ -122,26 +91,42 @@ type OrderPriceLabelKey =
 export const isTriggerOrder = (order: Order): boolean =>
   Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
 
+/**
+ * Resolves the execution price shown for an open order.
+ *
+ * Hyperliquid trigger-market orders carry a limit price as a slippage cap, but
+ * that cap is not a guaranteed execution price and must display as Market.
+ * Orders without a normalized `triggerOrderType` fall back to their detailed
+ * provider order type for backwards compatibility.
+ *
+ * @param order - Open order normalized by the Perps controller.
+ * @returns The display price and its localized label key.
+ */
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
 ): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
   const detailedOrderType = order.detailedOrderType ?? '';
   const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-  const isLimitOrder = Boolean(
-    order.orderType === 'limit' ||
-      normalizedDetailedOrderType.includes('limit'),
-  );
-  const validTriggerPrice = getValidTriggerPrice(order);
+  const isTrigger = isTriggerOrder(order);
+  const hasDetailedLimitExecution =
+    normalizedDetailedOrderType.includes('limit');
+  const hasDetailedMarketExecution =
+    normalizedDetailedOrderType.includes('market');
+  const isLimitOrder =
+    order.triggerOrderType !== undefined
+      ? isLimitExecutionOrderType(order.triggerOrderType)
+      : hasDetailedLimitExecution ||
+        (!hasDetailedMarketExecution && order.orderType === 'limit');
   const validOrderPrice = getValidOrderPrice(order);
 
-  if (isTriggerOrder(order) && validTriggerPrice !== null) {
+  if (isTrigger && !isLimitOrder) {
     return {
-      priceValue: validTriggerPrice,
-      labelKey: 'perps.order.trigger_price',
+      priceValue: null,
+      labelKey: 'perps.order.market_price',
     };
   }
 
-  if (isLimitOrder && validOrderPrice !== null) {
+  if (isLimitOrder) {
     return {
       priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',

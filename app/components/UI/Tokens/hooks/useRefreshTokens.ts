@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
-import type { AssetType } from '@metamask/assets-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -10,9 +9,7 @@ import Logger from '../../../../util/Logger';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { performEvmTokenRefresh } from '../util/tokenRefreshUtils';
-
-/** Homepage token list: native + ERC-20 / SPL fungibles (not NFT collections). */
-const REFRESH_ASSET_TYPES: AssetType[] = ['fungible'];
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 
 interface UseRefreshTokensOptions {
   /** EVM network configurations restricted to the chains that should be polled. */
@@ -69,7 +66,7 @@ export const useRefreshTokens = ({
         await AssetsController.getAssets(scopedAccounts, {
           forceUpdate: true,
           chainIds,
-          assetTypes: REFRESH_ASSET_TYPES,
+          assetTypes: FUNGIBLE_ASSET_TYPES,
         });
       } catch (error) {
         Logger.error(

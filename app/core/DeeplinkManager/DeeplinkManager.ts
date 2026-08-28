@@ -5,7 +5,7 @@ import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './handlers/legacy/handleDeeplink';
+import { handleDeeplink } from './handlers/handleDeeplink';
 import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';

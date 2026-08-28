@@ -75,6 +75,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -116,6 +118,7 @@ export enum TraceName {
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
   // Onboarding screen / Rive / navigation performance
   OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenFullyDisplayed = 'Onboarding Screen Fully Displayed',
   OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
   OnboardingRiveReady = 'Onboarding Rive Ready',
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
@@ -191,6 +194,7 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  PerpsLoadingSession = 'Perps Loading Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -334,6 +338,7 @@ export enum TraceOperation {
   AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
+  PerpsLoading = 'perps.loading',
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
@@ -515,6 +520,9 @@ export interface TraceRequest {
 
   /**
    * Override the start time of the trace.
+   * Must come from {@link getPerformanceTimestamp} so start and end share one
+   * clock. `Date.now()` mixed with the performance stamp used by `endTrace`
+   * can produce invalid durations that Sentry silently drops.
    */
   startTime?: number;
 
@@ -562,6 +570,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -663,6 +676,76 @@ export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
 ): TraceContext {
   return tracesByKey.get(getTraceKey(request))?.span;
+}
+
+function getBufferedStart(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+): BufferedTrace<TraceRequest> | undefined {
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (getTraceKey(bufferedTrace.request) !== traceKey) {
+      continue;
+    }
+
+    return bufferedTrace.type === 'start'
+      ? (bufferedTrace as BufferedTrace<TraceRequest>)
+      : undefined;
+  }
+  return undefined;
+}
+
+/** Write a measurement to an explicit pending trace, buffering until consent. */
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  const measurements = bufferedStart.measurements ?? [];
+  const existing = measurements.find(
+    (measurement) => measurement.name === name,
+  );
+  if (existing) {
+    existing.value = value;
+    existing.unit = unit;
+  } else {
+    measurements.push({ name, value, unit });
+  }
+  bufferedStart.measurements = measurements;
+}
+
+/** Attach attributes to an explicit pending trace, buffering until consent. */
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  bufferedStart.request.data = {
+    ...bufferedStart.request.data,
+    ...attributes,
+  };
 }
 
 /**
@@ -905,6 +988,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {
@@ -1099,6 +1190,7 @@ function startTrace(request: TraceRequest): TraceContext {
     pendingOnboardingMachineTimeByKey = new Map();
     onboardingAccountType = undefined;
     rememberOnboardingAccountType(request.tags);
+    rememberOnboardingAccountType(request.data);
   }
 
   if (getCachedConsent() !== true) {
@@ -1262,8 +1354,11 @@ function initSpan(_span: Span, request: TraceRequest) {
  * `timeOrigin + now` is only a few million (uptime ms) and gets misread as
  * "seconds since 1970" — Sentry then silently drops the transaction. Fall back
  * to `Date.now()` whenever the performance clock is not a plausible epoch ms.
+ *
+ * Callers that pass `startTime` into {@link trace} must use this function so
+ * start and end share one clock.
  */
-function getPerformanceTimestamp(): number {
+export function getPerformanceTimestamp(): number {
   const performanceMs = performance.timeOrigin + performance.now();
   // Any real epoch-ms timestamp for MetaMask is well above 1e11 (≈ 1973).
   if (!Number.isFinite(performanceMs) || performanceMs < 1e11) {
