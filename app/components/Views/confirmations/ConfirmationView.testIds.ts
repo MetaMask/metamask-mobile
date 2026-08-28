@@ -47,6 +47,8 @@ export const ConfirmationRowComponentIDs = {
   TOTAL: 'total',
   RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
+  TRANSACTION_FEE_ONRAMP: 'transaction-fee-onramp',
+  TRANSACTION_FEE_PROVIDER: 'transaction-fee-provider',
   AMOUNT: 'amount',
 } as const;
 

@@ -38,6 +38,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { resolveTransactionType } from '../../../utils/transaction';
+import { splitProviderFee } from './bridge-fee-row.utils';
 import {
   Text,
   TextVariant,
@@ -256,10 +257,17 @@ function FeesTooltip({
     return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
   }, [totals, formatFiat]);
 
-  const providerFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
-    [totals, formatFiat],
-  );
+  const { onRampFeeUsd, providerFeeUsd } = useMemo(() => {
+    const { onRampFee, remainingProviderFee } = splitProviderFee(
+      totals.fees.provider.usd,
+      totals.fees.providerFiat?.usd,
+    );
+
+    return {
+      onRampFeeUsd: onRampFee ? formatFiat(onRampFee) : undefined,
+      providerFeeUsd: formatFiat(remainingProviderFee),
+    };
+  }, [totals, formatFiat]);
 
   const metaMaskFeeUsd = useMemo(
     () => formatFiat(new BigNumber(totals.fees.metaMask.usd ?? 0)),
@@ -285,8 +293,29 @@ function FeesTooltip({
         <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.provider_fee')}
         </Text>
-        <Text color={TextColor.TextAlternative}>{providerFeeUsd}</Text>
+        <Text
+          color={TextColor.TextAlternative}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER}
+        >
+          {providerFeeUsd}
+        </Text>
       </Box>
+      {onRampFeeUsd ? (
+        <Box
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Text color={TextColor.TextAlternative}>
+            {strings('confirm.label.onramp_fee')}
+          </Text>
+          <Text
+            color={TextColor.TextAlternative}
+            testID={ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP}
+          >
+            {onRampFeeUsd}
+          </Text>
+        </Box>
+      ) : null}
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}

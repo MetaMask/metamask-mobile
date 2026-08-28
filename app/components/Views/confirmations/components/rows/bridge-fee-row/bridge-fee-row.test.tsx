@@ -22,6 +22,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -120,6 +121,95 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByText('$1')).toBeDefined();
+  });
+
+  it('splits positive on-ramp fee from the provider fee', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        providerFiat: { usd: '0.40' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals);
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('On-ramp fee')).toBeOnTheScreen();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+    ).toHaveTextContent('$0.40');
+    // The two rows still sum to the combined provider fee, so the itemised
+    // tooltip agrees with the single total on the first screen.
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+    ).toHaveTextContent('$0.60');
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE),
+    ).toHaveTextContent('$1.23');
+  });
+
+  it.each([undefined, '0'])(
+    'hides on-ramp row for providerFiat %p',
+    async (providerFiat) => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          provider: { usd: '1.00' },
+          ...(providerFiat === undefined
+            ? {}
+            : { providerFiat: { usd: providerFiat } }),
+          sourceNetwork: { estimate: { usd: '0.20' } },
+          targetNetwork: { usd: '0.03' },
+          metaMask: { usd: '0', fiat: '0' },
+        },
+      } as TransactionPayTotals);
+      const { getByTestId, queryByTestId, queryByText } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(queryByText('On-ramp fee')).toBeNull();
+      expect(
+        queryByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+      ).toBeNull();
+      // The whole provider fee stays on the provider row.
+      expect(
+        getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+      ).toHaveTextContent('$1');
+    },
+  );
+
+  it('does not render a negative provider fee when providerFiat is excessive', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        providerFiat: { usd: '2.00' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+        // Deliberately non-zero so the clamped provider fee is the only
+        // "$0" in the tooltip.
+        metaMask: { usd: '0.05', fiat: '0.05' },
+      },
+    } as TransactionPayTotals);
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_PROVIDER),
+    ).toHaveTextContent('$0');
+    // The on-ramp fee is capped at the combined provider fee rather than
+    // pushing the provider row negative.
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.TRANSACTION_FEE_ONRAMP),
+    ).toHaveTextContent('$1');
   });
 
   it('renders skeletons if quotes loading', async () => {
