@@ -18,19 +18,25 @@ import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
 interface EarnMoneyAccountRowProps {
   item: EarnMoneyAccountSearchItem;
   onPress: (item: EarnMoneyAccountSearchItem) => void;
+  isOnboardingRedirectNeeded: boolean;
   privacyMode?: boolean;
 }
 
 const EarnMoneyAccountRow = ({
   item,
   onPress,
+  isOnboardingRedirectNeeded,
   privacyMode = false,
 }: EarnMoneyAccountRowProps) => {
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
   const balanceText =
     item.balanceRaw === '0'
-      ? strings('earn_module.get_started')
+      ? strings(
+          isOnboardingRedirectNeeded
+            ? 'earn_module.get_started'
+            : 'money.asset_overview.cta.start_earning',
+        )
       : (item.balanceFiat ?? strings('earn_module.balance_unavailable'));
 
   const rateText =

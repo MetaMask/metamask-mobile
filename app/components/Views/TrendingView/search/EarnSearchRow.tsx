@@ -9,7 +9,8 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 
 const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
+    useMoneyNavigation();
   const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
     tokenDetailsSource: TokenDetailsSource.ExploreEarn,
   });
@@ -29,6 +30,7 @@ const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
     <EarnMoneyAccountRow
       item={item}
       onPress={handlePress}
+      isOnboardingRedirectNeeded={isOnboardingRedirectNeeded}
       privacyMode={privacyMode}
     />
   ) : (

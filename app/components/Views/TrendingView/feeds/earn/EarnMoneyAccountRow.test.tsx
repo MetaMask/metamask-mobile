@@ -28,7 +28,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByTestId, getByText, queryByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(getByTestId('earn-search-money-balance-skeleton')).toBeOnTheScreen();
@@ -49,7 +53,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByTestId, getByText, queryByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(getByTestId('earn-search-money-apy-skeleton')).toBeOnTheScreen();
@@ -57,7 +65,7 @@ describe('EarnMoneyAccountRow', () => {
     expect(queryByText(strings('earn_module.rate_unavailable'))).toBeNull();
   });
 
-  it('renders New and Get started for a zero balance', () => {
+  it('renders New Tag and Get started text for a zero balance if onboarding is needed', () => {
     const item = {
       kind: 'money-account',
       id: 'money-account',
@@ -68,11 +76,39 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByTestId, getByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(getByTestId('earn-search-money-new-tag')).toBeOnTheScreen();
     expect(getByText(strings('earn_module.get_started'))).toBeOnTheScreen();
+  });
+
+  it('renders Start earning for an onboarded zero-balance Money account', () => {
+    const item = {
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '0',
+      isBalanceLoading: false,
+      rateStatus: 'ready',
+      apyPercent: 4.2,
+    } satisfies EarnMoneyAccountSearchItem;
+
+    const { getByText, queryByText } = render(
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded={false}
+      />,
+    );
+
+    expect(
+      getByText(strings('money.asset_overview.cta.start_earning')),
+    ).toBeOnTheScreen();
+    expect(queryByText(strings('earn_module.get_started'))).toBeNull();
   });
 
   it('renders the formatted fiat balance for a non-zero balance', () => {
@@ -87,7 +123,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByText, queryByTestId } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(getByText('$12.00')).toBeOnTheScreen();
@@ -106,7 +146,12 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByTestId, queryByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} privacyMode />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+        privacyMode
+      />,
     );
 
     expect(getByTestId('earn-search-money-balance')).toHaveTextContent(
@@ -126,7 +171,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(
@@ -145,7 +194,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(
@@ -165,7 +218,11 @@ describe('EarnMoneyAccountRow', () => {
     } satisfies EarnMoneyAccountSearchItem;
 
     const { getByText } = render(
-      <EarnMoneyAccountRow item={item} onPress={jest.fn()} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={jest.fn()}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     expect(
@@ -186,7 +243,11 @@ describe('EarnMoneyAccountRow', () => {
     const onPress = jest.fn();
 
     const { getByTestId } = render(
-      <EarnMoneyAccountRow item={item} onPress={onPress} />,
+      <EarnMoneyAccountRow
+        item={item}
+        onPress={onPress}
+        isOnboardingRedirectNeeded
+      />,
     );
 
     fireEvent.press(getByTestId('earn-search-money-row'));

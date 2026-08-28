@@ -528,7 +528,7 @@ describe('EarnSectionListView', () => {
       screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.LIST_LOADING),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELTON),
+      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELETON),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),

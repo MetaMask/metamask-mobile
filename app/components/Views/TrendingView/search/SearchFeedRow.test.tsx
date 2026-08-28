@@ -37,6 +37,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(() => ({
     navigateToMoneyHome: jest.fn(),

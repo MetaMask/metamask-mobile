@@ -114,7 +114,7 @@ const MoneyProjection = ({
   if (isLoading) {
     return (
       <Box
-        testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELTON}
+        testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELETON}
         twClassName="px-4 py-3 gap-3"
       >
         <Skeleton height={40} width="100%" twClassName="rounded-lg" />
@@ -194,7 +194,8 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
+    useMoneyNavigation();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
     tokenDetailsSource: TokenDetailsSource.ExploreEarn,
@@ -277,13 +278,15 @@ const EarnSectionListView = () => {
   const handleDeposit = useCallback(
     async (token: MoneyDepositAsset) => {
       try {
+        const preferredPaymentToken = {
+          address: token.address,
+          chainId: token.chainId,
+        };
+
         const redirectedToOnboarding = redirectToOnboardingIfNeeded({
           postOnboardingRedirect: {
             type: MoneyPostOnboardingRedirectType.DEPOSIT,
-            preferredPaymentToken: {
-              address: token.address,
-              chainId: token.chainId,
-            },
+            preferredPaymentToken,
           },
         });
 
@@ -292,10 +295,7 @@ const EarnSectionListView = () => {
         }
 
         await initiateDeposit({
-          preferredPaymentToken: {
-            address: token.address,
-            chainId: token.chainId,
-          },
+          preferredPaymentToken,
         });
       } catch (error: unknown) {
         Logger.error(
@@ -365,10 +365,15 @@ const EarnSectionListView = () => {
 
     if (!isMoneyAccountVisible) {
       return (
-        <>
-          <EarnSectionListSubtitle />
-          {errorBanner}
-        </>
+        <Box>
+          <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
+            {strings('money.potential_earnings.title')}
+          </Text>
+          <Box twClassName="px-4 py-2">
+            <EarnSectionListSubtitle />
+            {errorBanner}
+          </Box>
+        </Box>
       );
     }
 
@@ -376,7 +381,7 @@ const EarnSectionListView = () => {
 
     return (
       <>
-        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-4">
+        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
           {strings('money.potential_earnings.title')}
         </Text>
         <MoneyProjection
@@ -389,9 +394,9 @@ const EarnSectionListView = () => {
         <EarnMoneyAccountRow
           item={moneyAccountItem}
           onPress={() => navigateToMoneyHome({ pop: false })}
+          isOnboardingRedirectNeeded={isOnboardingRedirectNeeded}
           privacyMode={privacyMode}
         />
-        {errorBanner}
         {visibleMoneyAssets.map((token, index) => (
           <PotentialEarningsTokenRow
             key={`${token.address}-${token.chainId}`}
@@ -406,6 +411,8 @@ const EarnSectionListView = () => {
             privacyMode={privacyMode}
           />
         ))}
+        {errorBanner}
+
         {moneyAssets.length > 5 && !isLoading && (
           <Box twClassName="px-4 py-3">
             <Button
@@ -444,6 +451,7 @@ const EarnSectionListView = () => {
     handleViewAllMoney,
     hasError,
     isLoading,
+    isOnboardingRedirectNeeded,
     isMoneyAccountVisible,
     isNoFeeToken,
     isRetrying,
@@ -458,7 +466,7 @@ const EarnSectionListView = () => {
 
   const listEmptyComponent = useMemo(
     () =>
-      isLoading ? (
+      isMoneyAccountVisible ? null : isLoading ? (
         <EarnSectionListSkeleton />
       ) : (
         <Box testID={EARN_SECTION_LIST_TEST_IDS.EMPTY} twClassName="flex-1">
@@ -467,7 +475,7 @@ const EarnSectionListView = () => {
           />
         </Box>
       ),
-    [isLoading],
+    [isMoneyAccountVisible, isLoading],
   );
 
   return (
