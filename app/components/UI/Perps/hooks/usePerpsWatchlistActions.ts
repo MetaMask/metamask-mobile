@@ -126,6 +126,10 @@ export const usePerpsWatchlistActions = (
             data: { symbol, source },
           },
         });
+
+        // The removed toast has already shown against optimistic state, so it
+        // has to be corrected once the controller reverts the star.
+        showToast(PerpsToastOptions.watchlist.removeError);
       }
     },
     [source, track, showToast, PerpsToastOptions],

@@ -48,6 +48,7 @@ const mockRemoved = jest.fn((symbol: string) => ({
   labelOptions: [{ label: `Removed ${symbol} from watchlist` }],
 }));
 const mockAddError = { variant: 'error', labelOptions: [] };
+const mockRemoveError = { variant: 'error', labelOptions: [] };
 const mockLimitReached = { variant: 'info', labelOptions: [] };
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
@@ -58,6 +59,7 @@ jest.mock('./usePerpsToasts', () => ({
         added: mockAdded,
         removed: mockRemoved,
         addError: mockAddError,
+        removeError: mockRemoveError,
         limitReached: mockLimitReached,
       },
     },
@@ -292,7 +294,7 @@ describe('usePerpsWatchlistActions', () => {
       expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
     });
 
-    it('calls Logger.error on failure without showing toast', async () => {
+    it('calls Logger.error and shows the error toast on failure', async () => {
       const testError = new Error('remove fail');
       mockToggleWatchlistMarket.mockImplementationOnce(() => {
         throw testError;
@@ -314,8 +316,10 @@ describe('usePerpsWatchlistActions', () => {
           }),
         }),
       );
-      // No toast on remove failure (intentional — no addError toast for removes)
-      expect(mockShowToast).not.toHaveBeenCalled();
+      // Previously no toast here, which held while the removed toast only fired
+      // after a successful write. It now shows optimistically, so the failure
+      // has to correct it rather than leave it contradicting the reverted star.
+      expect(mockShowToast).toHaveBeenCalledWith(mockRemoveError);
     });
   });
 });
