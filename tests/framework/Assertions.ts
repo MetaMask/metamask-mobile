@@ -54,7 +54,6 @@ export default class Assertions {
     const resolved = typeof elem === 'function' ? elem() : elem;
     return AppiumAssertions.expectElementToNotExist(resolved, options);
   }
-
   /**
    * Assert element is not visible with auto-retry
    */
