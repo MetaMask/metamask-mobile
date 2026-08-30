@@ -9,6 +9,7 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
+import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
@@ -101,6 +102,52 @@ export const LEVERAGE_SLIDER_CONFIG = {
  */
 export const MAX_PERPS_INPUT_DIGITS = 9;
 
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+const TWAP_DEFAULT_DURATION_MINUTES = 30;
+// Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
+// up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+
+/**
+ * Mobile-only TWAP input and copy configuration derived from the controller's
+ * executable Hyperliquid limits. Controller v13 caps duration at 1,440 minutes
+ * and exposes neither TWAP trigger price nor max price, so Mobile intentionally
+ * omits those venue-documented fields until Core owns executable contracts.
+ */
+export const PERPS_TWAP_UI_CONFIG = {
+  MinutesPerHour: MINUTES_PER_HOUR,
+  HoursPerDay: HOURS_PER_DAY,
+  MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+  MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  DefaultMinutes: String(TWAP_DEFAULT_DURATION_MINUTES),
+  MaximumDays: Math.floor(
+    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes /
+      (HOURS_PER_DAY * MINUTES_PER_HOUR),
+  ),
+  MaximumHours: HOURS_PER_DAY - 1,
+  MaximumMinutes: MINUTES_PER_HOUR - 1,
+  DurationRangeI18nValues: {
+    minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+    maxDurationHours:
+      HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes / MINUTES_PER_HOUR,
+  },
+  MinimumSizeI18nValues: {
+    minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  },
+  RandomizeI18nValues: {
+    randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
+  },
+} as const;
+
+/**
+ * Decimal places used when displaying how far a position's current price sits
+ * from its liquidation price, as a percentage. Whole-number rounding hid
+ * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
+ */
+export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
 /**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
@@ -174,6 +221,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   /** Delay between attempts. */
   RetryDelayMs: 1000,
 } as const;
+
+/** Extra capability requests after transient provider unavailability. */
+export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
+
+/** Initial delay for exponential capability-request retries. */
+export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
 
 /**
  * Development-only configuration for testing and debugging
@@ -347,4 +400,18 @@ export const PERPS_CONNECTION_SOURCE = {
   PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
   PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
   UNSPECIFIED: 'unspecified',
+} as const;
+
+/**
+ * Pro-mode layout defaults that intentionally differ from the shared controller
+ * defaults. Mobile shows the order-book column pinned right; Extension opens its
+ * slide-in panel closed on the left. Confirmed as a deliberate per-platform
+ * split, so mobile overrides rather than changing the shared default.
+ *
+ * Applied to fresh installs at controller init; migration 151 moves installs
+ * that were created before the split.
+ */
+export const MOBILE_PRO_LAYOUT_DEFAULTS = {
+  orderBookExpanded: true,
+  orderBookPosition: 'right',
 } as const;

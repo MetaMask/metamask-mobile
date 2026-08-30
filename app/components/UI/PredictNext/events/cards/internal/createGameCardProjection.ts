@@ -1,27 +1,21 @@
 import BigNumber from 'bignumber.js';
-import type {
-  PredictEvent,
-  PredictGame,
-  PredictMarket,
-  PredictOutcome,
-  PredictTeam,
-} from '../../../types';
+import type { PredictEvent, PredictGame, PredictTeam } from '../../../types';
 import {
   createGamePresentation,
+  findGameSelectionQuote,
   type GameSelection,
+  type GameSelectionQuote,
   type GameStatusLine,
 } from '../../game';
-import { formatAskPrice } from './formatAskPrice';
+import {
+  formatAskPrice,
+  getAskPricePercent,
+  parsePredictDecimal,
+} from '../../shared/formatting';
 import { formatMultiplier } from './formatMultiplier';
-import { getAskPricePercent } from './getAskPricePercent';
-import { parsePredictDecimal } from './parsePredictDecimal';
 
 export type { GameSelection };
-
-export interface GameCardQuote {
-  market: PredictMarket;
-  outcome: PredictOutcome;
-}
+export type GameCardQuote = GameSelectionQuote;
 
 export interface GameCardTeamProjection {
   team: PredictTeam;
@@ -40,26 +34,13 @@ export interface GameCardProjection {
   awayProbabilityPercent?: number;
 }
 
-const findQuote = (
-  event: PredictEvent,
-  selection: GameSelection,
-): GameCardQuote | undefined => {
-  const matches = event.markets.flatMap((market) =>
-    market.outcomes
-      .filter((outcome) => outcome.gameSelection === selection)
-      .map((outcome) => ({ market, outcome })),
-  );
-
-  return matches.length === 1 ? matches[0] : undefined;
-};
-
 const createTeamProjection = (
   event: PredictEvent,
   selection: GameSelection,
   abbreviation: string,
   team: PredictTeam,
 ): GameCardTeamProjection => {
-  const quote = findQuote(event, selection);
+  const quote = findGameSelectionQuote(event, selection);
   const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
 
   return {

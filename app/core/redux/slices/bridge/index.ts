@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { uniqBy } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
@@ -60,11 +60,13 @@ import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/is
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 import {
   DEFAULT_RECURRING_EVERY_VALUE,
   initialRecurringState,
   validateRecurringSchedule,
   type RecurringIntervalUnit,
+  type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
@@ -239,6 +241,12 @@ const slice = createSlice({
       state.recurring.everyUnit = action.payload;
       state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -273,6 +281,7 @@ const slice = createSlice({
       const sourceToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.sourceToken, sourceToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       state.sourceToken = sourceToken;
     },
@@ -280,6 +289,7 @@ const slice = createSlice({
       const destToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.destToken, destToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       // Update selectedDestChainId to match the destination token's chain ID
       state.destToken = destToken;
@@ -485,6 +495,11 @@ export const selectRecurringEveryUnit = createSelector(
 export const selectRecurringRepeatCount = createSelector(
   selectRecurring,
   (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
 );
 
 export const selectRecurringScheduleValidation = createSelector(
@@ -871,11 +886,19 @@ export const selectControllerFields = createSelector(
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (requiredControllerFields, selectedQuoteRequestId) => {
+  (readOnlyRequiredControllerFields, selectedQuoteRequestId) => {
+    // This is a workaround to enable adding metadata to intent
+    // quotes during QuoteResponse migration.
+    const clonedQuotes = cloneDeep(readOnlyRequiredControllerFields.quotes);
+    const requiredControllerFields = {
+      ...readOnlyRequiredControllerFields,
+      quotes: clonedQuotes,
+    };
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -893,6 +916,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -908,6 +932,7 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 
@@ -1139,6 +1164,7 @@ export const {
   setRecurringEveryValue,
   setRecurringRepeatCount,
   setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,

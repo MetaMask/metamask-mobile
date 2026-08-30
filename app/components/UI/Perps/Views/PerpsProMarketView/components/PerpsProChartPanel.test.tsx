@@ -107,6 +107,7 @@ const mockPerpsServiceInterruptionBanner = ({
   testID?: string;
 }) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
+const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
@@ -123,6 +124,10 @@ jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
+}));
+
+jest.mock('../../../hooks/stream/usePerpsLiveOrders', () => ({
+  usePerpsLiveOrders: (params: unknown) => mockUsePerpsLiveOrders(params),
 }));
 
 jest.mock('../../../hooks/useHasExistingPosition', () => ({
@@ -223,6 +228,10 @@ describe('PerpsProChartPanel', () => {
       hasHistoricalData: true,
       fetchMoreHistory: mockFetchMoreHistory,
     });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
     mockUseHasExistingPosition.mockReturnValue({
       existingPosition: null,
     });
@@ -237,6 +246,89 @@ describe('PerpsProChartPanel', () => {
       isChartExpanded: true,
       setChartExpanded: mockSetChartExpanded,
     });
+  });
+
+  it('passes resting BTC limit orders to the Advanced Chart', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    renderChartPanel();
+
+    expect(mockPerpsAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tpslLines: expect.objectContaining({
+          limitOrders: [{ id: 'btc-limit', price: '50000', side: 'buy' }],
+        }),
+      }),
+    );
+  });
+
+  it('omits limitOrders on the Advanced Chart when live orders are empty', () => {
+    renderChartPanel();
+
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBeUndefined();
+  });
+
+  it('keeps the same limitOrders array when only currentPrice changes', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    const view = renderChartPanel({ currentPrice: 50500 });
+    const initialLimitOrders =
+      getLastAdvancedChartProps().tpslLines?.limitOrders;
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={51000}
+      />,
+    );
+
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBe(
+      initialLimitOrders,
+    );
   });
 
   it('renders the Advanced Chart path when its feature flag is enabled', () => {
