@@ -192,6 +192,7 @@ describe('AccountList', () => {
     const notificationAccountListProps: NotificationAccountListProps = {
       shouldDisableSwitches: false,
       isAnyAccountUpdating: false,
+      accountSettingsError: null,
       refetchAccountSettings: mockRefetchAccountSettings,
       isAccountLoading: jest
         .fn()

@@ -62,7 +62,6 @@ const WalletActivitySectionContent = ({
   ListHeaderComponent,
 }: ListSectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { updatePreferencesSection } = useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -72,20 +71,13 @@ const WalletActivitySectionContent = ({
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
-  // Flip both channels in one write. The updater form is required:
-  // `toggleAllAccounts` just rewrote the accounts, so building the section
-  // from this render's preferences would PUT the pre-toggle accounts array
-  // and re-enable every account.
+  // Account subscriptions live in the Trigger API, so toggling every account
+  // is a `toggleAllAccounts` call and nothing else — there are no
+  // wallet-activity channel toggles left to flip.
   const handleToggleAllAccounts = useCallback(async () => {
     const nextEnabled = !hasEnabledAccount;
 
     await toggleAllAccounts();
-
-    await updatePreferencesSection('walletActivity', (walletActivity) => ({
-      ...walletActivity,
-      pushNotificationsEnabled: nextEnabled,
-      inAppNotificationsEnabled: nextEnabled,
-    }));
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
@@ -96,13 +88,7 @@ const WalletActivitySectionContent = ({
         })
         .build(),
     );
-  }, [
-    hasEnabledAccount,
-    toggleAllAccounts,
-    updatePreferencesSection,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [hasEnabledAccount, toggleAllAccounts, trackEvent, createEventBuilder]);
 
   const accountsListHeader = useMemo(
     () => (
@@ -155,6 +141,11 @@ const WalletActivitySectionContent = ({
             >
               {strings('app_settings.notifications_opts.select_accounts_desc')}
             </Text>
+            {notificationAccountListProps.accountSettingsError ? (
+              <Text color={TextColor.ErrorDefault} variant={TextVariant.BodySm}>
+                {strings('app_settings.notifications_opts.accounts_load_error')}
+              </Text>
+            ) : null}
           </View>
         </View>
       </View>
@@ -166,6 +157,7 @@ const WalletActivitySectionContent = ({
       hasEnabledAccount,
       hasNotificationAccounts,
       isUpdatingAllAccounts,
+      notificationAccountListProps.accountSettingsError,
       styles,
     ],
   );
@@ -320,11 +312,14 @@ export const NotificationSettingsSectionContent = ({
     onPersist: persistInApp,
   });
 
-  // Same rule as Trading Signals: dependent UI (accounts, thresholds, …) is
-  // greyed out when neither channel can deliver notifications. `disabled` also
-  // covers the gate sheet while the master toggle is still off.
+  // Wallet-activity has no channel toggles: its per-account subscriptions in
+  // the Trigger API are the whole settings surface. Every other section keeps
+  // the Trading Signals rule — dependent UI (thresholds, …) is greyed out when
+  // neither channel can deliver notifications. `disabled` also covers the gate
+  // sheet while the master toggle is still off.
+  const showChannelToggles = type !== 'walletActivity';
   const isSectionContentDisabled =
-    Boolean(disabled) || (!push.value && !inApp.value);
+    Boolean(disabled) || (showChannelToggles && !push.value && !inApp.value);
 
   const listHeader = useMemo(
     () => (
@@ -345,60 +340,65 @@ export const NotificationSettingsSectionContent = ({
           </View>
         ) : null}
 
-        <View style={styles.switchElement}>
-          <Text
-            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-          >
-            {strings('app_settings.notifications_opts.push_recommended')}
-          </Text>
-          <Switch
-            value={push.value}
-            onValueChange={push.onValueChange}
-            disabled={disabled}
-            trackColor={{
-              true: theme.colors.primary.default,
-              false: theme.colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={theme.colors.border.muted}
-            testID={
-              NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
-            }
-          />
-        </View>
+        {showChannelToggles ? (
+          <>
+            <View style={styles.switchElement}>
+              <Text
+                color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('app_settings.notifications_opts.push_recommended')}
+              </Text>
+              <Switch
+                value={push.value}
+                onValueChange={push.onValueChange}
+                disabled={disabled}
+                trackColor={{
+                  true: theme.colors.primary.default,
+                  false: theme.colors.border.muted,
+                }}
+                thumbColor={theme.brandColors.white}
+                style={styles.switch}
+                ios_backgroundColor={theme.colors.border.muted}
+                testID={
+                  NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
+                }
+              />
+            </View>
 
-        <View style={styles.switchElement}>
-          <Text
-            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-          >
-            {strings('app_settings.notifications_opts.in_app')}
-          </Text>
-          <Switch
-            value={inApp.value}
-            onValueChange={inApp.onValueChange}
-            disabled={disabled}
-            trackColor={{
-              true: theme.colors.primary.default,
-              false: theme.colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={theme.colors.border.muted}
-            testID={
-              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
-            }
-          />
-        </View>
+            <View style={styles.switchElement}>
+              <Text
+                color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('app_settings.notifications_opts.in_app')}
+              </Text>
+              <Switch
+                value={inApp.value}
+                onValueChange={inApp.onValueChange}
+                disabled={disabled}
+                trackColor={{
+                  true: theme.colors.primary.default,
+                  false: theme.colors.border.muted,
+                }}
+                thumbColor={theme.brandColors.white}
+                style={styles.switch}
+                ios_backgroundColor={theme.colors.border.muted}
+                testID={
+                  NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
+                }
+              />
+            </View>
+          </>
+        ) : null}
       </View>
     ),
     [
       description,
       disabled,
+      showChannelToggles,
       inApp.onValueChange,
       inApp.value,
       push.onValueChange,

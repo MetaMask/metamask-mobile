@@ -4172,6 +4172,7 @@
       "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
       "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
+      "accounts_load_error": "We couldn't load your account notification settings. Try again later.",
       "wallet_activity_title": "Wallet activity",
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",

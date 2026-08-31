@@ -38,7 +38,9 @@ import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
-  status: string;
+  /** Channels summary shown under the title. Omitted for wallet activity,
+   * whose per-account settings have no channel toggles to summarize. */
+  status?: string;
   iconName: IconName;
   onPress: () => void;
 }
@@ -67,9 +69,11 @@ const NotificationRow = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {status}
-          </Text>
+          {status ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {status}
+            </Text>
+          ) : null}
         </Box>
       </Box>
       <Icon name={IconName.ArrowRight} color={IconColor.IconAlternative} />
@@ -133,7 +137,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
               title={strings(
                 'app_settings.notifications_opts.wallet_activity_title',
               )}
-              status={getStatusText(preferences?.walletActivity)}
               iconName={IconName.Clock}
               onPress={() =>
                 navigateToSection(

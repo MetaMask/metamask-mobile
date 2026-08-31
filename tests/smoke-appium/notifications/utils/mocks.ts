@@ -30,6 +30,7 @@ import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../../smoke/identity/utils/mocks';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 import { createLogger } from '../../../framework/logger';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
@@ -90,8 +91,12 @@ export function getMockFeatureAnnouncementItemId() {
  */
 export async function mockNotificationServices(server: Mockttp) {
   await mockAuthServices(server);
-  // Trigger Config
-  await new MockttpNotificationTriggerServer().setupServer(server);
+  // Trigger Config. Wallet-activity addresses come from the keyring and the
+  // per-address enabled bit from the Trigger API, so the fixture account must
+  // be reported as subscribed for wallet notifications to be fetched.
+  const triggerServer = new MockttpNotificationTriggerServer();
+  triggerServer.setNotificationConfig(DEFAULT_FIXTURE_ACCOUNT_CHECKSUM, true);
+  await triggerServer.setupServer(server);
 
   const contentfulUrlRegex =
     /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;
