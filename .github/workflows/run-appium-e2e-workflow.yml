@@ -117,7 +117,7 @@ jobs:
 
       - name: Fetch qa-stats timings fallback
         if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -137,7 +137,7 @@ jobs:
 
       - name: Select specs for this shard (timing bin-pack)
         id: select-specs
-        run: node .github/scripts/e2e-split-tags-shards.mjs
+        run: node .github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs
         env:
           PLATFORM: ${{ inputs.platform }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -474,7 +474,7 @@ jobs:
           if [[ -d ./previous-playwright-json ]]; then
             previous=./previous-playwright-json
           fi
-          node .github/scripts/e2e-split-tags-shards.mjs --write-shard-status \
+          node .github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs --write-shard-status \
             "${previous}" \
             "$report" \
             tests/test-reports/playwright-json/shard-status.json

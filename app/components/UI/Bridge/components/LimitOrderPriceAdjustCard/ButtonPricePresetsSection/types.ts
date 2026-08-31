@@ -17,11 +17,11 @@ export interface ButtonPricePresetsSectionProps {
    */
   pricePresets: number[];
   /**
-   * When true, the Custom slot is an unsigned percent input.
+   * When true, the Custom slot is a signed percent input matching the presets.
    */
   isCustomActive: boolean;
   /**
-   * Unsigned custom percent shown in the Custom input, e.g. "7".
+   * Unsigned custom percent, e.g. "7". Displayed as "+7%" or "-7%".
    */
   customValue: string;
   /**

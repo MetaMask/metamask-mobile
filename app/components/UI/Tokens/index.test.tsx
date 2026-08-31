@@ -20,40 +20,23 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
 // eslint-disable-next-line import-x/no-namespace
-import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
-// eslint-disable-next-line import-x/no-namespace
 import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
 // eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import-x/no-namespace
-import * as RefreshTokensModule from './util/refreshTokens';
-// eslint-disable-next-line import-x/no-namespace
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import-x/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-const mockUseMusdConversionEligibility = jest.fn(() => ({
-  isEligible: true,
-  isLoading: false,
-  geolocation: 'US',
-  blockedCountries: [],
-}));
-jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+
+const mockRefreshTokensForGroup = jest.fn().mockResolvedValue(undefined);
+jest.mock('./hooks/useRefreshTokens', () => ({
+  useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
 }));
 
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
-
-// Mock MusdConversionAssetListCta to prevent deep dependency chain issues
-jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <MockView testID="musd-conversion-cta" />,
-  };
-});
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -82,10 +65,6 @@ jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
  * @returns - Mocked components
  */
 const arrangeMockComponents = () => {
-  const mockMusdConversionAssetListCta = jest
-    .spyOn(MusdConversionAssetListCtaModule, 'default')
-    .mockImplementation(() => <View testID="musd-conversion-cta" />);
-
   const mockTokenListControlBar = jest
     .spyOn(TokenListControlBarModule, 'TokenListControlBar')
     .mockImplementation(
@@ -137,7 +116,6 @@ const arrangeMockComponents = () => {
     ));
 
   return {
-    mockMusdConversionAssetListCta,
     mockTokenListControlBar,
     mockTokensList,
   };
@@ -255,16 +233,12 @@ describe('Tokens', () => {
   });
 
   it('performs token refresh', async () => {
-    const mockRefreshTokens = jest
-      .spyOn(RefreshTokensModule, 'refreshTokens')
-      .mockResolvedValue();
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId('MOCK_TEST_REFRESH_BUTTON'));
 
-    // Wait for async refresh to complete
     await waitFor(() => {
-      expect(mockRefreshTokens).toHaveBeenCalled();
+      expect(mockRefreshTokensForGroup).toHaveBeenCalled();
     });
   });
 
@@ -463,13 +437,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD in main token list when Cash section is disabled', async () => {
-      mockUseMusdConversionEligibility.mockReturnValueOnce({
-        isEligible: false,
-        isLoading: false,
-        geolocation: 'US',
-        blockedCountries: [],
-      });
+    it('includes mUSD in main token list when Money Hub is disabled', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
@@ -496,60 +464,15 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
-      const stateWithMusdEnabled = clone(initialRootState);
+    it('excludes mUSD from token list when Money Hub is enabled', async () => {
+      const stateWithMoneyHubEnabled = clone(initialRootState);
       (
-        stateWithMusdEnabled as Record<string, unknown> &
+        stateWithMoneyHubEnabled as Record<string, unknown> &
           typeof initialRootState
       ).engine.backgroundState.RemoteFeatureFlagController = {
-        ...stateWithMusdEnabled.engine.backgroundState
+        ...stateWithMoneyHubEnabled.engine.backgroundState
           .RemoteFeatureFlagController,
         remoteFeatureFlags: {
-          earnMusdConversionFlowEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-      };
-
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
-        { address: '0xToken1', chainId: '0x1', isStaked: false },
-        {
-          address: MUSD_TOKEN_ADDRESS,
-          chainId: '0x1',
-          isStaked: false,
-        },
-      ]);
-
-      renderComponent(stateWithMusdEnabled, false, false);
-
-      await waitFor(() => {
-        expect(TokenList).toHaveBeenCalledWith(
-          expect.objectContaining({
-            tokenKeys: expect.arrayContaining([
-              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
-            ]),
-          }),
-          undefined,
-        );
-      });
-    });
-
-    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
-      const stateWithBothEnabled = clone(initialRootState);
-      (
-        stateWithBothEnabled as Record<string, unknown> &
-          typeof initialRootState
-      ).engine.backgroundState.RemoteFeatureFlagController = {
-        ...stateWithBothEnabled.engine.backgroundState
-          .RemoteFeatureFlagController,
-        remoteFeatureFlags: {
-          earnMusdConversionFlowEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
           earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
@@ -568,7 +491,7 @@ describe('Tokens', () => {
         },
       ]);
 
-      renderComponent(stateWithBothEnabled, false, false);
+      renderComponent(stateWithMoneyHubEnabled, false, false);
 
       await waitFor(() => {
         expect(TokenList).toHaveBeenCalledWith(
