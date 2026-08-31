@@ -518,6 +518,14 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
+  POSITIONS_PANEL_TAB_CHASE: 'perps-pro-market-positions-panel-tab-chase',
+  CHASE_SIDE_FILTER_BUTTON: 'perps-chase-side-filter-button',
+  CHASE_SIDE_FILTER_SHEET: 'perps-chase-side-filter',
+  CHASE_ACTIVE_FILTER: 'perps-chase-active-filter',
+  CHASE_HISTORY_FILTER: 'perps-chase-history-filter',
+  CHASE_FILLED_ONLY: 'perps-chase-filled-only',
+  CHASE_EMPTY_STATE: 'perps-chase-empty-state',
+  CHASE_FOREGROUND_WARNING: 'perps-chase-foreground-warning',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
@@ -552,6 +560,43 @@ export const getPerpsProPositionRowSelector = (symbol: string) =>
 
 export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
   `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;
+
+export const getPerpsProChaseRowSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-running-row-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR =
+  'perps-chase-visible-count';
+
+export const getPerpsProChaseSideFilterOptionSelector = (
+  side: 'long' | 'short' | 'all',
+) => `${PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET}-option-${side}`;
+
+export const getPerpsProChaseFormActiveCountSelector = (count: number) =>
+  `perps-pro-chase-active-count-${count}`;
+
+export const getPerpsProChaseStatusSelector = (
+  status: string,
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-status-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const getPerpsProChaseRepriceSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-reprice-observed-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const getPerpsProChaseTerminateSelector = (
+  status: string,
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) =>
+  `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
@@ -596,6 +641,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',
   PLACE_ORDER_BUTTON: 'perps-pro-order-form-place-order',
+  PLACE_ORDER_READY: 'perps-pro-order-form-place-order-ready',
   SUMMARY: 'perps-pro-order-form-summary',
   SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
   SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',
@@ -617,6 +663,12 @@ export const PerpsProOrderFormSelectorsIDs = {
   SCALE_PREVIEW_LIQUIDATION_VALUE:
     'perps-pro-order-form-scale-preview-liquidation-value',
   SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
+  CHASE_FORM: 'perps-pro-chase-order-form',
+  CHASE_ADVANCED_SETTINGS: 'perps-pro-chase-advanced-settings',
+  CHASE_MAX_DISTANCE_INPUT: 'perps-pro-chase-max-distance-field',
+  CHASE_MAX_DISTANCE_PREFIX: 'perps-pro-chase-max-distance-prefix',
+  CHASE_MAX_DISTANCE_UNIT: 'perps-pro-chase-max-distance-unit',
+  CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
 
 // ========================================
@@ -906,6 +958,7 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
   SCALE_OPTION: 'perps-order-type-scale',
+  CHASE_OPTION: 'perps-pro-order-type-chase',
   STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
   STOP_MARKET_OPTION: 'perps-order-type-stop-market',
   TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',

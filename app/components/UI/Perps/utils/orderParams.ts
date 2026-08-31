@@ -100,9 +100,10 @@ export interface BuildPerpsOrderParamsInput {
   effectivePrice: number;
   leverage: number;
   usdAmount?: string;
-  /** Effective max slippage (bps); limit-execution orders override to the fixed default. */
+  /** Effective max slippage (bps); Chase preserves it and limit orders use the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
+  chaseMaxDistanceBps?: number;
   /** Trigger price for stop/take placements; omitted for market and limit. */
   triggerPrice?: string;
   takeProfitPrice?: string;
@@ -126,7 +127,7 @@ export interface BuildPerpsOrderParamsInput {
  * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit-execution
  * orders use the fixed default slippage; TP/SL, limit price, trigger price, and
  * `reduceOnly` are only included when present. TP/SL are never attached to
- * reduce-only or trigger orders.
+ * reduce-only, trigger, or strategy orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -141,13 +142,14 @@ export const buildPerpsOrderParams = ({
   usdAmount,
   maxSlippageBps,
   limitPrice,
+  chaseMaxDistanceBps,
+  providerId,
   triggerPrice,
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
   twapDuration,
   twapRandomize,
-  providerId,
   isFullClose,
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => {
@@ -164,16 +166,23 @@ export const buildPerpsOrderParams = ({
     leverage,
     ...(usdAmount !== undefined ? { usdAmount } : {}),
     priceAtCalculation: effectivePrice,
-    ...(!isStrategyOrder
-      ? {
-          maxSlippageBps: isLimitExecutionOrderType(orderType)
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-            : maxSlippageBps,
-        }
-      : {}),
+    ...(orderType === 'chase'
+      ? { maxSlippageBps }
+      : !isStrategyOrder
+        ? {
+            maxSlippageBps: isLimitExecutionOrderType(orderType)
+              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+              : maxSlippageBps,
+          }
+        : {}),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
-    ...(isLimitExecutionOrderType(orderType) && limitPrice
+    ...(orderType === 'chase' && chaseMaxDistanceBps !== undefined
+      ? { chaseMaxDistanceBps }
+      : {}),
+    ...(isLimitExecutionOrderType(orderType) &&
+    orderType !== 'chase' &&
+    limitPrice
       ? { price: limitPrice }
       : {}),
     ...(isTriggerOrderType(orderType) && triggerPrice?.trim()

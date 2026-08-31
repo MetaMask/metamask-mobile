@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_ERROR_CODES,
@@ -61,6 +62,7 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
+let mockComplianceActionDuringRender: (() => void) | undefined;
 
 let mockIsEligible = true;
 
@@ -80,7 +82,8 @@ const mockOrderForm = {
     | 'stop_limit'
     | 'take_profit_limit'
     | 'take_profit_market'
-    | 'twap',
+    | 'twap'
+    | 'chase',
   amount: '100',
   leverage: 5,
   balancePercent: 10,
@@ -103,6 +106,9 @@ const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
 const mockSetMaxPossibleAmountOverride = jest.fn();
+const mockGetChaseOrders = jest.fn();
+let mockChaseOrders: { status: string }[] = [];
+const mockRefreshChaseCapability = jest.fn().mockResolvedValue(null);
 
 const mockContextValue = {
   orderForm: mockOrderForm,
@@ -164,6 +170,7 @@ let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
+let mockSelectedAddress = '0xaccount-a';
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
@@ -281,12 +288,15 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../../../../Compliance', () => ({
-  useComplianceGate: () => ({
-    gate: mockComplianceGate,
-    isBlocked: false,
-    isComplianceEnabled: false,
-    checkCompliance: jest.fn(),
-  }),
+  useComplianceGate: () => {
+    mockComplianceActionDuringRender?.();
+    return {
+      gate: mockComplianceGate,
+      isBlocked: false,
+      isComplianceEnabled: false,
+      checkCompliance: jest.fn(),
+    };
+  },
 }));
 
 jest.mock('../../../../hooks/stream', () => ({
@@ -328,6 +338,12 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/usePerpsChaseOrders', () => ({
+  usePerpsChaseOrders: () => ({
+    chaseOrders: mockChaseOrders,
+    getChaseOrders: mockGetChaseOrders,
+  }),
+}));
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
   useVipTier: () => 1,
 }));
@@ -338,11 +354,14 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: () => false,
+  useSelector: (selector: { isSelectedAccountSelector?: boolean }) =>
+    selector.isSelectedAccountSelector ? mockSelectedAddress : false,
 }));
 
 jest.mock('../../../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountAddress: jest.fn(),
+  selectSelectedInternalAccountAddress: Object.assign(() => undefined, {
+    isSelectedAccountSelector: true,
+  }),
 }));
 
 jest.mock('../../../../../../../util/haptics');
@@ -379,6 +398,12 @@ const renderProForm = (
   resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
   isTwapAvailabilityPending = false,
   scaleOptions: RenderProFormScaleOptions = {},
+  chaseGate: {
+    isEnabled?: boolean;
+    isPending?: boolean;
+    refresh?: () => Promise<'hyperliquid' | null>;
+    providerId?: PerpsProviderType;
+  } = {},
 ) => {
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
@@ -396,6 +421,13 @@ const renderProForm = (
       isScaleOrdersEnabled: scaleOptions.enabled ?? true,
       isScaleOrderSupportPending: scaleOptions.pending ?? false,
       checkScaleOrderSupport,
+      isChaseEnabled: chaseGate.isEnabled ?? true,
+      isChaseAvailabilityPending: chaseGate.isPending ?? false,
+      refreshChaseCapability: chaseGate.refresh ?? (async () => 'hyperliquid'),
+      chaseProviderId:
+        chaseGate.isEnabled === false
+          ? null
+          : (chaseGate.providerId ?? 'hyperliquid'),
     }),
   );
 };
@@ -419,6 +451,10 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
         checkTwapOrderSupport,
+        isChaseEnabled: false,
+        isChaseAvailabilityPending: false,
+        refreshChaseCapability: mockRefreshChaseCapability,
+        chaseProviderId: null,
         ...props,
       }),
     { initialProps },
@@ -440,6 +476,7 @@ describe('usePerpsProOrderForm', () => {
     mockContextValue.pendingReduceOnly = undefined;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
+    mockContextValue.orderForm = mockOrderForm;
     mockValidation.isValid = true;
     mockValidation.isValidating = false;
     mockValidation.errors = [];
@@ -459,6 +496,7 @@ describe('usePerpsProOrderForm', () => {
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
     mockSizeDecimals = 3;
+    mockSelectedAddress = '0xaccount-a';
     mockOrderValidationParams = undefined;
     mockValidateCalculatedMargin = false;
     mockContextValue.balanceForValidation = 500;
@@ -472,6 +510,7 @@ describe('usePerpsProOrderForm', () => {
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
+    mockComplianceActionDuringRender = undefined;
     mockCommitLimitPrice.mockImplementation((price?: string) => {
       mockOrderForm.limitPrice = price;
       mockContextValue.hasBlurredLimitPrice = true;
@@ -486,6 +525,8 @@ describe('usePerpsProOrderForm', () => {
     });
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
     mockExecuteOrder.mockResolvedValue({ success: true });
+    mockChaseOrders = [];
+    mockGetChaseOrders.mockResolvedValue([]);
   });
 
   describe('availableBalance', () => {
@@ -561,6 +602,28 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(mockOrderValidationParams?.providerId).toBe('myx');
+    });
+
+    it('routes Chase fees through its placement provider', () => {
+      mockOrderForm.type = 'chase';
+
+      renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {
+          providerId: 'myx',
+        },
+      );
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'chase',
+          providerId: 'myx',
+        }),
+      );
     });
   });
 
@@ -722,10 +785,12 @@ describe('usePerpsProOrderForm', () => {
 
     it('explains why the order is blocked when the live price is unavailable', () => {
       // Arrange
+      mockOrderForm.type = 'chase';
       mockLivePrice = '';
 
       // Act
       const { result } = renderProForm();
+      act(() => result.current.onChaseMaxDistanceChange('1'));
 
       // Assert
       expect(result.current.notices).toContainEqual({
@@ -733,7 +798,15 @@ describe('usePerpsProOrderForm', () => {
         variant: 'banner',
         message: strings('perps.pro_order_form.price_unavailable'),
       });
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.chaseReferencePrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
     });
 
     it('shows a failure message when market data loading fails', () => {
@@ -1017,6 +1090,10 @@ describe('usePerpsProOrderForm', () => {
           isScaleOrdersEnabled: true,
           isScaleOrderSupportPending: false,
           checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+          isChaseEnabled: false,
+          isChaseAvailabilityPending: false,
+          refreshChaseCapability: mockRefreshChaseCapability,
+          chaseProviderId: null,
         }),
       );
 
@@ -1051,6 +1128,10 @@ describe('usePerpsProOrderForm', () => {
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1097,6 +1178,10 @@ describe('usePerpsProOrderForm', () => {
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { providerId: 'hyperliquid' } },
       );
@@ -1137,6 +1222,10 @@ describe('usePerpsProOrderForm', () => {
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1163,6 +1252,10 @@ describe('usePerpsProOrderForm', () => {
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1202,6 +1295,10 @@ describe('usePerpsProOrderForm', () => {
             isScaleOrdersEnabled: true,
             isScaleOrderSupportPending: false,
             checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         {
           initialProps: {
@@ -1274,6 +1371,399 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('keeps a pending termination in the visible Chase placement limit', () => {
+      mockOrderForm.type = 'chase';
+      mockChaseOrders = [
+        ...Array.from({ length: 4 }, () => ({ status: 'active' })),
+        { status: 'termination_pending' },
+      ];
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('blocks a Chase submit when refreshed active and pending sessions reach the venue limit', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockResolvedValueOnce(
+        Array.from({ length: 5 }, (_, index) => ({
+          handle: `chase-${index}`,
+          status: index === 4 ? 'termination_pending' : 'active',
+        })),
+      );
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('abandons Chase when compliance resolves after fallback', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+
+      mockContextValue.orderForm = { ...mockOrderForm, type: 'market' };
+      form.rerender({});
+      await act(async () => releaseCompliance?.());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('abandons a captured compliance action during render after draft and account change', async () => {
+      let capturedAction: (() => Promise<unknown>) | undefined;
+      mockComplianceGate.mockImplementationOnce((action) => {
+        capturedAction = action;
+        return Promise.resolve();
+      });
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        type: 'market',
+        amount: '200',
+      };
+      mockSelectedAddress = '0xaccount-b';
+      let capturedResult: Promise<unknown> | undefined;
+      mockComplianceActionDuringRender = () => {
+        capturedResult = capturedAction?.();
+        mockComplianceActionDuringRender = undefined;
+      };
+
+      form.rerender({});
+      await act(async () => capturedResult);
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('places Chase without an optional max distance', async () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      expect(result.current.chaseMaxDistance).toBe('');
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.not.objectContaining({ chaseMaxDistanceBps: expect.anything() }),
+      );
+    });
+
+    it('fails closed before controller placement when Chase is disabled', async () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { isEnabled: false },
+      );
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('re-checks capability and fails closed before controller placement', async () => {
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue(null);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('fails closed with feedback when the Chase session refresh fails', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockRejectedValueOnce(new Error('temporary failure'));
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('abandons Chase submit when the distance unit changes during capability refresh', async () => {
+      let resolveRefresh:
+        | ((providerId: 'hyperliquid' | null) => void)
+        | undefined;
+      const refresh = jest.fn(
+        () =>
+          new Promise<'hyperliquid' | null>((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+      await act(async () => {
+        resolveRefresh?.('hyperliquid');
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      });
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('abandons Chase submit when the provider changes after capability refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      const chaseGate: {
+        refresh: () => Promise<'hyperliquid'>;
+        providerId: PerpsProviderType;
+      } = {
+        refresh: jest.fn().mockResolvedValue('hyperliquid'),
+        providerId: 'hyperliquid',
+      };
+      mockOrderForm.type = 'chase';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => {
+        expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      });
+      chaseGate.providerId = 'myx';
+      rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('abandons Chase submit when the visible draft changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => {
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+      });
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        direction: 'short',
+        amount: '200',
+      };
+      rerender({});
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+        result.current.onChaseMaxDistanceChange('25');
+      });
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('abandons Chase submit when the selected account changes', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockSelectedAddress = '0xaccount-b';
+      form.rerender({});
+      await act(async () => resolveOrders?.([]));
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('uses the latest reference price for Chase USD distance', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => form.result.current.onChaseMaxDistanceChange('90'));
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockLivePrice = '45000';
+      form.rerender({});
+      await act(async () => resolveOrders?.([]));
+
+      await waitFor(() =>
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ chaseMaxDistanceBps: 20 }),
+        ),
+      );
+    });
+
+    it('clears the Chase draft after capability resolves unsupported', () => {
+      mockOrderForm.type = 'chase';
+      const chaseGate = { isEnabled: true, isPending: false };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      act(() => form.result.current.onChaseMaxDistanceChange('25'));
+      expect(form.result.current.chaseMaxDistance).toBe('25');
+
+      chaseGate.isEnabled = false;
+      form.rerender({});
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(form.result.current.chaseMaxDistance).toBe('');
+      expect(form.result.current.chaseMaxDistanceUnit).toBe('usd');
+    });
+
+    it('keeps a selected Chase draft while capability discovery is pending', () => {
+      mockOrderForm.type = 'chase';
+
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { isEnabled: false, isPending: true },
+      );
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('keeps haptics silent for a duplicate submit', async () => {
@@ -1876,6 +2366,18 @@ describe('usePerpsProOrderForm', () => {
       expect(confirmed).toHaveBeenCalled();
     });
 
+    it('shows resting-order confirmation when Chase starts', () => {
+      mockOrderForm.type = 'chase';
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(limitConfirmed).toHaveBeenCalled();
+      expect(confirmed).not.toHaveBeenCalled();
+    });
+
     it('shows the creation-failed toast on error', () => {
       // Arrange
       renderProForm();
@@ -2219,6 +2721,23 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
       expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+    });
+
+    it('clears hidden price and TP/SL drafts when Chase is selected', () => {
+      mockOrderForm.limitPrice = '90000';
+      mockContextValue.triggerPrice = '91000';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onOrderTypeSelect('chase');
+      });
+
+      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
     });
 
     it('submits one controller Scale request with canonical strategy parameters', async () => {
@@ -4160,6 +4679,15 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('summary slippage', () => {
+    it('hides the slippage row for Chase orders', () => {
+      mockOrderForm.type = 'chase';
+      mockEstimatedSlippageBps = 50;
+      const { result } = renderProForm();
+
+      expect(result.current.summary.slippage).toBeUndefined();
+      expect(result.current.summary.onSlippagePress).toBeUndefined();
+    });
+
     it('hides the slippage row for limit orders', () => {
       // Arrange: limit orders force DefaultLimitSlippageBps in buildPerpsOrderParams
       // so the user-configured cap has no effect; the row is hidden to avoid misrepresentation.
@@ -4867,6 +5395,90 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    });
+
+    it.each(['1abc', '1.2.3'])(
+      'rejects malformed Chase max distance input %s',
+      (value) => {
+        mockOrderForm.type = 'chase';
+        const { result } = renderProForm();
+
+        act(() => result.current.onChaseMaxDistanceChange(value));
+
+        expect(result.current.chaseMaxDistance).toBe('');
+        expect(
+          result.current.notices.find(
+            (notice) => notice.id === 'chase-max-distance',
+          ),
+        ).toBeUndefined();
+      },
+    );
+
+    it('normalizes Chase max distance and enforces the shared digit cap', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => result.current.onChaseMaxDistanceChange('0012,5'));
+      expect(result.current.chaseMaxDistance).toBe('12.5');
+
+      act(() => result.current.onChaseMaxDistanceChange('1234567890'));
+      expect(result.current.chaseMaxDistance).toBe('12.5');
+    });
+
+    it('clears Chase max distance only when its unit changes', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceChange('25');
+        result.current.onChaseMaxDistanceUnitChange('usd');
+      });
+      expect(result.current.chaseMaxDistance).toBe('25');
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      expect(result.current.chaseMaxDistanceUnit).toBe('percent');
+      expect(result.current.chaseMaxDistance).toBe('');
+    });
+
+    it('accepts a Chase percentage below the basis-point divisor', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+        result.current.onChaseMaxDistanceChange('99.99');
+      });
+
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('rejects a Chase percentage at the basis-point divisor', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+        result.current.onChaseMaxDistanceChange('100');
+      });
+
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toEqual({
+        id: 'chase-max-distance',
+        variant: 'banner',
+        message:
+          'Max chase distance must be greater than 0 and less than 10000 bps.',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('finalizes a trailing decimal separator from the limit price on blur', () => {

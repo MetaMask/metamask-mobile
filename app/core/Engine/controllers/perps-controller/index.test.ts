@@ -124,6 +124,9 @@ describe('perps controller init', () => {
 
   it('controller state should be initial state when initial state is passed in', () => {
     const initialPerpsControllerState: PerpsControllerState = {
+      ...jest
+        .requireActual('@metamask/perps-controller/PerpsController')
+        .getDefaultPerpsControllerState(),
       activeProvider: 'hyperliquid',
       isTestnet: true,
       accountState: null,

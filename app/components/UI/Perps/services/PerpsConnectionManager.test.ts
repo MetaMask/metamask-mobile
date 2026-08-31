@@ -1864,10 +1864,9 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('ignores a timer armed on the inactive edge, which is what a real iOS lock arms on', async () => {
-      // PerpsAlwaysOnProvider disconnects on the `active -> inactive` edge and
-      // iOS backgrounding fires active -> inactive -> background, so `inactive`
-      // is the state production actually arms in.
+    it('ignores a legacy timer armed on the inactive edge', async () => {
+      // Production now waits for `background`; this keeps the manager safe if a
+      // legacy caller still arms the grace period during `inactive`.
       armGracePeriodWhileAppIs('inactive');
 
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);

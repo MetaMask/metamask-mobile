@@ -8,15 +8,28 @@ import {
   ButtonSize,
   ButtonVariant,
   Checkbox,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonVariant,
+  FontWeight,
   IconName,
+  Tag,
+  TagSeverity,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  type ChaseOrder,
   type Order,
   type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import BigNumber from 'bignumber.js';
 import React, {
   useCallback,
   useEffect,
@@ -24,11 +37,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { strings } from '../../../../../../../locales/i18n';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { getIntlNumberFormatter } from '../../../../../../util/intl';
+import Logger from '../../../../../../util/Logger';
+import { ensureError } from '../../../../../../util/errorUtils';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
 import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
@@ -38,11 +58,35 @@ import {
 } from '../../../hooks/stream';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
+  PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR,
   getPerpsProOrderRowSelector,
+  getPerpsProChaseRowSelector,
+  getPerpsProChaseRepriceSelector,
+  getPerpsProChaseStatusSelector,
+  getPerpsProChaseTerminateSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
+import {
+  formatPerpsFiat,
+  formatPositionSize,
+  formatProOrderCardTimestamp,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../utils/formatUtils';
+import { usePerpsTrading } from '../../../hooks/usePerpsTrading';
+import {
+  type ChaseOrderWithClientMetadata,
+  usePerpsChaseOrders,
+} from '../../../hooks/usePerpsChaseOrders';
+import { selectPerpsMobileChaseEnabledFlag } from '../../../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../../../selectors/perpsController';
+import { CHASE_HISTORY_STATUSES } from '../../../constants/perpsConfig';
+import usePerpsToasts from '../../../hooks/usePerpsToasts';
+import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
@@ -51,6 +95,7 @@ import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
+import PerpsProTabEmptyState from './PerpsProTabEmptyState';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
   DEFAULT_PRO_ORDER_SIDE_FILTER,
@@ -63,9 +108,51 @@ import {
 } from '../utils/proPositionSideFilter';
 import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
+import { compareProSortValues } from '../utils/proSortCompare';
+import { formatDurationForDisplay } from '../../../utils/time';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
+const CHASE_TAB_INDEX = 2;
+type ChaseActivityFilter = 'active' | 'history';
+
+const isChaseHistoryOrder = (order: ChaseOrder) =>
+  CHASE_HISTORY_STATUSES.has(order.status);
+
+const CHASE_TRANSLATED_STATUSES: ReadonlySet<ChaseOrder['status']> = new Set([
+  'termination_pending',
+  'canceled',
+  'backgrounded',
+  'max_distance_reached',
+  'duration_reached',
+  'repricing_limit_reached',
+  'filled',
+  'failed',
+]);
+
+const getChaseStatusLabel = (status: ChaseOrder['status']) => {
+  if (status === 'active') return strings('perps.order.chase.running');
+  return CHASE_TRANSLATED_STATUSES.has(status)
+    ? strings(`perps.order.chase.status.${status}`)
+    : strings('perps.order.chase.status.unknown');
+};
+
+const ChaseKeyValueItem = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => (
+  <Box>
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+      {value}
+    </Text>
+  </Box>
+);
 
 /** Which Pro panel tab a market-switch row tap came from. */
 export type ProPositionsPanelSourceSection =
@@ -95,10 +182,10 @@ interface PerpsProPositionsPanelProps {
  * Pro-mode positions/orders section.
  *
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
- * The Positions tab shows the user's open positions across all assets,
- * falling back to an empty state when there are none.
- * Sort and side-filter preferences persist independently per tab via
- * PerpsController. `$TICKER only` is still shared local UI state.
+ * Positions, Orders, and Chase tabs present the user's live and retained
+ * trading state. Sort and side-filter preferences persist independently via
+ * PerpsController; Chase applies the order preference while its side/ticker
+ * filters stay local to the panel. `$TICKER only` is shared local UI state.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -112,11 +199,36 @@ const PerpsProPositionsPanel = ({
   isMarketContextReady = true,
   marketContextKey = '',
 }: PerpsProPositionsPanelProps) => {
+  const perpsNetwork = useSelector(selectPerpsNetwork);
+  const activeProvider = useSelector(selectPerpsProvider);
   const { playSelection } = useHaptics();
+  const { track } = usePerpsEventTracking();
+  const { cancelOrder } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
+  const { chaseOrders, getChaseOrders, recordChaseOrderStatus } =
+    usePerpsChaseOrders({
+      isEnabled: isChaseEnabled,
+    });
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
+  const [chaseSideFilter, setChaseSideFilter] = useState(
+    DEFAULT_PRO_ORDER_SIDE_FILTER,
+  );
+  const [chaseActivityFilter, setChaseActivityFilter] =
+    useState<ChaseActivityFilter>('active');
+  const [isFilledOnly, setIsFilledOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
+  const [terminatingChaseHandle, setTerminatingChaseHandle] = useState<
+    string | null
+  >(null);
+  const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
+  useEffect(() => {
+    if (!shouldShowChaseTab && activeIndex === CHASE_TAB_INDEX) {
+      setActiveIndex(ORDERS_TAB_INDEX);
+    }
+  }, [activeIndex, shouldShowChaseTab]);
   const {
     sideFilter: positionsSideFilter,
     sortConfig,
@@ -242,6 +354,14 @@ const PerpsProPositionsPanel = ({
       ),
     [markets],
   );
+  const locale = I18n.locale;
+  const chaseDistanceFormatter = useMemo(
+    () =>
+      getIntlNumberFormatter(locale, {
+        maximumFractionDigits: 2,
+      }),
+    [locale],
+  );
 
   const visiblePositions = useMemo(
     () =>
@@ -258,10 +378,17 @@ const PerpsProPositionsPanel = ({
   );
 
   const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
-  const activeSideFilter = isOrdersTab ? ordersSideFilter : positionsSideFilter;
-  const setActiveSideFilter = isOrdersTab
-    ? setOrdersSideFilter
-    : setPositionsSideFilter;
+  const isChaseTab = activeIndex === CHASE_TAB_INDEX;
+  const activeSideFilter = isChaseTab
+    ? chaseSideFilter
+    : isOrdersTab
+      ? ordersSideFilter
+      : positionsSideFilter;
+  const setActiveSideFilter = isChaseTab
+    ? setChaseSideFilter
+    : isOrdersTab
+      ? setOrdersSideFilter
+      : setPositionsSideFilter;
 
   const sideFilteredPositions = useMemo(
     () => filterProPositionsBySide(visiblePositions, positionsSideFilter),
@@ -289,6 +416,84 @@ const PerpsProPositionsPanel = ({
     () => sortProOrders(sideFilteredOrders, orderSortConfig),
     [orderSortConfig, sideFilteredOrders],
   );
+
+  const visibleChaseOrders = useMemo(() => {
+    const filteredOrders = chaseOrders.filter((order) => {
+      if (isTickerOnly && order.symbol !== symbol) {
+        return false;
+      }
+      if (chaseSideFilter === 'all') {
+        return true;
+      }
+      return chaseSideFilter === 'long'
+        ? order.side === 'buy'
+        : order.side === 'sell';
+    });
+    const getSortValue = (order: ChaseOrder) => {
+      const size = Math.abs(Number.parseFloat(order.originalSize)) || 0;
+      const price = Number.parseFloat(order.restingPrice) || 0;
+      switch (orderSortConfig.field) {
+        case 'orderValue':
+          return size * price;
+        case 'size':
+          return size;
+        case 'price':
+          return price;
+        case 'time':
+          return order.startedAt;
+        default:
+          return 0;
+      }
+    };
+    return [...filteredOrders].sort((left, right) =>
+      compareProSortValues(
+        getSortValue(left),
+        getSortValue(right),
+        orderSortConfig.direction,
+        () => left.handle.localeCompare(right.handle),
+      ),
+    );
+  }, [chaseOrders, chaseSideFilter, isTickerOnly, orderSortConfig, symbol]);
+  const activeChaseOrders = useMemo(
+    () => visibleChaseOrders.filter((order) => !isChaseHistoryOrder(order)),
+    [visibleChaseOrders],
+  );
+  const historyChaseOrders = useMemo(
+    () =>
+      visibleChaseOrders.filter(
+        (order) =>
+          isChaseHistoryOrder(order) &&
+          (!isFilledOnly || order.status === 'filled'),
+      ),
+    [isFilledOnly, visibleChaseOrders],
+  );
+  const displayedChaseOrders =
+    chaseActivityFilter === 'active' ? activeChaseOrders : historyChaseOrders;
+  const unfilteredActivityChaseOrders = chaseOrders.filter((order) => {
+    const matchesActivity =
+      chaseActivityFilter === 'active'
+        ? !isChaseHistoryOrder(order)
+        : isChaseHistoryOrder(order) &&
+          (!isFilledOnly || order.status === 'filled');
+    return matchesActivity;
+  });
+  const tickerFilteredActivityChaseOrders =
+    unfilteredActivityChaseOrders.filter(
+      (order) => !isTickerOnly || order.symbol === symbol,
+    );
+  const isChaseSideFilterEmpty =
+    chaseSideFilter !== 'all' &&
+    tickerFilteredActivityChaseOrders.length > 0 &&
+    displayedChaseOrders.length === 0;
+  const chaseSideFilterEmptyDescriptionKey = isChaseSideFilterEmpty
+    ? `perps.order.chase.empty_${chaseSideFilter}`
+    : undefined;
+  const filteredChaseTicker =
+    isTickerOnly &&
+    unfilteredActivityChaseOrders.length > 0 &&
+    tickerFilteredActivityChaseOrders.length === 0
+      ? displaySymbol
+      : undefined;
 
   const aggregateTotals = useMemo(
     () => calculatePositionAggregateTotals(sideFilteredPositions),
@@ -324,6 +529,21 @@ const PerpsProPositionsPanel = ({
       content: null,
       testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
     },
+    ...(shouldShowChaseTab
+      ? [
+          {
+            key: 'chase',
+            label:
+              activeChaseOrders.length > 0
+                ? strings('perps.order.chase.tab_with_count', {
+                    count: activeChaseOrders.length,
+                  })
+                : strings('perps.order.chase.tab'),
+            content: null,
+            testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+          },
+        ]
+      : []),
   ];
 
   const hasPositions = sortedVisiblePositions.length > 0;
@@ -460,10 +680,313 @@ const PerpsProPositionsPanel = ({
       label={strings('perps.pro_positions_panel.ticker_only', {
         ticker: displaySymbol,
       })}
+      labelProps={{ variant: TextVariant.BodySm }}
       isSelected={isTickerOnly}
       onChange={handleTickerOnlyChange}
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
     />
+  );
+
+  const handleTerminateChase = async (order: ChaseOrder) => {
+    if (terminatingChaseHandle) return;
+    setTerminatingChaseHandle(order.handle);
+    try {
+      const result = await cancelOrder({
+        orderId: order.handle,
+        // Chase rotates ordinary child IDs while repricing, so no one child can
+        // provide a stable order-absence confirmation boundary.
+        skipCufConfirmationTrace: true,
+        symbol: order.symbol,
+        orderType: 'chase',
+        providerId: order.providerId,
+      });
+      if (!result.success) {
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+        return;
+      }
+      recordChaseOrderStatus(order.handle, 'canceled');
+      try {
+        await getChaseOrders();
+      } catch (error) {
+        // The exchange already accepted cancellation. A failed follow-up read
+        // must not tell the user to retry the completed financial action.
+        Logger.error(
+          ensureError(
+            error,
+            'PerpsProPositionsPanel.refreshAfterTerminateChase',
+          ),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsProPositionsPanel',
+              action: 'refresh_after_terminate_chase',
+              provider: order.providerId ?? activeProvider,
+              network: perpsNetwork,
+            },
+            context: {
+              name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+              data: {
+                symbol: order.symbol,
+                provider: order.providerId ?? activeProvider,
+                network: perpsNetwork,
+              },
+            },
+          },
+        );
+      }
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
+        [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
+      });
+    } catch (error) {
+      Logger.error(
+        ensureError(error, 'PerpsProPositionsPanel.handleTerminateChase'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsProPositionsPanel',
+            action: 'terminate_chase',
+            provider: order.providerId ?? activeProvider,
+            network: perpsNetwork,
+          },
+          context: {
+            name: 'PerpsProPositionsPanel.handleTerminateChase',
+            data: {
+              symbol: order.symbol,
+              provider: order.providerId ?? activeProvider,
+              network: perpsNetwork,
+            },
+          },
+        },
+      );
+      showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+    } finally {
+      setTerminatingChaseHandle(null);
+    }
+  };
+
+  const handleChaseActivityChange = useCallback(
+    (value: string) => {
+      if (value !== 'active' && value !== 'history') return;
+      playSelection().catch(() => undefined);
+      setChaseActivityFilter(value);
+    },
+    [playSelection],
+  );
+
+  const renderChaseCard = (
+    order: ChaseOrderWithClientMetadata,
+    index: number,
+  ) => {
+    const displayOrderSymbol = getPerpsDisplaySymbol(order.symbol);
+    const isHistoryOrder = isChaseHistoryOrder(order);
+    const isCancelable =
+      !isHistoryOrder && order.status !== 'termination_pending';
+    const isFilled = order.status === 'filled';
+    const filledSize = BigNumber(order.originalSize)
+      .minus(order.remainingSize)
+      .abs()
+      .toString();
+    const statusLabel = getChaseStatusLabel(order.status);
+    const restingPrice =
+      Number.isFinite(Number.parseFloat(order.restingPrice)) &&
+      Number.parseFloat(order.restingPrice) > 0
+        ? formatPerpsFiat(order.restingPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
+        : PERPS_CONSTANTS.FallbackPriceDisplay;
+    const runtime = order.terminalObservedAt
+      ? formatDurationForDisplay(
+          Math.max(
+            0,
+            Math.round((order.terminalObservedAt - order.startedAt) / 1000),
+          ),
+        )
+      : PERPS_CONSTANTS.FallbackDataDisplay;
+    const maxDistance =
+      order.maxDistanceBps === undefined
+        ? PERPS_CONSTANTS.FallbackPercentageDisplay
+        : `${chaseDistanceFormatter.format(order.maxDistanceBps / 100)}%`;
+    const progressLabel =
+      order.status === 'active' && order.maxDistanceBps
+        ? `${Math.min(
+            100,
+            Math.round((order.distanceChasedBps / order.maxDistanceBps) * 100),
+          )}%`
+        : statusLabel;
+    const isCanceling = terminatingChaseHandle === order.handle;
+
+    return (
+      <View
+        key={order.handle}
+        collapsable={false}
+        testID={getPerpsProChaseRowSelector(
+          order.symbol,
+          order.handle,
+          index === 0,
+        )}
+      >
+        <Box twClassName="gap-3 py-3">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-4 px-2 py-2"
+          >
+            <PerpsTokenLogo symbol={order.symbol} size={40} />
+            <Box twClassName="flex-1">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {displayOrderSymbol}
+                </Text>
+                <Tag
+                  severity={
+                    order.side === 'buy'
+                      ? TagSeverity.Success
+                      : TagSeverity.Danger
+                  }
+                >
+                  {strings(
+                    order.side === 'buy'
+                      ? 'perps.market.long'
+                      : 'perps.market.short',
+                  )}
+                </Tag>
+              </Box>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {formatProOrderCardTimestamp(order.startedAt)}
+              </Text>
+            </Box>
+            <View
+              accessible
+              accessibilityLabel={statusLabel}
+              testID={getPerpsProChaseStatusSelector(
+                order.status,
+                order.symbol,
+                order.handle,
+                index === 0,
+              )}
+            >
+              <Tag
+                severity={isFilled ? TagSeverity.Success : TagSeverity.Neutral}
+              >
+                {progressLabel}
+              </Tag>
+            </View>
+          </Box>
+          <Box twClassName="px-2">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
+            >
+              <Box twClassName="flex-1 gap-3">
+                <ChaseKeyValueItem
+                  label={strings('perps.order.chase.card.size')}
+                  value={`${formatPositionSize(order.originalSize)} ${displayOrderSymbol}`}
+                />
+                <ChaseKeyValueItem
+                  label={strings('perps.order.chase.card.filled_size')}
+                  value={`${formatPositionSize(filledSize)} ${displayOrderSymbol}`}
+                />
+              </Box>
+              <Box twClassName="flex-1 gap-3">
+                <View
+                  testID={
+                    order.repricings > 0
+                      ? getPerpsProChaseRepriceSelector(
+                          order.symbol,
+                          order.handle,
+                          index === 0,
+                        )
+                      : undefined
+                  }
+                >
+                  <ChaseKeyValueItem
+                    label={strings('perps.order.limit_price')}
+                    value={restingPrice}
+                  />
+                </View>
+                <ChaseKeyValueItem
+                  label={strings(
+                    isHistoryOrder
+                      ? 'perps.order.chase.card.runtime'
+                      : 'perps.order.chase.card.max_distance',
+                  )}
+                  value={isHistoryOrder ? runtime : maxDistance}
+                />
+              </Box>
+            </Box>
+          </Box>
+          {isCancelable ? (
+            <Box twClassName="px-2">
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                isDanger
+                isFullWidth
+                isLoading={isCanceling}
+                onPress={() => handleTerminateChase(order)}
+                isDisabled={terminatingChaseHandle !== null}
+                testID={getPerpsProChaseTerminateSelector(
+                  order.status,
+                  order.symbol,
+                  order.handle,
+                  index === 0,
+                )}
+              >
+                {strings('perps.order.chase.cancel')}
+              </Button>
+            </Box>
+          ) : null}
+        </Box>
+      </View>
+    );
+  };
+
+  const renderChaseTab = () => (
+    <Box twClassName="gap-2 px-2 pt-3">
+      <Text
+        accessible
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        testID={PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR}
+      >
+        {strings('perps.order.chase.visible_count', {
+          count: displayedChaseOrders.length,
+        })}
+      </Text>
+      {displayedChaseOrders.length === 0 ? (
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE}
+          twClassName="items-center justify-center pt-3"
+        >
+          <PerpsProTabEmptyState
+            filteredTicker={filteredChaseTicker}
+            filteredSideDescriptionKey={chaseSideFilterEmptyDescriptionKey}
+            emptyDescriptionKey={
+              chaseActivityFilter === 'active'
+                ? 'perps.order.chase.empty'
+                : 'perps.order.chase.empty_history'
+            }
+            filteredTickerDescriptionKey="perps.order.chase.empty_filtered"
+          />
+        </Box>
+      ) : (
+        displayedChaseOrders.map((order, index) =>
+          renderChaseCard(order, index),
+        )
+      )}
+    </Box>
   );
 
   return (
@@ -502,41 +1025,83 @@ const PerpsProPositionsPanel = ({
           />
         ) : null}
       </Box>
+      {isChaseTab ? (
+        <Box twClassName="px-2 pt-3">
+          <FilterButtonGroup
+            value={chaseActivityFilter}
+            onChange={handleChaseActivityChange}
+            variant={FilterButtonVariant.Primary}
+            twClassName="gap-2"
+          >
+            <FilterButton
+              value="active"
+              testID={PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER}
+            >
+              {strings('perps.order.chase.active')}
+            </FilterButton>
+            <FilterButton
+              value="history"
+              testID={PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER}
+            >
+              {strings('perps.order.chase.history')}
+            </FilterButton>
+          </FilterButtonGroup>
+        </Box>
+      ) : null}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2 px-2 pt-3"
         accessible={false}
       >
-        <Box twClassName="bg-muted rounded-lg">
-          <ButtonIcon
-            iconName={IconName.Customize}
-            accessibilityLabel={strings(
-              activeIndex === ORDERS_TAB_INDEX
-                ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
-                : 'perps.pro_positions_panel.sort.settings_accessibility',
-            )}
-            size={ButtonIconSize.Md}
-            onPress={() => setIsSortSheetOpen(true)}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
-          />
-        </Box>
+        {!isChaseTab ? (
+          <Box twClassName="bg-muted rounded-lg">
+            <ButtonIcon
+              iconName={IconName.Customize}
+              accessibilityLabel={strings(
+                activeIndex === ORDERS_TAB_INDEX
+                  ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
+                  : 'perps.pro_positions_panel.sort.settings_accessibility',
+              )}
+              size={ButtonIconSize.Md}
+              onPress={() => setIsSortSheetOpen(true)}
+              testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
+            />
+          </Box>
+        ) : null}
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
           endIconName={IconName.ArrowDown}
           onPress={() => setIsSideFilterSheetOpen(true)}
-          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
+          testID={
+            isChaseTab
+              ? PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON
+              : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
+          }
         >
           {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
         </Button>
         <Box twClassName="bg-muted rounded-lg px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
+        {isChaseTab && chaseActivityFilter === 'history' ? (
+          <Box twClassName="bg-muted rounded-lg px-2 py-1">
+            <Checkbox
+              label={strings('perps.order.chase.filled_only')}
+              labelProps={{ variant: TextVariant.BodySm }}
+              isSelected={isFilledOnly}
+              onChange={setIsFilledOnly}
+              testID={PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY}
+            />
+          </Box>
+        ) : null}
       </Box>
-      {activeIndex === ORDERS_TAB_INDEX
-        ? renderOrdersTab()
-        : renderPositionsTab()}
+      {activeIndex === CHASE_TAB_INDEX
+        ? renderChaseTab()
+        : activeIndex === ORDERS_TAB_INDEX
+          ? renderOrdersTab()
+          : renderPositionsTab()}
       {renderActionSheets(
         sideFilteredPositions,
         isPositionsFiltered,
@@ -551,7 +1116,7 @@ const PerpsProPositionsPanel = ({
           onClose={() => setIsSortSheetOpen(false)}
           testID={PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}
         />
-      ) : (
+      ) : activeIndex === POSITIONS_TAB_INDEX ? (
         <PerpsProPositionsSortSheet
           isVisible={isSortSheetOpen}
           sortConfig={sortConfig}
@@ -559,13 +1124,17 @@ const PerpsProPositionsPanel = ({
           onClose={() => setIsSortSheetOpen(false)}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
         />
-      )}
+      ) : null}
       <PerpsProPositionsSideFilterSheet
         isVisible={isSideFilterSheetOpen}
         sideFilter={activeSideFilter}
         onApply={setActiveSideFilter}
         onClose={() => setIsSideFilterSheetOpen(false)}
-        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}
+        testID={
+          isChaseTab
+            ? PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET
+            : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET
+        }
       />
     </Box>
   );

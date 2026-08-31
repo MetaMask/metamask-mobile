@@ -1,4 +1,6 @@
 import {
+  CHASE_HISTORY_STATUSES,
+  CHASE_RETAINED_STATUSES,
   PERPS_MIN_AGGREGATORS_FOR_TRUST,
   isTokenTrustworthyForPerps,
 } from './perpsConfig';
@@ -111,5 +113,32 @@ describe('PERPS_MIN_AGGREGATORS_FOR_TRUST', () => {
 
   it('equals 2', () => {
     expect(PERPS_MIN_AGGREGATORS_FOR_TRUST).toBe(2);
+  });
+});
+
+describe('CHASE_RETAINED_STATUSES', () => {
+  it.each(['active', 'termination_pending'] as const)(
+    'contains %s',
+    (status) => {
+      expect(CHASE_RETAINED_STATUSES.has(status)).toBe(true);
+    },
+  );
+
+  it.each([
+    'backgrounded',
+    'canceled',
+    'duration_reached',
+    'failed',
+    'filled',
+    'max_distance_reached',
+    'repricing_limit_reached',
+  ] as const)('excludes %s', (status) => {
+    expect(CHASE_RETAINED_STATUSES.has(status)).toBe(false);
+  });
+});
+
+describe('CHASE_HISTORY_STATUSES', () => {
+  it('contains backgrounded', () => {
+    expect(CHASE_HISTORY_STATUSES.has('backgrounded')).toBe(true);
   });
 });

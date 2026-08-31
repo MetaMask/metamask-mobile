@@ -44,12 +44,14 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../utils/formatUtils';
 import {
+  getPerpsProChaseFormActiveCountSelector,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
+  type PerpsProCompactInputRef,
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
 import PerpsProTwapFields from './PerpsProTwapFields';
@@ -453,6 +455,7 @@ const PerpsProOrderForm = ({
   onLeveragePress,
   orderType,
   scaleOrder,
+  activeChaseCount = 0,
   scaleKeyboardScroll,
   onOrderTypeButtonPress,
   limitPrice,
@@ -462,6 +465,11 @@ const PerpsProOrderForm = ({
   orderTypeCardRef,
   onLimitPriceFieldPress,
   onUseMidPricePress,
+  chaseMaxDistance = '',
+  onChaseMaxDistanceChange = () => undefined,
+  chaseMaxDistanceUnit = 'usd',
+  onChaseMaxDistanceUnitChange = () => undefined,
+  chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
   triggerPrice = '',
   onTriggerPriceChange = () => undefined,
   onTriggerPriceFocus,
@@ -492,14 +500,17 @@ const PerpsProOrderForm = ({
   const scaleEndPriceRef = useRef<TextInput>(null);
   const scaleTotalOrdersRef = useRef<TextInput>(null);
   const scaleSizeSkewRef = useRef<TextInput>(null);
+  const chaseMaxDistanceInputRef = useRef<PerpsProCompactInputRef>(null);
+  const sizeInputRef = useRef<TextInput>(null);
   const isLong = direction === 'long';
   const isScaleOrder = orderType === 'scale';
   const isScaleFormLocked = isScaleOrder && isPlaceOrderLoading;
   const showsTriggerPrice = isTriggerOrderType(orderType);
-  const showsLimitPrice = isLimitExecutionOrderType(orderType);
+  const isChase = orderType === 'chase';
+  const showsLimitPrice = isLimitExecutionOrderType(orderType) && !isChase;
   const isTwap = orderType === 'twap';
   const showsTpSl =
-    !reduceOnly && !showsTriggerPrice && !isTwap && !isScaleOrder;
+    !reduceOnly && !showsTriggerPrice && !isTwap && !isScaleOrder && !isChase;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
   const summaryOnSlippagePress = summary.onSlippagePress;
   const scaleInputs: readonly ScaleInputConfig[] = [
@@ -660,7 +671,10 @@ const PerpsProOrderForm = ({
             (wraps form + divider + book), not this Box. Summary rows use
             KeyValueRow which ships with px-4 by default — override to px-0 so
             margin/liquidation/slippage/fees align with the form above. */}
-        <Box twClassName="gap-4">
+        <Box
+          twClassName="gap-4"
+          testID={getPerpsProChaseFormActiveCountSelector(activeChaseCount)}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -760,7 +774,20 @@ const PerpsProOrderForm = ({
               }}
               testID={ids.ORDER_TYPE_BUTTON}
             >
-              {orderTypeTitle}
+              <Box
+                twClassName="min-w-0 flex-1 flex-row items-center justify-between pr-2"
+                testID={`${ids.ORDER_TYPE_BUTTON}-label-row`}
+              >
+                <Text variant={TextVariant.BodySm}>{orderTypeTitle}</Text>
+                {isChase ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    testID={ids.CHASE_REFERENCE_PRICE}
+                  >
+                    {chaseReferencePrice}
+                  </Text>
+                ) : null}
+              </Box>
             </ButtonBase>
             <PriceField
               label={strings('perps.order.trigger_price')}
@@ -801,7 +828,57 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked}
               isHidden={!isScaleOrder}
             />
+            {isChase ? (
+              <Box testID={ids.CHASE_FORM}>
+                <PerpsProCompactInput
+                  ref={chaseMaxDistanceInputRef}
+                  label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
+                  value={chaseMaxDistance}
+                  onChangeText={onChaseMaxDistanceChange}
+                  testID={ids.CHASE_MAX_DISTANCE_INPUT}
+                  variant="inline-labeled"
+                  placeholder={chaseMaxDistanceUnit === 'usd' ? '0.00' : '0%'}
+                  startAccessory={
+                    chaseMaxDistanceUnit === 'usd' ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        testID={ids.CHASE_MAX_DISTANCE_PREFIX}
+                      >
+                        $
+                      </Text>
+                    ) : null
+                  }
+                  endAccessory={
+                    <ButtonIcon
+                      iconName={IconName.SwapHorizontal}
+                      size={ButtonIconSize.Xs}
+                      onPress={() =>
+                        onChaseMaxDistanceUnitChange(
+                          chaseMaxDistanceUnit === 'usd' ? 'percent' : 'usd',
+                        )
+                      }
+                      testID={ids.CHASE_MAX_DISTANCE_UNIT}
+                      accessibilityLabel={strings(
+                        'perps.order.chase.switch_max_distance_unit',
+                        {
+                          unit: chaseMaxDistanceUnit === 'usd' ? '%' : 'USD',
+                        },
+                      )}
+                    />
+                  }
+                />
+              </Box>
+            ) : null}
           </Box>
+          {isChase ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.PrimaryDefault}
+              testID={PerpsProMarketViewSelectorsIDs.CHASE_FOREGROUND_WARNING}
+            >
+              {strings('perps.order.chase.foreground_notice')}
+            </Text>
+          ) : null}
           {priceCardMessage ? (
             <HelpText
               severity={
@@ -815,6 +892,7 @@ const PerpsProOrderForm = ({
             </HelpText>
           ) : null}
           <PerpsProSizeInput
+            inputRef={sizeInputRef}
             containerRef={sizeCardRef}
             onFieldPress={onSizeFieldPress}
             value={sizeInput.value}
@@ -855,21 +933,29 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <ButtonSemantic
-            severity={
-              placeOrderIntent === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
+          <Box
+            testID={
+              !isPlaceOrderDisabled && !isPlaceOrderLoading
+                ? ids.PLACE_ORDER_READY
+                : undefined
             }
-            size={ButtonBaseSize.Lg}
-            isFullWidth
-            isDisabled={isPlaceOrderDisabled}
-            isLoading={isPlaceOrderLoading}
-            onPress={onPlaceOrderPress}
-            testID={ids.PLACE_ORDER_BUTTON}
           >
-            {placeOrderLabel}
-          </ButtonSemantic>
+            <ButtonSemantic
+              severity={
+                placeOrderIntent === 'long'
+                  ? ButtonSemanticSeverity.Success
+                  : ButtonSemanticSeverity.Danger
+              }
+              size={ButtonBaseSize.Lg}
+              isFullWidth
+              isDisabled={isPlaceOrderDisabled}
+              isLoading={isPlaceOrderLoading}
+              onPress={onPlaceOrderPress}
+              testID={ids.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </ButtonSemantic>
+          </Box>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}
@@ -877,13 +963,19 @@ const PerpsProOrderForm = ({
         {!isScaleOrder ? (
           <OrderSummary
             {...summary}
+            slippage={isChase ? undefined : summary.slippage}
             onSlippagePress={
               summaryOnSlippagePress ? handleSlippagePress : undefined
             }
           />
         ) : null}
       </Box>
-      <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
+      <PerpsProInputKeyboardAccessory
+        inputTestID={ids.SIZE_INPUT}
+        onPrevious={
+          isChase ? () => chaseMaxDistanceInputRef.current?.focus() : undefined
+        }
+      />
       <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
       <PerpsProInputKeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
       {scaleInputs.map((input, index) => (
@@ -902,6 +994,12 @@ const PerpsProOrderForm = ({
           }
         />
       ))}
+      {isChase ? (
+        <PerpsProInputKeyboardAccessory
+          inputTestID={ids.CHASE_MAX_DISTANCE_INPUT}
+          onNext={() => sizeInputRef.current?.focus()}
+        />
+      ) : null}
     </>
   );
 };

@@ -23,6 +23,7 @@ import {
 } from '../../../../../../../util/haptics';
 
 const mockInputFocus = jest.fn();
+let mockInputHandlesActive = true;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -33,10 +34,17 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     Input: MockReact.forwardRef(
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          focus: () => mockInputFocus(props.testID),
-          blur: jest.fn(),
-        }));
+        MockReact.useImperativeHandle(
+          ref,
+          () =>
+            mockInputHandlesActive
+              ? {
+                  focus: () => mockInputFocus(props.testID),
+                  blur: jest.fn(),
+                }
+              : null,
+          [props.testID, mockInputHandlesActive],
+        );
         return MockReact.createElement(TextInput, props);
       },
     ),
@@ -181,6 +189,7 @@ const getMountedInput = (testID: string) =>
 describe('PerpsProOrderForm', () => {
   beforeEach(() => {
     mockInputFocus.mockClear();
+    mockInputHandlesActive = true;
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
   });
@@ -190,6 +199,94 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
+    it('renders the compact Chase card and toggles the distance unit', () => {
+      const onChaseMaxDistanceUnitChange = jest.fn();
+      renderForm({
+        orderType: 'chase',
+        chaseReferencePrice: '$2,500.50',
+        chaseMaxDistanceUnit: 'usd',
+        onChaseMaxDistanceUnitChange,
+      });
+
+      expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toHaveTextContent(
+        '$2,500.50',
+      );
+      expect(
+        screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId(ids.ORDER_TYPE_CARD)).getByTestId(
+          ids.CHASE_MAX_DISTANCE_INPUT,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'accessibilityLabel',
+        `${strings('perps.order.chase.max_distance')} (USD)`,
+      );
+      expect(
+        screen.getByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
+      ).toHaveTextContent('$');
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'placeholder',
+        '0.00',
+      );
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.CHASE_FOREGROUND_WARNING,
+        ),
+      ).toHaveTextContent(strings('perps.order.chase.foreground_notice'));
+      expect(
+        within(screen.getByTestId(ids.ORDER_TYPE_CARD)).queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHASE_FOREGROUND_WARNING,
+        ),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT));
+
+      expect(onChaseMaxDistanceUnitChange).toHaveBeenCalledWith('percent');
+      expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
+    });
+
+    it('formats an empty Chase percentage distance with its unit', () => {
+      renderForm({
+        orderType: 'chase',
+        chaseMaxDistanceUnit: 'percent',
+      });
+
+      expect(
+        screen.queryByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'placeholder',
+        '0%',
+      );
+    });
+
+    it('announces the target Chase max-distance unit', () => {
+      const { rerender } = renderForm({
+        orderType: 'chase',
+        chaseMaxDistanceUnit: 'usd',
+      });
+
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.order.chase.switch_max_distance_unit', { unit: '%' }),
+      );
+
+      rerender(
+        <PerpsProOrderForm
+          {...createProps({
+            orderType: 'chase',
+            chaseMaxDistanceUnit: 'percent',
+          })}
+        />,
+      );
+
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.order.chase.switch_max_distance_unit', { unit: 'USD' }),
+      );
+    });
+
     it('passes raw size text to sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });
@@ -796,6 +893,9 @@ describe('PerpsProOrderForm', () => {
       ids.SCALE_TOTAL_ORDERS,
       ids.SCALE_SIZE_SKEW,
     ].map(getPerpsProInputAccessoryID);
+    const chaseMaxDistanceAccessoryID = getPerpsProInputAccessoryID(
+      ids.CHASE_MAX_DISTANCE_INPUT,
+    );
     const expectedAccessoryIDs = [
       sizeAccessoryID,
       triggerAccessoryID,
@@ -860,6 +960,61 @@ describe('PerpsProOrderForm', () => {
       expect(mountedAccessoryIDs()).toEqual(expectedAccessoryIDs);
     });
 
+    it('routes Chase keyboard navigation between max distance and size', () => {
+      renderForm({ orderType: 'chase' });
+
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        chaseMaxDistanceAccessoryID,
+      );
+      expect(mountedAccessoryIDs()).toEqual([
+        ...expectedAccessoryIDs,
+        chaseMaxDistanceAccessoryID,
+      ]);
+      expect(
+        screen.getByTestId(
+          `${ids.KEYBOARD_PREVIOUS}-${ids.CHASE_MAX_DISTANCE_INPUT}`,
+        ),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_NEXT}-${ids.SIZE_INPUT}`),
+      ).toBeDisabled();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ids.KEYBOARD_NEXT}-${ids.CHASE_MAX_DISTANCE_INPUT}`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-${ids.SIZE_INPUT}`),
+      );
+
+      expect(mockInputFocus).toHaveBeenNthCalledWith(1, ids.SIZE_INPUT);
+      expect(mockInputFocus).toHaveBeenNthCalledWith(
+        2,
+        ids.CHASE_MAX_DISTANCE_INPUT,
+      );
+      expect(
+        screen.getByTestId(
+          `${ids.KEYBOARD_DONE}-${ids.CHASE_MAX_DISTANCE_INPUT}`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('focuses Chase max distance from Size Previous after its input handle activates', () => {
+      mockInputHandlesActive = false;
+      const { rerender } = renderForm({ orderType: 'chase' });
+      mockInputHandlesActive = true;
+      rerender(<PerpsProOrderForm {...createProps({ orderType: 'chase' })} />);
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-${ids.SIZE_INPUT}`),
+      );
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputFocus).toHaveBeenCalledWith(ids.CHASE_MAX_DISTANCE_INPUT);
+    });
+
     it('connects every Scale input to a mounted keyboard accessory', () => {
       renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
@@ -899,6 +1054,24 @@ describe('PerpsProOrderForm', () => {
         screen.getByTestId(`${ids.KEYBOARD_NEXT}-${ids.SCALE_START_PRICE}`),
       );
       expect(mockInputFocus).toHaveBeenCalledWith(ids.SCALE_END_PRICE);
+    });
+
+    it('mounts the Chase max-distance keyboard accessory with the Chase form', () => {
+      renderForm({ orderType: 'chase' });
+
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        chaseMaxDistanceAccessoryID,
+      );
+      expect(mountedAccessoryIDs()).toEqual([
+        ...expectedAccessoryIDs,
+        chaseMaxDistanceAccessoryID,
+      ]);
+      expect(
+        screen.getByTestId(
+          `${ids.KEYBOARD_DONE}-${ids.CHASE_MAX_DISTANCE_INPUT}`,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('dismisses the keyboard from Done', () => {
@@ -967,6 +1140,25 @@ describe('PerpsProOrderForm', () => {
         'name',
         IconName.ArrowDown,
       );
+    });
+
+    it('reserves chevron width beside the Chase reference price', () => {
+      renderForm({
+        orderType: 'chase',
+        chaseReferencePrice: '$123,456.78',
+      });
+
+      expect(
+        screen.getByTestId(`${ids.ORDER_TYPE_BUTTON}-label-row`),
+      ).toHaveStyle({
+        flexGrow: 1,
+        flexShrink: 1,
+        minWidth: 0,
+      });
+      expect(
+        screen.getByTestId(`${ids.ORDER_TYPE_BUTTON}-chevron`),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toBeOnTheScreen();
     });
 
     it('renders the order type row at the Figma 54px height', () => {

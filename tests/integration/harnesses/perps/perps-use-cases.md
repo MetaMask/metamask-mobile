@@ -10,20 +10,22 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 
 ## Order lifecycle
 
-| Use case                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                           |
-| ---------------------------------------- | :-: | :-: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------ |
-| Open long, market order                  |     |  ✓  | **✓** |  ✓  | I: real `placeOrder` flow incl. validation. CV: order-screen variant. E2E: one happy-path on testnet for native signing. |
-| Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                           |
-| Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                  |
-| Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                            |
-| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.       |
-| Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                      |
-| Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                          |
-| Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                  |
-| Close position — full (market)           |     |  ✓  | **✓** |     | I: full-close branch (skips USD validation). CV: close-screen.                                                           |
-| Close position — partial (market)        |     |  ✓  | **✓** |     | I: partial-close size handling. CV: partial-size slider.                                                                 |
-| Close position — limit order             |     |     | **✓** |     | I: limit-close validation path. UI is shared with open-limit; no extra CV needed.                                        |
-| Reverse / flip position                  |     |     | **✓** |     | I: multi-step (close + open opposite). The "two functions correct alone, broken together" case.                          |
+| Use case                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                     |
+| ---------------------------------------- | :-: | :-: | :---: | :-: | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Open long, market order                  |     |  ✓  | **✓** |  ✓  | I: real `placeOrder` flow incl. validation. CV: order-screen variant. E2E: one happy-path on testnet for native signing.           |
+| Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                                     |
+| Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                            |
+| Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                                      |
+| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.                 |
+| Place a Scale strategy                   |     |  ✓  | **✓** |     | I: full/partial/rejected ladder responses through the provider. CV: select, configure, validate, and submit parameters.            |
+| Run and terminate a Chase strategy       |     |  ✓  | **✓** |  ✓  | I: placement, repricing, background suspension, rejection, and termination. CV: rollout and lifecycle UI. E2E: testnet happy path. |
+| Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                                |
+| Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                                    |
+| Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                            |
+| Close position — full (market)           |     |  ✓  | **✓** |     | I: full-close branch (skips USD validation). CV: close-screen.                                                                     |
+| Close position — partial (market)        |     |  ✓  | **✓** |     | I: partial-close size handling. CV: partial-size slider.                                                                           |
+| Close position — limit order             |     |     | **✓** |     | I: limit-close validation path. UI is shared with open-limit; no extra CV needed.                                                  |
+| Reverse / flip position                  |     |     | **✓** |     | I: multi-step (close + open opposite). The "two functions correct alone, broken together" case.                                    |
 
 ## Position management
 
@@ -96,10 +98,10 @@ These don't have user-facing flows; they're consumed by the layers above. Unit i
 | Layer           | Count | Role                                                        |
 | --------------- | ----: | ----------------------------------------------------------- |
 | **Unit**        |   ~30 | Pure helpers, calculations, selector composition            |
-| **CV**          |   ~22 | UI variant coverage; user actions on the screen             |
-| **Integration** |   ~33 | Every controller action that has user-visible state effects |
+| **CV**          |   ~24 | UI variant coverage; user actions on the screen             |
+| **Integration** |   ~35 | Every controller action that has user-visible state effects |
 | **E2E**         |    ~5 | Cold launch, real signing, network re-init, testnet toggle  |
-| **Total**       |   ~90 |                                                             |
+| **Total**       |   ~94 |                                                             |
 
 The shape: one CV test per UI variant, one integration test per public controller action (happy path + main rejection paths), one E2E per native-runtime concern, unit tests for everything pure. No use case is covered redundantly across layers; every use case is covered exactly where it's cheapest to detect a regression. PoC branches may keep side-by-side Shape A/B/C examples to compare harness boundaries, but the rollout matrix should assign one primary integration shape per use case before the suite hardens.
 

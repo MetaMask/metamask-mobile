@@ -1748,6 +1748,9 @@
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
         "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
+        "chase_limit": "Hyperliquid allows a maximum of {{count}} active Chase orders.",
+        "chase_max_distance": "Max chase distance must be greater than 0 and less than 10000 bps.",
+        "chase_unavailable": "Chase placement is not available for this provider.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
         "reduce_only_too_large": "Reduce only order is larger than your open position",
@@ -1835,6 +1838,10 @@
           "title": "Scale",
           "description": "Multiple limit orders spread across a price range"
         },
+        "chase": {
+          "title": "Chase",
+          "description": "Auto adjust limit order to the best price"
+        },
         "stop_limit": {
           "title": "Stop limit",
           "description": "Limit fills at trigger price"
@@ -1854,6 +1861,44 @@
         "twap": {
           "title": "TWAP",
           "description": "Split orders to execute at regular time interval"
+        }
+      },
+      "chase": {
+        "max_distance": "Max distance",
+        "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
+        "foreground_notice": "Keep the app opened to wait for Chase order to fulfil.",
+        "backgrounded_title": "Chase paused",
+        "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
+        "tab": "Chase",
+        "tab_with_count": "Chase ({{count}})",
+        "active": "Active",
+        "history": "History",
+        "filled_only": "Filled orders only",
+        "visible_count": "{{count}} visible",
+        "running": "Running",
+        "cancel": "Cancel",
+        "empty": "Your Chase orders will appear here.",
+        "empty_history": "Your Chase order history will appear here.",
+        "empty_filtered": "No Chase orders match {{ticker}}.",
+        "empty_long": "No long Chase orders.",
+        "empty_short": "No short Chase orders.",
+        "card": {
+          "size": "Size",
+          "filled_size": "Filled size",
+          "average_price": "Average price",
+          "max_distance": "Max distance",
+          "runtime": "Runtime"
+        },
+        "status": {
+          "termination_pending": "Termination pending",
+          "canceled": "Canceled",
+          "backgrounded": "Resting after app backgrounded",
+          "max_distance_reached": "Max distance reached · resting",
+          "duration_reached": "Duration reached · resting",
+          "repricing_limit_reached": "Repricing limit reached · resting",
+          "filled": "Filled",
+          "failed": "Chase stopped",
+          "unknown": "Unknown"
         }
       },
       "payment_token": "Payment token",
@@ -2145,7 +2190,8 @@
         "chaseDurationInvalid": "Chase duration is invalid",
         "chaseLimitReached": "Too many chase orders are already running",
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
-        "chaseTouchUnavailable": "No market price is available to place this chase order"
+        "chaseTouchUnavailable": "No market price is available to place this chase order",
+        "chaseMaxDistanceInvalid": "Max chase distance must be greater than 0 bps."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",

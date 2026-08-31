@@ -5,7 +5,13 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+import {
+  CHASE_ORDER_UI_CONFIG,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import { selectPerpsEnabledFlag } from '../index';
+import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -16,6 +22,32 @@ jest.mock('../services/PerpsConnectionManager');
 jest.mock('../utils/perpsLifecycleContext', () => ({
   initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
 }));
+
+const mockTrack = jest.fn();
+const mockSuspendChaseOrders = jest.fn().mockResolvedValue([]);
+let mockHasLiveChaseOrders = false;
+let mockIsChaseOrderDiscoveryResolved = true;
+const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
+  hasLiveChaseOrders: mockHasLiveChaseOrders,
+  isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
+  suspendChaseOrders: mockSuspendChaseOrders,
+}));
+
+jest.mock('../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
+jest.mock('../hooks/usePerpsChaseOrders', () => ({
+  usePerpsChaseOrders: (options: { isEnabled: boolean }) =>
+    mockUsePerpsChaseOrders(options),
+}));
+
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    displayNotification: jest.fn(),
+  }),
+);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -33,6 +65,10 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  PERPS_EVENT_PROPERTY: {
+    INTERACTION_TYPE: 'interaction_type',
+    ASSET: 'asset',
+  },
   PERPS_CONSTANTS: {
     FeatureName: 'perps',
     ReconnectionDelayAndroidMs: 500,
@@ -42,6 +78,14 @@ jest.mock('@metamask/perps-controller', () => ({
     MinDurationMinutes: 5,
     MaxDurationMinutes: 1440,
     MinNotionalUsd: 100,
+  },
+  PERPS_EVENT_VALUE: {
+    INTERACTION_TYPE: {
+      CHASE_BACKGROUNDED_CONVERTED: 'chase_backgrounded_converted',
+    },
+    NOTIFICATION_TYPE: {
+      CHASE_BACKGROUNDED: 'perps_chase_backgrounded',
+    },
   },
 }));
 
@@ -59,10 +103,16 @@ jest.mock('../index', () => ({
   selectPerpsEnabledFlag: jest.fn(),
 }));
 
+jest.mock('../selectors/featureFlags', () => ({
+  selectPerpsMobileChaseEnabledFlag: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockResumeFromForeground =
   PerpsConnectionManager.resumeFromForeground as jest.Mock;
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
+const mockDisplayNotification =
+  NotificationsService.displayNotification as jest.Mock;
 const mockStartMarketDataPreload = Engine.context.PerpsController
   .startMarketDataPreload as jest.Mock;
 const mockStopMarketDataPreload = Engine.context.PerpsController
@@ -79,6 +129,10 @@ describe('PerpsAlwaysOnProvider', () => {
 
     mockResumeFromForeground.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
+    mockDisplayNotification.mockResolvedValue(undefined);
+    mockSuspendChaseOrders.mockReset().mockResolvedValue([]);
+    mockHasLiveChaseOrders = false;
+    mockIsChaseOrderDiscoveryResolved = true;
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
 
@@ -100,8 +154,11 @@ describe('PerpsAlwaysOnProvider', () => {
       configurable: true,
     });
 
-    // Default: perps enabled
-    mockUseSelector.mockReturnValue(true);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      return undefined;
+    });
   });
 
   afterEach(() => {
@@ -157,6 +214,22 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockResumeFromForeground).not.toHaveBeenCalled();
   });
 
+  it('disables Chase polling when perps is disabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      return undefined;
+    });
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({ isEnabled: false });
+  });
+
   it('does not start market data preload when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -168,6 +241,85 @@ describe('PerpsAlwaysOnProvider', () => {
 
     expect(mockStartMarketDataPreload).not.toHaveBeenCalled();
     expect(mockStopMarketDataPreload).toHaveBeenCalledTimes(1);
+  });
+
+  it('suspends retained Chase before disconnecting when Perps is disabled', async () => {
+    let isPerpsEnabled = true;
+    mockHasLiveChaseOrders = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return isPerpsEnabled;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    mockDisconnect.mockClear();
+
+    isPerpsEnabled = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('notifies converted Chase orders before disconnecting when Perps is disabled', async () => {
+    let isPerpsEnabled = true;
+    mockHasLiveChaseOrders = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return isPerpsEnabled;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'chase-disable', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    mockDisconnect.mockClear();
+
+    isPerpsEnabled = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_backgrounded_converted',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { notification_type: 'perps_chase_backgrounded' },
+      }),
+    );
+    expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
   });
 
   it('registers AppState listener when perps is enabled', () => {
@@ -194,7 +346,139 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
-  it('calls disconnect when app goes to background', () => {
+  it('calls disconnect when app goes to background', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('disconnects without another suspension for rollout-off backgrounded history', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).not.toHaveBeenCalled();
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('suspends before disconnecting while rollout-off discovery is unresolved', async () => {
+    mockIsChaseOrderDiscoveryResolved = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails closed on rollout rollback until empty discovery resolves', async () => {
+    let isChaseEnabled = true;
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      {
+        handle: 'chase-accepted-before-rollback',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      },
+    ]);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) {
+        return isChaseEnabled;
+      }
+      return undefined;
+    });
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    mockDisconnect.mockClear();
+
+    isChaseEnabled = false;
+    mockIsChaseOrderDiscoveryResolved = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
+
+    act(() => mockAppStateListener?.('active'));
+    mockIsChaseOrderDiscoveryResolved = true;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    mockSuspendChaseOrders.mockClear();
+    mockDisconnect.mockClear();
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).not.toHaveBeenCalled();
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('suspends retained Chase before disconnecting while rollout is off', async () => {
+    let resolveSuspension: (() => void) | undefined;
+    mockHasLiveChaseOrders = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSuspension = () => resolve([]);
+        }),
+    );
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -204,11 +488,101 @@ describe('PerpsAlwaysOnProvider', () => {
     act(() => {
       mockAppStateListener?.('background');
     });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveSuspension?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('keeps one lifecycle subscription when Chase eligibility changes', async () => {
+    let isChaseEnabled = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) {
+        return isChaseEnabled;
+      }
+      return undefined;
+    });
+    const { rerender } = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    isChaseEnabled = false;
+    mockHasLiveChaseOrders = true;
+    rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
+    expect(mockSubscriptionRemove).not.toHaveBeenCalled();
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('calls disconnect when app goes inactive', () => {
+  it('keeps Chase connected during a transient inactive state', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('inactive');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).not.toHaveBeenCalled();
+    expect(mockDisconnect).not.toHaveBeenCalled();
+  });
+
+  it('suspends Chase orders once when iOS transitions through inactive to background', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('inactive');
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for Chase suspension before disconnecting', async () => {
+    let resolveSuspension: (() => void) | undefined;
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSuspension = () => resolve([]);
+        }),
+    );
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -216,9 +590,168 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     act(() => {
-      mockAppStateListener?.('inactive');
+      mockAppStateListener?.('background');
+    });
+    await act(async () => {
+      await Promise.resolve();
     });
 
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveSuspension?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips queued suspension after repeated background and foreground transitions', async () => {
+    let resolveFirstSuspension: (() => void) | undefined;
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirstSuspension = () => resolve([]);
+        }),
+    );
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    act(() => {
+      mockAppStateListener?.('background');
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      mockAppStateListener?.('active');
+      mockAppStateListener?.('background');
+      mockAppStateListener?.('active');
+    });
+    await act(async () => {
+      resolveFirstSuspension?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies and tracks converted Chase orders after suspension', async () => {
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'chase-backgrounded', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_backgrounded_converted',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { notification_type: 'perps_chase_backgrounded' },
+      }),
+    );
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports each backgrounded Chase handle only on its first transition', async () => {
+    const backgroundedOrder = {
+      handle: 'chase-repeated-background',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    };
+    mockSuspendChaseOrders.mockResolvedValue([backgroundedOrder]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    act(() => mockAppStateListener?.('active'));
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('disconnects when Chase suspension reaches the hook timeout', async () => {
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          setTimeout(
+            () => reject(new Error('Chase mutation timed out')),
+            CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+          );
+        }),
+    );
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    act(() => {
+      mockAppStateListener?.('background');
+    });
+    await act(async () => Promise.resolve());
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+      );
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('still disconnects without notifying when Chase suspension fails', async () => {
+    mockSuspendChaseOrders.mockRejectedValueOnce(new Error('suspend failed'));
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
@@ -249,7 +782,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
   });
 
-  it('cancels pending reconnect timer if app goes background before timer fires', () => {
+  it('cancels pending reconnect timer if app goes background before timer fires', async () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -271,13 +804,17 @@ describe('PerpsAlwaysOnProvider', () => {
     act(() => {
       jest.runAllTimers();
     });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
 
     // resumeFromForeground should NOT have been called (timer was cancelled)
     expect(mockResumeFromForeground).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('only disconnects once on iOS active→inactive→background sequence', () => {
+  it('only disconnects once on iOS active→inactive→background sequence', async () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -286,19 +823,23 @@ describe('PerpsAlwaysOnProvider', () => {
 
     mockDisconnect.mockClear();
 
-    // iOS fires active → inactive → background when backgrounding.
-    // Only the first transition (active → inactive) should trigger disconnect.
+    // iOS fires active → inactive → background when backgrounding. Chase waits
+    // for the real background transition.
     act(() => {
-      mockAppStateListener?.('inactive'); // prevState='active' → disconnect
+      mockAppStateListener?.('inactive');
     });
     act(() => {
-      mockAppStateListener?.('background'); // prevState='inactive' → no-op
+      mockAppStateListener?.('background');
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('does not double-disconnect on iOS pull-down notification center (active→inactive→active)', () => {
+  it('does not disconnect a foreground reconnect after a transient inactive state', async () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -310,7 +851,7 @@ describe('PerpsAlwaysOnProvider', () => {
 
     // Pull-down: active → inactive → active
     act(() => {
-      mockAppStateListener?.('inactive'); // prevState='active' → disconnect once
+      mockAppStateListener?.('inactive');
     });
     act(() => {
       mockAppStateListener?.('active'); // schedule reconnect
@@ -319,8 +860,12 @@ describe('PerpsAlwaysOnProvider', () => {
     act(() => {
       jest.runAllTimers();
     });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
 
-    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).not.toHaveBeenCalled();
     expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
   });
 

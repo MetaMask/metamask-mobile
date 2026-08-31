@@ -31,6 +31,7 @@ import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDur
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
+import { usePerpsChaseEligibility } from '../../../hooks/usePerpsChaseEligibility';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
 const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
@@ -45,6 +46,7 @@ const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
 const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
+const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -129,14 +131,27 @@ const PerpsProOrderFormPanel = ({
     [checkOrderCapability, resolvedProviderId],
   );
   const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
+  const {
+    isChaseEnabled,
+    isCapabilityPending: isChaseAvailabilityPending,
+    resolvedProviderId: chaseProviderId,
+    refreshCapability,
+  } = usePerpsChaseEligibility(market.symbol, selectedProviderId);
+  const isChaseOrderEnabled = isProModeActive && isChaseEnabled;
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [
       ...BASIC_ORDER_TYPES,
       ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
       ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
       ...(isScaleOrdersEnabled ? SCALE_ORDER_TYPES : []),
+      ...(isChaseOrderEnabled ? CHASE_ORDER_TYPES : []),
     ],
-    [areTriggeredOrdersEnabled, isScaleOrdersEnabled, isTwapEnabled],
+    [
+      areTriggeredOrdersEnabled,
+      isChaseOrderEnabled,
+      isScaleOrdersEnabled,
+      isTwapEnabled,
+    ],
   );
   const {
     direction,
@@ -144,8 +159,14 @@ const PerpsProOrderFormPanel = ({
     leverage,
     onLeveragePress,
     orderType,
+    activeChaseCount,
     onOrderTypeButtonPress,
     limitPrice,
+    chaseMaxDistance,
+    chaseMaxDistanceUnit,
+    onChaseMaxDistanceUnitChange,
+    chaseReferencePrice,
+    onChaseMaxDistanceChange,
     onLimitPriceChange,
     onLimitPriceBlur,
     onUseMidPricePress,
@@ -200,6 +221,10 @@ const PerpsProOrderFormPanel = ({
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
     checkScaleOrderSupport,
+    isChaseEnabled: isChaseOrderEnabled,
+    isChaseAvailabilityPending,
+    refreshChaseCapability: refreshCapability,
+    chaseProviderId,
   });
 
   const { styles } = useStyles(createStyles, {});
@@ -302,6 +327,7 @@ const PerpsProOrderFormPanel = ({
         onLeveragePress={onLeveragePress}
         orderType={orderType}
         scaleOrder={scaleOrder}
+        activeChaseCount={activeChaseCount}
         scaleKeyboardScroll={{
           startPrice: scaleStartKeyboardScroll,
           endPrice: scaleEndKeyboardScroll,
@@ -310,6 +336,11 @@ const PerpsProOrderFormPanel = ({
         }}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
+        chaseMaxDistance={chaseMaxDistance}
+        chaseMaxDistanceUnit={chaseMaxDistanceUnit}
+        onChaseMaxDistanceUnitChange={onChaseMaxDistanceUnitChange}
+        chaseReferencePrice={chaseReferencePrice}
+        onChaseMaxDistanceChange={onChaseMaxDistanceChange}
         onLimitPriceChange={onLimitPriceChange}
         onLimitPriceFocus={onLimitPriceFocus}
         onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}

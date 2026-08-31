@@ -9,7 +9,10 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
-import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
+import {
+  HYPERLIQUID_TWAP_LIMITS,
+  type ChaseOrder,
+} from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
@@ -140,6 +143,27 @@ export const PERPS_TWAP_UI_CONFIG = {
     randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
   },
 } as const;
+
+export const CHASE_ORDER_UI_CONFIG = {
+  RefreshIntervalMs: 1000,
+  DiscoveryRetryMaxAttempts: 4,
+  DiscoveryRetryMaxDelayMs: 8000,
+  BackgroundSuspensionTimeoutMs: 3000,
+} as const;
+
+export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set([
+    'backgrounded',
+    'canceled',
+    'duration_reached',
+    'failed',
+    'filled',
+    'max_distance_reached',
+    'repricing_limit_reached',
+  ]);
+
+export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set(['active', 'termination_pending']);
 
 /**
  * Decimal places used when displaying how far a position's current price sits

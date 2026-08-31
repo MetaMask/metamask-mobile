@@ -71,19 +71,19 @@ When a harness is added or its public boundary changes, update this section. Fol
 
 Driven by [`perps-use-cases.md`](perps-use-cases.md):
 
-| Area                                                        |   E2E | Integration |     CV |    Unit |   Total |
-| ----------------------------------------------------------- | ----: | ----------: | -----: | ------: | ------: |
-| Order lifecycle (open / edit / cancel / close / flip)       |     1 |          12 |      6 |         |      19 |
-| Position management (collateral, TP/SL, leverage)           |       |           6 |      5 |         |      11 |
-| Account / funds (deposit, withdraw, view balance)           |     2 |           2 |      6 |         |      10 |
-| Market data / discovery                                     |       |             |      5 |       1 |       6 |
-| Realtime / subscriptions                                    |       |           4 |      1 |         |       5 |
-| Session / config (init, testnet, providers)                 |     2 |           5 |        |         |       7 |
-| Pure helpers (`orderCalculations`, `hyperLiquidValidation`) |       |             |        |     ~25 |     ~25 |
-| Composed selectors                                          |       |             |        |      ~5 |      ~5 |
-| **Total**                                                   | **5** |      **29** | **23** | **~31** | **~88** |
+| Area                                                               |   E2E | Integration |     CV |    Unit |   Total |
+| ------------------------------------------------------------------ | ----: | ----------: | -----: | ------: | ------: |
+| Order lifecycle (open / edit / cancel / close / flip / strategies) |     2 |          14 |      8 |         |      24 |
+| Position management (collateral, TP/SL, leverage)                  |       |           6 |      5 |         |      11 |
+| Account / funds (deposit, withdraw, view balance)                  |     2 |           2 |      6 |         |      10 |
+| Market data / discovery                                            |       |             |      5 |       1 |       6 |
+| Realtime / subscriptions                                           |       |           4 |      1 |         |       5 |
+| Session / config (init, testnet, providers)                        |     2 |           5 |        |         |       7 |
+| Pure helpers (`orderCalculations`, `hyperLiquidValidation`)        |       |             |        |     ~25 |     ~25 |
+| Composed selectors                                                 |       |             |        |      ~5 |      ~5 |
+| **Total**                                                          | **6** |      **31** | **25** | **~31** | **~93** |
 
-Distribution: ~6% E2E, ~33% Integration, ~26% CV, ~35% Unit. The integration count is the meaningful one — every perps action a user can perform should have a deterministic ~50ms test through real controller/provider code.
+Distribution: ~6% E2E, ~33% Integration, ~27% CV, ~33% Unit. The integration count is the meaningful one — every perps action a user can perform should have a deterministic test through real controller/provider code.
 
 ## Implementation plan
 

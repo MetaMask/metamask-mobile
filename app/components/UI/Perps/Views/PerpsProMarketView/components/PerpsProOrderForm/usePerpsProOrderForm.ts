@@ -1,5 +1,7 @@
 import {
+  BASIS_POINTS_DIVISOR,
   DECIMAL_PRECISION_CONFIG,
+  CHASE_ORDER_CONFIG,
   PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
@@ -12,6 +14,7 @@ import {
   isLimitExecutionOrderType,
   isTriggerOrderType,
   splitScaleSizes,
+  type ChaseOrder,
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
@@ -76,6 +79,7 @@ import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
 import { usePerpsMaxSlippage } from '../../../../hooks/usePerpsMaxSlippage';
+import { usePerpsChaseOrders } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -111,6 +115,7 @@ import {
   getOrderFormFieldIssues,
 } from '../../../../utils/triggerOrderValidation';
 import {
+  CHASE_ORDER_UI_CONFIG,
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -138,6 +143,8 @@ const SCALE_SIZE_SEARCH_MAX_STEPS = Math.ceil(
   Math.log2(Number.MAX_SAFE_INTEGER),
 );
 const SCALE_VALIDATION_MAX_ATTEMPTS = 2;
+const occupiesChasePlacementSlot = (order: Pick<ChaseOrder, 'status'>) =>
+  order.status === 'active' || order.status === 'termination_pending';
 type ScaleOrderValidationCode =
   | 'prices_required'
   | 'size_required'
@@ -431,6 +438,14 @@ export interface UsePerpsProOrderFormParams {
   isScaleOrderSupportPending: boolean;
   /** Re-check selected-route Scale support immediately before placement. */
   checkScaleOrderSupport: () => Promise<boolean>;
+  /** Flag and selected-provider capability gate for Chase. */
+  isChaseEnabled: boolean;
+  /** Preserve a selected Chase draft while route capability is unresolved. */
+  isChaseAvailabilityPending: boolean;
+  /** Re-checks selected market/provider capability at the submit boundary. */
+  refreshChaseCapability: () => Promise<PerpsProviderType | null>;
+  /** Concrete controller-resolved route used by validation and placement. */
+  chaseProviderId: PerpsProviderType | null;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -442,6 +457,12 @@ export interface UsePerpsProOrderFormResult {
   orderType: OrderType;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
+  chaseMaxDistance: string;
+  chaseMaxDistanceUnit: 'usd' | 'percent';
+  onChaseMaxDistanceUnitChange: (unit: 'usd' | 'percent') => void;
+  chaseReferencePrice: string;
+  activeChaseCount: number;
+  onChaseMaxDistanceChange: (value: string) => void;
   onLimitPriceChange: (value: string) => void;
   onLimitPriceBlur: () => void;
   onUseMidPricePress: () => void;
@@ -467,7 +488,7 @@ export interface UsePerpsProOrderFormResult {
   scaleOrder: PerpsProScaleOrderModel;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
-  onPlaceOrderPress: () => void;
+  onPlaceOrderPress: () => Promise<void>;
   // Leverage sheet
   isLeverageVisible: boolean;
   minLeverage: number;
@@ -521,8 +542,13 @@ export const usePerpsProOrderForm = ({
   isScaleOrdersEnabled,
   isScaleOrderSupportPending,
   checkScaleOrderSupport,
+  isChaseEnabled,
+  isChaseAvailabilityPending,
+  refreshChaseCapability,
+  chaseProviderId,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -588,6 +614,21 @@ export const usePerpsProOrderForm = ({
   const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
     useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
+  const { chaseOrders = [], getChaseOrders } = usePerpsChaseOrders({
+    isEnabled: isChaseEnabled,
+  });
+  const [chaseMaxDistance, setChaseMaxDistance] = useState('');
+  const [chaseMaxDistanceUnit, setChaseMaxDistanceUnit] = useState<
+    'usd' | 'percent'
+  >('usd');
+  const activeChaseCount = useMemo(
+    () => chaseOrders.filter(occupiesChasePlacementSlot).length,
+    [chaseOrders],
+  );
+  const parsedChaseMaxDistance = Number.parseFloat(chaseMaxDistance);
+  const isChaseMaxDistanceNumeric = /^(?:\d+(?:\.\d*)?|\.\d+)$/u.test(
+    chaseMaxDistance.trim(),
+  );
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
   const isSubmittingRef = useRef(false);
@@ -599,20 +640,61 @@ export const usePerpsProOrderForm = ({
   const isScaleOrderSupportPendingRef = useRef(isScaleOrderSupportPending);
   const scaleProviderIdRef = useRef(scaleProviderId);
   const checkScaleOrderSupportRef = useRef(checkScaleOrderSupport);
+  const isChaseEnabledRef = useRef(isChaseEnabled);
+  const isChaseAvailabilityPendingRef = useRef(isChaseAvailabilityPending);
+  const chaseProviderIdRef = useRef(chaseProviderId);
+  const refreshChaseCapabilityRef = useRef(refreshChaseCapability);
   useLayoutEffect(() => {
     isScaleOrdersEnabledRef.current = isScaleOrdersEnabled;
     isScaleOrderSupportPendingRef.current = isScaleOrderSupportPending;
     scaleProviderIdRef.current = scaleProviderId;
     checkScaleOrderSupportRef.current = checkScaleOrderSupport;
+    isChaseEnabledRef.current = isChaseEnabled;
+    isChaseAvailabilityPendingRef.current = isChaseAvailabilityPending;
+    chaseProviderIdRef.current = chaseProviderId;
+    refreshChaseCapabilityRef.current = refreshChaseCapability;
   }, [
+    chaseProviderId,
     checkScaleOrderSupport,
+    isChaseAvailabilityPending,
+    isChaseEnabled,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
+    refreshChaseCapability,
     scaleProviderId,
   ]);
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
+  const submissionStateRef = useRef('');
+  useEffect(() => {
+    if (
+      orderForm.type === 'chase' &&
+      !isChaseAvailabilityPending &&
+      !isChaseEnabled
+    ) {
+      setOrderType('market');
+      setChaseMaxDistance('');
+      setChaseMaxDistanceUnit('usd');
+      setIsOrderTypeVisible(false);
+    }
+  }, [
+    isChaseAvailabilityPending,
+    isChaseEnabled,
+    orderForm.type,
+    setOrderType,
+  ]);
+  const currentSubmissionState =
+    orderForm.type === 'chase'
+      ? JSON.stringify({
+          orderForm,
+          reduceOnly,
+          chaseMaxDistance,
+          chaseMaxDistanceUnit,
+          selectedAddress: selectedAddress?.toLowerCase() ?? '',
+        })
+      : '';
+  submissionStateRef.current = currentSubmissionState;
 
   usePerpsSavePendingConfig(orderForm, { reduceOnly });
 
@@ -637,7 +719,6 @@ export const usePerpsProOrderForm = ({
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
   });
 
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const {
@@ -740,6 +821,23 @@ export const usePerpsProOrderForm = ({
     price: assetData.price,
   });
   const isMarketDataBlocking = marketDataBlockingReason !== null;
+  const chaseMaxDistanceBps =
+    chaseMaxDistanceUnit === 'percent'
+      ? parsedChaseMaxDistance * 100
+      : assetData.price > 0
+        ? (parsedChaseMaxDistance / assetData.price) * BASIS_POINTS_DIVISOR
+        : Number.NaN;
+  const isChaseMaxDistanceBpsResolvable =
+    chaseMaxDistanceUnit === 'percent' || assetData.price > 0;
+  const isChaseMaxDistanceInvalid =
+    orderForm.type === 'chase' &&
+    chaseMaxDistance.trim().length > 0 &&
+    (!isChaseMaxDistanceNumeric ||
+      !Number.isFinite(parsedChaseMaxDistance) ||
+      parsedChaseMaxDistance <= 0 ||
+      (isChaseMaxDistanceBpsResolvable &&
+        (!Number.isFinite(chaseMaxDistanceBps) ||
+          chaseMaxDistanceBps >= BASIS_POINTS_DIVISOR)));
 
   const normalizedTriggerPrice = canonicalizeOrderPrice(
     triggerPrice,
@@ -820,11 +918,14 @@ export const usePerpsProOrderForm = ({
   });
 
   const isTwapOrder = orderForm.type === 'twap';
+  const isChaseOrder = orderForm.type === 'chase';
   const orderProviderId = isTwapOrder
     ? resolvedTwapProviderId
     : isScaleOrder
       ? scaleProviderId
-      : undefined;
+      : isChaseOrder
+        ? (chaseProviderId ?? undefined)
+        : undefined;
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
   const checkTwapOrderSupportRef = useRef(checkTwapOrderSupport);
@@ -1138,7 +1239,6 @@ export const usePerpsProOrderForm = ({
     isScaleOrder && scaleLadderResult.success
       ? scaleLadderResult.orderValue
       : effectiveUsdAmount;
-
   const feeResults = usePerpsOrderFees({
     orderType: calculationOrderType,
     amount: calculationUsdAmount,
@@ -1397,17 +1497,23 @@ export const usePerpsProOrderForm = ({
     existingPositionLeverage: existingPositionLeverageForValidation,
     // Skip protocol validation until position data is ready so we don't flash
     // unrelated errors while waiting for the position snapshot.
-    skipValidation: isReduceOnlyPositionLoading,
+    skipValidation:
+      isReduceOnlyPositionLoading ||
+      (orderForm.type === 'chase' &&
+        (!isChaseEnabled || chaseProviderId === null)),
     originalUsdAmount:
       isExactFullClose || isScaleOrder ? undefined : effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
+    providerId:
+      orderForm.type === 'chase'
+        ? (chaseProviderId ?? undefined)
+        : orderProviderId,
     triggerPrice: normalizedTriggerPrice,
     midPrice: assetData.price,
     szDecimals,
     twapDuration: isTwapOrder ? twapDuration : undefined,
     twapRandomize: isTwapOrder ? twapRandomize : undefined,
-    providerId: orderProviderId,
     suppressedProtocolErrorCodes: isTwapOrder
       ? TWAP_OWNED_PROTOCOL_ERROR_CODES
       : undefined,
@@ -1560,6 +1666,7 @@ export const usePerpsProOrderForm = ({
   });
   const standardOrderToastOptions =
     isScaleOrder ||
+    orderForm.type === 'chase' ||
     isLimitExecutionOrderType(orderForm.type) ||
     isTriggerOrderType(orderForm.type)
       ? PerpsToastOptions.orderManagement.limit
@@ -1625,8 +1732,14 @@ export const usePerpsProOrderForm = ({
     [navigation, track],
   );
 
-  const handlePlaceOrder = useCallback(async () => {
+  const handlePlaceOrder = async (expectedState: string) => {
     if (isSubmittingRef.current) {
+      return;
+    }
+
+    const isCurrentSubmission = () =>
+      submissionStateRef.current === expectedState;
+    if (!isCurrentSubmission()) {
       return;
     }
 
@@ -1652,6 +1765,20 @@ export const usePerpsProOrderForm = ({
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.order.validation.twap_unavailable'),
+        ),
+      );
+      return;
+    }
+
+    if (
+      orderForm.type === 'chase' &&
+      (isChaseAvailabilityPending ||
+        !isChaseEnabled ||
+        chaseProviderId === null)
+    ) {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(
+          strings('perps.order.validation.chase_unavailable'),
         ),
       );
       return;
@@ -1749,6 +1876,73 @@ export const usePerpsProOrderForm = ({
     isSubmittingRef.current = true;
 
     try {
+      let submissionChaseProviderId = chaseProviderIdRef.current;
+      let submissionChaseState: string | undefined;
+      let isCurrentChaseRoute: (() => boolean) | undefined;
+      if (orderForm.type === 'chase') {
+        submissionChaseState = expectedState;
+        const expectedProviderId = chaseProviderIdRef.current;
+        const refreshCapability = refreshChaseCapabilityRef.current;
+        isCurrentChaseRoute = () =>
+          !isChaseAvailabilityPendingRef.current &&
+          isChaseEnabledRef.current &&
+          expectedProviderId !== null &&
+          chaseProviderIdRef.current === expectedProviderId &&
+          refreshChaseCapabilityRef.current === refreshCapability;
+        const refreshedProviderId = await refreshCapability();
+        // A route change during the async refresh invalidates this submission.
+        // The new route becomes available on the next user submit.
+        if (
+          !isCurrentChaseRoute() ||
+          refreshedProviderId !== expectedProviderId
+        ) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.order.validation.chase_unavailable'),
+            ),
+          );
+          return;
+        }
+        submissionChaseProviderId = expectedProviderId;
+        let latestChases: ChaseOrder[];
+        try {
+          latestChases = await getChaseOrders();
+        } catch {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.order.validation.chase_unavailable'),
+            ),
+          );
+          return;
+        }
+        if (
+          submissionChaseState !== submissionStateRef.current ||
+          !isCurrentChaseRoute()
+        ) {
+          if (!isCurrentChaseRoute()) {
+            showToast(
+              PerpsToastOptions.formValidation.orderForm.validationError(
+                strings('perps.order.validation.chase_unavailable'),
+              ),
+            );
+          }
+          return;
+        }
+        if (
+          latestChases.filter(occupiesChasePlacementSlot).length >=
+          CHASE_ORDER_CONFIG.MaxActiveSessions
+        ) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.order.validation.chase_limit', {
+                count: CHASE_ORDER_CONFIG.MaxActiveSessions,
+              }),
+            ),
+          );
+          return;
+        }
+      }
+
       const initialScaleValidation = isScaleOrder
         ? await validateLatestScalePlacement()
         : undefined;
@@ -1759,6 +1953,9 @@ export const usePerpsProOrderForm = ({
       const validationResult = initialScaleValidation
         ? initialScaleValidation.validationResult
         : await validateNow();
+      if (!isCurrentSubmission()) {
+        return;
+      }
       if (!validationResult.isValid) {
         const firstFieldIssue = validationResult.fieldIssues[0];
         const firstError =
@@ -1795,6 +1992,9 @@ export const usePerpsProOrderForm = ({
           reportValidationFailure(
             strings('perps.order.validation.twap_unavailable'),
           );
+          return;
+        }
+        if (!isCurrentSubmission()) {
           return;
         }
       }
@@ -2020,6 +2220,22 @@ export const usePerpsProOrderForm = ({
       // reduce-only is Pro-specific (TAT-3595); the direct Pro path never
       // uses pay-with-any-token, so those tracking fields are omitted.
       // Finalize trailing decimals so Place Order does not depend on blur timing.
+      if (orderForm.type === 'chase') {
+        if (submissionChaseState !== submissionStateRef.current) {
+          return;
+        }
+        if (!isCurrentChaseRoute?.()) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.order.validation.chase_unavailable'),
+            ),
+          );
+          return;
+        }
+      }
+      if (!isCurrentSubmission()) {
+        return;
+      }
       const finalizedLimitPrice = orderForm.limitPrice
         ? canonicalizeOrderPrice(
             finalizeNumericTextInput(orderForm.limitPrice),
@@ -2027,6 +2243,27 @@ export const usePerpsProOrderForm = ({
           )
         : orderForm.limitPrice;
       const finalizedTriggerPrice = normalizedTriggerPrice;
+
+      const latestChaseMaxDistanceBps =
+        orderForm.type === 'chase' && chaseMaxDistance.trim()
+          ? chaseMaxDistanceUnit === 'percent'
+            ? parsedChaseMaxDistance * 100
+            : latestMidPriceRef.current > 0
+              ? (parsedChaseMaxDistance / latestMidPriceRef.current) *
+                BASIS_POINTS_DIVISOR
+              : Number.NaN
+          : undefined;
+      if (
+        latestChaseMaxDistanceBps !== undefined &&
+        (!Number.isFinite(latestChaseMaxDistanceBps) ||
+          latestChaseMaxDistanceBps <= 0 ||
+          latestChaseMaxDistanceBps >= BASIS_POINTS_DIVISOR)
+      ) {
+        reportValidationFailure(
+          strings('perps.order.validation.chase_max_distance'),
+        );
+        return;
+      }
 
       const orderParams = buildPerpsOrderParams({
         asset: orderForm.asset,
@@ -2038,17 +2275,25 @@ export const usePerpsProOrderForm = ({
         usdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
         limitPrice: finalizedLimitPrice,
+        chaseMaxDistanceBps: latestChaseMaxDistanceBps,
+        providerId:
+          orderForm.type === 'chase'
+            ? (submissionChaseProviderId ?? undefined)
+            : isTwapOrder
+              ? resolvedTwapProviderIdRef.current
+              : orderProviderId,
         triggerPrice: finalizedTriggerPrice,
-        takeProfitPrice: isTriggerOrderType(orderForm.type)
-          ? undefined
-          : orderForm.takeProfitPrice,
-        stopLossPrice: isTriggerOrderType(orderForm.type)
-          ? undefined
-          : orderForm.stopLossPrice,
+        takeProfitPrice:
+          isTriggerOrderType(orderForm.type) || orderForm.type === 'chase'
+            ? undefined
+            : orderForm.takeProfitPrice,
+        stopLossPrice:
+          isTriggerOrderType(orderForm.type) || orderForm.type === 'chase'
+            ? undefined
+            : orderForm.stopLossPrice,
         reduceOnly,
         twapDuration: isTwapOrder ? twapDuration : undefined,
         twapRandomize: isTwapOrder ? twapRandomize : undefined,
-        providerId: orderProviderId,
         isFullClose: reduceOnly
           ? reduceOnlyValidation.isFullClose || isExactFullClose
           : undefined,
@@ -2085,6 +2330,7 @@ export const usePerpsProOrderForm = ({
         !isTwapOrder &&
         !reduceOnly &&
         !isTriggerOrderType(orderForm.type) &&
+        orderForm.type !== 'chase' &&
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
         ((!currentMarketPosition && orderForm.type === 'market') ||
           (currentMarketPosition &&
@@ -2137,74 +2383,13 @@ export const usePerpsProOrderForm = ({
       setTriggerPrice(undefined);
       setReduceOnly(false);
       resetTwapDraft();
+      setChaseMaxDistance('');
     } finally {
       isSubmittingRef.current = false;
     }
-  }, [
-    track,
-    orderForm.asset,
-    orderForm.direction,
-    orderForm.type,
-    normalizedTriggerPrice,
-    normalizedLimitPrice,
-    orderForm.leverage,
-    orderForm.limitPrice,
-    orderForm.takeProfitPrice,
-    orderForm.stopLossPrice,
-    effectiveUsdAmount,
-    exceedsMaxSlippage,
-    estimatedSlippageBps,
-    resolvedMaxSlippageBps,
-    maxSlippageSource,
-    isTriggeredOrdersEnabled,
-    isMarketDataBlocking,
-    isAtCap,
-    isScaleOrder,
-    hasTpslBlocker,
-    twapDurationMissing,
-    twapDurationError,
-    twapMinimumSizeError,
-    isReduceOnlyPositionLoading,
-    reduceOnlyValidation.isValid,
-    reduceOnlyValidation.isFullClose,
-    isExactFullClose,
-    directionTrackingValue,
-    validateNow,
-    validateLatestScalePlacement,
-    currentMarketPosition,
-    rejectCrossMarginPosition,
-    submissionPositionSize,
-    effectivePrice,
-    reduceOnly,
-    isTwapOrder,
-    orderProviderId,
-    twapDuration,
-    twapRandomize,
-    effectiveMarginRequired,
-    feeResults,
-    assetData.price,
-    szDecimals,
-    source,
-    sourceSection,
-    chartLibrary,
-    vipTier,
-    playImpact,
-    executeOrder,
-    updateOrderForm,
-    setLimitPrice,
-    setTriggerPrice,
-    updatePositionTPSL,
-    showToast,
-    PerpsToastOptions.formValidation.orderForm,
-    PerpsToastOptions.orderManagement,
-    PerpsToastOptions.positionManagement.tpsl,
-    standardOrderToastOptions,
-    resetTwapDraft,
-  ]);
+  };
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
-  useLayoutEffect(() => {
-    handlePlaceOrderRef.current = handlePlaceOrder;
-  }, [handlePlaceOrder]);
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
   const onTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {
@@ -2348,11 +2533,15 @@ export const usePerpsProOrderForm = ({
           setIsOrderTypeVisible(false);
           return;
         }
+        if (type === 'chase' && !isChaseEnabled) {
+          setIsOrderTypeVisible(false);
+          return;
+        }
         if (type !== orderForm.type) {
           resetPriceInputInteraction();
         }
         setOrderType(type);
-        if (type === 'twap' || type === 'scale') {
+        if (type === 'twap' || type === 'scale' || type === 'chase') {
           setLimitPrice(undefined);
           setTriggerPrice(undefined);
           setTakeProfitPrice(undefined);
@@ -2365,6 +2554,7 @@ export const usePerpsProOrderForm = ({
       isTriggeredOrdersEnabled,
       isScaleOrdersEnabled,
       isTwapEnabled,
+      isChaseEnabled,
       guardScaleMutation,
       orderForm.type,
       resetPriceInputInteraction,
@@ -2462,6 +2652,27 @@ export const usePerpsProOrderForm = ({
       });
     }
 
+    if (
+      orderForm.type === 'chase' &&
+      activeChaseCount >= CHASE_ORDER_CONFIG.MaxActiveSessions
+    ) {
+      list.push({
+        id: 'chase-limit',
+        variant: 'banner',
+        message: strings('perps.order.validation.chase_limit', {
+          count: CHASE_ORDER_CONFIG.MaxActiveSessions,
+        }),
+      });
+    }
+
+    if (isChaseMaxDistanceInvalid) {
+      list.push({
+        id: 'chase-max-distance',
+        variant: 'banner',
+        message: strings('perps.order.validation.chase_max_distance'),
+      });
+    }
+
     return list;
   }, [
     reduceOnly,
@@ -2482,6 +2693,8 @@ export const usePerpsProOrderForm = ({
     twapDurationError,
     twapDurationErrorMessage,
     twapMinimumSizeError,
+    activeChaseCount,
+    isChaseMaxDistanceInvalid,
   ]);
 
   const summary = useMemo<PerpsProOrderSummaryProps>(() => {
@@ -2714,6 +2927,13 @@ export const usePerpsProOrderForm = ({
     !hasValidAmount ||
     !orderValidation.isValid ||
     isAtCap ||
+    (orderForm.type === 'chase' &&
+      activeChaseCount >= CHASE_ORDER_CONFIG.MaxActiveSessions) ||
+    (orderForm.type === 'chase' &&
+      (isChaseAvailabilityPending ||
+        !isChaseEnabled ||
+        chaseProviderId === null)) ||
+    isChaseMaxDistanceInvalid ||
     isPlacing ||
     isScalePlacementPending ||
     isMarketDataBlocking ||
@@ -2789,6 +3009,30 @@ export const usePerpsProOrderForm = ({
     );
   }, [commitTriggerPrice, szDecimals, triggerPrice]);
 
+  const onChaseMaxDistanceChange = useCallback(
+    (value: string) => {
+      const result = normalizeNumericTextInput(value, chaseMaxDistance, {
+        maxDigits: MAX_PERPS_INPUT_DIGITS,
+        acceptedDecimalSeparators: ['.', ','],
+      });
+      if (result.ok) {
+        setChaseMaxDistance(result.value);
+      }
+    },
+    [chaseMaxDistance, setChaseMaxDistance],
+  );
+
+  const onChaseMaxDistanceUnitChange = useCallback(
+    (unit: 'usd' | 'percent') => {
+      if (unit === chaseMaxDistanceUnit) {
+        return;
+      }
+      setChaseMaxDistance('');
+      setChaseMaxDistanceUnit(unit);
+    },
+    [chaseMaxDistanceUnit],
+  );
+
   const priceCardMessage = useMemo(() => {
     const fieldIssues = orderValidation.fieldIssues;
     const triggerIssue = fieldIssues.find(
@@ -2850,6 +3094,7 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    const expectedSubmissionState = submissionStateRef.current;
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -2865,11 +3110,14 @@ export const usePerpsProOrderForm = ({
       // Compliance first, then geographic eligibility — matches Lite trade entry
       // and the canonical compliance gate ordering (docs/compliance.md).
       await gate(async () => {
+        if (submissionStateRef.current !== expectedSubmissionState) {
+          return;
+        }
         if (!isEligible) {
           showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
           return;
         }
-        await handlePlaceOrderRef.current();
+        await handlePlaceOrderRef.current(expectedSubmissionState);
       });
     } finally {
       if (locksScalePlacement) {
@@ -3021,8 +3269,17 @@ export const usePerpsProOrderForm = ({
     leverage: orderForm.leverage,
     onLeveragePress,
     orderType: orderForm.type,
+    activeChaseCount,
     onOrderTypeButtonPress,
     limitPrice: orderForm.limitPrice ?? '',
+    chaseMaxDistance,
+    chaseMaxDistanceUnit,
+    onChaseMaxDistanceUnitChange,
+    chaseReferencePrice:
+      assetData.price > 0
+        ? formatPerpsFiat(assetData.price)
+        : PERPS_CONSTANTS.FallbackPriceDisplay,
+    onChaseMaxDistanceChange,
     onLimitPriceChange,
     onLimitPriceBlur,
     onUseMidPricePress,

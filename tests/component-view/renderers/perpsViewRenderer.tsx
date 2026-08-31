@@ -652,6 +652,8 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
+  providerId: 'hyperliquid' as const,
+  szDecimals: 2,
 };
 
 const defaultProPrices: Record<string, PriceUpdate> = {
