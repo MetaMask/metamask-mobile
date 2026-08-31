@@ -4581,7 +4581,6 @@ DEPENDENCIES:
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - IdensicMobileSDK (from `IdensicMobileSDK.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
   - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
@@ -4762,6 +4761,8 @@ SPEC REPOS:
     - SwiftUIIntrospect
     - VeriffSDK
     - YttriumWrapper
+  https://github.com/SumSubstance/Specs.git:
+    - IdensicMobileSDK
 
 EXTERNAL SOURCES:
   boost:
@@ -4849,8 +4850,6 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-v0.14.1
-  IdensicMobileSDK:
-    :podspec: IdensicMobileSDK.podspec
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   NativeUtils:
@@ -5188,7 +5187,7 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: f37e1d6f1eb198649a60b3f17b6f685a6ac12470
-  IdensicMobileSDK: 6a1338ed3b0f8c843160f82dc857e73a1adde803
+  IdensicMobileSDK: b32caa39919bd9d0ad64897b2a17de81e16f23fd
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -5347,6 +5346,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: caf91257a64e161ba0ce4cebb5e5cf6665b14a45
+PODFILE CHECKSUM: c0e2bd0b5e822b365920a9b9ed8779e20bd2536c
 
 COCOAPODS: 1.16.2

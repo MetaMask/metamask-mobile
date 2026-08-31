@@ -1,4 +1,5 @@
 source 'https://github.com/CocoaPods/Specs.git'
+source 'https://github.com/SumSubstance/Specs.git'
 
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
@@ -99,9 +100,6 @@ def common_target_logic
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
   pod 'OpenSSL-Universal', :modular_headers => true
-
-  # Local podspec. Do not add a second CocoaPods source.
-  pod 'IdensicMobileSDK', :podspec => 'IdensicMobileSDK.podspec'
 
   use_react_native!(
     :path => config[:reactNativePath],

@@ -10,17 +10,13 @@ import {
   IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
+  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
-import { resolveSumSubAccessToken } from './mintSumSubSandboxAccessToken';
 
 jest.mock('./launchSumSubSdk', () => ({
   launchSumSubSdk: jest.fn(),
-}));
-
-jest.mock('./mintSumSubSandboxAccessToken', () => ({
-  resolveSumSubAccessToken: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -32,7 +28,6 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
-const mockResolveSumSubAccessToken = jest.mocked(resolveSumSubAccessToken);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -48,7 +43,6 @@ jest.mock('@react-navigation/native', () => ({
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockResolveSumSubAccessToken.mockResolvedValue('');
     mockLaunchSumSubSdk.mockResolvedValue({
       success: true,
       status: 'Approved',
@@ -190,7 +184,7 @@ describe('VbaVerifyIdentity', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
   });
 
-  it('launches the Sumsub SDK when continue is pressed', async () => {
+  it('launches the Sumsub SDK with a mock applicant token when continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     await act(async () => {
@@ -200,13 +194,12 @@ describe('VbaVerifyIdentity', () => {
     });
 
     expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-      accessToken: '',
-      onTokenExpired: mockResolveSumSubAccessToken,
+      accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
+      onTokenExpired: expect.any(Function),
     });
   });
 
-  it('launches the Sumsub SDK with a minted sandbox applicant token', async () => {
-    mockResolveSumSubAccessToken.mockResolvedValue('_act-sandbox');
+  it('returns the mock applicant token when the SDK asks to refresh', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     await act(async () => {
@@ -215,10 +208,11 @@ describe('VbaVerifyIdentity', () => {
       );
     });
 
-    expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-      accessToken: '_act-sandbox',
-      onTokenExpired: mockResolveSumSubAccessToken,
-    });
+    const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
+
+    await expect(onTokenExpired?.()).resolves.toBe(
+      MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
+    );
   });
 
   it('stays on the screen when the Sumsub SDK launch fails', async () => {
