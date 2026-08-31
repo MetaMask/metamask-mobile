@@ -190,6 +190,18 @@ jobs:
     if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
 
     steps:
+      - name: Checkout (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        with:
+          ref: ${{ needs.prepare.outputs.BRANCH }}
+
+      - name: Checkout
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.BRANCH }}
+
       - name: Setup Node for shard selection
         uses: actions/setup-node@v6
         with:
@@ -197,11 +209,12 @@ jobs:
 
       - name: Download frozen qa-stats timings
         id: download-timings
-        uses: actions/download-artifact@v4
+        uses: ./.github/actions/download-e2e-artifact
         continue-on-error: true
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Fetch qa-stats timings fallback
         if: steps.download-timings.outcome != 'success'
@@ -229,7 +242,7 @@ jobs:
           platform: android
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
-          android-tag: ${{ inputs.android-tag }}
+          android-tag: default
           android-api-level: '36'
           android-abi: x86_64
           android-device: pixel_5
@@ -240,44 +253,24 @@ jobs:
       - name: Determine Android artifact paths
         id: android-artifacts
         run: |
-          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
-            {
-              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
-              echo "apk-file-name=app-flask-release.apk"
-            } >> "$GITHUB_OUTPUT"
-          else
-            {
-              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
-              echo "apk-file-name=app-prod-release.apk"
-            } >> "$GITHUB_OUTPUT"
-          fi
+          {
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+            echo "apk-file-name=app-prod-release.apk"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Download Android build artifacts (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
-        id: download-android-apk-namespace
-        continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+      - name: Download Android build artifacts
+        if: ${{ steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/download-e2e-artifact
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          name: main-e2e-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-
-      - name: Download Android build artifacts (fallback)
-        if: ${{ inputs.runner_provider == 'namespace' && steps.select-specs.outputs.spec_count != '0' && steps.download-android-apk-namespace.outcome != 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-
-      - name: Download Android build artifacts (current)
-        if: ${{ inputs.runner_provider != 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+          runner-provider: ${{ inputs.runner_provider }}
+          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run fixture validation tests
         id: run-tests-android
-        timeout-minutes: ${{ inputs.test-timeout-minutes }}
+        timeout-minutes: 25
         continue-on-error: true
         env:
           SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
@@ -304,14 +297,15 @@ jobs:
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
-            --grep "${{ inputs.test_suite_tag }}" \
-            --pass-with-no-tests
-
-      - name: Cache updated fixture
-        uses: actions/cache/save@v4
+            --grep FixtureValidation
+      - name: Upload updated fixture
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
+          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
           path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+          if-no-files-found: error
+          retention-days: 1
+          runner-provider: ${{ inputs.runner_provider }}
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
@@ -335,12 +329,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
-      - name: Restore updated fixture
-        uses: actions/cache/restore@v4
+      - name: Download updated fixture
+        uses: ./.github/actions/download-e2e-artifact
         with:
-          path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
-          fail-on-cache-miss: true
+          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+          path: tests/framework/fixtures/json
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Check for fixture changes
         id: fixture-changes
