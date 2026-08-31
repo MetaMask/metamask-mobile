@@ -41,6 +41,15 @@ class CommandQueueServer implements Resource {
         'Origin, X-Requested-With, Content-Type, Accept',
       );
 
+      // TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+      // App-side startup beacons hit this endpoint; log arrival so the CI job
+      // log shows exactly which startup milestones the app reached.
+      if (ctx.method === 'GET' && ctx.path === '/startup-marker') {
+        logger.info(`[startup-marker] ${ctx.querystring}`);
+        ctx.body = { ok: true };
+        return;
+      }
+
       if (this._isQueueRequest(ctx)) {
         const newQueue = [...this._queue];
         this._queue.length = 0;

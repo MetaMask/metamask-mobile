@@ -18,6 +18,8 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTestEnvironment } from '../../../util/test/utils';
+// TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+import { startupBeacon } from '../../../util/test/startupBeacon';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -44,6 +46,8 @@ const styles = StyleSheet.create({
  * App component is wrapped by the provider from react-redux
  */
 const Root = ({ foxCode }: RootProps) => {
+  // TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+  startupBeacon('root-render');
   const [isStoreLoading, setIsStoreLoading] = useState(true);
 
   // We use a ref to make sure the UI messenger is only created once.
@@ -63,6 +67,8 @@ const Root = ({ foxCode }: RootProps) => {
       const intervalId = setInterval(() => {
         if (store && persistor) {
           clearInterval(intervalId);
+          // TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+          startupBeacon('root-store-ready');
           setIsStoreLoading(false);
           resolve(null);
         }

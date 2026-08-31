@@ -14,6 +14,8 @@ import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
+// TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+import { startupBeacon } from '../../../util/test/startupBeacon';
 import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
 import styleSheet from './FoxLoader.styles';
@@ -48,6 +50,8 @@ const FoxLoaderE2E = ({
   onAnimationCompleteRef.current = onAnimationComplete;
 
   useEffect(() => {
+    // TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+    startupBeacon('foxloader-e2e-mounted');
     hideAsync().catch((error: unknown) =>
       Logger.error(error as Error, 'Failed to hide splash screen in E2E mode'),
     );

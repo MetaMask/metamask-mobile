@@ -14,6 +14,8 @@ import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
+// TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
+import { startupBeacon } from '../util/test/startupBeacon';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
 import {
   clearAttribution,
@@ -36,9 +38,11 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
+  startupBeacon('store-create-start');
   const initialState = hasTestOverrides
     ? await ReadOnlyNetworkStore.getState()
     : undefined;
+  startupBeacon('fixture-state-loaded');
 
   const sagaMiddleware = createSagaMiddleware();
 
@@ -68,6 +72,7 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    startupBeacon('persist-complete');
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
@@ -96,6 +101,7 @@ const createStoreAndPersistor = async () => {
 (async () => {
   try {
     await createStoreAndPersistor();
+    startupBeacon('store-created');
     if (hasTestOverrides) {
       // Delay to give the store time to hydrate before first poll
       setTimeout(async () => {
@@ -110,6 +116,7 @@ const createStoreAndPersistor = async () => {
       }, 5000);
     }
   } catch (error) {
+    startupBeacon(`store-error:${(error as Error)?.message ?? error}`);
     Logger.error(error as Error, 'Error creating store and persistor');
   }
 })();
