@@ -1,8 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { act, fireEvent } from '@testing-library/react-native';
-import { getAnimatedStyle } from 'react-native-reanimated';
-import type { ReactTestInstance } from 'react-test-renderer';
+import { fireEvent } from '@testing-library/react-native';
 import {
   ParamListBase,
   TabNavigationState,
@@ -132,7 +130,6 @@ const renderBar = (
   );
 
 // Highlight movement is a reanimated timing, so tests settle it before asserting.
-const flushAnimations = () => act(() => jest.advanceTimersByTime(2000));
 
 describe('TabBarFloating', () => {
   beforeEach(() => {
@@ -180,134 +177,22 @@ describe('TabBarFloating', () => {
     expect(bottom >>> 24).toBeGreaterThan(0);
   });
 
-  it('slides the shared highlight onto the active slot', () => {
-    const SLOT_WIDTH = 80;
-    const layoutSlots = (getByTestId: (id: string) => ReactTestInstance) => {
-      [
-        TabBarIconKey.Wallet,
-        TabBarIconKey.Trending,
-        TabBarIconKey.Money,
-        TabBarIconKey.Social,
-      ].forEach((key, slot) => {
-        fireEvent(getByTestId(`tab-bar-item-${key}`), 'layout', {
-          nativeEvent: {
-            layout: {
-              x: slot * SLOT_WIDTH,
-              width: SLOT_WIDTH,
-              height: 48,
-              y: 0,
-            },
-          },
-        });
-      });
-    };
+  it('highlights only the active tab, and follows it when the tab changes', () => {
+    const backgroundOf = (
+      view: ReturnType<typeof renderBar>,
+      key: TabBarIconKey,
+    ) =>
+      StyleSheet.flatten(view.getByTestId(`tab-bar-item-${key}`).props.style)
+        .backgroundColor;
 
     const onHome = renderBar();
-    layoutSlots(onHome.getByTestId);
-    flushAnimations();
-    expect(
-      onHome.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
-    ).toHaveAnimatedStyle({
-      width: SLOT_WIDTH,
-      transform: [{ translateX: 0 }, { scaleX: 1 }],
-    });
+    const active = backgroundOf(onHome, TabBarIconKey.Wallet);
+    expect(backgroundOf(onHome, TabBarIconKey.Money)).not.toBe(active);
 
-    // Money is the third slot, so the highlight lands two widths across.
+    // Money active instead of Home: the highlight moves with it.
     const onMoney = renderBar({}, undefined, 2);
-    layoutSlots(onMoney.getByTestId);
-    flushAnimations();
-    expect(
-      onMoney.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
-    ).toHaveAnimatedStyle({
-      width: SLOT_WIDTH,
-      transform: [{ translateX: 2 * SLOT_WIDTH }, { scaleX: 1 }],
-    });
-  });
-
-  it('starts the slide on press rather than waiting for navigation', () => {
-    const SLOT_WIDTH = 80;
-    const { getByTestId } = renderBar();
-
-    fireEvent(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`), 'layout', {
-      nativeEvent: {
-        layout: { x: 3 * SLOT_WIDTH, width: SLOT_WIDTH, height: 48, y: 0 },
-      },
-    });
-    // Press without the navigator ever reporting a new active index.
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
-    flushAnimations();
-
-    expect(
-      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
-    ).toHaveAnimatedStyle({
-      transform: [{ translateX: 3 * SLOT_WIDTH }, { scaleX: 1 }],
-    });
-  });
-
-  it('does not restart the slide when navigation confirms the same tab', () => {
-    const SLOT_WIDTH = 80;
-    const layoutSlots = (view: { getByTestId: (id: string) => unknown }) => {
-      [
-        TabBarIconKey.Wallet,
-        TabBarIconKey.Trending,
-        TabBarIconKey.Money,
-        TabBarIconKey.Social,
-      ].forEach((key, slot) => {
-        fireEvent(
-          view.getByTestId(`tab-bar-item-${key}`) as ReactTestInstance,
-          'layout',
-          {
-            nativeEvent: {
-              layout: {
-                x: slot * SLOT_WIDTH,
-                width: SLOT_WIDTH,
-                height: 48,
-                y: 0,
-              },
-            },
-          },
-        );
-      });
-    };
-    const positionOf = (view: { getByTestId: (id: string) => unknown }) =>
-      getAnimatedStyle(
-        view.getByTestId(
-          TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT,
-        ) as ReactTestInstance,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ).transform as any;
-
-    // Baseline: press Money and let the spring run undisturbed.
-    const baseline = renderBar();
-    layoutSlots(baseline);
-    fireEvent.press(
-      baseline.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`),
-    );
-    act(() => jest.advanceTimersByTime(300));
-    const undisturbed = positionOf(baseline);
-
-    // Same timeline, but navigation confirms the in-flight slot at 110ms.
-    const confirmed = renderBar();
-    layoutSlots(confirmed);
-    fireEvent.press(
-      confirmed.getByTestId(`tab-bar-item-${TabBarIconKey.Money}`),
-    );
-    act(() => jest.advanceTimersByTime(110));
-    confirmed.rerender(barElement({}, undefined, 2));
-    act(() => jest.advanceTimersByTime(190));
-
-    // Identical progress: a restart would reset the spring and fall behind.
-    expect(positionOf(confirmed)).toEqual(undisturbed);
-  });
-
-  it('leaves the active background to the shared highlight, not the item', () => {
-    const { getByTestId } = renderBar();
-
-    const activeItem = StyleSheet.flatten(
-      getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`).props.style,
-    );
-
-    expect(activeItem.backgroundColor).toBe('transparent');
+    expect(backgroundOf(onMoney, TabBarIconKey.Money)).toBe(active);
+    expect(backgroundOf(onMoney, TabBarIconKey.Wallet)).not.toBe(active);
   });
 
   it('sizes the search button to a circle matching the pill height', () => {

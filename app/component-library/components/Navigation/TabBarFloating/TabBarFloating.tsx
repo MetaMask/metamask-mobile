@@ -9,14 +9,6 @@ import React, {
 } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -44,11 +36,6 @@ import {
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
-
-const HIGHLIGHT_SPRING = { damping: 16, stiffness: 210, mass: 0.9 };
-const HIGHLIGHT_STRETCH_TIMING = { duration: 120 };
-const HIGHLIGHT_STRETCH_PER_SLOT = 0.18;
-const HIGHLIGHT_MAX_STRETCH = 0.35;
 
 export interface TabBarFloatingProps extends TabBarProps {
   /**
@@ -97,90 +84,6 @@ const TabBarFloating = ({
     return [colorWithOpacity(background, 0), colorWithOpacity(background, 0.5)];
   }, [tw]);
 
-  const isReducedMotion = useReducedMotion();
-  const highlightX = useSharedValue(0);
-  const highlightScaleX = useSharedValue(1);
-  // Plain state, not a shared value: it belongs outside the animated style.
-  const [highlightWidth, setHighlightWidth] = useState(0);
-  const itemLayoutsRef = useRef<Record<number, { x: number; width: number }>>(
-    {},
-  );
-  // First placement jumps; only later tab changes slide.
-  const hasPlacedHighlightRef = useRef(false);
-  const highlightTargetRef = useRef<number | null>(null);
-
-  const activeIndex = useMemo(() => {
-    const activeRouteName = state.routeNames[state.index];
-    return state.routes.findIndex((route, index) => {
-      const options = descriptors[route.key]?.options;
-      if (!options || options.isHidden) return false;
-      return options.isSelected
-        ? options.isSelected(activeRouteName)
-        : state.index === index;
-    });
-  }, [state.routes, state.routeNames, state.index, descriptors]);
-
-  const placeHighlight = useCallback(
-    (layout: { x: number; width: number } | undefined) => {
-      if (!layout) return;
-      setHighlightWidth(layout.width);
-      // A tab switch asks for the same slot twice: once on press, then again
-      // when navigation commits. Reassigning withTiming mid-flight restarts the
-      // easing from wherever the highlight had reached, which shows as a hitch.
-      if (highlightTargetRef.current === layout.x) return;
-      const from = highlightTargetRef.current;
-      highlightTargetRef.current = layout.x;
-      const shouldAnimate = hasPlacedHighlightRef.current && !isReducedMotion;
-      hasPlacedHighlightRef.current = true;
-
-      if (!shouldAnimate) {
-        highlightX.value = layout.x;
-        return;
-      }
-
-      // Elongate toward the destination, then let the tail spring back, so the
-      // bubble reads as pulled across rather than teleported. Longer hops
-      // stretch further, up to a cap.
-      const slotsTravelled =
-        from === null || !layout.width
-          ? 1
-          : Math.abs(layout.x - from) / layout.width;
-      const stretch =
-        1 +
-        Math.min(
-          slotsTravelled * HIGHLIGHT_STRETCH_PER_SLOT,
-          HIGHLIGHT_MAX_STRETCH,
-        );
-
-      highlightX.value = withSpring(layout.x, HIGHLIGHT_SPRING);
-      highlightScaleX.value = withSequence(
-        withTiming(stretch, HIGHLIGHT_STRETCH_TIMING),
-        withSpring(1, HIGHLIGHT_SPRING),
-      );
-    },
-    [highlightX, highlightScaleX, isReducedMotion],
-  );
-
-  const handleItemLayout = useCallback(
-    (index: number, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      itemLayoutsRef.current[index] = { x, width };
-      if (index === activeIndex) placeHighlight({ x, width });
-    },
-    [activeIndex, placeHighlight],
-  );
-
-  useEffect(() => {
-    placeHighlight(itemLayoutsRef.current[activeIndex]);
-  }, [activeIndex, placeHighlight]);
-
-  const highlightStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: highlightX.value },
-      { scaleX: highlightScaleX.value },
-    ],
-  }));
-
   const handleSearchPress = useCallback(() => {
     trackExploreSearchOpened('nav_bar');
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -209,10 +112,6 @@ const TabBarFloating = ({
       const labelText = labelKey ? strings(labelKey) : '';
 
       const onPress = () => {
-        // Move first: navigating mounts the next tab's screen, which can hold
-        // the JS thread long enough for a slide started afterwards to look
-        // late. The activeIndex effect corrects this if navigation is refused.
-        placeHighlight(itemLayoutsRef.current[index]);
         options.callback?.();
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
@@ -249,13 +148,10 @@ const TabBarFloating = ({
           label={labelText}
           isActive={isSelected}
           onPress={onPress}
-          onLayout={(event) => handleItemLayout(index, event)}
         />
       );
     },
     [
-      handleItemLayout,
-      placeHighlight,
       descriptors,
       state.routeNames,
       state.index,
@@ -290,17 +186,6 @@ const TabBarFloating = ({
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
           onLayout={handlePillLayout}
         >
-          {/* One shared highlight, slid onto the active slot's measured box, so
-              it travels between tabs instead of snapping. */}
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              tw.style('absolute bottom-0 left-0 top-0 rounded-full bg-muted'),
-              { width: highlightWidth },
-              highlightStyle,
-            ]}
-            testID={TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT}
-          />
           {state.routes.map((route, index) => renderTabBarItem(route, index))}
         </Box>
         <ButtonIcon

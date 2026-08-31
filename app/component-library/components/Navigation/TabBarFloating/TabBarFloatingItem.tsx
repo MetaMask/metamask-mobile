@@ -1,5 +1,4 @@
 import React from 'react';
-import type { LayoutChangeEvent } from 'react-native';
 import {
   ButtonAnimated,
   FontWeight,
@@ -19,8 +18,6 @@ export interface TabBarFloatingItemProps {
   isActive: boolean;
   onPress: () => void;
   testID?: string;
-  /** Reports the slot's position so the shared highlight can slide onto it. */
-  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 const TabBarFloatingItem = ({
@@ -29,19 +26,16 @@ const TabBarFloatingItem = ({
   isActive,
   onPress,
   testID,
-  onLayout,
 }: TabBarFloatingItemProps) => {
   const tw = useTailwind();
 
   return (
     <ButtonAnimated
       onPress={onPress}
-      // The active background is drawn by the shared highlight in
-      // `TabBarFloating` so it can slide between slots instead of snapping.
       style={tw.style(
-        'flex-1 items-center justify-center self-stretch bg-transparent py-2',
+        'flex-1 items-center justify-center self-stretch rounded-full py-2',
+        isActive ? 'bg-muted' : 'bg-transparent',
       )}
-      onLayout={onLayout}
       testID={testID}
       accessibilityLabel={label}
       accessibilityRole="button"
