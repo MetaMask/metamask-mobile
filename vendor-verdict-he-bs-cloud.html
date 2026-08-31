@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Vendor verdict · HE vs BrowserStack vs Sauce Cloud</title>
+<style>
+:root {
+  --bg:#0b1220; --panel:#121a2b; --ink:#e8eefc; --muted:#93a0b8; --line:#243149;
+  --green:#34d399; --red:#fb7185; --amber:#fbbf24; --blue:#60a5fa;
+  --teal:#2dd4bf; --gold:#f6c945; --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;color:var(--ink);
+  background:radial-gradient(1100px 520px at 10% -10%,#5b21b640,transparent),
+             radial-gradient(900px 420px at 90% 0%,#0f766e33,transparent),var(--bg);
+  font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 72px}
+.hero{
+  background:linear-gradient(135deg,#0f172a,#1e1b4b 45%,#134e4a);
+  border:1px solid #ffffff22;border-radius:22px;padding:28px;color:#fff;margin-bottom:16px;
+}
+.eyebrow{color:#c4b5fd;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{margin:10px 0 12px;font-size:clamp(28px,4vw,44px);line-height:1.05}
+h2{margin:0 0 14px;font-size:20px}
+p{margin:0;color:#ddd6fe}
+.banner{margin-top:14px;background:#064e3bcc;border:1px solid #34d39966;color:#a7f3d0;border-radius:12px;padding:12px 14px;font-size:13px}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-top:14px}
+.muted{color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:980px){.grid3{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(180deg,#0e1626,#121a2b);border:1px solid var(--line);
+  border-radius:18px;padding:18px;border-top:4px solid var(--c,#aaa);position:relative;
+}
+.card.best{box-shadow:0 0 0 1px #34d39955,0 12px 40px #34d39915;border-color:#34d39988}
+.card.worst{box-shadow:0 0 0 1px #fb718555}
+.badge{
+  display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  border-radius:999px;padding:3px 8px;margin:0 4px 4px 0;border:1px solid var(--line);
+}
+.badge.best{background:#064e3b;color:#6ee7b7;border-color:#34d399}
+.badge.worst{background:#7f1d1d;color:#fecaca;border-color:#fb7185}
+.badge.neutral{background:#0b1220;color:var(--muted)}
+.card h3{margin:8px 0 4px;font-size:18px}
+.score{font-size:42px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:8px 0}
+.score span{font-size:14px;color:var(--muted);font-weight:600}
+.metrics{display:grid;gap:8px;margin:12px 0 14px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:8px 10px;background:#0b1220;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.row .k{color:var(--muted)}
+.row .v{font-weight:800;font-variant-numeric:tabular-nums}
+.row .v.best{color:var(--green)}
+.row .v.worst{color:var(--red)}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.pc{grid-template-columns:1fr}}
+.pc h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.pc h4.pro{color:var(--green)}
+.pc h4.con{color:var(--red)}
+.pc ul{margin:0;padding-left:16px;color:#d1d5db;font-size:12px}
+.pc li{margin:5px 0}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{border-bottom:1px solid var(--line);padding:10px 8px;font-size:13px;text-align:center}
+th{background:#0e1626;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+td:first-child,th:first-child{text-align:left;font-weight:600}
+.bestcell{color:var(--green);font-weight:800}
+.worstcell{color:var(--red);font-weight:800}
+.verdict{
+  background:linear-gradient(135deg,#064e3b,#0f766e 60%,#1e1b4b);
+  border:1px solid #34d39966;border-radius:18px;padding:22px;margin-top:14px;
+}
+.verdict h2{margin:0 0 10px;font-size:24px}
+.verdict .winner-name{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:6px 0 12px;color:#a7f3d0}
+.verdict p{color:#d1fae5;margin:0 0 10px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:800px){.compare{grid-template-columns:1fr}}
+.box{background:#0b1220aa;border:1px solid #ffffff22;border-radius:12px;padding:14px}
+.box h3{margin:0 0 8px;font-size:14px;color:#99f6e4}
+.foot{color:var(--muted);font-size:12px;margin-top:16px}
+a{color:#93c5fd}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.links a{color:#fff;border:1px solid #ffffff44;border-radius:999px;padding:6px 11px;text-decoration:none;font-size:12px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <div class="eyebrow">MetaMask Mobile · Performance E2E · vendor verdict</div>
+    <h1>TestMu HE vs BrowserStack vs Sauce Cloud</h1>
+    <p>Solo medias por vendor. Sin listado de runs. Mejor / peor remarcados. Sauce Cloud se evalúa como candidato real (ya no “under test”).</p>
+    <div class="banner"><strong>Métricas:</strong> flakiness % · session-create fail % · tiempo medio de scenarios en PASS · pass rate. Score compuesto = 30% pass + 30% (anti)flake + 20% (anti)session-fail + 20% velocidad.</div>
+    <nav class="links">
+      <a href="./final-vendor-compare-run-e.html">Run E detail</a>
+      <a href="./he-bs-saucecloud-flake-timing.html">Detail flake/timing table</a>
+      <a href="./vendor-scoreboard.html">Weekly scoreboard</a>
+    </nav>
+  </header>
+
+  <section class="section">
+    <h2>Medias por vendor</h2>
+    <div class="grid3" id="cards"></div>
+  </section>
+
+  <section class="section">
+    <h2>Tabla comparativa</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Métrica</th>
+            <th>TestMu HE</th>
+            <th>BrowserStack</th>
+            <th>Sauce Cloud</th>
+            <th>Mejor</th>
+            <th>Peor</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="verdict" id="verdict"></section>
+
+  <p class="foot" id="foot"></p>
+</main>
+<script>
+const DATA = {"generatedAt": "2026-08-31T09:41:21Z", "branch": "MMQA-TestMu-PoC-HyperExecute", "order": ["testmu_he", "browserstack", "sauce_cloud"], "scores": {"testmu_he": 92.1, "browserstack": 30.0, "sauce_cloud": 47.6}, "ranked": ["testmu_he", "sauce_cloud", "browserstack"], "metrics": {"testmu_he": {"name": "TestMu HyperExecute", "color": "#a78bfa", "passPct": 78.3, "flakyPct": 8.7, "sfPct": 0.0, "avgPassTime": 3.954, "medianPassTime": 3.299, "scenarioWins": 5, "scenarioLosses": 6, "nRuns": 4, "pros": ["Lowest flakiness in the sample (8.7% of scenarios flip across runs)", "Zero session-create failures", "Strong, stable pass rate (~78%)", "Competitive mean scenario time (~4.0s)"], "cons": ["Fewer scenario “speed crowns” than BS/Cloud (5 wins)", "Sample is on Pixel 8 Pro/14 — not the same device as BS/Cloud", "HE was often skipped in later multi-vendor dispatches (ops gap)"]}, "browserstack": {"name": "BrowserStack", "color": "#60a5fa", "passPct": 79.1, "flakyPct": 26.1, "sfPct": 3.5, "avgPassTime": 4.599, "medianPassTime": 3.524, "scenarioWins": 8, "scenarioLosses": 6, "nRuns": 5, "pros": ["Highest pass rate overall (~79%)", "Most per-scenario timing wins (8)", "Mature baseline already used in the pipeline"], "cons": ["Highest flakiness (26.1%)", "Only vendor with session-create fails in this sample (3.5%)", "Slowest mean passed scenario time (~4.6s)"]}, "sauce_cloud": {"name": "Sauce Labs Cloud", "color": "#2dd4bf", "passPct": 73.0, "flakyPct": 21.7, "sfPct": 0.0, "avgPassTime": 3.793, "medianPassTime": 3.647, "scenarioWins": 7, "scenarioLosses": 7, "nRuns": 5, "pros": ["Fastest mean passed scenario time (~3.8s)", "Zero session-create failures", "Strong speed + solid quality after Run E rebound (now evaluable)"], "cons": ["Flakiness still high (21.7%)", "Lowest overall pass rate in the pooled sample (~73%)", "More no-metrics executions (21.7%) than HE/BS"]}}, "badges": {"leastFlaky": "testmu_he", "mostFlaky": "browserstack", "leastSF": "testmu_he", "mostSF": "browserstack", "fastest": "sauce_cloud", "slowest": "browserstack", "bestPass": "browserstack", "worstPass": "sauce_cloud"}, "definitions": {"flakiness": "% of scenarios that passed in at least one run and failed (QG or session) in another run for the same vendor.", "sessionFail": "% of scenario executions classified as session-create / no-session (~≥290s wall, no metrics).", "avgScenarioTime": "Mean of passed timings only (<290s). Winner = lowest avg; loser = highest avg among vendors with data."}, "notes": ["Figures are pooled averages across available sampled runs (no per-run listing).", "HE: 4 runs · BS/Cloud: 5 runs each (Aug 26 A–D + Aug 31 E).", "Sauce Labs Cloud is treated as fully evaluable (no longer “under test”).", "HE device (Pixel 8 Pro/14) differs from BS/Cloud (Pixel 7 Pro/13) — directional for timing."]};
+
+function short(name){
+  return name.replace('TestMu HyperExecute','TestMu HE').replace('Sauce Labs Cloud','Sauce Cloud');
+}
+
+function render(){
+  const M = DATA.metrics;
+  const B = DATA.badges;
+  const order = DATA.order;
+
+  document.getElementById('cards').innerHTML = order.map(k => {
+    const m = M[k];
+    const rank = DATA.ranked.indexOf(k)+1;
+    const isBest = k === DATA.ranked[0];
+    const isWorst = k === DATA.ranked[DATA.ranked.length-1];
+    const badges = [];
+    if (m.flakyPct === M[B.leastFlaky].flakyPct) badges.push(['best','Least flaky']);
+    if (m.flakyPct === M[B.mostFlaky].flakyPct && B.leastFlaky !== B.mostFlaky) badges.push(['worst','Most flaky']);
+    if (m.sfPct === 0) badges.push(['best','0 session fail']);
+    else if (m.sfPct === M[B.mostSF].sfPct) badges.push(['worst','Session fails']);
+    if (m.avgPassTime === M[B.fastest].avgPassTime) badges.push(['best','Fastest avg']);
+    if (m.avgPassTime === M[B.slowest].avgPassTime && B.fastest !== B.slowest) badges.push(['worst','Slowest avg']);
+    if (m.passPct === M[B.bestPass].passPct) badges.push(['best','Best pass %']);
+    if (m.passPct === M[B.worstPass].passPct && B.bestPass !== B.worstPass) badges.push(['worst','Worst pass %']);
+    if (isBest) badges.push(['best','#1 score']);
+    if (isWorst) badges.push(['worst','#3 score']);
+
+    const mark = (val, bestKey, worstKey, fmt) => {
+      const cls = (k===B[bestKey]) ? 'best' : (k===B[worstKey] ? 'worst' : '');
+      return `<span class="v ${cls}">${fmt(val)}</span>`;
+    };
+
+    return `<article class="card ${isBest?'best':''} ${isWorst?'worst':''}" style="--c:${m.color}">
+      <div>${badges.map(([t,l])=>`<span class="badge ${t}">${l}</span>`).join('')}</div>
+      <h3>${m.name}</h3>
+      <div class="muted" style="font-size:12px">Score compuesto · rank #${rank}</div>
+      <div class="score" style="color:${m.color}">${DATA.scores[k]}<span>/100</span></div>
+      <div class="metrics">
+        <div class="row"><span class="k">Flakiness</span>${mark(m.flakyPct,'leastFlaky','mostFlaky',v=>v+'%')}</div>
+        <div class="row"><span class="k">Session-create fail</span>${mark(m.sfPct,'leastSF','mostSF',v=>v+'%')}</div>
+        <div class="row"><span class="k">Avg PASS scenario</span>${mark(m.avgPassTime,'fastest','slowest',v=>v+'s')}</div>
+        <div class="row"><span class="k">Pass rate</span>${mark(m.passPct,'bestPass','worstPass',v=>v+'%')}</div>
+        <div class="row"><span class="k">Scenario speed wins</span><span class="v">${m.scenarioWins}</span></div>
+      </div>
+      <div class="pc">
+        <div>
+          <h4 class="pro">Pros</h4>
+          <ul>${m.pros.map(x=>`<li>${x}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <h4 class="con">Cons</h4>
+          <ul>${m.cons.map(x=>`<li>${x}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  const rows = [
+    ['Flakiness %', k=>M[k].flakyPct+'%', 'leastFlaky', 'mostFlaky', true],
+    ['Session-create fail %', k=>M[k].sfPct+'%', 'leastSF', 'mostSF', true],
+    ['Avg PASS scenario time', k=>M[k].avgPassTime+'s', 'fastest', 'slowest', true],
+    ['Pass rate', k=>M[k].passPct+'%', 'bestPass', 'worstPass', false],
+    ['Scenario timing wins', k=>String(M[k].scenarioWins), null, null, false],
+    ['Composite score', k=>DATA.scores[k]+'/100', null, null, false],
+  ];
+  document.getElementById('table').innerHTML = rows.map(([label, fmt, bestKey, worstKey]) => {
+    const cells = order.map(k => {
+      let cls = '';
+      if (bestKey && k===B[bestKey]) cls='bestcell';
+      if (worstKey && k===B[worstKey]) cls='worstcell';
+      // for composite, mark top/bottom
+      if (label==='Composite score') {
+        if (k===DATA.ranked[0]) cls='bestcell';
+        if (k===DATA.ranked[2]) cls='worstcell';
+      }
+      return `<td class="${cls}">${fmt(k)}</td>`;
+    }).join('');
+    const best = bestKey ? short(M[B[bestKey]].name) : (label==='Composite score'?short(M[DATA.ranked[0]].name):'—');
+    const worst = worstKey ? short(M[B[worstKey]].name) : (label==='Composite score'?short(M[DATA.ranked[2]].name):'—');
+    return `<tr><td>${label}</td>${cells}<td class="bestcell">${best}</td><td class="worstcell">${worst}</td></tr>`;
+  }).join('');
+
+  const w = DATA.ranked[0];
+  document.getElementById('verdict').innerHTML = `
+    <h2>Ganador</h2>
+    <div class="winner-name">${M[w].name}</div>
+    <p><strong>Mi veredicto:</strong> también gana <strong>TestMu HyperExecute</strong> (${DATA.scores.testmu_he}/100), por delante de Sauce Cloud (${DATA.scores.sauce_cloud}) y BrowserStack (${DATA.scores.browserstack}).</p>
+    <p>Coincido contigo. HE es el mejor equilibrio: mínima flakiness, cero session fails y calidad estable. Cloud es el más rápido, pero flakea más y pasa menos. BS sigue siendo un baseline sólido en pass rate, pero pierde en estabilidad y velocidad media.</p>
+    <div class="compare">
+      <div class="box">
+        <h3>Por qué HE</h3>
+        <ul style="margin:0;padding-left:18px;color:#d1fae5;font-size:13px">
+          <li>Flakiness claramente inferior (8.7% vs 21–26%)</li>
+          <li>0% session-create fails (empate con Cloud, mejor que BS)</li>
+          <li>Pass rate alto y estable (~78%)</li>
+          <li>Tiempo medio competitivo (solo ~0.16s detrás de Cloud)</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Qué no decide solo</h3>
+        <ul style="margin:0;padding-left:18px;color:#d1fae5;font-size:13px">
+          <li>Cloud gana velocidad pura — útil si el KPI #1 es wall-clock</li>
+          <li>BS sigue siendo referencia de producto/proceso</li>
+          <li>Falta un dispatch HE+BS+Cloud same-commit/device para cerrar el lab gap</li>
+        </ul>
+      </div>
+    </div>`;
+
+  document.getElementById('foot').textContent = DATA.notes.join(' · ') + ' · Generated ' + DATA.generatedAt;
+}
+render();
+</script>
+</body>
+</html>
