@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * GitHub Actions entrypoint for compute-e2e-platform-flags.cjs.
+ * GitHub Actions entrypoint for compute-e2e-platform-flags.mjs.
  */
 
-const fs = require('node:fs');
-const {
+import { appendFileSync } from 'node:fs';
+import {
   resolveE2EPlatformRequirements,
-} = require('./compute-e2e-platform-flags.cjs');
+} from './compute-e2e-platform-flags.mjs';
 
 function readBool(value) {
   return value === 'true';
@@ -134,4 +134,4 @@ const outputLines = [
   'GH_EOF',
 ];
 
-fs.appendFileSync(githubOutputPath, `${outputLines.join('\n')}\n`);
+appendFileSync(githubOutputPath, `${outputLines.join('\n')}\n`);

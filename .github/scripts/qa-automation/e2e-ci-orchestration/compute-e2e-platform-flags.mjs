@@ -266,7 +266,7 @@ function resolveE2EPlatformRequirements(input) {
   };
 }
 
-module.exports = {
+export {
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
   resolveRunAppiumIos,
