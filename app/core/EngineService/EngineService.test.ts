@@ -235,8 +235,9 @@ describe('EngineService', () => {
   });
 
   afterEach(() => {
-    // Clean up any pending timers to prevent Jest teardown issues
-    // Only run pending timers if fake timers are enabled
+    // Tests may switch to real timers before waitFor (CI J8). Re-enter fake
+    // timers so pending-timer cleanup does not console.error via getTimerCount.
+    jest.useFakeTimers();
     try {
       const timerCount = jest.getTimerCount();
       if (timerCount > 0) {
@@ -250,6 +251,7 @@ describe('EngineService', () => {
 
   it('initializes Engine context', async () => {
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Engine.context).toBeDefined();
     });
@@ -276,6 +278,7 @@ describe('EngineService', () => {
     ReduxService.store = mockStore;
 
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
@@ -303,6 +306,7 @@ describe('EngineService', () => {
     ReduxService.store = mockStoreEmptyState;
 
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
@@ -423,6 +427,7 @@ describe('EngineService', () => {
     // Advance timers to trigger the navigation reset setTimeout (150ms)
     jest.advanceTimersByTime(150);
 
+    jest.useRealTimers();
     await waitFor(() => {
       // Logs error to Sentry
       expect(Logger.error).toHaveBeenCalledWith(
@@ -481,6 +486,49 @@ describe('EngineService', () => {
     (hydrateSocialFollowing as jest.Mock).mockReset();
   });
 
+  it('logs deferred persistence setup failures without crashing or vault recovery', async () => {
+    // Arrange — new-user path defers setupEnginePersistence; force it to throw
+    mockRunAfterInteractions.mockClear();
+    mockRunAfterInteractions.mockImplementation((cb) => {
+      if (typeof cb === 'function') cb();
+      return {
+        then: jest.fn(),
+        done: jest.fn(),
+        cancel: jest.fn(),
+      } as never;
+    });
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+    (
+      engineService as unknown as {
+        setupEnginePersistence: (initialState?: Record<string, unknown>) => void;
+      }
+    ).setupEnginePersistence = () => {
+      throw new Error('persist setup boom');
+    };
+
+    // Act — must not reject / route to vault recovery
+    await engineService.start();
+
+    // Assert
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('Deferred persistence setup failed'),
+    );
+    expect(NavigationService.navigation?.reset).not.toHaveBeenCalledWith({
+      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+    });
+  });
+
   describe('updateBatcher', () => {
     // Type for accessing private updateBatcher property
     interface EngineServiceWithBatcher {
@@ -501,6 +549,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process
+      jest.useRealTimers();
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
       });
@@ -526,6 +575,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process - should now handle UPDATE_BG_STATE_KEY actions
+      jest.useRealTimers();
       await waitFor(() => {
         // Each controller name should trigger an UPDATE_BG_STATE_KEY action
         expect(mockDispatch).toHaveBeenCalledTimes(keys.length);
@@ -552,6 +602,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process
+      jest.useRealTimers();
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledTimes(3);
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });

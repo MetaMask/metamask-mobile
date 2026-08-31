@@ -237,6 +237,8 @@ describe('persistConfig', () => {
     const mockKey = 'persist:KeyringController';
 
     beforeEach(() => {
+      // clearAllMocks only — resetAllMocks would wipe the lodash.debounce
+      // identity mock used by createPersistController tests in this file.
       jest.clearAllMocks();
     });
 

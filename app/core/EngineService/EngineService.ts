@@ -159,7 +159,16 @@ export class EngineService {
         InteractionManager.runAfterInteractions(() => {
           // NOSONAR - intentional use of deprecated API (no cross-platform alternative)
           this.deferredPersistenceHandle = null;
-          this.setupEnginePersistence(initialState);
+          // Outside start()'s try/catch — must handle locally. Do not route new
+          // users to vault recovery; log so persistence setup failures are visible.
+          try {
+            this.setupEnginePersistence(initialState);
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              `${LOG_TAG}: Deferred persistence setup failed`,
+            );
+          }
         });
     } else {
       this.setupEnginePersistence(initialState);
