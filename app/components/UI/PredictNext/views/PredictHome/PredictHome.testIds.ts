@@ -1,5 +1,6 @@
 export const PredictHomeTestIds = {
   HOME: 'predict-next-home',
+  BACK: 'predict-next-home-back',
   SCROLL: 'predict-next-home-scroll',
   section: (feedScreenId: string) =>
     `predict-next-home-section-${feedScreenId}`,
