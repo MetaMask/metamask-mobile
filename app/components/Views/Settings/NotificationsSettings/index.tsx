@@ -54,6 +54,17 @@ const NotificationRow = ({
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
+  // A row without a status keeps the two-line height of the other rows, with
+  // the title vertically centered in it.
+  const titleBlockStyle = status
+    ? undefined
+    : {
+        minHeight:
+          theme.typography.sBodyMD.lineHeight +
+          theme.typography.sBodySM.lineHeight,
+        justifyContent: 'center' as const,
+      };
+
   return (
     <TouchableOpacity style={styles.switchElement} onPress={onPress}>
       <Box
@@ -65,7 +76,7 @@ const NotificationRow = ({
           color={IconColor.IconAlternative}
           size={IconSize.Lg}
         />
-        <Box twClassName="ml-4">
+        <Box twClassName="ml-4" style={titleBlockStyle}>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
