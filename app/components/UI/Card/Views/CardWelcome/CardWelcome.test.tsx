@@ -10,10 +10,37 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
-import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-} from '../../../../../__mocks__/rive-react-native';
+import { RiveErrorType } from '@rive-app/react-native';
+
+// Override the global Rive mock: the shared mock renders RiveView without
+// exposing `onError`, which these tests fire to assert the static fallback.
+interface MockRiveViewProps {
+  testID?: string;
+  style?: unknown;
+  onError?: (error: { message: string; type: RiveErrorType }) => void;
+}
+
+let mockLastRiveViewProps: MockRiveViewProps | undefined;
+
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual(
+    '../../../../../__mocks__/rive-app-react-native',
+  );
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const MockReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+
+  const MockRiveView = (props: MockRiveViewProps) => {
+    mockLastRiveViewProps = props;
+    return MockReact.createElement(View, {
+      testID: props.testID,
+      style: props.style,
+    });
+  };
+
+  return { ...actual, RiveView: MockRiveView };
+});
 
 const mockUseCardPostAuthRedirect = jest.fn();
 
@@ -126,12 +153,7 @@ const createTestStore = (
     },
   });
 
-const getRiveOnError = () => {
-  const methods = __getLastMockedMethods() as
-    | { onError?: (error: unknown) => void }
-    | undefined;
-  return methods?.onError;
-};
+const getRiveOnError = () => mockLastRiveViewProps?.onError;
 
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -139,7 +161,7 @@ describe('CardWelcome', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
+    mockLastRiveViewProps = undefined;
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
@@ -308,7 +330,10 @@ describe('CardWelcome', () => {
       expect(onError).toBeDefined();
 
       act(() => {
-        onError?.({ message: 'failed to load', type: 'MalformedFile' });
+        onError?.({
+          message: 'failed to load',
+          type: RiveErrorType.MalformedFile,
+        });
       });
 
       const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props

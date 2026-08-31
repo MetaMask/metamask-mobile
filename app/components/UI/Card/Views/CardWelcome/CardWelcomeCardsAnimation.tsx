@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Image,
   ImageStyle,
@@ -6,7 +6,12 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import Rive, { Fit, RNRiveError } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import CardEducationAnimation from '../../../../../animations/onboarding_card_education_v3.riv';
 import StackedCardsImage from '../../../../../images/stacked-cards.png';
@@ -18,17 +23,21 @@ const log = createProjectLogger('card-education-animation');
 // These MUST match the names authored in onboarding_card_education_v3.riv.
 // If the Rive designer renames any of these, update the constants here.
 //
-// The cards entrance is played as a raw timeline: the asset ships no
-// state-machine inputs, so the state machine is deliberately bypassed here.
+// The entrance runs through the state machine because the Nitro runtime has
+// no `animationName` prop. The artboard carries a single timeline, `CardsIn`,
+// which the state machine plays on entry, so the two are equivalent here.
 
 /** Artboard holding the stacked-cards entrance animation. */
 const RIVE_ARTBOARD_CARDS = 'cards';
 
-/** One-shot cards entrance timeline. */
-const RIVE_CARDS_IN_ANIMATION = 'CardsIn';
+/** State machine that plays the `CardsIn` entrance on entry. */
+const RIVE_STATE_MACHINE = 'State Machine 1';
 
-/** Duration of the CardsIn timeline: 47 frames @ 60fps. */
-export const CARDS_IN_DURATION_MS = 783;
+/**
+ * Wall-clock length of the `CardsIn` entrance: a 47-frame work area at 60fps,
+ * played at the timeline's authored 0.6x speed.
+ */
+export const CARDS_IN_DURATION_MS = 1306;
 
 interface CardWelcomeCardsAnimationProps {
   animate: boolean;
@@ -48,9 +57,12 @@ const CardWelcomeCardsAnimation = ({
   testID,
 }: CardWelcomeCardsAnimationProps) => {
   const [hasRiveError, setHasRiveError] = useState(false);
+  const { riveFile, error: riveFileError } = useRiveFile(
+    CardEducationAnimation,
+  );
 
   const handleError = useCallback(
-    (riveError: RNRiveError) => {
+    (riveError: RiveError) => {
       log(`Rive error: ${riveError.message}`);
       setHasRiveError(true);
       onRiveError?.();
@@ -58,20 +70,32 @@ const CardWelcomeCardsAnimation = ({
     [onRiveError],
   );
 
+  // The Nitro runtime loads the file in JS, so a failed load never reaches
+  // `onError` on the view: without this the cards would stay blank forever
+  // and callers would keep waiting on an entrance that never runs.
+  useEffect(() => {
+    if (!riveFileError) {
+      return;
+    }
+    log(`Rive file failed to load: ${riveFileError.message}`);
+    setHasRiveError(true);
+    onRiveError?.();
+  }, [riveFileError, onRiveError]);
+
   if (animate && !hasRiveError) {
     const riveStyle: ViewStyle = StyleSheet.flatten(style);
-    return (
-      <Rive
-        source={CardEducationAnimation}
+    return riveFile ? (
+      <RiveView
+        file={riveFile}
         artboardName={RIVE_ARTBOARD_CARDS}
-        animationName={RIVE_CARDS_IN_ANIMATION}
-        autoplay
+        stateMachineName={RIVE_STATE_MACHINE}
+        autoPlay
         fit={Fit.Contain}
         style={riveStyle}
         onError={handleError}
         testID={testID ?? CardWelcomeSelectors.CARDS_ANIMATION}
       />
-    );
+    ) : null;
   }
 
   return (
